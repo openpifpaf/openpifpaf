@@ -1,0 +1,35 @@
+# compat
+pifpaf
+
+# system
+.DS_Store
+.gitattributes
+.vscode
+
+# Python
+build/
+venv*/
+*.egg-info
+__pycache__
+dist/
+.pytest_cache/
+.ipynb_checkpoints/
+openpifpaf/functional.c
+openpifpaf/functional.cpython-*
+openpifpaf/functional.html
+
+# data
+docs/*
+data*/
+data-mscoco
+*debug.png
+*.pl
+*.pl-*
+*.pl.*
+*.pkl
+*.pkl-*
+*.pkl.*
+*.json
+*.log
+*.zip
+outputs/
