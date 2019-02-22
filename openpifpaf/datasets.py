@@ -1,6 +1,7 @@
 import logging
 import os
 import torch.utils.data
+import torchvision
 from PIL import Image
 
 from . import transforms
@@ -106,3 +107,22 @@ class CocoKeypoints(torch.utils.data.Dataset):
 
     def __len__(self):
         return len(self.ids)
+
+
+class ImageList(torch.utils.data.Dataset):
+    def __init__(self, image_paths, image_transform=None):
+        self.image_paths = image_paths
+        self.image_transform = image_transform or transforms.image_transform
+
+    def __getitem__(self, index):
+        image_path = self.image_paths[index]
+        with open(image_path, 'rb') as f:
+            image = Image.open(f).convert('RGB')
+
+        original_image = torchvision.transforms.functional.to_tensor(image)
+        image = self.image_transform(image)
+
+        return image_path, original_image, image
+
+    def __len__(self):
+        return len(self.image_paths)
