@@ -10,6 +10,24 @@ openpifpaf
   }
 
 
+Demo
+----
+
+.. figure:: docs/coco/000000081988.jpg.skeleton.png
+
+  Image credit: "`Learning to surf <https://www.flickr.com/photos/fotologic/6038911779/in/photostream/>`_" by fotologic which is licensed under CC-BY-2.0_.
+
+
+Created with:
+
+.. code-block:: sh
+
+  python -m openpifpaf.predict \
+    --checkpoint outputs/resnet101block5-pifs-pafs-edge401-l1-190131-083451.pkl \
+    data-mscoco/images/val2017/000000081988.jpg -o docs/coco/ --show
+
+
+
 Install
 -------
 
@@ -94,30 +112,6 @@ Every 5 minutes, check the directory for new snapshots to evaluate:
 
 
 
-Demo
-----
-
-.. code-block:: sh
-
-  python -m openpifpaf.predict \
-    --checkpoint outputs/resnet101block5-pifs-pafs-edge401-l1-190131-083451.pkl \
-    data-mscoco/images/val2017/000000081988.jpg -o docs/coco/ --show
-
-Result:
-
-.. figure:: docs/coco/000000081988.jpg.skeleton.png
-
-  Image credit: "`Learning to surf <https://www.flickr.com/photos/fotologic/6038911779/in/photostream/>`_" by fotologic which is licensed under CC-BY-2.0_.
-
-Processing a video from `video.avi` to `video-pose.mp4`:
-
-.. code-block:: sh
-
-    ffmpeg -i video.avi -qscale:v 2 -vf scale=641:-1 -f image2 video-%05d.jpg
-    python -m openpifpaf.predict --checkpoint outputs/resnet101block5-pifs-pafs-edge401-l1-190213-100439.pkl video-*0.jpg
-    ffmpeg -framerate 24 -pattern_type glob -i 'video-*.jpg.skeleton.png' -vf scale=640:-1 -c:v libx264 -pix_fmt yuv420p video-pose.mp4
-
-
 Person Skeletons
 ----------------
 
@@ -137,6 +131,18 @@ COCO / kinematic tree / dense:
   :height: 250px
 
 Created with ``python -m openpifpaf.data``.
+
+
+Video
+-----
+
+Processing a video frame by frame from ``video.avi`` to ``video-pose.mp4`` using ffmpeg:
+
+.. code-block:: sh
+
+    ffmpeg -i video.avi -qscale:v 2 -vf scale=641:-1 -f image2 video-%05d.jpg
+    python -m openpifpaf.predict --checkpoint outputs/resnet101block5-pifs-pafs-edge401-l1-190213-100439.pkl video-*0.jpg
+    ffmpeg -framerate 24 -pattern_type glob -i 'video-*.jpg.skeleton.png' -vf scale=640:-1 -c:v libx264 -pix_fmt yuv420p video-pose.mp4
 
 
 Evaluations
