@@ -317,7 +317,7 @@ class CompositeLoss(torch.nn.Module):
         bce_target = torch.masked_select(target_intensity[:, :-1], bce_masks)
         bce_weight = torch.ones_like(bce_target)
         bce_weight[bce_target == 0] = self.background_weight
-        ce_loss = torch.nn.functional.binary_cross_entropy(
+        ce_loss = torch.nn.functional.binary_cross_entropy_with_logits(
             torch.masked_select(x_intensity, bce_masks),
             bce_target,
             weight=bce_weight,

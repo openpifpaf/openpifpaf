@@ -90,6 +90,10 @@ def factory(args):
         net_cpu = checkpoint['model']
         epoch = checkpoint['epoch']
 
+        # initialize for eval
+        for head in net_cpu.head_nets:
+            head.apply_class_sigmoid = True
+
         # normalize for backwards compatibility
         for head in net_cpu.head_nets:
             head.shortname = head.shortname.replace('PartsIntensityFields', 'pif')

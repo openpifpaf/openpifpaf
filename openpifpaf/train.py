@@ -104,12 +104,13 @@ def main():
     logs.configure(args)
     net_cpu, start_epoch = nets.factory(args)
 
-    if torch.cuda.device_count() > 1:
+    for head in net_cpu.head_nets:
+        head.apply_class_sigmoid = False
+
+    net = net_cpu.to(device=args.device)
+    if not args.disable_cuda and torch.cuda.device_count() > 1:
         print('Using multiple GPUs: {}'.format(torch.cuda.device_count()))
-        net = torch.nn.DataParallel(net_cpu)
-    else:
-        net = net_cpu
-    net = net.to(device=args.device)
+        net = torch.nn.DataParallel(net)
 
     optimizer, lr_scheduler = optimize.factory(args, net.parameters())
     loss_list = losses.factory(args)

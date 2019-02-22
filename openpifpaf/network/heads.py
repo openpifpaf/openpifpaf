@@ -231,6 +231,7 @@ class CompositeField(torch.nn.Module):
             n_scales,
         )
         self.dilation = 1.0
+        self.apply_class_sigmoid = True
 
         self.dropout = torch.nn.Dropout2d(p=dropout_p)
         self._quad = quad
@@ -260,7 +261,8 @@ class CompositeField(torch.nn.Module):
 
         # classification
         class_x = self.class_conv(x)
-        class_x = torch.sigmoid(class_x)
+        if self.apply_class_sigmoid:
+            class_x = torch.sigmoid(class_x)
 
         # regressions
         regs_x = [reg_conv(x) * self.dilation for reg_conv in self.reg_convs]
