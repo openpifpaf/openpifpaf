@@ -115,7 +115,7 @@ class PIFLoss(torch.nn.Module):
 
         self.log = logging.getLogger(self.__class__.__name__)
 
-    def forward(self, x, t):
+    def forward(self, x, t):  # pylint: disable=arguments-differ
         if self.scale_to_kp is not None:
             x_intensity, x_reg, x_scale = x
         else:
@@ -200,7 +200,7 @@ class PAFLoss(torch.nn.Module):
         scale_to_kp2 = torch.unsqueeze(scale_to_kp2, -1)
         self.register_buffer('scale_to_kp2', scale_to_kp2)
 
-    def forward(self, x, t):
+    def forward(self, x, t):  # pylint: disable=arguments-differ
         x_intensity, x_reg1, x_reg2 = x
         target_intensity, target_reg1, target_reg2, target_scale = t
 
@@ -245,18 +245,20 @@ class PAFLoss(torch.nn.Module):
                 selected_target_scale1 = torch.masked_select(
                     torch.unsqueeze(target_scale1, 2), reg_masks)
                 kp_scale1 = torch.clamp(selected_target_scale1, min=1e-2, max=1.0)
+                c_scale1 = self.reg_upscale / kp_scale1 / multiplicity
                 reg1_loss = self.lambda_regression * torch.sum(self.regression_loss(
-                    torch.masked_select(x_reg1, reg_masks) * self.reg_upscale / kp_scale1 / multiplicity,
-                    torch.masked_select(target_reg1, reg_masks) * self.reg_upscale / kp_scale1 / multiplicity,
+                    torch.masked_select(x_reg1, reg_masks) * c_scale1,
+                    torch.masked_select(target_reg1, reg_masks) * c_scale1,
                 ) * kp_scale1 / 10.0) / 100.0 / batch_size
 
                 target_scale2 = target_scale * self.scale_to_kp2
                 selected_target_scale2 = torch.masked_select(
                     torch.unsqueeze(target_scale2, 2), reg_masks)
                 kp_scale2 = torch.clamp(selected_target_scale2, min=1e-2, max=1.0)
+                c_scale2 = self.reg_upscale / kp_scale2 / multiplicity
                 reg2_loss = self.lambda_regression * torch.sum(self.regression_loss(
-                    torch.masked_select(x_reg2, reg_masks) * self.reg_upscale / kp_scale2 / multiplicity,
-                    torch.masked_select(target_reg2, reg_masks) * self.reg_upscale / kp_scale2 / multiplicity,
+                    torch.masked_select(x_reg2, reg_masks) * c_scale2,
+                    torch.masked_select(target_reg2, reg_masks) * c_scale2,
                 ) * kp_scale2 / 10.0) / 100.0 / batch_size
 
             if self.training and reg1_loss.item() >= 100.0:
@@ -296,7 +298,7 @@ class CompositeLoss(torch.nn.Module):
 
         self.regression_loss = regression_loss or laplace_loss
 
-    def forward(self, x, t):
+    def forward(self, x, t):  # pylint: disable=arguments-differ
         x_intensity = x[0]
         x_regs = x[1:self.n_vectors + 1]
         x_spreads = x[self.n_vectors + 1:2 * self.n_vectors + 1]

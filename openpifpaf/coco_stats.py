@@ -5,7 +5,7 @@ import argparse
 import numpy as np
 import torch
 
-from .network import datasets, transforms
+from . import datasets, transforms
 
 ANNOTATIONS = 'data-mscoco/annotations/person_keypoints_val2017.json'
 IMAGE_DIR = 'data-mscoco/images/val2017/'
@@ -37,7 +37,6 @@ def main():
         for ann in anns:
             mask = ann['iscrowd'] == 0
             bbox_heights.append(ann['bbox'][mask, 3])
-            # print('w', ann['bbox'][0, 2], 'h', ann['bbox'][0, 3])
 
             areas = ann['bbox_original'][:, 2] * ann['bbox_original'][:, 3]
             mask_medium = mask & (32**2 < areas) & (areas < 96**2)

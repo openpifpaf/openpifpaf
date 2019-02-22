@@ -69,7 +69,7 @@ def factory(args, model):
                             force_complete=args.force_complete_pose,
                             connection_method=args.connection_method,
                             debug_visualizer=debug_visualizer)
-    elif headnames == ('pifs17', 'pafs19') or headnames == ('pifs17', 'pafs19n2'):
+    elif headnames in (('pifs17', 'pafs19'), ('pifs17', 'pafs19n2')):
         if args.ignore_spread:
             decode = PifPaf(model.io_scales()[-1], args.seed_threshold,
                             force_complete=args.force_complete_pose,

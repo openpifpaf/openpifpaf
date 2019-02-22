@@ -152,7 +152,7 @@ def quiver(ax, vector_field, intensity_field=None, step=1, threshold=0.5,
         u -= x
         v -= y
 
-    for xx, yy, uu, vv, cc, rr in zip(x, y, u, v, c, r):
+    for xx, yy, uu, vv, _, rr in zip(x, y, u, v, c, r):
         if not rr:
             continue
         circle = matplotlib.patches.Circle(

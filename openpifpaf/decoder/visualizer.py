@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
-import scipy
 
 from ..data import COCO_KEYPOINTS, COCO_PERSON_SKELETON
 from .. import show
@@ -47,7 +46,8 @@ class Visualizer(object):
                 for xx, yy, cc in zip(x, y, c):
                     ax.text(xx, yy, '{:.2f}'.format(cc))
 
-    def occupied(self, occ):
+    @staticmethod
+    def occupied(occ):
         occ = occ.copy()
         occ[occ > 0] = 1.0
         with show.canvas() as ax:
@@ -123,11 +123,11 @@ class Visualizer(object):
                                      reg_uncertainty=reg1_uncertainty,
                                      threshold=0.5, width=0.003, step=1,
                                      cmap='viridis_r', clim=(0.5, 1.0), xy_scale=io_scale)
-                    q2 = show.quiver(ax, reg2_fields[f * reg_components:f * reg_components + 2],
-                                     intensity_fields[f],
-                                     reg_uncertainty=reg2_uncertainty,
-                                     threshold=0.5, width=0.003, step=1,
-                                     cmap='viridis_r', clim=(0.5, 1.0), xy_scale=io_scale)
+                    show.quiver(ax, reg2_fields[f * reg_components:f * reg_components + 2],
+                                intensity_fields[f],
+                                reg_uncertainty=reg2_uncertainty,
+                                threshold=0.5, width=0.003, step=1,
+                                cmap='viridis_r', clim=(0.5, 1.0), xy_scale=io_scale)
 
                     divider = make_axes_locatable(ax)
                     cax = divider.append_axes('right', size='3%', pad=0.05)

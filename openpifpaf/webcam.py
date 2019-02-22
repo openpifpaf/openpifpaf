@@ -11,11 +11,9 @@ Example command:
 
 
 import argparse
-import matplotlib.pyplot as plt
-import matplotlib.animation
 import time
 
-import numpy as np
+import matplotlib.pyplot as plt
 import torch
 
 import cv2
@@ -37,13 +35,19 @@ class Visualizer(object):
         ax.set_axis_off()
         ax.set_xlim(0, first_image.shape[1])
         ax.set_ylim(first_image.shape[0], 0)
+        # text = 'OpenPifPaf demo [image = ({}, {})]'.format(
+        #     first_image.shape[1], first_image.shape[0])
+        text = 'OpenPifPaf'
+        ax.text(1, 1, text,
+                fontsize=10, verticalalignment='top',
+                bbox=dict(facecolor='white', alpha=0.5, linewidth=0))
         fig.add_axes(ax)
         mpl_im = ax.imshow(first_image)
         fig.show()
 
         while True:
             image, all_fields = yield
-            keypoint_sets, scores = self.processor.keypoint_sets(all_fields)
+            keypoint_sets, _ = self.processor.keypoint_sets(all_fields)
 
             draw_start = time.time()
             while ax.lines:
