@@ -143,20 +143,11 @@ Evaluations
 -----------
 
 See `evaluation logs <docs/eval_logs.md>`_ for a long list.
-This result was produced with ``python -m openpifpaf.eval_coco --checkpoint outputs/resnet152-pif-paf-l1-181230-201001.pkl --long-edge=593``:
+This result was produced with ``python -m openpifpaf.eval_coco --checkpoint outputs/resnet152-pif-paf-l1-181230-201001.pkl --long-edge=641``:
 
 .. code-block::
 
-  Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.626
-  Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.855
-  Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.684
-  Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.585
-  Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.697
-  Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.688
-  Average Recall     (AR) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.891
-  Average Recall     (AR) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.741
-  Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.628
-  Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.771
+  removed outdated info
 
 
 
