@@ -114,6 +114,8 @@ def factory(args):
                 head.reg2_spread = None
             if head.shortname == 'pif17' and getattr(head, 'scale_conv') is not None:
                 head.shortname = 'pifs17'
+            if head._quad == 1 and not hasattr(head, 'dequad_op'):
+                head.dequad_op = torch.nn.PixelShuffle(2)
 
     if args.dilation is not None:
         net_cpu.base_net.atrous0(args.dilation)

@@ -37,7 +37,7 @@ class PartIntensityFields(torch.nn.Module):
         if with_scale:
             self.scale_conv = torch.nn.Conv2d(in_features, n_parts * (4 ** self._quad), 1)
 
-    def forward(self, x):
+    def forward(self, x):  # pylint: disable=arguments-differ
         x = self.dropout(x)
 
         class_x = self.class_conv(x)
@@ -101,7 +101,7 @@ class PartAssociationFields(torch.nn.Module):
             self.reg1_spread = torch.nn.Conv2d(in_features, out_features, 1)
             self.reg2_spread = torch.nn.Conv2d(in_features, out_features, 1)
 
-    def forward(self, x):
+    def forward(self, x):  # pylint: disable=arguments-differ
         x = self.dropout(x)
 
         # classification
@@ -184,7 +184,7 @@ class NPartAssociationFields(torch.nn.Module):
                 for _ in self.reg_convs
             ])
 
-    def forward(self, x):
+    def forward(self, x):  # pylint: disable=arguments-differ
         x = self.dropout(x)
 
         # classification
@@ -256,7 +256,10 @@ class CompositeField(torch.nn.Module):
             for _ in range(n_scales)
         ])
 
-    def forward(self, x):
+        # dequad
+        self.dequad_op = torch.nn.PixelShuffle(2)
+
+    def forward(self, x):  # pylint: disable=arguments-differ
         x = self.dropout(x)
 
         # classification
@@ -274,10 +277,13 @@ class CompositeField(torch.nn.Module):
         scales_x = [torch.nn.functional.relu(scale_x) for scale_x in scales_x]
 
         for _ in range(self._quad):
-            class_x = dequad(class_x)
-            regs_x = [dequad(reg_x) for reg_x in regs_x]
-            regs_x_spread = [dequad(reg_x_spread) for reg_x_spread in regs_x_spread]
-            scales_x = [dequad(scale_x) for scale_x in scales_x]
+            class_x = self.dequad_op(class_x)[:, :, :-1, :-1]
+            regs_x = [self.dequad_op(reg_x)[:, :, :-1, :-1]
+                      for reg_x in regs_x]
+            regs_x_spread = [self.dequad_op(reg_x_spread)[:, :, :-1, :-1]
+                             for reg_x_spread in regs_x_spread]
+            scales_x = [self.dequad_op(scale_x)[:, :, :-1, :-1]
+                        for scale_x in scales_x]
 
         regs_x = [
             reg_x.reshape(reg_x.shape[0],
