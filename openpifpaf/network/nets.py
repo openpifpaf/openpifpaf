@@ -91,6 +91,7 @@ def factory(args):
         epoch = checkpoint['epoch']
 
         # initialize for eval
+        net_cpu.eval()
         for head in net_cpu.head_nets:
             head.apply_class_sigmoid = True
 
@@ -98,14 +99,13 @@ def factory(args):
         for head in net_cpu.head_nets:
             head.shortname = head.shortname.replace('PartsIntensityFields', 'pif')
             head.shortname = head.shortname.replace('PartsAssociationFields', 'paf')
-
             if not hasattr(head, 'dropout') or head.dropout is None:
                 head.dropout = torch.nn.Dropout2d(p=0.0)
             if not hasattr(head, '_quad'):
                 if hasattr(head, 'quad'):
-                    head._quad = head.quad
+                    head._quad = head.quad  # pylint: disable=protected-access
                 else:
-                    head._quad = 0
+                    head._quad = 0  # pylint: disable=protected-access
             if not hasattr(head, 'scale_conv'):
                 head.scale_conv = None
             if not hasattr(head, 'reg1_spread'):
@@ -114,7 +114,7 @@ def factory(args):
                 head.reg2_spread = None
             if head.shortname == 'pif17' and getattr(head, 'scale_conv') is not None:
                 head.shortname = 'pifs17'
-            if head._quad == 1 and not hasattr(head, 'dequad_op'):
+            if head._quad == 1 and not hasattr(head, 'dequad_op'):  # pylint: disable=protected-access
                 head.dequad_op = torch.nn.PixelShuffle(2)
 
     if args.dilation is not None:
