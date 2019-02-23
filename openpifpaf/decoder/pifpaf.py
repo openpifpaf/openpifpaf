@@ -1,4 +1,4 @@
-"""Decoder for pifs-pafs fields."""
+"""Decoder for pif-paf fields."""
 
 from collections import defaultdict
 import time
@@ -23,7 +23,7 @@ class PifPaf(object):
         self.stride = stride
         self.hr_scale = self.stride
         self.skeleton = skeleton or COCO_PERSON_SKELETON
-        self.head_indices = head_indices
+        self.head_indices = head_indices or [0, 1]
         self.profile = profile
         self.seed_threshold = seed_threshold
         self.force_complete = force_complete
@@ -38,10 +38,7 @@ class PifPaf(object):
         if self.profile is not None:
             self.profile.enable()
 
-        if not self.head_indices:
-            pif, paf = fields
-        else:
-            pif, paf = fields[self.head_indices[0]], fields[self.head_indices[1]]
+        pif, paf = fields[self.head_indices[0]], fields[self.head_indices[1]]
         # if self.debug_visualizer:
         #     self.debug_visualizer.pif_raw(pif, self.stride)
         #     self.debug_visualizer.paf_raw(paf, self.stride, reg_components=3)
