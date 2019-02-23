@@ -18,20 +18,26 @@ class Processor(object):
         self.instance_threshold = instance_threshold
         self.debug_visualizer = debug_visualizer
 
-        self.fields_ = None
-
     def set_cpu_image(self, cpu_image):
         if self.debug_visualizer is not None:
             self.debug_visualizer.set_image(cpu_image)
 
-    def fields(self, image_tensor):
+    def fields(self, image_batch):
         start = time.time()
         with torch.no_grad():
-            heads = self.model(image_tensor.unsqueeze(0))
-            fields = [[field[0].cpu().numpy() for field in head] for head in heads]  # remove batch
+            heads = self.model(image_batch)
+
+            # to numpy
+            fields = [[field.cpu().numpy() for field in head] for head in heads]
+
+            # index by batch entry
+            fields = [
+                [[field[i] for field in head] for head in fields]
+                for i in range(image_batch.shape[0])
+            ]
+
         print('nn processing time', time.time() - start)
 
-        self.fields_ = fields
         return fields
 
     def soft_nms(self, annotations):

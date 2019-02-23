@@ -67,11 +67,15 @@ def main():
     for image_i, (image_paths, image_tensors, processed_images_cpu) in enumerate(data_loader):
         images = image_tensors.permute(0, 2, 3, 1)
 
+        processed_images = processed_images_cpu.to(args.device, non_blocking=True)
+        fields_batch = processors[0].fields(processed_images)
+
         # unbatch
-        for image_path, image, processed_image_cpu in zip(
+        for image_path, image, processed_image_cpu, fields in zip(
                 image_paths,
                 images,
-                processed_images_cpu):
+                processed_images_cpu,
+                fields_batch):
 
             if args.output_directory is None:
                 output_path = image_path
@@ -80,11 +84,9 @@ def main():
                 output_path = os.path.join(args.output_directory, file_name)
             print('image', image_i, image_path, output_path)
 
-            processed_image = processed_image_cpu.to(args.device, non_blocking=True)
             processors[0].set_cpu_image(processed_image_cpu)
-            all_fields = processors[0].fields(processed_image.float())
             for processor in processors:
-                keypoint_sets, scores = processor.keypoint_sets(all_fields)
+                keypoint_sets, scores = processor.keypoint_sets(fields)
 
                 if 'json' in args.output_types:
                     with open(output_path + '.pifpaf.json', 'w') as f:

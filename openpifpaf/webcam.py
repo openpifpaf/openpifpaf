@@ -117,9 +117,9 @@ def main():
         processed_image = processed_image_cpu.contiguous().to(args.device, non_blocking=True)
         print('preprocessing time', time.time() - start)
 
-        all_fields = processors[0].fields(processed_image.float())
+        fields = processors[0].fields(torch.unsqueeze(processed_image, 0))[0]
         for v in visualizers:
-            v.send((image, all_fields))
+            v.send((image, fields))
 
         print('loop time = {:.3}s, FPS = {:.3}'.format(
             time.time() - last_loop, 1.0 / (time.time() - last_loop)))

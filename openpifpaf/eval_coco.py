@@ -63,11 +63,17 @@ class EvalCoco(object):
         self.eval.summarize()
         return self.eval.stats
 
-    def from_fields(self, fields, image_id, category_id, meta,
+    def from_fields(self, fields, meta,
                     debug=False, gt=None, image_cpu=None, verbose=False,
-                    fields_half_scale=None):
+                    fields_half_scale=None, category_id=1):
         start = time.time()
+
+        image_id = int(meta['image_id'])
         self.image_ids.append(image_id)
+
+        if image_cpu is not None:
+            self.processor.set_cpu_image(image_cpu)
+
         if fields_half_scale is not None:
             instances, scores = self.processor.keypoint_sets_two_scales(fields, fields_half_scale)
         else:
@@ -94,7 +100,7 @@ class EvalCoco(object):
 
             instances_gt = None
             if gt:
-                instances_gt = np.stack([a['keypoints'][0] for a in gt])
+                instances_gt = np.stack([a['keypoints'] for a in gt])
 
                 # for test: overwrite prediction with true values
                 # instances = instances_gt.copy()[:1]
@@ -170,14 +176,12 @@ def main():
                         help='dataset to evaluate')
     parser.add_argument('--min-ann', default=0, type=int,
                         help='minimum number of truth annotations')
-    # parser.add_argument('--batch-size', default=5, type=int,
-    #                     help='batch size')
-    parser.add_argument('--long-edge', default=593, type=int,
+    parser.add_argument('--batch-size', default=1, type=int,
+                        help='batch size')
+    parser.add_argument('--long-edge', default=641, type=int,
                         help='long edge of input images')
     parser.add_argument('--loader-workers', default=2, type=int,
                         help='number of workers for data loading')
-    parser.add_argument('--true-fields', default=False, action='store_true',
-                        help='overwrite the NN output with the true fields')
     parser.add_argument('--skip-existing', default=False, action='store_true',
                         help='skip if output eval file exists already')
     parser.add_argument('--two-scale', default=False, action='store_true',
@@ -237,60 +241,49 @@ def main():
         return_meta=True,
     )
     data_loader = torch.utils.data.DataLoader(
-        data, batch_size=1, pin_memory=pin_memory, num_workers=args.loader_workers)
+        data, batch_size=args.batch_size, pin_memory=pin_memory, num_workers=args.loader_workers)
 
     model, _ = nets.factory(args)
     model = model.to(args.device)
     processors = decoder.factory(args, model)
-    target_transforms = encoder.factory(args, model.io_scales())
 
     coco = pycocotools.coco.COCO(annotation_file)
     eval_cocos = [EvalCoco(coco, p, preprocess.keypoint_sets_inverse)
                   for p in processors]
     total_start = time.time()
     loop_start = time.time()
-    for i, (batch, anns, meta) in enumerate(data_loader):
-        print('image', i, 'last loop: {:.3f}s'.format(time.time() - loop_start))
-        if i < args.skip_n:
+    for batch_i, (batch, anns_batch, meta_batch) in enumerate(data_loader):
+        print('batch', batch_i, 'last loop: {:.3f}s'.format(time.time() - loop_start))
+        if batch_i < args.skip_n:
             continue
-        if args.n and i >= args.n:
+        if args.n and batch_i >= args.n:
             break
 
         loop_start = time.time()
-        if len([a for a in anns if np.any(a['keypoints'][0, :, 2].numpy() > 0)]) < args.min_ann:
+        if len([a
+                for a in anns_batch
+                if np.any(a['keypoints'][0, :, 2].numpy() > 0)]) < args.min_ann:
             continue
 
-        single_meta = {k: v[0] for k, v in meta.items()}
-        # print(meta, single_meta)
-        image_id = int(single_meta['image_id'])
-        category_id = 1  # person
-
-        image_cpu = batch[0]
-        processors[0].set_cpu_image(image_cpu)
-        if args.device:
-            batch = batch.to(args.device, non_blocking=True)
-
-        fields_half_scale = None
-        if args.true_fields:
-            wh = image_cpu.shape[2:0:-1]
-            anns0 = [{k: v[0].numpy() for k, v in ann.items()} for ann in anns]
-            pif, paf = [t(anns0, wh) for t in target_transforms]
-            pif_c, pif_v = pif[:-1]
-            pif_c = pif_c[:-1]
-            paf_c, paf_v1, paf_v2 = paf[:-1]
-            paf_c = paf_c[:-1]
-            fields = ((pif_c, pif_v), (paf_c, paf_v1, paf_v2))
-            fields = [[field.numpy() for field in head] for head in fields]
+        image_tensors_cpu = batch
+        batch = batch.to(args.device, non_blocking=True)
+        fields_batch = processors[0].fields(batch)
+        if args.two_scale:
+            batch_half_scale = batch[:, :, ::2, ::2]
+            fields_batch_half_scale = processors[0].fields(batch_half_scale)
         else:
-            fields = processors[0].fields(batch[0])
+            fields_batch_half_scale = [None for _ in range(batch.shape[0])]
 
-            if args.two_scale:
-                batch_half_scale = batch[:, :, ::2, ::2]
-                fields_half_scale = processors[0].fields(batch_half_scale[0])
-        for ec in eval_cocos:
-            ec.from_fields(fields, image_id, category_id, single_meta,
-                           debug=args.debug, gt=anns, image_cpu=image_cpu,
-                           fields_half_scale=fields_half_scale)
+        meta_batch = [{k: v[i] for k, v in meta_batch.items()}
+                      for i in range(batch.shape[0])]
+        anns_batch = [[{k: v[i] for k, v in anns.items()} for anns in anns_batch]
+                      for i in range(batch.shape[0])]
+        for image_tensor_cpu, fields, fields_half_scale, anns, meta in zip(
+                image_tensors_cpu, fields_batch, fields_batch_half_scale, anns_batch, meta_batch):
+            for ec in eval_cocos:
+                ec.from_fields(fields, meta,
+                               debug=args.debug, gt=anns, image_cpu=image_tensor_cpu,
+                               fields_half_scale=fields_half_scale)
     total_time = time.time() - total_start
 
     for i, eval_coco in enumerate(eval_cocos):
