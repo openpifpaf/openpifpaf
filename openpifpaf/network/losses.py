@@ -342,7 +342,7 @@ class CompositeLoss(torch.nn.Module):
                 if hasattr(self.regression_loss, 'scale'):
                     assert self.scales_to_kp is not None
                     self.regression_loss.scale = torch.masked_select(
-                        target_scale * self.scales_to_kp[i],  # pylint: disable=unsubscriptable-object
+                        torch.clamp(target_scale * self.scales_to_kp[i], 0.1, 1000.0),  # pylint: disable=unsubscriptable-object
                         reg_masks,
                     )
 
