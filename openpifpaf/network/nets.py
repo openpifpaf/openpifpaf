@@ -116,6 +116,8 @@ def factory(args):
                 head.shortname = 'pifs17'
             if head._quad == 1 and not hasattr(head, 'dequad_op'):  # pylint: disable=protected-access
                 head.dequad_op = torch.nn.PixelShuffle(2)
+            if not hasattr(head, 'class_convs') and hasattr(head, 'class_conv'):
+                head.class_convs = torch.nn.ModuleList([head.class_conv])
 
     if args.dilation is not None:
         net_cpu.base_net.atrous0(args.dilation)

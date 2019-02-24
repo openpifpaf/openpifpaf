@@ -223,10 +223,12 @@ class NPartAssociationFields(torch.nn.Module):
 
 class CompositeField(torch.nn.Module):
     def __init__(self, n, in_features, shortname=None,
-                 dropout_p=0.0, quad=0, n_vectors=2, n_scales=0):
+                 dropout_p=0.0, quad=0,
+                 n_confidences=1, n_vectors=0, n_scales=0):
         super(CompositeField, self).__init__()
-        self.shortname = shortname or 'cf{}v{}s{}'.format(
+        self.shortname = shortname or 'cf{}c{}v{}s{}'.format(
             n,
+            n_confidences,
             n_vectors,
             n_scales,
         )
@@ -238,7 +240,10 @@ class CompositeField(torch.nn.Module):
 
         # classification
         out_features = n * (4 ** self._quad)
-        self.class_conv = torch.nn.Conv2d(in_features, out_features, 1)
+        self.class_convs = torch.nn.ModuleList([
+            torch.nn.Conv2d(in_features, out_features, 1)
+            for _ in range(n_confidences)
+        ])
 
         # regression
         self.reg_convs = torch.nn.ModuleList([
@@ -263,9 +268,9 @@ class CompositeField(torch.nn.Module):
         x = self.dropout(x)
 
         # classification
-        class_x = self.class_conv(x)
+        classes_x = [class_conv(x) for class_conv in self.class_convs]
         if self.apply_class_sigmoid:
-            class_x = torch.sigmoid(class_x)
+            classes_x = [torch.sigmoid(class_x) for class_x in classes_x]
 
         # regressions
         regs_x = [reg_conv(x) * self.dilation for reg_conv in self.reg_convs]
@@ -277,7 +282,8 @@ class CompositeField(torch.nn.Module):
         scales_x = [torch.nn.functional.relu(scale_x) for scale_x in scales_x]
 
         for _ in range(self._quad):
-            class_x = self.dequad_op(class_x)[:, :, :-1, :-1]
+            classes_x = [self.dequad_op(class_x)[:, :, :-1, :-1]
+                         for class_x in classes_x]
             regs_x = [self.dequad_op(reg_x)[:, :, :-1, :-1]
                       for reg_x in regs_x]
             regs_x_spread = [self.dequad_op(reg_x_spread)[:, :, :-1, :-1]
@@ -294,4 +300,4 @@ class CompositeField(torch.nn.Module):
             for reg_x in regs_x
         ]
 
-        return [class_x] + regs_x + regs_x_spread + scales_x
+        return classes_x + regs_x + regs_x_spread + scales_x
