@@ -16,14 +16,12 @@ def cli(parser, force_complete_pose=True, instance_threshold=0.0):
     group.add_argument('--keypoint-threshold', type=float, default=None,
                        help='filter keypoints by score')
 
-    force_complete_pose_parser = group.add_mutually_exclusive_group(required=False)
-    force_complete_pose_parser.add_argument('--force-complete-pose',
-                                            dest='force_complete_pose',
-                                            action='store_true')
-    force_complete_pose_parser.add_argument('--no-force-complete-pose',
-                                            dest='force_complete_pose',
-                                            action='store_false')
-    group.set_defaults(force_complete_pose=force_complete_pose)
+    if force_complete_pose:
+        group.add_argument('--no-force-complete-pose', dest='force_complete_pose',
+                           default=True, action='store_false')
+    else:
+        group.add_argument('--force-complete-pose', dest='force_complete_pose',
+                           default=False, action='store_true')
 
     group.add_argument('--debug-pif-indices', default=[], nargs='+',
                        help=('indices of PIF fields to create debug plots for '
