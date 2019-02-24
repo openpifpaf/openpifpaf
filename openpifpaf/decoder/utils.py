@@ -78,10 +78,14 @@ class Sparse2DGaussianField(object):
         return np.stack([self.value(xy, sigma) for xy, sigma in zip(xys, sigmas)])
 
 
-def normalize_paf(intensity_fields, j1_fields, j2_fields, j1_fields_logb, j2_fields_logb):
+def normalize_paf(intensity_fields, j1_fields, j2_fields, j1_fields_logb, j2_fields_logb, *,
+                  fixed_b=None):
     intensity_fields = np.expand_dims(intensity_fields, 1)
     j1_fields_b = np.expand_dims(np.exp(j1_fields_logb), 1)
     j2_fields_b = np.expand_dims(np.exp(j2_fields_logb), 1)
+    if fixed_b:
+        j1_fields_b = np.full_like(j1_fields_b, fixed_b)
+        j2_fields_b = np.full_like(j2_fields_b, fixed_b)
 
     index_fields = index_field(j1_fields[0, 0].shape)
     index_fields = np.expand_dims(index_fields, 0)
