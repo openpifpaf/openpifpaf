@@ -49,10 +49,10 @@ class SmoothL1Loss(object):
         if self.scale is None:
             self.scale = 1.0
 
-        x = torch.stack(x1, x2) * self.r_smooth * self.scale
-        t = torch.stack(t1, t2) * self.r_smooth * self.scale
+        x = torch.stack((x1, x2)) * self.r_smooth * self.scale
+        t = torch.stack((t1, t2)) * self.r_smooth * self.scale
 
-        losses = torch.nn.function.smooth_l1_loss(x, t, reduction='none')
+        losses = torch.nn.functional.smooth_l1_loss(x, t, reduction='none')
 
         losses = losses / self.r_smooth / self.scale
 
@@ -341,7 +341,10 @@ class CompositeLoss(torch.nn.Module):
             for i, (x_reg, x_spread, target_reg) in enumerate(zip(x_regs, x_spreads, target_regs)):
                 if hasattr(self.regression_loss, 'scale'):
                     assert self.scales_to_kp is not None
-                    self.regression_loss.scale = target_scale * self.scales_to_kp[i]  # pylint: disable=unsubscriptable-object
+                    self.regression_loss.scale = torch.masked_select(
+                        target_scale * self.scales_to_kp[i],  # pylint: disable=unsubscriptable-object
+                        reg_masks,
+                    )
 
                 reg_losses.append(self.regression_loss(
                     torch.masked_select(x_reg[:, :, 0], reg_masks),
