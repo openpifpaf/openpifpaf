@@ -86,7 +86,8 @@ class SquareRescale(object):
             self.long_edge - w - left,
             self.long_edge - h - top,
         )
-        return torchvision.transforms.functional.pad(image, ltrb)
+        return torchvision.transforms.functional.pad(
+            image, ltrb, fill=(124, 116, 104))
 
     def __call__(self, image, anns):
         w, h = image.size
