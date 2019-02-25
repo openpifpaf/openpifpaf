@@ -242,7 +242,7 @@ class Plots(object):
             if 'train' in data:
                 print('{}: {}'.format(label, data['train'][-1]))
 
-    def show_all(self, n_heads=5):
+    def show_all(self, n_heads=5, *, share_y=True):
         pprint(self.process_arguments())
 
         with show.canvas() as ax:
@@ -254,7 +254,7 @@ class Plots(object):
         with show.canvas() as ax:
             self.lr(ax)
 
-        with show.canvas(ncols=n_heads, figsize=(20, 5), sharey=True) as axs:
+        with show.canvas(ncols=n_heads, figsize=(20, 5), sharey=share_y) as axs:
             for i, ax in enumerate(axs):
                 self.epoch_head(ax, -n_heads + i)
 
@@ -264,7 +264,7 @@ class Plots(object):
         # with show.canvas() as ax:
         #     self.preprocess_time(ax)
 
-        with show.canvas(ncols=n_heads, figsize=(20, 5), sharey=True) as axs:
+        with show.canvas(ncols=n_heads, figsize=(20, 5), sharey=share_y) as axs:
             for i, ax in enumerate(axs):
                 self.train_head(ax, -n_heads + i)
 
@@ -350,9 +350,9 @@ class EvalPlots(object):
         self.frame(ax, entry=9)
         ax.set_ylabel('AR$^{L}$')
 
-    def show_all(self):
+    def show_all(self, *, share_y=True):
         with show.canvas(nrows=2, ncols=5, figsize=(20, 10),
-                         sharex=True, sharey=True) as axs:
+                         sharex=True, sharey=share_y) as axs:
             for f, ax in zip((self.ap, self.ap050, self.ap075, self.apm, self.apl), axs[0]):
                 f(ax)
 
@@ -377,6 +377,9 @@ def main():
                         help='side length during eval')
     parser.add_argument('--eval-samples', default=200, type=int,
                         help='number of samples during eval')
+    parser.add_argument('--no-share-y', dest='share_y',
+                        default=True, action='store_false',
+                        help='dont share y access')
     parser.add_argument('-o', '--output', default=None,
                         help='output prefix (default is log_file + .)')
     args = parser.parse_args()
@@ -386,8 +389,9 @@ def main():
 
     EvalPlots(args.log_file, args.label, args.output,
               edge=args.eval_edge,
-              samples=args.eval_samples).show_all()
-    Plots(args.log_file, args.label, args.output).show_all(args.n_heads)
+              samples=args.eval_samples).show_all(share_y=args.share_y)
+    Plots(args.log_file, args.label, args.output).show_all(
+        args.n_heads, share_y=args.share_y)
 
 
 if __name__ == '__main__':
