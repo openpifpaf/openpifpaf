@@ -20,9 +20,9 @@ class Visualizer(object):
 
         for target, headname, stride in zip(targets, self.headnames, self.strides):
             print(headname, len(target))
-            if headname in ('paf19', 'pafs'):
+            if headname in ('paf', 'paf19', 'pafs'):
                 self.paf19(image, target, stride, keypoint_sets)
-            elif headname in ('pif17', 'pifs'):
+            elif headname in ('pif', 'pif17', 'pifs'):
                 self.pif17(image, target, stride, keypoint_sets)
 
     @staticmethod
