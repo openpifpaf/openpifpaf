@@ -16,16 +16,16 @@ IMAGE_DIR_VAL = 'data-mscoco/images/val2017/'
 
 def default_output_file(args):
     out = 'outputs/{}-{}'.format(args.basenet, '-'.join(args.headnets))
+    if args.square_edge != 321:
+        out += '-edge{}'.format(args.square_edge)
+    if args.regression_loss != 'laplace':
+        out += '-{}'.format(args.regression_loss)
+    if args.r_smooth != 0.0:
+        out += '-rsmooth{}'.format(args.r_smooth)
     if args.dilation:
         out += '-dilation{}'.format(args.dilation)
     if args.dilation_end:
         out += '-dilationend{}'.format(args.dilation_end)
-    if args.square_edge != 321:
-        out += '-edge{}'.format(args.square_edge)
-    if args.r_smooth != 1.0:
-        out += '-rsmooth{}'.format(args.r_smooth)
-    if args.regression_loss != 'smoothl1':
-        out += '-{}'.format(args.regression_loss)
 
     now = datetime.datetime.now().strftime('%y%m%d-%H%M%S')
     out += '-{}.pkl'.format(now)

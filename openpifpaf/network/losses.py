@@ -371,7 +371,7 @@ class CompositeLoss(torch.nn.Module):
 
 def cli(parser):
     group = parser.add_argument_group('losses')
-    group.add_argument('--r-smooth', type=float, default=1.0,
+    group.add_argument('--r-smooth', type=float, default=0.0,
                        help='r_{smooth} for SmoothL1 regressions')
     group.add_argument('--regression-loss', default='laplace',
                        choices=['smoothl1', 'smootherl1', 'l1', 'laplace'],
