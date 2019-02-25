@@ -155,7 +155,6 @@ def main():
             image_transform=transforms.image_transform_train,
             target_transforms=target_transforms,
             n_images=args.pre_n_images,
-            return_meta=True,
         )
         pre_train_loader = torch.utils.data.DataLoader(
             pre_train_data, batch_size=args.batch_size, shuffle=True,

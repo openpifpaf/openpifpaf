@@ -17,19 +17,19 @@ import torchvision
 from .utils import horizontal_swap
 
 
-normalize = torchvision.transforms.Normalize(
+normalize = torchvision.transforms.Normalize(  # pylint: disable=invalid-name
     mean=[0.485, 0.456, 0.406],
     std=[0.229, 0.224, 0.225]
 )
 
 
-image_transform = torchvision.transforms.Compose([
+image_transform = torchvision.transforms.Compose([  # pylint: disable=invalid-name
     torchvision.transforms.ToTensor(),
     normalize,
 ])
 
 
-image_transform_train = torchvision.transforms.Compose([
+image_transform_train = torchvision.transforms.Compose([  # pylint: disable=invalid-name
     torchvision.transforms.ColorJitter(brightness=0.1,
                                        contrast=0.1,
                                        saturation=0.1,
