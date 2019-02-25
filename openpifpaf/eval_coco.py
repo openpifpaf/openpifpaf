@@ -253,7 +253,7 @@ def main():
                   for p in processors]
     total_start = time.time()
     loop_start = time.time()
-    for batch_i, (batch, anns_batch, meta_batch) in enumerate(data_loader):
+    for batch_i, (image_tensors_cpu, anns_batch, meta_batch) in enumerate(data_loader):
         print('batch', batch_i, 'last loop: {:.3f}s'.format(time.time() - loop_start))
         if batch_i < args.skip_n:
             continue
@@ -267,8 +267,7 @@ def main():
                 if np.any(a['keypoints'][:, 2] > 0)]) < args.min_ann:
             continue
 
-        image_tensors_cpu = batch
-        batch = batch.to(args.device, non_blocking=True)
+        batch = image_tensors_cpu.to(args.device, non_blocking=True)
         fields_batch = processors[0].fields(batch)
         if args.two_scale:
             batch_half_scale = batch[:, :, ::2, ::2]
