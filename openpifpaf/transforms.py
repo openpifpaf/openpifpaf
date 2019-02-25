@@ -136,23 +136,25 @@ class SquareRescale(object):
             ann['valid_area'] = (x_offset, y_offset, w_rescaled, h_rescaled)
 
         meta = {
-            'offset': [(x_offset, y_offset)],
-            'scale': [(x_scale, y_scale)],
-            'valid_area': [(x_offset, y_offset, w_rescaled, h_rescaled)],
+            'offset': (x_offset, y_offset),
+            'scale': (x_scale, y_scale),
+            'valid_area': (x_offset, y_offset, w_rescaled, h_rescaled),
             'hflip': hflip,
-            'width_height': [(w, h)],
+            'width_height': (w, h),
         }
         return image, anns, meta
 
-    def keypoint_sets_inverse(self, keypoint_sets, meta):
-        keypoint_sets[:, :, 0] -= meta['offset'][0].item()
-        keypoint_sets[:, :, 1] -= meta['offset'][1].item()
+    @staticmethod
+    def keypoint_sets_inverse(keypoint_sets, meta):
+        print(meta)
+        keypoint_sets[:, :, 0] -= meta['offset'][0]
+        keypoint_sets[:, :, 1] -= meta['offset'][1]
 
-        keypoint_sets[:, :, 0] = (keypoint_sets[:, :, 0] + 0.5) / meta['scale'][0].item() - 0.5
-        keypoint_sets[:, :, 1] = (keypoint_sets[:, :, 1] + 0.5) / meta['scale'][1].item() - 0.5
+        keypoint_sets[:, :, 0] = (keypoint_sets[:, :, 0] + 0.5) / meta['scale'][0] - 0.5
+        keypoint_sets[:, :, 1] = (keypoint_sets[:, :, 1] + 0.5) / meta['scale'][1] - 0.5
 
         if meta['hflip']:
-            w = meta['width_height'][0].item()
+            w = meta['width_height'][0]
             keypoint_sets[:, :, 0] = -keypoint_sets[:, :, 0] - 1.0 + w
             for keypoints in keypoint_sets:
                 keypoints[:] = horizontal_swap(keypoints)
@@ -229,12 +231,12 @@ class SquareCrop(object):
             ann['valid_area'] = (0, 0, self.target_edge, self.target_edge)
 
         meta = {
-            'offset': [(x_offset, y_offset)],
-            # 'scale': [(x_scale, y_scale)],
-            'scale': [(0.0, 0.0)],
-            'valid_area': [(0, 0, self.target_edge, self.target_edge)],
+            'offset': (x_offset, y_offset),
+            # 'scale': (x_scale, y_scale),
+            'scale': (0.0, 0.0),
+            'valid_area': (0, 0, self.target_edge, self.target_edge),
             'hflip': hflip,
-            'width_height': [(w, h)],
+            'width_height': (w, h),
         }
         return image, anns, meta
 

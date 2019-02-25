@@ -64,10 +64,10 @@ class AnnRescaler(object):
         if anns and 'valid_area' in anns[0]:
             valid_area = anns[0]['valid_area']
             valid_area = (
-                int(math.ceil(valid_area[0] / self.input_output_scale)),
-                int(math.ceil(valid_area[1] / self.input_output_scale)),
-                int(valid_area[2] / self.input_output_scale),
-                int(valid_area[3] / self.input_output_scale),
+                valid_area[0] / self.input_output_scale,
+                valid_area[1] / self.input_output_scale,
+                valid_area[2] / self.input_output_scale,
+                valid_area[3] / self.input_output_scale,
             )
 
         return keypoint_sets, bg_mask, valid_area

@@ -7,6 +7,20 @@ from PIL import Image
 from . import transforms
 
 
+def collate_images_anns_meta(batch):
+    images = torch.utils.data.dataloader.default_collate([b[0] for b in batch])
+    anns = [b[1] for b in batch]
+    metas = [b[2] for b in batch]
+    return images, anns, metas
+
+
+def collate_images_targets_meta(batch):
+    images = torch.utils.data.dataloader.default_collate([b[0] for b in batch])
+    targets = torch.utils.data.dataloader.default_collate([b[1] for b in batch])
+    metas = [b[2] for b in batch]
+    return images, targets, metas
+
+
 class CocoKeypoints(torch.utils.data.Dataset):
     """`MS Coco Detection <http://mscoco.org/dataset/#detections-challenge2016>`_ Dataset.
 
@@ -24,7 +38,7 @@ class CocoKeypoints(torch.utils.data.Dataset):
     """
 
     def __init__(self, root, annFile, image_transform=None, target_transforms=None,
-                 n_images=None, preprocess=None, all_images=False, return_meta=False):
+                 n_images=None, preprocess=None, all_images=False):
         from pycocotools.coco import COCO
         self.root = root
         self.coco = COCO(annFile)
@@ -42,7 +56,6 @@ class CocoKeypoints(torch.utils.data.Dataset):
         self.preprocess = preprocess or transforms.Preprocess()
         self.image_transform = image_transform or transforms.image_transform
         self.target_transforms = target_transforms
-        self.return_meta = return_meta
 
         self.log = logging.getLogger(self.__class__.__name__)
 
@@ -70,17 +83,17 @@ class CocoKeypoints(torch.utils.data.Dataset):
         Returns:
             tuple: Tuple (image, target). target is the object returned by ``coco.loadAnns``.
         """
-        img_id = self.ids[index]
-        ann_ids = self.coco.getAnnIds(imgIds=img_id, catIds=self.cat_ids)
-        target = self.coco.loadAnns(ann_ids)
+        image_id = self.ids[index]
+        ann_ids = self.coco.getAnnIds(imgIds=image_id, catIds=self.cat_ids)
+        anns = self.coco.loadAnns(ann_ids)
 
-        image_info = self.coco.loadImgs(img_id)[0]
+        image_info = self.coco.loadImgs(image_id)[0]
         self.log.debug(image_info)
         with open(os.path.join(self.root, image_info['file_name']), 'rb') as f:
-            img = Image.open(f).convert('RGB')
+            image = Image.open(f).convert('RGB')
 
         meta = {
-            'image_id': img_id,
+            'image_id': image_id,
             'file_name': image_info['file_name'],
         }
 
@@ -89,21 +102,21 @@ class CocoKeypoints(torch.utils.data.Dataset):
             flickr_id, _ = flickr_file_name.split('_', maxsplit=1)
             meta['flickr_full_page'] = 'http://flickr.com/photo.gne?id={}'.format(flickr_id)
 
-        # preprocess image and target
-        img, target, preprocess_meta = self.preprocess(img, target)
+        # preprocess image and annotations
+        image, anns, preprocess_meta = self.preprocess(image, anns)
         meta.update(preprocess_meta)
 
         # transform image
-        original_size = img.size
-        img = self.image_transform(img)
+        original_size = image.size
+        image = self.image_transform(image)
+
+        # if there are not target transforms, done here
+        if self.target_transforms is None:
+            return image, anns, meta
 
         # transform targets
-        if self.target_transforms is not None:
-            target = [t(target, original_size) for t in self.target_transforms]
-
-        if self.return_meta:
-            return img, target, meta
-        return img, target
+        targets = [t(anns, original_size) for t in self.target_transforms]
+        return image, targets, meta
 
     def __len__(self):
         return len(self.ids)

@@ -1,4 +1,5 @@
 import functools
+import math
 import numpy as np
 
 
@@ -52,10 +53,10 @@ def mask_valid_area(intensities, valid_area):
     if valid_area is None:
         return intensities
 
-    intensities[:, :valid_area[1], :] = 0
-    intensities[:, :, :valid_area[0]] = 0
-    max_i = valid_area[1] + valid_area[3] + 1
-    max_j = valid_area[0] + valid_area[2] + 1
+    intensities[:, :int(valid_area[1]), :] = 0
+    intensities[:, :, :int(valid_area[0])] = 0
+    max_i = int(math.ceil(valid_area[1] + valid_area[3]))
+    max_j = int(math.ceil(valid_area[0] + valid_area[2]))
     if max_i < intensities.shape[1]:
         intensities[:, max_i:, :] = 0
     if max_j < intensities.shape[2]:

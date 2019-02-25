@@ -128,11 +128,11 @@ def main():
         image_transform=transforms.image_transform_train,
         target_transforms=target_transforms,
         n_images=args.n_images,
-        return_meta=True,
     )
     train_loader = torch.utils.data.DataLoader(
         train_data, batch_size=args.batch_size, shuffle=not args.debug,
-        pin_memory=pin_memory, num_workers=args.loader_workers, drop_last=True)
+        pin_memory=pin_memory, num_workers=args.loader_workers, drop_last=True,
+        collate_fn=datasets.collate_images_targets_meta)
 
     val_data = datasets.CocoKeypoints(
         root=IMAGE_DIR_VAL,
@@ -141,11 +141,11 @@ def main():
         image_transform=transforms.image_transform_train,
         target_transforms=target_transforms,
         n_images=args.n_images,
-        return_meta=True,
     )
     val_loader = torch.utils.data.DataLoader(
         val_data, batch_size=args.batch_size, shuffle=False,
-        pin_memory=pin_memory, num_workers=args.loader_workers, drop_last=True)
+        pin_memory=pin_memory, num_workers=args.loader_workers, drop_last=True,
+        collate_fn=datasets.collate_images_targets_meta)
 
     if args.freeze_base:
         pre_train_data = datasets.CocoKeypoints(
@@ -159,7 +159,8 @@ def main():
         )
         pre_train_loader = torch.utils.data.DataLoader(
             pre_train_data, batch_size=args.batch_size, shuffle=True,
-            pin_memory=pin_memory, num_workers=args.loader_workers, drop_last=True)
+            pin_memory=pin_memory, num_workers=args.loader_workers, drop_last=True,
+            collate_fn=datasets.collate_images_targets_meta)
 
         # freeze base net parameters
         frozen_params = set()

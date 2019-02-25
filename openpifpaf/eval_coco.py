@@ -232,16 +232,17 @@ def main():
         args.device = torch.device('cuda')
         pin_memory = True
 
-    preprocess = transforms.SquareRescale(args.long_edge)
+    preprocess = transforms.SquareRescale(args.long_edge,
+                                          black_bars=args.batch_size > 1)
     data = datasets.CocoKeypoints(
         root=image_dir,
         annFile=annotation_file,
         preprocess=preprocess,
         all_images=args.all_images,
-        return_meta=True,
     )
     data_loader = torch.utils.data.DataLoader(
-        data, batch_size=args.batch_size, pin_memory=pin_memory, num_workers=args.loader_workers)
+        data, batch_size=args.batch_size, pin_memory=pin_memory,
+        num_workers=args.loader_workers, collate_fn=datasets.collate_images_anns_meta)
 
     model, _ = nets.factory(args)
     model = model.to(args.device)
@@ -261,8 +262,9 @@ def main():
 
         loop_start = time.time()
         if len([a
-                for a in anns_batch
-                if np.any(a['keypoints'][0, :, 2].numpy() > 0)]) < args.min_ann:
+                for anns in anns_batch
+                for a in anns
+                if np.any(a['keypoints'][:, 2] > 0)]) < args.min_ann:
             continue
 
         image_tensors_cpu = batch
@@ -274,10 +276,6 @@ def main():
         else:
             fields_batch_half_scale = [None for _ in range(batch.shape[0])]
 
-        meta_batch = [{k: v[i] for k, v in meta_batch.items()}
-                      for i in range(batch.shape[0])]
-        anns_batch = [[{k: v[i] for k, v in anns.items()} for anns in anns_batch]
-                      for i in range(batch.shape[0])]
         for image_tensor_cpu, fields, fields_half_scale, anns, meta in zip(
                 image_tensors_cpu, fields_batch, fields_batch_half_scale, anns_batch, meta_batch):
             for ec in eval_cocos:
