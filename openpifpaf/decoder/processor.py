@@ -18,9 +18,9 @@ class Processor(object):
         self.instance_threshold = instance_threshold
         self.debug_visualizer = debug_visualizer
 
-    def set_cpu_image(self, cpu_image):
+    def set_cpu_image(self, cpu_image, processed_image):
         if self.debug_visualizer is not None:
-            self.debug_visualizer.set_image(cpu_image)
+            self.debug_visualizer.set_image(cpu_image, processed_image)
 
     def fields(self, image_batch):
         start = time.time()

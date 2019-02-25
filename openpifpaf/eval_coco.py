@@ -72,7 +72,7 @@ class EvalCoco(object):
         self.image_ids.append(image_id)
 
         if image_cpu is not None:
-            self.processor.set_cpu_image(image_cpu)
+            self.processor.set_cpu_image(None, image_cpu)
 
         if fields_half_scale is not None:
             instances, scores = self.processor.keypoint_sets_two_scales(fields, fields_half_scale)
