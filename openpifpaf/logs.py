@@ -171,8 +171,9 @@ class Plots(object):
                     y_mean = np.mean(y_binned, axis=1)
                     y_min = np.min(y_binned, axis=1)
                     y_max = np.max(y_binned, axis=1)
-                    ax.fill_between(x_binned, y_min, y_max, alpha=0.2)
-                    ax.plot(x_binned, y_mean, label=label)
+                    line, = ax.plot(x_binned, y_mean, label=label)
+                    ax.fill_between(x_binned, y_min, y_max, alpha=0.2,
+                                    facecolor=line.get_color())
                 else:
                     ax.plot(x, y, label=label)
 
@@ -195,8 +196,9 @@ class Plots(object):
                     y_mean = np.mean(y_binned, axis=1)
                     y_min = np.min(y_binned, axis=1)
                     y_max = np.max(y_binned, axis=1)
-                    ax.fill_between(x_binned, y_min, y_max, alpha=0.2)
-                    ax.plot(x_binned, y_mean, label=label)
+                    line, = ax.plot(x_binned, y_mean, label=label)
+                    ax.fill_between(x_binned, y_min, y_max, alpha=0.2,
+                                    facecolor=line.get_color())
                 else:
                     ax.plot(x, y, label=label)
 
@@ -224,8 +226,9 @@ class Plots(object):
                     y_mean = np.mean(y_binned, axis=1)
                     y_min = np.min(y_binned, axis=1)
                     y_max = np.max(y_binned, axis=1)
-                    ax.fill_between(x_binned, y_min, y_max, alpha=0.2)
-                    ax.plot(x_binned, y_mean, label=label)
+                    line, = ax.plot(x_binned, y_mean, label=label)
+                    ax.fill_between(x_binned, y_min, y_max, alpha=0.2,
+                                    facecolor=line.get_color())
                 else:
                     ax.plot(x, y, label=label)
 

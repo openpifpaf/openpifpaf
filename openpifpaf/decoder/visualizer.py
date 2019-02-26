@@ -183,7 +183,7 @@ class Visualizer(object):
                 with show.canvas() as ax:
                     ax.imshow(self.image)
                     show.white_screen(ax, alpha=0.9)
-                    q = show.quiver(ax, reg_fields[f * 2:f * 2 + 2], intensity_fields[f],
+                    q = show.quiver(ax, reg_fields[f], intensity_fields[f],
                                     cmap='viridis_r', clim=(0.0, 1.0),
                                     threshold=0.0, xy_scale=io_scale)
 
