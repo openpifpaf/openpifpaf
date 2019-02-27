@@ -205,7 +205,7 @@ class Plots(object):
         ax.set_xlabel('epoch')
         ax.set_ylabel('training loss')
         # ax.set_ylim(0, 8)
-        if min(y_mean) > -0.1:
+        if min(y) > -0.1:
             ax.set_yscale('log', nonposy='clip')
         ax.grid(linestyle='dotted')
         ax.legend()
@@ -235,7 +235,7 @@ class Plots(object):
         ax.set_xlabel('epoch')
         ax.set_ylabel('training loss, head {}'.format(head_i))
         ax.set_ylim(3e-3, 3.0)
-        if min(y_mean) > -0.1:
+        if min(y) > -0.1:
             ax.set_yscale('log', nonposy='clip')
         ax.grid(linestyle='dotted')
         # ax.legend()
