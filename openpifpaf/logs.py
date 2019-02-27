@@ -290,13 +290,25 @@ class EvalPlots(object):
 
     def read_log(self, path):
         sc = pysparkling.Context()
-        epoch_index = len(path) - 4 + 6
+
+        # modify individual file names and comma-seperated filenames
+        files = path.split(',')
+        files = ','.join(
+            '{}.epoch???.evalcoco-edge{}-samples{}-decoder{}.txt'
+            ''.format(f[:-4], self.edge, self.samples, self.decoder)
+            for f in files
+        )
+
+        def epoch_from_filename(filename):
+            i = filename.find('epoch')
+            return int(filename[i+5:i+8])
+
         return (sc
-                .wholeTextFiles('{}.epoch???.evalcoco-edge{}-samples{}-decoder{}.txt'
-                                ''.format(path[:-4], self.edge, self.samples, self.decoder))
-                .map(lambda k_c:
-                     (int(k_c[0][epoch_index:epoch_index+3]),
-                      [float(l) for l in k_c[1].splitlines()]))
+                .wholeTextFiles(files)
+                .map(lambda k_c: (
+                    epoch_from_filename(k_c[0]),
+                    [float(l) for l in k_c[1].splitlines()],
+                ))
                 .filter(lambda k_c: len(k_c[1]) == 10)
                 .sortByKey()
                 .collect())
