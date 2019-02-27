@@ -9,12 +9,19 @@ https://pillow.readthedocs.io/en/3.3.x/handbook/concepts.html#coordinate-system
   actually lies at (0.5, 0.5).
 """
 
+import io
 import numpy as np
 import PIL
 import torch
 import torchvision
 
 from .utils import horizontal_swap
+
+
+def jpeg_compression_augmentation(im):
+    f = io.BytesIO()
+    im.save(f, 'jpeg', quality=50)
+    return PIL.Image.open(f)
 
 
 normalize = torchvision.transforms.Normalize(  # pylint: disable=invalid-name
@@ -34,6 +41,10 @@ image_transform_train = torchvision.transforms.Compose([  # pylint: disable=inva
                                        contrast=0.1,
                                        saturation=0.1,
                                        hue=0.1),
+    torchvision.transforms.RandomApply([
+        # maybe not relevant for COCO, but good for other datasets:
+        torchvision.transforms.Lambda(jpeg_compression_augmentation),
+    ], p=0.1),
     torchvision.transforms.RandomGrayscale(p=0.01),
     torchvision.transforms.ToTensor(),
     normalize,
