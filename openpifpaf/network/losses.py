@@ -49,12 +49,13 @@ class SmoothL1Loss(object):
         if self.scale is None:
             self.scale = 1.0
 
-        x = torch.stack((x1, x2)) * self.r_smooth * self.scale
-        t = torch.stack((t1, t2)) * self.r_smooth * self.scale
+        r = self.r_smooth * self.scale
+        d = torch.sqrt((x1 - t1)**2 + (x2 - t2)**2)
+        smooth_regime = d < r
 
-        losses = torch.nn.functional.smooth_l1_loss(x, t, reduction='none')
-
-        losses = losses / self.r_smooth / self.scale
+        smooth_loss = 0.5 / r[smooth_regime] * d[smooth_regime] ** 2
+        linear_loss = d[smooth_regime == 0] - (0.5 * r[smooth_regime == 0])
+        losses = torch.cat((smooth_loss, linear_loss))
 
         if weight is not None:
             losses = losses * weight
@@ -77,7 +78,7 @@ class SmootherL1Loss(object):
             self.scale = 1.0
 
         diff = torch.sqrt((x1 - t1)**2 + (x2 - t2)**2)
-        diff = diff * self.r_smooth * self.scale
+        diff = diff * self.r_smooth * self.scale  # TODO: update
 
         sq_mask = diff < 1.0
         ln_mask = diff >= self.ln_threshold
@@ -157,8 +158,6 @@ class PIFLoss(torch.nn.Module):
                     torch.masked_select(x_reg, reg_masks) * self.reg_upscale / kp_scale,
                     torch.masked_select(target_reg, reg_masks) * self.reg_upscale / kp_scale,
                 ) * kp_scale / 10.0) / 100.0 / batch_size
-            # if self.training and reg_loss.item() >= 100.0:
-            #     raise Exception
 
         if self.scale_to_kp is not None:
             scale_loss = None
