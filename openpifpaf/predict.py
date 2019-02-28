@@ -84,7 +84,7 @@ def main():
                 output_path = os.path.join(args.output_directory, file_name)
             print('image', image_i, image_path, output_path)
 
-            processors[0].set_cpu_image(processed_image_cpu)
+            processors[0].set_cpu_image(image, processed_image_cpu)
             for processor in processors:
                 keypoint_sets, scores = processor.keypoint_sets(fields)
 
