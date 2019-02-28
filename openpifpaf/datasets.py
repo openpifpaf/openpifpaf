@@ -4,7 +4,7 @@ import torch.utils.data
 import torchvision
 from PIL import Image
 
-from . import transforms
+from . import transforms, utils
 
 
 def collate_images_anns_meta(batch):
@@ -109,6 +109,10 @@ class CocoKeypoints(torch.utils.data.Dataset):
         # transform image
         original_size = image.size
         image = self.image_transform(image)
+
+        # mask valid
+        valid_area = meta['valid_area']
+        utils.mask_valid_image(image, valid_area)
 
         # if there are not target transforms, done here
         if self.target_transforms is None:

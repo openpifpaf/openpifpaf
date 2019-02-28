@@ -147,6 +147,10 @@ def main():
         pin_memory=pin_memory, num_workers=args.loader_workers, drop_last=True,
         collate_fn=datasets.collate_images_targets_meta)
 
+    encoder_visualizer = None
+    if args.debug and not args.debug_without_plots:
+        encoder_visualizer = encoder.Visualizer(args.headnets, net_cpu.io_scales())
+
     if args.freeze_base:
         pre_train_data = datasets.CocoKeypoints(
             root=IMAGE_DIR_TRAIN,
@@ -178,17 +182,14 @@ def main():
             (p for p in net.parameters() if p.requires_grad),
             lr=args.pre_lr, momentum=0.9, weight_decay=0.0, nesterov=True)
         ftrainer = Trainer(net, loss_list, foptimizer, args.output, args.lambdas,
-                           device=args.device, fix_batch_norm=True)
+                           device=args.device, fix_batch_norm=True,
+                           encoder_visualizer=encoder_visualizer)
         for i in range(-args.freeze_base, 0):
             ftrainer.train(pre_train_loader, i)
 
         # unfreeze
         for p in frozen_params:
             p.requires_grad = True
-
-    encoder_visualizer = None
-    if args.debug and not args.debug_without_plots:
-        encoder_visualizer = encoder.Visualizer(args.headnets, net_cpu.io_scales())
 
     trainer = Trainer(
         net, loss_list, optimizer, args.output,
