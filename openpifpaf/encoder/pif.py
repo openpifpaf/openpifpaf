@@ -60,7 +60,7 @@ class PifGenerator(object):
         self.intensities = np.zeros((n_fields + 1, field_h, field_w), dtype=np.float32)
         self.fields_reg = np.zeros((n_fields, 2, field_h, field_w), dtype=np.float32)
         self.fields_scale = np.zeros((n_fields, field_h, field_w), dtype=np.float32)
-        self.fields_reg_l = np.zeros((n_fields, field_h, field_w), dtype=np.float32)
+        self.fields_reg_l = np.full((n_fields, field_h, field_w), np.inf, dtype=np.float32)
 
         # bg_mask
         self.intensities[-1] = 1.0
@@ -115,10 +115,7 @@ class PifGenerator(object):
         # update regression
         sink_reg = self.sink + offset
         sink_l = np.linalg.norm(sink_reg, axis=0)
-        mask = np.logical_or(
-            self.fields_reg_l[f, miny:maxy, minx:maxx] == 0.0,
-            self.fields_reg_l[f, miny:maxy, minx:maxx] > sink_l
-        )
+        mask = sink_l < self.fields_reg_l[f, miny:maxy, minx:maxx]
         self.fields_reg[f, :, miny:maxy, minx:maxx][:, mask] = \
             sink_reg[:, mask]
         self.fields_reg_l[f, miny:maxy, minx:maxx][mask] = sink_l[mask]

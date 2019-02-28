@@ -53,7 +53,7 @@ class PafGenerator(object):
         self.fields_reg1 = np.zeros((n_fields, 2, field_h, field_w), dtype=np.float32)
         self.fields_reg2 = np.zeros((n_fields, 2, field_h, field_w), dtype=np.float32)
         self.fields_scale = np.zeros((n_fields, field_h, field_w), dtype=np.float32)
-        self.fields_reg_l = np.zeros((n_fields, field_h, field_w), dtype=np.float32)
+        self.fields_reg_l = np.full((n_fields, field_h, field_w), np.inf, dtype=np.float32)
 
         # set background
         self.intensities[-1] = 1.0
@@ -133,10 +133,7 @@ class PafGenerator(object):
             sink2 = sink + joint2_offset
             sink_l = np.minimum(np.linalg.norm(sink1, axis=0),
                                 np.linalg.norm(sink2, axis=0))
-            mask = np.logical_or(
-                self.fields_reg_l[i, fminy:fmaxy, fminx:fmaxx] == 0.0,
-                self.fields_reg_l[i, fminy:fmaxy, fminx:fmaxx] > sink_l
-            )
+            mask = sink_l < self.fields_reg_l[i, fminy:fmaxy, fminx:fmaxx]
             self.fields_reg1[i, :, fminy:fmaxy, fminx:fmaxx][:, mask] = \
                 sink1[:, mask]
             self.fields_reg2[i, :, fminy:fmaxy, fminx:fmaxx][:, mask] = \
