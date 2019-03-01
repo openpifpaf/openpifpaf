@@ -82,8 +82,6 @@ class Processor(object):
 
         # nms
         annotations = self.soft_nms(annotations)
-        if not annotations:
-            return np.zeros((1, 17, 3)), np.zeros((1,))
 
         # threshold results
         keypoint_sets, scores = [], []
@@ -97,6 +95,8 @@ class Processor(object):
 
             keypoint_sets.append(kps)
             scores.append(score)
+        if not keypoint_sets:
+            return np.zeros((0, 17, 3)), np.zeros((0,))
         keypoint_sets = np.array(keypoint_sets)
         scores = np.array(scores)
 
