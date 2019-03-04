@@ -1,8 +1,4 @@
-from setuptools import setup
-
-import numpy
-from Cython.Build import cythonize
-
+from setuptools import setup, Extension
 
 # extract version from __init__.py
 with open('openpifpaf/__init__.py', 'r') as f:
@@ -25,11 +21,16 @@ setup(
     author='Sven Kreiss',
     author_email='research@svenkreiss.com',
     url='https://github.com/vita-epfl/openpifpaf',
-    ext_modules=cythonize('openpifpaf/functional.pyx',
-                          include_path=[numpy.get_include()],
-                          annotate=True,
-                          compiler_directives={'language_level': 3}),
+    ext_modules=[
+        Extension('openpifpaf.functional',
+                  sources=['openpifpaf/functional.pyx']),
+    ],
 
+    setup_requires=[
+        'numpy',
+        'cython',
+        'setuptools>=40.0.0',
+    ],
     install_requires=[
         'matplotlib',
         'pysparkling',  # for log analysis
