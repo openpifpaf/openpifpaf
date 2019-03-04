@@ -10,6 +10,7 @@ pifpaf
 build/
 venv*/
 *.egg-info
+.eggs/
 __pycache__
 dist/
 .pytest_cache/
