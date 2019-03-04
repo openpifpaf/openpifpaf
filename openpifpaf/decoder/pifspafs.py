@@ -42,9 +42,9 @@ class PifsPafs(object):
             pif, paf = fields
         else:
             pif, paf = fields[self.head_indices[0]], fields[self.head_indices[1]]
-        # if self.debug_visualizer:
-        #     self.debug_visualizer.pif_raw(pif, self.stride)
-        #     self.debug_visualizer.paf_raw(paf, self.stride, reg_components=3)
+        if self.debug_visualizer:
+            self.debug_visualizer.pif_raw(pif, self.stride)
+            self.debug_visualizer.paf_raw(paf, self.stride, reg_components=3)
         paf = normalize_paf(*paf)
         pif = normalize_pifs(*pif)
 

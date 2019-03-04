@@ -115,6 +115,7 @@ class CocoKeypoints(torch.utils.data.Dataset):
         utils.mask_valid_image(image, valid_area)
 
         # if there are not target transforms, done here
+        self.log.debug(meta)
         if self.target_transforms is None:
             return image, anns, meta
 

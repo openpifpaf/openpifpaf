@@ -85,7 +85,7 @@ class Visualizer(object):
 
     def paf_raw(self, paf, io_scale, reg_components=2):
         print('raw paf')
-        intensity_fields, reg1_fields, reg2_fields = paf
+        intensity_fields, reg1_fields, reg2_fields, reg1_fields_b, reg2_fields_b = paf
         for g in self.paf_indices:
             for f in g:
                 print('association field',
@@ -113,19 +113,12 @@ class Visualizer(object):
                     print('association field',
                           COCO_KEYPOINTS[COCO_PERSON_SKELETON[f][0] - 1],
                           COCO_KEYPOINTS[COCO_PERSON_SKELETON[f][1] - 1])
-                    reg1_uncertainty = None
-                    reg2_uncertainty = None
-                    if reg_components > 2:
-                        reg1_uncertainty = reg1_fields[f * reg_components + 2]
-                        reg2_uncertainty = reg2_fields[f * reg_components + 2]
-                    q1 = show.quiver(ax, reg1_fields[f * reg_components:f * reg_components + 2],
+                    q1 = show.quiver(ax, reg1_fields[f],
                                      intensity_fields[f],
-                                     reg_uncertainty=reg1_uncertainty,
                                      threshold=0.5, width=0.003, step=1,
                                      cmap='viridis_r', clim=(0.5, 1.0), xy_scale=io_scale)
-                    show.quiver(ax, reg2_fields[f * reg_components:f * reg_components + 2],
+                    show.quiver(ax, reg2_fields[f],
                                 intensity_fields[f],
-                                reg_uncertainty=reg2_uncertainty,
                                 threshold=0.5, width=0.003, step=1,
                                 cmap='viridis_r', clim=(0.5, 1.0), xy_scale=io_scale)
 
@@ -161,11 +154,11 @@ class Visualizer(object):
 
     def pif_raw(self, pif, io_scale):
         print('raw pif')
-        intensity_fields, reg_fields = pif
+        intensity_fields, reg_fields, scale_fields = pif
         for g in self.pif_indices:
             for f in g:
                 print('pif field', COCO_KEYPOINTS[f])
-                with show.canvas() as ax:
+                with show.canvas(figsize=(8, 5)) as ax:
                     ax.imshow(self.resized_image(io_scale))
                     im = ax.imshow(intensity_fields[f], alpha=0.9,
                                    vmin=0.0, vmax=1.0, cmap='Oranges')
@@ -182,14 +175,14 @@ class Visualizer(object):
                 print('pif field', COCO_KEYPOINTS[f])
                 with show.canvas() as ax:
                     ax.imshow(self.image)
-                    show.white_screen(ax, alpha=0.9)
-                    q = show.quiver(ax, reg_fields[f], intensity_fields[f],
+                    show.white_screen(ax, alpha=0.5)
+                    q = show.quiver(ax, reg_fields[f],  # intensity_fields[f],
                                     cmap='viridis_r', clim=(0.0, 1.0),
                                     threshold=0.0, xy_scale=io_scale)
 
-                    divider = make_axes_locatable(ax)
-                    cax = divider.append_axes('right', size='3%', pad=0.05)
-                    plt.colorbar(q, cax=cax)
+                    # divider = make_axes_locatable(ax)
+                    # cax = divider.append_axes('right', size='3%', pad=0.05)
+                    # plt.colorbar(q, cax=cax)
 
                     ax.get_xaxis().set_visible(False)
                     ax.get_yaxis().set_visible(False)
@@ -198,7 +191,7 @@ class Visualizer(object):
         print('pifhr')
         for g in self.pif_indices:
             for f in g:
-                with show.canvas() as ax:
+                with show.canvas(figsize=(8, 5)) as ax:
                     ax.imshow(self.image)
                     o = ax.imshow(pifhr[f], alpha=0.9, vmin=0.0, vmax=1.0, cmap='Oranges')
 
