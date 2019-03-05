@@ -83,20 +83,21 @@ class EvalCoco(object):
         scores = scores[:20]
 
         if debug:
+            keypoint_painter = show.KeypointPainter(skeleton=self.skeleton, highlight=highlight)
+            skeleton_painter = show.KeypointPainter(skeleton=self.skeleton,
+                                                    show_box=False, color_connections=True,
+                                                    markersize=1, linewidth=6)
+
             highlight = [5, 7, 9, 11, 13, 15]
             with show.canvas() as ax:
                 ax.imshow((np.moveaxis(image_cpu.numpy(), 0, -1) + 2.0) / 4.0)
-                show.keypoints(ax, instances, skeleton=self.skeleton,
-                               highlight=highlight, scores=scores)
+                keypoint_painter.keypoints(ax, instances, scores=scores)
 
             with show.canvas() as ax:
                 ax.set_axis_off()
                 ax.imshow((np.moveaxis(image_cpu.numpy(), 0, -1) + 2.0) / 4.0)
                 m = scores > 0.1
-                show.keypoints(ax, instances[m], skeleton=self.skeleton,
-                               scores=scores[m], show_box=False,
-                               markersize=1,
-                               color_connections=True, linewidth=6)
+                skeleton_painter.keypoints(ax, instances[m], scores=scores[m])
 
             instances_gt = None
             if gt:
@@ -107,16 +108,14 @@ class EvalCoco(object):
 
             with show.canvas() as ax:
                 ax.imshow((np.moveaxis(image_cpu.numpy(), 0, -1) + 2.0) / 4.0)
-                show.keypoints(ax, instances_gt, skeleton=self.skeleton, highlight=highlight)
+                keypoint_painter.keypoints(ax, instances_gt)
 
             with show.canvas() as ax:
                 ax.imshow((np.moveaxis(image_cpu.numpy(), 0, -1) + 2.0) / 4.0)
                 show.white_screen(ax)
-                show.keypoints(ax, instances_gt, skeleton=self.skeleton,
-                               highlight=highlight, color='lightgrey')
+                keypoint_painter.keypoints(ax, instances_gt, color='lightgrey')
                 m = scores > 0.01
-                show.keypoints(ax, instances[m], skeleton=self.skeleton,
-                               highlight=highlight, scores=scores[m])
+                keypoint_painter.keypoints(ax, instances[m], scores=scores[m])
 
         # print('gt', instances_gt[0])
         # print('before', instances[0])

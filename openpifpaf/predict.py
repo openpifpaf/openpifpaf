@@ -64,6 +64,11 @@ def main():
         data, batch_size=1, shuffle=False,
         pin_memory=pin_memory, num_workers=args.loader_workers)
 
+    # visualizers
+    keypoint_painter = show.KeypointPainter()
+    skeleton_painter = show.KeypointPainter(show_box=False, color_connections=True,
+                                            markersize=1, linewidth=6)
+
     for image_i, (image_paths, image_tensors, processed_images_cpu) in enumerate(data_loader):
         images = image_tensors.permute(0, 2, 3, 1)
 
@@ -104,7 +109,7 @@ def main():
                                            fig_width=args.figure_width,
                                            dpi_factor=args.dpi_factor) as ax:
                         show.white_screen(ax, alpha=0.5)
-                        show.keypoints(ax, keypoint_sets, show_box=False)
+                        keypoint_painter.keypoints(ax, keypoint_sets)
 
                 if 'skeleton' in args.output_types:
                     with show.image_canvas(image,
@@ -112,10 +117,7 @@ def main():
                                            show=args.show,
                                            fig_width=args.figure_width,
                                            dpi_factor=args.dpi_factor) as ax:
-                        show.keypoints(ax, keypoint_sets,
-                                       scores=scores, show_box=False,
-                                       markersize=1,
-                                       color_connections=True, linewidth=6)
+                        skeleton_painter.keypoints(ax, keypoint_sets, scores=scores)
 
 
 if __name__ == '__main__':

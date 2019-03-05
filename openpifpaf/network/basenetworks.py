@@ -18,7 +18,7 @@ class BaseNetwork(torch.nn.Module):
         print('input output scale', self.input_output_scale)
         print('output features', self.out_features)
 
-    def forward(self, image):
+    def forward(self, image):  # pylint: disable=arguments-differ
         if isinstance(self.net, torch.nn.ModuleList):
             if self.topology == 'linear':
                 intermediate = image
@@ -29,7 +29,7 @@ class BaseNetwork(torch.nn.Module):
 
                 return outputs
 
-            elif self.topology == 'fork':
+            if self.topology == 'fork':
                 intermediate = self.net[0](image)
                 return intermediate, self.net[1](intermediate), self.net[2](intermediate)
 
@@ -43,7 +43,9 @@ class ResnetC4(BaseNetwork):
     Has an option to keep stage5.
     """
 
-    def __init__(self, resnet, shortname=None, remove_pool0=True, input_stride=2, pool0_stride=2, block5=False, twostage=False, fork=False):
+    def __init__(self, resnet, shortname=None, remove_pool0=True,
+                 input_stride=2, pool0_stride=2, block5=False,
+                 twostage=False, fork=False):
         # print('===============')
         # print(list(resnet.children()))
 
@@ -63,11 +65,11 @@ class ResnetC4(BaseNetwork):
             input_output_scale /= 2
         else:
             if pool0_stride != 2:
-                stump_modules[3].stride = torch.nn.modules.utils._pair(pool0_stride)
+                stump_modules[3].stride = torch.nn.modules.utils._pair(pool0_stride)  # pylint: disable=protected-access
                 input_output_scale *= pool0_stride / 2
 
         if input_stride != 2:
-            stump_modules[0].stride = torch.nn.modules.utils._pair(input_stride)
+            stump_modules[0].stride = torch.nn.modules.utils._pair(input_stride)  # pylint: disable=protected-access
             input_output_scale *= input_stride / 2
 
         if twostage:
@@ -98,17 +100,17 @@ class ResnetC4(BaseNetwork):
               ''.format(first_conv.stride, first_conv.dilation, self.input_output_scale))
 
         original_stride = first_conv.stride[0]
-        first_conv.stride = torch.nn.modules.utils._pair(original_stride // dilation)
-        first_conv.dilation = torch.nn.modules.utils._pair(dilation)
+        first_conv.stride = torch.nn.modules.utils._pair(original_stride // dilation)  # pylint: disable=protected-access
+        first_conv.dilation = torch.nn.modules.utils._pair(dilation)  # pylint: disable=protected-access
         padding = (first_conv.kernel_size[0] - 1) // 2 * first_conv.dilation[0]
-        first_conv.padding = torch.nn.modules.utils._pair(padding)
+        first_conv.padding = torch.nn.modules.utils._pair(padding)  # pylint: disable=protected-access
 
         for conv in convs[1:]:
             if conv.kernel_size[0] > 1:
-                conv.dilation = torch.nn.modules.utils._pair(dilation)
+                conv.dilation = torch.nn.modules.utils._pair(dilation)  # pylint: disable=protected-access
 
                 padding = (conv.kernel_size[0] - 1) // 2 * conv.dilation[0]
-                conv.padding = torch.nn.modules.utils._pair(padding)
+                conv.padding = torch.nn.modules.utils._pair(padding)  # pylint: disable=protected-access
 
         self.input_output_scale /= dilation
         print('after atrous', list(self.net.children()))
@@ -137,12 +139,12 @@ class ResnetC4(BaseNetwork):
 
             for conv in convs:
                 if dilation != prev_dilation:
-                    conv.stride = torch.nn.modules.utils._pair(1)
+                    conv.stride = torch.nn.modules.utils._pair(1)  # pylint: disable=protected-access
                 if conv.kernel_size[0] > 1:
-                    conv.dilation = torch.nn.modules.utils._pair(dilation)
+                    conv.dilation = torch.nn.modules.utils._pair(dilation)  # pylint: disable=protected-access
 
                     padding = (conv.kernel_size[0] - 1) // 2 * dilation
-                    conv.padding = torch.nn.modules.utils._pair(padding)
+                    conv.padding = torch.nn.modules.utils._pair(padding)  # pylint: disable=protected-access
 
         print('after atrous layer 3', layer3)
         print('after atrous layer 4', layer4)
@@ -153,7 +155,7 @@ class DownsampleCat(torch.nn.Module):
         super(DownsampleCat, self).__init__()
         self.pad = torch.nn.ConstantPad2d((0, 1, 0, 1), 0.0)
 
-    def forward(self, x):
+    def forward(self, x):  # pylint: disable=arguments-differ
         p = self.pad(x)
         o = torch.cat((p[:, :, :-1:2, :-1:2], p[:, :, 1::2, 1::2]), dim=1)
         return o
@@ -172,10 +174,10 @@ class ResnetBlocks(object):
             modules.pop(3)
         else:
             if pool_stride != 2:
-                modules[3].stride = torch.nn.modules.utils._pair(pool_stride)
+                modules[3].stride = torch.nn.modules.utils._pair(pool_stride)  # pylint: disable=protected-access
 
         if conv_stride != 2:
-            modules[0].stride = torch.nn.modules.utils._pair(conv_stride)
+            modules[0].stride = torch.nn.modules.utils._pair(conv_stride)  # pylint: disable=protected-access
 
         return torch.nn.Sequential(*modules)
 
@@ -187,14 +189,14 @@ class ResnetBlocks(object):
             if conv.kernel_size[0] == 1:
                 continue
 
-            conv.dilation = torch.nn.modules.utils._pair(dilation)
+            conv.dilation = torch.nn.modules.utils._pair(dilation)  # pylint: disable=protected-access
 
             padding = (conv.kernel_size[0] - 1) // 2 * dilation
-            conv.padding = torch.nn.modules.utils._pair(padding)
+            conv.padding = torch.nn.modules.utils._pair(padding)  # pylint: disable=protected-access
 
         # TODO: check these are the right convolutions to adjust
         for conv in convs[:2]:
-            conv.stride = torch.nn.modules.utils._pair(stride)
+            conv.stride = torch.nn.modules.utils._pair(stride)  # pylint: disable=protected-access
 
         return block
 
@@ -267,7 +269,7 @@ class DenseNet(BaseNetwork):
             stump_modules.pop(3)
             input_output_scale /= 2
         if adjust_input_stride:
-            stump_modules[0].stride = torch.nn.modules.utils._pair(1)
+            stump_modules[0].stride = torch.nn.modules.utils._pair(1)  # pylint: disable=protected-access
             input_output_scale /= 2
         stump = torch.nn.Sequential(*stump_modules)
 

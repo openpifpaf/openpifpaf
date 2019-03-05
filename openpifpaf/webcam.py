@@ -35,8 +35,6 @@ class Visualizer(object):
         ax.set_axis_off()
         ax.set_xlim(0, first_image.shape[1])
         ax.set_ylim(first_image.shape[0], 0)
-        # text = 'OpenPifPaf demo [image = ({}, {})]'.format(
-        #     first_image.shape[1], first_image.shape[0])
         text = 'OpenPifPaf'
         ax.text(1, 1, text,
                 fontsize=10, verticalalignment='top',
@@ -44,6 +42,13 @@ class Visualizer(object):
         fig.add_axes(ax)
         mpl_im = ax.imshow(first_image)
         fig.show()
+
+        # visualizer
+        if self.args.colored_connections:
+            viz = show.KeypointPainter(show_box=False, color_connections=True,
+                                       markersize=1, linewidth=6)
+        else:
+            viz = show.KeypointPainter()
 
         while True:
             image, all_fields = yield
@@ -53,12 +58,7 @@ class Visualizer(object):
             while ax.lines:
                 del ax.lines[0]
             mpl_im.set_data(image)
-            if self.args.colored_connections:
-                show.keypoints(ax, keypoint_sets, show_box=False,
-                               markersize=1,
-                               color_connections=True, linewidth=6)
-            else:
-                show.keypoints(ax, keypoint_sets, show_box=False)
+            viz.keypoints(ax, keypoint_sets)
             fig.canvas.draw()
             print('draw', time.time() - draw_start)
             plt.pause(0.01)

@@ -48,7 +48,7 @@ def cli():
                         help='batch size')
     parser.add_argument('--stride-apply', default=1, type=int,
                         help='apply and reset gradients every n batches')
-    parser.add_argument('--epochs', default=10, type=int,
+    parser.add_argument('--epochs', default=75, type=int,
                         help='number of epochs to train')
     parser.add_argument('--loader-workers', default=2, type=int,
                         help='number of workers for data loading')
@@ -58,16 +58,16 @@ def cli():
                         help='number of images to sampe')
     parser.add_argument('--freeze-base', default=0, type=int,
                         help='number of epochs to train with frozen base')
-    parser.add_argument('--pre-lr', type=float, default=1e-2,
+    parser.add_argument('--pre-lr', type=float, default=1e-4,
                         help='pre learning rate')
     parser.add_argument('--update-batchnorm-runningstatistics',
                         default=False, action='store_true',
                         help='update batch norm running statistics')
-    parser.add_argument('--square-edge', default=321, type=int,
+    parser.add_argument('--square-edge', default=401, type=int,
                         help='square edge of input images')
     parser.add_argument('--crop-fraction', default=1.0, type=float,
                         help='crop fraction versus rescale')
-    parser.add_argument('--lambdas', default=[1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+    parser.add_argument('--lambdas', default=[10.0, 3.0, 1.0, 10.0, 3.0, 3.0],
                         type=float, nargs='+',
                         help='prefactor for head losses')
     parser.add_argument('--ema', default=1e-3, type=float,

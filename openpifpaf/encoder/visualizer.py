@@ -8,6 +8,7 @@ class Visualizer(object):
     def __init__(self, headnames, strides):
         self.headnames = headnames
         self.strides = strides
+        self.keypoint_painter = show.KeypointPainter(skeleton=COCO_PERSON_SKELETON)
 
     def single(self, image, targets):
         keypoint_sets = None
@@ -20,13 +21,12 @@ class Visualizer(object):
 
         for target, headname, stride in zip(targets, self.headnames, self.strides):
             print(headname, len(target))
-            if headname in ('paf', 'paf19', 'pafs'):
+            if headname in ('paf', 'paf19', 'pafs', 'wpaf'):
                 self.paf19(image, target, stride, keypoint_sets)
             elif headname in ('pif', 'pif17', 'pifs'):
                 self.pif17(image, target, stride, keypoint_sets)
 
-    @staticmethod
-    def pif17(image, target, stride, keypoint_sets):
+    def pif17(self, image, target, stride, keypoint_sets):
         resized_image = image[::stride, ::stride]
         for f in [1, 2, 15, 16]:
             print('intensity field', COCO_KEYPOINTS[f])
@@ -39,11 +39,10 @@ class Visualizer(object):
             with show.canvas() as ax:
                 ax.imshow(image)
                 show.white_screen(ax, alpha=0.5)
-                show.keypoints(ax, keypoint_sets, skeleton=COCO_PERSON_SKELETON)
+                self.keypoint_painter.keypoints(ax, keypoint_sets)
                 show.quiver(ax, target[1][f], xy_scale=stride)
 
-    @staticmethod
-    def paf19(image, target, stride, keypoint_sets):
+    def paf19(self, image, target, stride, keypoint_sets):
         resized_image = image[::stride, ::stride]
         for f in [1, 2, 15, 16, 17, 18]:
             print('association field',
@@ -57,13 +56,13 @@ class Visualizer(object):
             with show.canvas() as ax:
                 ax.imshow(image)
                 show.white_screen(ax, alpha=0.5)
-                show.keypoints(ax, keypoint_sets, skeleton=COCO_PERSON_SKELETON)
+                self.keypoint_painter.keypoints(ax, keypoint_sets)
                 show.quiver(ax, target[1][f], xy_scale=stride)
 
             with show.canvas() as ax:
                 ax.imshow(image)
                 show.white_screen(ax, alpha=0.5)
-                show.keypoints(ax, keypoint_sets, skeleton=COCO_PERSON_SKELETON)
+                self.keypoint_painter.keypoints(ax, keypoint_sets)
                 show.quiver(ax, target[2][f], xy_scale=stride)
 
     def __call__(self, images, targets, meta):

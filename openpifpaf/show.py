@@ -62,69 +62,87 @@ def load_image(path, scale=1.0):
         return image
 
 
-def keypoints(ax, keypoint_sets,
-              skeleton=COCO_PERSON_SKELETON, color=None, xy_scale=1.0,
-              highlight=None, show_box=True,
-              highlight_invisible=False, linewidth=2, markersize=3,
-              scores=None, color_connections=False):
-    if keypoint_sets is None:
-        return
+class KeypointPainter(object):
+    def __init__(self, *,
+                 skeleton=None,
+                 xy_scale=1.0, highlight=None, highlight_invisible=False,
+                 show_box=True, linewidth=2, markersize=3,
+                 color_connections=False):
+        self.skeleton = skeleton or COCO_PERSON_SKELETON
+        self.xy_scale = xy_scale
+        self.highlight = highlight
+        self.highlight_invisible = highlight_invisible
+        self.show_box = show_box
+        self.linewidth = linewidth
+        self.markersize = markersize
+        self.color_connections = color_connections
 
-    for i, kps in enumerate(np.asarray(keypoint_sets)):
-        assert kps.shape[1] == 3
+    def _draw_skeleton(self, ax, x, y, v, *, color=None):
         c = color
-        x = kps[:, 0] * xy_scale
-        y = kps[:, 1] * xy_scale
-        v = kps[:, 2]
         if not np.any(v > 0):
-            continue
-        if skeleton is not None:
-            for ci, connection in enumerate(np.array(skeleton) - 1):
-                if color_connections:
-                    c = matplotlib.cm.get_cmap('tab20')(ci / len(skeleton))
+            return
+        if self.skeleton is not None:
+            for ci, connection in enumerate(np.array(self.skeleton) - 1):
+                if self.color_connections:
+                    c = matplotlib.cm.get_cmap('tab20')(ci / len(self.skeleton))
                 if np.all(v[connection] > 0):
                     l, = ax.plot(x[connection], y[connection],
-                                 linewidth=linewidth, color=c,
+                                 linewidth=self.linewidth, color=c,
                                  linestyle='dashed', dash_capstyle='round')
                     if c is None:
                         c = l.get_color()
                 if np.all(v[connection] > 1):
                     ax.plot(x[connection], y[connection],
-                            linewidth=linewidth, color=c, solid_capstyle='round')
-            if color_connections:
+                            linewidth=self.linewidth, color=c, solid_capstyle='round')
+            if self.color_connections:
                 c = color if color is not None else 'white'
 
         # highlight invisible keypoints
-        inv_c = 'k' if highlight_invisible else c
+        inv_c = 'k' if self.highlight_invisible else c
 
-        ax.plot(x[v > 0], y[v > 0], 'o', markersize=markersize,
+        ax.plot(x[v > 0], y[v > 0], 'o', markersize=self.markersize,
                 markerfacecolor=c, markeredgecolor=inv_c, markeredgewidth=2)
-        ax.plot(x[v > 1], y[v > 1], 'o', markersize=markersize,
+        ax.plot(x[v > 1], y[v > 1], 'o', markersize=self.markersize,
                 markerfacecolor=c, markeredgecolor=c, markeredgewidth=2)
 
-        if highlight is not None:
-            v_highlight = v[highlight]
-            ax.plot(x[highlight][v_highlight > 0], y[highlight][v_highlight > 0],
-                    'o', markersize=markersize*2,
+        if self.highlight is not None:
+            v_highlight = v[self.highlight]
+            ax.plot(x[self.highlight][v_highlight > 0], y[self.highlight][v_highlight > 0],
+                    'o', markersize=self.markersize*2,
                     markerfacecolor=c, markeredgecolor=c, markeredgewidth=2)
 
-        if show_box:
-            # keypoint bounding box
-            x1, x2 = np.min(x[v > 0]), np.max(x[v > 0])
-            y1, y2 = np.min(y[v > 0]), np.max(y[v > 0])
-            if x2 - x1 < 5.0:
-                x1 -= 2.0
-                x2 += 2.0
-            if y2 - y1 < 5.0:
-                y1 -= 2.0
-                y2 += 2.0
-            ax.add_patch(
-                matplotlib.patches.Rectangle(
-                    (x1, y1), x2 - x1, y2 - y1, fill=False, color=c))
+    @staticmethod
+    def _draw_box(ax, x, y, v, color, score=None):
+        # keypoint bounding box
+        x1, x2 = np.min(x[v > 0]), np.max(x[v > 0])
+        y1, y2 = np.min(y[v > 0]), np.max(y[v > 0])
+        if x2 - x1 < 5.0:
+            x1 -= 2.0
+            x2 += 2.0
+        if y2 - y1 < 5.0:
+            y1 -= 2.0
+            y2 += 2.0
+        ax.add_patch(
+            matplotlib.patches.Rectangle(
+                (x1, y1), x2 - x1, y2 - y1, fill=False, color=color))
 
-            if scores is not None:
-                score = scores[i]
-                ax.text(x1, y1, '{:.4f}'.format(score), fontsize=8)
+        if score:
+            ax.text(x1, y1, '{:.4f}'.format(score), fontsize=8)
+
+    def keypoints(self, ax, keypoint_sets, *, scores=None, color=None):
+        if keypoint_sets is None:
+            return
+
+        for i, kps in enumerate(np.asarray(keypoint_sets)):
+            assert kps.shape[1] == 3
+            x = kps[:, 0] * self.xy_scale
+            y = kps[:, 1] * self.xy_scale
+            v = kps[:, 2]
+
+            self._draw_skeleton(ax, x, y, v, color=color)
+            if self.show_box:
+                score = scores[i] if scores else None
+                self._draw_box(ax, x, y, v, color, score)
 
 
 def quiver(ax, vector_field, intensity_field=None, step=1, threshold=0.5,

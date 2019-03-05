@@ -117,23 +117,24 @@ def draw_skeletons():
         [-2.0, 0.0, 2.0],  # 'left_ankle',      # 16
         [2.0, 0.1, 2.0],  # 'right_ankle',     # 17
     ]])
+
+    keypoint_painter = show.KeypointPainter(show_box=False, color_connections=True,
+                                            markersize=1, linewidth=6)
+
     with show.canvas('docs/skeleton_coco.png', figsize=(2, 5)) as ax:
         ax.set_axis_off()
-        show.keypoints(ax, coordinates, show_box=False,
-                       color_connections=True,
-                       markersize=1, linewidth=6)
+        keypoint_painter.skeleton = COCO_PERSON_SKELETON
+        keypoint_painter.keypoints(ax, coordinates)
+
     with show.canvas('docs/skeleton_kinematic_tree.png', figsize=(2, 5)) as ax:
         ax.set_axis_off()
-        show.keypoints(ax, coordinates, show_box=False,
-                       skeleton=KINEMATIC_TREE_SKELETON,
-                       color_connections=True,
-                       markersize=1, linewidth=6)
+        keypoint_painter.skeleton = KINEMATIC_TREE_SKELETON
+        keypoint_painter.keypoints(ax, coordinates)
+
     with show.canvas('docs/skeleton_dense.png', figsize=(2, 5)) as ax:
         ax.set_axis_off()
-        show.keypoints(ax, coordinates, show_box=False,
-                       skeleton=DENSER_COCO_PERSON_SKELETON,
-                       color_connections=True,
-                       markersize=1, linewidth=6)
+        keypoint_painter.skeleton = DENSER_COCO_PERSON_SKELETON
+        keypoint_painter.keypoints(ax, coordinates)
 
 
 if __name__ == '__main__':
