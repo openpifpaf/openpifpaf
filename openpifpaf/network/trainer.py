@@ -104,7 +104,7 @@ class Trainer(object):
 
         return loss, head_losses
 
-    def train_batch(self, data, targets, meta, apply_gradients=True):
+    def train_batch(self, data, targets, meta, apply_gradients=True):  # pylint: disable=method-hidden
         if self.encoder_visualizer:
             self.encoder_visualizer(data, targets, meta)
 
