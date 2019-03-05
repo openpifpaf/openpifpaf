@@ -90,12 +90,13 @@ Train a model:
   # or refine a pre-trained model
   python -m openpifpaf.train \
     --lr=1e-3 \
-    --epochs=60 \
+    --epochs=75 \
+    --lr-decay 60 70 \
     --batch-size=8 \
-    --basenet=resnet101 \
-    --square-edge=321 \
-    --regression-loss=l1 \
-    --lambdas 30 1 30 1 1 \
+    --basenet=resnet50block5 \
+    --square-edge=401 \
+    --regression-loss=laplace \
+    --lambdas 10 3 1 10 3 3 \
     --freeze-base=1
 
 
