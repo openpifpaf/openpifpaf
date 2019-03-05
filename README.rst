@@ -94,6 +94,7 @@ Train a model:
     --lr-decay 60 70 \
     --batch-size=8 \
     --basenet=resnet50block5 \
+    --headnets pif paf \
     --square-edge=401 \
     --regression-loss=laplace \
     --lambdas 10 3 1 10 3 3 \
