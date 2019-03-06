@@ -39,7 +39,8 @@ class Processor(object):
         print('nn processing time', time.time() - start)
         return fields
 
-    def soft_nms(self, annotations):
+    @staticmethod
+    def soft_nms(annotations):
         if not annotations:
             return annotations
 
