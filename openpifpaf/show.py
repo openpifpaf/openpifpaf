@@ -141,7 +141,7 @@ class KeypointPainter(object):
 
             self._draw_skeleton(ax, x, y, v, color=color)
             if self.show_box:
-                score = scores[i] if scores else None
+                score = scores[i] if scores is not None else None
                 self._draw_box(ax, x, y, v, color, score)
 
 
