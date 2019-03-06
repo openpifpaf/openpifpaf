@@ -85,7 +85,7 @@ class Visualizer(object):
 
     def paf_raw(self, paf, io_scale, reg_components=2):
         print('raw paf')
-        intensity_fields, reg1_fields, reg2_fields, reg1_fields_b, reg2_fields_b = paf
+        intensity_fields, reg1_fields, reg2_fields, reg1_fields_b, reg2_fields_b = paf  # pylint: disable=unused-variable
         for g in self.paf_indices:
             for f in g:
                 print('association field',
@@ -154,7 +154,7 @@ class Visualizer(object):
 
     def pif_raw(self, pif, io_scale):
         print('raw pif')
-        intensity_fields, reg_fields, scale_fields = pif
+        intensity_fields, reg_fields, scale_fields = pif  # pylint: disable=unused-variable
         for g in self.pif_indices:
             for f in g:
                 print('pif field', COCO_KEYPOINTS[f])
@@ -176,13 +176,9 @@ class Visualizer(object):
                 with show.canvas() as ax:
                     ax.imshow(self.image)
                     show.white_screen(ax, alpha=0.5)
-                    q = show.quiver(ax, reg_fields[f],  # intensity_fields[f],
-                                    cmap='viridis_r', clim=(0.0, 1.0),
-                                    threshold=0.0, xy_scale=io_scale)
-
-                    # divider = make_axes_locatable(ax)
-                    # cax = divider.append_axes('right', size='3%', pad=0.05)
-                    # plt.colorbar(q, cax=cax)
+                    show.quiver(ax, reg_fields[f],
+                                cmap='viridis_r', clim=(0.0, 1.0),
+                                threshold=0.0, xy_scale=io_scale)
 
                     ax.get_xaxis().set_visible(False)
                     ax.get_yaxis().set_visible(False)
