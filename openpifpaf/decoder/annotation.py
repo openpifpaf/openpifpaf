@@ -2,7 +2,8 @@ import numpy as np
 
 
 class Annotation(object):
-    def __init__(self, j, xyv, skeleton, n_joints=17):
+    def __init__(self, j, xyv, skeleton):
+        n_joints = len(set(i for c in skeleton for i in c))
         self.data = np.zeros((n_joints, 3))
         self.joint_scales = None
         self.data[j] = xyv
