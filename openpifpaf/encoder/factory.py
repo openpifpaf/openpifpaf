@@ -1,5 +1,3 @@
-import math
-
 from .paf import Paf
 from .pif import Pif
 from .skeleton import Skeleton
@@ -9,9 +7,9 @@ from ..data import COCO_PERSON_SKELETON, DENSER_COCO_PERSON_SKELETON, KINEMATIC_
 
 def cli(parser):
     group = parser.add_argument_group('encoders')
-    group.add_argument('--pif-side-length', default=None, type=int,
+    group.add_argument('--pif-side-length', default=4, type=int,
                        help='side length of the PIF field')
-    group.add_argument('--paf-min-size', default=None, type=int,
+    group.add_argument('--paf-min-size', default=3, type=int,
                        help='min side length of the PAF field')
 
 
@@ -24,7 +22,7 @@ def factory(args, io_scales):
             encoders.append(Pif(AnnRescaler(io_scale), args.pif_side_length))
         # elif head_name == 'pcf':
         #     encoders.append(Pcf(input_output_scale))
-        elif head_name in ('paf', 'paf19', 'pafs'):
+        elif head_name in ('paf', 'paf19', 'pafs', 'wpaf'):
             encoders.append(Paf(AnnRescaler(io_scale), COCO_PERSON_SKELETON,
                                 min_size=args.paf_min_size))
         elif head_name in ('skeleton',):

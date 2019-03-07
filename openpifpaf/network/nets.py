@@ -206,6 +206,11 @@ def factory_from_scratch(basename, headnames, *,
             return heads.CompositeField(19, n_features, shortname='paf',
                                         n_vectors=2, n_scales=0,
                                         dropout_p=dropout_p, quad=quad)
+        if name in ('wpaf',):
+            return heads.CompositeField(19, n_features, shortname='paf',
+                                        n_vectors=2, n_scales=0,
+                                        dropout_p=dropout_p, quad=quad,
+                                        kernel_size=3, padding=5, dilation=5)
         if name in ('paf19', 'pafb'):
             return heads.PartAssociationFields(19, n_features,
                                                dropout_p=dropout_p, quad=quad)
@@ -218,8 +223,9 @@ def factory_from_scratch(basename, headnames, *,
                                                 dropout_p=dropout_p, quad=quad,
                                                 predict_spread=True)
         if name == 'paf44':
-            return heads.PartAssociationFields(44, n_features,
-                                               dropout_p=dropout_p, quad=quad)
+            return heads.CompositeField(44, n_features, shortname='paf44',
+                                        n_vectors=2, n_scales=0,
+                                        dropout_p=dropout_p, quad=quad)
         raise Exception('headnet {} not supported'.format(name))
 
     if 'pifb' in headnames or 'pafb' in headnames:
@@ -262,12 +268,12 @@ def cli(parser):
     group.add_argument('--dilation-end', default=None, type=int,
                        help='apply atrous')
     group.add_argument('--basenet', default=None,
-                       help='base network')
-    group.add_argument('--headnets', default=['pifs', 'pafs'], nargs='+',
+                       help='base network, e.g. resnet50block5')
+    group.add_argument('--headnets', default=['pif', 'paf'], nargs='+',
                        help='head networks')
     group.add_argument('--dropout', default=0.0, type=float,
                        help='zeroing probability of feature in head input')
-    group.add_argument('--quad', default=0, type=int,
-                       help='number of times to apply quad to heads')
+    group.add_argument('--quad', default=1, type=int,
+                       help='number of times to apply quad (subpixel conv) to heads')
     group.add_argument('--no-pretrain', dest='pretrain', default=True, action='store_false',
                        help='create model without ImageNet pretraining')

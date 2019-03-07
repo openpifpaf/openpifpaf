@@ -7,7 +7,7 @@ from .utils import create_sink, mask_valid_area
 
 
 class Pif(object):
-    def __init__(self, ann_rescale, side_length=None):
+    def __init__(self, ann_rescale, side_length):
         self.ann_rescale = ann_rescale
         self.side_length = side_length
 
@@ -15,24 +15,10 @@ class Pif(object):
 
     def __call__(self, anns, width_height_original):
         keypoint_sets, bg_mask, valid_area = self.ann_rescale(anns, width_height_original)
-
-        s = self.side_length
-        if s is None:
-            if bg_mask.shape[1] >= 60:
-                s = 5
-            elif bg_mask.shape[1] >= 40:
-                s = 4
-            elif bg_mask.shape[1] >= 20:
-                s = 3
-            elif bg_mask.shape[1] >= 10:
-                s = 2
-            else:
-                s = 1
-
-        self.log.debug('valid area: %s, pif side length = %d', valid_area, s)
+        self.log.debug('valid area: %s, pif side length = %d', valid_area, self.side_length)
 
         n_fields = keypoint_sets.shape[1]
-        f = PifGenerator(s)
+        f = PifGenerator(self.side_length)
         f.init_fields(n_fields, bg_mask)
         f.fill(keypoint_sets)
         return f.fields(valid_area)
@@ -70,11 +56,7 @@ class PifGenerator(object):
                                                             border_value=1)
 
     def fill(self, keypoint_sets):
-        # TODO(sven): remove randomization now?
-        random_indices = np.random.choice(keypoint_sets.shape[0],
-                                          keypoint_sets.shape[0],
-                                          replace=False)
-        for keypoints in keypoint_sets[random_indices]:
+        for keypoints in keypoint_sets:
             self.fill_keypoints(keypoints)
 
     def fill_keypoints(self, keypoints):

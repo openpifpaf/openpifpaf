@@ -55,7 +55,7 @@ def factory(args, model):
                         force_complete=args.force_complete_pose,
                         connection_method=args.connection_method,
                         debug_visualizer=debug_visualizer)
-    elif headnames == ('pif', 'paf'):
+    elif headnames in (('pif', 'paf'), ('pif', 'wpaf')):
         decode = PifPaf(model.io_scales()[-1], args.seed_threshold,
                         force_complete=args.force_complete_pose,
                         connection_method=args.connection_method,
@@ -84,12 +84,13 @@ def factory(args, model):
                         force_complete=args.force_complete_pose,
                         connection_method=args.connection_method,
                         debug_visualizer=debug_visualizer)
-    elif headnames == ('pif17', 'paf44'):
+    elif headnames == ('pif', 'paf44'):
         decode = PifPaf(model.io_scales()[-1], args.seed_threshold,
                         DENSER_COCO_PERSON_SKELETON,
                         force_complete=args.force_complete_pose,
                         connection_method=args.connection_method,
-                        debug_visualizer=debug_visualizer)
+                        debug_visualizer=debug_visualizer,
+                        fixed_b=args.fixed_b)
     else:
         raise Exception('unknown head nets {} for decoder'.format(headnames))
 

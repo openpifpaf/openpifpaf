@@ -224,7 +224,8 @@ class NPartAssociationFields(torch.nn.Module):
 class CompositeField(torch.nn.Module):
     def __init__(self, n, in_features, shortname=None,
                  dropout_p=0.0, quad=0,
-                 n_confidences=1, n_vectors=0, n_scales=0):
+                 n_confidences=1, n_vectors=0, n_scales=0,
+                 kernel_size=1, padding=0, dilation=1):
         super(CompositeField, self).__init__()
         self.shortname = shortname or 'cf{}c{}v{}s{}'.format(
             n,
@@ -241,23 +242,27 @@ class CompositeField(torch.nn.Module):
         # classification
         out_features = n * (4 ** self._quad)
         self.class_convs = torch.nn.ModuleList([
-            torch.nn.Conv2d(in_features, out_features, 1)
+            torch.nn.Conv2d(in_features, out_features, kernel_size,
+                            padding=padding, dilation=dilation)
             for _ in range(n_confidences)
         ])
 
         # regression
         self.reg_convs = torch.nn.ModuleList([
-            torch.nn.Conv2d(in_features, 2 * out_features, 1)
+            torch.nn.Conv2d(in_features, 2 * out_features, kernel_size,
+                            padding=padding, dilation=dilation)
             for _ in range(n_vectors)
         ])
         self.reg_spreads = torch.nn.ModuleList([
-            torch.nn.Conv2d(in_features, out_features, 1)
+            torch.nn.Conv2d(in_features, out_features, kernel_size,
+                            padding=padding, dilation=dilation)
             for _ in self.reg_convs
         ])
 
         # scale
         self.scale_convs = torch.nn.ModuleList([
-            torch.nn.Conv2d(in_features, out_features, 1)
+            torch.nn.Conv2d(in_features, out_features, kernel_size,
+                            padding=padding, dilation=dilation)
             for _ in range(n_scales)
         ])
 

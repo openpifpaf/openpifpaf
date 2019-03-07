@@ -7,7 +7,7 @@ from .utils import create_sink, mask_valid_area
 
 
 class Paf(object):
-    def __init__(self, ann_rescale, skeleton, min_size=None):
+    def __init__(self, ann_rescale, skeleton, min_size):
         self.ann_rescale = ann_rescale
         self.skeleton = skeleton
         self.min_size = min_size
@@ -16,17 +16,9 @@ class Paf(object):
 
     def __call__(self, anns, width_height_original):
         keypoint_sets, bg_mask, valid_area = self.ann_rescale(anns, width_height_original)
+        self.log.debug('valid area: %s, paf min size = %d', valid_area, self.min_size)
 
-        min_size = self.min_size
-        if min_size is None:
-            if bg_mask.shape[1] >= 60:
-                min_size = 4
-            else:
-                min_size = 3
-
-        self.log.debug('valid area: %s, paf min size = %d', valid_area, min_size)
-
-        f = PafGenerator(min_size, self.skeleton)
+        f = PafGenerator(self.min_size, self.skeleton)
         f.init_fields(bg_mask)
         f.fill(keypoint_sets)
         return f.fields(valid_area)
@@ -63,11 +55,7 @@ class PafGenerator(object):
                                                             border_value=1)
 
     def fill(self, keypoint_sets):
-        # TODO(sven): remove randomization now?
-        random_indices = np.random.choice(keypoint_sets.shape[0],
-                                          keypoint_sets.shape[0],
-                                          replace=False)
-        for keypoints in keypoint_sets[random_indices]:
+        for keypoints in keypoint_sets:
             self.fill_keypoints(keypoints)
 
     def fill_keypoints(self, keypoints):

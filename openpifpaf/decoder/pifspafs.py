@@ -30,7 +30,7 @@ class PifsPafs(object):
         self.debug_visualizer = debug_visualizer
         self.connection_method = connection_method
 
-        self.pif_nn = 16
+        self.pif_nn = 9
         self.paf_nn = 1 if connection_method == 'max' else 35
 
     def __call__(self, fields):
@@ -304,7 +304,8 @@ class PifsPafsGenerator(object):
         score = np.tanh(np.sum(close_scores) * 3.0 / self.paf_nn)
         return (y[0], y[1], score)
 
-    def _target_with_maxscore(self, target_coordinates, scores):
+    @staticmethod
+    def _target_with_maxscore(target_coordinates, scores):
         assert target_coordinates.shape[1] == scores.shape[0]
 
         max_i = np.argmax(scores)

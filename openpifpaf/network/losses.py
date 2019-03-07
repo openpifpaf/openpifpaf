@@ -299,14 +299,14 @@ class CompositeLoss(torch.nn.Module):
 
     def forward(self, x, t):  # pylint: disable=arguments-differ
         x_intensity = x[0]
-        x_regs = x[1:self.n_vectors + 1]
-        x_spreads = x[self.n_vectors + 1:2 * self.n_vectors + 1]
+        x_regs = x[1:1 + self.n_vectors]
+        x_spreads = x[1 + self.n_vectors:1 + 2 * self.n_vectors]
         x_scales = []
         if self.n_scales:
-            x_scales = x[2 * self.n_vectors + 1:2 * self.n_vectors + 1 + self.n_scales]
+            x_scales = x[1 + 2 * self.n_vectors:1 + 2 * self.n_vectors + self.n_scales]
 
         target_intensity = t[0]
-        target_regs = t[1:-1]
+        target_regs = t[1:1 + self.n_vectors]
         target_scale = t[-1]
 
         bce_masks = torch.sum(target_intensity, dim=1, keepdim=True) > 0.5
@@ -423,7 +423,7 @@ def factory(args):
             losses.append(PAFLoss(reg_loss_, args.r_smooth, 1.0 / args.r_smooth,
                                   background_weight=args.background_weight,
                                   multiplicity_correction=args.paf_multiplicity_correction))
-        elif head_name in ('paf',):
+        elif head_name in ('paf', 'wpaf'):
             losses.append(CompositeLoss(reg_loss,
                                         n_vectors=2, n_scales=0,
                                         background_weight=args.background_weight,
@@ -449,10 +449,16 @@ def factory(args):
                                   background_weight=args.background_weight,
                                   multiplicity_correction=args.paf_multiplicity_correction))
         elif head_name in ('paf44',):
-            losses.append(PAFLoss(reg_loss_, args.r_smooth, 1.0 / args.r_smooth,
-                                  skeleton=DENSER_COCO_PERSON_SKELETON,
-                                  background_weight=args.background_weight,
-                                  multiplicity_correction=args.paf_multiplicity_correction))
+            losses.append(CompositeLoss(reg_loss,
+                                        n_vectors=2, n_scales=0,
+                                        background_weight=args.background_weight,
+                                        multiplicity_correction=args.paf_multiplicity_correction,
+                                        sigmas=[
+                                            [COCO_PERSON_SIGMAS[j1i - 1]
+                                             for j1i, _ in DENSER_COCO_PERSON_SKELETON],
+                                            [COCO_PERSON_SIGMAS[j2i - 1]
+                                             for _, j2i in DENSER_COCO_PERSON_SKELETON],
+                                        ]))
         elif head_name in ('skeleton',):
             pass
         else:
