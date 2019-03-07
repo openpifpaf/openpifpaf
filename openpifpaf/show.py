@@ -152,6 +152,8 @@ class KeypointPainter(object):
         if keypoint_sets is None:
             return
 
+        if color is None and self.color_connections:
+            color = 'white'
         if color is None and colors is None:
             colors = range(len(keypoint_sets))
 
