@@ -154,7 +154,7 @@ class Visualizer(object):
 
     def pif_raw(self, pif, io_scale):
         print('raw pif')
-        intensity_fields, reg_fields, scale_fields = pif  # pylint: disable=unused-variable
+        intensity_fields, reg_fields, reg_fields_b, scale_fields = pif  # pylint: disable=unused-variable
         for g in self.pif_indices:
             for f in g:
                 print('pif field', COCO_KEYPOINTS[f])
