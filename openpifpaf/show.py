@@ -1,4 +1,6 @@
 from contextlib import contextmanager
+import random
+
 import numpy as np
 from PIL import Image
 
@@ -78,41 +80,42 @@ class KeypointPainter(object):
         self.color_connections = color_connections
 
     def _draw_skeleton(self, ax, x, y, v, *, color=None):
-        c = color
         if not np.any(v > 0):
             return
+
         if self.skeleton is not None:
             for ci, connection in enumerate(np.array(self.skeleton) - 1):
+                c = color
                 if self.color_connections:
                     c = matplotlib.cm.get_cmap('tab20')(ci / len(self.skeleton))
                 if np.all(v[connection] > 0):
-                    l, = ax.plot(x[connection], y[connection],
-                                 linewidth=self.linewidth, color=c,
-                                 linestyle='dashed', dash_capstyle='round')
-                    if c is None:
-                        c = l.get_color()
+                    ax.plot(x[connection], y[connection],
+                            linewidth=self.linewidth, color=c,
+                            linestyle='dashed', dash_capstyle='round')
                 if np.all(v[connection] > 1):
                     ax.plot(x[connection], y[connection],
                             linewidth=self.linewidth, color=c, solid_capstyle='round')
-            if self.color_connections:
-                c = color if color is not None else 'white'
 
         # highlight invisible keypoints
-        inv_c = 'k' if self.highlight_invisible else c
+        inv_color = 'k' if self.highlight_invisible else color
 
         ax.plot(x[v > 0], y[v > 0], 'o', markersize=self.markersize,
-                markerfacecolor=c, markeredgecolor=inv_c, markeredgewidth=2)
+                markerfacecolor=color, markeredgecolor=inv_color, markeredgewidth=2)
         ax.plot(x[v > 1], y[v > 1], 'o', markersize=self.markersize,
-                markerfacecolor=c, markeredgecolor=c, markeredgewidth=2)
+                markerfacecolor=color, markeredgecolor=color, markeredgewidth=2)
 
         if self.highlight is not None:
             v_highlight = v[self.highlight]
-            ax.plot(x[self.highlight][v_highlight > 0], y[self.highlight][v_highlight > 0],
-                    'o', markersize=self.markersize*2,
-                    markerfacecolor=c, markeredgecolor=c, markeredgewidth=2)
+            ax.plot(x[self.highlight][v_highlight > 0],
+                    y[self.highlight][v_highlight > 0],
+                    'o', markersize=self.markersize*2, markeredgewidth=2,
+                    markerfacecolor=color, markeredgecolor=color)
 
     @staticmethod
     def _draw_box(ax, x, y, v, color, score=None):
+        if not np.any(v > 0):
+            return
+
         # keypoint bounding box
         x1, x2 = np.min(x[v > 0]), np.max(x[v > 0])
         y1, y2 = np.min(y[v > 0]), np.max(y[v > 0])
@@ -127,11 +130,30 @@ class KeypointPainter(object):
                 (x1, y1), x2 - x1, y2 - y1, fill=False, color=color))
 
         if score:
-            ax.text(x1, y1, '{:.4f}'.format(score), fontsize=8)
+            ax.text(x1, y1, '{:.4f}'.format(score), fontsize=8, color=color)
 
-    def keypoints(self, ax, keypoint_sets, *, scores=None, color=None):
+    def _draw_text(self, ax, x, y, v, text, color):
+        if not np.any(v > 0):
+            return
+
+        # keypoint bounding box
+        x1, x2 = np.min(x[v > 0]), np.max(x[v > 0])
+        y1, y2 = np.min(y[v > 0]), np.max(y[v > 0])
+        if x2 - x1 < 5.0:
+            x1 -= 2.0
+            x2 += 2.0
+        if y2 - y1 < 5.0:
+            y1 -= 2.0
+            y2 += 2.0
+
+        ax.text(x1, y1 - 2, text, fontsize=8, color=color)
+
+    def keypoints(self, ax, keypoint_sets, *, scores=None, color=None, colors=None, texts=None):
         if keypoint_sets is None:
             return
+
+        if color is None and colors is None:
+            colors = range(len(keypoint_sets))
 
         for i, kps in enumerate(np.asarray(keypoint_sets)):
             assert kps.shape[1] == 3
@@ -139,10 +161,19 @@ class KeypointPainter(object):
             y = kps[:, 1] * self.xy_scale
             v = kps[:, 2]
 
+            if colors is not None:
+                color = colors[i]
+
+            if isinstance(color, (int, np.integer)):
+                color = matplotlib.cm.get_cmap('tab20')((color % 20 + 0.05) / 20)
+
             self._draw_skeleton(ax, x, y, v, color=color)
             if self.show_box:
                 score = scores[i] if scores is not None else None
                 self._draw_box(ax, x, y, v, color, score)
+
+                if texts is not None:
+                    self._draw_text(ax, x, y, v, texts[i], color)
 
 
 def quiver(ax, vector_field, intensity_field=None, step=1, threshold=0.5,
