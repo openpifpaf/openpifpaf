@@ -201,6 +201,10 @@ def main():
         ema_decay=args.ema,
         encoder_visualizer=encoder_visualizer,
         train_profile=args.profile,
+        model_meta_data={
+            'pif-side-length': args.pif_side_length,
+            'paf-min-size': args.paf_min_size,
+        },
     )
     trainer.loop(train_loader, val_loader, args.epochs, start_epoch=start_epoch)
 

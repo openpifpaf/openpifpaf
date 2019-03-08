@@ -7,7 +7,7 @@ import torch
 
 
 class Trainer(object):
-    def __init__(self, model, losses, optimizer, out, lambdas,
+    def __init__(self, model, losses, optimizer, out, lambdas, *,
                  lr_scheduler=None,
                  log_interval=10,
                  device=None,
@@ -15,7 +15,8 @@ class Trainer(object):
                  stride_apply=1,
                  ema_decay=None,
                  encoder_visualizer=None,
-                 train_profile=None):
+                 train_profile=None,
+                 model_meta_data=None):
         self.model = model
         self.losses = losses
         self.optimizer = optimizer
@@ -33,6 +34,7 @@ class Trainer(object):
         self.ema_restore_params = None
 
         self.encoder_visualizer = encoder_visualizer
+        self.model_meta_data = model_meta_data
 
         if train_profile:
             # monkey patch to profile self.train_batch()
@@ -256,6 +258,7 @@ class Trainer(object):
         torch.save({
             'model': model,
             'epoch': epoch,
+            'meta': self.model_meta_data,
         }, filename)
         self.log.debug('model written')
 
