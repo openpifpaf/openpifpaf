@@ -146,7 +146,8 @@ class KeypointPainter(object):
             y1 -= 2.0
             y2 += 2.0
 
-        ax.text(x1, y1 - 2, text, fontsize=8, color=color)
+        ax.text(x1 + 2, y1 - 2, text, fontsize=8,
+                color='white', bbox={'facecolor': color, 'alpha': 0.5, 'linewidth': 0})
 
     def keypoints(self, ax, keypoint_sets, *, scores=None, color=None, colors=None, texts=None):
         if keypoint_sets is None:
