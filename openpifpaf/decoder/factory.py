@@ -35,6 +35,8 @@ def cli(parser, force_complete_pose=True, instance_threshold=0.0):
                        help='connection method to use, max is faster')
     group.add_argument('--fixed-b', default=None, type=float,
                        help='overwrite b with fixed value, e.g. 0.5')
+    group.add_argument('--pif-fixed-scale', default=None, type=float,
+                       help='overwrite pif scale with a fixed value')
     group.add_argument('--profile-decoder', default=False, action='store_true',
                        help='profile decoder')
 
@@ -60,12 +62,14 @@ def factory(args, model):
                         force_complete=args.force_complete_pose,
                         connection_method=args.connection_method,
                         debug_visualizer=debug_visualizer,
-                        fixed_b=args.fixed_b)
+                        fixed_b=args.fixed_b,
+                        pif_fixed_scale=args.pif_fixed_scale)
     elif headnames in (('pifs17', 'pafs19'), ('pifs17', 'pafs19n2')):
         decode = PifsPafs(model.io_scales()[-1], args.seed_threshold,
                           force_complete=args.force_complete_pose,
                           connection_method=args.connection_method,
-                          debug_visualizer=debug_visualizer)
+                          debug_visualizer=debug_visualizer,
+                          pif_fixed_scale=args.pif_fixed_scale)
     elif headnames == ('pif17', 'pif17', 'paf19'):
         decode = PifPaf(model.io_scales()[-1], args.seed_threshold,
                         force_complete=args.force_complete_pose,

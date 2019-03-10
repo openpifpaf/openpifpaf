@@ -19,7 +19,8 @@ class PifsPafs(object):
                  profile=None,
                  force_complete=True,
                  debug_visualizer=None,
-                 connection_method='max'):
+                 connection_method='max',
+                 pif_fixed_scale=None):
         self.stride = stride
         self.hr_scale = self.stride
         self.skeleton = skeleton or COCO_PERSON_SKELETON
@@ -29,6 +30,7 @@ class PifsPafs(object):
         self.force_complete = force_complete
         self.debug_visualizer = debug_visualizer
         self.connection_method = connection_method
+        self.pif_fixed_scale = pif_fixed_scale
 
         self.pif_nn = 9
         self.paf_nn = 1 if connection_method == 'max' else 35
@@ -46,7 +48,7 @@ class PifsPafs(object):
             self.debug_visualizer.pif_raw(pif, self.stride)
             self.debug_visualizer.paf_raw(paf, self.stride, reg_components=3)
         paf = normalize_paf(*paf)
-        pif = normalize_pifs(*pif)
+        pif = normalize_pifs(*pif, fixed_scale=self.pif_fixed_scale)
 
         gen = PifsPafsGenerator(
             pif, paf,

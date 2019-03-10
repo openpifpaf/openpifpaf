@@ -96,9 +96,12 @@ def normalize_paf(intensity_fields, j1_fields, j2_fields, j1_fields_logb, j2_fie
     return paf
 
 
-def normalize_pif(joint_intensity_fields, joint_fields, _, scale_fields):
+def normalize_pif(joint_intensity_fields, joint_fields, _, scale_fields, *,
+                  fixed_scale=None):
     joint_intensity_fields = np.expand_dims(joint_intensity_fields.copy(), 1)
     scale_fields = np.expand_dims(scale_fields, 1)
+    if fixed_scale is not None:
+        scale_fields[:] = fixed_scale
 
     index_fields = index_field(joint_fields.shape[-2:])
     index_fields = np.expand_dims(index_fields, 0)
@@ -110,9 +113,12 @@ def normalize_pif(joint_intensity_fields, joint_fields, _, scale_fields):
     )
 
 
-def normalize_pifs(joint_intensity_fields, joint_fields, scale_fields):
+def normalize_pifs(joint_intensity_fields, joint_fields, scale_fields, *,
+                   fixed_scale=None):
     joint_intensity_fields = np.expand_dims(joint_intensity_fields.copy(), 1)
     scale_fields = np.expand_dims(scale_fields, 1)
+    if fixed_scale is not None:
+        scale_fields[:] = fixed_scale
 
     index_fields = index_field(joint_fields.shape[-2:])
     index_fields = np.expand_dims(index_fields, 0)
