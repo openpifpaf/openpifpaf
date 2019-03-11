@@ -13,6 +13,8 @@ def cli(parser):
                        help='min side length of the PAF field')
     group.add_argument('--paf-fixed-size', default=False, action='store_true',
                        help='fixed paf size')
+    group.add_argument('--paf-fixed-width', default=False, action='store_true',
+                       help='fixed paf width')
 
 
 def factory(args, io_scales):
@@ -27,21 +29,25 @@ def factory(args, io_scales):
         elif head_name in ('paf', 'paf19', 'pafs', 'wpaf'):
             encoders.append(Paf(AnnRescaler(io_scale), COCO_PERSON_SKELETON,
                                 min_size=args.paf_min_size,
-                                fixed_size=args.paf_fixed_size))
+                                fixed_size=args.paf_fixed_size,
+                                fixed_width=args.paf_fixed_width))
         elif head_name in ('skeleton',):
             encoders.append(Skeleton(AnnRescaler(io_scale)))
         elif head_name in ('pafb',):
             encoders.append(Paf(AnnRescaler(io_scale), COCO_PERSON_SKELETON,
                                 min_size=args.paf_min_size,
-                                fixed_size=args.paf_fixed_size))
+                                fixed_size=args.paf_fixed_size,
+                                fixed_width=args.paf_fixed_width))
         elif head_name == 'paf16':
             encoders.append(Paf(AnnRescaler(io_scale), KINEMATIC_TREE_SKELETON,
                                 min_size=args.paf_min_size,
-                                fixed_size=args.paf_fixed_size))
+                                fixed_size=args.paf_fixed_size,
+                                fixed_width=args.paf_fixed_width))
         elif head_name in ('paf44',):
             encoders.append(Paf(AnnRescaler(io_scale), DENSER_COCO_PERSON_SKELETON,
                                 min_size=args.paf_min_size,
-                                fixed_size=args.paf_fixed_size))
+                                fixed_size=args.paf_fixed_size,
+                                fixed_width=args.paf_fixed_width))
         else:
             raise Exception('unknown head to create an encoder: {}'.format(head_name))
 

@@ -7,11 +7,13 @@ from .utils import create_sink, mask_valid_area
 
 
 class Paf(object):
-    def __init__(self, ann_rescale, skeleton, min_size, *, fixed_size=False):
+    def __init__(self, ann_rescale, skeleton, min_size, *,
+                 fixed_size=False, fixed_width=False):
         self.ann_rescale = ann_rescale
         self.skeleton = skeleton
         self.min_size = min_size
         self.fixed_size = fixed_size
+        self.fixed_width = fixed_width
 
         self.log = logging.getLogger(self.__class__.__name__)
 
@@ -19,7 +21,8 @@ class Paf(object):
         keypoint_sets, bg_mask, valid_area = self.ann_rescale(anns, width_height_original)
         self.log.debug('valid area: %s, paf min size = %d', valid_area, self.min_size)
 
-        f = PafGenerator(self.min_size, self.skeleton, fixed_size=self.fixed_size)
+        f = PafGenerator(self.min_size, self.skeleton,
+                         fixed_size=self.fixed_size, fixed_width=self.fixed_width)
         f.init_fields(bg_mask)
         f.fill(keypoint_sets)
         return f.fields(valid_area)
@@ -27,12 +30,13 @@ class Paf(object):
 
 class PafGenerator(object):
     def __init__(self, min_size, skeleton, *,
-                 v_threshold=0, padding=10, fixed_size=False):
+                 v_threshold=0, padding=10, fixed_size=False, fixed_width=False):
         self.min_size = min_size
         self.skeleton = skeleton
         self.v_threshold = v_threshold
         self.padding = padding
         self.fixed_size = fixed_size
+        self.fixed_width = fixed_width
 
         self.intensities = None
         self.fields_reg1 = None
@@ -87,9 +91,8 @@ class PafGenerator(object):
 
         # dynamically create s
         s = max(self.min_size, int(offset_d * 0.2))
-        if self.fixed_size:
+        if self.fixed_size or self.fixed_width:
             s = self.min_size
-        # s = self.min_size
         sink = create_sink(s)
         s_offset = (s - 1.0) / 2.0
 
