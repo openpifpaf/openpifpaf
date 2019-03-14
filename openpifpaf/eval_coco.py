@@ -4,7 +4,6 @@ import argparse
 import io
 import json
 import logging
-import os
 import pstats
 import time
 import zipfile
@@ -63,6 +62,41 @@ class EvalCoco(object):
         self.eval.summarize()
         return self.eval.stats
 
+    def view_keypoints(self, image_cpu, instances, scores, gt):
+        highlight = [5, 7, 9, 11, 13, 15]
+        keypoint_painter = show.KeypointPainter(skeleton=self.skeleton, highlight=highlight)
+        skeleton_painter = show.KeypointPainter(skeleton=self.skeleton,
+                                                show_box=False, color_connections=True,
+                                                markersize=1, linewidth=6)
+
+        with show.canvas() as ax:
+            ax.imshow((np.moveaxis(image_cpu.numpy(), 0, -1) + 2.0) / 4.0)
+            keypoint_painter.keypoints(ax, instances, scores=scores)
+
+        with show.canvas() as ax:
+            ax.set_axis_off()
+            ax.imshow((np.moveaxis(image_cpu.numpy(), 0, -1) + 2.0) / 4.0)
+            m = scores > 0.1
+            skeleton_painter.keypoints(ax, instances[m], scores=scores[m])
+
+        instances_gt = None
+        if gt:
+            instances_gt = np.stack([a['keypoints'] for a in gt])
+
+            # for test: overwrite prediction with true values
+            # instances = instances_gt.copy()[:1]
+
+        with show.canvas() as ax:
+            ax.imshow((np.moveaxis(image_cpu.numpy(), 0, -1) + 2.0) / 4.0)
+            keypoint_painter.keypoints(ax, instances_gt)
+
+        with show.canvas() as ax:
+            ax.imshow((np.moveaxis(image_cpu.numpy(), 0, -1) + 2.0) / 4.0)
+            show.white_screen(ax)
+            keypoint_painter.keypoints(ax, instances_gt, color='lightgrey')
+            m = scores > 0.01
+            keypoint_painter.keypoints(ax, instances[m], scores=scores[m])
+
     def from_fields(self, fields, meta,
                     debug=False, gt=None, image_cpu=None, verbose=False,
                     fields_half_scale=None, category_id=1):
@@ -83,39 +117,7 @@ class EvalCoco(object):
         scores = scores[:20]
 
         if debug:
-            keypoint_painter = show.KeypointPainter(skeleton=self.skeleton, highlight=highlight)
-            skeleton_painter = show.KeypointPainter(skeleton=self.skeleton,
-                                                    show_box=False, color_connections=True,
-                                                    markersize=1, linewidth=6)
-
-            highlight = [5, 7, 9, 11, 13, 15]
-            with show.canvas() as ax:
-                ax.imshow((np.moveaxis(image_cpu.numpy(), 0, -1) + 2.0) / 4.0)
-                keypoint_painter.keypoints(ax, instances, scores=scores)
-
-            with show.canvas() as ax:
-                ax.set_axis_off()
-                ax.imshow((np.moveaxis(image_cpu.numpy(), 0, -1) + 2.0) / 4.0)
-                m = scores > 0.1
-                skeleton_painter.keypoints(ax, instances[m], scores=scores[m])
-
-            instances_gt = None
-            if gt:
-                instances_gt = np.stack([a['keypoints'] for a in gt])
-
-                # for test: overwrite prediction with true values
-                # instances = instances_gt.copy()[:1]
-
-            with show.canvas() as ax:
-                ax.imshow((np.moveaxis(image_cpu.numpy(), 0, -1) + 2.0) / 4.0)
-                keypoint_painter.keypoints(ax, instances_gt)
-
-            with show.canvas() as ax:
-                ax.imshow((np.moveaxis(image_cpu.numpy(), 0, -1) + 2.0) / 4.0)
-                show.white_screen(ax)
-                keypoint_painter.keypoints(ax, instances_gt, color='lightgrey')
-                m = scores > 0.01
-                keypoint_painter.keypoints(ax, instances[m], scores=scores[m])
+            self.view_keypoints(image_cpu, instances, scores, gt)
 
         # print('gt', instances_gt[0])
         # print('before', instances[0])
@@ -159,7 +161,7 @@ class EvalCoco(object):
         print('wrote {}'.format(filename + '.zip'))
 
 
-def main():
+def cli():
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -215,21 +217,38 @@ def main():
     if args.dataset in ('test', 'test-dev') and not args.write_predictions:
         raise Exception('have to use --write-predictions for this dataset')
 
-    # output file
-    eval_output_filename = '{}.evalcoco-edge{}-samples{}-decoder{}.txt'.format(
-        args.checkpoint, args.long_edge, args.n, 0)
-    if args.skip_existing:
-        if os.path.exists(eval_output_filename):
-            print('Output file {} exists already. Exiting.'.format(eval_output_filename))
-            return
-        print('Processing: {}'.format(args.checkpoint))
-
     # add args.device
     args.device = torch.device('cpu')
     pin_memory = False
     if not args.disable_cuda and torch.cuda.is_available():
         args.device = torch.device('cuda')
         pin_memory = True
+
+    return args, image_dir, annotation_file, pin_memory
+
+
+def write_evaluations(eval_cocos, args):
+    for i, eval_coco in enumerate(eval_cocos):
+        filename = '{}.evalcoco-{}edge{}-samples{}-{}decoder{}'.format(
+            args.checkpoint,
+            '{}-'.format(args.dataset) if args.dataset != 'val' else '',
+            args.long_edge, args.n,
+            'noforcecompletepose-' if not args.force_complete_pose else '', i)
+
+        if args.write_predictions:
+            eval_coco.write_predictions(filename)
+
+        if args.dataset not in ('test', 'test-dev'):
+            stats = eval_coco.stats()
+            np.savetxt(filename + '.txt', stats)
+        else:
+            print('given dataset does not have ground truth, so no stats summary')
+
+        print('Decoder {}: decoder time = {}s'.format(i, eval_coco.decoder_time))
+
+
+def main():
+    args, image_dir, annotation_file, pin_memory = cli()
 
     preprocess = transforms.SquareRescale(args.long_edge,
                                           black_bars=args.batch_size > 1)
@@ -282,24 +301,7 @@ def main():
                                fields_half_scale=fields_half_scale)
     total_time = time.time() - total_start
 
-    for i, eval_coco in enumerate(eval_cocos):
-        filename = '{}.evalcoco-{}edge{}-samples{}-{}decoder{}'.format(
-            args.checkpoint,
-            '{}-'.format(args.dataset) if args.dataset != 'val' else '',
-            args.long_edge, args.n,
-            'noforcecompletepose-' if not args.force_complete_pose else '', i)
-
-        if args.write_predictions:
-            eval_coco.write_predictions(filename)
-
-        if args.dataset not in ('test', 'test-dev'):
-            stats = eval_coco.stats()
-            np.savetxt(filename + '.txt', stats)
-        else:
-            print('given dataset does not have ground truth, so no stats summary')
-
-        print('Decoder {}: decoder time = {}s'.format(i, eval_coco.decoder_time))
-
+    write_evaluations(eval_cocos, args)
     print('total processing time = {}s'.format(total_time))
 
     for processor in processors:
