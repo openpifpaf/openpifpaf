@@ -12,7 +12,7 @@ from .network import nets
 from . import datasets, decoder, show
 
 
-def main():
+def cli():
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -52,6 +52,12 @@ def main():
     if not args.disable_cuda and torch.cuda.is_available():
         args.device = torch.device('cuda')
         pin_memory = True
+
+    return args, pin_memory
+
+
+def main():
+    args, pin_memory = cli()
 
     # load model
     model, _ = nets.factory(args)
