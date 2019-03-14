@@ -18,7 +18,7 @@ def cli():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     nets.cli(parser)
-    decoder.cli(parser, instance_threshold=0.05)
+    decoder.cli(parser, force_complete_pose=False, instance_threshold=0.05)
     parser.add_argument('images', nargs='*',
                         help='input images')
     parser.add_argument('--glob',
@@ -71,7 +71,7 @@ def main():
         pin_memory=pin_memory, num_workers=args.loader_workers)
 
     # visualizers
-    keypoint_painter = show.KeypointPainter()
+    keypoint_painter = show.KeypointPainter(show_box=False)
     skeleton_painter = show.KeypointPainter(show_box=False, color_connections=True,
                                             markersize=1, linewidth=6)
 
@@ -114,7 +114,7 @@ def main():
                                            show=args.show,
                                            fig_width=args.figure_width,
                                            dpi_factor=args.dpi_factor) as ax:
-                        show.white_screen(ax, alpha=0.5)
+                        # show.white_screen(ax, alpha=0.5)
                         keypoint_painter.keypoints(ax, keypoint_sets)
 
                 if 'skeleton' in args.output_types:
