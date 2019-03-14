@@ -157,7 +157,6 @@ class SquareRescale(object):
 
     @staticmethod
     def keypoint_sets_inverse(keypoint_sets, meta):
-        print(meta)
         keypoint_sets[:, :, 0] -= meta['offset'][0]
         keypoint_sets[:, :, 1] -= meta['offset'][1]
 

@@ -1,5 +1,4 @@
 from contextlib import contextmanager
-import random
 
 import numpy as np
 from PIL import Image
@@ -132,7 +131,8 @@ class KeypointPainter(object):
         if score:
             ax.text(x1, y1, '{:.4f}'.format(score), fontsize=8, color=color)
 
-    def _draw_text(self, ax, x, y, v, text, color):
+    @staticmethod
+    def _draw_text(ax, x, y, v, text, color):
         if not np.any(v > 0):
             return
 
