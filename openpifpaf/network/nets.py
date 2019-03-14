@@ -73,7 +73,7 @@ class ShellFork(torch.nn.Module):
         return [h for hs in (h1, h2, h3) for h in hs]
 
 
-def factory(args):
+def factory(args):  # pylint: disable=too-many-branches
     if args.checkpoint is None and args.basenet is None:
         raise Exception('must specify --checkpoint or --basenet')
 
@@ -138,6 +138,7 @@ def factory(args):
     return net_cpu, epoch
 
 
+# pylint: disable=too-many-branches
 def factory_from_scratch(basename, headnames, *,
                          pretrained=True, dropout_p=0.0, quad=0):
     if 'resnet50' in basename:
@@ -184,7 +185,7 @@ def factory_from_scratch(basename, headnames, *,
         for b in blocks[2:]:
             resnet_factory.replace_downsample(b)
 
-    def create_headnet(name, n_features):
+    def create_headnet(name, n_features):  # pylint: disable=too-many-return-statements
         if name in ('pif',):
             return heads.CompositeField(17, n_features, shortname='pif',
                                         n_vectors=1, n_scales=1,

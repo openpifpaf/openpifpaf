@@ -384,7 +384,7 @@ def cli(parser):
                        help='linear length scale of independence for PAF regression')
 
 
-def factory(args):
+def factory(args):  # pylint: disable=too-many-branches
     losses = []
 
     if args.regression_loss == 'smoothl1':
