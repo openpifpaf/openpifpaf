@@ -2,11 +2,13 @@
 
 import argparse
 import datetime
+import socket
 
 import torch
 
 from . import datasets, encoder, logs, optimize, transforms
 from .network import losses, nets, Trainer
+from . import __version__ as VERSION
 
 ANNOTATIONS_TRAIN = 'data-mscoco/annotations/person_keypoints_train2017.json'
 ANNOTATIONS_VAL = 'data-mscoco/annotations/person_keypoints_val2017.json'
@@ -202,8 +204,9 @@ def main():
         encoder_visualizer=encoder_visualizer,
         train_profile=args.profile,
         model_meta_data={
-            'pif-side-length': args.pif_side_length,
-            'paf-min-size': args.paf_min_size,
+            'args': vars(args),
+            'version': VERSION,
+            'hostname': socket.gethostname(),
         },
     )
     trainer.loop(train_loader, val_loader, args.epochs, start_epoch=start_epoch)
