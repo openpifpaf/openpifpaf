@@ -1,12 +1,29 @@
 openpifpaf
 ==========
 
-  We propose a new bottom-up method for multi-person 2D human pose estimation that is particularly well suited for self-driving cars and social robots. The new method, PifPaf, uses a Part Intensity Field (PIF) to localize body parts precisely, and a composite field of two vectors and a scalar - the Part Association Field (PAF) - to associate body parts with each other to form full human poses. It improves on previous methods at low resolution and in crowded, cluttered and occluded scenes. Our architecture is based on a fully convolutional, single-shot, box-free design. We produce state-of-the-art results on a modified COCO keypoint task for the transportation domain.
+  We propose a new bottom-up method for multi-person 2D human pose
+  estimation that is particularly well suited for urban mobility such as self-driving cars
+  and delivery robots. The new method, PifPaf, uses a Part Intensity Field (PIF) to
+  localize body parts and a Part Association Field (PAF) to associate body parts with each other to form
+  full human poses.
+  Our method outperforms previous methods at low resolution and in crowded,
+  cluttered and occluded scenes
+  thanks to (i) our new composite field PAF encoding fine-grained information and (ii) the choice of Laplace loss for regressions which incorporates a notion of uncertainty.
+  Our architecture is based on a fully
+  convolutional, single-shot, box-free design.
+  We perform on par with the existing
+  state-of-the-art bottom-up method on the standard COCO keypoint task
+  and produce state-of-the-art results on a modified COCO keypoint task for
+  the transportation domain.
 
 .. code-block::
 
-  @article{
-      PifPaf: Association Fields for Human Pose Estimation
+  @article{kreiss2019pifpaf,
+    title = {PifPaf: Composite Fields for Human Pose Estimation},
+    author = {Kreiss, Sven and Bertoni, Lorenzo and Alahi, Alexandre},
+    journal = {CVPR},
+    year = {2019},
+    month = {3}
   }
 
 
@@ -151,11 +168,20 @@ Evaluations
 -----------
 
 See `evaluation logs <docs/eval_logs.md>`_ for a long list.
-This result was produced with ``python -m openpifpaf.eval_coco --checkpoint outputs/resnet152-pif-paf-l1-181230-201001.pkl --long-edge=641``:
+This result was produced with ``python -m openpifpaf.eval_coco --checkpoint outputs/resnet101block5-pif-paf-edge401-190313-100107.pkl --long-edge=641 --loader-workers=8``:
 
 .. code-block::
 
-  removed outdated info
+  Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.662
+  Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.872
+  Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.724
+  Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.623
+  Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.721
+  Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.712
+  Average Recall     (AR) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.895
+  Average Recall     (AR) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.768
+  Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.660
+  Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.785
 
 
 
