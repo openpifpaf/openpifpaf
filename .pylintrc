@@ -9,7 +9,7 @@ good-names=ap,ar,ax,d,f,g,gt,i,im,lr,r,s,t,t1,t2,th,v,x,x1,x2,y,xy
 # List of members which are set dynamically and missed by pylint inference
 # system, and so shouldn't trigger E1101 when accessed. Python regular
 # expressions are accepted.
-generated-members=numpy.*,torch.*,cv2.*,openpifpaf.functional.*
+generated-members=numpy.*,torch.*,cv2.*,openpifpaf.functional
 
 ignored-modules=openpifpaf.functional
 
