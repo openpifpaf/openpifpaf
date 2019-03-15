@@ -1,0 +1,12 @@
+language: python
+python:
+ - "2.7"
+ - "3.5"
+ - "3.6"
+install:
+ - pip install --upgrade pip setuptools
+ - pip install numpy cython
+ - "pip install .[test]"
+script:
+ - pylint openpifpaf --disable=fixme
+ - pytest -vv

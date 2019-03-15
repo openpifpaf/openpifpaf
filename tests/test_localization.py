@@ -1,5 +1,3 @@
-from dataclasses import dataclass
-
 import numpy as np
 import torch
 import openpifpaf.network.nets
@@ -18,13 +16,14 @@ def localize(x):
 
     decode = openpifpaf.decoder.PifPaf(8, 0.2)
     processor = openpifpaf.decoder.Processor(model, decode)
-    pif_ref, _ = processor.fields(black)
-    pif, _ = processor.fields(im)
+    pif_ref = processor.fields(torch.unsqueeze(black, 0))[0][0]
+    pif = processor.fields(torch.unsqueeze(im, 0))[0][0]
 
     # intensity only, first field, first row
     pif_ref = pif_ref[0][0][0]
     pif = pif[0][0][0]
     assert len(pif_ref) == 21  # (306 + 14 (padding)) / 16
+    assert len(pif) == len(pif_ref)
 
     active_pif = np.nonzero(pif_ref - pif)
     return active_pif[0].tolist()

@@ -20,7 +20,7 @@ setup(
         'openpifpaf.network',
     ],
     license='GNU AGPLv3',
-    description='PifPaf: Association Fields for Human Pose Estimation',
+    description='PifPaf: Composite Fields for Human Pose Estimation',
     long_description=open('README.rst').read(),
     author='Sven Kreiss',
     author_email='research@svenkreiss.com',
