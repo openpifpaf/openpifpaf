@@ -4,7 +4,7 @@ python:
  - "3.6"
 install:
  - pip install --upgrade pip setuptools
- - pip install numpy cython
+ - pip install --upgrade numpy cython
  - "pip install .[train,test]"
 script:
  - pylint openpifpaf --disable=fixme
