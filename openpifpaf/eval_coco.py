@@ -4,6 +4,7 @@ import argparse
 import io
 import json
 import logging
+import os
 import pstats
 import time
 import zipfile
@@ -249,6 +250,15 @@ def write_evaluations(eval_cocos, args):
 
 def main():
     args, image_dir, annotation_file, pin_memory = cli()
+
+    # skip existing?
+    eval_output_filename = '{}.evalcoco-edge{}-samples{}-decoder{}.txt'.format(
+        args.checkpoint, args.long_edge, args.n, 0)
+    if args.skip_existing:
+        if os.path.exists(eval_output_filename):
+            print('Output file {} exists already. Exiting.'.format(eval_output_filename))
+            return
+        print('Processing: {}'.format(args.checkpoint))
 
     preprocess = transforms.SquareRescale(args.long_edge,
                                           black_bars=args.batch_size > 1)
