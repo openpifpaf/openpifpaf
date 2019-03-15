@@ -4,6 +4,8 @@ openpifpaf
 .. image:: https://travis-ci.org/vita-epfl/openpifpaf.svg?branch=master
     :target: https://travis-ci.org/vita-epfl/openpifpaf
 
+..
+
   We propose a new bottom-up method for multi-person 2D human pose
   estimation that is particularly well suited for urban mobility such as self-driving cars
   and delivery robots. The new method, PifPaf, uses a Part Intensity Field (PIF) to
@@ -18,6 +20,7 @@ openpifpaf
   state-of-the-art bottom-up method on the standard COCO keypoint task
   and produce state-of-the-art results on a modified COCO keypoint task for
   the transportation domain.
+
 
 .. code-block::
 

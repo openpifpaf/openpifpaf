@@ -16,7 +16,7 @@ import time
 import matplotlib.pyplot as plt
 import torch
 
-import cv2
+import cv2  # pylint: disable=import-error
 from .network import nets
 from . import decoder, show, transforms
 
