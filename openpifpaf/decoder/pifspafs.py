@@ -32,7 +32,7 @@ class PifsPafs(object):
         self.connection_method = connection_method
         self.pif_fixed_scale = pif_fixed_scale
 
-        self.pif_nn = 9
+        self.pif_nn = 16
         self.paf_nn = 1 if connection_method == 'max' else 35
 
     def __call__(self, fields):
