@@ -30,7 +30,7 @@ def canvas(fig_file=None, show=True, **kwargs):
     if fig_file:
         fig.savefig(fig_file, dpi=200)  # , bbox_inches='tight')
     if show:
-        fig.show()
+        plt.show()
     plt.close(fig)
 
 
@@ -52,7 +52,7 @@ def image_canvas(image, fig_file=None, show=True, dpi_factor=1.0, fig_width=10.0
     if fig_file:
         fig.savefig(fig_file, dpi=image.shape[1] / kwargs['figsize'][0] * dpi_factor)
     if show:
-        fig.show()
+        plt.show()
     plt.close(fig)
 
 
