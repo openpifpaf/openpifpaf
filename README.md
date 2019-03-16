@@ -132,9 +132,7 @@ done
 
 COCO / kinematic tree / dense:
 
-<img src="docs/skeleton_coco.png" height="250" />
-<img src="docs/skeleton_kinematic_tree.png" height="250" />
-<img src="docs/skeleton_dense.png" height="250" />
+<img src="docs/skeleton_coco.png" height="250" /><img src="docs/skeleton_kinematic_tree.png" height="250" /><img src="docs/skeleton_dense.png" height="250" />
 
 Created with `python -m openpifpaf.data`.
 
