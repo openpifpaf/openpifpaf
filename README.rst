@@ -85,7 +85,6 @@ Example commands to try:
 
   # single image
   python -m openpifpaf.predict my_image.jpg --show
-  # if you do not see a matplotlib window, check that my_image.jpg.skeleton.png was created
 
 
 Pre-trained Networks
