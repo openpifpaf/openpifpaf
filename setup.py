@@ -1,4 +1,5 @@
 from setuptools import setup
+from setuptools.extension import Extension
 
 import numpy
 from Cython.Build import cythonize
@@ -25,8 +26,9 @@ setup(
     author='Sven Kreiss',
     author_email='research@svenkreiss.com',
     url='https://github.com/vita-epfl/openpifpaf',
-    ext_modules=cythonize('openpifpaf/functional.pyx',
-                          include_path=[numpy.get_include()],
+    ext_modules=cythonize(Extension('openpifpaf.functional',
+                                    ['openpifpaf/functional.pyx'],
+                                    include_dirs=[numpy.get_include()]),
                           annotate=True,
                           compiler_directives={'language_level': 3}),
     zip_safe=False,
