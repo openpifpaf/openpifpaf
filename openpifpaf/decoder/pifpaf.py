@@ -9,6 +9,8 @@ from .annotation import Annotation
 from .utils import (index_field, scalar_square_add_single,
                     normalize_pif, normalize_paf)
 from ..data import COCO_PERSON_SKELETON
+
+# pylint: disable=import-error
 from ..functional import (scalar_square_add_constant, scalar_square_add_gauss,
                           weiszfeld_nd, paf_mask_center)
 
