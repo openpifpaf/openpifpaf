@@ -54,16 +54,6 @@ Created with:
 Install
 -------
 
-Create a virtualenv. Use ``--system-site-packages`` for OpenCV3 access
-for ``openpifpaf.webcam``.
-
-.. code-block:: sh
-
-  python3 -m venv venv3 --system-site-packages
-
-
-Inside virtualenv, install with optional dependencies:
-
 .. code-block:: sh
 
   pip install numpy cython
@@ -71,6 +61,10 @@ Inside virtualenv, install with optional dependencies:
 
   # from source:
   pip install --editable '.[train,test]'
+
+OpenCV is required for ``openpifpaf.webcam``. To use a globally installed
+OpenCV from inside a virtual environment, create the virtualenv with the
+``--system-site-packages`` option and verify that you can do ``import cv2``.
 
 
 Interfaces
@@ -81,6 +75,17 @@ Interfaces
 * ``python -m openpifpaf.logs --help``
 * ``python -m openpifpaf.predict --help``
 * ``python -m openpifpaf.webcam --help``
+
+Example commands to try:
+
+.. code-block:: sh
+
+  # live demo
+  MPLBACKEND=macosx python -m openpifpaf.webcam --scale 0.1 --source=0
+
+  # single image
+  python -m openpifpaf.predict my_image.jpg --show
+  # if you do not see a matplotlib window, check that my_image.jpg.skeleton.png was created
 
 
 Pre-trained Networks

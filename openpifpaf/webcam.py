@@ -48,7 +48,7 @@ class Visualizer(object):
             viz = show.KeypointPainter(show_box=False, color_connections=True,
                                        markersize=1, linewidth=6)
         else:
-            viz = show.KeypointPainter()
+            viz = show.KeypointPainter(show_box=False)
 
         while True:
             image, all_fields = yield
@@ -73,8 +73,9 @@ def main():
     )
     nets.cli(parser)
     decoder.cli(parser, force_complete_pose=False, instance_threshold=0.05)
-    parser.add_argument('--colored-connections', default=False, action='store_true',
-                        help='use colored connections to draw poses')
+    parser.add_argument('--no-colored-connections',
+                        dest='colored_connections', default=True, action='store_false',
+                        help='do not use colored connections to draw poses')
     parser.add_argument('--disable-cuda', action='store_true',
                         help='disable CUDA')
     parser.add_argument('--source', default=0,

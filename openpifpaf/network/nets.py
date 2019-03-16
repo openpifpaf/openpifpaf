@@ -3,6 +3,9 @@ import torchvision
 
 from . import basenetworks, heads
 
+DEFAULT_MODEL = ('https://documents.epfl.ch/users/k/kr/kreiss/www/'
+                 'resnet101block5-pif-paf-edge401-190313-100107-81e34321.pkl')
+
 
 class Shell(torch.nn.Module):
     def __init__(self, base_net, head_nets):
@@ -74,10 +77,7 @@ class ShellFork(torch.nn.Module):
 
 
 def factory(args):  # pylint: disable=too-many-branches
-    if args.checkpoint is None and args.basenet is None:
-        raise Exception('must specify --checkpoint or --basenet')
-
-    if not args.checkpoint:
+    if not args.checkpoint and args.basenet:
         net_cpu = factory_from_scratch(
             args.basenet, args.headnets,
             pretrained=args.pretrain,
@@ -86,7 +86,10 @@ def factory(args):  # pylint: disable=too-many-branches
         )
         epoch = 0
     else:
-        checkpoint = torch.load(args.checkpoint)
+        if args.checkpoint:
+            checkpoint = torch.load(args.checkpoint)
+        else:
+            checkpoint = torch.utils.model_zoo.load_url(DEFAULT_MODEL)
         net_cpu = checkpoint['model']
         epoch = checkpoint['epoch']
 
