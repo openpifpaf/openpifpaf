@@ -3,8 +3,10 @@ import torchvision
 
 from . import basenetworks, heads
 
+# DEFAULT_MODEL = ('https://documents.epfl.ch/users/k/kr/kreiss/www/'
+#                  'resnet101block5-pif-paf-edge401-190313-100107-81e34321.pkl')
 DEFAULT_MODEL = ('https://documents.epfl.ch/users/k/kr/kreiss/www/'
-                 'resnet101block5-pif-paf-edge401-190313-100107-81e34321.pkl')
+                 'resnet50block5-pif-paf-edge401-190315-214317-8c9fbafe.pkl')
 
 
 class Shell(torch.nn.Module):
