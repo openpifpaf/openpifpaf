@@ -14,13 +14,13 @@ with open('openpifpaf/__init__.py', 'r') as f:
     VERSION = VERSION_LINE.split('=')[1].strip()[1:-1]
 
 
-EXTENSION = Extension('openpifpaf.functional',
-                      ['openpifpaf/functional.pyx'],
-                      include_dirs=[numpy.get_include()])
+EXTENSIONS = [Extension('openpifpaf.functional',
+                        ['openpifpaf/functional.pyx'],
+                        include_dirs=[numpy.get_include()])]
 if cythonize is not None:
-    EXTENSION = cythonize(EXTENSION,
-                          annotate=True,
-                          compiler_directives={'language_level': 3})
+    EXTENSIONS = cythonize(EXTENSIONS,
+                           annotate=True,
+                           compiler_directives={'language_level': 3})
 
 
 setup(
@@ -39,7 +39,7 @@ setup(
     author='Sven Kreiss',
     author_email='research@svenkreiss.com',
     url='https://github.com/vita-epfl/openpifpaf',
-    ext_modules=EXTENSION,
+    ext_modules=EXTENSIONS,
     zip_safe=False,
 
     install_requires=[
