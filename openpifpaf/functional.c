@@ -4,6 +4,9 @@
 {
     "distutils": {
         "depends": [],
+        "include_dirs": [
+            "/usr/local/lib/python3.7/site-packages/numpy/core/include"
+        ],
         "name": "openpifpaf.functional",
         "sources": [
             "openpifpaf/functional.pyx"

@@ -5,6 +5,10 @@ try:
     from Cython.Build import cythonize
 except ImportError:
     cythonize = None
+try:
+    import numpy
+except ImportError:
+    numpy = None
 
 
 # extract version from __init__.py
@@ -21,13 +25,17 @@ class NumpyIncludePath(object):
         return numpy.get_include()
 
 
-EXTENSIONS = [Extension('openpifpaf.functional',
-                        ['openpifpaf/functional.pyx'],
-                        include_dirs=[NumpyIncludePath()])]
-if cythonize is not None:
-    EXTENSIONS = cythonize(EXTENSIONS,
+if cythonize is not None and numpy is not None:
+    EXTENSIONS = cythonize([Extension('openpifpaf.functional',
+                                      ['openpifpaf/functional.pyx'],
+                                      include_dirs=[numpy.get_include()]),
+                           ],
                            annotate=True,
                            compiler_directives={'language_level': 3})
+else:
+    EXTENSIONS = [Extension('openpifpaf.functional',
+                            ['openpifpaf/functional.pyx'],
+                            include_dirs=[NumpyIncludePath()])]
 
 
 setup(
