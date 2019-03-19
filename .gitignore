@@ -15,7 +15,6 @@ __pycache__
 dist/
 .pytest_cache/
 .ipynb_checkpoints/
-openpifpaf/functional.c
 openpifpaf/functional.cpython-*
 openpifpaf/functional.html
 
