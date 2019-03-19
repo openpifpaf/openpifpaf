@@ -1,7 +1,6 @@
 from setuptools import setup
 from setuptools.extension import Extension
 
-import numpy
 try:
     from Cython.Build import cythonize
 except ImportError:
@@ -14,9 +13,17 @@ with open('openpifpaf/__init__.py', 'r') as f:
     VERSION = VERSION_LINE.split('=')[1].strip()[1:-1]
 
 
+class NumpyIncludePath(object):
+    """Lazy import of numpy to get include path."""
+    @staticmethod
+    def __str__():
+        import numpy
+        return numpy.get_include()
+
+
 EXTENSIONS = [Extension('openpifpaf.functional',
                         ['openpifpaf/functional.pyx'],
-                        include_dirs=[numpy.get_include()])]
+                        include_dirs=[NumpyIncludePath()])]
 if cythonize is not None:
     EXTENSIONS = cythonize(EXTENSIONS,
                            annotate=True,
