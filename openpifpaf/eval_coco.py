@@ -10,9 +10,10 @@ import time
 import zipfile
 
 import numpy as np
+import torch
+
 import pycocotools.coco
 from pycocotools.cocoeval import COCOeval
-import torch
 
 from .data import COCO_PERSON_SKELETON
 from .network import nets

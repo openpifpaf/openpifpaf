@@ -46,17 +46,22 @@ python -m openpifpaf.predict \
 
 # Install
 
-```sh
-pip install numpy cython
-pip install 'openpifpaf[train,test]'
+Python 3 is required. Python 2 is not supported.
 
-# from source:
+```sh
+pip install openpifpaf
+
+# for development, install from source:
+pip install numpy cython
 pip install --editable '.[train,test]'
 ```
 
-OpenCV is required for ``openpifpaf.webcam``. To use a globally installed
+For a live demo, we recommend to try the
+[openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo) project.
+Alternatively, `openpifpaf.webcam` provides a live demo as well.
+It requires OpenCV. To use a globally installed
 OpenCV from inside a virtual environment, create the virtualenv with the
-``--system-site-packages`` option and verify that you can do ``import cv2``.
+`--system-site-packages` option and verify that you can do `import cv2`.
 
 
 # Interfaces
@@ -139,7 +144,7 @@ Created with `python -m openpifpaf.data`.
 
 # Video
 
-Processing a video frame by frame from ``video.avi`` to ``video-pose.mp4`` using ffmpeg:
+Processing a video frame by frame from `video.avi` to `video-pose.mp4` using ffmpeg:
 
 ```sh
 ffmpeg -i video.avi -qscale:v 2 -vf scale=641:-1 -f image2 video-%05d.jpg
