@@ -43,17 +43,19 @@ python -m openpifpaf.predict \
   data-mscoco/images/val2017/000000081988.jpg -o docs/coco/ --show
 ```
 
+For more demos, see the
+[openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo) project and
+the `openpifpaf.webcam` command.
+
 
 # Install
 
 Python 3 is required. Python 2 is not supported.
+Do not clone this repository
+and make sure there is no folder named `openpifpaf` in your current directory.
 
 ```sh
 pip install openpifpaf
-
-# for development, install from source:
-pip install numpy cython
-pip install --editable '.[train,test]'
 ```
 
 For a live demo, we recommend to try the
@@ -63,14 +65,23 @@ It requires OpenCV. To use a globally installed
 OpenCV from inside a virtual environment, create the virtualenv with the
 `--system-site-packages` option and verify that you can do `import cv2`.
 
+For development of the openpifpaf source code itself, you need to clone this repository and then:
+
+```sh
+pip install numpy cython
+pip install --editable '.[train,test]'
+```
+
+The last command installs the Python package in the current directory (signified by the dot) with the optional dependencies needed for training and testing.
+
 
 # Interfaces
 
+* `python -m openpifpaf.predict --help`
+* `python -m openpifpaf.webcam --help`
 * `python -m openpifpaf.train --help`
 * `python -m openpifpaf.eval_coco --help`
 * `python -m openpifpaf.logs --help`
-* `python -m openpifpaf.predict --help`
-* `python -m openpifpaf.webcam --help`
 
 Example commands to try:
 
