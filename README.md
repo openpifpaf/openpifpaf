@@ -118,14 +118,17 @@ Train a model:
 ```sh
 python -m openpifpaf.train \
   --lr=1e-3 \
+  --momentum=0.95 \
   --epochs=75 \
   --lr-decay 60 70 \
   --batch-size=8 \
   --basenet=resnet50block5 \
+  --quad=1 \
   --headnets pif paf \
   --square-edge=401 \
   --regression-loss=laplace \
   --lambdas 30 2 2 50 3 3 \
+  --crop-fraction=0.5 \
   --freeze-base=1
 ```
 
