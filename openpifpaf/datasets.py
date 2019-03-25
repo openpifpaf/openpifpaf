@@ -1,3 +1,4 @@
+import copy
 import logging
 import os
 import torch.utils.data
@@ -86,6 +87,7 @@ class CocoKeypoints(torch.utils.data.Dataset):
         image_id = self.ids[index]
         ann_ids = self.coco.getAnnIds(imgIds=image_id, catIds=self.cat_ids)
         anns = self.coco.loadAnns(ann_ids)
+        anns = copy.deepcopy(anns)
 
         image_info = self.coco.loadImgs(image_id)[0]
         self.log.debug(image_info)
