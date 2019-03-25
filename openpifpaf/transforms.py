@@ -184,7 +184,6 @@ class SquareCrop(object):
         self.image_resize = torchvision.transforms.Resize((edge, edge), PIL.Image.BICUBIC)
 
     def __call__(self, image, anns):
-        image = image.copy()
         w, h = image.size
         if self.normalize_annotations is not None:
             anns = self.normalize_annotations(anns)
