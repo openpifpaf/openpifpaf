@@ -20,12 +20,14 @@
 
 ```
 @article{kreiss2019pifpaf,
-  title = {PifPaf: Composite Fields for Human Pose Estimation},
-  author = {Kreiss, Sven and Bertoni, Lorenzo and Alahi, Alexandre},
-  journal = {CVPR},
-  year = {2019}
+  title={PifPaf: Composite Fields for Human Pose Estimation},
+  author={Kreiss, Sven and Bertoni, Lorenzo and Alahi, Alexandre},
+  journal={CVPR, arXiv preprint arXiv:1903.06593},
+  year={2019}
 }
 ```
+
+[arxiv.org/abs/1903.06593](https://arxiv.org/abs/1903.06593)
 
 
 # Demo
