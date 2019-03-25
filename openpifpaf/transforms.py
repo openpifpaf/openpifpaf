@@ -9,6 +9,7 @@ https://pillow.readthedocs.io/en/3.3.x/handbook/concepts.html#coordinate-system
   actually lies at (0.5, 0.5).
 """
 
+import copy
 import io
 import numpy as np
 import PIL
@@ -65,6 +66,9 @@ class Preprocess(object):
         return anns
 
     def __call__(self, image, anns):
+        anns = copy.deepcopy(anns)
+        image = image.copy()
+
         anns = self.normalize_annotations(anns)
         return image, anns
 
@@ -101,6 +105,9 @@ class SquareRescale(object):
             image, ltrb, fill=(124, 116, 104))
 
     def __call__(self, image, anns):
+        anns = copy.deepcopy(anns)
+        image = image.copy()
+
         w, h = image.size
         if self.normalize_annotations is not None:
             anns = self.normalize_annotations(anns)
@@ -184,7 +191,9 @@ class SquareCrop(object):
         self.image_resize = torchvision.transforms.Resize((edge, edge), PIL.Image.BICUBIC)
 
     def __call__(self, image, anns):
+        anns = copy.deepcopy(anns)
         image = image.copy()
+
         w, h = image.size
         if self.normalize_annotations is not None:
             anns = self.normalize_annotations(anns)

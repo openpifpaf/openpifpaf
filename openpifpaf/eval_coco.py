@@ -147,6 +147,15 @@ class EvalCoco(object):
                 print('evaluate', self.eval.evaluateImg(image_id, category_id, (0, 1e5 ** 2), 20))
             print(meta)
 
+        # force at least one annotation per image (for pycocotools)
+        if not image_annotations:
+            image_annotations.append({
+                'image_id': image_id,
+                'category_id': category_id,
+                'keypoints': np.zeros((17*3,)).tolist(),
+                'score': 0.0,
+            })
+
         self.predictions += image_annotations
 
     def write_predictions(self, filename):

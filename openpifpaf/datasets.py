@@ -93,6 +93,7 @@ class CocoKeypoints(torch.utils.data.Dataset):
             image = Image.open(f).convert('RGB')
 
         meta = {
+            'dataset_index': index,
             'image_id': image_id,
             'file_name': image_info['file_name'],
         }
