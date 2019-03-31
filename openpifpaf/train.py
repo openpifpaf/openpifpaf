@@ -170,9 +170,13 @@ def main():
         # freeze base net parameters
         frozen_params = set()
         for n, p in net.named_parameters():
-            if not n.startswith('module.base_net.'):
+            # Freeze only base_net parameters.
+            # Parameter names in DataParallel models start with 'module.'.
+            if not n.startswith('module.base_net.') and \
+               not n.startswith('base_net.'):
+                print('not freezing', n)
                 continue
-            print(n)
+            print('freezing', n)
             if p.requires_grad is False:
                 continue
             p.requires_grad = False

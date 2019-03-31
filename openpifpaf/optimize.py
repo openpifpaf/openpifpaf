@@ -24,7 +24,7 @@ def cli(parser):
                          help='learning rate')
     group_s.add_argument('--lr-decay', default=[], nargs='+', type=int,
                          help='epochs at which to decay the learning rate')
-    group_s.add_argument('--lr-burn-in-epochs', default=1, type=int,
+    group_s.add_argument('--lr-burn-in-epochs', default=3, type=int,
                          help='number of epochs at the beginning with lower learning rate')
     group_s.add_argument('--lr-burn-in-factor', default=0.01, type=float,
                          help='learning pre-factor during burn-in')
@@ -51,7 +51,7 @@ def factory(args, parameters):
 
     def lambda_schedule(epoch):
         if epoch < args.lr_burn_in_epochs:
-            return args.lr_burn_in_factor
+            return args.lr_burn_in_factor**(1.0 - epoch / args.lr_burn_in_epochs)
 
         lambda_ = 1.0
         for d in args.lr_decay:
