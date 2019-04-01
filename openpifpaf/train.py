@@ -104,7 +104,7 @@ def cli():
 def main():
     args, pin_memory = cli()
     logs.configure(args)
-    net_cpu, start_epoch = nets.factory(args)
+    net_cpu, start_epoch = nets.factory_from_args(args)
 
     for head in net_cpu.head_nets:
         head.apply_class_sigmoid = False

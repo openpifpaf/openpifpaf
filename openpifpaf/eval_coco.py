@@ -282,7 +282,7 @@ def main():
         data, batch_size=args.batch_size, pin_memory=pin_memory,
         num_workers=args.loader_workers, collate_fn=datasets.collate_images_anns_meta)
 
-    model, _ = nets.factory(args)
+    model, _ = nets.factory_from_args(args)
     model = model.to(args.device)
     processors = decoder.factory(args, model)
 
