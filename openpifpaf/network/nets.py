@@ -78,20 +78,40 @@ class ShellFork(torch.nn.Module):
         return [h for hs in (h1, h2, h3) for h in hs]
 
 
-def factory(args):  # pylint: disable=too-many-branches
-    if not args.checkpoint and args.basenet:
+def factory_from_args(args):
+    return factory(checkpoint=args.checkpoint,
+                   basenet=args.basenet,
+                   headnets=args.headnets,
+                   pretrained=args.pretrained,
+                   dropout_p=args.dropout,
+                   quad=args.quad)
+
+
+# pylint: disable=too-many-branches
+def factory(*,
+            checkpoint=None,
+            basenet=None,
+            headnets=('pif', 'paf'),
+            pretrained=True,
+            dropout_p=0.0,
+            quad=1,
+            dilation=None,
+            dilation_end=None):
+    if not checkpoint and basenet:
         net_cpu = factory_from_scratch(
-            args.basenet, args.headnets,
-            pretrained=args.pretrain,
-            dropout_p=args.dropout,
-            quad=args.quad,
+            basenet, headnets,
+            pretrained=pretrained,
+            dropout_p=dropout_p,
+            quad=quad,
         )
         epoch = 0
     else:
-        if args.checkpoint:
-            checkpoint = torch.load(args.checkpoint)
-        else:
+        if not checkpoint:
             checkpoint = torch.utils.model_zoo.load_url(DEFAULT_MODEL)
+        elif checkpoint.startswith('http'):
+            checkpoint = torch.utils.model_zoo.load_url(checkpoint)
+        else:
+            checkpoint = torch.load(checkpoint)
         net_cpu = checkpoint['model']
         epoch = checkpoint['epoch']
 
@@ -124,21 +144,21 @@ def factory(args):  # pylint: disable=too-many-branches
             if not hasattr(head, 'class_convs') and hasattr(head, 'class_conv'):
                 head.class_convs = torch.nn.ModuleList([head.class_conv])
 
-    if args.dilation is not None:
-        net_cpu.base_net.atrous0(args.dilation)
+    if dilation is not None:
+        net_cpu.base_net.atrous0(dilation)
         # for head in net_cpu.head_nets:
-        #     head.dilation = args.dilation
-    if args.dilation_end is not None:
-        if args.dilation_end == 1:
+        #     head.dilation = dilation
+    if dilation_end is not None:
+        if dilation_end == 1:
             net_cpu.base_net.atrous((1, 1))
-        elif args.dilation_end == 2:
+        elif dilation_end == 2:
             net_cpu.base_net.atrous((1, 2))
-        elif args.dilation_end == 4:
+        elif dilation_end == 4:
             net_cpu.base_net.atrous((2, 4))
         else:
             raise Exception
         # for head in net_cpu.head_nets:
-        #     head.dilation = (args.dilation or 1.0) * args.dilation_end
+        #     head.dilation = (dilation or 1.0) * dilation_end
 
     return net_cpu, epoch
 
@@ -281,5 +301,5 @@ def cli(parser):
                        help='zeroing probability of feature in head input')
     group.add_argument('--quad', default=1, type=int,
                        help='number of times to apply quad (subpixel conv) to heads')
-    group.add_argument('--no-pretrain', dest='pretrain', default=True, action='store_false',
+    group.add_argument('--no-pretrain', dest='pretrained', default=True, action='store_false',
                        help='create model without ImageNet pretraining')

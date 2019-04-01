@@ -94,33 +94,31 @@ def main():
         args.device = torch.device('cuda')
 
     # load model
-    model, _ = nets.factory(args)
+    model, _ = nets.factory_from_args(args)
     model = model.to(args.device)
-    processors = decoder.factory(args, model)
+    processor = decoder.factory_from_args(args, model)
 
     last_loop = time.time()
     capture = cv2.VideoCapture(args.source)
 
-    visualizers = None
+    visualizer = None
     while True:
         _, image_original = capture.read()
         image = cv2.resize(image_original, None, fx=args.scale, fy=args.scale)
         print('resized image size: {}'.format(image.shape))
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-        if visualizers is None:
-            visualizers = [Visualizer(p, args)(image) for p in processors]
-            for v in visualizers:
-                v.send(None)
+        if visualizer is None:
+            visualizer = Visualizer(processor, args)(image)
+            visualizer.send(None)
 
         start = time.time()
         processed_image_cpu = transforms.image_transform(image.copy())
         processed_image = processed_image_cpu.contiguous().to(args.device, non_blocking=True)
         print('preprocessing time', time.time() - start)
 
-        fields = processors[0].fields(torch.unsqueeze(processed_image, 0))[0]
-        for v in visualizers:
-            v.send((image, fields))
+        fields = processor.fields(torch.unsqueeze(processed_image, 0))[0]
+        visualizer.send((image, fields))
 
         print('loop time = {:.3}s, FPS = {:.3}'.format(
             time.time() - last_loop, 1.0 / (time.time() - last_loop)))

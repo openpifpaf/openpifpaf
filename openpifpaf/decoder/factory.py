@@ -41,68 +41,86 @@ def cli(parser, force_complete_pose=True, instance_threshold=0.0):
                        help='profile decoder')
 
 
-def factory(args, model):
-    headnames = tuple(h.shortname for h in model.head_nets)
+def factory_from_args(args, model):
+    debug_visualizer = None
+    if args.debug_pif_indices or args.debug_paf_indices:
+        debug_visualizer = Visualizer(args.debug_pif_indices, args.debug_paf_indices)
 
     # default value for keypoint filter depends on whether complete pose is forced
     if args.keypoint_threshold is None:
         args.keypoint_threshold = 0.01 if not args.force_complete_pose else 0.0
 
-    debug_visualizer = None
-    if args.debug_pif_indices or args.debug_paf_indices:
-        debug_visualizer = Visualizer(args.debug_pif_indices, args.debug_paf_indices)
+    decode = factory_decode(model,
+                            seed_threshold=args.seed_threshold,
+                            fixed_b=args.fixed_b,
+                            pif_fixed_scale=args.pif_fixed_scale,
+                            profile_decoder=args.profile_decoder,
+                            force_complete_pose=args.force_complete_pose,
+                            connection_method=args.connection_method)
+
+    return Processor(model, decode,
+                     instance_threshold=args.instance_threshold,
+                     keypoint_threshold=args.keypoint_threshold,
+                     debug_visualizer=debug_visualizer)
+
+
+def factory_decode(model, *,
+                   seed_threshold=0.2,
+                   fixed_b=None,
+                   pif_fixed_scale=None,
+                   debug_visualizer=None,
+                   profile_decoder=False,
+                   force_complete_pose=False,
+                   connection_method='max'):
+    headnames = tuple(h.shortname for h in model.head_nets)
 
     if headnames == ('pif17', 'paf19'):
-        decode = PifPaf(model.io_scales()[-1], args.seed_threshold,
-                        force_complete=args.force_complete_pose,
-                        connection_method=args.connection_method,
+        decode = PifPaf(model.io_scales()[-1], seed_threshold,
+                        force_complete=force_complete_pose,
+                        connection_method=connection_method,
                         debug_visualizer=debug_visualizer)
     elif headnames in (('pif', 'paf'), ('pif', 'wpaf')):
-        decode = PifPaf(model.io_scales()[-1], args.seed_threshold,
-                        force_complete=args.force_complete_pose,
-                        connection_method=args.connection_method,
+        decode = PifPaf(model.io_scales()[-1], seed_threshold,
+                        force_complete=force_complete_pose,
+                        connection_method=connection_method,
                         debug_visualizer=debug_visualizer,
-                        fixed_b=args.fixed_b,
-                        pif_fixed_scale=args.pif_fixed_scale)
+                        fixed_b=fixed_b,
+                        pif_fixed_scale=pif_fixed_scale)
     elif headnames in (('pifs17', 'pafs19'), ('pifs17', 'pafs19n2')):
-        decode = PifsPafs(model.io_scales()[-1], args.seed_threshold,
-                          force_complete=args.force_complete_pose,
-                          connection_method=args.connection_method,
+        decode = PifsPafs(model.io_scales()[-1], seed_threshold,
+                          force_complete=force_complete_pose,
+                          connection_method=connection_method,
                           debug_visualizer=debug_visualizer,
-                          pif_fixed_scale=args.pif_fixed_scale)
+                          pif_fixed_scale=pif_fixed_scale)
     elif headnames == ('pif17', 'pif17', 'paf19'):
-        decode = PifPaf(model.io_scales()[-1], args.seed_threshold,
-                        force_complete=args.force_complete_pose,
-                        connection_method=args.connection_method,
+        decode = PifPaf(model.io_scales()[-1], seed_threshold,
+                        force_complete=force_complete_pose,
+                        connection_method=connection_method,
                         debug_visualizer=debug_visualizer,
                         head_indices=(1, 2))
     elif headnames == ('paf19', 'pif17', 'paf19'):
-        decode = PifPaf(model.io_scales()[-1], args.seed_threshold,
-                        force_complete=args.force_complete_pose,
-                        connection_method=args.connection_method,
+        decode = PifPaf(model.io_scales()[-1], seed_threshold,
+                        force_complete=force_complete_pose,
+                        connection_method=connection_method,
                         debug_visualizer=debug_visualizer,
                         head_indices=(1, 2))
     elif headnames == ('pif17', 'paf16'):
-        decode = PifPaf(model.io_scales()[-1], args.seed_threshold,
+        decode = PifPaf(model.io_scales()[-1], seed_threshold,
                         KINEMATIC_TREE_SKELETON,
-                        force_complete=args.force_complete_pose,
-                        connection_method=args.connection_method,
+                        force_complete=force_complete_pose,
+                        connection_method=connection_method,
                         debug_visualizer=debug_visualizer)
     elif headnames == ('pif', 'paf44'):
-        decode = PifPaf(model.io_scales()[-1], args.seed_threshold,
+        decode = PifPaf(model.io_scales()[-1], seed_threshold,
                         DENSER_COCO_PERSON_SKELETON,
-                        force_complete=args.force_complete_pose,
-                        connection_method=args.connection_method,
+                        force_complete=force_complete_pose,
+                        connection_method=connection_method,
                         debug_visualizer=debug_visualizer,
-                        fixed_b=args.fixed_b)
+                        fixed_b=fixed_b)
     else:
         raise Exception('unknown head nets {} for decoder'.format(headnames))
 
-    if args.profile_decoder:
+    if profile_decoder:
         decode.profile = cProfile.Profile()
 
-    processors = [Processor(model, decode,
-                            instance_threshold=args.instance_threshold,
-                            keypoint_threshold=args.keypoint_threshold,
-                            debug_visualizer=debug_visualizer)]
-    return processors
+    return decode

@@ -60,9 +60,9 @@ def main():
     args, pin_memory = cli()
 
     # load model
-    model, _ = nets.factory(args)
+    model, _ = nets.factory_from_args(args)
     model = model.to(args.device)
-    processors = decoder.factory(args, model)
+    processor = decoder.factory_from_args(args, model)
 
     # data
     data = datasets.ImageList(args.images)
@@ -79,7 +79,7 @@ def main():
         images = image_tensors.permute(0, 2, 3, 1)
 
         processed_images = processed_images_cpu.to(args.device, non_blocking=True)
-        fields_batch = processors[0].fields(processed_images)
+        fields_batch = processor.fields(processed_images)
 
         # unbatch
         for image_path, image, processed_image_cpu, fields in zip(
@@ -95,35 +95,34 @@ def main():
                 output_path = os.path.join(args.output_directory, file_name)
             print('image', image_i, image_path, output_path)
 
-            processors[0].set_cpu_image(image, processed_image_cpu)
-            for processor in processors:
-                keypoint_sets, scores = processor.keypoint_sets(fields)
+            processor.set_cpu_image(image, processed_image_cpu)
+            keypoint_sets, scores = processor.keypoint_sets(fields)
 
-                if 'json' in args.output_types:
-                    with open(output_path + '.pifpaf.json', 'w') as f:
-                        json.dump([
-                            {'keypoints': np.around(kps, 1).reshape(-1).tolist(),
-                             'bbox': [np.min(kps[:, 0]), np.min(kps[:, 1]),
-                                      np.max(kps[:, 0]), np.max(kps[:, 1])]}
-                            for kps in keypoint_sets
-                        ], f)
+            if 'json' in args.output_types:
+                with open(output_path + '.pifpaf.json', 'w') as f:
+                    json.dump([
+                        {'keypoints': np.around(kps, 1).reshape(-1).tolist(),
+                         'bbox': [np.min(kps[:, 0]), np.min(kps[:, 1]),
+                                  np.max(kps[:, 0]), np.max(kps[:, 1])]}
+                        for kps in keypoint_sets
+                    ], f)
 
-                if 'keypoints' in args.output_types:
-                    with show.image_canvas(image,
-                                           output_path + '.keypoints.png',
-                                           show=args.show,
-                                           fig_width=args.figure_width,
-                                           dpi_factor=args.dpi_factor) as ax:
-                        # show.white_screen(ax, alpha=0.5)
-                        keypoint_painter.keypoints(ax, keypoint_sets)
+            if 'keypoints' in args.output_types:
+                with show.image_canvas(image,
+                                       output_path + '.keypoints.png',
+                                       show=args.show,
+                                       fig_width=args.figure_width,
+                                       dpi_factor=args.dpi_factor) as ax:
+                    # show.white_screen(ax, alpha=0.5)
+                    keypoint_painter.keypoints(ax, keypoint_sets)
 
-                if 'skeleton' in args.output_types:
-                    with show.image_canvas(image,
-                                           output_path + '.skeleton.png',
-                                           show=args.show,
-                                           fig_width=args.figure_width,
-                                           dpi_factor=args.dpi_factor) as ax:
-                        skeleton_painter.keypoints(ax, keypoint_sets, scores=scores)
+            if 'skeleton' in args.output_types:
+                with show.image_canvas(image,
+                                       output_path + '.skeleton.png',
+                                       show=args.show,
+                                       fig_width=args.figure_width,
+                                       dpi_factor=args.dpi_factor) as ax:
+                    skeleton_painter.keypoints(ax, keypoint_sets, scores=scores)
 
 
 if __name__ == '__main__':
