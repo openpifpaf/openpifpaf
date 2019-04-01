@@ -284,11 +284,10 @@ def main():
 
     model, _ = nets.factory_from_args(args)
     model = model.to(args.device)
-    processors = decoder.factory(args, model)
+    processor = decoder.factory_from_args(args, model)
 
     coco = pycocotools.coco.COCO(annotation_file)
-    eval_cocos = [EvalCoco(coco, p, preprocess.keypoint_sets_inverse)
-                  for p in processors]
+    eval_coco = EvalCoco(coco, processor, preprocess.keypoint_sets_inverse)
     total_start = time.time()
     loop_start = time.time()
     for batch_i, (image_tensors_cpu, anns_batch, meta_batch) in enumerate(data_loader):
@@ -306,27 +305,24 @@ def main():
             continue
 
         batch = image_tensors_cpu.to(args.device, non_blocking=True)
-        fields_batch = processors[0].fields(batch)
+        fields_batch = processor.fields(batch)
         if args.two_scale:
             batch_half_scale = batch[:, :, ::2, ::2]
-            fields_batch_half_scale = processors[0].fields(batch_half_scale)
+            fields_batch_half_scale = processor.fields(batch_half_scale)
         else:
             fields_batch_half_scale = [None for _ in range(batch.shape[0])]
 
         for image_tensor_cpu, fields, fields_half_scale, anns, meta in zip(
                 image_tensors_cpu, fields_batch, fields_batch_half_scale, anns_batch, meta_batch):
-            for ec in eval_cocos:
-                ec.from_fields(fields, meta,
-                               debug=args.debug, gt=anns, image_cpu=image_tensor_cpu,
-                               fields_half_scale=fields_half_scale)
+            eval_coco.from_fields(fields, meta,
+                                  debug=args.debug, gt=anns, image_cpu=image_tensor_cpu,
+                                  fields_half_scale=fields_half_scale)
     total_time = time.time() - total_start
 
-    write_evaluations(eval_cocos, args)
+    write_evaluations([eval_coco], args)
     print('total processing time = {}s'.format(total_time))
 
-    for processor in processors:
-        if processor.decode.profile is None:
-            continue
+    if processor.decode.profile is not None:
         iostream = io.StringIO()
         ps = pstats.Stats(processor.decode.profile, stream=iostream)
         ps = ps.sort_stats('tottime')
