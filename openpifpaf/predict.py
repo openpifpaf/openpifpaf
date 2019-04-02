@@ -48,16 +48,16 @@ def cli():
 
     # add args.device
     args.device = torch.device('cpu')
-    pin_memory = False
+    args.pin_memory = False
     if not args.disable_cuda and torch.cuda.is_available():
         args.device = torch.device('cuda')
-        pin_memory = True
+        args.pin_memory = True
 
-    return args, pin_memory
+    return args
 
 
 def main():
-    args, pin_memory = cli()
+    args = cli()
 
     # load model
     model, _ = nets.factory_from_args(args)
@@ -68,7 +68,7 @@ def main():
     data = datasets.ImageList(args.images)
     data_loader = torch.utils.data.DataLoader(
         data, batch_size=1, shuffle=False,
-        pin_memory=pin_memory, num_workers=args.loader_workers)
+        pin_memory=args.pin_memory, num_workers=args.loader_workers)
 
     # visualizers
     keypoint_painter = show.KeypointPainter(show_box=False)
@@ -113,7 +113,6 @@ def main():
                                        show=args.show,
                                        fig_width=args.figure_width,
                                        dpi_factor=args.dpi_factor) as ax:
-                    # show.white_screen(ax, alpha=0.5)
                     keypoint_painter.keypoints(ax, keypoint_sets)
 
             if 'skeleton' in args.output_types:

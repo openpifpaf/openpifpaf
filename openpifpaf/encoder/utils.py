@@ -20,7 +20,7 @@ def anns_to_keypoint_sets(anns):
     """Ignore crowded annotations."""
     keypoint_sets = [ann['keypoints'] for ann in anns if not ann['iscrowd']]
     if not keypoint_sets:
-        return np.zeros((0, 17, 3))
+        return np.zeros((0, 17, 3))  # TODO: remove hard coded class number
 
     return np.stack(keypoint_sets)
 

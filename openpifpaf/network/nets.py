@@ -212,6 +212,7 @@ def factory_from_scratch(basename, headnames, *,
 
     def create_headnet(name, n_features):  # pylint: disable=too-many-return-statements
         if name in ('pif',):
+            # TODO: remove hard coded number of classes
             return heads.CompositeField(17, n_features, shortname='pif',
                                         n_vectors=1, n_scales=1,
                                         dropout_p=dropout_p, quad=quad)
