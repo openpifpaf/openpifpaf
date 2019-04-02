@@ -147,3 +147,19 @@ class ImageList(torch.utils.data.Dataset):
 
     def __len__(self):
         return len(self.image_paths)
+
+
+class PilImageList(torch.utils.data.Dataset):
+    def __init__(self, images, image_transform=None):
+        self.images = images
+        self.image_transform = image_transform or transforms.image_transform
+
+    def __getitem__(self, index):
+        pil_image = self.images[index].copy().convert('RGB')
+        original_image = torchvision.transforms.functional.to_tensor(pil_image)
+        image = self.image_transform(pil_image)
+
+        return index, original_image, image
+
+    def __len__(self):
+        return len(self.images)
