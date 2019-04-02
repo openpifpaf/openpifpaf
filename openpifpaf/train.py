@@ -1,4 +1,4 @@
-"""Train a pifpaf net."""
+"""Train a pifpaf network."""
 
 import argparse
 import datetime
@@ -9,11 +9,6 @@ import torch
 from . import datasets, encoder, logs, optimize, transforms
 from .network import losses, nets, Trainer
 from . import __version__ as VERSION
-
-ANNOTATIONS_TRAIN = 'data-mscoco/annotations/person_keypoints_train2017.json'
-ANNOTATIONS_VAL = 'data-mscoco/annotations/person_keypoints_val2017.json'
-IMAGE_DIR_TRAIN = 'data-mscoco/images/train2017/'
-IMAGE_DIR_VAL = 'data-mscoco/images/val2017/'
 
 
 def default_output_file(args):
@@ -37,6 +32,7 @@ def default_output_file(args):
 
 def cli():
     parser = argparse.ArgumentParser(
+        description=__doc__,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     logs.cli(parser)
@@ -44,20 +40,14 @@ def cli():
     losses.cli(parser)
     encoder.cli(parser)
     optimize.cli(parser)
+    datasets.train_cli(parser)
+
     parser.add_argument('-o', '--output', default=None,
                         help='output file')
-    parser.add_argument('--batch-size', default=8, type=int,
-                        help='batch size')
     parser.add_argument('--stride-apply', default=1, type=int,
                         help='apply and reset gradients every n batches')
     parser.add_argument('--epochs', default=75, type=int,
                         help='number of epochs to train')
-    parser.add_argument('--loader-workers', default=2, type=int,
-                        help='number of workers for data loading')
-    parser.add_argument('--pre-n-images', default=8000, type=int,
-                        help='number of images to sampe for pretraining')
-    parser.add_argument('--n-images', default=None, type=int,
-                        help='number of images to sampe')
     parser.add_argument('--freeze-base', default=0, type=int,
                         help='number of epochs to train with frozen base')
     parser.add_argument('--pre-lr', type=float, default=1e-4,
@@ -93,16 +83,16 @@ def cli():
 
     # add args.device
     args.device = torch.device('cpu')
-    pin_memory = False
+    args.pin_memory = False
     if not args.disable_cuda and torch.cuda.is_available():
         args.device = torch.device('cuda')
-        pin_memory = True
+        args.pin_memory = True
 
-    return args, pin_memory
+    return args
 
 
 def main():
-    args, pin_memory = cli()
+    args = cli()
     logs.configure(args)
     net_cpu, start_epoch = nets.factory_from_args(args)
 
@@ -123,50 +113,14 @@ def main():
         transforms.SquareRescale(args.square_edge, black_bars=True, random_hflip=True),
         crop_fraction=args.crop_fraction,
     )
-    train_data = datasets.CocoKeypoints(
-        root=IMAGE_DIR_TRAIN,
-        annFile=ANNOTATIONS_TRAIN,
-        preprocess=preprocess,
-        image_transform=transforms.image_transform_train,
-        target_transforms=target_transforms,
-        n_images=args.n_images,
-    )
-    train_loader = torch.utils.data.DataLoader(
-        train_data, batch_size=args.batch_size, shuffle=not args.debug,
-        pin_memory=pin_memory, num_workers=args.loader_workers, drop_last=True,
-        collate_fn=datasets.collate_images_targets_meta)
-
-    val_data = datasets.CocoKeypoints(
-        root=IMAGE_DIR_VAL,
-        annFile=ANNOTATIONS_VAL,
-        preprocess=preprocess,
-        image_transform=transforms.image_transform_train,
-        target_transforms=target_transforms,
-        n_images=args.n_images,
-    )
-    val_loader = torch.utils.data.DataLoader(
-        val_data, batch_size=args.batch_size, shuffle=False,
-        pin_memory=pin_memory, num_workers=args.loader_workers, drop_last=True,
-        collate_fn=datasets.collate_images_targets_meta)
+    train_loader, val_loader, pre_train_loader = datasets.train_factory(
+        args, preprocess, target_transforms)
 
     encoder_visualizer = None
     if args.debug and not args.debug_without_plots:
         encoder_visualizer = encoder.Visualizer(args.headnets, net_cpu.io_scales())
 
     if args.freeze_base:
-        pre_train_data = datasets.CocoKeypoints(
-            root=IMAGE_DIR_TRAIN,
-            annFile=ANNOTATIONS_TRAIN,
-            preprocess=preprocess,
-            image_transform=transforms.image_transform_train,
-            target_transforms=target_transforms,
-            n_images=args.pre_n_images,
-        )
-        pre_train_loader = torch.utils.data.DataLoader(
-            pre_train_data, batch_size=args.batch_size, shuffle=True,
-            pin_memory=pin_memory, num_workers=args.loader_workers, drop_last=True,
-            collate_fn=datasets.collate_images_targets_meta)
-
         # freeze base net parameters
         frozen_params = set()
         for n, p in net.named_parameters():

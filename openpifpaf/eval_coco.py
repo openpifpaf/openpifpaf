@@ -230,12 +230,12 @@ def cli():
 
     # add args.device
     args.device = torch.device('cpu')
-    pin_memory = False
+    args.pin_memory = False
     if not args.disable_cuda and torch.cuda.is_available():
         args.device = torch.device('cuda')
-        pin_memory = True
+        args.pin_memory = True
 
-    return args, image_dir, annotation_file, pin_memory
+    return args, image_dir, annotation_file
 
 
 def write_evaluations(eval_cocos, args):
@@ -259,7 +259,7 @@ def write_evaluations(eval_cocos, args):
 
 
 def main():
-    args, image_dir, annotation_file, pin_memory = cli()
+    args, image_dir, annotation_file = cli()
 
     # skip existing?
     eval_output_filename = '{}.evalcoco-edge{}-samples{}-decoder{}.txt'.format(
@@ -279,7 +279,7 @@ def main():
         all_images=args.all_images,
     )
     data_loader = torch.utils.data.DataLoader(
-        data, batch_size=args.batch_size, pin_memory=pin_memory,
+        data, batch_size=args.batch_size, pin_memory=args.pin_memory,
         num_workers=args.loader_workers, collate_fn=datasets.collate_images_anns_meta)
 
     model, _ = nets.factory_from_args(args)

@@ -65,8 +65,17 @@ class Preprocess(object):
         return anns
 
     def __call__(self, image, anns):
+        w, h = image.size
         anns = self.normalize_annotations(anns)
-        return image, anns
+
+        meta = {
+            'offset': (0.0, 0.0),
+            'scale': (1.0, 1.0),
+            'valid_area': (0.0, 0.0, w, h),
+            'hflip': False,
+            'width_height': (w, h),
+        }
+        return image, anns, meta
 
 
 class SquareRescale(object):
@@ -111,7 +120,7 @@ class SquareRescale(object):
             image = image.transpose(PIL.Image.FLIP_LEFT_RIGHT)
             for ann in anns:
                 ann['keypoints'][:, 0] = -ann['keypoints'][:, 0] - 1.0 + w
-                ann['keypoints'] = horizontal_swap(ann['keypoints'])
+                ann['keypoints'] = horizontal_swap(ann['keypoints'])  # TODO: hard coded for persons
                 ann['bbox'][0] = -(ann['bbox'][0] + ann['bbox'][2]) - 1.0 + w
 
         image = self.scale_long_edge(image)
@@ -167,7 +176,7 @@ class SquareRescale(object):
             w = meta['width_height'][0]
             keypoint_sets[:, :, 0] = -keypoint_sets[:, :, 0] - 1.0 + w
             for keypoints in keypoint_sets:
-                keypoints[:] = horizontal_swap(keypoints)
+                keypoints[:] = horizontal_swap(keypoints)  # TODO: hard coded for persons
 
         return keypoint_sets
 
@@ -194,7 +203,7 @@ class SquareCrop(object):
             image = image.transpose(PIL.Image.FLIP_LEFT_RIGHT)
             for ann in anns:
                 ann['keypoints'][:, 0] = -ann['keypoints'][:, 0] - 1.0 + w
-                ann['keypoints'] = horizontal_swap(ann['keypoints'])
+                ann['keypoints'] = horizontal_swap(ann['keypoints'])  # TODO: hard coded for persons
                 ann['bbox'][0] = -(ann['bbox'][0] + ann['bbox'][2]) - 1.0 + w
 
         # crop image
