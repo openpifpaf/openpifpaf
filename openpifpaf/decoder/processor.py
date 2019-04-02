@@ -70,7 +70,7 @@ class Processor(object):
         annotations = sorted(annotations, key=lambda a: -a.score())
         return annotations
 
-    def keypoint_sets(self, fields, v_scale=0.5):
+    def keypoint_sets(self, fields):
         start = time.time()
         annotations = self.decode(fields)
 
@@ -91,7 +91,6 @@ class Processor(object):
             if score < self.instance_threshold:
                 continue
             kps = ann.data
-            kps[:, 2] *= 2.0 / v_scale
             kps[kps[:, 2] < self.keypoint_threshold] = 0.0
 
             keypoint_sets.append(kps)
@@ -106,7 +105,7 @@ class Processor(object):
         print('total processing time', time.time() - start)
         return keypoint_sets, scores
 
-    def keypoint_sets_two_scales(self, fields, fields_half_scale, v_scale=0.5):
+    def keypoint_sets_two_scales(self, fields, fields_half_scale):
         start = time.time()
         annotations = self.decode(fields)
         annotations_half_scale = self.decode(fields_half_scale)
@@ -135,7 +134,6 @@ class Processor(object):
             if score < self.instance_threshold:
                 continue
             kps = ann.data
-            kps[:, 2] *= 2.0 / v_scale
             kps[kps[:, 2] < self.keypoint_threshold] = 0.0
 
             keypoint_sets.append(kps)

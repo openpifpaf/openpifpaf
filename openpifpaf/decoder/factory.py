@@ -48,7 +48,7 @@ def factory_from_args(args, model):
 
     # default value for keypoint filter depends on whether complete pose is forced
     if args.keypoint_threshold is None:
-        args.keypoint_threshold = 0.01 if not args.force_complete_pose else 0.0
+        args.keypoint_threshold = 0.001 if not args.force_complete_pose else 0.0
 
     decode = factory_decode(model,
                             seed_threshold=args.seed_threshold,
