@@ -68,7 +68,8 @@ class KeypointPainter(object):
                  skeleton=None,
                  xy_scale=1.0, highlight=None, highlight_invisible=False,
                  show_box=True, linewidth=2, markersize=3,
-                 color_connections=False):
+                 color_connections=False,
+                 solid_threshold=0.5):
         self.skeleton = skeleton or COCO_PERSON_SKELETON
         self.xy_scale = xy_scale
         self.highlight = highlight
@@ -77,6 +78,7 @@ class KeypointPainter(object):
         self.linewidth = linewidth
         self.markersize = markersize
         self.color_connections = color_connections
+        self.solid_threshold = solid_threshold
 
     def _draw_skeleton(self, ax, x, y, v, *, color=None):
         if not np.any(v > 0):
@@ -91,16 +93,18 @@ class KeypointPainter(object):
                     ax.plot(x[connection], y[connection],
                             linewidth=self.linewidth, color=c,
                             linestyle='dashed', dash_capstyle='round')
-                if np.all(v[connection] > 1):
+                if np.all(v[connection] > self.solid_threshold):
                     ax.plot(x[connection], y[connection],
                             linewidth=self.linewidth, color=c, solid_capstyle='round')
 
         # highlight invisible keypoints
         inv_color = 'k' if self.highlight_invisible else color
 
-        ax.plot(x[v > 0], y[v > 0], 'o', markersize=self.markersize,
+        ax.plot(x[v > 0], y[v > 0],
+                'o', markersize=self.markersize,
                 markerfacecolor=color, markeredgecolor=inv_color, markeredgewidth=2)
-        ax.plot(x[v > 1], y[v > 1], 'o', markersize=self.markersize,
+        ax.plot(x[v > self.solid_threshold], y[v > self.solid_threshold],
+                'o', markersize=self.markersize,
                 markerfacecolor=color, markeredgecolor=color, markeredgewidth=2)
 
         if self.highlight is not None:
