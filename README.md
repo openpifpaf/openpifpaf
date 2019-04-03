@@ -102,7 +102,9 @@ python3 -m openpifpaf.predict my_image.jpg --show
 
 # Pre-trained Models
 
-Put these files into your `outputs` folder: [Google Drive](https://drive.google.com/drive/folders/1v8UNDjZbqeMZY64T33tSDOq1jtcBJBy7?usp=sharing>).
+Put the files from this
+[Google Drive](https://drive.google.com/drive/folders/1v8UNDjZbqeMZY64T33tSDOq1jtcBJBy7?usp=sharing>)
+into your `outputs` folder.
 Alternative downloads:
 
 | models            | [Cloudflare IPFS gateway] to https | [IPFS]      | [DAT] (broken?) |
