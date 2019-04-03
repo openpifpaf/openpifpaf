@@ -42,7 +42,7 @@ Created with:
 ```sh
 python3 -m openpifpaf.predict \
   --checkpoint outputs/resnet101block5-pifs-pafs-edge401-l1-190131-083451.pkl \
-  data-mscoco/images/val2017/000000081988.jpg -o docs/coco/ --show
+  docs/coco/000000081988.jpg --show
 ```
 
 For more demos, see the
