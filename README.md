@@ -116,8 +116,8 @@ Alternative downloads:
 [Cloudflare IPFS gateway]: https://blog.cloudflare.com/distributed-web-gateway/
 [IPFS]: https://ipfs.io/
 [DAT]: https://datproject.org/
-[CF R50]: https://cloudflare-ipfs.com/ipfs/QmXjSeTZoKt82NzVmyY2XdLWVFn1W8otg7fSmTVGk4goPQ/v0.2.0/resnet50block5-pif-paf-edge401-190315-214317.pkl
-[IPFS R50]: ipfs://QmXjSeTZoKt82NzVmyY2XdLWVFn1W8otg7fSmTVGk4goPQ/v0.2.0/resnet50block5-pif-paf-edge401-190315-214317.pkl
+[CF R50]: https://cloudflare-ipfs.com/ipfs/QmVySuAqA2MMMPDHM1p4wLpNo93FPsZC21nApUdsqX7uDB
+[IPFS R50]: ipfs://QmVySuAqA2MMMPDHM1p4wLpNo93FPsZC21nApUdsqX7uDB
 [CF R101]: https://cloudflare-ipfs.com/ipfs/QmdmrxTRnDucpkEQhPY9bKFcP5sb9cqRZKPC7tGKWkfqJw
 [IPFS R101]: ipfs://QmdmrxTRnDucpkEQhPY9bKFcP5sb9cqRZKPC7tGKWkfqJw
 [CF R152]: https://cloudflare-ipfs.com/ipfs/QmPhJVjt3jw9q6bpKQgvuN2aszcwSBFYszyU9Lkeg9pPZu
