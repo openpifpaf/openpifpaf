@@ -66,3 +66,34 @@ class Annotation(object):
             np.max(self.data[m, 0]) - np.min(self.data[m, 0]),
             np.max(self.data[m, 1]) - np.min(self.data[m, 1]),
         )
+
+
+class AnnotationWithoutSkeleton(object):
+    def __init__(self, j, xyv, n_joints):
+        self.data = np.zeros((n_joints, 3))
+        self.joint_scales = None
+        self.data[j] = xyv
+
+    def fill_joint_scales(self, scales, hr_scale):
+        self.joint_scales = np.zeros((self.data.shape[0],))
+        for xyv_i, xyv in enumerate(self.data):
+            if xyv[2] == 0.0:
+                continue
+            scale_field = scales[xyv_i]
+            i = max(0, min(scale_field.shape[1] - 1, int(round(xyv[0] * hr_scale))))
+            j = max(0, min(scale_field.shape[0] - 1, int(round(xyv[1] * hr_scale))))
+            self.joint_scales[xyv_i] = scale_field[j, i] / hr_scale
+
+    def score(self):
+        v = self.data[:, 2]
+        # return 0.5 * np.max(v) + 0.5 * np.mean(v)
+        return np.mean(np.square(v))
+
+    def scale(self):
+        m = self.data[:, 2] > 0.5
+        if not np.any(m):
+            return 0.0
+        return max(
+            np.max(self.data[m, 0]) - np.min(self.data[m, 0]),
+            np.max(self.data[m, 1]) - np.min(self.data[m, 1]),
+        )

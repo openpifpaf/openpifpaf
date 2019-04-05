@@ -1,6 +1,7 @@
 import cProfile
 
 from ..data import KINEMATIC_TREE_SKELETON, DENSER_COCO_PERSON_SKELETON
+from .pif import Pif
 from .pifpaf import PifPaf
 from .pifspafs import PifsPafs
 from .processor import Processor
@@ -80,6 +81,10 @@ def factory_decode(model, *,
                         force_complete=force_complete_pose,
                         connection_method=connection_method,
                         debug_visualizer=debug_visualizer)
+    elif headnames in (('pif',),):
+        decode = Pif(model.io_scales()[-1], seed_threshold,
+                     debug_visualizer=debug_visualizer,
+                     pif_fixed_scale=pif_fixed_scale)
     elif headnames in (('pif', 'paf'), ('pif', 'wpaf')):
         decode = PifPaf(model.io_scales()[-1], seed_threshold,
                         force_complete=force_complete_pose,
