@@ -365,15 +365,19 @@ class EvalPlots(object):
         self.frame(ax, entry=9)
         ax.set_ylabel('AR$^{L}$')
 
+    def fill_all(self, axs):
+        for f, ax in zip((self.ap, self.ap050, self.ap075, self.apm, self.apl), axs[0]):
+            f(ax)
+
+        for f, ax in zip((self.ar, self.ar050, self.ar075, self.arm, self.arl), axs[1]):
+            f(ax)
+
+        return self
+
     def show_all(self, *, share_y=True):
         with show.canvas(nrows=2, ncols=5, figsize=(20, 10),
                          sharex=True, sharey=share_y) as axs:
-            for f, ax in zip((self.ap, self.ap050, self.ap075, self.apm, self.apl), axs[0]):
-                f(ax)
-
-            for f, ax in zip((self.ar, self.ar050, self.ar075, self.arm, self.arl), axs[1]):
-                f(ax)
-
+            self.fill_all(axs)
             axs[0, 4].legend(fontsize=5)
 
 
