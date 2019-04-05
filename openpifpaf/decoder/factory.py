@@ -56,7 +56,8 @@ def factory_from_args(args, model):
                             pif_fixed_scale=args.pif_fixed_scale,
                             profile_decoder=args.profile_decoder,
                             force_complete_pose=args.force_complete_pose,
-                            connection_method=args.connection_method)
+                            connection_method=args.connection_method,
+                            debug_visualizer=debug_visualizer)
 
     return Processor(model, decode,
                      instance_threshold=args.instance_threshold,
