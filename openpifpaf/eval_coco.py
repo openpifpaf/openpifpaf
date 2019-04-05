@@ -200,8 +200,6 @@ def cli():
                         help='two scale')
     parser.add_argument('--disable-cuda', action='store_true',
                         help='disable CUDA')
-    parser.add_argument('--all-images', default=False, action='store_true',
-                        help='use all images, not only those with keypoint annotations')
     parser.add_argument('--write-predictions', default=False, action='store_true',
                         help='write a json and a zip file of the predictions')
     group = parser.add_argument_group('logging')
@@ -223,8 +221,6 @@ def cli():
     else:
         raise Exception
 
-    if args.dataset in ('test', 'test-dev') and not args.all_images:
-        raise Exception('have to use --all-images for this dataset')
     if args.dataset in ('test', 'test-dev') and not args.write_predictions:
         raise Exception('have to use --write-predictions for this dataset')
 
@@ -276,7 +272,7 @@ def main():
         root=image_dir,
         annFile=annotation_file,
         preprocess=preprocess,
-        all_images=args.all_images,
+        all_images=True,
     )
     data_loader = torch.utils.data.DataLoader(
         data, batch_size=args.batch_size, pin_memory=args.pin_memory,
