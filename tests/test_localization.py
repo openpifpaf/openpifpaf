@@ -14,7 +14,7 @@ def localize(x):
     )
     model.eval()
 
-    decode = openpifpaf.decoder.PifPaf(8, 0.2)
+    decode = openpifpaf.decoder.PifPaf(8)
     processor = openpifpaf.decoder.Processor(model, decode)
     pif_ref = processor.fields(torch.unsqueeze(black, 0))[0][0]
     pif = processor.fields(torch.unsqueeze(im, 0))[0][0]

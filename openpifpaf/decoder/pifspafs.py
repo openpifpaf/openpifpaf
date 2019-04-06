@@ -1,11 +1,13 @@
 """Decoder for pifs-pafs fields."""
 
 from collections import defaultdict
+import logging
 import time
 
 import numpy as np
 
 from .annotation import Annotation
+from .decoder import Decoder
 from .utils import (index_field, scalar_square_add_single,
                     normalize_pifs, normalize_paf)
 from ..data import COCO_PERSON_SKELETON
@@ -15,27 +17,47 @@ from ..functional import (scalar_square_add_constant, scalar_square_add_gauss,
                           weiszfeld_nd, paf_mask_center)
 
 
-class PifsPafs(object):
+class PifsPafs(Decoder):
+    default_force_complete = True
+    default_connection_method = 'max'
+    default_pif_fixed_scale = None
+
     def __init__(self, stride, seed_threshold,
                  skeleton=None, head_indices=None,
                  profile=None,
-                 force_complete=True,
                  debug_visualizer=None,
-                 connection_method='max',
-                 pif_fixed_scale=None):
+                 **kwargs):
+        self.log = logging.getLogger(self.__class__.__name__)
+        self.log.debug('unused arguments %s', kwargs)
+
         self.stride = stride
         self.hr_scale = self.stride
         self.skeleton = skeleton or COCO_PERSON_SKELETON
         self.head_indices = head_indices
         self.profile = profile
         self.seed_threshold = seed_threshold
-        self.force_complete = force_complete
         self.debug_visualizer = debug_visualizer
-        self.connection_method = connection_method
-        self.pif_fixed_scale = pif_fixed_scale
+        self.force_complete = self.default_force_complete
+        self.connection_method = self.default_connection_method
+        self.pif_fixed_scale = self.default_pif_fixed_scale
 
         self.pif_nn = 16
-        self.paf_nn = 1 if connection_method == 'max' else 35
+        self.paf_nn = 1 if self.connection_method == 'max' else 35
+
+    @staticmethod
+    def match(head_names):
+        return head_names in (
+            ('pifs', 'pafs'),
+        )
+
+    @classmethod
+    def apply_args(cls, args):
+        # defined in PifPaf decoder
+        cls.default_connection_method = args.connection_method
+        cls.default_pif_fixed_scale = args.pif_fixed_scale
+
+        # arg defined in factory
+        cls.default_force_complete = args.force_complete_pose
 
     def __call__(self, fields):
         start = time.time()
