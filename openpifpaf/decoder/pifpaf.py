@@ -18,7 +18,8 @@ from ..functional import (scalar_square_add_constant, scalar_square_add_gauss,
 
 
 class PifPaf(Plugin):
-    def __init__(self, stride, *, seed_threshold,
+    def __init__(self, stride, *,
+                 seed_threshold=0.2,
                  head_names=None,
                  head_indices=None,
                  skeleton=None,
@@ -37,7 +38,8 @@ class PifPaf(Plugin):
 
         self.head_indices = head_indices
         if self.head_indices is None:
-            pif_index = head_names.rindex('pif')
+            # find the last(!) index of 'pif'
+            pif_index = len(head_names) - 1 - head_names[::-1].index('pif')
             self.head_indices = [pif_index, pif_index + 1]
 
         self.skeleton = skeleton
