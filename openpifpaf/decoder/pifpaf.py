@@ -38,9 +38,10 @@ class PifPaf(Plugin):
 
         self.head_indices = head_indices
         if self.head_indices is None:
-            # find the last(!) index of 'pif'
-            pif_index = len(head_names) - 1 - head_names[::-1].index('pif')
-            self.head_indices = [pif_index, pif_index + 1]
+            self.head_indices = {
+                ('paf', 'pif', 'paf'): [1, 2],
+                ('pif', 'pif', 'paf'): [1, 2],
+            }.get(head_names, [0, 1])
 
         self.skeleton = skeleton
         if self.skeleton is None:
