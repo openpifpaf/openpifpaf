@@ -1,9 +1,7 @@
 import cProfile
+import logging
 
-from ..data import KINEMATIC_TREE_SKELETON, DENSER_COCO_PERSON_SKELETON
-from .pif import Pif
-from .pifpaf import PifPaf
-from .pifspafs import PifsPafs
+from .plugin import Plugin
 from .processor import Processor
 from .visualizer import Visualizer
 
@@ -38,7 +36,7 @@ def cli(parser, force_complete_pose=True, instance_threshold=0.0):
                        help='overwrite b with fixed value, e.g. 0.5')
     group.add_argument('--pif-fixed-scale', default=None, type=float,
                        help='overwrite pif scale with a fixed value')
-    group.add_argument('--profile-decoder', default=False, action='store_true',
+    group.add_argument('--profile-decoder', default=None, action='store_true',
                        help='profile decoder')
 
 
@@ -67,66 +65,22 @@ def factory_from_args(args, model):
 
 
 def factory_decode(model, *,
-                   seed_threshold=0.2,
-                   fixed_b=None,
-                   pif_fixed_scale=None,
-                   debug_visualizer=None,
-                   profile_decoder=False,
-                   force_complete_pose=False,
-                   connection_method='max'):
+                   profile=None,
+                   **kwargs):
     headnames = tuple(h.shortname for h in model.head_nets)
 
-    if headnames == ('pif17', 'paf19'):
-        decode = PifPaf(model.io_scales()[-1], seed_threshold,
-                        force_complete=force_complete_pose,
-                        connection_method=connection_method,
-                        debug_visualizer=debug_visualizer)
-    elif headnames in (('pif',),):
-        decode = Pif(model.io_scales()[-1], seed_threshold,
-                     debug_visualizer=debug_visualizer,
-                     pif_fixed_scale=pif_fixed_scale)
-    elif headnames in (('pif', 'paf'), ('pif', 'wpaf')):
-        decode = PifPaf(model.io_scales()[-1], seed_threshold,
-                        force_complete=force_complete_pose,
-                        connection_method=connection_method,
-                        debug_visualizer=debug_visualizer,
-                        fixed_b=fixed_b,
-                        pif_fixed_scale=pif_fixed_scale)
-    elif headnames in (('pifs17', 'pafs19'), ('pifs17', 'pafs19n2')):
-        decode = PifsPafs(model.io_scales()[-1], seed_threshold,
-                          force_complete=force_complete_pose,
-                          connection_method=connection_method,
-                          debug_visualizer=debug_visualizer,
-                          pif_fixed_scale=pif_fixed_scale)
-    elif headnames == ('pif17', 'pif17', 'paf19'):
-        decode = PifPaf(model.io_scales()[-1], seed_threshold,
-                        force_complete=force_complete_pose,
-                        connection_method=connection_method,
-                        debug_visualizer=debug_visualizer,
-                        head_indices=(1, 2))
-    elif headnames == ('paf19', 'pif17', 'paf19'):
-        decode = PifPaf(model.io_scales()[-1], seed_threshold,
-                        force_complete=force_complete_pose,
-                        connection_method=connection_method,
-                        debug_visualizer=debug_visualizer,
-                        head_indices=(1, 2))
-    elif headnames == ('pif17', 'paf16'):
-        decode = PifPaf(model.io_scales()[-1], seed_threshold,
-                        KINEMATIC_TREE_SKELETON,
-                        force_complete=force_complete_pose,
-                        connection_method=connection_method,
-                        debug_visualizer=debug_visualizer)
-    elif headnames == ('pif', 'paf44'):
-        decode = PifPaf(model.io_scales()[-1], seed_threshold,
-                        DENSER_COCO_PERSON_SKELETON,
-                        force_complete=force_complete_pose,
-                        connection_method=connection_method,
-                        debug_visualizer=debug_visualizer,
-                        fixed_b=fixed_b)
-    else:
-        raise Exception('unknown head nets {} for decoder'.format(headnames))
+    if profile is True:
+        profile = cProfile.Profile()
 
-    if profile_decoder:
-        decode.profile = cProfile.Profile()
+    decode = None
+    for plugin in Plugin.__subclasses__():
+        logging.debug('checking whether plugin %s matches %s', plugin.__name__, headnames)
+        if not plugin.match(headnames):
+            continue
+        logging.info('selected decoder: %s', plugin.__name__)
+        return plugin(model.io_scales()[-1],
+                      head_names=headnames,
+                      profile=profile,
+                      **kwargs)
 
-    return decode
+    raise Exception('unknown head nets {} for decoder'.format(headnames))

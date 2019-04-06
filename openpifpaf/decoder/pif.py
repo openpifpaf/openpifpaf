@@ -1,23 +1,29 @@
 """Decoder for pif fields."""
 
 from collections import defaultdict
+import logging
 import time
 
 import numpy as np
 
 from .annotation import AnnotationWithoutSkeleton
+from .plugin import Plugin
 from .utils import index_field, scalar_square_add_single, normalize_pif
 
 # pylint: disable=import-error
 from ..functional import (scalar_square_add_constant, scalar_square_add_gauss)
 
 
-class Pif(object):
+class Pif(Plugin):
     def __init__(self, stride, seed_threshold,
                  head_index=None,
                  profile=None,
                  debug_visualizer=None,
-                 pif_fixed_scale=None):
+                 pif_fixed_scale=None,
+                 **kwargs):
+        self.log = logging.getLogger(self.__class__.__name__)
+        self.log.debug('unused arguments %s', kwargs)
+
         self.stride = stride
         self.hr_scale = self.stride
         self.head_index = head_index or 0
@@ -27,6 +33,12 @@ class Pif(object):
         self.pif_fixed_scale = pif_fixed_scale
 
         self.pif_nn = 16
+
+    @staticmethod
+    def match(head_names):
+        return head_names in (
+            ('pif',),
+        )
 
     def __call__(self, fields):
         start = time.time()

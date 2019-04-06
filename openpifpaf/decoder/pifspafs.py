@@ -1,11 +1,13 @@
 """Decoder for pifs-pafs fields."""
 
 from collections import defaultdict
+import logging
 import time
 
 import numpy as np
 
 from .annotation import Annotation
+from .plugin import Plugin
 from .utils import (index_field, scalar_square_add_single,
                     normalize_pifs, normalize_paf)
 from ..data import COCO_PERSON_SKELETON
@@ -15,14 +17,18 @@ from ..functional import (scalar_square_add_constant, scalar_square_add_gauss,
                           weiszfeld_nd, paf_mask_center)
 
 
-class PifsPafs(object):
+class PifsPafs(Plugin):
     def __init__(self, stride, seed_threshold,
                  skeleton=None, head_indices=None,
                  profile=None,
                  force_complete=True,
                  debug_visualizer=None,
                  connection_method='max',
-                 pif_fixed_scale=None):
+                 pif_fixed_scale=None,
+                 **kwargs):
+        self.log = logging.getLogger(self.__class__.__name__)
+        self.log.debug('unused arguments %s', kwargs)
+
         self.stride = stride
         self.hr_scale = self.stride
         self.skeleton = skeleton or COCO_PERSON_SKELETON
@@ -36,6 +42,12 @@ class PifsPafs(object):
 
         self.pif_nn = 16
         self.paf_nn = 1 if connection_method == 'max' else 35
+
+    @staticmethod
+    def match(head_names):
+        return head_names in (
+            ('pifs', 'pafs'),
+        )
 
     def __call__(self, fields):
         start = time.time()
