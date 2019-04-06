@@ -7,7 +7,7 @@ import time
 import numpy as np
 
 from .annotation import Annotation
-from .plugin import Plugin
+from .decoder import Decoder
 from .utils import (index_field, scalar_square_add_single,
                     normalize_pif, normalize_paf)
 from ..data import KINEMATIC_TREE_SKELETON, COCO_PERSON_SKELETON, DENSER_COCO_PERSON_SKELETON
@@ -17,7 +17,7 @@ from ..functional import (scalar_square_add_constant, scalar_square_add_gauss,
                           weiszfeld_nd, paf_mask_center)
 
 
-class PifPaf(Plugin):
+class PifPaf(Decoder):
     def __init__(self, stride, *,
                  seed_threshold=0.2,
                  head_names=None,

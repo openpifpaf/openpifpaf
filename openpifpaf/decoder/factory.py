@@ -1,7 +1,7 @@
 import cProfile
 import logging
 
-from .plugin import Plugin
+from .decoder import Decoder
 from .processor import Processor
 from .visualizer import Visualizer
 
@@ -73,14 +73,15 @@ def factory_decode(model, *,
         profile = cProfile.Profile()
 
     decode = None
-    for plugin in Plugin.__subclasses__():
-        logging.debug('checking whether plugin %s matches %s', plugin.__name__, headnames)
-        if not plugin.match(headnames):
+    for decoder in Decoder.__subclasses__():
+        logging.debug('checking whether decoder %s matches %s',
+                      decoder.__name__, headnames)
+        if not decoder.match(headnames):
             continue
-        logging.info('selected decoder: %s', plugin.__name__)
-        return plugin(model.io_scales()[-1],
-                      head_names=headnames,
-                      profile=profile,
-                      **kwargs)
+        logging.info('selected decoder: %s', decoder.__name__)
+        return decoder(model.io_scales()[-1],
+                       head_names=headnames,
+                       profile=profile,
+                       **kwargs)
 
     raise Exception('unknown head nets {} for decoder'.format(headnames))

@@ -7,7 +7,7 @@ import time
 import numpy as np
 
 from .annotation import Annotation
-from .plugin import Plugin
+from .decoder import Decoder
 from .utils import (index_field, scalar_square_add_single,
                     normalize_pifs, normalize_paf)
 from ..data import COCO_PERSON_SKELETON
@@ -17,7 +17,7 @@ from ..functional import (scalar_square_add_constant, scalar_square_add_gauss,
                           weiszfeld_nd, paf_mask_center)
 
 
-class PifsPafs(Plugin):
+class PifsPafs(Decoder):
     def __init__(self, stride, seed_threshold,
                  skeleton=None, head_indices=None,
                  profile=None,
