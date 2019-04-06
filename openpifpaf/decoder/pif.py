@@ -82,12 +82,10 @@ class PifGenerator(object):
 
         # pif init
         self._pifhr, self._pifhr_scales = self._target_intensities()
-        self._pifhr_core = self._target_intensities(core_only=True)
         if self.debug_visualizer:
             self.debug_visualizer.pifhr(self._pifhr)
-            self.debug_visualizer.pifhr(self._pifhr_core)
 
-    def _target_intensities(self, v_th=0.1, core_only=False):
+    def _target_intensities(self, v_th=0.1):
         start = time.time()
 
         targets = np.zeros((self.pif.shape[0],
@@ -100,17 +98,11 @@ class PifGenerator(object):
             x = x * self.stride
             y = y * self.stride
             s = s * self.stride
-            if core_only:
-                scalar_square_add_gauss(t, x, y, s, v / self.pif_nn, truncate=0.5)
-            else:
-                scalar_square_add_gauss(t, x, y, s, v / self.pif_nn)
-                scalar_square_add_constant(scale, x, y, s, s*v)
-                scalar_square_add_constant(n, x, y, s, v)
+            scalar_square_add_gauss(t, x, y, s, v / self.pif_nn, truncate=0.5)
+            scalar_square_add_constant(scale, x, y, s, s*v)
+            scalar_square_add_constant(n, x, y, s, v)
 
         targets = np.minimum(1.0, targets)
-        if core_only:
-            print('target_intensities', time.time() - start)
-            return targets
 
         m = ns > 0
         scales[m] = scales[m] / ns[m]
@@ -133,7 +125,7 @@ class PifGenerator(object):
     def _pifhr_seeds(self):
         start = time.time()
         seeds = []
-        for field_i, (f, s) in enumerate(zip(self._pifhr_core, self._pifhr_scales)):
+        for field_i, (f, s) in enumerate(zip(self._pifhr, self._pifhr_scales)):
             index_fields = index_field(f.shape)
             candidates = np.concatenate((index_fields, np.expand_dims(f, 0)), 0)
 
