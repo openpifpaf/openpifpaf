@@ -132,9 +132,6 @@ class PifPafGenerator(object):
         self.timers = defaultdict(float)
 
         # pif init
-        self._pifhr = None
-        self._pifhr_scales = None
-        self._pifhr_core = None
         self._pifhr, self._pifhr_scales = self._target_intensities()
         self._pifhr_core = self._target_intensities(core_only=True)
         if self.debug_visualizer:

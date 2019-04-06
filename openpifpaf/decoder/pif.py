@@ -81,9 +81,6 @@ class PifGenerator(object):
         self.timers = defaultdict(float)
 
         # pif init
-        self._pifhr = None
-        self._pifhr_scales = None
-        self._pifhr_core = None
         self._pifhr, self._pifhr_scales = self._target_intensities()
         self._pifhr_core = self._target_intensities(core_only=True)
         if self.debug_visualizer:
@@ -124,33 +121,11 @@ class PifGenerator(object):
         start = time.time()
 
         seeds = self._pifhr_seeds()
-
-        occupied = np.zeros_like(self._pifhr_scales)
         annotations = []
         for v, f, x, y in seeds:
-            i = np.clip(int(round(x * self.stride)), 0, occupied.shape[2] - 1)
-            j = np.clip(int(round(y * self.stride)), 0, occupied.shape[1] - 1)
-            if occupied[f, j, i]:
-                continue
-
             ann = AnnotationWithoutSkeleton(f, (x, y, v), self._pifhr_scales.shape[0])
             ann.fill_joint_scales(self._pifhr_scales, self.stride)
             annotations.append(ann)
-
-            for i, xyv in enumerate(ann.data):
-                if xyv[2] == 0.0:
-                    continue
-
-                width = ann.joint_scales[i] * self.stride
-                scalar_square_add_single(occupied[i],
-                                         xyv[0] * self.stride,
-                                         xyv[1] * self.stride,
-                                         width / 2.0,
-                                         1.0)
-
-        if self.debug_visualizer:
-            print('occupied annotations field 0')
-            self.debug_visualizer.occupied(occupied[0])
 
         print('keypoint sets', len(annotations), time.time() - start)
         return annotations
