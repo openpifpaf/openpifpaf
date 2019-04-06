@@ -15,11 +15,12 @@ from ..functional import (scalar_square_add_constant, scalar_square_add_gauss)
 
 
 class Pif(Decoder):
+    default_pif_fixed_scale = None
+
     def __init__(self, stride, seed_threshold,
                  head_index=None,
                  profile=None,
                  debug_visualizer=None,
-                 pif_fixed_scale=None,
                  **kwargs):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.debug('unused arguments %s', kwargs)
@@ -30,7 +31,7 @@ class Pif(Decoder):
         self.profile = profile
         self.seed_threshold = seed_threshold
         self.debug_visualizer = debug_visualizer
-        self.pif_fixed_scale = pif_fixed_scale
+        self.pif_fixed_scale = self.default_pif_fixed_scale
 
         self.pif_nn = 16
 
@@ -39,6 +40,10 @@ class Pif(Decoder):
         return head_names in (
             ('pif',),
         )
+
+    @classmethod
+    def apply_args(cls, args):
+        cls.default_pif_fixed_scale = args.pif_fixed_scale
 
     def __call__(self, fields):
         start = time.time()

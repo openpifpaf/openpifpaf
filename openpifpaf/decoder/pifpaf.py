@@ -18,17 +18,18 @@ from ..functional import (scalar_square_add_constant, scalar_square_add_gauss,
 
 
 class PifPaf(Decoder):
+    default_force_complete = True
+    default_connection_method = 'max'
+    default_fixed_b = None
+    default_pif_fixed_scale = None
+
     def __init__(self, stride, *,
                  seed_threshold=0.2,
                  head_names=None,
                  head_indices=None,
                  skeleton=None,
                  profile=None,
-                 force_complete=True,
                  debug_visualizer=None,
-                 connection_method='max',
-                 fixed_b=None,
-                 pif_fixed_scale=None,
                  **kwargs):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.debug('unused arguments %s', kwargs)
@@ -57,14 +58,14 @@ class PifPaf(Decoder):
         self.hr_scale = self.stride
         self.profile = profile
         self.seed_threshold = seed_threshold
-        self.force_complete = force_complete
         self.debug_visualizer = debug_visualizer
-        self.connection_method = connection_method
-        self.fixed_b = fixed_b
-        self.pif_fixed_scale = pif_fixed_scale
+        self.force_complete = self.default_force_complete
+        self.connection_method = self.default_connection_method
+        self.fixed_b = self.default_fixed_b
+        self.pif_fixed_scale = self.default_pif_fixed_scale
 
         self.pif_nn = 16
-        self.paf_nn = 1 if connection_method == 'max' else 35
+        self.paf_nn = 1 if self.connection_method == 'max' else 35
 
     @staticmethod
     def match(head_names):
@@ -76,6 +77,26 @@ class PifPaf(Decoder):
             ('pif', 'pif', 'paf'),
             ('pif', 'wpaf'),
         )
+
+    @classmethod
+    def cli(cls, parser):
+        group = parser.add_argument_group('PifPaf decoder')
+        group.add_argument('--fixed-b', default=None, type=float,
+                           help='overwrite b with fixed value, e.g. 0.5')
+        group.add_argument('--pif-fixed-scale', default=None, type=float,
+                           help='overwrite pif scale with a fixed value')
+        group.add_argument('--connection-method',
+                           default='max', choices=('median', 'max'),
+                           help='connection method to use, max is faster')
+
+    @classmethod
+    def apply_args(cls, args):
+        cls.default_fixed_b = args.fixed_b
+        cls.default_pif_fixed_scale = args.pif_fixed_scale
+        cls.default_connection_method = args.connection_method
+
+        # arg defined in factory
+        cls.default_force_complete = args.force_complete_pose
 
     def __call__(self, fields):
         start = time.time()

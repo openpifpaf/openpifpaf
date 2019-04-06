@@ -29,18 +29,17 @@ def cli(parser, force_complete_pose=True, instance_threshold=0.0):
     group.add_argument('--debug-paf-indices', default=[], nargs='+',
                        help=('indices of PAF fields to create debug plots for '
                              '(same grouping behavior as debug-pif-indices)'))
-    group.add_argument('--connection-method',
-                       default='max', choices=('median', 'max'),
-                       help='connection method to use, max is faster')
-    group.add_argument('--fixed-b', default=None, type=float,
-                       help='overwrite b with fixed value, e.g. 0.5')
-    group.add_argument('--pif-fixed-scale', default=None, type=float,
-                       help='overwrite pif scale with a fixed value')
     group.add_argument('--profile-decoder', default=None, action='store_true',
                        help='profile decoder')
 
+    for decoder in Decoder.__subclasses__():
+        decoder.cli(parser)
+
 
 def factory_from_args(args, model):
+    for decoder in Decoder.__subclasses__():
+        decoder.apply_args(args)
+
     debug_visualizer = None
     if args.debug_pif_indices or args.debug_paf_indices:
         debug_visualizer = Visualizer(args.debug_pif_indices, args.debug_paf_indices)
@@ -51,11 +50,7 @@ def factory_from_args(args, model):
 
     decode = factory_decode(model,
                             seed_threshold=args.seed_threshold,
-                            fixed_b=args.fixed_b,
-                            pif_fixed_scale=args.pif_fixed_scale,
                             profile_decoder=args.profile_decoder,
-                            force_complete_pose=args.force_complete_pose,
-                            connection_method=args.connection_method,
                             debug_visualizer=debug_visualizer)
 
     return Processor(model, decode,
@@ -64,9 +59,11 @@ def factory_from_args(args, model):
                      debug_visualizer=debug_visualizer)
 
 
-def factory_decode(model, *,
-                   profile=None,
-                   **kwargs):
+def factory_decode(model, *, profile=None, **kwargs):
+    """Instantiate a decoder for the given model.
+
+    All subclasses of decoder.Decoder are checked for a match.
+    """
     headnames = tuple(h.shortname for h in model.head_nets)
 
     if profile is True:
