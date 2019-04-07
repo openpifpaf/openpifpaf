@@ -150,7 +150,7 @@ python3 -m openpifpaf.train \
   --lr-decay 60 70 \
   --batch-size=8 \
   --basenet=resnet50block5 \
-  --quad=1 \
+  --head-quad=1 \
   --headnets pif paf \
   --square-edge=401 \
   --regression-loss=laplace \
