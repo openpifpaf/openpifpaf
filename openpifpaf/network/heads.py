@@ -74,6 +74,7 @@ class CompositeField(Head, torch.nn.Module):
 
         self.shortname = head_name
         self.apply_class_sigmoid = True
+        self.dilation = dilation
 
         self.dropout = torch.nn.Dropout2d(p=self.default_dropout_p)
         self._quad = self.default_quad
@@ -82,34 +83,26 @@ class CompositeField(Head, torch.nn.Module):
         out_features = n_fields * (4 ** self._quad)
         self.class_convs = torch.nn.ModuleList([
             torch.nn.Conv2d(in_features, out_features,
-                            self.default_kernel_size,
-                            padding=self.default_padding,
-                            dilation=self.default_dilation)
+                            kernel_size, padding=padding, dilation=dilation)
             for _ in range(n_confidences)
         ])
 
         # regression
         self.reg_convs = torch.nn.ModuleList([
             torch.nn.Conv2d(in_features, 2 * out_features,
-                            self.default_kernel_size,
-                            padding=self.default_padding,
-                            dilation=self.default_dilation)
+                            kernel_size, padding=padding, dilation=dilation)
             for _ in range(n_vectors)
         ])
         self.reg_spreads = torch.nn.ModuleList([
             torch.nn.Conv2d(in_features, out_features,
-                            self.default_kernel_size,
-                            padding=self.default_padding,
-                            dilation=self.default_dilation)
+                            kernel_size, padding=padding, dilation=dilation)
             for _ in self.reg_convs
         ])
 
         # scale
         self.scale_convs = torch.nn.ModuleList([
             torch.nn.Conv2d(in_features, out_features,
-                            self.default_kernel_size,
-                            padding=self.default_padding,
-                            dilation=self.default_dilation)
+                            kernel_size, padding=padding, dilation=dilation)
             for _ in range(n_scales)
         ])
 
