@@ -1,4 +1,6 @@
 import logging
+import re
+
 import numpy as np
 import scipy.ndimage
 import torch
@@ -11,11 +13,19 @@ from .utils import create_sink, mask_valid_area
 class Pif(Encoder):
     default_side_length = 4
 
-    def __init__(self, head_name, stride, **kwargs):
+    def __init__(self, head_name, stride, *, n_keypoints=None, **kwargs):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.debug('unused arguments in %s: %s', head_name, kwargs)
 
-        self.ann_rescale = AnnRescaler(stride)
+        self.stride = stride
+        if n_keypoints is None:
+            m = re.match('pif([0-9]+)', head_name)
+            if m is not None:
+                n_keypoints = int(m.group(0))
+                self.log.debug('using %d keypoints for pif', n_keypoints)
+            else:
+                n_keypoints = 17
+        self.n_keypoints = n_keypoints
         self.side_length = self.default_side_length
 
     @staticmethod
@@ -25,8 +35,7 @@ class Pif(Encoder):
             'ppif',
             'pifb',
             'pifs',
-            'pif17',
-        )
+        ) or re.match('pif([0-9]+)', head_name) is not None
 
     @classmethod
     def cli(cls, parser):
@@ -39,7 +48,8 @@ class Pif(Encoder):
         cls.default_side_length = args.pif_side_length
 
     def __call__(self, anns, width_height_original):
-        keypoint_sets, bg_mask, valid_area = self.ann_rescale(anns, width_height_original)
+        rescaler = AnnRescaler(self.stride, self.n_keypoints)
+        keypoint_sets, bg_mask, valid_area = rescaler(anns, width_height_original)
         self.log.debug('valid area: %s, pif side length = %d', valid_area, self.side_length)
 
         n_fields = keypoint_sets.shape[1]

@@ -2,7 +2,7 @@ import numpy as np
 
 
 class AnnRescaler(object):
-    def __init__(self, input_output_scale, n_keypoints=17):
+    def __init__(self, input_output_scale, n_keypoints):
         self.input_output_scale = input_output_scale
         self.n_keypoints = n_keypoints
 

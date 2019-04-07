@@ -14,7 +14,7 @@ class Paf(Encoder):
     default_fixed_size = False
     default_aspect_ratio = 0.0
 
-    def __init__(self, head_name, stride, *, skeleton=None, **kwargs):
+    def __init__(self, head_name, stride, *, skeleton=None, n_keypoints=17, **kwargs):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.debug('unused arguments in %s: %s', head_name, kwargs)
 
@@ -28,7 +28,8 @@ class Paf(Encoder):
             else:
                 raise Exception('unknown skeleton type of head')
 
-        self.ann_rescale = AnnRescaler(stride)
+        self.stride = stride
+        self.n_keypoints = n_keypoints
         self.skeleton = skeleton
 
         self.min_size = self.default_min_size
@@ -67,7 +68,8 @@ class Paf(Encoder):
         cls.default_aspect_ratio = args.paf_aspect_ratio
 
     def __call__(self, anns, width_height_original):
-        keypoint_sets, bg_mask, valid_area = self.ann_rescale(anns, width_height_original)
+        rescaler = AnnRescaler(self.stride, self.n_keypoints)
+        keypoint_sets, bg_mask, valid_area = rescaler(anns, width_height_original)
         self.log.debug('valid area: %s, paf min size = %d', valid_area, self.min_size)
 
         f = PafGenerator(self.min_size, self.skeleton,
