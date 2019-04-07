@@ -105,7 +105,7 @@ def main():
         net = torch.nn.DataParallel(net)
 
     optimizer, lr_scheduler = optimize.factory(args, net.parameters())
-    loss_list = losses.factory(args)
+    loss_list = losses.factory_from_args(args)
     target_transforms = encoder.factory(args, net_cpu.io_scales())
 
     preprocess = transforms.SquareMix(

@@ -19,7 +19,7 @@ class Pif(Encoder):
 
         self.stride = stride
         if n_keypoints is None:
-            m = re.match('pif([0-9]+)', head_name)
+            m = re.match('pif([0-9]+)$', head_name)
             if m is not None:
                 n_keypoints = int(m.group(0))
                 self.log.debug('using %d keypoints for pif', n_keypoints)
@@ -35,7 +35,7 @@ class Pif(Encoder):
             'ppif',
             'pifb',
             'pifs',
-        ) or re.match('pif([0-9]+)', head_name) is not None
+        ) or re.match('pif([0-9]+)$', head_name) is not None
 
     @classmethod
     def cli(cls, parser):

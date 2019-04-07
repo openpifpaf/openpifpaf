@@ -1,3 +1,4 @@
+import logging
 import torch
 import torchvision
 
@@ -7,6 +8,8 @@ from . import basenetworks, heads
 #                  'resnet101block5-pif-paf-edge401-190313-100107-81e34321.pkl')
 DEFAULT_MODEL = ('https://documents.epfl.ch/users/k/kr/kreiss/www/'
                  'resnet50block5-pif-paf-edge401-190315-214317-8c9fbafe.pkl')
+
+LOG = logging.getLogger(__name__)
 
 
 class Shell(torch.nn.Module):
@@ -79,12 +82,13 @@ class ShellFork(torch.nn.Module):
 
 
 def factory_from_args(args):
+    for head in heads.Head.__subclasses__():
+        head.apply_args(args)
+
     return factory(checkpoint=args.checkpoint,
                    basenet=args.basenet,
                    headnets=args.headnets,
-                   pretrained=args.pretrained,
-                   dropout_p=args.dropout,
-                   quad=args.quad)
+                   pretrained=args.pretrained)
 
 
 # pylint: disable=too-many-branches
@@ -93,17 +97,10 @@ def factory(*,
             basenet=None,
             headnets=('pif', 'paf'),
             pretrained=True,
-            dropout_p=0.0,
-            quad=1,
             dilation=None,
             dilation_end=None):
     if not checkpoint and basenet:
-        net_cpu = factory_from_scratch(
-            basenet, headnets,
-            pretrained=pretrained,
-            dropout_p=dropout_p,
-            quad=quad,
-        )
+        net_cpu = factory_from_scratch(basenet, headnets, pretrained=pretrained)
         epoch = 0
     else:
         if not checkpoint:
@@ -164,8 +161,7 @@ def factory(*,
 
 
 # pylint: disable=too-many-branches
-def factory_from_scratch(basename, headnames, *,
-                         pretrained=True, dropout_p=0.0, quad=0):
+def factory_from_scratch(basename, headnames, *, pretrained=True):
     if 'resnet50' in basename:
         base_vision = torchvision.models.resnet50(pretrained)
     elif 'resnet101' in basename:
@@ -211,49 +207,15 @@ def factory_from_scratch(basename, headnames, *,
             resnet_factory.replace_downsample(b)
 
     def create_headnet(name, n_features):  # pylint: disable=too-many-return-statements
-        if name in ('pif',):
-            # TODO: remove hard coded number of classes
-            return heads.CompositeField(17, n_features, shortname='pif',
-                                        n_vectors=1, n_scales=1,
-                                        dropout_p=dropout_p, quad=quad)
-        if name in ('ppif', 'pifb'):
-            return heads.PartIntensityFields(17, n_features,
-                                             dropout_p=dropout_p, quad=quad)
-        if name in ('pifs',):
-            return heads.PartIntensityFields(17, n_features,
-                                             dropout_p=dropout_p, quad=quad,
-                                             with_scale=True)
-        if name == 'pcf':
-            return heads.PartAssociationFields(17, n_features,
-                                               dropout_p=dropout_p, quad=quad)
-        if name == 'paf16':
-            return heads.PartAssociationFields(16, n_features,
-                                               dropout_p=dropout_p, quad=quad)
-        if name in ('paf',):
-            return heads.CompositeField(19, n_features, shortname='paf',
-                                        n_vectors=2, n_scales=0,
-                                        dropout_p=dropout_p, quad=quad)
-        if name in ('wpaf',):
-            return heads.CompositeField(19, n_features, shortname='paf',
-                                        n_vectors=2, n_scales=0,
-                                        dropout_p=dropout_p, quad=quad,
-                                        kernel_size=3, padding=5, dilation=5)
-        if name in ('paf19', 'pafb'):
-            return heads.PartAssociationFields(19, n_features,
-                                               dropout_p=dropout_p, quad=quad)
-        if name in ('pafs19',):
-            return heads.PartAssociationFields(19, n_features,
-                                               dropout_p=dropout_p, quad=quad,
-                                               predict_spread=True)
-        if name in ('pafs', 'pafs19n2', 'pafsb'):
-            return heads.NPartAssociationFields(19, n_features,
-                                                dropout_p=dropout_p, quad=quad,
-                                                predict_spread=True)
-        if name == 'paf44':
-            return heads.CompositeField(44, n_features, shortname='paf44',
-                                        n_vectors=2, n_scales=0,
-                                        dropout_p=dropout_p, quad=quad)
-        raise Exception('headnet {} not supported'.format(name))
+        for head in heads.Head.__subclasses__():
+            logging.debug('checking whether head %s matches %s',
+                          head.__name__, name)
+            if not head.match(name):
+                continue
+            logging.info('selected head %s for %s', head.__name__, name)
+            return head(name, n_features)
+
+        raise Exception('unknown head to create an encoder: {}'.format(name))
 
     if 'pifb' in headnames or 'pafb' in headnames:
         basenet = basenetworks.BaseNetwork(
@@ -298,9 +260,8 @@ def cli(parser):
                        help='base network, e.g. resnet50block5')
     group.add_argument('--headnets', default=['pif', 'paf'], nargs='+',
                        help='head networks')
-    group.add_argument('--dropout', default=0.0, type=float,
-                       help='zeroing probability of feature in head input')
-    group.add_argument('--quad', default=1, type=int,
-                       help='number of times to apply quad (subpixel conv) to heads')
     group.add_argument('--no-pretrain', dest='pretrained', default=True, action='store_false',
                        help='create model without ImageNet pretraining')
+
+    for head in heads.Head.__subclasses__():
+        head.cli(parser)
