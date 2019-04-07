@@ -32,34 +32,13 @@ class CompositeField(Head, torch.nn.Module):
 
     def __init__(self, head_name, in_features, *,
                  n_fields=None,
-                 n_confidences=None, n_vectors=None, n_scales=None,
+                 n_confidences=1, n_vectors=None, n_scales=None,
                  kernel_size=None, padding=None, dilation=None):
         super(CompositeField, self).__init__()
 
-        if n_fields is None:
-            m = re.match('p[ia]f([0-9]+)$', head_name)
-            if m is not None:
-                n_fields = int(m.group(0))
-        if n_fields is None:
-            n_fields = {
-                'paf': 19,
-                'pafb': 19,
-                'pafsb': 19,
-                'pafs19': 19,
-                'wpaf': 19,
-            }.get(head_name, 17)
-        if n_confidences is None:
-            n_confidences = 1
-        if n_vectors is None:
-            if 'pif' in head_name:
-                n_vectors = 1
-            if 'paf' in head_name:
-                n_vectors = 2
-        if n_scales is None:
-            if 'pif' in head_name:
-                n_scales = 1
-            if 'paf' in head_name:
-                n_scales = 0
+        n_fields = n_fields or self.determine_nfields(head_name)
+        n_vectors = n_vectors or self.determine_nvectors(head_name)
+        n_scales = n_scales or self.determine_nscales(head_name)
         LOG.debug('%s loss: fields = %d, confidences = %d, vectors = %d, scales = %d',
                   head_name, n_fields, n_confidences, n_vectors, n_scales)
 
@@ -108,6 +87,36 @@ class CompositeField(Head, torch.nn.Module):
 
         # dequad
         self.dequad_op = torch.nn.PixelShuffle(2)
+
+    @staticmethod
+    def determine_nfields(head_name):
+        m = re.match('p[ia]f([0-9]+)$', head_name)
+        if m is not None:
+            return int(m.group(0))
+
+        return {
+            'paf': 19,
+            'pafb': 19,
+            'pafsb': 19,
+            'pafs19': 19,
+            'wpaf': 19,
+        }.get(head_name, 17)
+
+    @staticmethod
+    def determine_nvectors(head_name):
+        if 'pif' in head_name:
+            return 1
+        if 'paf' in head_name:
+            return 2
+        return 0
+
+    @staticmethod
+    def determine_nscales(head_name):
+        if 'pif' in head_name:
+            return 1
+        if 'paf' in head_name:
+            return 0
+        return 0
 
     @staticmethod
     def match(head_name):
