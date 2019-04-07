@@ -69,7 +69,6 @@ def factory_decode(model, *, profile=None, **kwargs):
     if profile is True:
         profile = cProfile.Profile()
 
-    decode = None
     for decoder in Decoder.__subclasses__():
         logging.debug('checking whether decoder %s matches %s',
                       decoder.__name__, headnames)
