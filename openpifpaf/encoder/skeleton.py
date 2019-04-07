@@ -1,10 +1,12 @@
 import numpy as np
 import torch
 
+from .annrescaler import AnnRescaler
+
 
 class Skeleton(object):
-    def __init__(self, ann_rescale, max_instances=100, n_keypoints=17):
-        self.ann_rescale = ann_rescale
+    def __init__(self, *, max_instances=100, n_keypoints=17):
+        self.ann_rescale = AnnRescaler(1)
         self.max_instances = max_instances
         self.n_keypoints = n_keypoints
 

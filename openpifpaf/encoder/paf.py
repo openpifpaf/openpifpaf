@@ -3,22 +3,68 @@ import numpy as np
 import scipy
 import torch
 
+from ..data import COCO_PERSON_SKELETON, DENSER_COCO_PERSON_SKELETON, KINEMATIC_TREE_SKELETON
+from .annrescaler import AnnRescaler
+from .encoder import Encoder
 from .utils import create_sink, mask_valid_area
 
 
-class Paf(object):
-    def __init__(self, ann_rescale, skeleton, min_size, *,
-                 fixed_size=False, aspect_ratio=0.0):
-        self.ann_rescale = ann_rescale
+class Paf(Encoder):
+    default_min_size = 3
+    default_fixed_size = False
+    default_aspect_ratio = 0.0
+
+    def __init__(self, head_name, stride, *, skeleton=None, **kwargs):
+        self.log = logging.getLogger(self.__class__.__name__)
+        self.log.debug('unused arguments in %s: %s', head_name, kwargs)
+
+        if skeleton is None:
+            if head_name in ('paf', 'paf19', 'pafs', 'wpaf', 'pafb'):
+                skeleton = COCO_PERSON_SKELETON
+            elif head_name in ('paf16',):
+                skeleton = KINEMATIC_TREE_SKELETON
+            elif head_name in ('paf44',):
+                skeleton = DENSER_COCO_PERSON_SKELETON
+            else:
+                raise Exception('unknown skeleton type of head')
+
+        self.ann_rescale = AnnRescaler(stride)
         self.skeleton = skeleton
-        self.min_size = min_size
-        self.fixed_size = fixed_size
-        self.aspect_ratio = aspect_ratio
+
+        self.min_size = self.default_min_size
+        self.fixed_size = self.default_fixed_size
+        self.aspect_ratio = self.default_aspect_ratio
 
         if self.fixed_size:
             assert self.aspect_ratio == 0.0
 
-        self.log = logging.getLogger(self.__class__.__name__)
+    @staticmethod
+    def match(head_name):
+        return head_name in (
+            'paf',
+            'paf19',
+            'paf16',
+            'paf44',
+            'pafs',
+            'wpaf',
+            'pafb',
+        )
+
+    @classmethod
+    def cli(cls, parser):
+        group = parser.add_argument_group('paf encoder')
+        group.add_argument('--paf-min-size', default=cls.default_min_size, type=int,
+                           help='min side length of the PAF field')
+        group.add_argument('--paf-fixed-size', default=cls.default_fixed_size, action='store_true',
+                           help='fixed paf size')
+        group.add_argument('--paf-aspect-ratio', default=cls.default_aspect_ratio, type=float,
+                           help='paf width relative to its length')
+
+    @classmethod
+    def apply_args(cls, args):
+        cls.default_min_size = args.paf_min_size
+        cls.default_fixed_size = args.paf_fixed_size
+        cls.default_aspect_ratio = args.paf_aspect_ratio
 
     def __call__(self, anns, width_height_original):
         keypoint_sets, bg_mask, valid_area = self.ann_rescale(anns, width_height_original)
