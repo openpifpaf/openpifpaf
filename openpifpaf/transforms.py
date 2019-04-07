@@ -15,7 +15,7 @@ import PIL
 import torch
 import torchvision
 
-from .utils import horizontal_swap
+from .utils import horizontal_swap_coco
 
 
 def jpeg_compression_augmentation(im):
@@ -80,11 +80,13 @@ class Preprocess(object):
 
 class SquareRescale(object):
     def __init__(self, long_edge, *,
-                 black_bars=False, random_hflip=False,
+                 black_bars=False,
+                 random_hflip=False, horizontal_swap=horizontal_swap_coco,
                  normalize_annotations=Preprocess.normalize_annotations):
         self.long_edge = long_edge
         self.black_bars = black_bars
         self.random_hflip = random_hflip
+        self.horizontal_swap = horizontal_swap
         self.normalize_annotations = normalize_annotations
 
     def scale_long_edge(self, image):
@@ -120,7 +122,8 @@ class SquareRescale(object):
             image = image.transpose(PIL.Image.FLIP_LEFT_RIGHT)
             for ann in anns:
                 ann['keypoints'][:, 0] = -ann['keypoints'][:, 0] - 1.0 + w
-                ann['keypoints'] = horizontal_swap(ann['keypoints'])  # TODO: hard coded for persons
+                if self.horizontal_swap is not None:
+                    ann['keypoints'] = self.horizontal_swap(ann['keypoints'])
                 ann['bbox'][0] = -(ann['bbox'][0] + ann['bbox'][2]) - 1.0 + w
 
         image = self.scale_long_edge(image)
@@ -164,8 +167,7 @@ class SquareRescale(object):
         }
         return image, anns, meta
 
-    @staticmethod
-    def keypoint_sets_inverse(keypoint_sets, meta):
+    def keypoint_sets_inverse(self, keypoint_sets, meta):
         keypoint_sets[:, :, 0] -= meta['offset'][0]
         keypoint_sets[:, :, 1] -= meta['offset'][1]
 
@@ -176,18 +178,20 @@ class SquareRescale(object):
             w = meta['width_height'][0]
             keypoint_sets[:, :, 0] = -keypoint_sets[:, :, 0] - 1.0 + w
             for keypoints in keypoint_sets:
-                keypoints[:] = horizontal_swap(keypoints)  # TODO: hard coded for persons
+                if self.horizontal_swap is not None:
+                    keypoints[:] = self.horizontal_swap(keypoints)
 
         return keypoint_sets
 
 
 class SquareCrop(object):
     def __init__(self, edge, *,
-                 min_scale=0.95, random_hflip=False,
+                 min_scale=0.95, random_hflip=False, horizontal_swap=horizontal_swap_coco,
                  normalize_annotations=Preprocess.normalize_annotations):
         self.target_edge = edge
         self.min_scale = min_scale
         self.random_hflip = random_hflip
+        self.horizontal_swap = horizontal_swap
         self.normalize_annotations = normalize_annotations
 
         self.image_resize = torchvision.transforms.Resize((edge, edge), PIL.Image.BICUBIC)
@@ -203,7 +207,8 @@ class SquareCrop(object):
             image = image.transpose(PIL.Image.FLIP_LEFT_RIGHT)
             for ann in anns:
                 ann['keypoints'][:, 0] = -ann['keypoints'][:, 0] - 1.0 + w
-                ann['keypoints'] = horizontal_swap(ann['keypoints'])  # TODO: hard coded for persons
+                if self.horizontal_swap is not None:
+                    ann['keypoints'] = self.horizontal_swap(ann['keypoints'])
                 ann['bbox'][0] = -(ann['bbox'][0] + ann['bbox'][2]) - 1.0 + w
 
         # crop image
