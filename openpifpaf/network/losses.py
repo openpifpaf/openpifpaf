@@ -1,10 +1,27 @@
 """Losses."""
 
+from abc import ABCMeta, abstractstaticmethod
 import logging
 import torch
 
 from ..data import (COCO_PERSON_SIGMAS, COCO_PERSON_SKELETON, KINEMATIC_TREE_SKELETON,
                     DENSER_COCO_PERSON_SKELETON)
+
+LOG = logging.getLogger(__name__)
+
+
+class Loss(metaclass=ABCMeta):
+    @abstractstaticmethod
+    def match(head_name):  # pylint: disable=unused-argument
+        return False
+
+    @classmethod
+    def cli(cls, parser):
+        """Add decoder specific command line arguments to the parser."""
+
+    @classmethod
+    def apply_args(cls, args):
+        """Read command line arguments args to set class properties."""
 
 
 def laplace_loss(x1, x2, logb, t1, t2, weight=None):
@@ -64,231 +81,58 @@ class SmoothL1Loss(object):
         return torch.sum(losses)
 
 
-class SmootherL1Loss(object):
-    def __init__(self, r_smooth, ln_threshold=3.0, scale_required=True):
-        self.r_smooth = r_smooth
-        self.ln_threshold = ln_threshold
-        self.scale = None
-        self.scale_required = scale_required
+class CompositeLoss(Loss, torch.nn.Module):
+    default_background_weight = 1.0
+    default_multiplicity_correction = False
+    default_independence_scale = 3.0
 
-    def __call__(self, x1, x2, _, t1, t2, weight=None):
-        if self.scale_required and self.scale is None:
-            raise Exception
-        if self.scale is None:
-            self.scale = 1.0
-
-        diff = torch.sqrt((x1 - t1)**2 + (x2 - t2)**2)
-        diff = diff * self.r_smooth * self.scale  # TODO: update
-
-        sq_mask = diff < 1.0
-        ln_mask = diff >= self.ln_threshold
-        lin_mask = (sq_mask | ln_mask) == 0
-
-        diff[sq_mask] = 0.5 * torch.mul(diff[sq_mask], diff[sq_mask])
-        diff[lin_mask] = diff[lin_mask] - 0.5
-
-        ln_shift = self.ln_threshold - 1.0
-        diff[ln_mask] = 0.5 + ln_shift + torch.log(diff[ln_mask] - ln_shift)
-
-        diff = diff / self.r_smooth / self.scale
-        self.scale = None
-        return diff
-
-
-class PIFLoss(torch.nn.Module):
-    def __init__(self, regression_loss, *,
-                 lambda_regression=1.0, reg_upscale=1.0,
-                 background_weight=1.0, sigmas=None):
-        super(PIFLoss, self).__init__()
-
-        self.regression_loss = regression_loss
-        self.lambda_regression = lambda_regression
-        self.reg_upscale = reg_upscale
-        self.background_weight = background_weight
-
-        if sigmas is not None:
-            scale_to_kp = torch.tensor(sigmas)
-            scale_to_kp = torch.unsqueeze(scale_to_kp, -1)
-            scale_to_kp = torch.unsqueeze(scale_to_kp, -1)
-            self.register_buffer('scale_to_kp', scale_to_kp)
-        else:
-            self.scale_to_kp = None
-
-        self.log = logging.getLogger(self.__class__.__name__)
-
-    def forward(self, x, t):  # pylint: disable=arguments-differ
-        if self.scale_to_kp is not None:
-            x_intensity, x_reg, x_scale = x
-        else:
-            x_intensity, x_reg = x
-        target_intensity, target_reg, target_scale = t
-
-        assert x_intensity.shape == target_intensity[:, :-1].shape
-        assert x_reg.shape == target_reg.shape
-
-        batch_size = x_intensity.shape[0]
-        target_scale = target_scale * self.scale_to_kp
-
-        bce_masks = torch.sum(target_intensity, dim=1, keepdim=True) > 0.0
-        if torch.sum(bce_masks) < 1:
-            return None, None
-        bce_target = torch.masked_select(target_intensity[:, :-1], bce_masks)
-        bce_weight = torch.ones_like(bce_target)
-        bce_weight[bce_target == 0] = self.background_weight
-        x_intensity = torch.masked_select(x_intensity, bce_masks)
-        ce_loss = torch.nn.functional.binary_cross_entropy(
-            x_intensity,
-            bce_target,
-            weight=bce_weight,
-        )
-
-        reg_loss = None
-        reg_masks = target_reg != 0.0
-        if torch.sum(reg_masks) > 0:
-            if isinstance(self.regression_loss, torch.nn.L1Loss):
-                reg_loss = self.lambda_regression * self.regression_loss(
-                    torch.masked_select(x_reg, reg_masks),
-                    torch.masked_select(target_reg, reg_masks),
-                ) / 1000.0 / batch_size
-            else:
-                selected_target_scale = torch.masked_select(
-                    torch.unsqueeze(target_scale, 2), reg_masks)
-                kp_scale = torch.clamp(selected_target_scale, min=1e-2, max=1.0)
-                reg_loss = self.lambda_regression * torch.sum(self.regression_loss(
-                    torch.masked_select(x_reg, reg_masks) * self.reg_upscale / kp_scale,
-                    torch.masked_select(target_reg, reg_masks) * self.reg_upscale / kp_scale,
-                ) * kp_scale / 10.0) / 100.0 / batch_size
-
-        if self.scale_to_kp is not None:
-            scale_loss = None
-            scale_masks = target_scale > 0.0
-            if torch.sum(scale_masks) > 0:
-                scale_loss = torch.nn.functional.l1_loss(
-                    torch.masked_select(x_scale, scale_masks),
-                    torch.masked_select(target_scale, scale_masks),
-                    reduction='sum',
-                ) / 1000.0 / batch_size
-            return ce_loss, reg_loss, scale_loss
-
-        return ce_loss, reg_loss
-
-
-class PAFLoss(torch.nn.Module):
-    def __init__(self, regression_loss, lambda_regression, reg_upscale,
-                 background_weight=1.0, skeleton=None, multiplicity_correction=False):
-        super(PAFLoss, self).__init__()
-
-        self.regression_loss = regression_loss
-        self.lambda_regression = lambda_regression
-        self.reg_upscale = reg_upscale
-        self.background_weight = background_weight
-        self.multiplicity_correction = multiplicity_correction
-
-        if skeleton is None:
-            skeleton = COCO_PERSON_SKELETON
-
-        kp1_sigmas = [COCO_PERSON_SIGMAS[j1i - 1] for j1i, _ in skeleton]
-        scale_to_kp1 = torch.tensor(kp1_sigmas)
-        scale_to_kp1 = torch.unsqueeze(scale_to_kp1, -1)
-        scale_to_kp1 = torch.unsqueeze(scale_to_kp1, -1)
-        self.register_buffer('scale_to_kp1', scale_to_kp1)
-
-        kp2_sigmas = [COCO_PERSON_SIGMAS[j2i - 1] for _, j2i in skeleton]
-        scale_to_kp2 = torch.tensor(kp2_sigmas)
-        scale_to_kp2 = torch.unsqueeze(scale_to_kp2, -1)
-        scale_to_kp2 = torch.unsqueeze(scale_to_kp2, -1)
-        self.register_buffer('scale_to_kp2', scale_to_kp2)
-
-    def forward(self, x, t):  # pylint: disable=arguments-differ
-        x_intensity, x_reg1, x_reg2 = x
-        target_intensity, target_reg1, target_reg2, target_scale = t
-
-        bce_masks = torch.sum(target_intensity, dim=1, keepdim=True) > 0.0
-        if torch.sum(bce_masks) < 1:
-            return None, None, None
-
-        batch_size = x_intensity.shape[0]
-
-        bce_target = torch.masked_select(target_intensity[:, :-1], bce_masks)
-        bce_weight = torch.ones_like(bce_target)
-        bce_weight[bce_target == 0] = self.bg_weight
-        ce_loss = torch.nn.functional.binary_cross_entropy(
-            torch.masked_select(x_intensity, bce_masks),
-            bce_target,
-            weight=bce_weight,
-        )
-
-        reg1_loss = None
-        reg2_loss = None
-        reg_masks = target_intensity[:, :-1] > 0.0
-        if torch.sum(reg_masks) > 0:
-            if self.multiplicity_correction:
-                lengths = torch.norm(target_reg1 - target_reg2, dim=2, keepdim=True)
-                multiplicity = torch.clamp(lengths - 3.0, min=1.0)
-                multiplicity = torch.masked_select(multiplicity, reg_masks)
-                multiplicity = multiplicity.repeat(1, 1, 2)
-            else:
-                multiplicity = 1.0
-
-            if isinstance(self.regression_loss, torch.nn.L1Loss):
-                reg1_loss = self.lambda_regression * self.regression_loss(
-                    torch.masked_select(x_reg1, reg_masks) / multiplicity,
-                    torch.masked_select(target_reg1, reg_masks) / multiplicity,
-                ) / 1000.0 / batch_size
-                reg2_loss = self.lambda_regression * self.regression_loss(
-                    torch.masked_select(x_reg2, reg_masks) / multiplicity,
-                    torch.masked_select(target_reg2, reg_masks) / multiplicity,
-                ) / 1000.0 / batch_size
-            else:
-                target_scale1 = target_scale * self.scale_to_kp1
-                selected_target_scale1 = torch.masked_select(
-                    torch.unsqueeze(target_scale1, 2), reg_masks)
-                kp_scale1 = torch.clamp(selected_target_scale1, min=1e-2, max=1.0)
-                c_scale1 = self.reg_upscale / kp_scale1 / multiplicity
-                reg1_loss = self.lambda_regression * torch.sum(self.regression_loss(
-                    torch.masked_select(x_reg1, reg_masks) * c_scale1,
-                    torch.masked_select(target_reg1, reg_masks) * c_scale1,
-                ) * kp_scale1 / 10.0) / 100.0 / batch_size
-
-                target_scale2 = target_scale * self.scale_to_kp2
-                selected_target_scale2 = torch.masked_select(
-                    torch.unsqueeze(target_scale2, 2), reg_masks)
-                kp_scale2 = torch.clamp(selected_target_scale2, min=1e-2, max=1.0)
-                c_scale2 = self.reg_upscale / kp_scale2 / multiplicity
-                reg2_loss = self.lambda_regression * torch.sum(self.regression_loss(
-                    torch.masked_select(x_reg2, reg_masks) * c_scale2,
-                    torch.masked_select(target_reg2, reg_masks) * c_scale2,
-                ) * kp_scale2 / 10.0) / 100.0 / batch_size
-
-            if self.training and reg1_loss.item() >= 100.0:
-                raise Exception
-            if self.training and reg2_loss.item() >= 100.0:
-                raise Exception
-
-        return ce_loss, reg1_loss, reg2_loss
-
-
-class CompositeLoss(torch.nn.Module):
-    def __init__(self, regression_loss, background_weight=1.0, skeleton=None,
-                 multiplicity_correction=False, independence_scale=3.0,
-                 n_vectors=2, n_scales=0, sigmas=None):
+    def __init__(self, head_name, regression_loss, *,
+                 n_vectors=None, n_scales=None, sigmas=None):
         super(CompositeLoss, self).__init__()
 
-        self.background_weight = background_weight
-        if skeleton is None:
-            skeleton = COCO_PERSON_SKELETON
+        if n_vectors is None and 'pif' in head_name:
+            n_vectors = 1
+        if n_vectors is None and 'paf' in head_name:
+            n_vectors = 2
 
-        self.multiplicity_correction = multiplicity_correction
-        self.independence_scale = independence_scale
+        if n_scales is None and 'pif' in head_name:
+            n_scales = 1
+        if n_scales is None and 'paf' in head_name:
+            n_scales = 0
+
+        if sigmas is None and 'pif' in head_name:
+            sigmas = [COCO_PERSON_SIGMAS]
+        if sigmas is None and head_name in ('paf', 'wpaf'):
+            sigmas = [
+                [COCO_PERSON_SIGMAS[j1i - 1] for j1i, _ in COCO_PERSON_SKELETON],
+                [COCO_PERSON_SIGMAS[j2i - 1] for _, j2i in COCO_PERSON_SKELETON],
+            ]
+        if sigmas is None and head_name in ('paf16',):
+            sigmas = [
+                [COCO_PERSON_SIGMAS[j1i - 1] for j1i, _ in KINEMATIC_TREE_SKELETON],
+                [COCO_PERSON_SIGMAS[j2i - 1] for _, j2i in KINEMATIC_TREE_SKELETON],
+            ]
+        if sigmas is None and head_name in ('paf44',):
+            sigmas = [
+                [COCO_PERSON_SIGMAS[j1i - 1] for j1i, _ in DENSER_COCO_PERSON_SKELETON],
+                [COCO_PERSON_SIGMAS[j2i - 1] for _, j2i in DENSER_COCO_PERSON_SKELETON],
+            ]
+
+        self.background_weight = self.default_background_weight
+        self.multiplicity_correction = self.default_multiplicity_correction
+        self.independence_scale = self.default_independence_scale
 
         self.n_vectors = n_vectors
         self.n_scales = n_scales
         if self.n_scales:
             assert len(sigmas) == n_scales
+        LOG.debug('%s: n_vectors = %d, n_scales = %d, len(sigmas) = %d',
+                  head_name, n_vectors, n_scales, len(sigmas))
 
         if sigmas is not None:
             assert len(sigmas) == n_vectors
             scales_to_kp = torch.tensor(sigmas)
+            scales_to_kp = torch.unsqueeze(scales_to_kp, 0)
             scales_to_kp = torch.unsqueeze(scales_to_kp, -1)
             scales_to_kp = torch.unsqueeze(scales_to_kp, -1)
             self.register_buffer('scales_to_kp', scales_to_kp)
@@ -296,6 +140,32 @@ class CompositeLoss(torch.nn.Module):
             self.scales_to_kp = None
 
         self.regression_loss = regression_loss or laplace_loss
+
+    @staticmethod
+    def match(head_name):
+        return head_name in (
+            'pif',
+            'paf',
+            'paf19',
+            'paf16',
+            'paf44',
+            'pafs',
+            'wpaf',
+            'pafb',
+            'pafs19',
+            'pafsb',
+        )
+
+    @classmethod
+    def cli(cls, parser):
+        # group = parser.add_argument_group('composite loss')
+        pass
+
+    @classmethod
+    def apply_args(cls, args):
+        cls.default_background_weight = args.background_weight
+        cls.default_fixed_size = args.paf_fixed_size
+        cls.default_aspect_ratio = args.paf_aspect_ratio
 
     def forward(self, x, t):  # pylint: disable=arguments-differ
         x_intensity = x[0]
@@ -384,84 +254,40 @@ def cli(parser):
                        help='linear length scale of independence for PAF regression')
 
 
-def factory(args):  # pylint: disable=too-many-branches
-    losses = []
+def factory_from_args(args):
+    for loss in Loss.__subclasses__():
+        loss.apply_args(args)
 
-    if args.regression_loss == 'smoothl1':
-        reg_loss_ = torch.nn.SmoothL1Loss(reduction='none')
-        reg_loss = SmoothL1Loss(args.r_smooth)
-    elif args.regression_loss == 'smootherl1':
-        reg_loss_ = None
-        reg_loss = SmootherL1Loss(args.r_smooth)
-    elif args.regression_loss == 'l1':
-        reg_loss_ = torch.nn.L1Loss(reduction='sum')
+    return [l.to(device=args.device)
+            for l in factory(args.headnets, args.regression_loss, args.r_smooth)
+            if l is not None]
+
+
+def factory(head_names, reg_loss_name=None, r_smooth=None):
+    if reg_loss_name == 'smoothl1':
+        reg_loss = SmoothL1Loss(r_smooth)
+    elif reg_loss_name == 'l1':
         reg_loss = l1_loss
-    elif args.regression_loss == 'laplace':
-        reg_loss_ = torch.nn.L1Loss(reduction='sum')
+    elif reg_loss_name == 'laplace':
+        reg_loss = laplace_loss
+    elif reg_loss_name is None:
         reg_loss = laplace_loss
     else:
-        raise Exception('unknown regression loss type {}'.format(args.regression_loss))
+        raise Exception('unknown regression loss type {}'.format(reg_loss_name))
 
-    for head_name in args.headnets:
-        if head_name in ('pifb', 'ppif'):
-            losses.append(PIFLoss(reg_loss_,
-                                  lambda_regression=args.r_smooth,
-                                  reg_upscale=1.0 / args.r_smooth,
-                                  background_weight=args.background_weight))
-        elif head_name in ('pifs',):
-            losses.append(PIFLoss(reg_loss_,
-                                  lambda_regression=args.r_smooth,
-                                  reg_upscale=1.0 / args.r_smooth,
-                                  background_weight=args.background_weight,
-                                  sigmas=COCO_PERSON_SIGMAS))
-        elif head_name in ('pif',):
-            losses.append(CompositeLoss(reg_loss,
-                                        background_weight=args.background_weight,
-                                        n_vectors=1, n_scales=1,
-                                        sigmas=[COCO_PERSON_SIGMAS]))
-        elif head_name == 'pcf':
-            losses.append(PAFLoss(reg_loss_, args.r_smooth, 1.0 / args.r_smooth,
-                                  background_weight=args.background_weight,
-                                  multiplicity_correction=args.paf_multiplicity_correction))
-        elif head_name in ('paf', 'wpaf'):
-            losses.append(CompositeLoss(reg_loss,
-                                        n_vectors=2, n_scales=0,
-                                        background_weight=args.background_weight,
-                                        multiplicity_correction=args.paf_multiplicity_correction,
-                                        sigmas=[
-                                            [COCO_PERSON_SIGMAS[j1i - 1]
-                                             for j1i, _ in COCO_PERSON_SKELETON],
-                                            [COCO_PERSON_SIGMAS[j2i - 1]
-                                             for _, j2i in COCO_PERSON_SKELETON],
-                                        ]))
-        elif head_name in ('paf19', 'pafb'):
-            losses.append(PAFLoss(reg_loss_, args.r_smooth, 1.0 / args.r_smooth,
-                                  background_weight=args.background_weight,
-                                  multiplicity_correction=args.paf_multiplicity_correction))
-        elif head_name in ('pafs', 'pafs19', 'pafsb'):
-            losses.append(CompositeLoss(reg_loss,
-                                        background_weight=args.background_weight,
-                                        multiplicity_correction=args.paf_multiplicity_correction,
-                                        independence_scale=args.paf_independence_scale))
-        elif head_name in ('paf16',):
-            losses.append(PAFLoss(reg_loss_, args.r_smooth, 1.0 / args.r_smooth,
-                                  skeleton=KINEMATIC_TREE_SKELETON,
-                                  background_weight=args.background_weight,
-                                  multiplicity_correction=args.paf_multiplicity_correction))
-        elif head_name in ('paf44',):
-            losses.append(CompositeLoss(reg_loss,
-                                        n_vectors=2, n_scales=0,
-                                        background_weight=args.background_weight,
-                                        multiplicity_correction=args.paf_multiplicity_correction,
-                                        sigmas=[
-                                            [COCO_PERSON_SIGMAS[j1i - 1]
-                                             for j1i, _ in DENSER_COCO_PERSON_SKELETON],
-                                            [COCO_PERSON_SIGMAS[j2i - 1]
-                                             for _, j2i in DENSER_COCO_PERSON_SKELETON],
-                                        ]))
-        elif head_name in ('skeleton',):
-            pass
-        else:
-            raise Exception('unknown headname {} for loss'.format(head_name))
+    return [factory_loss(head_name, reg_loss) for head_name in head_names]
 
-    return [l.to(device=args.device) for l in losses]
+
+def factory_loss(head_name, reg_loss):
+    if head_name in ('skeleton',):
+        return None
+
+    for loss in Loss.__subclasses__():
+        logging.debug('checking whether loss %s matches %s',
+                      loss.__name__, head_name)
+        if not loss.match(head_name):
+            continue
+        logging.info('selected loss %s for %s', loss.__name__, head_name)
+        return loss(head_name, reg_loss)
+
+    raise Exception('unknown headname {} for loss'.format(head_name))
