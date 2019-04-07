@@ -37,11 +37,7 @@ class CompositeField(Head, torch.nn.Module):
         super(CompositeField, self).__init__()
 
         if n_fields is None:
-            m = re.match('pif([0-9]+)$', head_name)
-            if m is not None:
-                n_fields = int(m.group(0))
-        if n_fields is None:
-            m = re.match('paf([0-9]+)$', head_name)
+            m = re.match('p[ia]f([0-9]+)$', head_name)
             if m is not None:
                 n_fields = int(m.group(0))
         if n_fields is None:
@@ -125,15 +121,12 @@ class CompositeField(Head, torch.nn.Module):
         return head_name in (
             'pif',
             'paf',
-            'paf19',
-            'paf16',
-            'paf44',
             'pafs',
             'wpaf',
             'pafb',
             'pafs19',
             'pafsb',
-        )
+        ) or re.match('p[ia]f([0-9]+)$', head_name) is not None
 
     @classmethod
     def cli(cls, parser):
