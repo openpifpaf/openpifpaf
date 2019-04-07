@@ -100,9 +100,11 @@ class CompositeLoss(Loss, torch.nn.Module):
         if n_scales is None and 'paf' in head_name:
             n_scales = 0
 
-        if sigmas is None and 'pif' in head_name:
+        if sigmas is None and head_name == 'pif':
             sigmas = [COCO_PERSON_SIGMAS]
-        if sigmas is None and head_name in ('paf', 'wpaf'):
+        if sigmas is None and 'pif' in head_name:
+            sigmas = [[1.0]]
+        if sigmas is None and head_name in ('paf', 'paf19', 'wpaf'):
             sigmas = [
                 [COCO_PERSON_SIGMAS[j1i - 1] for j1i, _ in COCO_PERSON_SKELETON],
                 [COCO_PERSON_SIGMAS[j2i - 1] for _, j2i in COCO_PERSON_SKELETON],
