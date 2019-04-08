@@ -10,6 +10,7 @@ https://pillow.readthedocs.io/en/3.3.x/handbook/concepts.html#coordinate-system
 """
 
 import io
+import logging
 import numpy as np
 import PIL
 import torch
@@ -76,6 +77,151 @@ class Preprocess(object):
             'width_height': (w, h),
         }
         return image, anns, meta
+
+
+class Rescale(object):
+    def __init__(self, long_edge, *,
+                 scale_range=(0.5, 1.0), resample=PIL.Image.BICUBIC,
+                 force_square=False,
+                 random_hflip=False, horizontal_swap=horizontal_swap_coco,
+                 normalize_annotations=Preprocess.normalize_annotations):
+        self.log = logging.getLogger(self.__class__.__name__)
+
+        self.long_edge = long_edge
+        self.scale_range = scale_range
+        self.resample = resample
+        self.force_square = force_square
+        self.random_hflip = random_hflip
+        self.horizontal_swap = horizontal_swap
+        self.normalize_annotations = normalize_annotations
+
+    def scale(self, image, anns, factor):
+        # scale image
+        w, h = image.size
+        target_size = (int(w * factor), int(h * factor))
+        image = image.resize(target_size, self.resample)
+
+        # rescale keypoints
+        x_scale = target_size[0] / w
+        y_scale = target_size[1] / h
+        for ann in anns:
+            ann['keypoints'][:, 0] = (ann['keypoints'][:, 0] + 0.5) * x_scale - 0.5
+            ann['keypoints'][:, 1] = (ann['keypoints'][:, 1] + 0.5) * y_scale - 0.5
+            ann['bbox'][0] *= x_scale
+            ann['bbox'][1] *= y_scale
+            ann['bbox'][2] *= x_scale
+            ann['bbox'][3] *= y_scale
+
+        return image, anns, (x_scale, y_scale)
+
+    def crop(self, image, anns):
+        w, h = image.size
+        padding = int(self.long_edge / 2.0)
+        x_offset, y_offset = 0, 0
+        if w > self.long_edge:
+            x_offset = torch.randint(-padding, w - self.long_edge + padding, (1,))
+            x_offset = torch.clamp(x_offset, min=0, max=w - self.long_edge).item()
+        if h > self.long_edge:
+            y_offset = torch.randint(-padding, h - self.long_edge + padding, (1,))
+            y_offset = torch.clamp(y_offset, min=0, max=h - self.long_edge).item()
+        self.log.debug('crop offsets (%d, %d)', x_offset, y_offset)
+
+        # crop image
+        new_w = min(self.long_edge, w - x_offset)
+        new_h = min(self.long_edge, h - y_offset)
+        image = image.crop((x_offset, y_offset, x_offset + new_w, y_offset + new_h))
+
+        # crop keypoints
+        for ann in anns:
+            ann['keypoints'][:, 0] -= x_offset
+            ann['keypoints'][:, 1] -= y_offset
+            ann['bbox'][0] -= x_offset
+            ann['bbox'][1] -= y_offset
+
+        return image, anns, (x_offset, y_offset)
+
+    def center_pad(self, image, anns):
+        w, h = image.size
+        left = int((self.long_edge - w) / 2.0)
+        top = int((self.long_edge - h) / 2.0)
+        ltrb = (
+            left,
+            top,
+            self.long_edge - w - left,
+            self.long_edge - h - top,
+        )
+
+        # pad image
+        image = torchvision.transforms.functional.pad(
+            image, ltrb, fill=(124, 116, 104))
+
+        # pad annotations
+        for ann in anns:
+            ann['keypoints'][:, 0] += ltrb[0]
+            ann['keypoints'][:, 1] += ltrb[1]
+            ann['bbox'][0] += ltrb[0]
+            ann['bbox'][1] += ltrb[1]
+
+        return image, anns, ltrb
+
+    def __call__(self, image, anns):
+        w, h = image.size
+        if self.normalize_annotations is not None:
+            anns = self.normalize_annotations(anns)
+
+        # horizontal flip
+        hflip = self.random_hflip and torch.rand(1).item() < 0.5
+        if hflip:
+            image = image.transpose(PIL.Image.FLIP_LEFT_RIGHT)
+            for ann in anns:
+                ann['keypoints'][:, 0] = -ann['keypoints'][:, 0] - 1.0 + w
+                if self.horizontal_swap is not None:
+                    ann['keypoints'] = self.horizontal_swap(ann['keypoints'])
+                ann['bbox'][0] = -(ann['bbox'][0] + ann['bbox'][2]) - 1.0 + w
+
+        # scale
+        scale_factor = (self.scale_range[0] +
+                        torch.rand(1).item() * (self.scale_range[1] - self.scale_range[0]))
+        image, anns, scale_factors = self.scale(image, anns, scale_factor)
+
+        # crop
+        image, anns, offsets = self.crop(image, anns)
+
+        # pad
+        valid_area = [0, 0, image.size[0], image.size[1]]
+        if self.force_square:
+            image, anns, ltrb = self.center_pad(image, anns)
+            offsets = (offsets[0] + ltrb[0], offsets[1] + ltrb[1])
+            valid_area[0] += ltrb[0]
+            valid_area[1] += ltrb[1]
+
+        for ann in anns:
+            ann['valid_area'] = valid_area
+
+        meta = {
+            'offset': offsets,
+            'scale': scale_factors,
+            'valid_area': valid_area,
+            'hflip': hflip,
+            'width_height': (w, h),
+        }
+        return image, anns, meta
+
+    def keypoint_sets_inverse(self, keypoint_sets, meta):
+        keypoint_sets[:, :, 0] -= meta['offset'][0]
+        keypoint_sets[:, :, 1] -= meta['offset'][1]
+
+        keypoint_sets[:, :, 0] = (keypoint_sets[:, :, 0] + 0.5) / meta['scale'][0] - 0.5
+        keypoint_sets[:, :, 1] = (keypoint_sets[:, :, 1] + 0.5) / meta['scale'][1] - 0.5
+
+        if meta['hflip']:
+            w = meta['width_height'][0]
+            keypoint_sets[:, :, 0] = -keypoint_sets[:, :, 0] - 1.0 + w
+            for keypoints in keypoint_sets:
+                if self.horizontal_swap is not None:
+                    keypoints[:] = self.horizontal_swap(keypoints)
+
+        return keypoint_sets
 
 
 class SquareRescale(object):

@@ -108,11 +108,12 @@ def main():
     loss_list = losses.factory_from_args(args)
     target_transforms = encoder.factory(args, net_cpu.io_scales())
 
-    preprocess = transforms.SquareMix(
-        transforms.SquareCrop(args.square_edge, random_hflip=True),
-        transforms.SquareRescale(args.square_edge, black_bars=True, random_hflip=True),
-        crop_fraction=args.crop_fraction,
-    )
+    # preprocess = transforms.SquareMix(
+    #     transforms.SquareCrop(args.square_edge, random_hflip=True),
+    #     transforms.SquareRescale(args.square_edge, black_bars=True, random_hflip=True),
+    #     crop_fraction=args.crop_fraction,
+    # )
+    preprocess = transforms.Rescale(args.square_edge, random_hflip=True, force_square=True)
     train_loader, val_loader, pre_train_loader = datasets.train_factory(
         args, preprocess, target_transforms)
 
