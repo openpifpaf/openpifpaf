@@ -92,7 +92,7 @@ class CompositeField(Head, torch.nn.Module):
     def determine_nfields(head_name):
         m = re.match('p[ia]f([0-9]+)$', head_name)
         if m is not None:
-            return int(m.group(0))
+            return int(m.group(1))
 
         return {
             'paf': 19,

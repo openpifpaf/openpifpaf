@@ -2,6 +2,7 @@
 
 from abc import ABCMeta, abstractstaticmethod
 import logging
+import re
 import torch
 
 from ..data import (COCO_PERSON_SIGMAS, COCO_PERSON_SKELETON, KINEMATIC_TREE_SKELETON,
@@ -148,15 +149,12 @@ class CompositeLoss(Loss, torch.nn.Module):
         return head_name in (
             'pif',
             'paf',
-            'paf19',
-            'paf16',
-            'paf44',
             'pafs',
             'wpaf',
             'pafb',
             'pafs19',
             'pafsb',
-        )
+        ) or re.match('p[ia]f([0-9]+)$', head_name) is not None
 
     @classmethod
     def cli(cls, parser):
