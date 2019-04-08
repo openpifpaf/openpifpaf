@@ -1,6 +1,6 @@
 """An open implementation of PifPaf."""
 
-__version__ = '0.3.2'
+__version__ = '0.4.0'
 
 from . import datasets
 from . import decoder
