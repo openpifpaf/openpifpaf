@@ -10,6 +10,7 @@ https://pillow.readthedocs.io/en/3.3.x/handbook/concepts.html#coordinate-system
 """
 
 from abc import ABCMeta, abstractmethod
+import copy
 import io
 import logging
 import numpy as np
@@ -59,8 +60,10 @@ class Preprocess(metaclass=ABCMeta):
         """Implementation of preprocess operation."""
 
     def keypoint_sets_inverse(self, keypoint_sets, meta):
-        keypoint_sets[:, :, 0] -= meta['offset'][0]
-        keypoint_sets[:, :, 1] -= meta['offset'][1]
+        keypoint_sets = keypoint_sets.copy()
+
+        keypoint_sets[:, :, 0] += meta['offset'][0]
+        keypoint_sets[:, :, 1] += meta['offset'][1]
 
         keypoint_sets[:, :, 0] = (keypoint_sets[:, :, 0] + 0.5) / meta['scale'][0] - 0.5
         keypoint_sets[:, :, 1] = (keypoint_sets[:, :, 1] + 0.5) / meta['scale'][1] - 0.5
@@ -123,6 +126,9 @@ class RescaleRelative(Preprocess):
     def __call__(self, image, anns, meta=None):
         if meta is None:
             image, anns, meta = Normalize()(image, anns)
+        else:
+            meta = copy.deepcopy(meta)
+        anns = copy.deepcopy(anns)
 
         if isinstance(self.scale_range, tuple):
             scale_factor = (
@@ -171,6 +177,9 @@ class RescaleAbsolute(Preprocess):
     def __call__(self, image, anns, meta=None):
         if meta is None:
             image, anns, meta = Normalize()(image, anns)
+        else:
+            meta = copy.deepcopy(meta)
+        anns = copy.deepcopy(anns)
 
         image, anns, scale_factors = self.scale(image, anns)
         meta['offset'] *= scale_factors
@@ -214,6 +223,9 @@ class Crop(Preprocess):
     def __call__(self, image, anns, meta=None):
         if meta is None:
             image, anns, meta = Normalize()(image, anns)
+        else:
+            meta = copy.deepcopy(meta)
+        anns = copy.deepcopy(anns)
 
         image, anns, ltrb = self.crop(image, anns)
         meta['offset'] += ltrb[:2]
@@ -270,6 +282,9 @@ class CenterPad(Preprocess):
     def __call__(self, image, anns, meta=None):
         if meta is None:
             image, anns, meta = Normalize()(image, anns)
+        else:
+            meta = copy.deepcopy(meta)
+        anns = copy.deepcopy(anns)
 
         image, anns, ltrb = self.center_pad(image, anns)
         meta['offset'] += ltrb[:2]
@@ -316,6 +331,9 @@ class HFlip(Preprocess):
     def __call__(self, image, anns, meta=None):
         if meta is None:
             image, anns, meta = Normalize()(image, anns)
+        else:
+            meta = copy.deepcopy(meta)
+        anns = copy.deepcopy(anns)
 
         if torch.rand(1).item() > self.probability:
             return image, anns, meta
