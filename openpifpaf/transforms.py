@@ -116,7 +116,7 @@ class Compose(Preprocess):
 
 
 class RescaleRelative(Preprocess):
-    def __init__(self, scale_range=(0.5, 1.0), resample=PIL.Image.BICUBIC):
+    def __init__(self, scale_range=(0.5, 1.0), *, resample=PIL.Image.BICUBIC):
         self.scale_range = scale_range
         self.resample = resample
 
@@ -152,6 +152,49 @@ class RescaleRelative(Preprocess):
         # rescale keypoints
         x_scale = target_size[0] / w
         y_scale = target_size[1] / h
+        for ann in anns:
+            ann['keypoints'][:, 0] = (ann['keypoints'][:, 0] + 0.5) * x_scale - 0.5
+            ann['keypoints'][:, 1] = (ann['keypoints'][:, 1] + 0.5) * y_scale - 0.5
+            ann['bbox'][0] *= x_scale
+            ann['bbox'][1] *= y_scale
+            ann['bbox'][2] *= x_scale
+            ann['bbox'][3] *= y_scale
+
+        return image, anns, np.array((x_scale, y_scale))
+
+
+class RescaleAbsolute(Preprocess):
+    def __init__(self, long_edge, *, resample=PIL.Image.BICUBIC):
+        self.long_edge = long_edge
+        self.resample = resample
+
+    def __call__(self, image, anns, meta=None):
+        if meta is None:
+            image, anns, meta = Normalize()(image, anns)
+
+        image, anns, scale_factors = self.scale(image, anns)
+        meta['offset'] *= scale_factors
+        meta['scale'] *= scale_factors
+        meta['valid_area'][:2] *= scale_factors
+        meta['valid_area'][2:] *= scale_factors
+
+        for ann in anns:
+            ann['valid_area'] = meta['valid_area']
+
+        return image, anns, meta
+
+    def scale(self, image, anns):
+        # scale image
+        w, h = image.size
+        s = self.long_edge / max(h, w)
+        if h > w:
+            image = image.resize((self.long_edge, int(w * s)), self.resample)
+        else:
+            image = image.resize((int(h * s), self.long_edge), self.resample)
+
+        # rescale keypoints
+        x_scale = image.size[0] / w
+        y_scale = image.size[1] / h
         for ann in anns:
             ann['keypoints'][:, 0] = (ann['keypoints'][:, 0] + 0.5) * x_scale - 0.5
             ann['keypoints'][:, 1] = (ann['keypoints'][:, 1] + 0.5) * y_scale - 0.5
@@ -300,6 +343,7 @@ class SquareRescale(object):
                  black_bars=False,
                  random_hflip=False, horizontal_swap=horizontal_swap_coco,
                  normalize_annotations=Normalize.normalize_annotations):
+        print('openpifpaf.transforms.SquareRescale is DEPRECATED')
         self.long_edge = long_edge
         self.black_bars = black_bars
         self.random_hflip = random_hflip
@@ -405,6 +449,7 @@ class SquareCrop(object):
     def __init__(self, edge, *,
                  min_scale=0.95, random_hflip=False, horizontal_swap=horizontal_swap_coco,
                  normalize_annotations=Normalize.normalize_annotations):
+        print('openpifpaf.transforms.SquareCrop is DEPRECATED')
         self.target_edge = edge
         self.min_scale = min_scale
         self.random_hflip = random_hflip
@@ -483,6 +528,7 @@ class SquareCrop(object):
 
 class SquareMix(object):
     def __init__(self, crop, rescale, crop_fraction=0.9):
+        print('openpifpaf.transforms.SquareMix is DEPRECATED')
         self.crop = crop
         self.rescale = rescale
         self.crop_fraction = crop_fraction
