@@ -171,6 +171,7 @@ class RescaleRelative(Preprocess):
 
 class RescaleAbsolute(Preprocess):
     def __init__(self, long_edge, *, resample=PIL.Image.BICUBIC):
+        self.log = logging.getLogger(self.__class__.__name__)
         self.long_edge = long_edge
         self.resample = resample
 
@@ -197,9 +198,11 @@ class RescaleAbsolute(Preprocess):
         w, h = image.size
         s = self.long_edge / max(h, w)
         if h > w:
-            image = image.resize((self.long_edge, int(w * s)), self.resample)
+            image = image.resize((int(w * s), self.long_edge), self.resample)
         else:
-            image = image.resize((int(h * s), self.long_edge), self.resample)
+            image = image.resize((self.long_edge, int(h * s)), self.resample)
+        self.log.debug('before resize = (%f, %f), scale factor = %f, after = %s',
+                       w, h, s, image.size)
 
         # rescale keypoints
         x_scale = image.size[0] / w
