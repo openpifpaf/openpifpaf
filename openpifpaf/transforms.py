@@ -9,6 +9,7 @@ https://pillow.readthedocs.io/en/3.3.x/handbook/concepts.html#coordinate-system
   actually lies at (0.5, 0.5).
 """
 
+from abc import ABCMeta, abstractmethod
 import io
 import logging
 import numpy as np
@@ -52,160 +53,10 @@ image_transform_train = torchvision.transforms.Compose([  # pylint: disable=inva
 ])
 
 
-class Preprocess(object):
-    @staticmethod
-    def normalize_annotations(anns):
-        # convert as much data as possible to numpy arrays to avoid every float
-        # being turned into its own torch.Tensor()
-        for ann in anns:
-            ann['keypoints'] = np.asarray(ann['keypoints'], dtype=np.float32).reshape(-1, 3)
-            ann['bbox'] = np.asarray(ann['bbox'], dtype=np.float32)
-            ann['bbox_original'] = np.copy(ann['bbox'])
-            del ann['segmentation']
-
-        return anns
-
-    def __call__(self, image, anns):
-        w, h = image.size
-        anns = self.normalize_annotations(anns)
-
-        meta = {
-            'offset': (0.0, 0.0),
-            'scale': (1.0, 1.0),
-            'valid_area': (0.0, 0.0, w, h),
-            'hflip': False,
-            'width_height': (w, h),
-        }
-        return image, anns, meta
-
-
-class Rescale(object):
-    def __init__(self, long_edge, *,
-                 scale_range=(0.5, 1.0), resample=PIL.Image.BICUBIC,
-                 force_square=False,
-                 random_hflip=False, horizontal_swap=horizontal_swap_coco,
-                 normalize_annotations=Preprocess.normalize_annotations):
-        self.log = logging.getLogger(self.__class__.__name__)
-
-        self.long_edge = long_edge
-        self.scale_range = scale_range
-        self.resample = resample
-        self.force_square = force_square
-        self.random_hflip = random_hflip
-        self.horizontal_swap = horizontal_swap
-        self.normalize_annotations = normalize_annotations
-
-    def scale(self, image, anns, factor):
-        # scale image
-        w, h = image.size
-        target_size = (int(w * factor), int(h * factor))
-        image = image.resize(target_size, self.resample)
-
-        # rescale keypoints
-        x_scale = target_size[0] / w
-        y_scale = target_size[1] / h
-        for ann in anns:
-            ann['keypoints'][:, 0] = (ann['keypoints'][:, 0] + 0.5) * x_scale - 0.5
-            ann['keypoints'][:, 1] = (ann['keypoints'][:, 1] + 0.5) * y_scale - 0.5
-            ann['bbox'][0] *= x_scale
-            ann['bbox'][1] *= y_scale
-            ann['bbox'][2] *= x_scale
-            ann['bbox'][3] *= y_scale
-
-        return image, anns, (x_scale, y_scale)
-
-    def crop(self, image, anns):
-        w, h = image.size
-        padding = int(self.long_edge / 2.0)
-        x_offset, y_offset = 0, 0
-        if w > self.long_edge:
-            x_offset = torch.randint(-padding, w - self.long_edge + padding, (1,))
-            x_offset = torch.clamp(x_offset, min=0, max=w - self.long_edge).item()
-        if h > self.long_edge:
-            y_offset = torch.randint(-padding, h - self.long_edge + padding, (1,))
-            y_offset = torch.clamp(y_offset, min=0, max=h - self.long_edge).item()
-        self.log.debug('crop offsets (%d, %d)', x_offset, y_offset)
-
-        # crop image
-        new_w = min(self.long_edge, w - x_offset)
-        new_h = min(self.long_edge, h - y_offset)
-        image = image.crop((x_offset, y_offset, x_offset + new_w, y_offset + new_h))
-
-        # crop keypoints
-        for ann in anns:
-            ann['keypoints'][:, 0] -= x_offset
-            ann['keypoints'][:, 1] -= y_offset
-            ann['bbox'][0] -= x_offset
-            ann['bbox'][1] -= y_offset
-
-        return image, anns, (x_offset, y_offset)
-
-    def center_pad(self, image, anns):
-        w, h = image.size
-        left = int((self.long_edge - w) / 2.0)
-        top = int((self.long_edge - h) / 2.0)
-        ltrb = (
-            left,
-            top,
-            self.long_edge - w - left,
-            self.long_edge - h - top,
-        )
-
-        # pad image
-        image = torchvision.transforms.functional.pad(
-            image, ltrb, fill=(124, 116, 104))
-
-        # pad annotations
-        for ann in anns:
-            ann['keypoints'][:, 0] += ltrb[0]
-            ann['keypoints'][:, 1] += ltrb[1]
-            ann['bbox'][0] += ltrb[0]
-            ann['bbox'][1] += ltrb[1]
-
-        return image, anns, ltrb
-
-    def __call__(self, image, anns):
-        w, h = image.size
-        if self.normalize_annotations is not None:
-            anns = self.normalize_annotations(anns)
-
-        # horizontal flip
-        hflip = self.random_hflip and torch.rand(1).item() < 0.5
-        if hflip:
-            image = image.transpose(PIL.Image.FLIP_LEFT_RIGHT)
-            for ann in anns:
-                ann['keypoints'][:, 0] = -ann['keypoints'][:, 0] - 1.0 + w
-                if self.horizontal_swap is not None:
-                    ann['keypoints'] = self.horizontal_swap(ann['keypoints'])
-                ann['bbox'][0] = -(ann['bbox'][0] + ann['bbox'][2]) - 1.0 + w
-
-        # scale
-        scale_factor = (self.scale_range[0] +
-                        torch.rand(1).item() * (self.scale_range[1] - self.scale_range[0]))
-        image, anns, scale_factors = self.scale(image, anns, scale_factor)
-
-        # crop
-        image, anns, offsets = self.crop(image, anns)
-
-        # pad
-        valid_area = [0, 0, image.size[0], image.size[1]]
-        if self.force_square:
-            image, anns, ltrb = self.center_pad(image, anns)
-            offsets = (offsets[0] + ltrb[0], offsets[1] + ltrb[1])
-            valid_area[0] += ltrb[0]
-            valid_area[1] += ltrb[1]
-
-        for ann in anns:
-            ann['valid_area'] = valid_area
-
-        meta = {
-            'offset': offsets,
-            'scale': scale_factors,
-            'valid_area': valid_area,
-            'hflip': hflip,
-            'width_height': (w, h),
-        }
-        return image, anns, meta
+class Preprocess(metaclass=ABCMeta):
+    @abstractmethod
+    def __call__(self, image, anns, meta=None):
+        """Implementation of preprocess operation."""
 
     def keypoint_sets_inverse(self, keypoint_sets, meta):
         keypoint_sets[:, :, 0] -= meta['offset'][0]
@@ -224,11 +75,231 @@ class Rescale(object):
         return keypoint_sets
 
 
+class Normalize(Preprocess):
+    @staticmethod
+    def normalize_annotations(anns):
+        # convert as much data as possible to numpy arrays to avoid every float
+        # being turned into its own torch.Tensor()
+        for ann in anns:
+            ann['keypoints'] = np.asarray(ann['keypoints'], dtype=np.float32).reshape(-1, 3)
+            ann['bbox'] = np.asarray(ann['bbox'], dtype=np.float32)
+            ann['bbox_original'] = np.copy(ann['bbox'])
+            del ann['segmentation']
+
+        return anns
+
+    def __call__(self, image, anns, meta=None):
+        anns = self.normalize_annotations(anns)
+
+        if meta is None:
+            w, h = image.size
+            meta = {
+                'offset': np.array((0.0, 0.0)),
+                'scale': np.array((1.0, 1.0)),
+                'valid_area': np.array((0.0, 0.0, w, h)),
+                'hflip': False,
+                'width_height': np.array((w, h)),
+            }
+
+        return image, anns, meta
+
+
+class Compose(Preprocess):
+    def __init__(self, preprocess_list):
+        self.preprocess_list = preprocess_list
+
+    def __call__(self, image, anns, meta=None):
+        for p in self.preprocess_list:
+            image, anns, meta = p(image, anns, meta)
+
+        return image, anns, meta
+
+
+class RescaleRelative(Preprocess):
+    def __init__(self, scale_range=(0.5, 1.0), resample=PIL.Image.BICUBIC):
+        self.scale_range = scale_range
+        self.resample = resample
+
+    def __call__(self, image, anns, meta=None):
+        if meta is None:
+            image, anns, meta = Normalize()(image, anns)
+
+        if isinstance(self.scale_range, tuple):
+            scale_factor = (
+                self.scale_range[0] +
+                torch.rand(1).item() * (self.scale_range[1] - self.scale_range[0])
+            )
+        else:
+            scale_factor = self.scale_range
+
+        image, anns, scale_factors = self.scale(image, anns, scale_factor)
+        meta['offset'] *= scale_factors
+        meta['scale'] *= scale_factors
+        meta['valid_area'][:2] *= scale_factors
+        meta['valid_area'][2:] *= scale_factors
+
+        for ann in anns:
+            ann['valid_area'] = meta['valid_area']
+
+        return image, anns, meta
+
+    def scale(self, image, anns, factor):
+        # scale image
+        w, h = image.size
+        target_size = (int(w * factor), int(h * factor))
+        image = image.resize(target_size, self.resample)
+
+        # rescale keypoints
+        x_scale = target_size[0] / w
+        y_scale = target_size[1] / h
+        for ann in anns:
+            ann['keypoints'][:, 0] = (ann['keypoints'][:, 0] + 0.5) * x_scale - 0.5
+            ann['keypoints'][:, 1] = (ann['keypoints'][:, 1] + 0.5) * y_scale - 0.5
+            ann['bbox'][0] *= x_scale
+            ann['bbox'][1] *= y_scale
+            ann['bbox'][2] *= x_scale
+            ann['bbox'][3] *= y_scale
+
+        return image, anns, np.array((x_scale, y_scale))
+
+
+class Crop(Preprocess):
+    def __init__(self, long_edge):
+        self.log = logging.getLogger(self.__class__.__name__)
+        self.long_edge = long_edge
+
+    def __call__(self, image, anns, meta=None):
+        if meta is None:
+            image, anns, meta = Normalize()(image, anns)
+
+        image, anns, ltrb = self.crop(image, anns)
+        meta['offset'] += ltrb[:2]
+
+        self.log.debug('valid area before crop of %s: %s', ltrb, meta['valid_area'])
+        # process crops from left and top
+        meta['valid_area'][:2] = np.maximum(0.0, meta['valid_area'][:2] - ltrb[:2])
+        meta['valid_area'][2:] = np.maximum(0.0, meta['valid_area'][2:] - ltrb[:2])
+        # process cropps from right and bottom
+        meta['valid_area'][2:] = np.minimum(meta['valid_area'][2:], ltrb[2:] - ltrb[:2])
+        self.log.debug('valid area after crop: %s', meta['valid_area'])
+
+        for ann in anns:
+            ann['valid_area'] = meta['valid_area']
+
+        return image, anns, meta
+
+    def crop(self, image, anns):
+        w, h = image.size
+        padding = int(self.long_edge / 2.0)
+        x_offset, y_offset = 0, 0
+        if w > self.long_edge:
+            x_offset = torch.randint(-padding, w - self.long_edge + padding, (1,))
+            x_offset = torch.clamp(x_offset, min=0, max=w - self.long_edge).item()
+        if h > self.long_edge:
+            y_offset = torch.randint(-padding, h - self.long_edge + padding, (1,))
+            y_offset = torch.clamp(y_offset, min=0, max=h - self.long_edge).item()
+        self.log.debug('crop offsets (%d, %d)', x_offset, y_offset)
+
+        # crop image
+        new_w = min(self.long_edge, w - x_offset)
+        new_h = min(self.long_edge, h - y_offset)
+        ltrb = (x_offset, y_offset, x_offset + new_w, y_offset + new_h)
+        image = image.crop(ltrb)
+
+        # crop keypoints
+        for ann in anns:
+            ann['keypoints'][:, 0] -= x_offset
+            ann['keypoints'][:, 1] -= y_offset
+            ann['bbox'][0] -= x_offset
+            ann['bbox'][1] -= y_offset
+
+        return image, anns, np.array(ltrb)
+
+
+class CenterPad(Preprocess):
+    def __init__(self, target_size):
+        self.log = logging.getLogger(self.__class__.__name__)
+
+        if isinstance(target_size, int):
+            target_size = (target_size, target_size)
+        self.target_size = target_size
+
+    def __call__(self, image, anns, meta=None):
+        if meta is None:
+            image, anns, meta = Normalize()(image, anns)
+
+        image, anns, ltrb = self.center_pad(image, anns)
+        meta['offset'] += ltrb[:2]
+
+        self.log.debug('valid area before pad with %s: %s', ltrb, meta['valid_area'])
+        meta['valid_area'][:2] += ltrb[:2]
+        self.log.debug('valid area after pad: %s', meta['valid_area'])
+
+        for ann in anns:
+            ann['valid_area'] = meta['valid_area']
+
+        return image, anns, meta
+
+    def center_pad(self, image, anns):
+        w, h = image.size
+        left = int((self.target_size[0] - w) / 2.0)
+        top = int((self.target_size[1] - h) / 2.0)
+        ltrb = (
+            left,
+            top,
+            self.target_size[0] - w - left,
+            self.target_size[1] - h - top,
+        )
+
+        # pad image
+        image = torchvision.transforms.functional.pad(
+            image, ltrb, fill=(124, 116, 104))
+
+        # pad annotations
+        for ann in anns:
+            ann['keypoints'][:, 0] += ltrb[0]
+            ann['keypoints'][:, 1] += ltrb[1]
+            ann['bbox'][0] += ltrb[0]
+            ann['bbox'][1] += ltrb[1]
+
+        return image, anns, ltrb
+
+
+class HFlip(Preprocess):
+    def __init__(self, probability=1.0, swap=horizontal_swap_coco):
+        self.probability = probability
+        self.swap = swap
+
+    def __call__(self, image, anns, meta=None):
+        if meta is None:
+            image, anns, meta = Normalize()(image, anns)
+
+        if torch.rand(1).item() > self.probability:
+            return image, anns, meta
+
+        w, _ = image.size
+        image = image.transpose(PIL.Image.FLIP_LEFT_RIGHT)
+        for ann in anns:
+            ann['keypoints'][:, 0] = -ann['keypoints'][:, 0] - 1.0 + w
+            if self.swap is not None:
+                ann['keypoints'] = self.swap(ann['keypoints'])
+            ann['bbox'][0] = -(ann['bbox'][0] + ann['bbox'][2]) - 1.0 + w
+
+        assert meta['hflip'] is False
+        meta['hflip'] = True
+
+        meta['valid_area'][0] = -(meta['valid_area'][0] + meta['valid_area'][2]) - 1.0 + w
+        for ann in anns:
+            ann['valid_area'] = meta['valid_area']
+
+        return image, anns, meta
+
+
 class SquareRescale(object):
     def __init__(self, long_edge, *,
                  black_bars=False,
                  random_hflip=False, horizontal_swap=horizontal_swap_coco,
-                 normalize_annotations=Preprocess.normalize_annotations):
+                 normalize_annotations=Normalize.normalize_annotations):
         self.long_edge = long_edge
         self.black_bars = black_bars
         self.random_hflip = random_hflip
@@ -333,7 +404,7 @@ class SquareRescale(object):
 class SquareCrop(object):
     def __init__(self, edge, *,
                  min_scale=0.95, random_hflip=False, horizontal_swap=horizontal_swap_coco,
-                 normalize_annotations=Preprocess.normalize_annotations):
+                 normalize_annotations=Normalize.normalize_annotations):
         self.target_edge = edge
         self.min_scale = min_scale
         self.random_hflip = random_hflip
