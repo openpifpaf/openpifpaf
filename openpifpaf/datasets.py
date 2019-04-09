@@ -148,7 +148,7 @@ class ImageList(torch.utils.data.Dataset):
             image = Image.open(f).convert('RGB')
 
         if self.preprocess is not None:
-            image = self.preprocess(image)
+            image = self.preprocess(image,[])[0]
 
         original_image = torchvision.transforms.functional.to_tensor(image)
         image = self.image_transform(image)
