@@ -141,6 +141,7 @@ class ImageList(torch.utils.data.Dataset):
         self.image_paths = image_paths
         self.image_transform = image_transform or transforms.image_transform
         self.preprocess = preprocess
+
     def __getitem__(self, index):
         image_path = self.image_paths[index]
         with open(image_path, 'rb') as f:
