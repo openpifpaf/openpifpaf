@@ -137,14 +137,18 @@ class CocoKeypoints(torch.utils.data.Dataset):
 
 
 class ImageList(torch.utils.data.Dataset):
-    def __init__(self, image_paths, image_transform=None):
+    def __init__(self, image_paths, preprocess=None, image_transform=None):
         self.image_paths = image_paths
         self.image_transform = image_transform or transforms.image_transform
+        self.preprocess = preprocess
 
     def __getitem__(self, index):
         image_path = self.image_paths[index]
         with open(image_path, 'rb') as f:
             image = Image.open(f).convert('RGB')
+
+        if self.preprocess is not None:
+            image = self.preprocess(image, [])[0]
 
         original_image = torchvision.transforms.functional.to_tensor(image)
         image = self.image_transform(image)
