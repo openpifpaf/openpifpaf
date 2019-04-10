@@ -60,7 +60,7 @@ class CocoKeypoints(torch.utils.data.Dataset):
             self.ids = self.ids[:n_images]
         print('Images: {}'.format(len(self.ids)))
 
-        self.preprocess = preprocess or transforms.Preprocess()
+        self.preprocess = preprocess or transforms.Normalize()
         self.image_transform = image_transform or transforms.image_transform
         self.target_transforms = target_transforms
 

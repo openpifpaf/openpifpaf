@@ -266,8 +266,13 @@ def main():
             return
         print('Processing: {}'.format(args.checkpoint))
 
-    preprocess = transforms.SquareRescale(args.long_edge,
-                                          black_bars=args.batch_size > 1)
+    if args.batch_size == 1:
+        preprocess = transforms.RescaleAbsolute(args.long_edge)
+    else:
+        preprocess = transforms.Compose([
+            transforms.RescaleAbsolute(args.long_edge),
+            transforms.CenterPad(args.long_edge),
+        ])
     data = datasets.CocoKeypoints(
         root=image_dir,
         annFile=annotation_file,
