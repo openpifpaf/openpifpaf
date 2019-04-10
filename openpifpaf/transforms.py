@@ -364,7 +364,6 @@ class SquareRescale(object):
                  black_bars=False,
                  random_hflip=False, horizontal_swap=horizontal_swap_coco,
                  normalize_annotations=Normalize.normalize_annotations):
-        print('openpifpaf.transforms.SquareRescale is DEPRECATED')
         self.long_edge = long_edge
         self.black_bars = black_bars
         self.random_hflip = random_hflip
@@ -470,7 +469,6 @@ class SquareCrop(object):
     def __init__(self, edge, *,
                  min_scale=0.95, random_hflip=False, horizontal_swap=horizontal_swap_coco,
                  normalize_annotations=Normalize.normalize_annotations):
-        print('openpifpaf.transforms.SquareCrop is DEPRECATED')
         self.target_edge = edge
         self.min_scale = min_scale
         self.random_hflip = random_hflip
@@ -549,7 +547,6 @@ class SquareCrop(object):
 
 class SquareMix(object):
     def __init__(self, crop, rescale, crop_fraction=0.9):
-        print('openpifpaf.transforms.SquareMix is DEPRECATED')
         self.crop = crop
         self.rescale = rescale
         self.crop_fraction = crop_fraction
