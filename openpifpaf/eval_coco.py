@@ -291,7 +291,7 @@ def main():
 
     model, _ = nets.factory_from_args(args)
     model = model.to(args.device)
-    processor = decoder.factory_from_args(args, model)
+    processor = decoder.factory_from_args(args, model, args.device)
 
     coco = pycocotools.coco.COCO(annotation_file)
     eval_coco = EvalCoco(coco, processor, preprocess.keypoint_sets_inverse)
