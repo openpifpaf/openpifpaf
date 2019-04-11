@@ -11,12 +11,14 @@ from .utils import scalar_square_add_single
 class Processor(object):
     def __init__(self, model, decode, *,
                  keypoint_threshold=0.0, instance_threshold=0.0,
-                 debug_visualizer=None):
+                 debug_visualizer=None,
+                 device=None):
         self.model = model
         self.decode = decode
         self.keypoint_threshold = keypoint_threshold
         self.instance_threshold = instance_threshold
         self.debug_visualizer = debug_visualizer
+        self.device = device
 
     def set_cpu_image(self, cpu_image, processed_image):
         if self.debug_visualizer is not None:
@@ -24,6 +26,9 @@ class Processor(object):
 
     def fields(self, image_batch):
         start = time.time()
+        if self.device is not None:
+            image_batch = image_batch.to(self.device, non_blocking=True)
+
         with torch.no_grad():
             heads = self.model(image_batch)
 
@@ -56,14 +61,16 @@ class Processor(object):
                             if ann.joint_scales is not None
                             else np.ones((ann.data.shape[0]),) * 4.0)
             for xyv, occ, joint_s in zip(ann.data, occupied, joint_scales):
+                v = xyv[2]
+                if v == 0.0:
+                    continue
+
                 ij = np.round(xyv[:2]).astype(np.int)
                 i = np.clip(ij[0], 0, occ.shape[1] - 1)
                 j = np.clip(ij[1], 0, occ.shape[0] - 1)
-                v = xyv[2]
                 if occ[j, i]:
                     xyv[2] = 0.0
-
-                if v > 0.0:
+                else:
                     scalar_square_add_single(occ, xyv[0], xyv[1], joint_s, 1)
 
         annotations = [ann for ann in annotations if np.any(ann.data[:, 2] > 0.0)]
