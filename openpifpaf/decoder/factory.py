@@ -36,7 +36,7 @@ def cli(parser, force_complete_pose=True, instance_threshold=0.0):
         decoder.cli(parser)
 
 
-def factory_from_args(args, model):
+def factory_from_args(args, model, device=None):
     for decoder in Decoder.__subclasses__():
         decoder.apply_args(args)
 
@@ -56,7 +56,8 @@ def factory_from_args(args, model):
     return Processor(model, decode,
                      instance_threshold=args.instance_threshold,
                      keypoint_threshold=args.keypoint_threshold,
-                     debug_visualizer=debug_visualizer)
+                     debug_visualizer=debug_visualizer,
+                     device=device)
 
 
 def factory_decode(model, *, profile=None, **kwargs):
