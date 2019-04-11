@@ -45,17 +45,19 @@ class CocoKeypoints(torch.utils.data.Dataset):
     """
 
     def __init__(self, root, annFile, image_transform=None, target_transforms=None,
-                 n_images=None, preprocess=None, all_images=False):
+                 n_images=None, preprocess=None, all_images=False, all_persons=False):
         from pycocotools.coco import COCO
         self.root = root
         self.coco = COCO(annFile)
 
         self.cat_ids = self.coco.getCatIds(catNms=['person'])
-        if not all_images:
+        if all_images:
+            self.ids = self.coco.getImgIds()
+        elif all_persons:
+            self.ids = self.coco.getImgIds(catIds=self.cat_ids)
+        else:
             self.ids = self.coco.getImgIds(catIds=self.cat_ids)
             self.filter_for_keypoint_annotations()
-        else:
-            self.ids = self.coco.getImgIds()
         if n_images:
             self.ids = self.ids[:n_images]
         print('Images: {}'.format(len(self.ids)))
@@ -118,6 +120,8 @@ class CocoKeypoints(torch.utils.data.Dataset):
         # transform image
         original_size = image.size
         image = self.image_transform(image)
+        assert image.size(2) == original_size[0]
+        assert image.size(1) == original_size[1]
 
         # mask valid
         valid_area = meta['valid_area']

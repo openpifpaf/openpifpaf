@@ -137,15 +137,6 @@ class EvalCoco(object):
                 'keypoints': keypoints.reshape(-1).tolist(),
                 'score': score,
             })
-        if debug:
-            self.stats(image_annotations, [image_id])
-            if verbose:
-                print('detected', image_annotations, len(image_annotations))
-                oks = self.eval.computeOks(image_id, category_id)
-                oks[oks < 0.5] = 0.0
-                print('oks', oks)
-                print('evaluate', self.eval.evaluateImg(image_id, category_id, (0, 1e5 ** 2), 20))
-            print(meta)
 
         # force at least one annotation per image (for pycocotools)
         if not image_annotations:
@@ -155,6 +146,16 @@ class EvalCoco(object):
                 'keypoints': np.zeros((17*3,)).tolist(),
                 'score': 0.0,
             })
+
+        if debug:
+            self.stats(image_annotations, [image_id])
+            if verbose:
+                print('detected', image_annotations, len(image_annotations))
+                oks = self.eval.computeOks(image_id, category_id)
+                oks[oks < 0.5] = 0.0
+                print('oks', oks)
+                print('evaluate', self.eval.evaluateImg(image_id, category_id, (0, 1e5 ** 2), 20))
+            print(meta)
 
         self.predictions += image_annotations
 
@@ -202,6 +203,8 @@ def cli():
                         help='disable CUDA')
     parser.add_argument('--write-predictions', default=False, action='store_true',
                         help='write a json and a zip file of the predictions')
+    parser.add_argument('--all-images', default=False, action='store_true',
+                        help='run over all images irrespective of catIds')
     group = parser.add_argument_group('logging')
     group.add_argument('--debug', default=False, action='store_true',
                        help='print debug messages')
@@ -223,6 +226,8 @@ def cli():
 
     if args.dataset in ('test', 'test-dev') and not args.write_predictions:
         raise Exception('have to use --write-predictions for this dataset')
+    if args.dataset in ('test', 'test-dev') and not args.all_images:
+        raise Exception('have to use --all-images for this dataset')
 
     # add args.device
     args.device = torch.device('cpu')
@@ -277,7 +282,8 @@ def main():
         root=image_dir,
         annFile=annotation_file,
         preprocess=preprocess,
-        all_images=True,
+        all_persons=True,
+        all_images=args.all_images,
     )
     data_loader = torch.utils.data.DataLoader(
         data, batch_size=args.batch_size, pin_memory=args.pin_memory,

@@ -72,8 +72,8 @@ class Preprocess(metaclass=ABCMeta):
             w = meta['width_height'][0]
             keypoint_sets[:, :, 0] = -keypoint_sets[:, :, 0] - 1.0 + w
             for keypoints in keypoint_sets:
-                if self.horizontal_swap is not None:
-                    keypoints[:] = self.horizontal_swap(keypoints)
+                if meta.get('horizontal_swap'):
+                    keypoints[:] = meta.horizontal_swap(keypoints)
 
         return keypoint_sets
 
@@ -81,6 +81,8 @@ class Preprocess(metaclass=ABCMeta):
 class Normalize(Preprocess):
     @staticmethod
     def normalize_annotations(anns):
+        anns = copy.deepcopy(anns)
+
         # convert as much data as possible to numpy arrays to avoid every float
         # being turned into its own torch.Tensor()
         for ann in anns:
@@ -347,6 +349,7 @@ class HFlip(Preprocess):
             ann['keypoints'][:, 0] = -ann['keypoints'][:, 0] - 1.0 + w
             if self.swap is not None:
                 ann['keypoints'] = self.swap(ann['keypoints'])
+                meta['horizontal_swap'] = self.swap
             ann['bbox'][0] = -(ann['bbox'][0] + ann['bbox'][2]) - 1.0 + w
 
         assert meta['hflip'] is False
