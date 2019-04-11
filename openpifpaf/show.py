@@ -153,6 +153,15 @@ class KeypointPainter(object):
         ax.text(x1 + 2, y1 - 2, text, fontsize=8,
                 color='white', bbox={'facecolor': color, 'alpha': 0.5, 'linewidth': 0})
 
+    @staticmethod
+    def _draw_scales(ax, xs, ys, vs, color, scales):
+        for x, y, v, scale in zip(xs, ys, vs, scales):
+            if v < 0.1:
+                continue
+            ax.add_patch(
+                matplotlib.patches.Rectangle(
+                    (x - scale, y - scale), 2 * scale, 2 * scale, fill=False, color=color))
+
     def keypoints(self, ax, keypoint_sets, *, scores=None, color=None, colors=None, texts=None):
         if keypoint_sets is None:
             return
@@ -178,6 +187,41 @@ class KeypointPainter(object):
             if self.show_box:
                 score = scores[i] if scores is not None else None
                 self._draw_box(ax, x, y, v, color, score)
+
+                if texts is not None:
+                    self._draw_text(ax, x, y, v, texts[i], color)
+
+
+    def annotations(self, ax, annotations, *,
+                    color=None, colors=None, texts=None):
+        if annotations is None:
+            return
+
+        if color is None and self.color_connections:
+            color = 'white'
+        if color is None and colors is None:
+            colors = range(len(annotations))
+
+        for i, ann in enumerate(annotations):
+            kps = ann.data
+            assert kps.shape[1] == 3
+            x = kps[:, 0] * self.xy_scale
+            y = kps[:, 1] * self.xy_scale
+            v = kps[:, 2]
+
+            if colors is not None:
+                color = colors[i]
+
+            if isinstance(color, (int, np.integer)):
+                color = matplotlib.cm.get_cmap('tab20')((color % 20 + 0.05) / 20)
+
+            self._draw_skeleton(ax, x, y, v, color=color)
+
+            if ann.joint_scales is not None:
+                self._draw_scales(ax, x, y, v, color, ann.joint_scales)
+
+            if self.show_box:
+                self._draw_box(ax, x, y, v, color, ann.score())
 
                 if texts is not None:
                     self._draw_text(ax, x, y, v, texts[i], color)

@@ -1,5 +1,6 @@
 """The Processor runs the model to obtain fields and passes them to a decoder."""
 
+import logging
 import time
 
 import numpy as np
@@ -13,6 +14,8 @@ class Processor(object):
                  keypoint_threshold=0.0, instance_threshold=0.0,
                  debug_visualizer=None,
                  device=None):
+        self.log = logging.getLogger(self.__class__.__name__)
+
         self.model = model
         self.decode = decode
         self.keypoint_threshold = keypoint_threshold
@@ -78,6 +81,21 @@ class Processor(object):
         return annotations
 
     def keypoint_sets(self, fields):
+        annotations = self.annotations(fields)
+        return self.keypoint_sets_from_annotations(annotations)
+
+    @staticmethod
+    def keypoint_sets_from_annotations(annotations):
+        keypoint_sets = [ann.data for ann in annotations]
+        scores = [ann.score() for ann in annotations]
+        if not keypoint_sets:
+            return np.zeros((0, 17, 3)), np.zeros((0,))
+        keypoint_sets = np.array(keypoint_sets)
+        scores = np.array(scores)
+
+        return keypoint_sets, scores
+
+    def annotations(self, fields):
         start = time.time()
         annotations = self.decode(fields)
 
@@ -91,26 +109,18 @@ class Processor(object):
         # nms
         annotations = self.soft_nms(annotations)
 
-        # threshold results
-        keypoint_sets, scores = [], []
+        # treshold
         for ann in annotations:
-            score = ann.score()
-            if score < self.instance_threshold:
-                continue
             kps = ann.data
             kps[kps[:, 2] < self.keypoint_threshold] = 0.0
+        annotations = [ann for ann in annotations
+                       if ann.score() >= self.instance_threshold]
+        annotations = sorted(annotations, key=lambda a: -a.score())
 
-            keypoint_sets.append(kps)
-            scores.append(score)
-        if not keypoint_sets:
-            return np.zeros((0, 17, 3)), np.zeros((0,))
-        keypoint_sets = np.array(keypoint_sets)
-        scores = np.array(scores)
-
-        print('keypoint sets', keypoint_sets.shape[0],
-              [np.sum(kp[:, 2] > 0.1) for kp in keypoint_sets])
-        print('total processing time', time.time() - start)
-        return keypoint_sets, scores
+        self.log.debug('%d annotations: %s', len(annotations),
+                       [np.sum(ann.data[:, 2] > 0.1) for ann in annotations])
+        self.log.debug('total processing time: %.3fs', time.time() - start)
+        return annotations
 
     def keypoint_sets_two_scales(self, fields, fields_half_scale):
         start = time.time()
