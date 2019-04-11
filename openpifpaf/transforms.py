@@ -59,7 +59,8 @@ class Preprocess(metaclass=ABCMeta):
     def __call__(self, image, anns, meta=None):
         """Implementation of preprocess operation."""
 
-    def keypoint_sets_inverse(self, keypoint_sets, meta):
+    @staticmethod
+    def keypoint_sets_inverse(keypoint_sets, meta):
         keypoint_sets = keypoint_sets.copy()
 
         keypoint_sets[:, :, 0] += meta['offset'][0]
