@@ -168,6 +168,7 @@ class CompositeLoss(Loss, torch.nn.Module):
         cls.default_aspect_ratio = args.paf_aspect_ratio
 
     def forward(self, x, t):  # pylint: disable=arguments-differ
+        assert len(x) == 1 + 2 * self.n_vectors + self.n_scales
         x_intensity = x[0]
         x_regs = x[1:1 + self.n_vectors]
         x_spreads = x[1 + self.n_vectors:1 + 2 * self.n_vectors]
@@ -175,6 +176,7 @@ class CompositeLoss(Loss, torch.nn.Module):
         if self.n_scales:
             x_scales = x[1 + 2 * self.n_vectors:1 + 2 * self.n_vectors + self.n_scales]
 
+        assert len(t) == 1 + self.n_vectors + 1
         target_intensity = t[0]
         target_regs = t[1:1 + self.n_vectors]
         target_scale = t[-1]
