@@ -21,6 +21,22 @@ def collate_images_anns_meta(batch):
     return images, anns, metas
 
 
+def collate_multiscale_images_anns_meta(batch):
+    """Collate for multiscale.
+
+    indices:
+        images: [scale, batch , ...]
+        anns: [batch, scale, ...]
+        metas: [batch, scale, ...]
+    """
+    n_scales = len(batch[0][0])
+    images = [torch.utils.data.dataloader.default_collate([b[0][i] for b in batch])
+              for i in range(n_scales)]
+    anns = [b[1] for b in batch]
+    metas = [b[2] for b in batch]
+    return images, anns, metas
+
+
 def collate_images_targets_meta(batch):
     images = torch.utils.data.dataloader.default_collate([b[0] for b in batch])
     targets = torch.utils.data.dataloader.default_collate([b[1] for b in batch])
@@ -102,7 +118,7 @@ class CocoKeypoints(torch.utils.data.Dataset):
         with open(os.path.join(self.root, image_info['file_name']), 'rb') as f:
             image = Image.open(f).convert('RGB')
 
-        meta = {
+        meta_init = {
             'dataset_index': index,
             'image_id': image_id,
             'file_name': image_info['file_name'],
@@ -111,11 +127,23 @@ class CocoKeypoints(torch.utils.data.Dataset):
         if 'flickr_url' in image_info:
             _, flickr_file_name = image_info['flickr_url'].rsplit('/', maxsplit=1)
             flickr_id, _ = flickr_file_name.split('_', maxsplit=1)
-            meta['flickr_full_page'] = 'http://flickr.com/photo.gne?id={}'.format(flickr_id)
+            meta_init['flickr_full_page'] = 'http://flickr.com/photo.gne?id={}'.format(flickr_id)
 
         # preprocess image and annotations
-        image, anns, preprocess_meta = self.preprocess(image, anns)
-        meta.update(preprocess_meta)
+        image, anns, meta = self.preprocess(image, anns)
+        if isinstance(image, list):
+            return self.multi_image_processing(image, anns, meta, meta_init)
+
+        return self.single_image_processing(image, anns, meta, meta_init)
+
+    def multi_image_processing(self, image_list, anns_list, meta_list, meta_init):
+        return list(zip(*[
+            self.single_image_processing(image, anns, meta, meta_init)
+            for image, anns, meta in zip(image_list, anns_list, meta_list)
+        ]))
+
+    def single_image_processing(self, image, anns, meta, meta_init):
+        meta.update(meta_init)
 
         # transform image
         original_size = image.size

@@ -10,6 +10,7 @@ import time
 import zipfile
 
 import numpy as np
+import PIL
 import torch
 
 import pycocotools.coco
@@ -64,7 +65,7 @@ class EvalCoco(object):
         self.eval.summarize()
         return self.eval.stats
 
-    def view_keypoints(self, image_cpu, instances, scores, gt):
+    def view_keypoints(self, image_cpu, annotations, gt):
         highlight = [5, 7, 9, 11, 13, 15]
         keypoint_painter = show.KeypointPainter(skeleton=self.skeleton, highlight=highlight)
         skeleton_painter = show.KeypointPainter(skeleton=self.skeleton,
@@ -73,13 +74,12 @@ class EvalCoco(object):
 
         with show.canvas() as ax:
             ax.imshow((np.moveaxis(image_cpu.numpy(), 0, -1) + 2.0) / 4.0)
-            keypoint_painter.keypoints(ax, instances, scores=scores)
+            keypoint_painter.annotations(ax, annotations)
 
         with show.canvas() as ax:
             ax.set_axis_off()
             ax.imshow((np.moveaxis(image_cpu.numpy(), 0, -1) + 2.0) / 4.0)
-            m = scores > 0.1
-            skeleton_painter.keypoints(ax, instances[m], scores=scores[m])
+            skeleton_painter.annotations(ax, [ann for ann in annotations if ann.score() > 0.1])
 
         instances_gt = None
         if gt:
@@ -96,37 +96,33 @@ class EvalCoco(object):
             ax.imshow((np.moveaxis(image_cpu.numpy(), 0, -1) + 2.0) / 4.0)
             show.white_screen(ax)
             keypoint_painter.keypoints(ax, instances_gt, color='lightgrey')
-            m = scores > 0.01
-            keypoint_painter.keypoints(ax, instances[m], scores=scores[m])
+            keypoint_painter.annotations(ax, [ann for ann in annotations if ann.score() > 0.01])
 
     def from_fields(self, fields, meta,
                     debug=False, gt=None, image_cpu=None, verbose=False,
-                    fields_half_scale=None, category_id=1):
+                    category_id=1, multiscale=False):
+        if image_cpu is not None:
+            self.processor.set_cpu_image(None, image_cpu)
+
         start = time.time()
+        if multiscale:
+            annotations = self.processor.annotations_multiscale(fields, meta)
+        else:
+            annotations = self.processor.annotations(fields)
+        annotations = annotations[:20]
+        self.decoder_time += time.time() - start
+
+        if multiscale:
+            meta = meta[0]
 
         image_id = int(meta['image_id'])
         self.image_ids.append(image_id)
 
-        if image_cpu is not None:
-            self.processor.set_cpu_image(None, image_cpu)
-
-        if fields_half_scale is not None:
-            instances, scores = self.processor.keypoint_sets_two_scales(fields, fields_half_scale)
-        else:
-            instances, scores = self.processor.keypoint_sets(fields)
-        self.decoder_time += time.time() - start
-        instances = instances[:20]
-        scores = scores[:20]
-
         if debug:
-            self.view_keypoints(image_cpu, instances, scores, gt)
+            self.view_keypoints(image_cpu, annotations, gt)
 
-        # print('gt', instances_gt[0])
-        # print('before', instances[0])
-        # print('diff', np.linalg.norm((instances_gt[0] - instances[0])[:, :2], axis=1))
+        instances, scores = self.processor.keypoint_sets_from_annotations(annotations)
         instances = self.keypoint_sets_inverse(instances, meta)
-        # print('after', instances[0])
-
         image_annotations = []
         for instance, score in zip(instances, scores):
             keypoints = np.around(instance, 2)
@@ -199,6 +195,10 @@ def cli():
                         help='skip if output eval file exists already')
     parser.add_argument('--two-scale', default=False, action='store_true',
                         help='two scale')
+    parser.add_argument('--three-scale', default=False, action='store_true',
+                        help='three scale')
+    parser.add_argument('--multi-scale', default=False, action='store_true',
+                        help='multi scale')
     parser.add_argument('--disable-cuda', action='store_true',
                         help='disable CUDA')
     parser.add_argument('--write-predictions', default=False, action='store_true',
@@ -271,7 +271,54 @@ def main():
             return
         print('Processing: {}'.format(args.checkpoint))
 
-    if args.batch_size == 1:
+    collate_fn = datasets.collate_images_anns_meta
+    if args.two_scale:
+        preprocess = transforms.MultiScale([
+            transforms.Normalize(),
+            transforms.Compose([
+                transforms.HFlip(),
+                transforms.RescaleAbsolute(args.long_edge),
+            ]),
+        ])
+        collate_fn = datasets.collate_multiscale_images_anns_meta
+    elif args.three_scale:
+        preprocess = transforms.MultiScale([
+            transforms.Normalize(),
+            transforms.Compose([
+                transforms.HFlip(),
+                transforms.RescaleRelative(2.0, resample=PIL.Image.LANCZOS),
+            ]),
+            transforms.Compose([
+                transforms.HFlip(),
+                transforms.RescaleAbsolute(args.long_edge),
+            ]),
+        ])
+        collate_fn = datasets.collate_multiscale_images_anns_meta
+    elif args.multi_scale:
+        preprocess = transforms.MultiScale([
+            transforms.RescaleAbsolute((args.long_edge - 1) * 4 + 1),
+            transforms.RescaleAbsolute((args.long_edge - 1) * 3 + 1),
+            transforms.RescaleAbsolute((args.long_edge - 1) * 2 + 1),
+            transforms.RescaleAbsolute(args.long_edge),
+            transforms.Compose([
+                transforms.HFlip(),
+                transforms.RescaleAbsolute(args.long_edge),
+            ]),
+            transforms.Compose([
+                transforms.HFlip(),
+                transforms.RescaleAbsolute((args.long_edge - 1) * 2 + 1),
+            ]),
+            transforms.Compose([
+                transforms.HFlip(),
+                transforms.RescaleAbsolute((args.long_edge - 1) * 3 + 1),
+            ]),
+            transforms.Compose([
+                transforms.HFlip(),
+                transforms.RescaleAbsolute((args.long_edge - 1) * 4 + 1),
+            ]),
+        ])
+        collate_fn = datasets.collate_multiscale_images_anns_meta
+    elif args.batch_size == 1:
         preprocess = transforms.RescaleAbsolute(args.long_edge)
     else:
         preprocess = transforms.Compose([
@@ -287,7 +334,7 @@ def main():
     )
     data_loader = torch.utils.data.DataLoader(
         data, batch_size=args.batch_size, pin_memory=args.pin_memory,
-        num_workers=args.loader_workers, collate_fn=datasets.collate_images_anns_meta)
+        num_workers=args.loader_workers, collate_fn=collate_fn)
 
     model, _ = nets.factory_from_args(args)
     model = model.to(args.device)
@@ -305,25 +352,28 @@ def main():
             break
 
         loop_start = time.time()
-        if len([a
-                for anns in anns_batch
-                for a in anns
-                if np.any(a['keypoints'][:, 2] > 0)]) < args.min_ann:
-            continue
 
-        batch = image_tensors_cpu.to(args.device, non_blocking=True)
-        fields_batch = processor.fields(batch)
-        if args.two_scale:
-            batch_half_scale = batch[:, :, ::2, ::2]
-            fields_batch_half_scale = processor.fields(batch_half_scale)
-        else:
-            fields_batch_half_scale = [None for _ in range(batch.shape[0])]
+        # detect multiscale
+        multiscale = isinstance(image_tensors_cpu, list)
 
-        for image_tensor_cpu, fields, fields_half_scale, anns, meta in zip(
-                image_tensors_cpu, fields_batch, fields_batch_half_scale, anns_batch, meta_batch):
+        # if len([a
+        #         for anns in anns_batch
+        #         for a in anns
+        #         if np.any(a['keypoints'][:, 2] > 0)]) < args.min_ann:
+        #     continue
+
+        fields_batch = processor.fields(image_tensors_cpu)
+
+        # loop over batch
+        if multiscale:
+            image_tensors_cpu = image_tensors_cpu[0]  # only look at first scale
+        for image_tensor_cpu, fields, anns, meta in zip(
+                image_tensors_cpu, fields_batch, anns_batch, meta_batch):
+            if multiscale:
+                anns = anns[0]
             eval_coco.from_fields(fields, meta,
                                   debug=args.debug, gt=anns, image_cpu=image_tensor_cpu,
-                                  fields_half_scale=fields_half_scale)
+                                  multiscale=multiscale)
     total_time = time.time() - total_start
 
     write_evaluations([eval_coco], args)

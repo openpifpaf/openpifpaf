@@ -28,6 +28,12 @@ class Processor(object):
             self.debug_visualizer.set_image(cpu_image, processed_image)
 
     def fields(self, image_batch):
+        # detect multi scale
+        if isinstance(image_batch, list):
+            fields_by_scale_batch = [self.fields(i) for i in image_batch]
+            fields_by_batch_scale = zip(*fields_by_scale_batch)
+            return fields_by_batch_scale
+
         start = time.time()
         if self.device is not None:
             image_batch = image_batch.to(self.device, non_blocking=True)
@@ -122,43 +128,39 @@ class Processor(object):
         self.log.debug('total processing time: %.3fs', time.time() - start)
         return annotations
 
-    def keypoint_sets_two_scales(self, fields, fields_half_scale):
+    def annotations_multiscale(self, fields_list, meta_list):
         start = time.time()
-        annotations = self.decode(fields)
-        annotations_half_scale = self.decode(fields_half_scale)
+        annotations_list = [self.decode(f) for f in fields_list]
 
         # scale to input size
         output_stride = self.model.io_scales()[-1]
-        for ann in annotations:
-            ann.data[:, 0:2] *= output_stride
-            if ann.joint_scales is not None:
-                ann.joint_scales *= output_stride
-        for ann in annotations_half_scale:
-            ann.data[:, 0:2] *= 2.0 * output_stride
-            if ann.joint_scales is not None:
-                ann.joint_scales *= 2.0 * output_stride
-        annotations += annotations_half_scale
+        w = meta_list[0]['scale'][0] * meta_list[0]['width_height'][0]
+        for annotations, meta in zip(annotations_list, meta_list):
+            scale_factor = meta['scale'][0] / meta_list[0]['scale'][0]
+            for ann in annotations:
+                ann.data[:, 0:2] *= output_stride / scale_factor
+                if ann.joint_scales is not None:
+                    ann.joint_scales *= output_stride / scale_factor
+
+                if meta['hflip']:
+                    ann.data[:, 0] = -ann.data[:, 0] - 1.0 + w
+                    if meta.get('horizontal_swap'):
+                        ann.data[:] = meta['horizontal_swap'](ann.data)
+
+        annotations = sum(annotations_list, [])
 
         # nms
         annotations = self.soft_nms(annotations)
-        if not annotations:
-            return np.zeros((1, 17, 3)), np.zeros((1,))
 
-        # threshold results
-        keypoint_sets, scores = [], []
+        # treshold
         for ann in annotations:
-            score = ann.score()
-            if score < self.instance_threshold:
-                continue
             kps = ann.data
             kps[kps[:, 2] < self.keypoint_threshold] = 0.0
+        annotations = [ann for ann in annotations
+                       if ann.score() >= self.instance_threshold]
+        annotations = sorted(annotations, key=lambda a: -a.score())
 
-            keypoint_sets.append(kps)
-            scores.append(score)
-        keypoint_sets = np.array(keypoint_sets)
-        scores = np.array(scores)
-
-        print('keypoint sets', keypoint_sets.shape[0],
-              [np.sum(kp[:, 2] > 0.1) for kp in keypoint_sets])
-        print('total processing time', time.time() - start)
-        return keypoint_sets, scores
+        self.log.debug('%d annotations: %s', len(annotations),
+                       [np.sum(ann.data[:, 2] > 0.1) for ann in annotations])
+        self.log.debug('total processing time: %.3fs', time.time() - start)
+        return annotations
