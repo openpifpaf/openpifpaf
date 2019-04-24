@@ -22,8 +22,8 @@ class Annotation(object):
 
     def score(self):
         v = self.data[:, 2]
-        # return 0.5 * np.max(v) + 0.5 * np.mean(v)
-        return np.mean(np.square(v))
+        return 0.1 * np.max(v) + 0.9 * np.mean(np.square(v))
+        # return np.mean(np.square(v))
 
     def frontier(self):
         """Frontier to complete annotation.
@@ -86,8 +86,8 @@ class AnnotationWithoutSkeleton(object):
 
     def score(self):
         v = self.data[:, 2]
-        # return 0.5 * np.max(v) + 0.5 * np.mean(v)
-        return np.mean(np.square(v))
+        return 0.1 * np.max(v) + 0.9 * np.mean(np.square(v))
+        # return np.mean(np.square(v))
 
     def scale(self):
         m = self.data[:, 2] > 0.5
