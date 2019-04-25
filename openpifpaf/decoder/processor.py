@@ -134,6 +134,7 @@ class Processor(object):
             ps = pstats.Stats(self.profile, stream=iostream)
             ps = ps.sort_stats('tottime')
             ps.print_stats()
+            ps.dump_stats('decoder.prof')
             print(iostream.getvalue())
 
         self.log.debug('%d annotations: %s', len(annotations),
