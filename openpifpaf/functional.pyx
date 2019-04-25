@@ -126,3 +126,27 @@ def paf_mask_center(double[:, :] paf_field, double x, double y, double sigma=1.0
         )
 
     return mask_np != 0
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def paf_center(double[:, :] paf_field, double x, double y, double sigma=1.0):
+    result_np = np.empty_like(paf_field)
+    cdef double[:, :] result = result_np
+    cdef unsigned int result_i = 0
+    cdef bint take
+
+    for i in range(paf_field.shape[1]):
+        take = (
+            paf_field[1, i] > x - sigma * paf_field[3, i] and
+            paf_field[1, i] < x + sigma * paf_field[3, i] and
+            paf_field[2, i] > y - sigma * paf_field[3, i] and
+            paf_field[2, i] < y + sigma * paf_field[3, i]
+        )
+        if not take:
+            continue
+
+        result[:, result_i] = paf_field[:, i]
+        result_i += 1
+
+    return result_np[:, :result_i]

@@ -14,7 +14,7 @@ from ..data import KINEMATIC_TREE_SKELETON, COCO_PERSON_SKELETON, DENSER_COCO_PE
 
 # pylint: disable=import-error
 from ..functional import (scalar_square_add_constant, scalar_square_add_gauss,
-                          weiszfeld_nd, paf_mask_center)
+                          weiszfeld_nd, paf_center)
 
 
 class PifPaf(Decoder):
@@ -318,14 +318,13 @@ class PifPafGenerator(object):
         assert paf_field.shape[0] == 7
 
         # source value
-        s_mask = paf_mask_center(paf_field, xy[0], xy[1], sigma=2.0)
-        if not np.any(s_mask):
+        paf_field = paf_center(paf_field, xy[0], xy[1], sigma=2.0)
+        if paf_field.shape[1] == 0:
             return 0, 0, 0
-        paf_field = paf_field[:, s_mask]
 
         # source distance
         d = np.linalg.norm(np.expand_dims(xy, 1) - paf_field[1:3], axis=0)
-        b_source = np.clip(paf_field[3] * 3.0, 0.5, 100.0)
+        b_source = paf_field[3] * 3.0
         # b_target = paf_field[6]
 
         # combined value and source distance
