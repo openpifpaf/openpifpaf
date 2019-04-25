@@ -28,7 +28,6 @@ class PifPaf(Decoder):
                  head_names=None,
                  head_indices=None,
                  skeleton=None,
-                 profile=None,
                  debug_visualizer=None,
                  **kwargs):
         self.log = logging.getLogger(self.__class__.__name__)
@@ -56,7 +55,6 @@ class PifPaf(Decoder):
 
         self.stride = stride
         self.hr_scale = self.stride
-        self.profile = profile
         self.seed_threshold = seed_threshold
         self.debug_visualizer = debug_visualizer
         self.force_complete = self.default_force_complete
@@ -100,8 +98,6 @@ class PifPaf(Decoder):
 
     def __call__(self, fields):
         start = time.time()
-        if self.profile is not None:
-            self.profile.enable()
 
         pif, paf = fields[self.head_indices[0]], fields[self.head_indices[1]]
         if self.debug_visualizer:
@@ -126,8 +122,6 @@ class PifPaf(Decoder):
             annotations = gen.complete_annotations(annotations)
 
         print('annotations', len(annotations), time.time() - start)
-        if self.profile is not None:
-            self.profile.disable()
         return annotations
 
 

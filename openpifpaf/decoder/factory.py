@@ -1,4 +1,3 @@
-import cProfile
 import logging
 
 from .decoder import Decoder
@@ -50,13 +49,13 @@ def factory_from_args(args, model, device=None):
 
     decode = factory_decode(model,
                             seed_threshold=args.seed_threshold,
-                            profile_decoder=args.profile_decoder,
                             debug_visualizer=debug_visualizer)
 
     return Processor(model, decode,
                      instance_threshold=args.instance_threshold,
                      keypoint_threshold=args.keypoint_threshold,
                      debug_visualizer=debug_visualizer,
+                     profile=args.profile_decoder,
                      device=device)
 
 
@@ -67,9 +66,6 @@ def factory_decode(model, *, profile=None, **kwargs):
     """
     headnames = tuple(h.shortname for h in model.head_nets)
 
-    if profile is True:
-        profile = cProfile.Profile()
-
     for decoder in Decoder.__subclasses__():
         logging.debug('checking whether decoder %s matches %s',
                       decoder.__name__, headnames)
@@ -78,7 +74,6 @@ def factory_decode(model, *, profile=None, **kwargs):
         logging.info('selected decoder: %s', decoder.__name__)
         return decoder(model.io_scales()[-1],
                        head_names=headnames,
-                       profile=profile,
                        **kwargs)
 
     raise Exception('unknown head nets {} for decoder'.format(headnames))
