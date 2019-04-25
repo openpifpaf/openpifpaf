@@ -221,7 +221,7 @@ Run predict with the `--profile` option:
 
 ```sh
 python3 -m openpifpaf.predict \
-  --checkpoint outputs/resnet101block5-pifs-pafs-edge401-l1-190131-083451.pkl \
+  --checkpoint outputs/resnet152block5-pif-paf-edge401-190412-121848.pkl \
   docs/coco/000000081988.jpg --show --profile --debug
 ```
 
