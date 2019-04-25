@@ -1,11 +1,9 @@
 """Evaluation on COCO data."""
 
 import argparse
-import io
 import json
 import logging
 import os
-import pstats
 import time
 import zipfile
 
@@ -328,13 +326,6 @@ def main():
 
     write_evaluations([eval_coco], args)
     print('total processing time = {}s'.format(total_time))
-
-    if processor.decode.profile is not None:
-        iostream = io.StringIO()
-        ps = pstats.Stats(processor.decode.profile, stream=iostream)
-        ps = ps.sort_stats('tottime')
-        ps.print_stats()
-        print(iostream.getvalue())
 
 
 if __name__ == '__main__':
