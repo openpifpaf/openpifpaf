@@ -14,7 +14,7 @@ from ..data import KINEMATIC_TREE_SKELETON, COCO_PERSON_SKELETON, DENSER_COCO_PE
 
 # pylint: disable=import-error
 from ..functional import (scalar_square_add_constant, scalar_square_add_gauss,
-                          weiszfeld_nd, paf_mask_center)
+                          weiszfeld_nd, paf_center)
 
 
 class PifPaf(Decoder):
@@ -166,8 +166,8 @@ class PifPafGenerator(object):
         targets = np.zeros((self.pif.shape[0],
                             int(self.pif.shape[2] * self.stride),
                             int(self.pif.shape[3] * self.stride)))
-        scales = np.zeros_like(targets)
-        ns = np.zeros_like(targets)
+        scales = np.zeros(targets.shape)
+        ns = np.zeros(targets.shape)
         for t, p, scale, n in zip(targets, self.pif, scales, ns):
             v, x, y, s = p[:, p[0] > v_th]
             x = x * self.stride
@@ -180,7 +180,6 @@ class PifPafGenerator(object):
                 scalar_square_add_constant(scale, x, y, s, s*v)
                 scalar_square_add_constant(n, x, y, s, v)
 
-        targets = np.minimum(1.0, targets)
         if core_only:
             print('target_intensities', time.time() - start)
             return targets
@@ -244,7 +243,7 @@ class PifPafGenerator(object):
 
         seeds = self._pifhr_seeds()
 
-        occupied = np.zeros_like(self._pifhr_scales)
+        occupied = np.zeros(self._pifhr_scales.shape)
         annotations = []
         for v, f, x, y in seeds:
             i = np.clip(int(round(x * self.stride)), 0, occupied.shape[2] - 1)
@@ -285,7 +284,7 @@ class PifPafGenerator(object):
             mask = f > self.seed_threshold
             candidates = np.moveaxis(candidates[:, mask], 0, -1)
 
-            occupied = np.zeros_like(s)
+            occupied = np.zeros(s.shape)
             for c in sorted(candidates, key=lambda c: c[2], reverse=True):
                 i, j = int(c[0]), int(c[1])
                 if occupied[j, i]:
@@ -318,14 +317,13 @@ class PifPafGenerator(object):
         assert paf_field.shape[0] == 7
 
         # source value
-        s_mask = paf_mask_center(paf_field, xy[0], xy[1], sigma=2.0)
-        if not np.any(s_mask):
+        paf_field = paf_center(paf_field, xy[0], xy[1], sigma=2.0)
+        if paf_field.shape[1] == 0:
             return 0, 0, 0
-        paf_field = paf_field[:, s_mask]
 
         # source distance
         d = np.linalg.norm(np.expand_dims(xy, 1) - paf_field[1:3], axis=0)
-        b_source = np.clip(paf_field[3] * 3.0, 0.5, 100.0)
+        b_source = paf_field[3] * 3.0
         # b_target = paf_field[6]
 
         # combined value and source distance

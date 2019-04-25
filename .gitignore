@@ -34,3 +34,5 @@ data-mscoco
 *.zip
 outputs/
 shared/
+decoder.prof
+decoder_flame.svg
