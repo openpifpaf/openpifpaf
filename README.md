@@ -215,4 +215,21 @@ total processing time = 1198.353811264038s
 ```
 
 
+# Profiling Decoder
+
+Run predict with the `--profile` option:
+
+```sh
+python3 -m openpifpaf.predict \
+  --checkpoint outputs/resnet101block5-pifs-pafs-edge401-l1-190131-083451.pkl \
+  docs/coco/000000081988.jpg --show --profile --debug
+```
+
+This will write a stats table to the terminal and also produce a `decoder.prof` file.
+You can use flameprof (`pip install flameprof`) to get a flame graph with
+`flameprof decoder.prof > docs/decoder_flame.svg`:
+
+![flame graph for decoder](docs/decoder_flame.svg)
+
+
 [CC-BY-2.0]: https://creativecommons.org/licenses/by/2.0/
