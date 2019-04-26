@@ -50,6 +50,8 @@ For more demos, see the
 the `openpifpaf.webcam` command.
 There is also a [Google Colab demo](https://colab.research.google.com/drive/1H8T4ZE6wc0A9xJE4oGnhgHpUpAH5HL7W).
 
+<img src="docs/wave3.gif" height=250 alt="example image" />
+
 
 # Install
 
