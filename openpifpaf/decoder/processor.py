@@ -137,8 +137,8 @@ class Processor(object):
             ps.dump_stats('decoder.prof')
             print(iostream.getvalue())
 
-        self.log.debug('%d annotations: %s', len(annotations),
-                       [np.sum(ann.data[:, 2] > 0.1) for ann in annotations])
+        self.log.info('%d annotations: %s', len(annotations),
+                      [np.sum(ann.data[:, 2] > 0.1) for ann in annotations])
         self.log.debug('total processing time: %.3fs', time.time() - start)
         return annotations
 

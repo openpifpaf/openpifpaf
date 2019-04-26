@@ -41,7 +41,7 @@ Created with:
 
 ```sh
 python3 -m openpifpaf.predict \
-  --checkpoint outputs/resnet101block5-pifs-pafs-edge401-l1-190131-083451.pkl \
+  --checkpoint outputs/resnet101block5-pif-paf-edge401-190412-151013.pkl.log \
   docs/coco/000000081988.jpg --show
 ```
 
@@ -77,8 +77,8 @@ pip3 install --editable '.[train,test]'
 
 The last command installs the Python package in the current directory
 (signified by the dot) with the optional dependencies needed for training and
-testing. The difference between release _v0.4.0_ and the master branch can be seen on
-[GitHub compare](https://github.com/vita-epfl/openpifpaf/compare/v0.4.0...master).
+testing. The difference between release _v0.5.0_ and the master branch can be seen on
+[GitHub compare](https://github.com/vita-epfl/openpifpaf/compare/v0.5.0...master).
 
 
 # Interfaces
@@ -129,9 +129,9 @@ Visualize logs:
 
 ```sh
 python3 -m pifpaf.logs \
-  outputs/resnet50-pif-paf-rsmooth0.5-181209-192001.pkl.log \
-  outputs/resnet101-pif-paf-rsmooth0.5-181213-224234.pkl.log \
-  outputs/resnet152-pif-paf-l1-181230-201001.pkl.log
+  outputs/resnet50block5-pif-paf-edge401-190424-122009.pkl.log \
+  outputs/resnet101block5-pif-paf-edge401-190412-151013.pkl.log \
+  outputs/resnet152block5-pif-paf-edge401-190412-121848.pkl.log
 ```
 
 

@@ -19,7 +19,7 @@ def cli():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     nets.cli(parser)
-    decoder.cli(parser, force_complete_pose=False, instance_threshold=0.05)
+    decoder.cli(parser, force_complete_pose=False, instance_threshold=0.2)
     parser.add_argument('images', nargs='*',
                         help='input images')
     parser.add_argument('--glob',
