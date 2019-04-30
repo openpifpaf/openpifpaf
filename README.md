@@ -41,7 +41,7 @@ Created with:
 
 ```sh
 python3 -m openpifpaf.predict \
-  --checkpoint outputs/resnet101block5-pif-paf-edge401-190412-151013.pkl.log \
+  --checkpoint outputs/resnet101block5-pif-paf-edge401-190412-151013.pkl \
   docs/coco/000000081988.jpg --show
 ```
 
