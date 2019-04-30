@@ -67,7 +67,7 @@ class Processor(object):
             return annotations
 
         occupied = np.zeros((
-            17,
+            len(annotations[0].data),
             int(max(np.max(ann.data[:, 1]) for ann in annotations) + 1),
             int(max(np.max(ann.data[:, 0]) for ann in annotations) + 1),
         ))
@@ -77,6 +77,8 @@ class Processor(object):
             joint_scales = (ann.joint_scales
                             if ann.joint_scales is not None
                             else np.ones((ann.data.shape[0]),) * 4.0)
+
+            assert len(occupied) == len(ann.data)
             for xyv, occ, joint_s in zip(ann.data, occupied, joint_scales):
                 v = xyv[2]
                 if v == 0.0:
