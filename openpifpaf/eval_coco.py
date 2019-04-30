@@ -257,18 +257,7 @@ def write_evaluations(eval_cocos, args):
         print('Decoder {}: decoder time = {}s'.format(i, eval_coco.decoder_time))
 
 
-def main():
-    args, image_dir, annotation_file = cli()
-
-    # skip existing?
-    eval_output_filename = '{}.evalcoco-edge{}-samples{}-decoder{}.txt'.format(
-        args.checkpoint, args.long_edge, args.n, 0)
-    if args.skip_existing:
-        if os.path.exists(eval_output_filename):
-            print('Output file {} exists already. Exiting.'.format(eval_output_filename))
-            return
-        print('Processing: {}'.format(args.checkpoint))
-
+def preprocess_factory_from_args(args):
     collate_fn = datasets.collate_images_anns_meta
     if args.two_scale:
         preprocess = transforms.MultiScale([
@@ -323,6 +312,23 @@ def main():
             transforms.RescaleAbsolute(args.long_edge),
             transforms.CenterPad(args.long_edge),
         ])
+
+    return preprocess, collate_fn
+
+
+def main():
+    args, image_dir, annotation_file = cli()
+
+    # skip existing?
+    eval_output_filename = '{}.evalcoco-edge{}-samples{}-decoder{}.txt'.format(
+        args.checkpoint, args.long_edge, args.n, 0)
+    if args.skip_existing:
+        if os.path.exists(eval_output_filename):
+            print('Output file {} exists already. Exiting.'.format(eval_output_filename))
+            return
+        print('Processing: {}'.format(args.checkpoint))
+
+    preprocess, collate_fn = preprocess_factory_from_args(args)
     data = datasets.CocoKeypoints(
         root=image_dir,
         annFile=annotation_file,
