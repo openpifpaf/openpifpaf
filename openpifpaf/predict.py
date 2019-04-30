@@ -3,6 +3,7 @@
 import argparse
 import glob
 import json
+import logging
 import os
 
 import numpy as np
@@ -18,7 +19,7 @@ def cli():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     nets.cli(parser)
-    decoder.cli(parser, force_complete_pose=False, instance_threshold=0.05)
+    decoder.cli(parser, force_complete_pose=False, instance_threshold=0.2)
     parser.add_argument('images', nargs='*',
                         help='input images')
     parser.add_argument('--glob',
@@ -38,7 +39,19 @@ def cli():
                         help='figure width')
     parser.add_argument('--dpi-factor', default=1.0, type=float,
                         help='increase dpi of output image by this factor')
+    group = parser.add_argument_group('logging')
+    group.add_argument('-q', '--quiet', default=False, action='store_true',
+                       help='only show warning messages or above')
+    group.add_argument('--debug', default=False, action='store_true',
+                       help='print debug messages')
     args = parser.parse_args()
+
+    log_level = logging.INFO
+    if args.quiet:
+        log_level = logging.WARNING
+    if args.debug:
+        log_level = logging.DEBUG
+    logging.basicConfig(level=log_level)
 
     # glob
     if args.glob:
@@ -93,7 +106,7 @@ def main():
             else:
                 file_name = os.path.basename(image_path)
                 output_path = os.path.join(args.output_directory, file_name)
-            print('image', image_i, image_path, output_path)
+            logging.info('image %d: %s to %s', image_i, image_path, output_path)
 
             processor.set_cpu_image(image, processed_image_cpu)
             keypoint_sets, scores = processor.keypoint_sets(fields)

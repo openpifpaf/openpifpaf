@@ -156,7 +156,7 @@ class KeypointPainter(object):
     @staticmethod
     def _draw_scales(ax, xs, ys, vs, color, scales):
         for x, y, v, scale in zip(xs, ys, vs, scales):
-            if v < 0.1:
+            if v == 0.0:
                 continue
             ax.add_patch(
                 matplotlib.patches.Rectangle(

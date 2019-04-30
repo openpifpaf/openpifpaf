@@ -1,6 +1,9 @@
 """The Processor runs the model to obtain fields and passes them to a decoder."""
 
+import cProfile
+import io
 import logging
+import pstats
 import time
 
 import numpy as np
@@ -13,14 +16,19 @@ class Processor(object):
     def __init__(self, model, decode, *,
                  keypoint_threshold=0.0, instance_threshold=0.0,
                  debug_visualizer=None,
+                 profile=None,
                  device=None):
         self.log = logging.getLogger(self.__class__.__name__)
+
+        if profile is True:
+            profile = cProfile.Profile()
 
         self.model = model
         self.decode = decode
         self.keypoint_threshold = keypoint_threshold
         self.instance_threshold = instance_threshold
         self.debug_visualizer = debug_visualizer
+        self.profile = profile
         self.device = device
 
     def set_cpu_image(self, cpu_image, processed_image):
@@ -103,6 +111,9 @@ class Processor(object):
 
     def annotations(self, fields):
         start = time.time()
+        if self.profile is not None:
+            self.profile.enable()
+
         annotations = self.decode(fields)
 
         # scale to input size
@@ -123,8 +134,17 @@ class Processor(object):
                        if ann.score() >= self.instance_threshold]
         annotations = sorted(annotations, key=lambda a: -a.score())
 
-        self.log.debug('%d annotations: %s', len(annotations),
-                       [np.sum(ann.data[:, 2] > 0.1) for ann in annotations])
+        if self.profile is not None:
+            self.profile.disable()
+            iostream = io.StringIO()
+            ps = pstats.Stats(self.profile, stream=iostream)
+            ps = ps.sort_stats('tottime')
+            ps.print_stats()
+            ps.dump_stats('decoder.prof')
+            print(iostream.getvalue())
+
+        self.log.info('%d annotations: %s', len(annotations),
+                      [np.sum(ann.data[:, 2] > 0.1) for ann in annotations])
         self.log.debug('total processing time: %.3fs', time.time() - start)
         return annotations
 

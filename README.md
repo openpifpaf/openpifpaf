@@ -41,7 +41,7 @@ Created with:
 
 ```sh
 python3 -m openpifpaf.predict \
-  --checkpoint outputs/resnet101block5-pifs-pafs-edge401-l1-190131-083451.pkl \
+  --checkpoint outputs/resnet101block5-pif-paf-edge401-190412-151013.pkl.log \
   docs/coco/000000081988.jpg --show
 ```
 
@@ -49,6 +49,8 @@ For more demos, see the
 [openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo) project and
 the `openpifpaf.webcam` command.
 There is also a [Google Colab demo](https://colab.research.google.com/drive/1H8T4ZE6wc0A9xJE4oGnhgHpUpAH5HL7W).
+
+<img src="docs/wave3.gif" height=250 alt="example image" />
 
 
 # Install
@@ -77,8 +79,8 @@ pip3 install --editable '.[train,test]'
 
 The last command installs the Python package in the current directory
 (signified by the dot) with the optional dependencies needed for training and
-testing. The difference between release _v0.4.0_ and the master branch can be seen on
-[GitHub compare](https://github.com/vita-epfl/openpifpaf/compare/v0.4.0...master).
+testing. The difference between release _v0.5.0_ and the master branch can be seen on
+[GitHub compare](https://github.com/vita-epfl/openpifpaf/compare/v0.5.0...master).
 
 
 # Interfaces
@@ -129,9 +131,9 @@ Visualize logs:
 
 ```sh
 python3 -m pifpaf.logs \
-  outputs/resnet50-pif-paf-rsmooth0.5-181209-192001.pkl.log \
-  outputs/resnet101-pif-paf-rsmooth0.5-181213-224234.pkl.log \
-  outputs/resnet152-pif-paf-l1-181230-201001.pkl.log
+  outputs/resnet50block5-pif-paf-edge401-190424-122009.pkl.log \
+  outputs/resnet101block5-pif-paf-edge401-190412-151013.pkl.log \
+  outputs/resnet152block5-pif-paf-edge401-190412-121848.pkl.log
 ```
 
 
@@ -213,6 +215,23 @@ This result was produced with `python -m openpifpaf.eval_coco --checkpoint outpu
 Decoder 0: decoder time = 875.4406125545502s
 total processing time = 1198.353811264038s
 ```
+
+
+# Profiling Decoder
+
+Run predict with the `--profile` option:
+
+```sh
+python3 -m openpifpaf.predict \
+  --checkpoint outputs/resnet152block5-pif-paf-edge401-190412-121848.pkl \
+  docs/coco/000000081988.jpg --show --profile --debug
+```
+
+This will write a stats table to the terminal and also produce a `decoder.prof` file.
+You can use flameprof (`pip install flameprof`) to get a flame graph with
+`flameprof decoder.prof > docs/decoder_flame.svg`:
+
+![flame graph for decoder](docs/decoder_flame.svg)
 
 
 [CC-BY-2.0]: https://creativecommons.org/licenses/by/2.0/

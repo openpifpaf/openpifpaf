@@ -57,8 +57,6 @@ def cli():
                         help='update batch norm running statistics')
     parser.add_argument('--square-edge', default=401, type=int,
                         help='square edge of input images')
-    parser.add_argument('--crop-fraction', default=0.5, type=float,
-                        help='crop fraction versus rescale')
     parser.add_argument('--lambdas', default=[30.0, 2.0, 2.0, 50.0, 3.0, 3.0],
                         type=float, nargs='+',
                         help='prefactor for head losses')

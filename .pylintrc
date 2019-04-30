@@ -14,6 +14,4 @@ generated-members=numpy.*,torch.*,cv2.*,openpifpaf.functional.*
 ignored-modules=openpifpaf.functional,pycocotools
 
 
-disable=E1102,missing-docstring,useless-object-inheritance,duplicate-code,too-many-arguments,too-many-instance-attributes,too-many-locals,too-few-public-methods,unsupported-assignment-operation,no-member,invalid-sequence-index
-# temp for pylint bug with numpy zeros_like(https://github.com/PyCQA/pylint/issues/2721):
-# unsupported-assignment-operation,no-member,invalid-sequence-index
+disable=E1102,missing-docstring,useless-object-inheritance,duplicate-code,too-many-arguments,too-many-instance-attributes,too-many-locals,too-few-public-methods

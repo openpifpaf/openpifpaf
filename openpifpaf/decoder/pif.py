@@ -96,8 +96,8 @@ class PifGenerator(object):
         targets = np.zeros((self.pif.shape[0],
                             int(self.pif.shape[2] * self.stride),
                             int(self.pif.shape[3] * self.stride)))
-        scales = np.zeros_like(targets)
-        ns = np.zeros_like(targets)
+        scales = np.zeros(targets.shape)
+        ns = np.zeros(targets.shape)
         for t, p, scale, n in zip(targets, self.pif, scales, ns):
             v, x, y, s = p[:, p[0] > v_th]
             x = x * self.stride
@@ -137,7 +137,7 @@ class PifGenerator(object):
             mask = f > self.seed_threshold
             candidates = np.moveaxis(candidates[:, mask], 0, -1)
 
-            occupied = np.zeros_like(s)
+            occupied = np.zeros(s.shape)
             for c in sorted(candidates, key=lambda c: c[2], reverse=True):
                 i, j = int(c[0]), int(c[1])
                 if occupied[j, i]:

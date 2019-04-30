@@ -183,3 +183,66 @@ total processing time = 1315.8536067008972s
  Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.664
  Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.800
 ```
+
+
+# v0.5.0
+
+## High Resolution
+
+`python -m openpifpaf.eval_coco --checkpoint outputs/resnet50block5-pif-paf-edge401-190424-122009.pkl --long-edge=641 --loader-workers=8`:
+```
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.638
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.858
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.700
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.612
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.679
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.694
+ Average Recall     (AR) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.889
+ Average Recall     (AR) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.750
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.649
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.757
+```
+
+`python -m openpifpaf.eval_coco --checkpoint outputs/resnet101block5-pif-paf-edge401-190412-151013.pkl --long-edge=641 --loader-workers=8`:
+```
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.666
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.871
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.730
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.629
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.723
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.714
+ Average Recall     (AR) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.896
+ Average Recall     (AR) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.771
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.663
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.787
+```
+
+`python -m openpifpaf.eval_coco --checkpoint outputs/resnet152block5-pif-paf-edge401-190412-121848.pkl --long-edge=641 --loader-workers=8`:
+```
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.682
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.877
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.746
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.643
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.740
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.728
+ Average Recall     (AR) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.900
+ Average Recall     (AR) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.783
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.678
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.798
+```
+
+### test-dev
+
+`python -m openpifpaf.eval_coco --checkpoint outputs/resnet152block5-pif-paf-edge401-190412-121848.pkl --long-edge=641 --loader-workers=8 --dataset=test-dev --write-predictions --all-images`:
+```
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.670
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.883
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.739
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.632
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.726
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.725
+ Average Recall     (AR) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.911
+ Average Recall     (AR) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.785
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.671
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.798
+```

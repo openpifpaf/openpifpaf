@@ -5,7 +5,7 @@ from .data import COCO_KEYPOINTS, HFLIP
 
 
 def horizontal_swap_coco(keypoints):
-    target = np.zeros_like(keypoints)
+    target = np.zeros(keypoints.shape)
 
     for source_i, xyv in enumerate(keypoints):
         source_name = COCO_KEYPOINTS[source_i]
