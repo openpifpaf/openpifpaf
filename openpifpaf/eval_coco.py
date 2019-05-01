@@ -381,6 +381,13 @@ def main():
         assert len(image_tensors_cpu) == len(meta_batch)
         for image_tensor_cpu, fields, anns, meta in zip(
                 image_tensors_cpu, fields_batch, anns_batch, meta_batch):
+            if args.debug and multiscale:
+                for scale_i, (f, m) in enumerate(zip(fields, meta)):
+                    print('scale', scale_i)
+                    eval_coco.from_fields(f, m,
+                                          debug=args.debug, gt=anns, image_cpu=image_tensor_cpu,
+                                          multiscale=False)
+
             eval_coco.from_fields(fields, meta,
                                   debug=args.debug, gt=anns, image_cpu=image_tensor_cpu,
                                   multiscale=multiscale)
