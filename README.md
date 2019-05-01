@@ -34,16 +34,9 @@
 
 ![example image with overlaid pose skeleton](docs/coco/000000081988.jpg.skeleton.png)
 
-Image credit: "[Learning to surf](https://www.flickr.com/photos/fotologic/6038911779/in/photostream/)" by fotologic which is licensed under [CC-BY-2.0].
-
-
+Image credit: "[Learning to surf](https://www.flickr.com/photos/fotologic/6038911779/in/photostream/)" by fotologic which is licensed under [CC-BY-2.0].<br />
 Created with:
-
-```sh
-python3 -m openpifpaf.predict \
-  --checkpoint outputs/resnet101block5-pif-paf-edge401-190412-151013.pkl \
-  docs/coco/000000081988.jpg --show
-```
+`python3 -m openpifpaf.predict --show docs/coco/000000081988.jpg`
 
 For more demos, see the
 [openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo) project and
