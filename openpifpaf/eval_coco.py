@@ -264,7 +264,7 @@ def preprocess_factory_from_args(args):
             transforms.Normalize(),
             transforms.Compose([
                 transforms.HFlip(),
-                transforms.RescaleAbsolute(args.long_edge),
+                transforms.RescaleAbsolute(args.long_edge, resample=PIL.Image.LANCZOS),
             ]),
         ])
         collate_fn = datasets.collate_multiscale_images_anns_meta
