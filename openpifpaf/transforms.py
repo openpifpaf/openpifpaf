@@ -74,7 +74,7 @@ class Preprocess(metaclass=ABCMeta):
             keypoint_sets[:, :, 0] = -keypoint_sets[:, :, 0] - 1.0 + w
             for keypoints in keypoint_sets:
                 if meta.get('horizontal_swap'):
-                    keypoints[:] = meta.horizontal_swap(keypoints)
+                    keypoints[:] = meta['horizontal_swap'](keypoints)
 
         return keypoint_sets
 
