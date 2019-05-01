@@ -111,19 +111,15 @@ class Processor(object):
 
         return keypoint_sets, scores
 
-    def annotations(self, fields):
+    def annotations(self, fields, meta_list=None):
         start = time.time()
         if self.profile is not None:
             self.profile.enable()
 
-        annotations = self.decode(fields)
-
-        # scale to input size
-        output_stride = self.model.io_scales()[-1]
-        for ann in annotations:
-            ann.data[:, 0:2] *= output_stride
-            if ann.joint_scales is not None:
-                ann.joint_scales *= output_stride
+        if isinstance(meta_list, (list, tuple)):
+            annotations = self.annotations_multiscale(fields, meta_list)
+        else:
+            annotations = self.annotations_singlescale(fields)
 
         # nms
         annotations = self.soft_nms(annotations)
@@ -150,11 +146,21 @@ class Processor(object):
         self.log.debug('total processing time: %.3fs', time.time() - start)
         return annotations
 
-    def annotations_multiscale(self, fields_list, meta_list):
-        start = time.time()
-        if self.profile is not None:
-            self.profile.enable()
+    def annotations_singlescale(self, fields):
+        self.log.debug('singlescale')
+        annotations = self.decode(fields)
 
+        # scale to input size
+        output_stride = self.model.io_scales()[-1]
+        for ann in annotations:
+            ann.data[:, 0:2] *= output_stride
+            if ann.joint_scales is not None:
+                ann.joint_scales *= output_stride
+
+        return annotations
+
+    def annotations_multiscale(self, fields_list, meta_list):
+        self.log.debug('multiscale')
         annotations_list = [self.decode(f) for f in fields_list]
 
         # scale to input size
@@ -172,29 +178,4 @@ class Processor(object):
                     if meta.get('horizontal_swap'):
                         ann.data[:] = meta['horizontal_swap'](ann.data)
 
-        annotations = sum(annotations_list, [])
-
-        # nms
-        annotations = self.soft_nms(annotations)
-
-        # treshold
-        for ann in annotations:
-            kps = ann.data
-            kps[kps[:, 2] < self.keypoint_threshold] = 0.0
-        annotations = [ann for ann in annotations
-                       if ann.score() >= self.instance_threshold]
-        annotations = sorted(annotations, key=lambda a: -a.score())
-
-        if self.profile is not None:
-            self.profile.disable()
-            iostream = io.StringIO()
-            ps = pstats.Stats(self.profile, stream=iostream)
-            ps = ps.sort_stats('tottime')
-            ps.print_stats()
-            ps.dump_stats('decoder.prof')
-            print(iostream.getvalue())
-
-        self.log.info('%d annotations: %s', len(annotations),
-                      [np.sum(ann.data[:, 2] > 0.1) for ann in annotations])
-        self.log.debug('total processing time: %.3fs', time.time() - start)
-        return annotations
+        return sum(annotations_list, [])

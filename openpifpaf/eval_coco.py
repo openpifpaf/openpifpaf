@@ -98,19 +98,16 @@ class EvalCoco(object):
 
     def from_fields(self, fields, meta,
                     debug=False, gt=None, image_cpu=None, verbose=False,
-                    category_id=1, multiscale=False):
+                    category_id=1):
         if image_cpu is not None:
             self.processor.set_cpu_image(None, image_cpu)
 
         start = time.time()
-        if multiscale:
-            annotations = self.processor.annotations_multiscale(fields, meta)
-        else:
-            annotations = self.processor.annotations(fields)
+        annotations = self.processor.annotations(fields, meta)
         annotations = annotations[:20]
         self.decoder_time += time.time() - start
 
-        if multiscale:
+        if isinstance(meta, (list, tuple)):
             meta = meta[0]
 
         image_id = int(meta['image_id'])
@@ -264,7 +261,7 @@ def preprocess_factory_from_args(args):
             transforms.Normalize(),
             transforms.Compose([
                 transforms.HFlip(),
-                transforms.RescaleAbsolute(args.long_edge, resample=PIL.Image.LANCZOS),
+                transforms.RescaleAbsolute(args.long_edge),
             ]),
         ])
         collate_fn = datasets.collate_multiscale_images_anns_meta
@@ -273,7 +270,7 @@ def preprocess_factory_from_args(args):
             transforms.Normalize(),
             transforms.Compose([
                 transforms.HFlip(),
-                transforms.RescaleRelative(2.0, resample=PIL.Image.LANCZOS),
+                transforms.RescaleRelative(2.0),
             ]),
             transforms.Compose([
                 transforms.HFlip(),
@@ -385,12 +382,10 @@ def main():
                 for scale_i, (f, m) in enumerate(zip(fields, meta)):
                     print('scale', scale_i)
                     eval_coco.from_fields(f, m,
-                                          debug=args.debug, gt=anns, image_cpu=image_tensor_cpu,
-                                          multiscale=False)
+                                          debug=args.debug, gt=anns, image_cpu=image_tensor_cpu)
 
             eval_coco.from_fields(fields, meta,
-                                  debug=args.debug, gt=anns, image_cpu=image_tensor_cpu,
-                                  multiscale=multiscale)
+                                  debug=args.debug, gt=anns, image_cpu=image_tensor_cpu)
     total_time = time.time() - total_start
 
     write_evaluations([eval_coco], args)
