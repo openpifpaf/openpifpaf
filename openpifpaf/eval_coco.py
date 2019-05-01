@@ -8,7 +8,6 @@ import time
 import zipfile
 
 import numpy as np
-import PIL
 import torch
 
 import pycocotools.coco
