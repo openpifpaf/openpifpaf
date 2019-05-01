@@ -20,8 +20,11 @@ def horizontal_swap_coco(keypoints):
 
 
 def mask_valid_image(image, valid_area):
-    image[:, :int(max(0, valid_area[1])), :] = 0
-    image[:, :, :int(max(0, valid_area[0]))] = 0
+    if valid_area[1] >= 1.0:
+        image[:, :int(valid_area[1]), :] = 0
+    if valid_area[0] >= 1.0:
+        image[:, :, :int(valid_area[0])] = 0
+
     max_i = int(math.ceil(valid_area[1] + valid_area[3]))
     max_j = int(math.ceil(valid_area[0] + valid_area[2]))
     if max_i < image.shape[1]:
