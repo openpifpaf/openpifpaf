@@ -359,22 +359,28 @@ def main():
 
         # detect multiscale
         multiscale = isinstance(image_tensors_cpu, list)
+        if multiscale:
+            # only look at first scale
+            anns_batch = anns_batch[0]
 
-        # if len([a
-        #         for anns in anns_batch
-        #         for a in anns
-        #         if np.any(a['keypoints'][:, 2] > 0)]) < args.min_ann:
-        #     continue
+        if len([a
+                for anns in anns_batch
+                for a in anns
+                if np.any(a['keypoints'][:, 2] > 0)]) < args.min_ann:
+            continue
 
         fields_batch = processor.fields(image_tensors_cpu)
 
-        # loop over batch
         if multiscale:
-            image_tensors_cpu = image_tensors_cpu[0]  # only look at first scale
+            # only look at first scale
+            image_tensors_cpu = image_tensors_cpu[0]
+
+        # loop over batch
+        assert len(image_tensors_cpu) == len(fields_batch)
+        assert len(image_tensors_cpu) == len(anns_batch)
+        assert len(image_tensors_cpu) == len(meta_batch)
         for image_tensor_cpu, fields, anns, meta in zip(
                 image_tensors_cpu, fields_batch, anns_batch, meta_batch):
-            if multiscale:
-                anns = anns[0]
             eval_coco.from_fields(fields, meta,
                                   debug=args.debug, gt=anns, image_cpu=image_tensor_cpu,
                                   multiscale=multiscale)

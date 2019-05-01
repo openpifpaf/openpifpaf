@@ -39,7 +39,7 @@ class Processor(object):
         # detect multi scale
         if isinstance(image_batch, list):
             fields_by_scale_batch = [self.fields(i) for i in image_batch]
-            fields_by_batch_scale = zip(*fields_by_scale_batch)
+            fields_by_batch_scale = list(zip(*fields_by_scale_batch))
             return fields_by_batch_scale
 
         start = time.time()
@@ -152,6 +152,9 @@ class Processor(object):
 
     def annotations_multiscale(self, fields_list, meta_list):
         start = time.time()
+        if self.profile is not None:
+            self.profile.enable()
+
         annotations_list = [self.decode(f) for f in fields_list]
 
         # scale to input size
@@ -182,7 +185,16 @@ class Processor(object):
                        if ann.score() >= self.instance_threshold]
         annotations = sorted(annotations, key=lambda a: -a.score())
 
-        self.log.debug('%d annotations: %s', len(annotations),
-                       [np.sum(ann.data[:, 2] > 0.1) for ann in annotations])
+        if self.profile is not None:
+            self.profile.disable()
+            iostream = io.StringIO()
+            ps = pstats.Stats(self.profile, stream=iostream)
+            ps = ps.sort_stats('tottime')
+            ps.print_stats()
+            ps.dump_stats('decoder.prof')
+            print(iostream.getvalue())
+
+        self.log.info('%d annotations: %s', len(annotations),
+                      [np.sum(ann.data[:, 2] > 0.1) for ann in annotations])
         self.log.debug('total processing time: %.3fs', time.time() - start)
         return annotations

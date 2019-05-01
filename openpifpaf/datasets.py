@@ -32,7 +32,7 @@ def collate_multiscale_images_anns_meta(batch):
     n_scales = len(batch[0][0])
     images = [torch.utils.data.dataloader.default_collate([b[0][i] for b in batch])
               for i in range(n_scales)]
-    anns = [b[1] for b in batch]
+    anns = [[b[1][i] for b in batch] for i in range(n_scales)]
     metas = [b[2] for b in batch]
     return images, anns, metas
 
