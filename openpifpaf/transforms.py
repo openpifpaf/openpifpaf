@@ -143,6 +143,7 @@ class MultiScale(Preprocess):
 
 class RescaleRelative(Preprocess):
     def __init__(self, scale_range=(0.5, 1.0), *, resample=PIL.Image.BICUBIC):
+        self.log = logging.getLogger(self.__class__.__name__)
         self.scale_range = scale_range
         self.resample = resample
 
@@ -162,10 +163,12 @@ class RescaleRelative(Preprocess):
             scale_factor = self.scale_range
 
         image, anns, scale_factors = self.scale(image, anns, scale_factor)
+        self.log.debug('meta before: %s', meta)
         meta['offset'] *= scale_factors
         meta['scale'] *= scale_factors
         meta['valid_area'][:2] *= scale_factors
         meta['valid_area'][2:] *= scale_factors
+        self.log.debug('meta after: %s', meta)
 
         for ann in anns:
             ann['valid_area'] = meta['valid_area']
@@ -175,12 +178,12 @@ class RescaleRelative(Preprocess):
     def scale(self, image, anns, factor):
         # scale image
         w, h = image.size
-        target_size = (int(w * factor), int(h * factor))
-        image = image.resize(target_size, self.resample)
+        image = image.resize((int(w * factor), int(h * factor)), self.resample)
+        self.log.debug('before resize = (%f, %f), after = %s', w, h, image.size)
 
         # rescale keypoints
-        x_scale = target_size[0] / w
-        y_scale = target_size[1] / h
+        x_scale = image.size[0] / w
+        y_scale = image.size[1] / h
         for ann in anns:
             ann['keypoints'][:, 0] = (ann['keypoints'][:, 0] + 0.5) * x_scale - 0.5
             ann['keypoints'][:, 1] = (ann['keypoints'][:, 1] + 0.5) * y_scale - 0.5
@@ -206,10 +209,12 @@ class RescaleAbsolute(Preprocess):
         anns = copy.deepcopy(anns)
 
         image, anns, scale_factors = self.scale(image, anns)
+        self.log.debug('meta before: %s', meta)
         meta['offset'] *= scale_factors
         meta['scale'] *= scale_factors
         meta['valid_area'][:2] *= scale_factors
         meta['valid_area'][2:] *= scale_factors
+        self.log.debug('meta after: %s', meta)
 
         for ann in anns:
             ann['valid_area'] = meta['valid_area']
@@ -376,7 +381,7 @@ class HFlip(Preprocess):
         assert meta['hflip'] is False
         meta['hflip'] = True
 
-        meta['valid_area'][0] = -(meta['valid_area'][0] + meta['valid_area'][2]) - 1.0 + w
+        meta['valid_area'][0] = -(meta['valid_area'][0] + meta['valid_area'][2]) + w
         for ann in anns:
             ann['valid_area'] = meta['valid_area']
 
