@@ -62,7 +62,7 @@ setup(
         'pysparkling',  # for log analysis
         'python-json-logger',
         'scipy',
-        'torch>=1.0.0,<1.1.0',
+        'torch>=1.0.0',
         'torchvision',
     ],
     extras_require={
