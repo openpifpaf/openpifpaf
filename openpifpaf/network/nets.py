@@ -118,6 +118,11 @@ def factory(*,
             head.apply_class_sigmoid = True
 
         # normalize for backwards compatibility
+        for m in net_cpu.modules():
+            if not isinstance(m, torch.nn.Conv2d):
+                continue
+            if not hasattr(m, 'padding_mode'):
+                m.padding_mode = 'zeros'
         for head in net_cpu.head_nets:
             head.shortname = head.shortname.replace('PartsIntensityFields', 'pif')
             head.shortname = head.shortname.replace('PartsAssociationFields', 'paf')
