@@ -92,6 +92,38 @@ def factory_from_args(args):
 
 
 # pylint: disable=too-many-branches
+def model_migration(net_cpu):
+    for m in net_cpu.modules():
+        if not isinstance(m, torch.nn.Conv2d):
+            continue
+        if not hasattr(m, 'padding_mode'):  # introduced in PyTorch 1.1.0
+            m.padding_mode = 'zeros'
+
+    for head in net_cpu.head_nets:
+        head.shortname = head.shortname.replace('PartsIntensityFields', 'pif')
+        head.shortname = head.shortname.replace('PartsAssociationFields', 'paf')
+        if not hasattr(head, 'dropout') or head.dropout is None:
+            head.dropout = torch.nn.Dropout2d(p=0.0)
+        if not hasattr(head, '_quad'):
+            if hasattr(head, 'quad'):
+                head._quad = head.quad  # pylint: disable=protected-access
+            else:
+                head._quad = 0  # pylint: disable=protected-access
+        if not hasattr(head, 'scale_conv'):
+            head.scale_conv = None
+        if not hasattr(head, 'reg1_spread'):
+            head.reg1_spread = None
+        if not hasattr(head, 'reg2_spread'):
+            head.reg2_spread = None
+        if head.shortname == 'pif17' and getattr(head, 'scale_conv') is not None:
+            head.shortname = 'pifs17'
+        if head._quad == 1 and not hasattr(head, 'dequad_op'):  # pylint: disable=protected-access
+            head.dequad_op = torch.nn.PixelShuffle(2)
+        if not hasattr(head, 'class_convs') and hasattr(head, 'class_conv'):
+            head.class_convs = torch.nn.ModuleList([head.class_conv])
+
+
+# pylint: disable=too-many-branches
 def factory(*,
             checkpoint=None,
             basenet=None,
@@ -118,33 +150,7 @@ def factory(*,
             head.apply_class_sigmoid = True
 
         # normalize for backwards compatibility
-        for m in net_cpu.modules():
-            if not isinstance(m, torch.nn.Conv2d):
-                continue
-            if not hasattr(m, 'padding_mode'):
-                m.padding_mode = 'zeros'
-        for head in net_cpu.head_nets:
-            head.shortname = head.shortname.replace('PartsIntensityFields', 'pif')
-            head.shortname = head.shortname.replace('PartsAssociationFields', 'paf')
-            if not hasattr(head, 'dropout') or head.dropout is None:
-                head.dropout = torch.nn.Dropout2d(p=0.0)
-            if not hasattr(head, '_quad'):
-                if hasattr(head, 'quad'):
-                    head._quad = head.quad  # pylint: disable=protected-access
-                else:
-                    head._quad = 0  # pylint: disable=protected-access
-            if not hasattr(head, 'scale_conv'):
-                head.scale_conv = None
-            if not hasattr(head, 'reg1_spread'):
-                head.reg1_spread = None
-            if not hasattr(head, 'reg2_spread'):
-                head.reg2_spread = None
-            if head.shortname == 'pif17' and getattr(head, 'scale_conv') is not None:
-                head.shortname = 'pifs17'
-            if head._quad == 1 and not hasattr(head, 'dequad_op'):  # pylint: disable=protected-access
-                head.dequad_op = torch.nn.PixelShuffle(2)
-            if not hasattr(head, 'class_convs') and hasattr(head, 'class_conv'):
-                head.class_convs = torch.nn.ModuleList([head.class_conv])
+        model_migration(net_cpu)
 
     if dilation is not None:
         net_cpu.base_net.atrous0(dilation)
