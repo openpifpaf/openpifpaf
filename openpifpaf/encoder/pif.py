@@ -7,7 +7,7 @@ import torch
 
 from .annrescaler import AnnRescaler
 from .encoder import Encoder
-from .utils import create_sink, mask_valid_area
+from ..utils import create_sink, mask_valid_area
 
 
 class Pif(Encoder):
@@ -145,7 +145,7 @@ class PifGenerator(object):
         fields_reg = self.fields_reg[:, :, self.padding:-self.padding, self.padding:-self.padding]
         fields_scale = self.fields_scale[:, self.padding:-self.padding, self.padding:-self.padding]
 
-        intensities = mask_valid_area(intensities, valid_area)
+        mask_valid_area(intensities, valid_area)
 
         return (
             torch.from_numpy(intensities),

@@ -6,7 +6,7 @@ import torch
 from ..data import COCO_PERSON_SKELETON, DENSER_COCO_PERSON_SKELETON, KINEMATIC_TREE_SKELETON
 from .annrescaler import AnnRescaler
 from .encoder import Encoder
-from .utils import create_sink, mask_valid_area
+from ..utils import create_sink, mask_valid_area
 
 
 class Paf(Encoder):
@@ -197,7 +197,7 @@ class PafGenerator(object):
         fields_reg2 = self.fields_reg2[:, :, self.padding:-self.padding, self.padding:-self.padding]
         fields_scale = self.fields_scale[:, self.padding:-self.padding, self.padding:-self.padding]
 
-        intensities = mask_valid_area(intensities, valid_area)
+        mask_valid_area(intensities, valid_area)
 
         return (
             torch.from_numpy(intensities),
