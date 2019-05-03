@@ -197,7 +197,7 @@ class PafGenerator(object):
         fields_reg2 = self.fields_reg2[:, :, self.padding:-self.padding, self.padding:-self.padding]
         fields_scale = self.fields_scale[:, self.padding:-self.padding, self.padding:-self.padding]
 
-        intensities = mask_valid_area(intensities, valid_area)
+        mask_valid_area(intensities, valid_area)
 
         return (
             torch.from_numpy(intensities),

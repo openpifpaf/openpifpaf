@@ -39,7 +39,7 @@ def mask_valid_area(intensities, valid_area):
     Intensities is either a feature map or an image.
     """
     if valid_area is None:
-        return intensities
+        return
 
     if valid_area[1] >= 1.0:
         intensities[:, :int(valid_area[1]), :] = 0
@@ -52,5 +52,3 @@ def mask_valid_area(intensities, valid_area):
         intensities[:, max_i:, :] = 0
     if max_j < intensities.shape[2]:
         intensities[:, :, max_j:] = 0
-
-    return intensities
