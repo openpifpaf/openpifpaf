@@ -4,10 +4,19 @@ import torchvision
 
 from . import basenetworks, heads
 
+# generate hash values with: shasum -a 256 filename.pkl
+
 # DEFAULT_MODEL = ('https://documents.epfl.ch/users/k/kr/kreiss/www/'
 #                  'resnet101block5-pif-paf-edge401-190313-100107-81e34321.pkl')
-DEFAULT_MODEL = ('https://documents.epfl.ch/users/k/kr/kreiss/www/'
-                 'resnet50block5-pif-paf-edge401-190315-214317-8c9fbafe.pkl')
+# DEFAULT_MODEL = ('https://documents.epfl.ch/users/k/kr/kreiss/www/'
+#                  'resnet50block5-pif-paf-edge401-190315-214317-8c9fbafe.pkl')
+
+RESNET50_MODEL = ('https://storage.googleapis.com/openpifpaf-pretrained/v0.5.0/'
+                  'resnet50block5-pif-paf-edge401-190424-122009-f26a1f53.pkl')
+RESNET101_MODEL = ('https://storage.googleapis.com/openpifpaf-pretrained/v0.5.0/'
+                   'resnet101block5-pif-paf-edge401-190412-151013-513a2d2d.pkl')
+RESNET152_MODEL = ('https://storage.googleapis.com/openpifpaf-pretrained/v0.5.0/'
+                   'resnet152block5-pif-paf-edge401-190412-121848-8d771fcc.pkl')
 
 LOG = logging.getLogger(__name__)
 
@@ -92,6 +101,38 @@ def factory_from_args(args):
 
 
 # pylint: disable=too-many-branches
+def model_migration(net_cpu):
+    for m in net_cpu.modules():
+        if not isinstance(m, torch.nn.Conv2d):
+            continue
+        if not hasattr(m, 'padding_mode'):  # introduced in PyTorch 1.1.0
+            m.padding_mode = 'zeros'
+
+    for head in net_cpu.head_nets:
+        head.shortname = head.shortname.replace('PartsIntensityFields', 'pif')
+        head.shortname = head.shortname.replace('PartsAssociationFields', 'paf')
+        if not hasattr(head, 'dropout') or head.dropout is None:
+            head.dropout = torch.nn.Dropout2d(p=0.0)
+        if not hasattr(head, '_quad'):
+            if hasattr(head, 'quad'):
+                head._quad = head.quad  # pylint: disable=protected-access
+            else:
+                head._quad = 0  # pylint: disable=protected-access
+        if not hasattr(head, 'scale_conv'):
+            head.scale_conv = None
+        if not hasattr(head, 'reg1_spread'):
+            head.reg1_spread = None
+        if not hasattr(head, 'reg2_spread'):
+            head.reg2_spread = None
+        if head.shortname == 'pif17' and getattr(head, 'scale_conv') is not None:
+            head.shortname = 'pifs17'
+        if head._quad == 1 and not hasattr(head, 'dequad_op'):  # pylint: disable=protected-access
+            head.dequad_op = torch.nn.PixelShuffle(2)
+        if not hasattr(head, 'class_convs') and hasattr(head, 'class_conv'):
+            head.class_convs = torch.nn.ModuleList([head.class_conv])
+
+
+# pylint: disable=too-many-branches
 def factory(*,
             checkpoint=None,
             basenet=None,
@@ -104,7 +145,13 @@ def factory(*,
         epoch = 0
     else:
         if not checkpoint:
-            checkpoint = torch.utils.model_zoo.load_url(DEFAULT_MODEL)
+            checkpoint = torch.utils.model_zoo.load_url(RESNET50_MODEL)
+        elif checkpoint == 'resnet50':
+            checkpoint = torch.utils.model_zoo.load_url(RESNET50_MODEL)
+        elif checkpoint == 'resnet101':
+            checkpoint = torch.utils.model_zoo.load_url(RESNET101_MODEL)
+        elif checkpoint == 'resnet152':
+            checkpoint = torch.utils.model_zoo.load_url(RESNET152_MODEL)
         elif checkpoint.startswith('http'):
             checkpoint = torch.utils.model_zoo.load_url(checkpoint)
         else:
@@ -118,28 +165,7 @@ def factory(*,
             head.apply_class_sigmoid = True
 
         # normalize for backwards compatibility
-        for head in net_cpu.head_nets:
-            head.shortname = head.shortname.replace('PartsIntensityFields', 'pif')
-            head.shortname = head.shortname.replace('PartsAssociationFields', 'paf')
-            if not hasattr(head, 'dropout') or head.dropout is None:
-                head.dropout = torch.nn.Dropout2d(p=0.0)
-            if not hasattr(head, '_quad'):
-                if hasattr(head, 'quad'):
-                    head._quad = head.quad  # pylint: disable=protected-access
-                else:
-                    head._quad = 0  # pylint: disable=protected-access
-            if not hasattr(head, 'scale_conv'):
-                head.scale_conv = None
-            if not hasattr(head, 'reg1_spread'):
-                head.reg1_spread = None
-            if not hasattr(head, 'reg2_spread'):
-                head.reg2_spread = None
-            if head.shortname == 'pif17' and getattr(head, 'scale_conv') is not None:
-                head.shortname = 'pifs17'
-            if head._quad == 1 and not hasattr(head, 'dequad_op'):  # pylint: disable=protected-access
-                head.dequad_op = torch.nn.PixelShuffle(2)
-            if not hasattr(head, 'class_convs') and hasattr(head, 'class_conv'):
-                head.class_convs = torch.nn.ModuleList([head.class_conv])
+        model_migration(net_cpu)
 
     if dilation is not None:
         net_cpu.base_net.atrous0(dilation)
@@ -251,7 +277,9 @@ def factory_from_scratch(basename, headnames, *, pretrained=True):
 def cli(parser):
     group = parser.add_argument_group('network configuration')
     group.add_argument('--checkpoint', default=None,
-                       help='load a model from a checkpoint')
+                       help=('Load a model from a checkpoint. '
+                             'Use "resnet50", "resnet101" '
+                             'or "resnet152" for pretrained OpenPifPaf models.'))
     group.add_argument('--dilation', default=None, type=int,
                        help='apply atrous')
     group.add_argument('--dilation-end', default=None, type=int,
