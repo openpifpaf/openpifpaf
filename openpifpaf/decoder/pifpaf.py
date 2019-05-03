@@ -97,7 +97,7 @@ class PifPaf(Decoder):
         cls.default_force_complete = args.force_complete_pose
 
     def __call__(self, fields):
-        start = time.time()
+        start = time.perf_counter()
 
         pif, paf = fields[self.head_indices[0]], fields[self.head_indices[1]]
         if self.debug_visualizer:
@@ -121,7 +121,7 @@ class PifPaf(Decoder):
         if self.force_complete:
             annotations = gen.complete_annotations(annotations)
 
-        print('annotations', len(annotations), time.time() - start)
+        self.log.debug('annotations %d, %.3fs', len(annotations), time.perf_counter() - start)
         return annotations
 
 
@@ -134,6 +134,8 @@ class PifPafGenerator(object):
                  paf_nn,
                  skeleton,
                  debug_visualizer=None):
+        self.log = logging.getLogger(self.__class__.__name__)
+
         self.pif = pifs_field
         self.paf = pafs_field
 
@@ -161,7 +163,7 @@ class PifPafGenerator(object):
 
 
     def _target_intensities(self, v_th=0.1, core_only=False):
-        start = time.time()
+        start = time.perf_counter()
 
         targets = np.zeros((self.pif.shape[0],
                             int(self.pif.shape[2] * self.stride),
@@ -181,16 +183,16 @@ class PifPafGenerator(object):
                 scalar_square_add_constant(n, x, y, s, v)
 
         if core_only:
-            print('target_intensities', time.time() - start)
+            self.log.debug('target_intensities %.3fs', time.perf_counter() - start)
             return targets
 
         m = ns > 0
         scales[m] = scales[m] / ns[m]
-        print('target_intensities', time.time() - start)
+        self.log.debug('target_intensities %.3fs', time.perf_counter() - start)
         return targets, scales
 
     def _score_paf_target(self, pifhr_floor=0.01, score_th=0.1):
-        start = time.time()
+        start = time.perf_counter()
 
         scored_forward = []
         scored_backward = []
@@ -235,11 +237,11 @@ class PifPafGenerator(object):
                 fourds[1, 1:4][:, mask_f],
             )))
 
-        print('scored paf', time.time() - start)
+        self.log.debug('scored paf %.3fs', time.perf_counter() - start)
         return scored_forward, scored_backward
 
     def annotations(self):
-        start = time.time()
+        start = time.perf_counter()
 
         seeds = self._pifhr_seeds()
 
@@ -268,14 +270,14 @@ class PifPafGenerator(object):
                                          1.0)
 
         if self.debug_visualizer:
-            print('occupied annotations field 0')
+            self.log.debug('occupied annotations field 0')
             self.debug_visualizer.occupied(occupied[0])
 
-        print('keypoint sets', len(annotations), time.time() - start)
+        self.log.debug('keypoint sets %d, %.3fs', len(annotations), time.perf_counter() - start)
         return annotations
 
     def _pifhr_seeds(self):
-        start = time.time()
+        start = time.perf_counter()
         seeds = []
         for field_i, (f, s) in enumerate(zip(self._pifhr_core, self._pifhr_scales)):
             index_fields = index_field(f.shape)
@@ -296,7 +298,7 @@ class PifPafGenerator(object):
 
             if self.debug_visualizer:
                 if field_i in self.debug_visualizer.pif_indices:
-                    print('occupied seed, field {}'.format(field_i))
+                    self.log.debug('occupied seed, field %d', field_i)
                     self.debug_visualizer.occupied(occupied)
 
         seeds = list(sorted(seeds, reverse=True))
@@ -309,7 +311,7 @@ class PifPafGenerator(object):
         if self.debug_visualizer:
             self.debug_visualizer.seeds(seeds, self.stride)
 
-        print('seeds', len(seeds), time.time() - start)
+        self.log.debug('seeds %d, %.3fs', len(seeds), time.perf_counter() - start)
         return seeds
 
     def _grow_connection(self, xy, paf_field):
@@ -410,7 +412,7 @@ class PifPafGenerator(object):
             xyv_t[2] = 0.00001
 
     def complete_annotations(self, annotations):
-        start = time.time()
+        start = time.perf_counter()
 
         paf_forward_c, paf_backward_c = self._score_paf_target(
             pifhr_floor=0.9, score_th=0.0001)
@@ -427,5 +429,5 @@ class PifPafGenerator(object):
             if np.any(ann.data[:, 2] == 0.0):
                 self._flood_fill(ann)
 
-        print('complete annotations', time.time() - start)
+        self.log.debug('complete annotations %.3fs', time.perf_counter() - start)
         return annotations
