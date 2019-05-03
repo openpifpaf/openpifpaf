@@ -46,7 +46,7 @@ class Pif(Decoder):
         cls.default_pif_fixed_scale = args.pif_fixed_scale
 
     def __call__(self, fields):
-        start = time.time()
+        start = time.perf_counter()
         if self.profile is not None:
             self.profile.enable()
 
@@ -65,7 +65,7 @@ class Pif(Decoder):
 
         annotations = gen.annotations()
 
-        print('annotations', len(annotations), time.time() - start)
+        self.log.debug('annotations %d, %.3fs', len(annotations), time.perf_counter() - start)
         if self.profile is not None:
             self.profile.disable()
         return annotations
@@ -77,6 +77,8 @@ class PifGenerator(object):
                  seed_threshold,
                  pif_nn,
                  debug_visualizer=None):
+        self.log = logging.getLogger(self.__class__.__name__)
+
         self.pif = pif_field
 
         self.stride = stride
@@ -91,7 +93,7 @@ class PifGenerator(object):
             self.debug_visualizer.pifhr(self._pifhr)
 
     def _target_intensities(self, v_th=0.1):
-        start = time.time()
+        start = time.perf_counter()
 
         targets = np.zeros((self.pif.shape[0],
                             int(self.pif.shape[2] * self.stride),
@@ -111,11 +113,11 @@ class PifGenerator(object):
 
         m = ns > 0
         scales[m] = scales[m] / ns[m]
-        print('target_intensities', time.time() - start)
+        self.log.debug('target_intensities %.3fs', time.perf_counter() - start)
         return targets, scales
 
     def annotations(self):
-        start = time.time()
+        start = time.perf_counter()
 
         seeds = self._pifhr_seeds()
         annotations = []
@@ -124,11 +126,11 @@ class PifGenerator(object):
             ann.fill_joint_scales(self._pifhr_scales, self.stride)
             annotations.append(ann)
 
-        print('keypoint sets', len(annotations), time.time() - start)
+        self.log.debug('keypoint sets %d, %.3fs', len(annotations), time.perf_counter() - start)
         return annotations
 
     def _pifhr_seeds(self):
-        start = time.time()
+        start = time.perf_counter()
         seeds = []
         for field_i, (f, s) in enumerate(zip(self._pifhr, self._pifhr_scales)):
             index_fields = index_field(f.shape)
@@ -149,7 +151,7 @@ class PifGenerator(object):
 
             if self.debug_visualizer:
                 if field_i in self.debug_visualizer.pif_indices:
-                    print('occupied seed, field {}'.format(field_i))
+                    self.log.debug('occupied seed, field %d', field_i)
                     self.debug_visualizer.occupied(occupied)
 
         seeds = list(sorted(seeds, reverse=True))
@@ -162,5 +164,5 @@ class PifGenerator(object):
         if self.debug_visualizer:
             self.debug_visualizer.seeds(seeds, self.stride)
 
-        print('seeds', len(seeds), time.time() - start)
+        self.log.debug('seeds %d, %.3fs', len(seeds), time.perf_counter() - start)
         return seeds
