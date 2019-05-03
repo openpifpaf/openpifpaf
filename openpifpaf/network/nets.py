@@ -4,10 +4,19 @@ import torchvision
 
 from . import basenetworks, heads
 
+# generate hash values with: shasum -a 256 filename.pkl
+
 # DEFAULT_MODEL = ('https://documents.epfl.ch/users/k/kr/kreiss/www/'
 #                  'resnet101block5-pif-paf-edge401-190313-100107-81e34321.pkl')
-DEFAULT_MODEL = ('https://documents.epfl.ch/users/k/kr/kreiss/www/'
-                 'resnet50block5-pif-paf-edge401-190315-214317-8c9fbafe.pkl')
+# DEFAULT_MODEL = ('https://documents.epfl.ch/users/k/kr/kreiss/www/'
+#                  'resnet50block5-pif-paf-edge401-190315-214317-8c9fbafe.pkl')
+
+RESNET50_MODEL = ('https://storage.googleapis.com/openpifpaf-pretrained/v0.5.0/'
+                  'resnet50block5-pif-paf-edge401-190424-122009-f26a1f53.pkl')
+RESNET101_MODEL = ('https://storage.googleapis.com/openpifpaf-pretrained/v0.5.0/'
+                   'resnet101block5-pif-paf-edge401-190412-151013-513a2d2d.pkl')
+RESNET152_MODEL = ('https://storage.googleapis.com/openpifpaf-pretrained/v0.5.0/'
+                   'resnet152block5-pif-paf-edge401-190412-121848-8d771fcc.pkl')
 
 LOG = logging.getLogger(__name__)
 
@@ -136,7 +145,13 @@ def factory(*,
         epoch = 0
     else:
         if not checkpoint:
-            checkpoint = torch.utils.model_zoo.load_url(DEFAULT_MODEL)
+            checkpoint = torch.utils.model_zoo.load_url(RESNET50_MODEL)
+        elif checkpoint == 'resnet50':
+            checkpoint = torch.utils.model_zoo.load_url(RESNET50_MODEL)
+        elif checkpoint == 'resnet101':
+            checkpoint = torch.utils.model_zoo.load_url(RESNET101_MODEL)
+        elif checkpoint == 'resnet152':
+            checkpoint = torch.utils.model_zoo.load_url(RESNET152_MODEL)
         elif checkpoint.startswith('http'):
             checkpoint = torch.utils.model_zoo.load_url(checkpoint)
         else:
@@ -262,7 +277,9 @@ def factory_from_scratch(basename, headnames, *, pretrained=True):
 def cli(parser):
     group = parser.add_argument_group('network configuration')
     group.add_argument('--checkpoint', default=None,
-                       help='load a model from a checkpoint')
+                       help=('Load a model from a checkpoint. '
+                             'Use "resnet50", "resnet101" '
+                             'or "resnet152" for pretrained OpenPifPaf models.'))
     group.add_argument('--dilation', default=None, type=int,
                        help='apply atrous')
     group.add_argument('--dilation-end', default=None, type=int,
