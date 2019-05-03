@@ -47,16 +47,34 @@ class Annotation(object):
         ], reverse=True)
 
     def frontier_iter(self):
-        block_frontier = set()
-        while True:
-            unblocked_frontier = [f for f in self.frontier()
-                                  if (f[1], f[2]) not in block_frontier]
-            if not unblocked_frontier:
-                break
+        frontier = list(self.frontier())
+        while frontier:
+            next_item = frontier.pop(0)
+            forward = next_item[2]
+            i_target = next_item[4] if forward else next_item[3]
+            xyv_target = self.data[i_target]
 
-            first = unblocked_frontier[0]
-            yield first
-            block_frontier.add((first[1], first[2]))
+            if xyv_target[2] != 0.0:
+                # another frontier connection has filled this joint
+                continue
+
+            yield next_item
+
+            if xyv_target[2] == 0.0:
+                # No connection created. Done.
+                continue
+
+            # Need to add connections starting from the new joint to the frontier.
+            frontier += [
+                (self.data[j1i, 2], connection_i, True, j1i, j2i)
+                for connection_i, (j1i, j2i) in enumerate(self.skeleton_m1)
+                if j1i == i_target and self.data[j2i, 2] == 0.0
+            ] + [
+                (self.data[j2i, 2], connection_i, False, j1i, j2i)
+                for connection_i, (j1i, j2i) in enumerate(self.skeleton_m1)
+                if j2i == i_target and self.data[j1i, 2] == 0.0
+            ]
+            frontier = list(sorted(frontier, reverse=True))
 
     def scale(self):
         m = self.data[:, 2] > 0.5
