@@ -396,6 +396,19 @@ class PifPafGenerator(object):
                 if new_xyv[2] > ann.data[j1i, 2]:
                     ann.data[j1i] = new_xyv
 
+    @staticmethod
+    def _flood_fill(ann):
+        for _, _, forward, j1i, j2i in ann.frontier_iter():
+            if forward:
+                xyv_s = ann.data[j1i]
+                xyv_t = ann.data[j2i]
+            else:
+                xyv_s = ann.data[j2i]
+                xyv_t = ann.data[j1i]
+
+            xyv_t[:2] = xyv_s[:2]
+            xyv_t[2] = 0.00001
+
     def complete_annotations(self, annotations):
         start = time.time()
 
@@ -409,6 +422,10 @@ class PifPafGenerator(object):
             updated = np.logical_and(unfilled_mask, now_filled_mask)
             ann.data[updated, 2] = np.minimum(0.001, ann.data[updated, 2])
             ann.fill_joint_scales(self._pifhr_scales, self.stride)
+
+            # some joints might still be unfilled
+            if np.any(ann.data[:, 2] == 0.0):
+                self._flood_fill(ann)
 
         print('complete annotations', time.time() - start)
         return annotations
