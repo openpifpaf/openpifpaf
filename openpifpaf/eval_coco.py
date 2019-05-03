@@ -39,6 +39,8 @@ class EvalCoco(object):
         self.eval = None
         self.decoder_time = 0.0
 
+        self.decoder_train_data = []
+
     def stats(self, predictions=None, image_ids=None):
         # from pycocotools.cocoeval import COCOeval
         if predictions is None:
@@ -95,6 +97,10 @@ class EvalCoco(object):
             keypoint_painter.keypoints(ax, instances_gt, color='lightgrey')
             keypoint_painter.annotations(ax, [ann for ann in annotations if ann.score() > 0.01])
 
+    def add_to_decoder_train_data(self, annotations, gt):
+        for ann in annotations:
+            pass
+
     def from_fields(self, fields, meta,
                     debug=False, gt=None, image_cpu=None, verbose=False,
                     category_id=1):
@@ -102,9 +108,11 @@ class EvalCoco(object):
             self.processor.set_cpu_image(None, image_cpu)
 
         start = time.time()
-        annotations = self.processor.annotations(fields, meta)
-        annotations = annotations[:20]
+        all_annotations = self.processor.annotations(fields, meta)
         self.decoder_time += time.time() - start
+
+        self.add_to_decoder_train_data(all_annotations, gt)
+        annotations = all_annotations[:20]
 
         if isinstance(meta, (list, tuple)):
             meta = meta[0]
