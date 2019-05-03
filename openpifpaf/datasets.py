@@ -125,7 +125,7 @@ class CocoKeypoints(torch.utils.data.Dataset):
 
         # mask valid
         valid_area = meta['valid_area']
-        utils.mask_valid_image(image, valid_area)
+        utils.mask_valid_area(image, valid_area)
 
         # if there are not target transforms, done here
         self.log.debug(meta)

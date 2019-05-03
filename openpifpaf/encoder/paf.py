@@ -6,7 +6,7 @@ import torch
 from ..data import COCO_PERSON_SKELETON, DENSER_COCO_PERSON_SKELETON, KINEMATIC_TREE_SKELETON
 from .annrescaler import AnnRescaler
 from .encoder import Encoder
-from .utils import create_sink, mask_valid_area
+from ..utils import create_sink, mask_valid_area
 
 
 class Paf(Encoder):

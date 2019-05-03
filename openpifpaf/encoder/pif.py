@@ -7,7 +7,7 @@ import torch
 
 from .annrescaler import AnnRescaler
 from .encoder import Encoder
-from .utils import create_sink, mask_valid_area
+from ..utils import create_sink, mask_valid_area
 
 
 class Pif(Encoder):
