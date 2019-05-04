@@ -191,7 +191,7 @@ class PifPafGenerator(object):
         self.log.debug('target_intensities %.3fs', time.perf_counter() - start)
         return targets, scales
 
-    def _score_paf_target(self, pifhr_floor=0.01, score_th=0.1):
+    def _score_paf_target(self, pifhr_floor=0.1, score_th=0.1):
         start = time.perf_counter()
 
         scored_forward = []
@@ -414,9 +414,7 @@ class PifPafGenerator(object):
     def complete_annotations(self, annotations):
         start = time.perf_counter()
 
-        paf_forward_c, paf_backward_c = self._score_paf_target(
-            pifhr_floor=0.9, score_th=0.0001)
-
+        paf_forward_c, paf_backward_c = self._score_paf_target(score_th=0.0001)
         for ann in annotations:
             unfilled_mask = ann.data[:, 2] == 0.0
             self._grow(ann, paf_forward_c, paf_backward_c, th=1e-8)
