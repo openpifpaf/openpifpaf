@@ -304,6 +304,7 @@ def write_decoder_train_data(eval_coco, args):
                 'scale': ann.scale(),
                 'target': y,
             }))
+            f.write('\n')
 
 def preprocess_factory_from_args(args):
     collate_fn = datasets.collate_images_anns_meta
