@@ -353,7 +353,9 @@ def main():
     total_start = time.time()
     loop_start = time.time()
     for batch_i, (image_tensors_cpu, anns_batch, meta_batch) in enumerate(data_loader):
-        print('batch', batch_i, 'last loop: {:.3f}s'.format(time.time() - loop_start))
+        logging.info('batch %d, last loop: %.3fs, batches per second=%.1f',
+                     batch_i, time.time() - loop_start,
+                     batch_i / max(1, (time.time() - total_start)))
         if batch_i < args.skip_n:
             continue
         if args.n and batch_i >= args.n:
