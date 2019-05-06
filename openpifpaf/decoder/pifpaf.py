@@ -266,7 +266,7 @@ class PifPafGenerator(object):
                 scalar_square_add_single(occupied[i],
                                          xyv[0] * self.stride,
                                          xyv[1] * self.stride,
-                                         max(2.0, width / 2.0),
+                                         max(4.0, width / 2.0),
                                          1.0)
 
         if self.debug_visualizer:

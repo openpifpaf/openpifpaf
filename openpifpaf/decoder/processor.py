@@ -75,7 +75,7 @@ class Processor(object):
 
         annotations = sorted(annotations, key=lambda a: -a.score())
         for ann in annotations:
-            joint_scales = (np.maximum(2.0, ann.joint_scales)
+            joint_scales = (np.maximum(4.0, ann.joint_scales)
                             if ann.joint_scales is not None
                             else np.ones((ann.data.shape[0]),) * 4.0)
 
