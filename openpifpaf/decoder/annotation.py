@@ -7,6 +7,7 @@ class Annotation(object):
         self.data = np.zeros((n_joints, 3))
         self.joint_scales = None
         self.data[j] = xyv
+        self.fixed_score = None
 
         self.skeleton_m1 = (np.asarray(skeleton) - 1).tolist()
 
@@ -21,6 +22,9 @@ class Annotation(object):
             self.joint_scales[xyv_i] = scale_field[j, i] / hr_scale
 
     def score(self):
+        if self.fixed_score is not None:
+            return self.fixed_score
+
         v = self.data[:, 2]
         return 0.1 * np.max(v) + 0.9 * np.mean(np.square(v))
         # return np.mean(np.square(v))
