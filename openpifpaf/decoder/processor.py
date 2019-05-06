@@ -17,7 +17,8 @@ class Processor(object):
                  keypoint_threshold=0.0, instance_threshold=0.0,
                  debug_visualizer=None,
                  profile=None,
-                 device=None):
+                 device=None,
+                 instance_scorer=None):
         self.log = logging.getLogger(self.__class__.__name__)
 
         if profile is True:
@@ -30,6 +31,7 @@ class Processor(object):
         self.debug_visualizer = debug_visualizer
         self.profile = profile
         self.device = device
+        self.instance_scorer = instance_scorer
 
     def set_cpu_image(self, cpu_image, processed_image):
         if self.debug_visualizer is not None:
@@ -61,8 +63,7 @@ class Processor(object):
         print('nn processing time', time.time() - start)
         return fields
 
-    @staticmethod
-    def soft_nms(annotations):
+    def soft_nms(self, annotations):
         if not annotations:
             return annotations
 
@@ -74,7 +75,7 @@ class Processor(object):
 
         annotations = sorted(annotations, key=lambda a: -a.score())
         for ann in annotations:
-            joint_scales = (ann.joint_scales
+            joint_scales = (np.maximum(2.0, ann.joint_scales)
                             if ann.joint_scales is not None
                             else np.ones((ann.data.shape[0]),) * 4.0)
 
@@ -91,6 +92,11 @@ class Processor(object):
                     xyv[2] = 0.0
                 else:
                     scalar_square_add_single(occ, xyv[0], xyv[1], joint_s, 1)
+
+        if self.debug_visualizer is not None:
+            self.log.debug('Occupied fields after NMS')
+            self.debug_visualizer.occupied(occupied[0])
+            self.debug_visualizer.occupied(occupied[4])
 
         annotations = [ann for ann in annotations if np.any(ann.data[:, 2] > 0.0)]
         annotations = sorted(annotations, key=lambda a: -a.score())
@@ -120,6 +126,11 @@ class Processor(object):
             annotations = self.annotations_multiscale(fields, meta_list)
         else:
             annotations = self.annotations_singlescale(fields)
+
+        # instance scorer
+        if self.instance_scorer is not None:
+            for ann in annotations:
+                ann.fixed_score = self.instance_scorer.from_annotation(ann)
 
         # nms
         annotations = self.soft_nms(annotations)

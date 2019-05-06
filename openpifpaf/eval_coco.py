@@ -392,6 +392,7 @@ def main():
     model, _ = nets.factory_from_args(args)
     model = model.to(args.device)
     processor = decoder.factory_from_args(args, model, args.device)
+    # processor.instance_scorer = torch.load('instance_scorer.pkl')
 
     coco = pycocotools.coco.COCO(annotation_file)
     eval_coco = EvalCoco(coco, processor, preprocess.keypoint_sets_inverse)
