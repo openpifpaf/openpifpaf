@@ -1,7 +1,6 @@
 """Evaluation on COCO data."""
 
 import argparse
-import copy
 import json
 import logging
 import os
@@ -39,8 +38,6 @@ class EvalCoco(object):
         self.image_ids = []
         self.eval = None
         self.decoder_time = 0.0
-
-        self.decoder_train_data = []
 
     def stats(self, predictions=None, image_ids=None):
         # from pycocotools.cocoeval import COCOeval
@@ -98,35 +95,6 @@ class EvalCoco(object):
             keypoint_painter.keypoints(ax, instances_gt, color='lightgrey')
             keypoint_painter.annotations(ax, [ann for ann in annotations if ann.score() > 0.01])
 
-    def add_to_decoder_train_data(self, annotations, gt):
-        gt = copy.deepcopy(gt)
-        for ann in annotations:
-            kps = ann.data
-
-            matched = None
-            for ann_gt in gt:
-                kps_gt = ann_gt['keypoints']
-                mask = kps_gt[:, 2] > 0
-                if not np.any(mask):
-                    continue
-
-                diff = kps[mask, :2] - kps_gt[mask, :2]
-                dist = np.mean(np.abs(diff))
-                if dist > 10.0:
-                    continue
-
-                matched = ann_gt
-                break
-
-            if matched is None:
-                # ann.data[:, 2] /= 100.0  # TODO !!!!!!!!!!!!!!!!!!!!!!!!
-                self.decoder_train_data.append((ann, 0))
-                continue
-
-            # found a match
-            self.decoder_train_data.append((ann, 1))
-            gt.remove(matched)
-
     def from_fields(self, fields, meta,
                     debug=False, gt=None, image_cpu=None, verbose=False,
                     category_id=1):
@@ -134,12 +102,8 @@ class EvalCoco(object):
             self.processor.set_cpu_image(None, image_cpu)
 
         start = time.time()
-        all_annotations = self.processor.annotations(fields, meta)
+        annotations = self.processor.annotations(fields, meta)[:20]
         self.decoder_time += time.time() - start
-
-        self.add_to_decoder_train_data(all_annotations, gt)
-        all_annotations = sorted(all_annotations, key=lambda a: -a.score())  # TODO !!!
-        annotations = all_annotations[:20]
 
         if isinstance(meta, (list, tuple)):
             meta = meta[0]
@@ -288,24 +252,6 @@ def write_evaluations(eval_cocos, args):
         print('Decoder {}: decoder time = {}s'.format(i, eval_coco.decoder_time))
 
 
-def write_decoder_train_data(eval_coco, args):
-    filename = '{}.decodertraindata-{}edge{}-samples{}{}.json'.format(
-        args.checkpoint,
-        '{}-'.format(args.dataset) if args.dataset != 'val' else '',
-        args.long_edge, args.n,
-        '-noforcecompletepose' if not args.force_complete_pose else '')
-
-    with open(filename, 'w') as f:
-        for ann, y in eval_coco.decoder_train_data:
-            f.write(json.dumps({
-                'keypoints': ann.data.tolist(),
-                'joint_scales': ann.joint_scales.tolist(),
-                'score': ann.score(),
-                'scale': ann.scale(),
-                'target': y,
-            }))
-            f.write('\n')
-
 def preprocess_factory_from_args(args):
     collate_fn = datasets.collate_images_anns_meta
     if args.two_scale:
@@ -392,6 +338,7 @@ def main():
     model, _ = nets.factory_from_args(args)
     model = model.to(args.device)
     processor = decoder.factory_from_args(args, model, args.device)
+    # processor.instance_scorer = decocder.instance_scorer.InstanceScoreRecorder()
     # processor.instance_scorer = torch.load('instance_scorer.pkl')
 
     coco = pycocotools.coco.COCO(annotation_file)
@@ -443,7 +390,7 @@ def main():
                                   debug=args.debug, gt=anns, image_cpu=image_tensor_cpu)
     total_time = time.time() - total_start
 
-    write_decoder_train_data(eval_coco, args)
+    # processor.instance_scorer.write_data('instance_score_data.json')
     write_evaluations([eval_coco], args)
     print('total processing time = {}s'.format(total_time))
 
