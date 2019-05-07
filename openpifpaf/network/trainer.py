@@ -7,7 +7,7 @@ import torch
 
 
 class Trainer(object):
-    def __init__(self, model, losses, optimizer, out, lambdas, *,
+    def __init__(self, model, loss, optimizer, out, *,
                  lr_scheduler=None,
                  log_interval=10,
                  device=None,
@@ -17,8 +17,10 @@ class Trainer(object):
                  encoder_visualizer=None,
                  train_profile=None,
                  model_meta_data=None):
+        self.log = logging.getLogger(self.__class__.__name__)
+
         self.model = model
-        self.losses = losses
+        self.loss = loss
         self.optimizer = optimizer
         self.out = out
         self.lr_scheduler = lr_scheduler
@@ -26,7 +28,6 @@ class Trainer(object):
         self.log_interval = log_interval
         self.device = device
         self.fix_batch_norm = fix_batch_norm
-        self.lambdas = lambdas
         self.stride_apply = stride_apply
 
         self.ema_decay = ema_decay
@@ -47,8 +48,6 @@ class Trainer(object):
                 prof.export_chrome_trace(train_profile)
                 return result
             self.train_batch = train_batch_with_profile
-
-        self.log = logging.getLogger(self.__class__.__name__)
 
     def lr(self):
         for param_group in self.optimizer.param_groups:
@@ -90,21 +89,6 @@ class Trainer(object):
 
             self.write_model(epoch + 1, epoch == epochs - 1)
             self.val(val_scenes, epoch + 1)
-
-    def loss(self, outputs, targets):
-        loss = None
-        assert len(self.losses) == len(outputs)
-        head_losses = [c
-                       for l, o, t in zip(self.losses, outputs, targets)
-                       for c in l(o, t)]
-        assert len(self.lambdas) == len(head_losses)
-        loss_values = [lam * l
-                       for lam, l in zip(self.lambdas, head_losses)
-                       if l is not None]
-        if loss_values:
-            loss = sum(loss_values)
-
-        return loss, head_losses
 
     def train_batch(self, data, targets, meta, apply_gradients=True):  # pylint: disable=method-hidden
         if self.encoder_visualizer:
@@ -165,9 +149,8 @@ class Trainer(object):
         self.ema_restore()
         self.ema = None
 
-        print('epoch', epoch)
         epoch_loss = 0.0
-        head_epoch_losses = [0.0 for _ in self.lambdas]
+        head_epoch_losses = None
         last_batch_end = time.time()
         self.optimizer.zero_grad()
         for batch_idx, (data, target, meta) in enumerate(scenes):
@@ -176,12 +159,17 @@ class Trainer(object):
             batch_start = time.time()
             apply_gradients = batch_idx % self.stride_apply == 0
             loss, head_losses = self.train_batch(data, target, meta, apply_gradients)
+
+            # update epoch accumulates
             if loss is not None:
                 epoch_loss += loss
+            if head_epoch_losses is None:
+                head_epoch_losses = [0.0 for _ in head_losses]
             for i, head_loss in enumerate(head_losses):
                 if head_loss is None:
                     continue
                 head_epoch_losses[i] += head_loss
+
             batch_time = time.time() - batch_start
 
             # write training loss
@@ -220,15 +208,20 @@ class Trainer(object):
         self.model.eval()
 
         epoch_loss = 0.0
-        head_epoch_losses = [0.0 for _ in self.lambdas]
+        head_epoch_losses = None
         for data, target, _ in scenes:
             loss, head_losses = self.val_batch(data, target)
+
+            # update epoch accumulates
             if loss is not None:
                 epoch_loss += loss
+            if head_epoch_losses is None:
+                head_epoch_losses = [0.0 for _ in head_losses]
             for i, head_loss in enumerate(head_losses):
                 if head_loss is None:
                     continue
                 head_epoch_losses[i] += head_loss
+
         eval_time = time.time() - start_time
 
         self.log.info({
