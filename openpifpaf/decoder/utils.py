@@ -1,8 +1,10 @@
 """Utilities for decoders."""
 
+import functools
 import numpy as np
 
 
+@functools.lru_cache(maxsize=16)
 def index_field(shape):
     yx = np.indices(shape, dtype=np.float)
     xy = np.flip(yx, axis=0)
