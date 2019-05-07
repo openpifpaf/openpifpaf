@@ -82,6 +82,29 @@ class SmoothL1Loss(object):
         return torch.sum(losses)
 
 
+class MultiHeadLoss(torch.nn.Module):
+    def __init__(self, losses, lambdas):
+        super(MultiHeadLoss, self).__init__()
+
+        self.losses = torch.nn.ModuleList(losses)
+        self.lambdas = lambdas
+
+    def forward(self, head_fields, head_targets):  # pylint: disable=arguments-differ
+        assert len(self.losses) == len(head_fields)
+        assert len(self.losses) == len(head_targets)
+        flat_head_losses = [ll
+                            for l, f, t in zip(self.losses, head_fields, head_targets)
+                            for ll in l(f, t)]
+
+        assert len(self.lambdas) == len(flat_head_losses)
+        loss_values = [lam * l
+                       for lam, l in zip(self.lambdas, flat_head_losses)
+                       if l is not None]
+        total_loss = sum(loss_values) if loss_values else None
+
+        return total_loss, flat_head_losses
+
+
 class CompositeLoss(Loss, torch.nn.Module):
     default_background_weight = 1.0
     default_multiplicity_correction = False
@@ -260,12 +283,17 @@ def factory_from_args(args):
     for loss in Loss.__subclasses__():
         loss.apply_args(args)
 
-    return [l.to(device=args.device)
-            for l in factory(args.headnets, args.regression_loss, args.r_smooth)
-            if l is not None]
+    return factory(
+        args.headnets,
+        args.lambdas,
+        args.regression_loss,
+        args.r_smooth,
+    ).to(device=args.device)
 
 
-def factory(head_names, reg_loss_name=None, r_smooth=None):
+def factory(head_names, lambdas, reg_loss_name=None, r_smooth=None):
+    head_names = [h for h in head_names if h not in ('skeleton',)]
+
     if reg_loss_name == 'smoothl1':
         reg_loss = SmoothL1Loss(r_smooth)
     elif reg_loss_name == 'l1':
@@ -277,13 +305,11 @@ def factory(head_names, reg_loss_name=None, r_smooth=None):
     else:
         raise Exception('unknown regression loss type {}'.format(reg_loss_name))
 
-    return [factory_loss(head_name, reg_loss) for head_name in head_names]
+    losses = [factory_loss(head_name, reg_loss) for head_name in head_names]
+    return MultiHeadLoss(losses, lambdas)
 
 
 def factory_loss(head_name, reg_loss):
-    if head_name in ('skeleton',):
-        return None
-
     for loss in Loss.__subclasses__():
         logging.debug('checking whether loss %s matches %s',
                       loss.__name__, head_name)

@@ -7,7 +7,7 @@ import torch
 
 
 class Trainer(object):
-    def __init__(self, model, losses, optimizer, out, lambdas, *,
+    def __init__(self, model, loss, optimizer, out, lambdas, *,
                  lr_scheduler=None,
                  log_interval=10,
                  device=None,
@@ -18,7 +18,7 @@ class Trainer(object):
                  train_profile=None,
                  model_meta_data=None):
         self.model = model
-        self.losses = losses
+        self.loss = loss
         self.optimizer = optimizer
         self.out = out
         self.lr_scheduler = lr_scheduler
@@ -90,21 +90,6 @@ class Trainer(object):
 
             self.write_model(epoch + 1, epoch == epochs - 1)
             self.val(val_scenes, epoch + 1)
-
-    def loss(self, outputs, targets):
-        loss = None
-        assert len(self.losses) == len(outputs)
-        head_losses = [c
-                       for l, o, t in zip(self.losses, outputs, targets)
-                       for c in l(o, t)]
-        assert len(self.lambdas) == len(head_losses)
-        loss_values = [lam * l
-                       for lam, l in zip(self.lambdas, head_losses)
-                       if l is not None]
-        if loss_values:
-            loss = sum(loss_values)
-
-        return loss, head_losses
 
     def train_batch(self, data, targets, meta, apply_gradients=True):  # pylint: disable=method-hidden
         if self.encoder_visualizer:
