@@ -281,20 +281,24 @@ class PifPafGenerator(object):
         seeds = []
         for field_i, (f, s) in enumerate(zip(self._pifhr_core, self._pifhr_scales)):
             index_fields = index_field(f.shape)
-            candidates = np.concatenate((index_fields, np.expand_dims(f, 0)), 0)
 
+            f = f.reshape(-1)
             mask = f > self.seed_threshold
-            candidates = np.moveaxis(candidates[:, mask], 0, -1)
+            f = f[mask]
+            index_fields = index_fields.reshape(2, -1)[:, mask]
 
             occupied = np.zeros(s.shape)
-            for c in sorted(candidates, key=lambda c: c[2], reverse=True):
-                i, j = int(c[0]), int(c[1])
+            for entry_i in np.argsort(f)[::-1]:
+                x, y = index_fields[:, entry_i]
+                v = f[entry_i]
+
+                i, j = int(x), int(y)
                 if occupied[j, i]:
                     continue
 
                 width = max(4, s[j, i])
-                scalar_square_add_single(occupied, c[0], c[1], width / 2.0, 1.0)
-                seeds.append((c[2], field_i, c[0] / self.stride, c[1] / self.stride))
+                scalar_square_add_single(occupied, x, y, width / 2.0, 1.0)
+                seeds.append((v, field_i, x / self.stride, y / self.stride))
 
             if self.debug_visualizer:
                 if field_i in self.debug_visualizer.pif_indices:
