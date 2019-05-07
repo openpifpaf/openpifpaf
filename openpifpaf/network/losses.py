@@ -91,7 +91,7 @@ class MultiHeadLoss(torch.nn.Module):
 
     def forward(self, head_fields, head_targets):  # pylint: disable=arguments-differ
         assert len(self.losses) == len(head_fields)
-        assert len(self.losses) == len(head_targets)
+        assert len(self.losses) <= len(head_targets)
         flat_head_losses = [ll
                             for l, f, t in zip(self.losses, head_fields, head_targets)
                             for ll in l(f, t)]
