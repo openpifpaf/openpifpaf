@@ -68,6 +68,9 @@ def cli():
                         help='enables profiling. specify path for chrome tracing file')
     parser.add_argument('--disable-cuda', action='store_true',
                         help='disable CUDA')
+    parser.add_argument('--no-augmentation', dest='augmentation',
+                        default=True, action='store_false',
+                        help='do not apply data augmentation')
     args = parser.parse_args()
 
     if args.output is None:
@@ -106,12 +109,18 @@ def main():
     loss_list = losses.factory_from_args(args)
     target_transforms = encoder.factory(args, net_cpu.io_scales())
 
-    preprocess = transforms.Compose([
-        transforms.HFlip(0.5),
-        transforms.RescaleRelative(),
-        transforms.Crop(401),
-        transforms.CenterPad(401),
-    ])
+    if args.augmentation:
+        preprocess = transforms.Compose([
+            transforms.HFlip(0.5),
+            transforms.RescaleRelative(),
+            transforms.Crop(401),
+            transforms.CenterPad(401),
+        ])
+    else:
+        preprocess = transforms.Compose([
+            transforms.RescaleAbsolute(401),
+            transforms.CenterPad(401),
+        ])
     train_loader, val_loader, pre_train_loader = datasets.train_factory(
         args, preprocess, target_transforms)
 

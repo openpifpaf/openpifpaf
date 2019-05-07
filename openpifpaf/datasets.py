@@ -217,6 +217,10 @@ def train_cli(parser):
                        help='number of images to sampe for pretraining')
     group.add_argument('--n-images', default=None, type=int,
                        help='number of images to sampe')
+    group.add_argument('--duplicate-data', default=None, type=int,
+                       help='duplicate data')
+    group.add_argument('--pre-duplicate-data', default=None, type=int,
+                       help='duplicate pre data in preprocessing')
     group.add_argument('--loader-workers', default=2, type=int,
                        help='number of workers for data loading')
     group.add_argument('--batch-size', default=8, type=int,
@@ -232,6 +236,9 @@ def train_factory(args, preprocess, target_transforms):
         target_transforms=target_transforms,
         n_images=args.n_images,
     )
+    if args.duplicate_data:
+        train_data = torch.utils.data.ConcatDataset(
+            [train_data for _ in range(args.duplicate_data)])
     train_loader = torch.utils.data.DataLoader(
         train_data, batch_size=args.batch_size, shuffle=not args.debug,
         pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
@@ -245,6 +252,9 @@ def train_factory(args, preprocess, target_transforms):
         target_transforms=target_transforms,
         n_images=args.n_images,
     )
+    if args.duplicate_data:
+        val_data = torch.utils.data.ConcatDataset(
+            [val_data for _ in range(args.duplicate_data)])
     val_loader = torch.utils.data.DataLoader(
         val_data, batch_size=args.batch_size, shuffle=False,
         pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
@@ -258,6 +268,9 @@ def train_factory(args, preprocess, target_transforms):
         target_transforms=target_transforms,
         n_images=args.pre_n_images,
     )
+    if args.pre_duplicate_data:
+        pre_train_data = torch.utils.data.ConcatDataset(
+            [pre_train_data for _ in range(args.pre_duplicate_data)])
     pre_train_loader = torch.utils.data.DataLoader(
         pre_train_data, batch_size=args.batch_size, shuffle=True,
         pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
