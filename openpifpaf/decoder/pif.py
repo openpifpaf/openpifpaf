@@ -2,6 +2,7 @@
 
 from collections import defaultdict
 import logging
+import re
 import time
 
 import numpy as np
@@ -39,6 +40,9 @@ class Pif(Decoder):
     def match(head_names):
         return head_names in (
             ('pif',),
+        ) or (
+            len(head_names) == 1 and
+            re.match('pif([0-9]+)$', head_names[0]) is not None
         )
 
     @classmethod
