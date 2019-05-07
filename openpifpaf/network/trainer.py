@@ -166,9 +166,6 @@ class Trainer(object):
         self.ema = None
 
         print('epoch', epoch)
-        if self.lr_scheduler is not None:
-            self.lr_scheduler.step()
-
         epoch_loss = 0.0
         head_epoch_losses = [0.0 for _ in self.lambdas]
         last_batch_end = time.time()
@@ -205,6 +202,9 @@ class Trainer(object):
                 self.ema = copy.deepcopy([p.data for p in self.model.parameters()])
 
             last_batch_end = time.time()
+
+        if self.lr_scheduler is not None:
+            self.lr_scheduler.step()
 
         self.apply_ema()
         self.log.info({
