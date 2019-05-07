@@ -149,7 +149,7 @@ def main():
         foptimizer = torch.optim.SGD(
             (p for p in net.parameters() if p.requires_grad),
             lr=args.pre_lr, momentum=0.9, weight_decay=0.0, nesterov=True)
-        ftrainer = Trainer(net, loss, foptimizer, args.output, args.lambdas,
+        ftrainer = Trainer(net, loss, foptimizer, args.output,
                            device=args.device, fix_batch_norm=True,
                            encoder_visualizer=encoder_visualizer)
         for i in range(-args.freeze_base, 0):
@@ -164,7 +164,6 @@ def main():
         lr_scheduler=lr_scheduler,
         device=args.device,
         fix_batch_norm=not args.update_batchnorm_runningstatistics,
-        lambdas=args.lambdas,
         stride_apply=args.stride_apply,
         ema_decay=args.ema,
         encoder_visualizer=encoder_visualizer,
