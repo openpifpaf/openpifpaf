@@ -150,7 +150,6 @@ python3 -m openpifpaf.train \
   --square-edge=401 \
   --regression-loss=laplace \
   --lambdas 30 2 2 50 3 3 \
-  --crop-fraction=0.5 \
   --freeze-base=1
 ```
 

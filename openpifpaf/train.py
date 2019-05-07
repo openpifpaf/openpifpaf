@@ -113,13 +113,13 @@ def main():
         preprocess = transforms.Compose([
             transforms.HFlip(0.5),
             transforms.RescaleRelative(),
-            transforms.Crop(401),
-            transforms.CenterPad(401),
+            transforms.Crop(args.square_edge),
+            transforms.CenterPad(args.square_edge),
         ])
     else:
         preprocess = transforms.Compose([
-            transforms.RescaleAbsolute(401),
-            transforms.CenterPad(401),
+            transforms.RescaleAbsolute(args.square_edge),
+            transforms.CenterPad(args.square_edge),
         ])
     train_loader, val_loader, pre_train_loader = datasets.train_factory(
         args, preprocess, target_transforms)
