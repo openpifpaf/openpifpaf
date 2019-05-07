@@ -160,6 +160,7 @@ class CompositeField(Head, torch.nn.Module):
         # regressions
         regs_x = [reg_conv(x) * self.dilation for reg_conv in self.reg_convs]
         regs_x_spread = [reg_spread(x) for reg_spread in self.reg_spreads]
+        regs_x_spread = [torch.nn.functional.leaky_relu(x + 3.0) - 3.0 for x in regs_x_spread]
 
         # scale
         scales_x = [scale_conv(x) for scale_conv in self.scale_convs]
