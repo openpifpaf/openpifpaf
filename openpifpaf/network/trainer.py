@@ -1,7 +1,9 @@
 """Train a pifpaf net."""
 
 import copy
+import hashlib
 import logging
+import shutil
 import time
 import torch
 
@@ -242,11 +244,7 @@ class Trainer(object):
             self.log.debug('Writing a single-thread model.')
             model = self.model
 
-        if final:
-            filename = self.out
-        else:
-            filename = '{}.epoch{:03d}'.format(self.out, epoch)
-
+        filename = '{}.epoch{:03d}'.format(self.out, epoch)
         self.log.debug('about to write model')
         torch.save({
             'model': model,
@@ -254,5 +252,15 @@ class Trainer(object):
             'meta': self.model_meta_data,
         }, filename)
         self.log.debug('model written')
+
+        if final:
+            sha256_hash = hashlib.sha256()
+            with open(filename, 'rb') as f:
+                for byte_block in iter(lambda: f.read(8192), b''):
+                    sha256_hash.update(byte_block)
+            file_hash = sha256_hash.hexdigest()
+            outname, _, outext = self.out.rpartition('.')
+            final_filename = '{}-{}.{}'.format(outname, file_hash[:8], outext)
+            shutil.copyfile(filename, final_filename)
 
         self.model.to(self.device)
