@@ -36,3 +36,4 @@ outputs/
 shared/
 decoder.prof
 decoder_flame.svg
+*.onnx
