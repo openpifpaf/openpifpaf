@@ -25,24 +25,24 @@ class MonkeyPatches:
             self.original_compositehead_patched_forward
 
     @staticmethod
-    def patched_resnet_forward(self, x):
-        x = self.conv1(x)
-        x = self.bn1(x)
-        x = self.relu(x)
-        x = self.maxpool(x)
+    def patched_resnet_forward(self_, x):
+        x = self_.conv1(x)
+        x = self_.bn1(x)
+        x = self_.relu(x)
+        x = self_.maxpool(x)
 
-        x = self.layer1(x)
-        x = self.layer2(x)
-        x = self.layer3(x)
-        x = self.layer4(x)
+        x = self_.layer1(x)
+        x = self_.layer2(x)
+        x = self_.layer3(x)
+        x = self_.layer4(x)
 
-        x = self.avgpool(x)
+        x = self_.avgpool(x)
 
         # x = x.reshape(x.size(0), -1)
         x = x.reshape(-1)
         x = x.unsqueeze(0)
 
-        x = self.fc(x)
+        x = self_.fc(x)
 
         return x
 
