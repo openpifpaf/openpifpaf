@@ -72,7 +72,7 @@ class GetPifC(torch.nn.Module):
         return heads[0][0]
 
 
-def apply(checkpoint, outfile):
+def apply(checkpoint, outfile, verbose=True):
     monkey_patches = MonkeyPatches()
     monkey_patches.apply()
 
@@ -102,8 +102,7 @@ def apply(checkpoint, outfile):
         'paf_b2',
     ]
 
-    torch.onnx.export(model, dummy_input, outfile,
-                      verbose=True,
+    torch.onnx.export(model, dummy_input, outfile, verbose=verbose,
                       input_names=input_names, output_names=output_names)
 
     monkey_patches.revert()
