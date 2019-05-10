@@ -1,5 +1,5 @@
+import argparse
 import torch
-import torchvision
 
 import openpifpaf
 
@@ -7,44 +7,16 @@ import openpifpaf
 # monkey patch
 class MonkeyPatches:
     def __init__(self):
-        self.original_resnet_forward = \
-            torchvision.models.resnet.ResNet.forward
         self.original_compositehead_patched_forward = \
             openpifpaf.network.heads.CompositeField.forward
 
     def apply(self):
-        torchvision.models.resnet.ResNet.forward = \
-            self.patched_resnet_forward
         openpifpaf.network.heads.CompositeField.forward = \
             self.compositehead_patched_forward
 
     def revert(self):
-        torchvision.models.resnet.ResNet.forward = \
-            self.original_resnet_forward
         openpifpaf.network.heads.CompositeField.forward = \
             self.original_compositehead_patched_forward
-
-    @staticmethod
-    def patched_resnet_forward(self_, x):
-        x = self_.conv1(x)
-        x = self_.bn1(x)
-        x = self_.relu(x)
-        x = self_.maxpool(x)
-
-        x = self_.layer1(x)
-        x = self_.layer2(x)
-        x = self_.layer3(x)
-        x = self_.layer4(x)
-
-        x = self_.avgpool(x)
-
-        # x = x.reshape(x.size(0), -1)
-        x = x.reshape(-1)
-        x = x.unsqueeze(0)
-
-        x = self_.fc(x)
-
-        return x
 
     @staticmethod
     def compositehead_patched_forward(self_, x):
@@ -59,6 +31,8 @@ class MonkeyPatches:
         regs_x = [reg_conv(x) * self_.dilation for reg_conv in self_.reg_convs]
         regs_x_spread = [reg_spread(x) for reg_spread in self_.reg_spreads]
         # regs_x_spread = [torch.nn.functional.leaky_relu(x + 3.0) - 3.0 for x in regs_x_spread]
+        # problem for ONNX is the "- 3.0"
+        regs_x_spread = [torch.clamp(x, min=-3.0) for x in regs_x_spread]
 
         # scale
         scales_x = [scale_conv(x) for scale_conv in self_.scale_convs]
@@ -75,6 +49,7 @@ class MonkeyPatches:
                         for scale_x in scales_x]
 
         n_fields = 17 if len(regs_x) == 1 else 19
+        # print(self_.shortname, n_fields)
         regs_x = [
             reg_x.reshape(1,
                           n_fields,
@@ -97,8 +72,7 @@ class GetPifC(torch.nn.Module):
         return heads[0][0]
 
 
-# alternatively: outputs/resnet50block5-pif-paf-edge401-190507-072054.pkl
-def main(checkpoint='resnet50', outfile='openpifpaf-resnet50.onnx'):
+def apply(checkpoint, outfile):
     monkey_patches = MonkeyPatches()
     monkey_patches.apply()
 
@@ -133,6 +107,14 @@ def main(checkpoint='resnet50', outfile='openpifpaf-resnet50.onnx'):
                       input_names=input_names, output_names=output_names)
 
     monkey_patches.revert()
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--checkpoint', default='resnet50')
+    parser.add_argument('--outfile', default='openpifpaf-resnet50.onnx')
+    args = parser.parse_args()
+    apply(args.checkpoint, args.outfile)
 
 
 if __name__ == '__main__':
