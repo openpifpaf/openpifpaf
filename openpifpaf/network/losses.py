@@ -265,6 +265,9 @@ class CompositeLoss(Loss, torch.nn.Module):
 
 def cli(parser):
     group = parser.add_argument_group('losses')
+    group.add_argument('--lambdas', default=[30.0, 2.0, 2.0, 50.0, 3.0, 3.0],
+                       type=float, nargs='+',
+                       help='prefactor for head losses')
     group.add_argument('--r-smooth', type=float, default=0.0,
                        help='r_{smooth} for SmoothL1 regressions')
     group.add_argument('--regression-loss', default='laplace',
@@ -288,10 +291,15 @@ def factory_from_args(args):
         args.lambdas,
         args.regression_loss,
         args.r_smooth,
-    ).to(device=args.device)
+        args.device,
+    )
 
 
-def factory(head_names, lambdas, reg_loss_name=None, r_smooth=None):
+def factory(head_names, lambdas, reg_loss_name=None, r_smooth=None, device=None):
+    if isinstance(head_names[0], (list, tuple)):
+        return [factory(hn, lam, reg_loss_name, r_smooth, device)
+                for hn, lam in zip(head_names, lambdas)]
+
     head_names = [h for h in head_names if h not in ('skeleton',)]
 
     if reg_loss_name == 'smoothl1':
@@ -306,7 +314,12 @@ def factory(head_names, lambdas, reg_loss_name=None, r_smooth=None):
         raise Exception('unknown regression loss type {}'.format(reg_loss_name))
 
     losses = [factory_loss(head_name, reg_loss) for head_name in head_names]
-    return MultiHeadLoss(losses, lambdas)
+    loss = MultiHeadLoss(losses, lambdas)
+
+    if device is not None:
+        loss = loss.to(device)
+
+    return loss
 
 
 def factory_loss(head_name, reg_loss):
