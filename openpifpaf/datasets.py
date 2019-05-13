@@ -216,7 +216,7 @@ def train_cli(parser):
     group.add_argument('--pre-n-images', default=8000, type=int,
                        help='number of images to sampe for pretraining')
     group.add_argument('--n-images', default=None, type=int,
-                       help='number of images to sampe')
+                       help='number of images to sample')
     group.add_argument('--duplicate-data', default=None, type=int,
                        help='duplicate data')
     group.add_argument('--pre-duplicate-data', default=None, type=int,
