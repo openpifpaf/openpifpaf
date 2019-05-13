@@ -186,6 +186,17 @@ def factory(*,
     return net_cpu, epoch
 
 
+def create_headnet(name, n_features):
+    for head in heads.Head.__subclasses__():
+        logging.debug('checking head %s matches %s', head.__name__, name)
+        if not head.match(name):
+            continue
+        logging.info('selected head %s for %s', head.__name__, name)
+        return head(name, n_features)
+
+    raise Exception('unknown head to create an encoder: {}'.format(name))
+
+
 # pylint: disable=too-many-branches
 def factory_from_scratch(basename, headnames, *, pretrained=True):
     if 'resnet50' in basename:
@@ -231,17 +242,6 @@ def factory_from_scratch(basename, headnames, *, pretrained=True):
     if 'concat' in basename:
         for b in blocks[2:]:
             resnet_factory.replace_downsample(b)
-
-    def create_headnet(name, n_features):  # pylint: disable=too-many-return-statements
-        for head in heads.Head.__subclasses__():
-            logging.debug('checking whether head %s matches %s',
-                          head.__name__, name)
-            if not head.match(name):
-                continue
-            logging.info('selected head %s for %s', head.__name__, name)
-            return head(name, n_features)
-
-        raise Exception('unknown head to create an encoder: {}'.format(name))
 
     if 'pifb' in headnames or 'pafb' in headnames:
         basenet = basenetworks.BaseNetwork(

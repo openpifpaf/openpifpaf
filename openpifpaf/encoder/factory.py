@@ -13,7 +13,13 @@ def factory(args, strides):
     for encoder in Encoder.__subclasses__():
         encoder.apply_args(args)
 
-    headnames = args.headnets
+    return factory_heads(args.headnets, strides)
+
+
+def factory_heads(headnames, strides):
+    if isinstance(headnames[0], (list, tuple)):
+        return [factory_heads(task_headnames, task_strides)
+                for task_headnames, task_strides in zip(headnames, strides)]
 
     encoders = [factory_head(head_name, stride)
                 for head_name, stride in zip(headnames, strides)]
