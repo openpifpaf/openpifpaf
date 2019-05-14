@@ -188,13 +188,13 @@ def factory(*,
 
 def create_headnet(name, n_features):
     for head in heads.Head.__subclasses__():
-        logging.debug('checking head %s matches %s', head.__name__, name)
+        LOG.debug('checking head %s matches %s', head.__name__, name)
         if not head.match(name):
             continue
-        logging.info('selected head %s for %s', head.__name__, name)
+        LOG.info('selected head %s for %s', head.__name__, name)
         return head(name, n_features)
 
-    raise Exception('unknown head to create an encoder: {}'.format(name))
+    raise Exception('unknown head to create a head network: {}'.format(name))
 
 
 # pylint: disable=too-many-branches
