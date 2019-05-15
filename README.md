@@ -123,7 +123,7 @@ Alternative downloads:
 Visualize logs:
 
 ```sh
-python3 -m pifpaf.logs \
+python3 -m openpifpaf.logs \
   outputs/resnet50block5-pif-paf-edge401-190424-122009.pkl.log \
   outputs/resnet101block5-pif-paf-edge401-190412-151013.pkl.log \
   outputs/resnet152block5-pif-paf-edge401-190412-121848.pkl.log
