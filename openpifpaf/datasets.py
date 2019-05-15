@@ -155,14 +155,13 @@ class CocoKeypoints(torch.utils.data.Dataset):
         valid_area = meta['valid_area']
         utils.mask_valid_area(image, valid_area)
 
-        # if there are not target transforms, done here
         self.log.debug(meta)
-        if self.target_transforms is None:
-            return image, anns, meta
 
         # transform targets
-        targets = [t(anns, original_size) for t in self.target_transforms]
-        return image, targets, meta
+        if self.target_transforms is not None:
+            anns = [t(anns, original_size) for t in self.target_transforms]
+
+        return image, anns, meta
 
     def __len__(self):
         return len(self.ids)
