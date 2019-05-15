@@ -1,3 +1,4 @@
+import logging
 import numpy as np
 
 from ..data import COCO_KEYPOINTS, COCO_PERSON_SKELETON
@@ -6,6 +7,8 @@ from .. import show
 
 class Visualizer(object):
     def __init__(self, headnames, strides):
+        self.log = logging.getLogger(self.__class__.__name__)
+
         self.headnames = headnames
         self.strides = strides
         self.keypoint_painter = show.KeypointPainter(skeleton=COCO_PERSON_SKELETON)
@@ -25,10 +28,12 @@ class Visualizer(object):
                 self.paf19(image, target, stride, keypoint_sets)
             elif headname in ('pif', 'pif17', 'pifs'):
                 self.pif17(image, target, stride, keypoint_sets)
+            else:
+                self.log.warning('unknown head: %s', headname)
 
     def pif17(self, image, target, stride, keypoint_sets):
         resized_image = image[::stride, ::stride]
-        for f in [1, 2, 15, 16]:
+        for f in [1, 2]:
             print('intensity field', COCO_KEYPOINTS[f])
 
             with show.canvas() as ax:
@@ -44,7 +49,7 @@ class Visualizer(object):
 
     def paf19(self, image, target, stride, keypoint_sets):
         resized_image = image[::stride, ::stride]
-        for f in [1, 2, 15, 16, 17, 18]:
+        for f in [1, 2]:
             print('association field',
                   COCO_KEYPOINTS[COCO_PERSON_SKELETON[f][0] - 1],
                   COCO_KEYPOINTS[COCO_PERSON_SKELETON[f][1] - 1])

@@ -324,11 +324,10 @@ def factory(head_names, lambdas, reg_loss_name=None, r_smooth=None, device=None)
 
 def factory_loss(head_name, reg_loss):
     for loss in Loss.__subclasses__():
-        logging.debug('checking whether loss %s matches %s',
-                      loss.__name__, head_name)
+        LOG.debug('checking whether loss %s matches %s', loss.__name__, head_name)
         if not loss.match(head_name):
             continue
-        logging.info('selected loss %s for %s', loss.__name__, head_name)
+        LOG.info('selected loss %s for %s', loss.__name__, head_name)
         return loss(head_name, reg_loss)
 
     raise Exception('unknown headname {} for loss'.format(head_name))

@@ -39,7 +39,7 @@ class CompositeField(Head, torch.nn.Module):
         n_fields = n_fields or self.determine_nfields(head_name)
         n_vectors = n_vectors or self.determine_nvectors(head_name)
         n_scales = n_scales or self.determine_nscales(head_name)
-        LOG.debug('%s loss: fields = %d, confidences = %d, vectors = %d, scales = %d',
+        LOG.debug('%s config: fields = %d, confidences = %d, vectors = %d, scales = %d',
                   head_name, n_fields, n_confidences, n_vectors, n_scales)
 
         if kernel_size is None:
@@ -48,7 +48,7 @@ class CompositeField(Head, torch.nn.Module):
             padding = {'wpaf': 5}.get(head_name, self.default_padding)
         if dilation is None:
             dilation = {'wpaf': 5}.get(head_name, self.default_dilation)
-        LOG.debug('%s loss: kernel = %d, padding = %d, dilation = %d',
+        LOG.debug('%s config: kernel = %d, padding = %d, dilation = %d',
                   head_name, kernel_size, padding, dilation)
 
         self.shortname = head_name
