@@ -13,7 +13,7 @@ class Skeleton(object):
         rescaler = AnnRescaler(1, self.n_keypoints)
         keypoint_sets, __, ___ = rescaler(anns, width_height_original)
 
-        out = np.zeros((self.max_instances, self.n_keypoints, 3), dtype=np.float)
+        out = np.zeros((self.max_instances, self.n_keypoints, 3), dtype=np.float32)
         for i, keypoints in enumerate(keypoint_sets):
             for f, xyv in enumerate(keypoints):
                 if xyv[2] <= v_th:
