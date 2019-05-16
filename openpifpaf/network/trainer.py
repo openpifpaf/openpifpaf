@@ -207,7 +207,12 @@ class Trainer(object):
 
     def val(self, scenes, epoch):
         start_time = time.time()
-        self.model.eval()
+
+        # Train mode implies outputs are for losses, so have to use it here.
+        #
+        # It also changes the behavior of BatchNorm. Train mode is also
+        # more applicable here if you want to compare train versus val loss.
+        self.model.train()
 
         epoch_loss = 0.0
         head_epoch_losses = None

@@ -161,8 +161,6 @@ def factory(*,
 
         # initialize for eval
         net_cpu.eval()
-        for head in net_cpu.head_nets:
-            head.apply_class_sigmoid = True
 
         # normalize for backwards compatibility
         model_migration(net_cpu)

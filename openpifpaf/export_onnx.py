@@ -24,7 +24,7 @@ class MonkeyPatches:
 
         # classification
         classes_x = [class_conv(x) for class_conv in self_.class_convs]
-        if self_.apply_class_sigmoid:
+        if not self_.training:
             classes_x = [torch.sigmoid(class_x) for class_x in classes_x]
 
         # regressions
