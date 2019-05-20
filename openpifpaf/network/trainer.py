@@ -51,6 +51,11 @@ class Trainer(object):
                 return result
             self.train_batch = train_batch_with_profile
 
+        self.log.info({
+            'type': 'config',
+            'field_names': self.loss.field_names,
+        })
+
     def lr(self):
         for param_group in self.optimizer.param_groups:
             return param_group['lr']
@@ -176,7 +181,7 @@ class Trainer(object):
 
             # write training loss
             if batch_idx % self.log_interval == 0:
-                self.log.info({
+                batch_info = {
                     'type': 'train',
                     'epoch': epoch, 'batch': batch_idx, 'n_batches': len(scenes),
                     'time': round(batch_time, 3),
@@ -185,7 +190,10 @@ class Trainer(object):
                     'loss': round(loss, 3) if loss is not None else None,
                     'head_losses': [round(l, 3) if l is not None else None
                                     for l in head_losses],
-                })
+                }
+                if hasattr(self.loss, 'batch_meta'):
+                    batch_info.update(self.loss.batch_meta())
+                self.log.info(batch_info)
 
             # initialize ema
             if self.ema is None and self.ema_decay:
