@@ -128,8 +128,6 @@ class CompositeLoss(Loss, torch.nn.Module):
 
         if sigmas is None and head_name == 'pif':
             sigmas = [COCO_PERSON_SIGMAS]
-        if sigmas is None and 'pif' in head_name:
-            sigmas = [[1.0]]
         if sigmas is None and head_name in ('paf', 'paf19', 'wpaf'):
             sigmas = [
                 [COCO_PERSON_SIGMAS[j1i - 1] for j1i, _ in COCO_PERSON_SKELETON],
@@ -145,6 +143,8 @@ class CompositeLoss(Loss, torch.nn.Module):
                 [COCO_PERSON_SIGMAS[j1i - 1] for j1i, _ in DENSER_COCO_PERSON_SKELETON],
                 [COCO_PERSON_SIGMAS[j2i - 1] for _, j2i in DENSER_COCO_PERSON_SKELETON],
             ]
+        if sigmas is None:
+            sigmas = [[1.0] for _ in range(n_vectors)]
 
         self.background_weight = self.default_background_weight
         self.multiplicity_correction = self.default_multiplicity_correction

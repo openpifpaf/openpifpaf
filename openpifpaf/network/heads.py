@@ -52,7 +52,6 @@ class CompositeField(Head, torch.nn.Module):
                   head_name, kernel_size, padding, dilation)
 
         self.shortname = head_name
-        self.apply_class_sigmoid = True
         self.dilation = dilation
 
         self.dropout = torch.nn.Dropout2d(p=self.default_dropout_p)
@@ -154,7 +153,7 @@ class CompositeField(Head, torch.nn.Module):
 
         # classification
         classes_x = [class_conv(x) for class_conv in self.class_convs]
-        if self.apply_class_sigmoid:
+        if not self.training:
             classes_x = [torch.sigmoid(class_x) for class_x in classes_x]
 
         # regressions
@@ -167,6 +166,7 @@ class CompositeField(Head, torch.nn.Module):
         scales_x = [scale_conv(x) for scale_conv in self.scale_convs]
         scales_x = [torch.nn.functional.relu(scale_x) for scale_x in scales_x]
 
+        # upscale
         for _ in range(self._quad):
             classes_x = [self.dequad_op(class_x)[:, :, :-1, :-1]
                          for class_x in classes_x]
@@ -177,6 +177,7 @@ class CompositeField(Head, torch.nn.Module):
             scales_x = [self.dequad_op(scale_x)[:, :, :-1, :-1]
                         for scale_x in scales_x]
 
+        # reshape regressions
         regs_x = [
             reg_x.reshape(reg_x.shape[0],
                           reg_x.shape[1] // 2,

@@ -215,7 +215,23 @@ class Trainer(object):
 
     def val(self, scenes, epoch):
         start_time = time.time()
-        self.model.eval()
+
+        # Train mode implies outputs are for losses, so have to use it here.
+        self.model.train()
+        if self.fix_batch_norm:
+            for m in self.model.modules():
+                if isinstance(m, (torch.nn.BatchNorm1d, torch.nn.BatchNorm2d)):
+                    # print('fixing parameters for {}. Min var = {}'.format(
+                    #     m, torch.min(m.running_var)))
+                    m.eval()
+                    # m.weight.requires_grad = False
+                    # m.bias.requires_grad = False
+
+                    # avoid numerical instabilities
+                    # (only seen sometimes when training with GPU)
+                    # Variances in pretrained models can be as low as 1e-17.
+                    # m.running_var.clamp_(min=1e-8)
+                    m.eps = 1e-4
 
         epoch_loss = 0.0
         head_epoch_losses = None
