@@ -60,7 +60,7 @@ class Processor(object):
                 for i in range(image_batch.shape[0])
             ]
 
-        print('nn processing time', time.time() - start)
+        self.log.debug('nn processing time: %.3fs', time.time() - start)
         return fields
 
     def soft_nms(self, annotations):

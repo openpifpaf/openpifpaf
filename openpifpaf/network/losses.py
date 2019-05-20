@@ -89,6 +89,8 @@ class MultiHeadLoss(torch.nn.Module):
         self.losses = torch.nn.ModuleList(losses)
         self.lambdas = lambdas
 
+        self.field_names = [n for l in self.losses for n in l.field_names]
+
     def forward(self, head_fields, head_targets):  # pylint: disable=arguments-differ
         assert len(self.losses) == len(head_fields)
         assert len(self.losses) <= len(head_targets)
@@ -166,6 +168,11 @@ class CompositeLoss(Loss, torch.nn.Module):
             self.scales_to_kp = None
 
         self.regression_loss = regression_loss or laplace_loss
+        self.field_names = (
+            ['{}.c'.format(head_name)] +
+            ['{}.vec{}'.format(head_name, i + 1) for i in range(self.n_vectors)] +
+            ['{}.scales{}'.format(head_name, i + 1) for i in range(self.n_scales)]
+        )
 
     @staticmethod
     def match(head_name):
