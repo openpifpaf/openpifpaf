@@ -203,28 +203,32 @@ class KeypointPainter(object):
             colors = range(len(annotations))
 
         for i, ann in enumerate(annotations):
-            kps = ann.data
-            assert kps.shape[1] == 3
-            x = kps[:, 0] * self.xy_scale
-            y = kps[:, 1] * self.xy_scale
-            v = kps[:, 2]
-
             if colors is not None:
                 color = colors[i]
 
-            if isinstance(color, (int, np.integer)):
-                color = matplotlib.cm.get_cmap('tab20')((color % 20 + 0.05) / 20)
+            text = texts[i] if texts is not None else None
+            self.annotation(ax, ann, color=color, text=text)
 
-            self._draw_skeleton(ax, x, y, v, color=color)
+    def annotation(self, ax, ann, *, color, text=None):
+        if isinstance(color, (int, np.integer)):
+            color = matplotlib.cm.get_cmap('tab20')((color % 20 + 0.05) / 20)
 
-            if ann.joint_scales is not None:
-                self._draw_scales(ax, x, y, v, color, ann.joint_scales)
+        kps = ann.data
+        assert kps.shape[1] == 3
+        x = kps[:, 0] * self.xy_scale
+        y = kps[:, 1] * self.xy_scale
+        v = kps[:, 2]
 
-            if self.show_box:
-                self._draw_box(ax, x, y, v, color, ann.score())
+        self._draw_skeleton(ax, x, y, v, color=color)
 
-                if texts is not None:
-                    self._draw_text(ax, x, y, v, texts[i], color)
+        if ann.joint_scales is not None:
+            self._draw_scales(ax, x, y, v, color, ann.joint_scales)
+
+        if self.show_box:
+            self._draw_box(ax, x, y, v, color, ann.score())
+
+            if text is not None:
+                self._draw_text(ax, x, y, v, text, color)
 
 
 def quiver(ax, vector_field, intensity_field=None, step=1, threshold=0.5,
