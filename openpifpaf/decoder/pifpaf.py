@@ -13,7 +13,7 @@ from .utils import (index_field, scalar_square_add_single,
 from ..data import KINEMATIC_TREE_SKELETON, COCO_PERSON_SKELETON, DENSER_COCO_PERSON_SKELETON
 
 # pylint: disable=import-error
-from ..functional import (scalar_square_add_constant, scalar_square_add_gauss,
+from ..functional import (cumulative_average, scalar_square_add_gauss,
                           weiszfeld_nd, paf_center)
 
 
@@ -179,15 +179,12 @@ class PifPafGenerator(object):
                 scalar_square_add_gauss(t, x, y, s, v / self.pif_nn, truncate=0.5)
             else:
                 scalar_square_add_gauss(t, x, y, s, v / self.pif_nn)
-                scalar_square_add_constant(scale, x, y, s, s*v)
-                scalar_square_add_constant(n, x, y, s, v)
+                cumulative_average(scale, n, x, y, s, s, v)
 
         if core_only:
             self.log.debug('target_intensities %.3fs', time.perf_counter() - start)
             return targets
 
-        m = ns > 0
-        scales[m] = scales[m] / ns[m]
         self.log.debug('target_intensities %.3fs', time.perf_counter() - start)
         return targets, scales
 

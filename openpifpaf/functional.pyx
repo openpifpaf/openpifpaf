@@ -22,12 +22,38 @@ def scalar_square_add_constant(double[:, :] field, x_np, y_np, width_np, double[
     cdef long[:] maxy = maxy_np
 
     cdef Py_ssize_t i, xx, yy
-
-    # for minxx, minyy, maxxx, maxyy, vv in zip(minx, miny, maxx, maxy, v):
     for i in range(minx.shape[0]):
         for xx in range(minx[i], maxx[i]):
             for yy in range(miny[i], maxy[i]):
                 field[yy, xx] += v[i]
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.cdivision(True)
+def cumulative_average(double[:, :] ca, double[:, :] cw, x_np, y_np, width_np, double[:] v, double[:] w):
+    minx_np = np.round(x_np - width_np).astype(np.int)
+    minx_np = np.clip(minx_np, 0, ca.shape[1] - 1)
+    miny_np = np.round(y_np - width_np).astype(np.int)
+    miny_np = np.clip(miny_np, 0, ca.shape[0] - 1)
+    maxx_np = np.round(x_np + width_np).astype(np.int)
+    maxx_np = np.clip(maxx_np + 1, minx_np + 1, ca.shape[1])
+    maxy_np = np.round(y_np + width_np).astype(np.int)
+    maxy_np = np.clip(maxy_np + 1, miny_np + 1, ca.shape[0])
+
+    cdef long[:] minx = minx_np
+    cdef long[:] miny = miny_np
+    cdef long[:] maxx = maxx_np
+    cdef long[:] maxy = maxy_np
+
+    cdef Py_ssize_t i, xx, yy
+    for i in range(minx.shape[0]):
+        if w[i] <= 0.0:
+            continue
+        for xx in range(minx[i], maxx[i]):
+            for yy in range(miny[i], maxy[i]):
+                ca[yy, xx] = (w[i] * v[i] + cw[yy, xx] * ca[yy, xx]) / (cw[yy, xx] + w[i])
+                cw[yy, xx] += w[i]
 
 
 @cython.boundscheck(False)
@@ -59,7 +85,6 @@ def scalar_square_add_gauss(double[:, :] field, x_np, y_np, sigma_np, v_np, doub
     cdef double deltax, deltay
     cdef double vv
 
-    # for minxx, minyy, maxxx, maxyy, vv in zip(minx, miny, maxx, maxy, v):
     for i in range(l):
         for xx in range(minx[i], maxx[i]):
             deltax = xx - x[i]
