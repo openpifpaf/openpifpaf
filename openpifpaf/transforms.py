@@ -318,7 +318,7 @@ class CenterPad(Preprocess):
         anns = copy.deepcopy(anns)
 
         image, anns, ltrb = self.center_pad(image, anns)
-        meta['offset'] += ltrb[:2]
+        meta['offset'] -= ltrb[:2]
 
         self.log.debug('valid area before pad with %s: %s', ltrb, meta['valid_area'])
         meta['valid_area'][:2] += ltrb[:2]
