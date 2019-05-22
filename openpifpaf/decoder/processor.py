@@ -14,6 +14,7 @@ from .utils import scalar_square_add_single
 
 class Processor(object):
     def __init__(self, model, decode, *,
+                 output_stride=None,
                  keypoint_threshold=0.0, instance_threshold=0.0,
                  debug_visualizer=None,
                  profile=None,
@@ -26,6 +27,7 @@ class Processor(object):
 
         self.model = model
         self.decode = decode
+        self.output_stride = output_stride or model.io_scales()[-1]
         self.keypoint_threshold = keypoint_threshold
         self.instance_threshold = instance_threshold
         self.debug_visualizer = debug_visualizer
@@ -162,11 +164,10 @@ class Processor(object):
         annotations = self.decode(fields)
 
         # scale to input size
-        output_stride = self.model.io_scales()[-1]
         for ann in annotations:
-            ann.data[:, 0:2] *= output_stride
+            ann.data[:, 0:2] *= self.output_stride
             if ann.joint_scales is not None:
-                ann.joint_scales *= output_stride
+                ann.joint_scales *= self.output_stride
 
         return annotations
 
@@ -175,14 +176,13 @@ class Processor(object):
         annotations_list = [self.decode(f) for f in fields_list]
 
         # scale to input size
-        output_stride = self.model.io_scales()[-1]
         w = meta_list[0]['scale'][0] * meta_list[0]['width_height'][0]
         for annotations, meta in zip(annotations_list, meta_list):
             scale_factor = meta['scale'][0] / meta_list[0]['scale'][0]
             for ann in annotations:
-                ann.data[:, 0:2] *= output_stride / scale_factor
+                ann.data[:, 0:2] *= self.output_stride / scale_factor
                 if ann.joint_scales is not None:
-                    ann.joint_scales *= output_stride / scale_factor
+                    ann.joint_scales *= self.output_stride / scale_factor
 
                 if meta['hflip']:
                     ann.data[:, 0] = -ann.data[:, 0] - 1.0 + w
