@@ -25,7 +25,7 @@ def create_sink(side):
     if side == 1:
         return np.zeros((2, 1, 1))
 
-    sink1d = np.linspace((side - 1.0) / 2.0, -(side - 1.0) / 2.0, num=side, dtype=np.float)
+    sink1d = np.linspace((side - 1.0) / 2.0, -(side - 1.0) / 2.0, num=side, dtype=np.float32)
     sink = np.stack((
         sink1d.reshape(1, -1).repeat(side, axis=0),
         sink1d.reshape(-1, 1).repeat(side, axis=1),

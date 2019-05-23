@@ -56,6 +56,16 @@ def cumulative_average(float[:, :] ca, float[:, :] cw, x_np, y_np, width_np, flo
                 cw[yy, xx] += w[i]
 
 
+cdef inline float approx_exp(float x):
+    if x > 2.0 or x < -2.0:
+        return 0.0
+    x = 1.0 + x / 8.0
+    x *= x
+    x *= x
+    x *= x
+    return x
+
+
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.cdivision(True)
@@ -82,15 +92,20 @@ def scalar_square_add_gauss(float[:, :] field, x_np, y_np, sigma_np, v_np, float
 
     cdef Py_ssize_t i, xx, yy
     cdef Py_ssize_t l = minx.shape[0]
-    cdef float deltax, deltay
+    cdef float deltax2, deltay2
     cdef float vv
+    cdef float cv, cx, cy, csigma2
 
     for i in range(l):
+        csigma2 = sigma[i]**2
+        cx = x[i]
+        cy = y[i]
+        cv = v[i]
         for xx in range(minx[i], maxx[i]):
-            deltax = xx - x[i]
+            deltax2 = (xx - cx)**2
             for yy in range(miny[i], maxy[i]):
-                deltay = yy - y[i]
-                vv = v[i] * exp(-0.5 * (deltax**2 + deltay**2) / sigma[i]**2)
+                deltay2 = (yy - cy)**2
+                vv = cv * approx_exp(-0.5 * (deltax2 + deltay2) / csigma2)
                 field[yy, xx] += vv
 
 
