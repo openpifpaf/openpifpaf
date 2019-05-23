@@ -1641,17 +1641,17 @@ static int __Pyx_ValidateAndInit_memviewslice(
                 PyObject *original_obj);
 
 /* ObjectToMemviewSlice.proto */
-static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dsds_double(PyObject *, int writable_flag);
+static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dsds_float(PyObject *, int writable_flag);
 
 /* ObjectToMemviewSlice.proto */
-static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_double(PyObject *, int writable_flag);
+static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_float(PyObject *, int writable_flag);
 
 /* CIntToPy.proto */
 static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value);
 
 /* MemviewDtypeToObject.proto */
-static CYTHON_INLINE PyObject *__pyx_memview_get_double(const char *itemp);
-static CYTHON_INLINE int __pyx_memview_set_double(const char *itemp, PyObject *obj);
+static CYTHON_INLINE PyObject *__pyx_memview_get_float(const char *itemp);
+static CYTHON_INLINE int __pyx_memview_set_float(const char *itemp, PyObject *obj);
 
 /* CIntToPy.proto */
 static CYTHON_INLINE PyObject* __Pyx_PyInt_From_unsigned_int(unsigned int value);
@@ -1749,7 +1749,7 @@ static void __pyx_memoryview_refcount_objects_in_slice(char *, Py_ssize_t *, Py_
 static void __pyx_memoryview_slice_assign_scalar(__Pyx_memviewslice *, int, size_t, void *, int); /*proto*/
 static void __pyx_memoryview__slice_assign_scalar(char *, Py_ssize_t *, Py_ssize_t *, int, size_t, void *); /*proto*/
 static PyObject *__pyx_unpickle_Enum__set_state(struct __pyx_MemviewEnum_obj *, PyObject *); /*proto*/
-static __Pyx_TypeInfo __Pyx_TypeInfo_double = { "double", NULL, sizeof(double), { 0 }, 0, 'R', 0, 0 };
+static __Pyx_TypeInfo __Pyx_TypeInfo_float = { "float", NULL, sizeof(float), { 0 }, 0, 'R', 0, 0 };
 static __Pyx_TypeInfo __Pyx_TypeInfo_long = { "long", NULL, sizeof(long), { 0 }, 0, IS_UNSIGNED(long) ? 'U' : 'I', IS_UNSIGNED(long), 0 };
 static __Pyx_TypeInfo __Pyx_TypeInfo_unsigned_char = { "unsigned char", NULL, sizeof(unsigned char), { 0 }, 0, IS_UNSIGNED(unsigned char) ? 'U' : 'I', IS_UNSIGNED(unsigned char), 0 };
 #define __Pyx_MODULE_NAME "openpifpaf.functional"
@@ -2073,10 +2073,10 @@ static PyObject *__pyx_n_s_zeros;
 static PyObject *__pyx_n_s_zeros_like;
 static PyObject *__pyx_pf_10openpifpaf_10functional_scalar_square_add_constant(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_field, PyObject *__pyx_v_x_np, PyObject *__pyx_v_y_np, PyObject *__pyx_v_width_np, __Pyx_memviewslice __pyx_v_v); /* proto */
 static PyObject *__pyx_pf_10openpifpaf_10functional_2cumulative_average(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_ca, __Pyx_memviewslice __pyx_v_cw, PyObject *__pyx_v_x_np, PyObject *__pyx_v_y_np, PyObject *__pyx_v_width_np, __Pyx_memviewslice __pyx_v_v, __Pyx_memviewslice __pyx_v_w); /* proto */
-static PyObject *__pyx_pf_10openpifpaf_10functional_4scalar_square_add_gauss(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_field, PyObject *__pyx_v_x_np, PyObject *__pyx_v_y_np, PyObject *__pyx_v_sigma_np, PyObject *__pyx_v_v_np, double __pyx_v_truncate); /* proto */
-static PyObject *__pyx_pf_10openpifpaf_10functional_6weiszfeld_nd(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x_np, PyObject *__pyx_v_y_np, __Pyx_memviewslice __pyx_v_weights, double __pyx_v_epsilon, Py_ssize_t __pyx_v_max_steps); /* proto */
-static PyObject *__pyx_pf_10openpifpaf_10functional_8paf_mask_center(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_paf_field, double __pyx_v_x, double __pyx_v_y, double __pyx_v_sigma); /* proto */
-static PyObject *__pyx_pf_10openpifpaf_10functional_10paf_center(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_paf_field, double __pyx_v_x, double __pyx_v_y, double __pyx_v_sigma); /* proto */
+static PyObject *__pyx_pf_10openpifpaf_10functional_4scalar_square_add_gauss(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_field, PyObject *__pyx_v_x_np, PyObject *__pyx_v_y_np, PyObject *__pyx_v_sigma_np, PyObject *__pyx_v_v_np, float __pyx_v_truncate); /* proto */
+static PyObject *__pyx_pf_10openpifpaf_10functional_6weiszfeld_nd(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x_np, PyObject *__pyx_v_y_np, __Pyx_memviewslice __pyx_v_weights, float __pyx_v_epsilon, Py_ssize_t __pyx_v_max_steps); /* proto */
+static PyObject *__pyx_pf_10openpifpaf_10functional_8paf_mask_center(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_paf_field, float __pyx_v_x, float __pyx_v_y, float __pyx_v_sigma); /* proto */
+static PyObject *__pyx_pf_10openpifpaf_10functional_10paf_center(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_paf_field, float __pyx_v_x, float __pyx_v_y, float __pyx_v_sigma); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array___cinit__(struct __pyx_array_obj *__pyx_v_self, PyObject *__pyx_v_shape, Py_ssize_t __pyx_v_itemsize, PyObject *__pyx_v_format, PyObject *__pyx_v_mode, int __pyx_v_allocate_buffer); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array_2__getbuffer__(struct __pyx_array_obj *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_array___pyx_pf_15View_dot_MemoryView_5array_4__dealloc__(struct __pyx_array_obj *__pyx_v_self); /* proto */
@@ -2171,7 +2171,7 @@ static PyObject *__pyx_codeobj__38;
 /* "openpifpaf/functional.pyx":9
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
- * def scalar_square_add_constant(double[:, :] field, x_np, y_np, width_np, double[:] v):             # <<<<<<<<<<<<<<
+ * def scalar_square_add_constant(float[:, :] field, x_np, y_np, width_np, float[:] v):             # <<<<<<<<<<<<<<
  *     minx_np = np.round(x_np - width_np).astype(np.int)
  *     minx_np = np.clip(minx_np, 0, field.shape[1] - 1)
  */
@@ -2250,11 +2250,11 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_1scalar_square_add_constant(
       values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
       values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
     }
-    __pyx_v_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_field.memview)) __PYX_ERR(0, 9, __pyx_L3_error)
+    __pyx_v_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_field.memview)) __PYX_ERR(0, 9, __pyx_L3_error)
     __pyx_v_x_np = values[1];
     __pyx_v_y_np = values[2];
     __pyx_v_width_np = values[3];
-    __pyx_v_v = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_v.memview)) __PYX_ERR(0, 9, __pyx_L3_error)
+    __pyx_v_v = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_v.memview)) __PYX_ERR(0, 9, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
@@ -2314,7 +2314,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_scalar_square_add_constant(C
 
   /* "openpifpaf/functional.pyx":10
  * @cython.wraparound(False)
- * def scalar_square_add_constant(double[:, :] field, x_np, y_np, width_np, double[:] v):
+ * def scalar_square_add_constant(float[:, :] field, x_np, y_np, width_np, float[:] v):
  *     minx_np = np.round(x_np - width_np).astype(np.int)             # <<<<<<<<<<<<<<
  *     minx_np = np.clip(minx_np, 0, field.shape[1] - 1)
  *     miny_np = np.round(y_np - width_np).astype(np.int)
@@ -2370,7 +2370,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_scalar_square_add_constant(C
   __pyx_t_1 = 0;
 
   /* "openpifpaf/functional.pyx":11
- * def scalar_square_add_constant(double[:, :] field, x_np, y_np, width_np, double[:] v):
+ * def scalar_square_add_constant(float[:, :] field, x_np, y_np, width_np, float[:] v):
  *     minx_np = np.round(x_np - width_np).astype(np.int)
  *     minx_np = np.clip(minx_np, 0, field.shape[1] - 1)             # <<<<<<<<<<<<<<
  *     miny_np = np.round(y_np - width_np).astype(np.int)
@@ -2922,7 +2922,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_scalar_square_add_constant(C
         __pyx_t_23 = __pyx_v_i;
         __pyx_t_24 = __pyx_v_yy;
         __pyx_t_25 = __pyx_v_xx;
-        *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_field.data + __pyx_t_24 * __pyx_v_field.strides[0]) ) + __pyx_t_25 * __pyx_v_field.strides[1]) )) += (*((double *) ( /* dim=0 */ (__pyx_v_v.data + __pyx_t_23 * __pyx_v_v.strides[0]) )));
+        *((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_field.data + __pyx_t_24 * __pyx_v_field.strides[0]) ) + __pyx_t_25 * __pyx_v_field.strides[1]) )) += (*((float *) ( /* dim=0 */ (__pyx_v_v.data + __pyx_t_23 * __pyx_v_v.strides[0]) )));
       }
     }
   }
@@ -2930,7 +2930,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_scalar_square_add_constant(C
   /* "openpifpaf/functional.pyx":9
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
- * def scalar_square_add_constant(double[:, :] field, x_np, y_np, width_np, double[:] v):             # <<<<<<<<<<<<<<
+ * def scalar_square_add_constant(float[:, :] field, x_np, y_np, width_np, float[:] v):             # <<<<<<<<<<<<<<
  *     minx_np = np.round(x_np - width_np).astype(np.int)
  *     minx_np = np.clip(minx_np, 0, field.shape[1] - 1)
  */
@@ -2968,7 +2968,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_scalar_square_add_constant(C
 /* "openpifpaf/functional.pyx":34
  * @cython.wraparound(False)
  * @cython.cdivision(True)
- * def cumulative_average(double[:, :] ca, double[:, :] cw, x_np, y_np, width_np, double[:] v, double[:] w):             # <<<<<<<<<<<<<<
+ * def cumulative_average(float[:, :] ca, float[:, :] cw, x_np, y_np, width_np, float[:] v, float[:] w):             # <<<<<<<<<<<<<<
  *     minx_np = np.round(x_np - width_np).astype(np.int)
  *     minx_np = np.clip(minx_np, 0, ca.shape[1] - 1)
  */
@@ -3067,13 +3067,13 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_3cumulative_average(PyObject
       values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
       values[6] = PyTuple_GET_ITEM(__pyx_args, 6);
     }
-    __pyx_v_ca = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_ca.memview)) __PYX_ERR(0, 34, __pyx_L3_error)
-    __pyx_v_cw = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_cw.memview)) __PYX_ERR(0, 34, __pyx_L3_error)
+    __pyx_v_ca = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_ca.memview)) __PYX_ERR(0, 34, __pyx_L3_error)
+    __pyx_v_cw = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_cw.memview)) __PYX_ERR(0, 34, __pyx_L3_error)
     __pyx_v_x_np = values[2];
     __pyx_v_y_np = values[3];
     __pyx_v_width_np = values[4];
-    __pyx_v_v = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[5], PyBUF_WRITABLE); if (unlikely(!__pyx_v_v.memview)) __PYX_ERR(0, 34, __pyx_L3_error)
-    __pyx_v_w = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[6], PyBUF_WRITABLE); if (unlikely(!__pyx_v_w.memview)) __PYX_ERR(0, 34, __pyx_L3_error)
+    __pyx_v_v = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[5], PyBUF_WRITABLE); if (unlikely(!__pyx_v_v.memview)) __PYX_ERR(0, 34, __pyx_L3_error)
+    __pyx_v_w = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[6], PyBUF_WRITABLE); if (unlikely(!__pyx_v_w.memview)) __PYX_ERR(0, 34, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
@@ -3146,7 +3146,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_2cumulative_average(CYTHON_U
 
   /* "openpifpaf/functional.pyx":35
  * @cython.cdivision(True)
- * def cumulative_average(double[:, :] ca, double[:, :] cw, x_np, y_np, width_np, double[:] v, double[:] w):
+ * def cumulative_average(float[:, :] ca, float[:, :] cw, x_np, y_np, width_np, float[:] v, float[:] w):
  *     minx_np = np.round(x_np - width_np).astype(np.int)             # <<<<<<<<<<<<<<
  *     minx_np = np.clip(minx_np, 0, ca.shape[1] - 1)
  *     miny_np = np.round(y_np - width_np).astype(np.int)
@@ -3202,7 +3202,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_2cumulative_average(CYTHON_U
   __pyx_t_1 = 0;
 
   /* "openpifpaf/functional.pyx":36
- * def cumulative_average(double[:, :] ca, double[:, :] cw, x_np, y_np, width_np, double[:] v, double[:] w):
+ * def cumulative_average(float[:, :] ca, float[:, :] cw, x_np, y_np, width_np, float[:] v, float[:] w):
  *     minx_np = np.round(x_np - width_np).astype(np.int)
  *     minx_np = np.clip(minx_np, 0, ca.shape[1] - 1)             # <<<<<<<<<<<<<<
  *     miny_np = np.round(y_np - width_np).astype(np.int)
@@ -3724,7 +3724,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_2cumulative_average(CYTHON_U
  *         for xx in range(minx[i], maxx[i]):
  */
     __pyx_t_13 = __pyx_v_i;
-    __pyx_t_14 = (((*((double *) ( /* dim=0 */ (__pyx_v_w.data + __pyx_t_13 * __pyx_v_w.strides[0]) ))) <= 0.0) != 0);
+    __pyx_t_14 = (((*((float *) ( /* dim=0 */ (__pyx_v_w.data + __pyx_t_13 * __pyx_v_w.strides[0]) ))) <= 0.0) != 0);
     if (__pyx_t_14) {
 
       /* "openpifpaf/functional.pyx":52
@@ -3791,7 +3791,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_2cumulative_average(CYTHON_U
         __pyx_t_33 = __pyx_v_i;
         __pyx_t_34 = __pyx_v_yy;
         __pyx_t_35 = __pyx_v_xx;
-        *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_ca.data + __pyx_t_34 * __pyx_v_ca.strides[0]) ) + __pyx_t_35 * __pyx_v_ca.strides[1]) )) = ((((*((double *) ( /* dim=0 */ (__pyx_v_w.data + __pyx_t_25 * __pyx_v_w.strides[0]) ))) * (*((double *) ( /* dim=0 */ (__pyx_v_v.data + __pyx_t_26 * __pyx_v_v.strides[0]) )))) + ((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_cw.data + __pyx_t_27 * __pyx_v_cw.strides[0]) ) + __pyx_t_28 * __pyx_v_cw.strides[1]) ))) * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_ca.data + __pyx_t_29 * __pyx_v_ca.strides[0]) ) + __pyx_t_30 * __pyx_v_ca.strides[1]) ))))) / ((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_cw.data + __pyx_t_31 * __pyx_v_cw.strides[0]) ) + __pyx_t_32 * __pyx_v_cw.strides[1]) ))) + (*((double *) ( /* dim=0 */ (__pyx_v_w.data + __pyx_t_33 * __pyx_v_w.strides[0]) )))));
+        *((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_ca.data + __pyx_t_34 * __pyx_v_ca.strides[0]) ) + __pyx_t_35 * __pyx_v_ca.strides[1]) )) = ((((*((float *) ( /* dim=0 */ (__pyx_v_w.data + __pyx_t_25 * __pyx_v_w.strides[0]) ))) * (*((float *) ( /* dim=0 */ (__pyx_v_v.data + __pyx_t_26 * __pyx_v_v.strides[0]) )))) + ((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_cw.data + __pyx_t_27 * __pyx_v_cw.strides[0]) ) + __pyx_t_28 * __pyx_v_cw.strides[1]) ))) * (*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_ca.data + __pyx_t_29 * __pyx_v_ca.strides[0]) ) + __pyx_t_30 * __pyx_v_ca.strides[1]) ))))) / ((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_cw.data + __pyx_t_31 * __pyx_v_cw.strides[0]) ) + __pyx_t_32 * __pyx_v_cw.strides[1]) ))) + (*((float *) ( /* dim=0 */ (__pyx_v_w.data + __pyx_t_33 * __pyx_v_w.strides[0]) )))));
 
         /* "openpifpaf/functional.pyx":56
  *             for yy in range(miny[i], maxy[i]):
@@ -3803,7 +3803,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_2cumulative_average(CYTHON_U
         __pyx_t_36 = __pyx_v_i;
         __pyx_t_37 = __pyx_v_yy;
         __pyx_t_38 = __pyx_v_xx;
-        *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_cw.data + __pyx_t_37 * __pyx_v_cw.strides[0]) ) + __pyx_t_38 * __pyx_v_cw.strides[1]) )) += (*((double *) ( /* dim=0 */ (__pyx_v_w.data + __pyx_t_36 * __pyx_v_w.strides[0]) )));
+        *((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_cw.data + __pyx_t_37 * __pyx_v_cw.strides[0]) ) + __pyx_t_38 * __pyx_v_cw.strides[1]) )) += (*((float *) ( /* dim=0 */ (__pyx_v_w.data + __pyx_t_36 * __pyx_v_w.strides[0]) )));
       }
     }
     __pyx_L3_continue:;
@@ -3812,7 +3812,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_2cumulative_average(CYTHON_U
   /* "openpifpaf/functional.pyx":34
  * @cython.wraparound(False)
  * @cython.cdivision(True)
- * def cumulative_average(double[:, :] ca, double[:, :] cw, x_np, y_np, width_np, double[:] v, double[:] w):             # <<<<<<<<<<<<<<
+ * def cumulative_average(float[:, :] ca, float[:, :] cw, x_np, y_np, width_np, float[:] v, float[:] w):             # <<<<<<<<<<<<<<
  *     minx_np = np.round(x_np - width_np).astype(np.int)
  *     minx_np = np.clip(minx_np, 0, ca.shape[1] - 1)
  */
@@ -3852,7 +3852,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_2cumulative_average(CYTHON_U
 /* "openpifpaf/functional.pyx":62
  * @cython.wraparound(False)
  * @cython.cdivision(True)
- * def scalar_square_add_gauss(double[:, :] field, x_np, y_np, sigma_np, v_np, double truncate=2.0):             # <<<<<<<<<<<<<<
+ * def scalar_square_add_gauss(float[:, :] field, x_np, y_np, sigma_np, v_np, float truncate=2.0):             # <<<<<<<<<<<<<<
  *     sigma_np = np.maximum(1.0, sigma_np)
  *     width_np = np.maximum(1.0, truncate * sigma_np)
  */
@@ -3866,7 +3866,7 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_5scalar_square_add_gauss(PyO
   PyObject *__pyx_v_y_np = 0;
   PyObject *__pyx_v_sigma_np = 0;
   PyObject *__pyx_v_v_np = 0;
-  double __pyx_v_truncate;
+  float __pyx_v_truncate;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("scalar_square_add_gauss (wrapper)", 0);
@@ -3944,15 +3944,15 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_5scalar_square_add_gauss(PyO
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_field.memview)) __PYX_ERR(0, 62, __pyx_L3_error)
+    __pyx_v_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_field.memview)) __PYX_ERR(0, 62, __pyx_L3_error)
     __pyx_v_x_np = values[1];
     __pyx_v_y_np = values[2];
     __pyx_v_sigma_np = values[3];
     __pyx_v_v_np = values[4];
     if (values[5]) {
-      __pyx_v_truncate = __pyx_PyFloat_AsDouble(values[5]); if (unlikely((__pyx_v_truncate == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 62, __pyx_L3_error)
+      __pyx_v_truncate = __pyx_PyFloat_AsFloat(values[5]); if (unlikely((__pyx_v_truncate == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 62, __pyx_L3_error)
     } else {
-      __pyx_v_truncate = ((double)2.0);
+      __pyx_v_truncate = ((float)2.0);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
@@ -3970,7 +3970,7 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_5scalar_square_add_gauss(PyO
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_10openpifpaf_10functional_4scalar_square_add_gauss(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_field, PyObject *__pyx_v_x_np, PyObject *__pyx_v_y_np, PyObject *__pyx_v_sigma_np, PyObject *__pyx_v_v_np, double __pyx_v_truncate) {
+static PyObject *__pyx_pf_10openpifpaf_10functional_4scalar_square_add_gauss(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_field, PyObject *__pyx_v_x_np, PyObject *__pyx_v_y_np, PyObject *__pyx_v_sigma_np, PyObject *__pyx_v_v_np, float __pyx_v_truncate) {
   PyObject *__pyx_v_width_np = NULL;
   PyObject *__pyx_v_minx_np = NULL;
   PyObject *__pyx_v_miny_np = NULL;
@@ -3988,9 +3988,9 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_4scalar_square_add_gauss(CYT
   Py_ssize_t __pyx_v_xx;
   Py_ssize_t __pyx_v_yy;
   Py_ssize_t __pyx_v_l;
-  double __pyx_v_deltax;
-  double __pyx_v_deltay;
-  double __pyx_v_vv;
+  float __pyx_v_deltax;
+  float __pyx_v_deltay;
+  float __pyx_v_vv;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -4027,7 +4027,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_4scalar_square_add_gauss(CYT
 
   /* "openpifpaf/functional.pyx":63
  * @cython.cdivision(True)
- * def scalar_square_add_gauss(double[:, :] field, x_np, y_np, sigma_np, v_np, double truncate=2.0):
+ * def scalar_square_add_gauss(float[:, :] field, x_np, y_np, sigma_np, v_np, float truncate=2.0):
  *     sigma_np = np.maximum(1.0, sigma_np)             # <<<<<<<<<<<<<<
  *     width_np = np.maximum(1.0, truncate * sigma_np)
  *     minx_np = np.round(x_np - width_np).astype(np.int)
@@ -4086,7 +4086,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_4scalar_square_add_gauss(CYT
   __pyx_t_1 = 0;
 
   /* "openpifpaf/functional.pyx":64
- * def scalar_square_add_gauss(double[:, :] field, x_np, y_np, sigma_np, v_np, double truncate=2.0):
+ * def scalar_square_add_gauss(float[:, :] field, x_np, y_np, sigma_np, v_np, float truncate=2.0):
  *     sigma_np = np.maximum(1.0, sigma_np)
  *     width_np = np.maximum(1.0, truncate * sigma_np)             # <<<<<<<<<<<<<<
  *     minx_np = np.round(x_np - width_np).astype(np.int)
@@ -4594,7 +4594,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_4scalar_square_add_gauss(CYT
  *     maxy_np = np.round(y_np + width_np).astype(np.int)
  *     maxy_np = np.clip(maxy_np + 1, miny_np + 1, field.shape[0])             # <<<<<<<<<<<<<<
  * 
- *     cdef double[:] x = x_np
+ *     cdef float[:] x = x_np
  */
   __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 72, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
@@ -4667,42 +4667,42 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_4scalar_square_add_gauss(CYT
   /* "openpifpaf/functional.pyx":74
  *     maxy_np = np.clip(maxy_np + 1, miny_np + 1, field.shape[0])
  * 
- *     cdef double[:] x = x_np             # <<<<<<<<<<<<<<
- *     cdef double[:] y = y_np
- *     cdef double[:] sigma = sigma_np
+ *     cdef float[:] x = x_np             # <<<<<<<<<<<<<<
+ *     cdef float[:] y = y_np
+ *     cdef float[:] sigma = sigma_np
  */
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_x_np, PyBUF_WRITABLE); if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 74, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_v_x_np, PyBUF_WRITABLE); if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 74, __pyx_L1_error)
   __pyx_v_x = __pyx_t_9;
   __pyx_t_9.memview = NULL;
   __pyx_t_9.data = NULL;
 
   /* "openpifpaf/functional.pyx":75
  * 
- *     cdef double[:] x = x_np
- *     cdef double[:] y = y_np             # <<<<<<<<<<<<<<
- *     cdef double[:] sigma = sigma_np
+ *     cdef float[:] x = x_np
+ *     cdef float[:] y = y_np             # <<<<<<<<<<<<<<
+ *     cdef float[:] sigma = sigma_np
  *     cdef long[:] minx = minx_np
  */
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_y_np, PyBUF_WRITABLE); if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 75, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_v_y_np, PyBUF_WRITABLE); if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 75, __pyx_L1_error)
   __pyx_v_y = __pyx_t_9;
   __pyx_t_9.memview = NULL;
   __pyx_t_9.data = NULL;
 
   /* "openpifpaf/functional.pyx":76
- *     cdef double[:] x = x_np
- *     cdef double[:] y = y_np
- *     cdef double[:] sigma = sigma_np             # <<<<<<<<<<<<<<
+ *     cdef float[:] x = x_np
+ *     cdef float[:] y = y_np
+ *     cdef float[:] sigma = sigma_np             # <<<<<<<<<<<<<<
  *     cdef long[:] minx = minx_np
  *     cdef long[:] miny = miny_np
  */
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_sigma_np, PyBUF_WRITABLE); if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 76, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_v_sigma_np, PyBUF_WRITABLE); if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 76, __pyx_L1_error)
   __pyx_v_sigma = __pyx_t_9;
   __pyx_t_9.memview = NULL;
   __pyx_t_9.data = NULL;
 
   /* "openpifpaf/functional.pyx":77
- *     cdef double[:] y = y_np
- *     cdef double[:] sigma = sigma_np
+ *     cdef float[:] y = y_np
+ *     cdef float[:] sigma = sigma_np
  *     cdef long[:] minx = minx_np             # <<<<<<<<<<<<<<
  *     cdef long[:] miny = miny_np
  *     cdef long[:] maxx = maxx_np
@@ -4713,7 +4713,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_4scalar_square_add_gauss(CYT
   __pyx_t_10.data = NULL;
 
   /* "openpifpaf/functional.pyx":78
- *     cdef double[:] sigma = sigma_np
+ *     cdef float[:] sigma = sigma_np
  *     cdef long[:] minx = minx_np
  *     cdef long[:] miny = miny_np             # <<<<<<<<<<<<<<
  *     cdef long[:] maxx = maxx_np
@@ -4729,7 +4729,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_4scalar_square_add_gauss(CYT
  *     cdef long[:] miny = miny_np
  *     cdef long[:] maxx = maxx_np             # <<<<<<<<<<<<<<
  *     cdef long[:] maxy = maxy_np
- *     cdef double[:] v = v_np
+ *     cdef float[:] v = v_np
  */
   __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_ds_long(__pyx_v_maxx_np, PyBUF_WRITABLE); if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 79, __pyx_L1_error)
   __pyx_v_maxx = __pyx_t_10;
@@ -4740,7 +4740,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_4scalar_square_add_gauss(CYT
  *     cdef long[:] miny = miny_np
  *     cdef long[:] maxx = maxx_np
  *     cdef long[:] maxy = maxy_np             # <<<<<<<<<<<<<<
- *     cdef double[:] v = v_np
+ *     cdef float[:] v = v_np
  * 
  */
   __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_ds_long(__pyx_v_maxy_np, PyBUF_WRITABLE); if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 80, __pyx_L1_error)
@@ -4751,11 +4751,11 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_4scalar_square_add_gauss(CYT
   /* "openpifpaf/functional.pyx":81
  *     cdef long[:] maxx = maxx_np
  *     cdef long[:] maxy = maxy_np
- *     cdef double[:] v = v_np             # <<<<<<<<<<<<<<
+ *     cdef float[:] v = v_np             # <<<<<<<<<<<<<<
  * 
  *     cdef Py_ssize_t i, xx, yy
  */
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_v_np, PyBUF_WRITABLE); if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 81, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_v_v_np, PyBUF_WRITABLE); if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 81, __pyx_L1_error)
   __pyx_v_v = __pyx_t_9;
   __pyx_t_9.memview = NULL;
   __pyx_t_9.data = NULL;
@@ -4764,13 +4764,13 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_4scalar_square_add_gauss(CYT
  * 
  *     cdef Py_ssize_t i, xx, yy
  *     cdef Py_ssize_t l = minx.shape[0]             # <<<<<<<<<<<<<<
- *     cdef double deltax, deltay
- *     cdef double vv
+ *     cdef float deltax, deltay
+ *     cdef float vv
  */
   __pyx_v_l = (__pyx_v_minx.shape[0]);
 
   /* "openpifpaf/functional.pyx":88
- *     cdef double vv
+ *     cdef float vv
  * 
  *     for i in range(l):             # <<<<<<<<<<<<<<
  *         for xx in range(minx[i], maxx[i]):
@@ -4803,7 +4803,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_4scalar_square_add_gauss(CYT
  *                 deltay = yy - y[i]
  */
       __pyx_t_19 = __pyx_v_i;
-      __pyx_v_deltax = (__pyx_v_xx - (*((double *) ( /* dim=0 */ (__pyx_v_x.data + __pyx_t_19 * __pyx_v_x.strides[0]) ))));
+      __pyx_v_deltax = (__pyx_v_xx - (*((float *) ( /* dim=0 */ (__pyx_v_x.data + __pyx_t_19 * __pyx_v_x.strides[0]) ))));
 
       /* "openpifpaf/functional.pyx":91
  *         for xx in range(minx[i], maxx[i]):
@@ -4827,7 +4827,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_4scalar_square_add_gauss(CYT
  *                 field[yy, xx] += vv
  */
         __pyx_t_25 = __pyx_v_i;
-        __pyx_v_deltay = (__pyx_v_yy - (*((double *) ( /* dim=0 */ (__pyx_v_y.data + __pyx_t_25 * __pyx_v_y.strides[0]) ))));
+        __pyx_v_deltay = (__pyx_v_yy - (*((float *) ( /* dim=0 */ (__pyx_v_y.data + __pyx_t_25 * __pyx_v_y.strides[0]) ))));
 
         /* "openpifpaf/functional.pyx":93
  *             for yy in range(miny[i], maxy[i]):
@@ -4838,7 +4838,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_4scalar_square_add_gauss(CYT
  */
         __pyx_t_26 = __pyx_v_i;
         __pyx_t_27 = __pyx_v_i;
-        __pyx_v_vv = ((*((double *) ( /* dim=0 */ (__pyx_v_v.data + __pyx_t_26 * __pyx_v_v.strides[0]) ))) * exp(((-0.5 * (pow(__pyx_v_deltax, 2.0) + pow(__pyx_v_deltay, 2.0))) / pow((*((double *) ( /* dim=0 */ (__pyx_v_sigma.data + __pyx_t_27 * __pyx_v_sigma.strides[0]) ))), 2.0))));
+        __pyx_v_vv = ((*((float *) ( /* dim=0 */ (__pyx_v_v.data + __pyx_t_26 * __pyx_v_v.strides[0]) ))) * exp(((-0.5 * (powf(__pyx_v_deltax, 2.0) + powf(__pyx_v_deltay, 2.0))) / ((double)powf((*((float *) ( /* dim=0 */ (__pyx_v_sigma.data + __pyx_t_27 * __pyx_v_sigma.strides[0]) ))), 2.0)))));
 
         /* "openpifpaf/functional.pyx":94
  *                 deltay = yy - y[i]
@@ -4849,7 +4849,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_4scalar_square_add_gauss(CYT
  */
         __pyx_t_28 = __pyx_v_yy;
         __pyx_t_29 = __pyx_v_xx;
-        *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_field.data + __pyx_t_28 * __pyx_v_field.strides[0]) ) + __pyx_t_29 * __pyx_v_field.strides[1]) )) += __pyx_v_vv;
+        *((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_field.data + __pyx_t_28 * __pyx_v_field.strides[0]) ) + __pyx_t_29 * __pyx_v_field.strides[1]) )) += __pyx_v_vv;
       }
     }
   }
@@ -4857,7 +4857,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_4scalar_square_add_gauss(CYT
   /* "openpifpaf/functional.pyx":62
  * @cython.wraparound(False)
  * @cython.cdivision(True)
- * def scalar_square_add_gauss(double[:, :] field, x_np, y_np, sigma_np, v_np, double truncate=2.0):             # <<<<<<<<<<<<<<
+ * def scalar_square_add_gauss(float[:, :] field, x_np, y_np, sigma_np, v_np, float truncate=2.0):             # <<<<<<<<<<<<<<
  *     sigma_np = np.maximum(1.0, sigma_np)
  *     width_np = np.maximum(1.0, truncate * sigma_np)
  */
@@ -4901,7 +4901,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_4scalar_square_add_gauss(CYT
 /* "openpifpaf/functional.pyx":100
  * @cython.wraparound(False)
  * @cython.cdivision(True)
- * def weiszfeld_nd(x_np, y_np, double[:] weights=None, double epsilon=1e-8, Py_ssize_t max_steps=20):             # <<<<<<<<<<<<<<
+ * def weiszfeld_nd(x_np, y_np, float[:] weights=None, float epsilon=1e-8, Py_ssize_t max_steps=20):             # <<<<<<<<<<<<<<
  *     """Weighted Weiszfeld algorithm."""
  *     if weights is None:
  */
@@ -4914,7 +4914,7 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_7weiszfeld_nd(PyObject *__py
   PyObject *__pyx_v_x_np = 0;
   PyObject *__pyx_v_y_np = 0;
   __Pyx_memviewslice __pyx_v_weights = { 0, 0, { 0 }, { 0 }, { 0 } };
-  double __pyx_v_epsilon;
+  float __pyx_v_epsilon;
   Py_ssize_t __pyx_v_max_steps;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
@@ -4989,15 +4989,15 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_7weiszfeld_nd(PyObject *__py
     __pyx_v_x_np = values[0];
     __pyx_v_y_np = values[1];
     if (values[2]) {
-      __pyx_v_weights = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_weights.memview)) __PYX_ERR(0, 100, __pyx_L3_error)
+      __pyx_v_weights = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_weights.memview)) __PYX_ERR(0, 100, __pyx_L3_error)
     } else {
       __pyx_v_weights = __pyx_k_;
       __PYX_INC_MEMVIEW(&__pyx_v_weights, 1);
     }
     if (values[3]) {
-      __pyx_v_epsilon = __pyx_PyFloat_AsDouble(values[3]); if (unlikely((__pyx_v_epsilon == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 100, __pyx_L3_error)
+      __pyx_v_epsilon = __pyx_PyFloat_AsFloat(values[3]); if (unlikely((__pyx_v_epsilon == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 100, __pyx_L3_error)
     } else {
-      __pyx_v_epsilon = ((double)1e-8);
+      __pyx_v_epsilon = ((float)1e-8);
     }
     if (values[4]) {
       __pyx_v_max_steps = __Pyx_PyIndex_AsSsize_t(values[4]); if (unlikely((__pyx_v_max_steps == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 100, __pyx_L3_error)
@@ -5020,7 +5020,7 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_7weiszfeld_nd(PyObject *__py
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_10openpifpaf_10functional_6weiszfeld_nd(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x_np, PyObject *__pyx_v_y_np, __Pyx_memviewslice __pyx_v_weights, double __pyx_v_epsilon, Py_ssize_t __pyx_v_max_steps) {
+static PyObject *__pyx_pf_10openpifpaf_10functional_6weiszfeld_nd(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_x_np, PyObject *__pyx_v_y_np, __Pyx_memviewslice __pyx_v_weights, float __pyx_v_epsilon, Py_ssize_t __pyx_v_max_steps) {
   __Pyx_memviewslice __pyx_v_x = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_y = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_weights_x = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -5028,7 +5028,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_6weiszfeld_nd(CYTHON_UNUSED 
   Py_ssize_t __pyx_v_j;
   __Pyx_memviewslice __pyx_v_prev_y = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_y_top = { 0, 0, { 0 }, { 0 }, { 0 } };
-  double __pyx_v_y_bottom;
+  float __pyx_v_y_bottom;
   PyObject *__pyx_v_denom_np = NULL;
   __Pyx_memviewslice __pyx_v_denom = { 0, 0, { 0 }, { 0 }, { 0 } };
   CYTHON_UNUSED Py_ssize_t __pyx_v_s;
@@ -5080,7 +5080,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_6weiszfeld_nd(CYTHON_UNUSED 
   __Pyx_RefNannySetupContext("weiszfeld_nd", 0);
 
   /* "openpifpaf/functional.pyx":102
- * def weiszfeld_nd(x_np, y_np, double[:] weights=None, double epsilon=1e-8, Py_ssize_t max_steps=20):
+ * def weiszfeld_nd(x_np, y_np, float[:] weights=None, float epsilon=1e-8, Py_ssize_t max_steps=20):
  *     """Weighted Weiszfeld algorithm."""
  *     if weights is None:             # <<<<<<<<<<<<<<
  *         weights = np.ones(x_np.shape[0])
@@ -5094,7 +5094,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_6weiszfeld_nd(CYTHON_UNUSED 
  *     if weights is None:
  *         weights = np.ones(x_np.shape[0])             # <<<<<<<<<<<<<<
  * 
- *     cdef double[:, :] x = x_np
+ *     cdef float[:, :] x = x_np
  */
     __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 103, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
@@ -5122,7 +5122,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_6weiszfeld_nd(CYTHON_UNUSED 
     if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 103, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_t_2, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 103, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_t_2, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 103, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __PYX_XDEC_MEMVIEW(&__pyx_v_weights, 1);
     __pyx_v_weights = __pyx_t_6;
@@ -5130,7 +5130,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_6weiszfeld_nd(CYTHON_UNUSED 
     __pyx_t_6.data = NULL;
 
     /* "openpifpaf/functional.pyx":102
- * def weiszfeld_nd(x_np, y_np, double[:] weights=None, double epsilon=1e-8, Py_ssize_t max_steps=20):
+ * def weiszfeld_nd(x_np, y_np, float[:] weights=None, float epsilon=1e-8, Py_ssize_t max_steps=20):
  *     """Weighted Weiszfeld algorithm."""
  *     if weights is None:             # <<<<<<<<<<<<<<
  *         weights = np.ones(x_np.shape[0])
@@ -5141,31 +5141,31 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_6weiszfeld_nd(CYTHON_UNUSED 
   /* "openpifpaf/functional.pyx":105
  *         weights = np.ones(x_np.shape[0])
  * 
- *     cdef double[:, :] x = x_np             # <<<<<<<<<<<<<<
- *     cdef double[:] y = y_np
- *     cdef double[:, :] weights_x = np.zeros_like(x)
+ *     cdef float[:, :] x = x_np             # <<<<<<<<<<<<<<
+ *     cdef float[:] y = y_np
+ *     cdef float[:, :] weights_x = np.zeros_like(x)
  */
-  __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(__pyx_v_x_np, PyBUF_WRITABLE); if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 105, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(__pyx_v_x_np, PyBUF_WRITABLE); if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 105, __pyx_L1_error)
   __pyx_v_x = __pyx_t_7;
   __pyx_t_7.memview = NULL;
   __pyx_t_7.data = NULL;
 
   /* "openpifpaf/functional.pyx":106
  * 
- *     cdef double[:, :] x = x_np
- *     cdef double[:] y = y_np             # <<<<<<<<<<<<<<
- *     cdef double[:, :] weights_x = np.zeros_like(x)
+ *     cdef float[:, :] x = x_np
+ *     cdef float[:] y = y_np             # <<<<<<<<<<<<<<
+ *     cdef float[:, :] weights_x = np.zeros_like(x)
  *     for i in range(weights_x.shape[0]):
  */
-  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_y_np, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 106, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_v_y_np, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 106, __pyx_L1_error)
   __pyx_v_y = __pyx_t_6;
   __pyx_t_6.memview = NULL;
   __pyx_t_6.data = NULL;
 
   /* "openpifpaf/functional.pyx":107
- *     cdef double[:, :] x = x_np
- *     cdef double[:] y = y_np
- *     cdef double[:, :] weights_x = np.zeros_like(x)             # <<<<<<<<<<<<<<
+ *     cdef float[:, :] x = x_np
+ *     cdef float[:] y = y_np
+ *     cdef float[:, :] weights_x = np.zeros_like(x)             # <<<<<<<<<<<<<<
  *     for i in range(weights_x.shape[0]):
  *         for j in range(weights_x.shape[1]):
  */
@@ -5174,7 +5174,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_6weiszfeld_nd(CYTHON_UNUSED 
   __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_zeros_like); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 107, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __pyx_memoryview_fromslice(__pyx_v_x, 2, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 107, __pyx_L1_error)
+  __pyx_t_4 = __pyx_memoryview_fromslice(__pyx_v_x, 2, (PyObject *(*)(char *)) __pyx_memview_get_float, (int (*)(char *, PyObject *)) __pyx_memview_set_float, 0);; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 107, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_5))) {
@@ -5192,15 +5192,15 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_6weiszfeld_nd(CYTHON_UNUSED 
   if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 107, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(__pyx_t_2, PyBUF_WRITABLE); if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 107, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(__pyx_t_2, PyBUF_WRITABLE); if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 107, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_weights_x = __pyx_t_7;
   __pyx_t_7.memview = NULL;
   __pyx_t_7.data = NULL;
 
   /* "openpifpaf/functional.pyx":108
- *     cdef double[:] y = y_np
- *     cdef double[:, :] weights_x = np.zeros_like(x)
+ *     cdef float[:] y = y_np
+ *     cdef float[:, :] weights_x = np.zeros_like(x)
  *     for i in range(weights_x.shape[0]):             # <<<<<<<<<<<<<<
  *         for j in range(weights_x.shape[1]):
  *             weights_x[i, j] = weights[i] * x[i, j]
@@ -5211,7 +5211,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_6weiszfeld_nd(CYTHON_UNUSED 
     __pyx_v_i = __pyx_t_10;
 
     /* "openpifpaf/functional.pyx":109
- *     cdef double[:, :] weights_x = np.zeros_like(x)
+ *     cdef float[:, :] weights_x = np.zeros_like(x)
  *     for i in range(weights_x.shape[0]):
  *         for j in range(weights_x.shape[1]):             # <<<<<<<<<<<<<<
  *             weights_x[i, j] = weights[i] * x[i, j]
@@ -5227,30 +5227,30 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_6weiszfeld_nd(CYTHON_UNUSED 
  *         for j in range(weights_x.shape[1]):
  *             weights_x[i, j] = weights[i] * x[i, j]             # <<<<<<<<<<<<<<
  * 
- *     cdef double[:] prev_y = np.zeros_like(y)
+ *     cdef float[:] prev_y = np.zeros_like(y)
  */
       __pyx_t_14 = __pyx_v_i;
       __pyx_t_15 = __pyx_v_i;
       __pyx_t_16 = __pyx_v_j;
       __pyx_t_17 = __pyx_v_i;
       __pyx_t_18 = __pyx_v_j;
-      *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_weights_x.data + __pyx_t_17 * __pyx_v_weights_x.strides[0]) ) + __pyx_t_18 * __pyx_v_weights_x.strides[1]) )) = ((*((double *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_14 * __pyx_v_weights.strides[0]) ))) * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_x.data + __pyx_t_15 * __pyx_v_x.strides[0]) ) + __pyx_t_16 * __pyx_v_x.strides[1]) ))));
+      *((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_weights_x.data + __pyx_t_17 * __pyx_v_weights_x.strides[0]) ) + __pyx_t_18 * __pyx_v_weights_x.strides[1]) )) = ((*((float *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_14 * __pyx_v_weights.strides[0]) ))) * (*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_x.data + __pyx_t_15 * __pyx_v_x.strides[0]) ) + __pyx_t_16 * __pyx_v_x.strides[1]) ))));
     }
   }
 
   /* "openpifpaf/functional.pyx":112
  *             weights_x[i, j] = weights[i] * x[i, j]
  * 
- *     cdef double[:] prev_y = np.zeros_like(y)             # <<<<<<<<<<<<<<
- *     cdef double[:] y_top = np.zeros_like(y)
- *     cdef double y_bottom
+ *     cdef float[:] prev_y = np.zeros_like(y)             # <<<<<<<<<<<<<<
+ *     cdef float[:] y_top = np.zeros_like(y)
+ *     cdef float y_bottom
  */
   __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 112, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_zeros_like); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 112, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = __pyx_memoryview_fromslice(__pyx_v_y, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 112, __pyx_L1_error)
+  __pyx_t_5 = __pyx_memoryview_fromslice(__pyx_v_y, 1, (PyObject *(*)(char *)) __pyx_memview_get_float, (int (*)(char *, PyObject *)) __pyx_memview_set_float, 0);; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 112, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
@@ -5268,7 +5268,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_6weiszfeld_nd(CYTHON_UNUSED 
   if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 112, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_t_2, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 112, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_t_2, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 112, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_prev_y = __pyx_t_6;
   __pyx_t_6.memview = NULL;
@@ -5276,9 +5276,9 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_6weiszfeld_nd(CYTHON_UNUSED 
 
   /* "openpifpaf/functional.pyx":113
  * 
- *     cdef double[:] prev_y = np.zeros_like(y)
- *     cdef double[:] y_top = np.zeros_like(y)             # <<<<<<<<<<<<<<
- *     cdef double y_bottom
+ *     cdef float[:] prev_y = np.zeros_like(y)
+ *     cdef float[:] y_top = np.zeros_like(y)             # <<<<<<<<<<<<<<
+ *     cdef float y_bottom
  *     denom_np = np.zeros_like(weights)
  */
   __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 113, __pyx_L1_error)
@@ -5286,7 +5286,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_6weiszfeld_nd(CYTHON_UNUSED 
   __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_zeros_like); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 113, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __pyx_memoryview_fromslice(__pyx_v_y, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 113, __pyx_L1_error)
+  __pyx_t_4 = __pyx_memoryview_fromslice(__pyx_v_y, 1, (PyObject *(*)(char *)) __pyx_memview_get_float, (int (*)(char *, PyObject *)) __pyx_memview_set_float, 0);; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 113, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_5))) {
@@ -5304,17 +5304,17 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_6weiszfeld_nd(CYTHON_UNUSED 
   if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 113, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_t_2, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 113, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_t_2, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 113, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_y_top = __pyx_t_6;
   __pyx_t_6.memview = NULL;
   __pyx_t_6.data = NULL;
 
   /* "openpifpaf/functional.pyx":115
- *     cdef double[:] y_top = np.zeros_like(y)
- *     cdef double y_bottom
+ *     cdef float[:] y_top = np.zeros_like(y)
+ *     cdef float y_bottom
  *     denom_np = np.zeros_like(weights)             # <<<<<<<<<<<<<<
- *     cdef double[:] denom = denom_np
+ *     cdef float[:] denom = denom_np
  * 
  */
   __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 115, __pyx_L1_error)
@@ -5322,7 +5322,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_6weiszfeld_nd(CYTHON_UNUSED 
   __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_zeros_like); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 115, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = __pyx_memoryview_fromslice(__pyx_v_weights, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 115, __pyx_L1_error)
+  __pyx_t_5 = __pyx_memoryview_fromslice(__pyx_v_weights, 1, (PyObject *(*)(char *)) __pyx_memview_get_float, (int (*)(char *, PyObject *)) __pyx_memview_set_float, 0);; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 115, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
@@ -5344,19 +5344,19 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_6weiszfeld_nd(CYTHON_UNUSED 
   __pyx_t_2 = 0;
 
   /* "openpifpaf/functional.pyx":116
- *     cdef double y_bottom
+ *     cdef float y_bottom
  *     denom_np = np.zeros_like(weights)
- *     cdef double[:] denom = denom_np             # <<<<<<<<<<<<<<
+ *     cdef float[:] denom = denom_np             # <<<<<<<<<<<<<<
  * 
  *     for s in range(max_steps):
  */
-  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_denom_np, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 116, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_v_denom_np, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 116, __pyx_L1_error)
   __pyx_v_denom = __pyx_t_6;
   __pyx_t_6.memview = NULL;
   __pyx_t_6.data = NULL;
 
   /* "openpifpaf/functional.pyx":118
- *     cdef double[:] denom = denom_np
+ *     cdef float[:] denom = denom_np
  * 
  *     for s in range(max_steps):             # <<<<<<<<<<<<<<
  *         prev_y[:] = y
@@ -5402,7 +5402,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_6weiszfeld_nd(CYTHON_UNUSED 
       __pyx_t_23 = 1;
       __pyx_t_24 = 1;
       __pyx_t_25 = __pyx_v_i;
-      *((double *) ( /* dim=0 */ (__pyx_v_denom.data + __pyx_t_25 * __pyx_v_denom.strides[0]) )) = (sqrt((pow(((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_x.data + __pyx_t_19 * __pyx_v_x.strides[0]) ) + __pyx_t_20 * __pyx_v_x.strides[1]) ))) - (*((double *) ( /* dim=0 */ (__pyx_v_prev_y.data + __pyx_t_21 * __pyx_v_prev_y.strides[0]) )))), 2.0) + pow(((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_x.data + __pyx_t_22 * __pyx_v_x.strides[0]) ) + __pyx_t_23 * __pyx_v_x.strides[1]) ))) - (*((double *) ( /* dim=0 */ (__pyx_v_prev_y.data + __pyx_t_24 * __pyx_v_prev_y.strides[0]) )))), 2.0))) + __pyx_v_epsilon);
+      *((float *) ( /* dim=0 */ (__pyx_v_denom.data + __pyx_t_25 * __pyx_v_denom.strides[0]) )) = (sqrt((powf(((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_x.data + __pyx_t_19 * __pyx_v_x.strides[0]) ) + __pyx_t_20 * __pyx_v_x.strides[1]) ))) - (*((float *) ( /* dim=0 */ (__pyx_v_prev_y.data + __pyx_t_21 * __pyx_v_prev_y.strides[0]) )))), 2.0) + powf(((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_x.data + __pyx_t_22 * __pyx_v_x.strides[0]) ) + __pyx_t_23 * __pyx_v_x.strides[1]) ))) - (*((float *) ( /* dim=0 */ (__pyx_v_prev_y.data + __pyx_t_24 * __pyx_v_prev_y.strides[0]) )))), 2.0))) + __pyx_v_epsilon);
     }
 
     /* "openpifpaf/functional.pyx":124
@@ -5413,7 +5413,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_6weiszfeld_nd(CYTHON_UNUSED 
  *         for j in range(denom.shape[0]):
  */
     {
-        double __pyx_temp_scalar = 0.0;
+        float __pyx_temp_scalar = 0.0;
         {
             Py_ssize_t __pyx_temp_extent_0 = __pyx_v_y_top.shape[0];
             Py_ssize_t __pyx_temp_stride_0 = __pyx_v_y_top.strides[0];
@@ -5421,7 +5421,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_6weiszfeld_nd(CYTHON_UNUSED 
             Py_ssize_t __pyx_temp_idx_0;
             __pyx_temp_pointer_0 = __pyx_v_y_top.data;
             for (__pyx_temp_idx_0 = 0; __pyx_temp_idx_0 < __pyx_temp_extent_0; __pyx_temp_idx_0++) {
-              *((double *) __pyx_temp_pointer_0) = __pyx_temp_scalar;
+              *((float *) __pyx_temp_pointer_0) = __pyx_temp_scalar;
               __pyx_temp_pointer_0 += __pyx_temp_stride_0;
             }
         }
@@ -5459,7 +5459,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_6weiszfeld_nd(CYTHON_UNUSED 
       __pyx_t_27 = 0;
       __pyx_t_28 = __pyx_v_j;
       __pyx_t_29 = 0;
-      *((double *) ( /* dim=0 */ (__pyx_v_y_top.data + __pyx_t_29 * __pyx_v_y_top.strides[0]) )) += ((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_weights_x.data + __pyx_t_26 * __pyx_v_weights_x.strides[0]) ) + __pyx_t_27 * __pyx_v_weights_x.strides[1]) ))) / (*((double *) ( /* dim=0 */ (__pyx_v_denom.data + __pyx_t_28 * __pyx_v_denom.strides[0]) ))));
+      *((float *) ( /* dim=0 */ (__pyx_v_y_top.data + __pyx_t_29 * __pyx_v_y_top.strides[0]) )) += ((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_weights_x.data + __pyx_t_26 * __pyx_v_weights_x.strides[0]) ) + __pyx_t_27 * __pyx_v_weights_x.strides[1]) ))) / (*((float *) ( /* dim=0 */ (__pyx_v_denom.data + __pyx_t_28 * __pyx_v_denom.strides[0]) ))));
 
       /* "openpifpaf/functional.pyx":128
  *         for j in range(denom.shape[0]):
@@ -5472,7 +5472,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_6weiszfeld_nd(CYTHON_UNUSED 
       __pyx_t_31 = 1;
       __pyx_t_32 = __pyx_v_j;
       __pyx_t_33 = 1;
-      *((double *) ( /* dim=0 */ (__pyx_v_y_top.data + __pyx_t_33 * __pyx_v_y_top.strides[0]) )) += ((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_weights_x.data + __pyx_t_30 * __pyx_v_weights_x.strides[0]) ) + __pyx_t_31 * __pyx_v_weights_x.strides[1]) ))) / (*((double *) ( /* dim=0 */ (__pyx_v_denom.data + __pyx_t_32 * __pyx_v_denom.strides[0]) ))));
+      *((float *) ( /* dim=0 */ (__pyx_v_y_top.data + __pyx_t_33 * __pyx_v_y_top.strides[0]) )) += ((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_weights_x.data + __pyx_t_30 * __pyx_v_weights_x.strides[0]) ) + __pyx_t_31 * __pyx_v_weights_x.strides[1]) ))) / (*((float *) ( /* dim=0 */ (__pyx_v_denom.data + __pyx_t_32 * __pyx_v_denom.strides[0]) ))));
 
       /* "openpifpaf/functional.pyx":129
  *             y_top[0] += weights_x[j, 0] / denom[j]
@@ -5483,7 +5483,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_6weiszfeld_nd(CYTHON_UNUSED 
  */
       __pyx_t_34 = __pyx_v_j;
       __pyx_t_35 = __pyx_v_j;
-      __pyx_v_y_bottom = (__pyx_v_y_bottom + ((*((double *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_34 * __pyx_v_weights.strides[0]) ))) / (*((double *) ( /* dim=0 */ (__pyx_v_denom.data + __pyx_t_35 * __pyx_v_denom.strides[0]) )))));
+      __pyx_v_y_bottom = (__pyx_v_y_bottom + ((*((float *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_34 * __pyx_v_weights.strides[0]) ))) / (*((float *) ( /* dim=0 */ (__pyx_v_denom.data + __pyx_t_35 * __pyx_v_denom.strides[0]) )))));
     }
 
     /* "openpifpaf/functional.pyx":130
@@ -5495,7 +5495,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_6weiszfeld_nd(CYTHON_UNUSED 
  */
     __pyx_t_36 = 0;
     __pyx_t_37 = 0;
-    *((double *) ( /* dim=0 */ (__pyx_v_y.data + __pyx_t_37 * __pyx_v_y.strides[0]) )) = ((*((double *) ( /* dim=0 */ (__pyx_v_y_top.data + __pyx_t_36 * __pyx_v_y_top.strides[0]) ))) / __pyx_v_y_bottom);
+    *((float *) ( /* dim=0 */ (__pyx_v_y.data + __pyx_t_37 * __pyx_v_y.strides[0]) )) = ((*((float *) ( /* dim=0 */ (__pyx_v_y_top.data + __pyx_t_36 * __pyx_v_y_top.strides[0]) ))) / __pyx_v_y_bottom);
 
     /* "openpifpaf/functional.pyx":131
  *             y_bottom += weights[j] / denom[j]
@@ -5506,7 +5506,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_6weiszfeld_nd(CYTHON_UNUSED 
  */
     __pyx_t_38 = 1;
     __pyx_t_39 = 1;
-    *((double *) ( /* dim=0 */ (__pyx_v_y.data + __pyx_t_39 * __pyx_v_y.strides[0]) )) = ((*((double *) ( /* dim=0 */ (__pyx_v_y_top.data + __pyx_t_38 * __pyx_v_y_top.strides[0]) ))) / __pyx_v_y_bottom);
+    *((float *) ( /* dim=0 */ (__pyx_v_y.data + __pyx_t_39 * __pyx_v_y.strides[0]) )) = ((*((float *) ( /* dim=0 */ (__pyx_v_y_top.data + __pyx_t_38 * __pyx_v_y_top.strides[0]) ))) / __pyx_v_y_bottom);
 
     /* "openpifpaf/functional.pyx":133
  *         y[1] = y_top[1] / y_bottom
@@ -5519,7 +5519,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_6weiszfeld_nd(CYTHON_UNUSED 
     __pyx_t_41 = 0;
     __pyx_t_42 = 1;
     __pyx_t_43 = 1;
-    __pyx_t_1 = (((fabs(((*((double *) ( /* dim=0 */ (__pyx_v_y.data + __pyx_t_40 * __pyx_v_y.strides[0]) ))) - (*((double *) ( /* dim=0 */ (__pyx_v_prev_y.data + __pyx_t_41 * __pyx_v_prev_y.strides[0]) ))))) + fabs(((*((double *) ( /* dim=0 */ (__pyx_v_y.data + __pyx_t_42 * __pyx_v_y.strides[0]) ))) - (*((double *) ( /* dim=0 */ (__pyx_v_prev_y.data + __pyx_t_43 * __pyx_v_prev_y.strides[0]) )))))) < 1e-2) != 0);
+    __pyx_t_1 = (((fabs(((*((float *) ( /* dim=0 */ (__pyx_v_y.data + __pyx_t_40 * __pyx_v_y.strides[0]) ))) - (*((float *) ( /* dim=0 */ (__pyx_v_prev_y.data + __pyx_t_41 * __pyx_v_prev_y.strides[0]) ))))) + fabs(((*((float *) ( /* dim=0 */ (__pyx_v_y.data + __pyx_t_42 * __pyx_v_y.strides[0]) ))) - (*((float *) ( /* dim=0 */ (__pyx_v_prev_y.data + __pyx_t_43 * __pyx_v_prev_y.strides[0]) )))))) < 1e-2) != 0);
     if (__pyx_t_1) {
 
       /* "openpifpaf/functional.pyx":134
@@ -5575,7 +5575,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_6weiszfeld_nd(CYTHON_UNUSED 
   /* "openpifpaf/functional.pyx":100
  * @cython.wraparound(False)
  * @cython.cdivision(True)
- * def weiszfeld_nd(x_np, y_np, double[:] weights=None, double epsilon=1e-8, Py_ssize_t max_steps=20):             # <<<<<<<<<<<<<<
+ * def weiszfeld_nd(x_np, y_np, float[:] weights=None, float epsilon=1e-8, Py_ssize_t max_steps=20):             # <<<<<<<<<<<<<<
  *     """Weighted Weiszfeld algorithm."""
  *     if weights is None:
  */
@@ -5607,7 +5607,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_6weiszfeld_nd(CYTHON_UNUSED 
 /* "openpifpaf/functional.pyx":141
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
- * def paf_mask_center(double[:, :] paf_field, double x, double y, double sigma=1.0):             # <<<<<<<<<<<<<<
+ * def paf_mask_center(float[:, :] paf_field, float x, float y, float sigma=1.0):             # <<<<<<<<<<<<<<
  *     mask_np = np.zeros((paf_field.shape[1],), dtype=np.uint8)
  *     cdef unsigned char[:] mask = mask_np
  */
@@ -5617,9 +5617,9 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_9paf_mask_center(PyObject *_
 static PyMethodDef __pyx_mdef_10openpifpaf_10functional_9paf_mask_center = {"paf_mask_center", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_10openpifpaf_10functional_9paf_mask_center, METH_VARARGS|METH_KEYWORDS, 0};
 static PyObject *__pyx_pw_10openpifpaf_10functional_9paf_mask_center(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_paf_field = { 0, 0, { 0 }, { 0 }, { 0 } };
-  double __pyx_v_x;
-  double __pyx_v_y;
-  double __pyx_v_sigma;
+  float __pyx_v_x;
+  float __pyx_v_y;
+  float __pyx_v_sigma;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("paf_mask_center (wrapper)", 0);
@@ -5679,13 +5679,13 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_9paf_mask_center(PyObject *_
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_paf_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_paf_field.memview)) __PYX_ERR(0, 141, __pyx_L3_error)
-    __pyx_v_x = __pyx_PyFloat_AsDouble(values[1]); if (unlikely((__pyx_v_x == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 141, __pyx_L3_error)
-    __pyx_v_y = __pyx_PyFloat_AsDouble(values[2]); if (unlikely((__pyx_v_y == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 141, __pyx_L3_error)
+    __pyx_v_paf_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_paf_field.memview)) __PYX_ERR(0, 141, __pyx_L3_error)
+    __pyx_v_x = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_x == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 141, __pyx_L3_error)
+    __pyx_v_y = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_y == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 141, __pyx_L3_error)
     if (values[3]) {
-      __pyx_v_sigma = __pyx_PyFloat_AsDouble(values[3]); if (unlikely((__pyx_v_sigma == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 141, __pyx_L3_error)
+      __pyx_v_sigma = __pyx_PyFloat_AsFloat(values[3]); if (unlikely((__pyx_v_sigma == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 141, __pyx_L3_error)
     } else {
-      __pyx_v_sigma = ((double)1.0);
+      __pyx_v_sigma = ((float)1.0);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
@@ -5703,7 +5703,7 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_9paf_mask_center(PyObject *_
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_10openpifpaf_10functional_8paf_mask_center(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_paf_field, double __pyx_v_x, double __pyx_v_y, double __pyx_v_sigma) {
+static PyObject *__pyx_pf_10openpifpaf_10functional_8paf_mask_center(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_paf_field, float __pyx_v_x, float __pyx_v_y, float __pyx_v_sigma) {
   PyObject *__pyx_v_mask_np = NULL;
   __Pyx_memviewslice __pyx_v_mask = { 0, 0, { 0 }, { 0 }, { 0 } };
   Py_ssize_t __pyx_v_i;
@@ -5741,7 +5741,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_8paf_mask_center(CYTHON_UNUS
 
   /* "openpifpaf/functional.pyx":142
  * @cython.wraparound(False)
- * def paf_mask_center(double[:, :] paf_field, double x, double y, double sigma=1.0):
+ * def paf_mask_center(float[:, :] paf_field, float x, float y, float sigma=1.0):
  *     mask_np = np.zeros((paf_field.shape[1],), dtype=np.uint8)             # <<<<<<<<<<<<<<
  *     cdef unsigned char[:] mask = mask_np
  * 
@@ -5781,7 +5781,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_8paf_mask_center(CYTHON_UNUS
   __pyx_t_5 = 0;
 
   /* "openpifpaf/functional.pyx":143
- * def paf_mask_center(double[:, :] paf_field, double x, double y, double sigma=1.0):
+ * def paf_mask_center(float[:, :] paf_field, float x, float y, float sigma=1.0):
  *     mask_np = np.zeros((paf_field.shape[1],), dtype=np.uint8)
  *     cdef unsigned char[:] mask = mask_np             # <<<<<<<<<<<<<<
  * 
@@ -5815,7 +5815,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_8paf_mask_center(CYTHON_UNUS
     __pyx_t_12 = __pyx_v_i;
     __pyx_t_13 = 3;
     __pyx_t_14 = __pyx_v_i;
-    __pyx_t_15 = ((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_11 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_12 * __pyx_v_paf_field.strides[1]) ))) > (__pyx_v_x - (__pyx_v_sigma * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_13 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_14 * __pyx_v_paf_field.strides[1]) ))))));
+    __pyx_t_15 = ((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_11 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_12 * __pyx_v_paf_field.strides[1]) ))) > (__pyx_v_x - (__pyx_v_sigma * (*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_13 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_14 * __pyx_v_paf_field.strides[1]) ))))));
     if (__pyx_t_15) {
     } else {
       __pyx_t_10 = __pyx_t_15;
@@ -5833,7 +5833,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_8paf_mask_center(CYTHON_UNUS
     __pyx_t_17 = __pyx_v_i;
     __pyx_t_18 = 3;
     __pyx_t_19 = __pyx_v_i;
-    __pyx_t_15 = ((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_16 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_17 * __pyx_v_paf_field.strides[1]) ))) < (__pyx_v_x + (__pyx_v_sigma * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_18 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_19 * __pyx_v_paf_field.strides[1]) ))))));
+    __pyx_t_15 = ((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_16 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_17 * __pyx_v_paf_field.strides[1]) ))) < (__pyx_v_x + (__pyx_v_sigma * (*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_18 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_19 * __pyx_v_paf_field.strides[1]) ))))));
     if (__pyx_t_15) {
     } else {
       __pyx_t_10 = __pyx_t_15;
@@ -5851,7 +5851,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_8paf_mask_center(CYTHON_UNUS
     __pyx_t_21 = __pyx_v_i;
     __pyx_t_22 = 3;
     __pyx_t_23 = __pyx_v_i;
-    __pyx_t_15 = ((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_20 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_21 * __pyx_v_paf_field.strides[1]) ))) > (__pyx_v_y - (__pyx_v_sigma * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_22 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_23 * __pyx_v_paf_field.strides[1]) ))))));
+    __pyx_t_15 = ((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_20 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_21 * __pyx_v_paf_field.strides[1]) ))) > (__pyx_v_y - (__pyx_v_sigma * (*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_22 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_23 * __pyx_v_paf_field.strides[1]) ))))));
     if (__pyx_t_15) {
     } else {
       __pyx_t_10 = __pyx_t_15;
@@ -5869,7 +5869,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_8paf_mask_center(CYTHON_UNUS
     __pyx_t_25 = __pyx_v_i;
     __pyx_t_26 = 3;
     __pyx_t_27 = __pyx_v_i;
-    __pyx_t_15 = ((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_24 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_25 * __pyx_v_paf_field.strides[1]) ))) < (__pyx_v_y + (__pyx_v_sigma * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_26 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_27 * __pyx_v_paf_field.strides[1]) ))))));
+    __pyx_t_15 = ((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_24 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_25 * __pyx_v_paf_field.strides[1]) ))) < (__pyx_v_y + (__pyx_v_sigma * (*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_26 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_27 * __pyx_v_paf_field.strides[1]) ))))));
     __pyx_t_10 = __pyx_t_15;
     __pyx_L5_bool_binop_done:;
 
@@ -5901,7 +5901,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_8paf_mask_center(CYTHON_UNUS
   /* "openpifpaf/functional.pyx":141
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
- * def paf_mask_center(double[:, :] paf_field, double x, double y, double sigma=1.0):             # <<<<<<<<<<<<<<
+ * def paf_mask_center(float[:, :] paf_field, float x, float y, float sigma=1.0):             # <<<<<<<<<<<<<<
  *     mask_np = np.zeros((paf_field.shape[1],), dtype=np.uint8)
  *     cdef unsigned char[:] mask = mask_np
  */
@@ -5928,9 +5928,9 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_8paf_mask_center(CYTHON_UNUS
 /* "openpifpaf/functional.pyx":158
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
- * def paf_center(double[:, :] paf_field, double x, double y, double sigma=1.0):             # <<<<<<<<<<<<<<
+ * def paf_center(float[:, :] paf_field, float x, float y, float sigma=1.0):             # <<<<<<<<<<<<<<
  *     result_np = np.empty_like(paf_field)
- *     cdef double[:, :] result = result_np
+ *     cdef float[:, :] result = result_np
  */
 
 /* Python wrapper */
@@ -5938,9 +5938,9 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_11paf_center(PyObject *__pyx
 static PyMethodDef __pyx_mdef_10openpifpaf_10functional_11paf_center = {"paf_center", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_10openpifpaf_10functional_11paf_center, METH_VARARGS|METH_KEYWORDS, 0};
 static PyObject *__pyx_pw_10openpifpaf_10functional_11paf_center(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_paf_field = { 0, 0, { 0 }, { 0 }, { 0 } };
-  double __pyx_v_x;
-  double __pyx_v_y;
-  double __pyx_v_sigma;
+  float __pyx_v_x;
+  float __pyx_v_y;
+  float __pyx_v_sigma;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("paf_center (wrapper)", 0);
@@ -6000,13 +6000,13 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_11paf_center(PyObject *__pyx
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_paf_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_paf_field.memview)) __PYX_ERR(0, 158, __pyx_L3_error)
-    __pyx_v_x = __pyx_PyFloat_AsDouble(values[1]); if (unlikely((__pyx_v_x == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 158, __pyx_L3_error)
-    __pyx_v_y = __pyx_PyFloat_AsDouble(values[2]); if (unlikely((__pyx_v_y == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 158, __pyx_L3_error)
+    __pyx_v_paf_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_paf_field.memview)) __PYX_ERR(0, 158, __pyx_L3_error)
+    __pyx_v_x = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_x == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 158, __pyx_L3_error)
+    __pyx_v_y = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_y == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 158, __pyx_L3_error)
     if (values[3]) {
-      __pyx_v_sigma = __pyx_PyFloat_AsDouble(values[3]); if (unlikely((__pyx_v_sigma == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 158, __pyx_L3_error)
+      __pyx_v_sigma = __pyx_PyFloat_AsFloat(values[3]); if (unlikely((__pyx_v_sigma == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 158, __pyx_L3_error)
     } else {
-      __pyx_v_sigma = ((double)1.0);
+      __pyx_v_sigma = ((float)1.0);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
@@ -6024,7 +6024,7 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_11paf_center(PyObject *__pyx
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_10openpifpaf_10functional_10paf_center(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_paf_field, double __pyx_v_x, double __pyx_v_y, double __pyx_v_sigma) {
+static PyObject *__pyx_pf_10openpifpaf_10functional_10paf_center(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_paf_field, float __pyx_v_x, float __pyx_v_y, float __pyx_v_sigma) {
   PyObject *__pyx_v_result_np = NULL;
   __Pyx_memviewslice __pyx_v_result = { 0, 0, { 0 }, { 0 }, { 0 } };
   unsigned int __pyx_v_result_i;
@@ -6064,9 +6064,9 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_10paf_center(CYTHON_UNUSED P
 
   /* "openpifpaf/functional.pyx":159
  * @cython.wraparound(False)
- * def paf_center(double[:, :] paf_field, double x, double y, double sigma=1.0):
+ * def paf_center(float[:, :] paf_field, float x, float y, float sigma=1.0):
  *     result_np = np.empty_like(paf_field)             # <<<<<<<<<<<<<<
- *     cdef double[:, :] result = result_np
+ *     cdef float[:, :] result = result_np
  *     cdef unsigned int result_i = 0
  */
   __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 159, __pyx_L1_error)
@@ -6074,7 +6074,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_10paf_center(CYTHON_UNUSED P
   __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_empty_like); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 159, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_v_paf_field, 2, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 159, __pyx_L1_error)
+  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_v_paf_field, 2, (PyObject *(*)(char *)) __pyx_memview_get_float, (int (*)(char *, PyObject *)) __pyx_memview_set_float, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 159, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_4 = NULL;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
@@ -6096,20 +6096,20 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_10paf_center(CYTHON_UNUSED P
   __pyx_t_1 = 0;
 
   /* "openpifpaf/functional.pyx":160
- * def paf_center(double[:, :] paf_field, double x, double y, double sigma=1.0):
+ * def paf_center(float[:, :] paf_field, float x, float y, float sigma=1.0):
  *     result_np = np.empty_like(paf_field)
- *     cdef double[:, :] result = result_np             # <<<<<<<<<<<<<<
+ *     cdef float[:, :] result = result_np             # <<<<<<<<<<<<<<
  *     cdef unsigned int result_i = 0
  *     cdef bint take
  */
-  __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(__pyx_v_result_np, PyBUF_WRITABLE); if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 160, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(__pyx_v_result_np, PyBUF_WRITABLE); if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 160, __pyx_L1_error)
   __pyx_v_result = __pyx_t_5;
   __pyx_t_5.memview = NULL;
   __pyx_t_5.data = NULL;
 
   /* "openpifpaf/functional.pyx":161
  *     result_np = np.empty_like(paf_field)
- *     cdef double[:, :] result = result_np
+ *     cdef float[:, :] result = result_np
  *     cdef unsigned int result_i = 0             # <<<<<<<<<<<<<<
  *     cdef bint take
  * 
@@ -6139,7 +6139,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_10paf_center(CYTHON_UNUSED P
     __pyx_t_11 = __pyx_v_i;
     __pyx_t_12 = 3;
     __pyx_t_13 = __pyx_v_i;
-    __pyx_t_14 = (((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_10 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_11 * __pyx_v_paf_field.strides[1]) ))) > (__pyx_v_x - (__pyx_v_sigma * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_12 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_13 * __pyx_v_paf_field.strides[1]) )))))) != 0);
+    __pyx_t_14 = (((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_10 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_11 * __pyx_v_paf_field.strides[1]) ))) > (__pyx_v_x - (__pyx_v_sigma * (*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_12 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_13 * __pyx_v_paf_field.strides[1]) )))))) != 0);
     if (__pyx_t_14) {
     } else {
       __pyx_t_9 = __pyx_t_14;
@@ -6157,7 +6157,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_10paf_center(CYTHON_UNUSED P
     __pyx_t_16 = __pyx_v_i;
     __pyx_t_17 = 3;
     __pyx_t_18 = __pyx_v_i;
-    __pyx_t_14 = (((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_15 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_16 * __pyx_v_paf_field.strides[1]) ))) < (__pyx_v_x + (__pyx_v_sigma * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_17 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_18 * __pyx_v_paf_field.strides[1]) )))))) != 0);
+    __pyx_t_14 = (((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_15 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_16 * __pyx_v_paf_field.strides[1]) ))) < (__pyx_v_x + (__pyx_v_sigma * (*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_17 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_18 * __pyx_v_paf_field.strides[1]) )))))) != 0);
     if (__pyx_t_14) {
     } else {
       __pyx_t_9 = __pyx_t_14;
@@ -6175,7 +6175,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_10paf_center(CYTHON_UNUSED P
     __pyx_t_20 = __pyx_v_i;
     __pyx_t_21 = 3;
     __pyx_t_22 = __pyx_v_i;
-    __pyx_t_14 = (((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_19 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_20 * __pyx_v_paf_field.strides[1]) ))) > (__pyx_v_y - (__pyx_v_sigma * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_21 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_22 * __pyx_v_paf_field.strides[1]) )))))) != 0);
+    __pyx_t_14 = (((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_19 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_20 * __pyx_v_paf_field.strides[1]) ))) > (__pyx_v_y - (__pyx_v_sigma * (*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_21 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_22 * __pyx_v_paf_field.strides[1]) )))))) != 0);
     if (__pyx_t_14) {
     } else {
       __pyx_t_9 = __pyx_t_14;
@@ -6193,7 +6193,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_10paf_center(CYTHON_UNUSED P
     __pyx_t_24 = __pyx_v_i;
     __pyx_t_25 = 3;
     __pyx_t_26 = __pyx_v_i;
-    __pyx_t_14 = (((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_23 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_24 * __pyx_v_paf_field.strides[1]) ))) < (__pyx_v_y + (__pyx_v_sigma * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_25 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_26 * __pyx_v_paf_field.strides[1]) )))))) != 0);
+    __pyx_t_14 = (((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_23 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_24 * __pyx_v_paf_field.strides[1]) ))) < (__pyx_v_y + (__pyx_v_sigma * (*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_25 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_26 * __pyx_v_paf_field.strides[1]) )))))) != 0);
     __pyx_t_9 = __pyx_t_14;
     __pyx_L5_bool_binop_done:;
     __pyx_v_take = __pyx_t_9;
@@ -6309,9 +6309,9 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_27, __pyx_t_28, 1, 1, 0) < 0
   /* "openpifpaf/functional.pyx":158
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
- * def paf_center(double[:, :] paf_field, double x, double y, double sigma=1.0):             # <<<<<<<<<<<<<<
+ * def paf_center(float[:, :] paf_field, float x, float y, float sigma=1.0):             # <<<<<<<<<<<<<<
  *     result_np = np.empty_like(paf_field)
- *     cdef double[:, :] result = result_np
+ *     cdef float[:, :] result = result_np
  */
 
   /* function exit code */
@@ -20192,7 +20192,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   /* "openpifpaf/functional.pyx":9
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
- * def scalar_square_add_constant(double[:, :] field, x_np, y_np, width_np, double[:] v):             # <<<<<<<<<<<<<<
+ * def scalar_square_add_constant(float[:, :] field, x_np, y_np, width_np, float[:] v):             # <<<<<<<<<<<<<<
  *     minx_np = np.round(x_np - width_np).astype(np.int)
  *     minx_np = np.clip(minx_np, 0, field.shape[1] - 1)
  */
@@ -20204,7 +20204,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   /* "openpifpaf/functional.pyx":34
  * @cython.wraparound(False)
  * @cython.cdivision(True)
- * def cumulative_average(double[:, :] ca, double[:, :] cw, x_np, y_np, width_np, double[:] v, double[:] w):             # <<<<<<<<<<<<<<
+ * def cumulative_average(float[:, :] ca, float[:, :] cw, x_np, y_np, width_np, float[:] v, float[:] w):             # <<<<<<<<<<<<<<
  *     minx_np = np.round(x_np - width_np).astype(np.int)
  *     minx_np = np.clip(minx_np, 0, ca.shape[1] - 1)
  */
@@ -20216,7 +20216,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   /* "openpifpaf/functional.pyx":62
  * @cython.wraparound(False)
  * @cython.cdivision(True)
- * def scalar_square_add_gauss(double[:, :] field, x_np, y_np, sigma_np, v_np, double truncate=2.0):             # <<<<<<<<<<<<<<
+ * def scalar_square_add_gauss(float[:, :] field, x_np, y_np, sigma_np, v_np, float truncate=2.0):             # <<<<<<<<<<<<<<
  *     sigma_np = np.maximum(1.0, sigma_np)
  *     width_np = np.maximum(1.0, truncate * sigma_np)
  */
@@ -20228,7 +20228,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   /* "openpifpaf/functional.pyx":100
  * @cython.wraparound(False)
  * @cython.cdivision(True)
- * def weiszfeld_nd(x_np, y_np, double[:] weights=None, double epsilon=1e-8, Py_ssize_t max_steps=20):             # <<<<<<<<<<<<<<
+ * def weiszfeld_nd(x_np, y_np, float[:] weights=None, float epsilon=1e-8, Py_ssize_t max_steps=20):             # <<<<<<<<<<<<<<
  *     """Weighted Weiszfeld algorithm."""
  *     if weights is None:
  */
@@ -20240,7 +20240,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   /* "openpifpaf/functional.pyx":141
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
- * def paf_mask_center(double[:, :] paf_field, double x, double y, double sigma=1.0):             # <<<<<<<<<<<<<<
+ * def paf_mask_center(float[:, :] paf_field, float x, float y, float sigma=1.0):             # <<<<<<<<<<<<<<
  *     mask_np = np.zeros((paf_field.shape[1],), dtype=np.uint8)
  *     cdef unsigned char[:] mask = mask_np
  */
@@ -20252,9 +20252,9 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   /* "openpifpaf/functional.pyx":158
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
- * def paf_center(double[:, :] paf_field, double x, double y, double sigma=1.0):             # <<<<<<<<<<<<<<
+ * def paf_center(float[:, :] paf_field, float x, float y, float sigma=1.0):             # <<<<<<<<<<<<<<
  *     result_np = np.empty_like(paf_field)
- *     cdef double[:, :] result = result_np
+ *     cdef float[:, :] result = result_np
  */
   __pyx_tuple__30 = PyTuple_Pack(9, __pyx_n_s_paf_field, __pyx_n_s_x, __pyx_n_s_y, __pyx_n_s_sigma, __pyx_n_s_result_np, __pyx_n_s_result, __pyx_n_s_result_i, __pyx_n_s_take, __pyx_n_s_i); if (unlikely(!__pyx_tuple__30)) __PYX_ERR(0, 158, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__30);
@@ -20673,7 +20673,7 @@ if (!__Pyx_RefNanny) {
   /* "openpifpaf/functional.pyx":9
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
- * def scalar_square_add_constant(double[:, :] field, x_np, y_np, width_np, double[:] v):             # <<<<<<<<<<<<<<
+ * def scalar_square_add_constant(float[:, :] field, x_np, y_np, width_np, float[:] v):             # <<<<<<<<<<<<<<
  *     minx_np = np.round(x_np - width_np).astype(np.int)
  *     minx_np = np.clip(minx_np, 0, field.shape[1] - 1)
  */
@@ -20685,7 +20685,7 @@ if (!__Pyx_RefNanny) {
   /* "openpifpaf/functional.pyx":34
  * @cython.wraparound(False)
  * @cython.cdivision(True)
- * def cumulative_average(double[:, :] ca, double[:, :] cw, x_np, y_np, width_np, double[:] v, double[:] w):             # <<<<<<<<<<<<<<
+ * def cumulative_average(float[:, :] ca, float[:, :] cw, x_np, y_np, width_np, float[:] v, float[:] w):             # <<<<<<<<<<<<<<
  *     minx_np = np.round(x_np - width_np).astype(np.int)
  *     minx_np = np.clip(minx_np, 0, ca.shape[1] - 1)
  */
@@ -20697,7 +20697,7 @@ if (!__Pyx_RefNanny) {
   /* "openpifpaf/functional.pyx":62
  * @cython.wraparound(False)
  * @cython.cdivision(True)
- * def scalar_square_add_gauss(double[:, :] field, x_np, y_np, sigma_np, v_np, double truncate=2.0):             # <<<<<<<<<<<<<<
+ * def scalar_square_add_gauss(float[:, :] field, x_np, y_np, sigma_np, v_np, float truncate=2.0):             # <<<<<<<<<<<<<<
  *     sigma_np = np.maximum(1.0, sigma_np)
  *     width_np = np.maximum(1.0, truncate * sigma_np)
  */
@@ -20709,11 +20709,11 @@ if (!__Pyx_RefNanny) {
   /* "openpifpaf/functional.pyx":100
  * @cython.wraparound(False)
  * @cython.cdivision(True)
- * def weiszfeld_nd(x_np, y_np, double[:] weights=None, double epsilon=1e-8, Py_ssize_t max_steps=20):             # <<<<<<<<<<<<<<
+ * def weiszfeld_nd(x_np, y_np, float[:] weights=None, float epsilon=1e-8, Py_ssize_t max_steps=20):             # <<<<<<<<<<<<<<
  *     """Weighted Weiszfeld algorithm."""
  *     if weights is None:
  */
-  __pyx_t_2 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(Py_None, PyBUF_WRITABLE); if (unlikely(!__pyx_t_2.memview)) __PYX_ERR(0, 100, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(Py_None, PyBUF_WRITABLE); if (unlikely(!__pyx_t_2.memview)) __PYX_ERR(0, 100, __pyx_L1_error)
   __pyx_k_ = __pyx_t_2;
   __pyx_t_2.memview = NULL;
   __pyx_t_2.data = NULL;
@@ -20725,7 +20725,7 @@ if (!__Pyx_RefNanny) {
   /* "openpifpaf/functional.pyx":141
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
- * def paf_mask_center(double[:, :] paf_field, double x, double y, double sigma=1.0):             # <<<<<<<<<<<<<<
+ * def paf_mask_center(float[:, :] paf_field, float x, float y, float sigma=1.0):             # <<<<<<<<<<<<<<
  *     mask_np = np.zeros((paf_field.shape[1],), dtype=np.uint8)
  *     cdef unsigned char[:] mask = mask_np
  */
@@ -20737,9 +20737,9 @@ if (!__Pyx_RefNanny) {
   /* "openpifpaf/functional.pyx":158
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
- * def paf_center(double[:, :] paf_field, double x, double y, double sigma=1.0):             # <<<<<<<<<<<<<<
+ * def paf_center(float[:, :] paf_field, float x, float y, float sigma=1.0):             # <<<<<<<<<<<<<<
  *     result_np = np.empty_like(paf_field)
- *     cdef double[:, :] result = result_np
+ *     cdef float[:, :] result = result_np
  */
   __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_10openpifpaf_10functional_11paf_center, NULL, __pyx_n_s_openpifpaf_functional); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 158, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -23951,7 +23951,7 @@ no_fail:
 }
 
 /* ObjectToMemviewSlice */
-  static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dsds_double(PyObject *obj, int writable_flag) {
+  static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dsds_float(PyObject *obj, int writable_flag) {
     __Pyx_memviewslice result = { 0, 0, { 0 }, { 0 }, { 0 } };
     __Pyx_BufFmt_StackElem stack[1];
     int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_STRIDED), (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_STRIDED) };
@@ -23962,7 +23962,7 @@ no_fail:
     }
     retcode = __Pyx_ValidateAndInit_memviewslice(axes_specs, 0,
                                                  PyBUF_RECORDS_RO | writable_flag, 2,
-                                                 &__Pyx_TypeInfo_double, stack,
+                                                 &__Pyx_TypeInfo_float, stack,
                                                  &result, obj);
     if (unlikely(retcode == -1))
         goto __pyx_fail;
@@ -23974,7 +23974,7 @@ __pyx_fail:
 }
 
 /* ObjectToMemviewSlice */
-  static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_double(PyObject *obj, int writable_flag) {
+  static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_float(PyObject *obj, int writable_flag) {
     __Pyx_memviewslice result = { 0, 0, { 0 }, { 0 }, { 0 } };
     __Pyx_BufFmt_StackElem stack[1];
     int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_STRIDED) };
@@ -23985,7 +23985,7 @@ __pyx_fail:
     }
     retcode = __Pyx_ValidateAndInit_memviewslice(axes_specs, 0,
                                                  PyBUF_RECORDS_RO | writable_flag, 1,
-                                                 &__Pyx_TypeInfo_double, stack,
+                                                 &__Pyx_TypeInfo_float, stack,
                                                  &result, obj);
     if (unlikely(retcode == -1))
         goto __pyx_fail;
@@ -24028,14 +24028,14 @@ __pyx_fail:
 }
 
 /* MemviewDtypeToObject */
-  static CYTHON_INLINE PyObject *__pyx_memview_get_double(const char *itemp) {
-    return (PyObject *) PyFloat_FromDouble(*(double *) itemp);
+  static CYTHON_INLINE PyObject *__pyx_memview_get_float(const char *itemp) {
+    return (PyObject *) PyFloat_FromDouble(*(float *) itemp);
 }
-static CYTHON_INLINE int __pyx_memview_set_double(const char *itemp, PyObject *obj) {
-    double value = __pyx_PyFloat_AsDouble(obj);
-    if ((value == (double)-1) && PyErr_Occurred())
+static CYTHON_INLINE int __pyx_memview_set_float(const char *itemp, PyObject *obj) {
+    float value = __pyx_PyFloat_AsFloat(obj);
+    if ((value == (float)-1) && PyErr_Occurred())
         return 0;
-    *(double *) itemp = value;
+    *(float *) itemp = value;
     return 1;
 }
 
