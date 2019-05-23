@@ -1,0 +1,1333 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" width="1200" height="384"
+     xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<style type="text/css">
+    .func_g:hover { stroke:black; stroke-width:0.5; cursor:pointer; }
+</style>
+<svg class="func_g" x="0.0" y="168" width="23.332494738790356" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:68:soft_nms 2.03% (1 1 0.0009609999999999999 0.005915999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 190, 110)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">soft_nms</text>
+</g></svg>
+<svg class="func_g" x="0.4812207377346978" y="144" width="11.47060920351798" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/utils.py:135:scalar_square_add_single 1.04% (89 89 0.0023109999999999997 0.003032)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 90, 49)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">scalar_square_add_single</text>
+</g></svg>
+<svg class="func_g" x="1.0016511461531055" y="120" width="1.4450409753996887" height="23"><g>
+    <title>~:0:&lt;built-in method builtins.round&gt; 0.20% (286 286 0.0005944668874172188 0.0005944668874172188)</title>
+    <rect height="100%" width="100%" fill="rgb(44, 255, 210)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">&lt;built-in method builtins.round&gt;</text>
+</g></svg>
+<svg class="func_g" x="12.95182994125268" y="144" width="1.2456967760952562" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:1903:clip 0.19% (182 182 9.7e-05 0.0005459999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 240, 141)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">clip</text>
+</g></svg>
+<svg class="func_g" x="12.95182994125268" y="120" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:54:_wrapfunc 0.15% (106 106 7.802945508100147e-05 0.0004489999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(71, 230, 126)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_wrapfunc</text>
+</g></svg>
+<svg class="func_g" x="15.197526717347936" y="144" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:3373:round_ 0.14% (91 91 4.8e-05 0.00040899999999999997)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 190, 110)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">round_</text>
+</g></svg>
+<svg class="func_g" x="15.197526717347936" y="120" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:2940:around 0.12% (72 72 7.510011990407673e-05 0.000361)</title>
+    <rect height="100%" width="100%" fill="rgb(57, 242, 168)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">around</text>
+</g></svg>
+<svg class="func_g" x="17.611856401538255" y="144" width="1.2868267536794185" height="23"><g>
+    <title>~:0:&lt;built-in method builtins.sorted&gt; 0.19% (2 2 1.4e-05 0.000556)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 190, 110)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">&lt;built-in method builtins.sorted&gt;</text>
+</g></svg>
+<svg class="func_g" x="25.373083171669663" y="168" width="1173.2115040547299" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 97.85% (1 1 0.029904999999999998 0.28548799999999996)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 190, 110)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="25.373083171669663" y="144" width="1049.7475373425918" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 87.56% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 140, 79)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="25.373083171669663" y="120" width="385.14056855339004" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:129:__init__ 32.18% (1 1 0.003369 0.093883)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 215, 125)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__init__</text>
+</g></svg>
+<svg class="func_g" x="25.373083171669663" y="96" width="344.5576196710972" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:165:_target_intensities 28.80% (2 2 0.0044529999999999995 0.084016)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 190, 110)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_target_intensities</text>
+</g></svg>
+<svg class="func_g" x="25.373083171669663" y="72" width="1.015368901623948" height="23"><g>
+    <title>/usr/local/Cellar/python/3.7.3/Frameworks/Python.framework/Versions/3.7/lib/python3.7/logging/__init__.py:1361:debug 0.17% (2 2 1.2e-05 0.00049)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 115, 64)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">debug</text>
+</g></svg>
+<svg class="func_g" x="25.373083171669663" y="48" width="1" height="23"><g>
+    <title>/usr/local/Cellar/python/3.7.3/Frameworks/Python.framework/Versions/3.7/lib/python3.7/logging/__init__.py:1496:_log 0.16% (3 3 1.7888598781549167e-05 0.0004630234986945169)</title>
+    <rect height="100%" width="100%" fill="rgb(44, 255, 210)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_log</text>
+</g></svg>
+<svg class="func_g" x="27.38845207329361" y="72" width="238.52453745912703" height="23"><g>
+    <title>~:0:&lt;built-in method numpy.zeros&gt; 19.96% (6 6 0.058235999999999996 0.058235999999999996)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 190, 110)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">&lt;built-in method numpy.zeros&gt;</text>
+</g></svg>
+<svg class="func_g" x="266.9294415234543" y="72" width="24.862529904921193" height="23"><g>
+    <title>~:0:&lt;openpifpaf.functional.cumulative_average&gt; 2.16% (17 17 0.005349 0.006287999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 140, 79)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">&lt;openpifpaf.functional.cumulative_average&gt;</text>
+</g></svg>
+<svg class="func_g" x="266.9294415234543" y="48" width="1.0688378724833587" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:1903:clip 0.17% (68 68 0.000154 0.000503)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 240, 141)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">clip</text>
+</g></svg>
+<svg class="func_g" x="266.9294415234543" y="24" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:54:_wrapfunc 0.12% (82 82 6.065095729013255e-05 0.00034899999999999997)</title>
+    <rect height="100%" width="100%" fill="rgb(71, 230, 126)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_wrapfunc</text>
+</g></svg>
+<svg class="func_g" x="268.99827939593763" y="48" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:3373:round_ 0.15% (68 68 3.7999999999999995e-05 0.00043599999999999997)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 190, 110)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">round_</text>
+</g></svg>
+<svg class="func_g" x="268.99827939593763" y="24" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:2940:around 0.14% (79 79 8.279736211031175e-05 0.00039799999999999997)</title>
+    <rect height="100%" width="100%" fill="rgb(57, 242, 168)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">around</text>
+</g></svg>
+<svg class="func_g" x="268.99827939593763" y="0" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:54:_wrapfunc 0.11% (79 79 5.535731414868105e-05 0.0003152026378896882)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 190, 110)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_wrapfunc</text>
+</g></svg>
+<svg class="func_g" x="292.7919714283755" y="72" width="58.82355239616392" height="23"><g>
+    <title>~:0:&lt;openpifpaf.functional.scalar_square_add_gauss&gt; 4.99% (34 34 0.013033 0.014544999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 240, 141)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">&lt;openpifpaf.functional.scalar_square_add_gauss&gt;</text>
+</g></svg>
+<svg class="func_g" x="292.7919714283755" y="48" width="1.9572453883012626" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:1903:clip 0.25% (136 136 0.000133 0.000719)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 240, 141)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">clip</text>
+</g></svg>
+<svg class="func_g" x="292.7919714283755" y="24" width="1.4102166864319057" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:54:_wrapfunc 0.20% (139 139 0.00010183799705449191 0.000586)</title>
+    <rect height="100%" width="100%" fill="rgb(71, 230, 126)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_wrapfunc</text>
+</g></svg>
+<svg class="func_g" x="295.7492168166768" y="48" width="2.261607222424063" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:3373:round_ 0.27% (136 136 8.4e-05 0.000793)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 190, 110)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">round_</text>
+</g></svg>
+<svg class="func_g" x="295.7492168166768" y="24" width="1.9161154107171003" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:2940:around 0.24% (142 142 0.00014749580335731414 0.000709)</title>
+    <rect height="100%" width="100%" fill="rgb(57, 242, 168)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">around</text>
+</g></svg>
+<svg class="func_g" x="295.7492168166768" y="0" width="1.3094655021326678" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:54:_wrapfunc 0.19% (142 142 9.861390887290169e-05 0.0005615041966426859)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 190, 110)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_wrapfunc</text>
+</g></svg>
+<svg class="func_g" x="370.9307028427668" y="96" width="25.33141164938064" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:198:_score_paf_target 2.19% (1 1 0.003991 0.006402)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 90, 49)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_score_paf_target</text>
+</g></svg>
+<svg class="func_g" x="372.0083082554719" y="72" width="4.309880106115341" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:2512:amin 0.44% (19 19 7.7e-05 0.001291)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 90, 49)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">amin</text>
+</g></svg>
+<svg class="func_g" x="372.0083082554719" y="48" width="3.9931792787172924" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:69:_wrapreduction 0.42% (19 19 9.099999999999999e-05 0.001214)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 215, 125)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_wrapreduction</text>
+</g></svg>
+<svg class="func_g" x="372.1772510675677" y="24" width="3.4499536706055336" height="23"><g>
+    <title>~:0:&lt;method 'reduce' of 'numpy.ufunc' objects&gt; 0.37% (76 76 0.0010819246525237748 0.0010819246525237748)</title>
+    <rect height="100%" width="100%" fill="rgb(71, 230, 126)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">&lt;method 'reduce' of 'numpy.ufunc' objects&gt;</text>
+</g></svg>
+<svg class="func_g" x="411.5136517250597" y="120" width="493.1807936714673" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:247:annotations 41.18% (1 1 0.001694 0.120151)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 90, 49)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations</text>
+</g></svg>
+<svg class="func_g" x="411.5136517250597" y="96" width="1.0441598859328614" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/annotation.py:5:__init__ 0.17% (12 12 0.00022799999999999999 0.0004969999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 165, 95)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__init__</text>
+</g></svg>
+<svg class="func_g" x="413.55781161099253" y="96" width="5.091349680214423" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/annotation.py:14:fill_joint_scales 0.51% (12 12 0.000995 0.001481)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 90, 49)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">fill_joint_scales</text>
+</g></svg>
+<svg class="func_g" x="413.9896763756262" y="72" width="1" height="23"><g>
+    <title>~:0:&lt;built-in method builtins.round&gt; 0.13% (182 182 0.000368 0.000368)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 240, 141)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">&lt;built-in method builtins.round&gt;</text>
+</g></svg>
+<svg class="func_g" x="419.6491612912069" y="96" width="396.5088943576525" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:283:_pifhr_seeds 33.13% (1 1 0.074724 0.096647)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 240, 141)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_pifhr_seeds</text>
+</g></svg>
+<svg class="func_g" x="419.6491612912069" y="72" width="8.616188759177122" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/utils.py:7:index_field 0.80% (1 1 1.1e-05 0.002338)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 190, 110)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">index_field</text>
+</g></svg>
+<svg class="func_g" x="419.6491612912069" y="48" width="7.905046960965274" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/numeric.py:1902:indices 0.74% (2 2 0.00208283565250094 0.0021650989093644226)</title>
+    <rect height="100%" width="100%" fill="rgb(85, 218, 84)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">indices</text>
+</g></svg>
+<svg class="func_g" x="429.2653500503841" y="72" width="12.585231596048777" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/utils.py:135:scalar_square_add_single 1.13% (90 90 0.002443 0.003303)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 90, 49)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">scalar_square_add_single</text>
+</g></svg>
+<svg class="func_g" x="429.8861130895517" y="48" width="1.916415033070363" height="23"><g>
+    <title>~:0:&lt;built-in method builtins.round&gt; 0.24% (342 342 0.0007090728476821193 0.0007090728476821193)</title>
+    <rect height="100%" width="100%" fill="rgb(44, 255, 210)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">&lt;built-in method builtins.round&gt;</text>
+</g></svg>
+<svg class="func_g" x="442.8505816464329" y="72" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:942:argsort 0.11% (17 17 6.5e-05 0.00031099999999999997)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 240, 141)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">argsort</text>
+</g></svg>
+<svg class="func_g" x="444.6315096758271" y="72" width="1.266261764887337" height="23"><g>
+    <title>~:0:&lt;built-in method builtins.max&gt; 0.19% (90 90 0.000551 0.000551)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 165, 95)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">&lt;built-in method builtins.max&gt;</text>
+</g></svg>
+<svg class="func_g" x="447.2144722681124" y="72" width="61.60393888085329" height="23"><g>
+    <title>~:0:&lt;method 'fill' of 'numpy.ndarray' objects&gt; 5.22% (17 17 0.015221 0.015221)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 240, 141)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">&lt;method 'fill' of 'numpy.ndarray' objects&gt;</text>
+</g></svg>
+<svg class="func_g" x="817.1580556488594" y="96" width="57.74594698345887" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:378:_grow 4.90% (12 12 0.001921 0.014282999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 165, 95)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_grow</text>
+</g></svg>
+<svg class="func_g" x="817.1580556488594" y="72" width="6.753000774614576" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/annotation.py:53:frontier_iter 0.65% (140 140 0.000696 0.001885)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 215, 125)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">frontier_iter</text>
+</g></svg>
+<svg class="func_g" x="817.1580556488594" y="48" width="1.3444087222972456" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/annotation.py:32:frontier 0.20% (12 12 0.000339 0.00057)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 165, 95)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">frontier</text>
+</g></svg>
+<svg class="func_g" x="824.9110564234741" y="72" width="41.980826575449505" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:325:_grow_connection 3.58% (207 207 0.0035949999999999997 0.01045)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 90, 49)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_grow_connection</text>
+</g></svg>
+<svg class="func_g" x="824.9110564234741" y="48" width="3.840998361655891" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:368:_target_with_maxscore 0.40% (158 158 0.000363 0.0011769999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 165, 95)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_target_with_maxscore</text>
+</g></svg>
+<svg class="func_g" x="824.9110564234741" y="24" width="2.3479801753508034" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:1041:argmax 0.28% (158 158 0.00035099999999999997 0.0008139999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 90, 49)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">argmax</text>
+</g></svg>
+<svg class="func_g" x="824.9110564234741" y="0" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:54:_wrapfunc 0.16% (158 158 0.00011499999999999999 0.000463)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 190, 110)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_wrapfunc</text>
+</g></svg>
+<svg class="func_g" x="829.75205478513" y="48" width="3.1047717628993885" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/lib/shape_base.py:513:expand_dims 0.34% (158 158 0.000403 0.000998)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 215, 125)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">expand_dims</text>
+</g></svg>
+<svg class="func_g" x="829.75205478513" y="24" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/numeric.py:541:asanyarray 0.12% (155 155 6.475672215108835e-05 0.00035273367477592826)</title>
+    <rect height="100%" width="100%" fill="rgb(99, 206, 42)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">asanyarray</text>
+</g></svg>
+<svg class="func_g" x="833.8568265480293" y="48" width="8.879420615715762" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/linalg/linalg.py:2293:norm 0.82% (158 158 0.00104 0.002402)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 190, 110)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">norm</text>
+</g></svg>
+<svg class="func_g" x="835.0413699024531" y="24" width="3.4173595925390208" height="23"><g>
+    <title>~:0:&lt;method 'reduce' of 'numpy.ufunc' objects&gt; 0.37% (158 158 0.0010739999999999999 0.0010739999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 190, 110)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">&lt;method 'reduce' of 'numpy.ufunc' objects&gt;</text>
+</g></svg>
+<svg class="func_g" x="843.8843150830481" y="48" width="8.221340974369166" height="23"><g>
+    <title>~:0:&lt;openpifpaf.functional.paf_center&gt; 0.77% (207 207 0.002242 0.002242)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 115, 64)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">&lt;openpifpaf.functional.paf_center&gt;</text>
+</g></svg>
+<svg class="func_g" x="875.9040026323183" y="96" width="14.674634457324217" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/utils.py:135:scalar_square_add_single 1.31% (91 91 0.0026739999999999997 0.0038109999999999997)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 90, 49)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">scalar_square_add_single</text>
+</g></svg>
+<svg class="func_g" x="876.7247091154968" y="72" width="2.8557719681407003" height="23"><g>
+    <title>~:0:&lt;built-in method builtins.round&gt; 0.32% (452 452 0.0009374602649006623 0.0009374602649006623)</title>
+    <rect height="100%" width="100%" fill="rgb(44, 255, 210)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">&lt;built-in method builtins.round&gt;</text>
+</g></svg>
+<svg class="func_g" x="891.5786370896426" y="96" width="3.980840285442042" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:1903:clip 0.42% (180 180 9.099999999999999e-05 0.0012109999999999998)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 240, 141)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">clip</text>
+</g></svg>
+<svg class="func_g" x="891.5786370896426" y="72" width="3.6065574894261667" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:54:_wrapfunc 0.38% (265 265 0.00019463917525773197 0.00112)</title>
+    <rect height="100%" width="100%" fill="rgb(71, 230, 126)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_wrapfunc</text>
+</g></svg>
+<svg class="func_g" x="897.2710259872906" y="96" width="1" height="23"><g>
+    <title>~:0:&lt;built-in method builtins.round&gt; 0.11% (180 180 0.000334 0.000334)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 240, 141)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">&lt;built-in method builtins.round&gt;</text>
+</g></svg>
+<svg class="func_g" x="905.6944453965269" y="120" width="142.05006203771615" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/utils.py:83:normalize_paf 11.92% (1 1 0.011474999999999999 0.03478)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 140, 79)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">normalize_paf</text>
+</g></svg>
+<svg class="func_g" x="905.6944453965269" y="96" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/utils.py:7:index_field 0.13% (1 1 5.8e-05 0.00039)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 190, 110)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">index_field</text>
+</g></svg>
+<svg class="func_g" x="905.6944453965269" y="72" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/numeric.py:1902:indices 0.11% (0 0 0.00029716434749905974 0.00030890109063557727)</title>
+    <rect height="100%" width="100%" fill="rgb(85, 218, 84)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">indices</text>
+</g></svg>
+<svg class="func_g" x="907.2985145223092" y="96" width="80.5977625292194" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/shape_base.py:352:stack 6.80% (1 1 4.8e-05 0.019839)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 215, 125)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">stack</text>
+</g></svg>
+<svg class="func_g" x="907.4753734259212" y="72" width="80.2152537376867" height="23"><g>
+    <title>~:0:&lt;built-in method numpy.concatenate&gt; 6.77% (1 1 0.019746 0.019746)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 90, 49)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">&lt;built-in method numpy.concatenate&gt;</text>
+</g></svg>
+<svg class="func_g" x="989.5173397130495" y="96" width="11.030518443367447" height="23"><g>
+    <title>~:0:&lt;built-in method numpy.concatenate&gt; 1.00% (2 2 0.002925 0.002925)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 90, 49)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">&lt;built-in method numpy.concatenate&gt;</text>
+</g></svg>
+<svg class="func_g" x="1048.744507434243" y="120" width="7.970448111105776" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/utils.py:101:normalize_pif 0.75% (1 1 0.0008849999999999999 0.0021809999999999998)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 165, 95)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">normalize_pif</text>
+</g></svg>
+<svg class="func_g" x="1048.8966883513044" y="96" width="3.1993707113429615" height="23"><g>
+    <title>~:0:&lt;built-in method numpy.concatenate&gt; 0.35% (1 1 0.001021 0.001021)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 90, 49)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">&lt;built-in method numpy.concatenate&gt;</text>
+</g></svg>
+<svg class="func_g" x="1.2092213409743688" y="216" width="3.092432769624139" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/annotation.py:14:fill_joint_scales 0.34% (12 12 0.000995 0.001481)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 90, 49)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">fill_joint_scales</text>
+</g></svg>
+<svg class="func_g" x="1.2092213409743688" y="240" width="3.092432769624139" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:247:annotations 0.34% (12 12 0.000995 0.001481)</title>
+    <rect height="100%" width="100%" fill="rgb(232, 232, 232)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations</text>
+</g></svg>
+<svg class="func_g" x="1.2092213409743688" y="264" width="3.092432769624139" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 0.58% (1 1 0.001694 0.120151)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="1.2092213409743688" y="288" width="3.092432769624139" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="5.918603774360941" y="216" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/annotation.py:32:frontier 0.12% (12 12 0.000339 0.00057)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 165, 95)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">frontier</text>
+</g></svg>
+<svg class="func_g" x="5.918603774360941" y="240" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/annotation.py:53:frontier_iter 0.12% (12 12 0.000339 0.00057)</title>
+    <rect height="100%" width="100%" fill="rgb(197, 197, 197)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">frontier_iter</text>
+</g></svg>
+<svg class="func_g" x="5.918603774360941" y="264" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:378:_grow 0.24% (140 140 0.000696 0.001885)</title>
+    <rect height="100%" width="100%" fill="rgb(211, 211, 211)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_grow</text>
+</g></svg>
+<svg class="func_g" x="5.918603774360941" y="288" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:247:annotations 0.66% (12 12 0.001921 0.014282999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(232, 232, 232)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations</text>
+</g></svg>
+<svg class="func_g" x="5.918603774360941" y="312" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 0.58% (1 1 0.001694 0.120151)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="5.918603774360941" y="336" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="8.168413548214614" y="216" width="1.8626464398576896" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/annotation.py:53:frontier_iter 0.24% (140 140 0.000696 0.001885)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 215, 125)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">frontier_iter</text>
+</g></svg>
+<svg class="func_g" x="8.168413548214614" y="240" width="1.8626464398576896" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:378:_grow 0.24% (140 140 0.000696 0.001885)</title>
+    <rect height="100%" width="100%" fill="rgb(211, 211, 211)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_grow</text>
+</g></svg>
+<svg class="func_g" x="8.168413548214614" y="264" width="1.8626464398576896" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:247:annotations 0.66% (12 12 0.001921 0.014282999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(232, 232, 232)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations</text>
+</g></svg>
+<svg class="func_g" x="8.168413548214614" y="288" width="1.8626464398576896" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 0.58% (1 1 0.001694 0.120151)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="8.168413548214614" y="312" width="1.8626464398576896" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="12.598112134028884" y="216" width="16.875088258076897" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 140, 79)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="12.598112134028884" y="240" width="16.875088258076897" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="30.47320039210578" y="216" width="12.856689448104246" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:129:__init__ 1.15% (1 1 0.003369 0.093883)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 215, 125)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__init__</text>
+</g></svg>
+<svg class="func_g" x="30.47320039210578" y="240" width="12.856689448104246" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 1.15% (1 1 0.003369 0.093883)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="30.47320039210578" y="264" width="12.856689448104246" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="44.329889840210036" y="216" width="17.31517901822743" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:165:_target_intensities 1.53% (2 2 0.0044529999999999995 0.084016)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 190, 110)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_target_intensities</text>
+</g></svg>
+<svg class="func_g" x="44.329889840210036" y="240" width="17.31517901822743" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:129:__init__ 1.53% (2 2 0.0044529999999999995 0.084016)</title>
+    <rect height="100%" width="100%" fill="rgb(197, 197, 197)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__init__</text>
+</g></svg>
+<svg class="func_g" x="44.329889840210036" y="264" width="17.31517901822743" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 1.15% (1 1 0.003369 0.093883)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="44.329889840210036" y="288" width="17.31517901822743" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="62.64506885843746" y="216" width="15.414974053839138" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:198:_score_paf_target 1.37% (1 1 0.003991 0.006402)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 90, 49)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_score_paf_target</text>
+</g></svg>
+<svg class="func_g" x="62.64506885843746" y="240" width="15.414974053839138" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:129:__init__ 1.37% (1 1 0.003991 0.006402)</title>
+    <rect height="100%" width="100%" fill="rgb(197, 197, 197)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__init__</text>
+</g></svg>
+<svg class="func_g" x="62.64506885843746" y="264" width="15.414974053839138" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 1.15% (1 1 0.003369 0.093883)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="62.64506885843746" y="288" width="15.414974053839138" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="79.06004291227661" y="216" width="5.967418202757077" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:247:annotations 0.58% (1 1 0.001694 0.120151)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 90, 49)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations</text>
+</g></svg>
+<svg class="func_g" x="79.06004291227661" y="240" width="5.967418202757077" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 0.58% (1 1 0.001694 0.120151)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="79.06004291227661" y="264" width="5.967418202757077" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="86.02746111503369" y="216" width="306.33964449989367" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:283:_pifhr_seeds 25.61% (1 1 0.074724 0.096647)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 240, 141)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_pifhr_seeds</text>
+</g></svg>
+<svg class="func_g" x="86.02746111503369" y="240" width="306.33964449989367" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:247:annotations 25.61% (1 1 0.074724 0.096647)</title>
+    <rect height="100%" width="100%" fill="rgb(232, 232, 232)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations</text>
+</g></svg>
+<svg class="func_g" x="86.02746111503369" y="264" width="306.33964449989367" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 0.58% (1 1 0.001694 0.120151)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="86.02746111503369" y="288" width="306.33964449989367" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="393.36710561492737" y="216" width="13.78622694150631" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:325:_grow_connection 1.23% (207 207 0.0035949999999999997 0.01045)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 90, 49)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_grow_connection</text>
+</g></svg>
+<svg class="func_g" x="393.36710561492737" y="240" width="13.78622694150631" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:378:_grow 1.23% (207 207 0.0035949999999999997 0.01045)</title>
+    <rect height="100%" width="100%" fill="rgb(211, 211, 211)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_grow</text>
+</g></svg>
+<svg class="func_g" x="393.36710561492737" y="264" width="13.786226941506314" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:247:annotations 0.66% (12 12 0.001921 0.014282999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(232, 232, 232)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations</text>
+</g></svg>
+<svg class="func_g" x="393.36710561492737" y="288" width="13.786226941506314" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 0.58% (1 1 0.001694 0.120151)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="393.36710561492737" y="312" width="13.786226941506314" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="408.15333255643367" y="216" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:368:_target_with_maxscore 0.12% (158 158 0.000363 0.0011769999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 165, 95)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_target_with_maxscore</text>
+</g></svg>
+<svg class="func_g" x="408.15333255643367" y="240" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:325:_grow_connection 0.12% (158 158 0.000363 0.0011769999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(232, 232, 232)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_grow_connection</text>
+</g></svg>
+<svg class="func_g" x="408.15333255643367" y="264" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:378:_grow 1.23% (207 207 0.0035949999999999997 0.01045)</title>
+    <rect height="100%" width="100%" fill="rgb(211, 211, 211)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_grow</text>
+</g></svg>
+<svg class="func_g" x="408.15333255643367" y="288" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:247:annotations 0.66% (12 12 0.001921 0.014282999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(232, 232, 232)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations</text>
+</g></svg>
+<svg class="func_g" x="408.15333255643367" y="312" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 0.58% (1 1 0.001694 0.120151)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="408.15333255643367" y="336" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="409.6463507427388" y="216" width="6.90106869391756" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:378:_grow 0.66% (12 12 0.001921 0.014282999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 165, 95)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_grow</text>
+</g></svg>
+<svg class="func_g" x="409.6463507427388" y="240" width="6.90106869391756" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:247:annotations 0.66% (12 12 0.001921 0.014282999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(232, 232, 232)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations</text>
+</g></svg>
+<svg class="func_g" x="409.6463507427388" y="264" width="6.9010686939175585" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 0.58% (1 1 0.001694 0.120151)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="409.6463507427388" y="288" width="6.9010686939175585" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="417.54741943665636" y="216" width="2.952590845837988" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:68:soft_nms 0.33% (1 1 0.0009609999999999999 0.005915999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 190, 110)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">soft_nms</text>
+</g></svg>
+<svg class="func_g" x="421.98945701574587" y="216" width="121.99919796543706" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 10.25% (1 1 0.029904999999999998 0.28548799999999996)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 190, 110)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="545.2724518265137" y="216" width="46.19664927782613" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/utils.py:83:normalize_paf 3.93% (1 1 0.011474999999999999 0.03478)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 140, 79)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">normalize_paf</text>
+</g></svg>
+<svg class="func_g" x="545.2724518265137" y="240" width="46.19664927782613" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 3.93% (1 1 0.011474999999999999 0.03478)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="545.2724518265137" y="264" width="46.19664927782613" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="592.4691011043399" y="216" width="2.6400030161983548" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/utils.py:101:normalize_pif 0.30% (1 1 0.0008849999999999999 0.0021809999999999998)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 165, 95)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">normalize_pif</text>
+</g></svg>
+<svg class="func_g" x="592.4691011043399" y="240" width="2.6400030161983548" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 0.30% (1 1 0.0008849999999999999 0.0021809999999999998)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="592.4691011043399" y="264" width="2.6400030161983548" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="596.1091041205381" y="216" width="29.551347349515684" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/utils.py:135:scalar_square_add_single 2.55% (270 270 0.007428 0.010145999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 90, 49)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">scalar_square_add_single</text>
+</g></svg>
+<svg class="func_g" x="596.1091041205381" y="240" width="10.475575078750667" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:247:annotations 0.92% (91 91 0.0026739999999999997 0.0038109999999999997)</title>
+    <rect height="100%" width="100%" fill="rgb(232, 232, 232)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations</text>
+</g></svg>
+<svg class="func_g" x="596.1091041205381" y="264" width="10.475575078750667" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 0.58% (1 1 0.001694 0.120151)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="596.1091041205381" y="288" width="10.475575078750667" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="607.5846791992889" y="240" width="8.945899891134465" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:283:_pifhr_seeds 0.84% (90 90 0.002443 0.003303)</title>
+    <rect height="100%" width="100%" fill="rgb(190, 190, 190)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_pifhr_seeds</text>
+</g></svg>
+<svg class="func_g" x="607.5846791992889" y="264" width="8.945899891134465" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:247:annotations 25.61% (1 1 0.074724 0.096647)</title>
+    <rect height="100%" width="100%" fill="rgb(232, 232, 232)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations</text>
+</g></svg>
+<svg class="func_g" x="607.5846791992889" y="288" width="8.945899891134465" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 0.58% (1 1 0.001694 0.120151)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="607.5846791992889" y="312" width="8.945899891134465" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="617.5305790904232" y="240" width="8.129872379630548" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:68:soft_nms 0.79% (89 89 0.0023109999999999997 0.003032)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">soft_nms</text>
+</g></svg>
+<svg class="func_g" x="627.6064409544894" y="216" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:41:_wrapit 0.10% (180 180 0.000292 0.000744)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 140, 79)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_wrapit</text>
+</g></svg>
+<svg class="func_g" x="627.6064409544894" y="240" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:54:_wrapfunc 0.10% (180 180 0.000292 0.000744)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_wrapfunc</text>
+</g></svg>
+<svg class="func_g" x="628.807436299947" y="216" width="2.524839078962701" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:54:_wrapfunc 0.29% (1150 1150 0.000857 0.004746)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 190, 110)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_wrapfunc</text>
+</g></svg>
+<svg class="func_g" x="629.3340083410309" y="240" width="1.0171645466630213" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:1903:clip 0.16% (642 642 0.000472 0.0027159999999999997)</title>
+    <rect height="100%" width="100%" fill="rgb(190, 190, 190)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">clip</text>
+</g></svg>
+<svg class="func_g" x="633.5414967198841" y="216" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:1041:argmax 0.12% (158 158 0.00035099999999999997 0.0008139999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 90, 49)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">argmax</text>
+</g></svg>
+<svg class="func_g" x="633.5414967198841" y="240" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:368:_target_with_maxscore 0.12% (158 158 0.00035099999999999997 0.0008139999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(211, 211, 211)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_target_with_maxscore</text>
+</g></svg>
+<svg class="func_g" x="633.5414967198841" y="264" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:325:_grow_connection 0.12% (158 158 0.000363 0.0011769999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(232, 232, 232)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_grow_connection</text>
+</g></svg>
+<svg class="func_g" x="633.5414967198841" y="288" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:378:_grow 1.23% (207 207 0.0035949999999999997 0.01045)</title>
+    <rect height="100%" width="100%" fill="rgb(211, 211, 211)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_grow</text>
+</g></svg>
+<svg class="func_g" x="633.5414967198841" y="312" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:247:annotations 0.66% (12 12 0.001921 0.014282999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(232, 232, 232)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations</text>
+</g></svg>
+<svg class="func_g" x="633.5414967198841" y="336" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 0.58% (1 1 0.001694 0.120151)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="633.5414967198841" y="360" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="634.9851589330881" y="216" width="1.1593238231685157" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:1903:clip 0.18% (642 642 0.000525 0.003241)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 240, 141)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">clip</text>
+</g></svg>
+<svg class="func_g" x="637.7984493998447" y="216" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:2940:around 0.12% (333 333 0.000347 0.001668)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 215, 125)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">around</text>
+</g></svg>
+<svg class="func_g" x="637.7984493998447" y="240" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:3373:round_ 0.12% (333 333 0.000347 0.001668)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">round_</text>
+</g></svg>
+<svg class="func_g" x="641.586520335346" y="216" width="8.788934665030604" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/numeric.py:1902:indices 0.82% (2 2 0.0023799999999999997 0.002474)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 115, 64)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">indices</text>
+</g></svg>
+<svg class="func_g" x="641.586520335346" y="240" width="8.788934665030604" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/utils.py:7:index_field 0.82% (2 2 0.0023799999999999997 0.002474)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">index_field</text>
+</g></svg>
+<svg class="func_g" x="641.586520335346" y="264" width="7.389490193123736" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:283:_pifhr_seeds 0.00% (1 1 1.1e-05 0.002338)</title>
+    <rect height="100%" width="100%" fill="rgb(190, 190, 190)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_pifhr_seeds</text>
+</g></svg>
+<svg class="func_g" x="641.586520335346" y="288" width="7.389490193123736" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:247:annotations 25.61% (1 1 0.074724 0.096647)</title>
+    <rect height="100%" width="100%" fill="rgb(232, 232, 232)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations</text>
+</g></svg>
+<svg class="func_g" x="641.586520335346" y="312" width="7.389490193123736" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 0.58% (1 1 0.001694 0.120151)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="641.586520335346" y="336" width="7.389490193123736" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="649.9760105284697" y="264" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/utils.py:83:normalize_paf 0.02% (1 1 5.8e-05 0.00039)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">normalize_paf</text>
+</g></svg>
+<svg class="func_g" x="649.9760105284697" y="288" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 3.93% (1 1 0.011474999999999999 0.03478)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="649.9760105284697" y="312" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="652.0623256260321" y="216" width="1.4965896393586462" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/lib/shape_base.py:513:expand_dims 0.21% (203 203 0.000607 0.001388)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 215, 125)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">expand_dims</text>
+</g></svg>
+<svg class="func_g" x="652.4256621585613" y="240" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:325:_grow_connection 0.14% (158 158 0.000403 0.000998)</title>
+    <rect height="100%" width="100%" fill="rgb(232, 232, 232)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_grow_connection</text>
+</g></svg>
+<svg class="func_g" x="652.4256621585613" y="264" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:378:_grow 1.23% (207 207 0.0035949999999999997 0.01045)</title>
+    <rect height="100%" width="100%" fill="rgb(211, 211, 211)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_grow</text>
+</g></svg>
+<svg class="func_g" x="652.4256621585613" y="288" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:247:annotations 0.66% (12 12 0.001921 0.014282999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(232, 232, 232)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations</text>
+</g></svg>
+<svg class="func_g" x="652.4256621585613" y="312" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 0.58% (1 1 0.001694 0.120151)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="652.4256621585613" y="336" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="654.5589152653907" y="216" width="3.2775176687528695" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/linalg/linalg.py:2293:norm 0.36% (158 158 0.00104 0.002402)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 190, 110)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">norm</text>
+</g></svg>
+<svg class="func_g" x="654.5589152653907" y="240" width="3.2775176687528695" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:325:_grow_connection 0.36% (158 158 0.00104 0.002402)</title>
+    <rect height="100%" width="100%" fill="rgb(232, 232, 232)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_grow_connection</text>
+</g></svg>
+<svg class="func_g" x="654.5589152653907" y="264" width="3.2775176687528695" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:378:_grow 1.23% (207 207 0.0035949999999999997 0.01045)</title>
+    <rect height="100%" width="100%" fill="rgb(211, 211, 211)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_grow</text>
+</g></svg>
+<svg class="func_g" x="654.5589152653907" y="288" width="3.2775176687528695" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:247:annotations 0.66% (12 12 0.001921 0.014282999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(232, 232, 232)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations</text>
+</g></svg>
+<svg class="func_g" x="654.5589152653907" y="312" width="3.2775176687528695" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 0.58% (1 1 0.001694 0.120151)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="654.5589152653907" y="336" width="3.2775176687528695" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="662.4188539817242" y="216" width="1" height="23"><g>
+    <title>~:0:&lt;built-in method builtins.getattr&gt; 0.15% (1330 1330 0.00043599999999999997 0.00043599999999999997)</title>
+    <rect height="100%" width="100%" fill="rgb(230, 230, 255)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">&lt;built-in method builtins.getattr&gt;</text>
+</g></svg>
+<svg class="func_g" x="662.5422439144767" y="240" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:54:_wrapfunc 0.14% (1150 1150 0.000406 0.000406)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_wrapfunc</text>
+</g></svg>
+<svg class="func_g" x="665.647557222081" y="216" width="2.9608168413548204" height="23"><g>
+    <title>~:0:&lt;built-in method builtins.max&gt; 0.33% (1445 1445 0.000963 0.001121)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 165, 95)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">&lt;built-in method builtins.max&gt;</text>
+</g></svg>
+<svg class="func_g" x="665.9832196662636" y="240" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:283:_pifhr_seeds 0.19% (90 90 0.000551 0.000551)</title>
+    <rect height="100%" width="100%" fill="rgb(190, 190, 190)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_pifhr_seeds</text>
+</g></svg>
+<svg class="func_g" x="665.9832196662636" y="264" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:247:annotations 25.61% (1 1 0.074724 0.096647)</title>
+    <rect height="100%" width="100%" fill="rgb(232, 232, 232)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations</text>
+</g></svg>
+<svg class="func_g" x="665.9832196662636" y="288" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 0.58% (1 1 0.001694 0.120151)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="665.9832196662636" y="312" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="670.5831545321803" y="216" width="11.104552403018936" height="23"><g>
+    <title>~:0:&lt;built-in method builtins.round&gt; 1.01% (1442 1442 0.002943 0.002943)</title>
+    <rect height="100%" width="100%" fill="rgb(230, 230, 255)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">&lt;built-in method builtins.round&gt;</text>
+</g></svg>
+<svg class="func_g" x="670.5831545321803" y="240" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/annotation.py:14:fill_joint_scales 0.13% (182 182 0.000368 0.000368)</title>
+    <rect height="100%" width="100%" fill="rgb(232, 232, 232)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">fill_joint_scales</text>
+</g></svg>
+<svg class="func_g" x="670.5831545321803" y="264" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:247:annotations 0.34% (12 12 0.000995 0.001481)</title>
+    <rect height="100%" width="100%" fill="rgb(232, 232, 232)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations</text>
+</g></svg>
+<svg class="func_g" x="670.5831545321803" y="288" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 0.58% (1 1 0.001694 0.120151)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="670.5831545321803" y="312" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="672.0967377072775" y="240" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:247:annotations 0.11% (180 180 0.000334 0.000334)</title>
+    <rect height="100%" width="100%" fill="rgb(232, 232, 232)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations</text>
+</g></svg>
+<svg class="func_g" x="672.0967377072775" y="264" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 0.58% (1 1 0.001694 0.120151)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="672.0967377072775" y="288" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="673.4704789585886" y="240" width="8.21722797661075" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/utils.py:135:scalar_square_add_single 0.77% (1080 1080 0.002241 0.002241)</title>
+    <rect height="100%" width="100%" fill="rgb(232, 232, 232)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">scalar_square_add_single</text>
+</g></svg>
+<svg class="func_g" x="673.4704789585886" y="264" width="2.4621383618040182" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:247:annotations 0.92% (91 91 0.0026739999999999997 0.0038109999999999997)</title>
+    <rect height="100%" width="100%" fill="rgb(232, 232, 232)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations</text>
+</g></svg>
+<svg class="func_g" x="673.4704789585886" y="288" width="2.4621383618040182" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 0.58% (1 1 0.001694 0.120151)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="673.4704789585886" y="312" width="2.4621383618040182" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="676.9326173203925" y="264" width="2.0006410414690823" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:283:_pifhr_seeds 0.84% (90 90 0.002443 0.003303)</title>
+    <rect height="100%" width="100%" fill="rgb(190, 190, 190)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_pifhr_seeds</text>
+</g></svg>
+<svg class="func_g" x="676.9326173203925" y="288" width="2.0006410414690823" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:247:annotations 25.61% (1 1 0.074724 0.096647)</title>
+    <rect height="100%" width="100%" fill="rgb(232, 232, 232)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations</text>
+</g></svg>
+<svg class="func_g" x="676.9326173203925" y="312" width="2.0006410414690823" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 0.58% (1 1 0.001694 0.120151)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="676.9326173203925" y="336" width="2.0006410414690823" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="679.9332583618616" y="264" width="1.7544485733376494" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:68:soft_nms 0.79% (89 89 0.0023109999999999997 0.003032)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">soft_nms</text>
+</g></svg>
+<svg class="func_g" x="683.7118433770448" y="216" width="1.969584381576511" height="23"><g>
+    <title>~:0:&lt;built-in method numpy.array&gt; 0.25% (592 592 0.000722 0.000722)</title>
+    <rect height="100%" width="100%" fill="rgb(182, 182, 255)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">&lt;built-in method numpy.array&gt;</text>
+</g></svg>
+<svg class="func_g" x="683.7118433770448" y="240" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/numeric.py:469:asarray 0.11% (350 350 0.000328 0.000328)</title>
+    <rect height="100%" width="100%" fill="rgb(211, 211, 211)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">asarray</text>
+</g></svg>
+<svg class="func_g" x="685.0609066418054" y="240" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/numeric.py:541:asanyarray 0.14% (242 242 0.000394 0.000394)</title>
+    <rect height="100%" width="100%" fill="rgb(225, 225, 225)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">asanyarray</text>
+</g></svg>
+<svg class="func_g" x="685.1717672413462" y="264" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/lib/shape_base.py:513:expand_dims 0.03% (203 203 8.499999999999999e-05 0.000463)</title>
+    <rect height="100%" width="100%" fill="rgb(197, 197, 197)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">expand_dims</text>
+</g></svg>
+<svg class="func_g" x="686.6814277586215" y="216" width="97.04975356288428" height="23"><g>
+    <title>~:0:&lt;built-in method numpy.concatenate&gt; 8.17% (42 42 0.023839 0.023839)</title>
+    <rect height="100%" width="100%" fill="rgb(166, 166, 255)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">&lt;built-in method numpy.concatenate&gt;</text>
+</g></svg>
+<svg class="func_g" x="687.2860384291087" y="240" width="11.030518443367445" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/utils.py:83:normalize_paf 1.00% (2 2 0.002925 0.002925)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">normalize_paf</text>
+</g></svg>
+<svg class="func_g" x="687.2860384291087" y="264" width="11.030518443367445" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 3.93% (1 1 0.011474999999999999 0.03478)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="687.2860384291087" y="288" width="11.030518443367445" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="699.3165568724762" y="240" width="3.1993707113429597" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/utils.py:101:normalize_pif 0.35% (1 1 0.001021 0.001021)</title>
+    <rect height="100%" width="100%" fill="rgb(211, 211, 211)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">normalize_pif</text>
+</g></svg>
+<svg class="func_g" x="699.3165568724762" y="264" width="3.1993707113429597" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 0.30% (1 1 0.0008849999999999999 0.0021809999999999998)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="699.3165568724762" y="288" width="3.1993707113429597" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="703.515927583819" y="240" width="80.21525373768668" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/shape_base.py:352:stack 6.77% (1 1 0.019746 0.019746)</title>
+    <rect height="100%" width="100%" fill="rgb(197, 197, 197)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">stack</text>
+</g></svg>
+<svg class="func_g" x="703.515927583819" y="264" width="80.21525373768668" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/utils.py:83:normalize_paf 0.02% (1 1 4.8e-05 0.019839)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">normalize_paf</text>
+</g></svg>
+<svg class="func_g" x="703.515927583819" y="288" width="80.21525373768668" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 3.93% (1 1 0.011474999999999999 0.03478)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="703.515927583819" y="312" width="80.21525373768668" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="784.8998142296008" y="216" width="238.8001083089409" height="23"><g>
+    <title>~:0:&lt;built-in method numpy.zeros&gt; 19.98% (33 33 0.058303 0.058303)</title>
+    <rect height="100%" width="100%" fill="rgb(214, 214, 255)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">&lt;built-in method numpy.zeros&gt;</text>
+</g></svg>
+<svg class="func_g" x="785.0273171601118" y="240" width="238.5245374591271" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:165:_target_intensities 19.96% (6 6 0.058235999999999996 0.058235999999999996)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_target_intensities</text>
+</g></svg>
+<svg class="func_g" x="785.0273171601118" y="264" width="238.5245374591271" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:129:__init__ 1.53% (2 2 0.0044529999999999995 0.084016)</title>
+    <rect height="100%" width="100%" fill="rgb(197, 197, 197)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__init__</text>
+</g></svg>
+<svg class="func_g" x="785.0273171601118" y="288" width="238.5245374591271" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 1.15% (1 1 0.003369 0.093883)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="785.0273171601118" y="312" width="238.5245374591271" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="1025.0824313300745" y="216" width="1" height="23"><g>
+    <title>~:0:&lt;method 'argmax' of 'numpy.ndarray' objects&gt; 0.11% (158 158 0.00031 0.00031)</title>
+    <rect height="100%" width="100%" fill="rgb(214, 214, 255)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">&lt;method 'argmax' of 'numpy.ndarray' objects&gt;</text>
+</g></svg>
+<svg class="func_g" x="1025.0824313300745" y="240" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:54:_wrapfunc 0.11% (158 158 0.00031 0.00031)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_wrapfunc</text>
+</g></svg>
+<svg class="func_g" x="1027.8463658237301" y="216" width="1" height="23"><g>
+    <title>~:0:&lt;method 'clip' of 'numpy.generic' objects&gt; 0.11% (182 182 0.000335 0.000335)</title>
+    <rect height="100%" width="100%" fill="rgb(182, 182, 255)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">&lt;method 'clip' of 'numpy.generic' objects&gt;</text>
+</g></svg>
+<svg class="func_g" x="1027.8463658237301" y="240" width="1" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:54:_wrapfunc 0.11% (182 182 0.000335 0.000335)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_wrapfunc</text>
+</g></svg>
+<svg class="func_g" x="1029.2242200727994" y="216" width="3.7505124109707344" height="23"><g>
+    <title>~:0:&lt;method 'clip' of 'numpy.ndarray' objects&gt; 0.40% (460 460 0.001155 0.001155)</title>
+    <rect height="100%" width="100%" fill="rgb(166, 166, 255)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">&lt;method 'clip' of 'numpy.ndarray' objects&gt;</text>
+</g></svg>
+<svg class="func_g" x="1030.1085145908592" y="240" width="2.866217892911247" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:54:_wrapfunc 0.32% (280 280 0.00094 0.00094)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_wrapfunc</text>
+</g></svg>
+<svg class="func_g" x="1030.6860848576257" y="264" width="1.2125258738194158" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:1903:clip 0.16% (642 642 0.000472 0.0027159999999999997)</title>
+    <rect height="100%" width="100%" fill="rgb(190, 190, 190)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">clip</text>
+</g></svg>
+<svg class="func_g" x="1035.167501833711" y="216" width="61.60393888085329" height="23"><g>
+    <title>~:0:&lt;method 'fill' of 'numpy.ndarray' objects&gt; 5.22% (17 17 0.015221 0.015221)</title>
+    <rect height="100%" width="100%" fill="rgb(230, 230, 255)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">&lt;method 'fill' of 'numpy.ndarray' objects&gt;</text>
+</g></svg>
+<svg class="func_g" x="1035.167501833711" y="240" width="61.60393888085329" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:283:_pifhr_seeds 5.22% (17 17 0.015221 0.015221)</title>
+    <rect height="100%" width="100%" fill="rgb(190, 190, 190)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_pifhr_seeds</text>
+</g></svg>
+<svg class="func_g" x="1035.167501833711" y="264" width="61.603938880853285" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:247:annotations 25.61% (1 1 0.074724 0.096647)</title>
+    <rect height="100%" width="100%" fill="rgb(232, 232, 232)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations</text>
+</g></svg>
+<svg class="func_g" x="1035.167501833711" y="288" width="61.60393888085329" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 0.58% (1 1 0.001694 0.120151)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="1035.167501833711" y="312" width="61.60393888085329" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="1098.3472604007425" y="216" width="9.200234440872228" height="23"><g>
+    <title>~:0:&lt;method 'reduce' of 'numpy.ufunc' objects&gt; 0.85% (287 287 0.00248 0.00248)</title>
+    <rect height="100%" width="100%" fill="rgb(198, 198, 255)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">&lt;method 'reduce' of 'numpy.ufunc' objects&gt;</text>
+</g></svg>
+<svg class="func_g" x="1098.7133172012416" y="240" width="4.4168180478341625" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:69:_wrapreduction 0.45% (92 92 0.001317 0.001317)</title>
+    <rect height="100%" width="100%" fill="rgb(197, 197, 197)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_wrapreduction</text>
+</g></svg>
+<svg class="func_g" x="1099.9120357557654" y="264" width="3.2180994933102456" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:2512:amin 0.03% (19 19 9.099999999999999e-05 0.001214)</title>
+    <rect height="100%" width="100%" fill="rgb(232, 232, 232)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">amin</text>
+</g></svg>
+<svg class="func_g" x="1099.9120357557654" y="288" width="3.2180994933102456" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:198:_score_paf_target 0.03% (19 19 7.7e-05 0.001291)</title>
+    <rect height="100%" width="100%" fill="rgb(232, 232, 232)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_score_paf_target</text>
+</g></svg>
+<svg class="func_g" x="1099.9120357557654" y="312" width="3.2180994933102456" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:129:__init__ 1.37% (1 1 0.003991 0.006402)</title>
+    <rect height="100%" width="100%" fill="rgb(197, 197, 197)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__init__</text>
+</g></svg>
+<svg class="func_g" x="1099.9120357557654" y="336" width="3.2180994933102456" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 1.15% (1 1 0.003369 0.093883)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="1099.9120357557654" y="360" width="3.2180994933102456" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="1104.130135249076" y="240" width="3.4173595925390208" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/linalg/linalg.py:2293:norm 0.37% (158 158 0.0010739999999999999 0.0010739999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">norm</text>
+</g></svg>
+<svg class="func_g" x="1104.130135249076" y="264" width="3.4173595925390208" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:325:_grow_connection 0.36% (158 158 0.00104 0.002402)</title>
+    <rect height="100%" width="100%" fill="rgb(232, 232, 232)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_grow_connection</text>
+</g></svg>
+<svg class="func_g" x="1104.130135249076" y="288" width="3.4173595925390208" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:378:_grow 1.23% (207 207 0.0035949999999999997 0.01045)</title>
+    <rect height="100%" width="100%" fill="rgb(211, 211, 211)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_grow</text>
+</g></svg>
+<svg class="func_g" x="1104.130135249076" y="312" width="3.4173595925390208" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:247:annotations 0.66% (12 12 0.001921 0.014282999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(232, 232, 232)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations</text>
+</g></svg>
+<svg class="func_g" x="1104.130135249076" y="336" width="3.4173595925390208" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 0.58% (1 1 0.001694 0.120151)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="1104.130135249076" y="360" width="3.4173595925390208" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="1109.6045352655274" y="216" width="2.977268832388485" height="23"><g>
+    <title>~:0:&lt;method 'round' of 'numpy.ndarray' objects&gt; 0.33% (333 333 0.000967 0.000967)</title>
+    <rect height="100%" width="100%" fill="rgb(198, 198, 255)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">&lt;method 'round' of 'numpy.ndarray' objects&gt;</text>
+</g></svg>
+<svg class="func_g" x="1109.6045352655274" y="240" width="2.977268832388485" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:54:_wrapfunc 0.33% (333 333 0.000967 0.000967)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_wrapfunc</text>
+</g></svg>
+<svg class="func_g" x="1110.198695316552" y="264" width="1.2760771489184841" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.7/site-packages/numpy/core/fromnumeric.py:1903:clip 0.16% (642 642 0.000472 0.0027159999999999997)</title>
+    <rect height="100%" width="100%" fill="rgb(190, 190, 190)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">clip</text>
+</g></svg>
+<svg class="func_g" x="1113.8326969611792" y="216" width="1" height="23"><g>
+    <title>~:0:&lt;method 'write' of '_io.TextIOWrapper' objects&gt; 0.11% (7 7 0.000326 0.000326)</title>
+    <rect height="100%" width="100%" fill="rgb(166, 166, 255)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">&lt;method 'write' of '_io.TextIOWrapper' objects&gt;</text>
+</g></svg>
+<svg class="func_g" x="1113.8326969611792" y="240" width="1" height="23"><g>
+    <title>/usr/local/Cellar/python/3.7.3/Frameworks/Python.framework/Versions/3.7/lib/python3.7/logging/__init__.py:1022:emit 0.11% (7 7 0.000326 0.000326)</title>
+    <rect height="100%" width="100%" fill="rgb(232, 232, 232)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">emit</text>
+</g></svg>
+<svg class="func_g" x="1113.8326969611792" y="264" width="1" height="23"><g>
+    <title>/usr/local/Cellar/python/3.7.3/Frameworks/Python.framework/Versions/3.7/lib/python3.7/logging/__init__.py:892:handle 0.01% (7 7 3.1e-05 0.0005459999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(232, 232, 232)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">handle</text>
+</g></svg>
+<svg class="func_g" x="1113.8326969611792" y="288" width="1" height="23"><g>
+    <title>/usr/local/Cellar/python/3.7.3/Frameworks/Python.framework/Versions/3.7/lib/python3.7/logging/__init__.py:1575:callHandlers 0.01% (7 7 1.7e-05 0.0005859999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(232, 232, 232)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">callHandlers</text>
+</g></svg>
+<svg class="func_g" x="1113.8326969611792" y="312" width="1" height="23"><g>
+    <title>/usr/local/Cellar/python/3.7.3/Frameworks/Python.framework/Versions/3.7/lib/python3.7/logging/__init__.py:1521:handle 0.01% (7 7 3.7e-05 0.000623)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">handle</text>
+</g></svg>
+<svg class="func_g" x="1113.8326969611792" y="336" width="1" height="23"><g>
+    <title>/usr/local/Cellar/python/3.7.3/Frameworks/Python.framework/Versions/3.7/lib/python3.7/logging/__init__.py:1496:_log 0.00% (7 7 1.1e-05 0.0006399999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(190, 190, 190)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_log</text>
+</g></svg>
+<svg class="func_g" x="1113.8326969611792" y="360" width="1" height="23"><g>
+    <title>/usr/local/Cellar/python/3.7.3/Frameworks/Python.framework/Versions/3.7/lib/python3.7/logging/__init__.py:1361:debug 0.01% (7 7 4.2999999999999995e-05 0.001113)</title>
+    <rect height="100%" width="100%" fill="rgb(225, 225, 225)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">debug</text>
+</g></svg>
+<svg class="func_g" x="1115.1735342304228" y="216" width="21.00042500976836" height="23"><g>
+    <title>~:0:&lt;openpifpaf.functional.cumulative_average&gt; 1.83% (17 17 0.005349 0.006287999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 140, 79)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">&lt;openpifpaf.functional.cumulative_average&gt;</text>
+</g></svg>
+<svg class="func_g" x="1115.1735342304228" y="240" width="21.00042500976836" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:165:_target_intensities 1.83% (17 17 0.005349 0.006287999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_target_intensities</text>
+</g></svg>
+<svg class="func_g" x="1115.1735342304228" y="264" width="21.00042500976836" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:129:__init__ 1.53% (2 2 0.0044529999999999995 0.084016)</title>
+    <rect height="100%" width="100%" fill="rgb(197, 197, 197)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__init__</text>
+</g></svg>
+<svg class="func_g" x="1115.1735342304228" y="288" width="21.00042500976836" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 1.15% (1 1 0.003369 0.093883)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="1115.1735342304228" y="312" width="21.00042500976836" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="1137.1739592401912" y="216" width="8.221340974369166" height="23"><g>
+    <title>~:0:&lt;openpifpaf.functional.paf_center&gt; 0.77% (207 207 0.002242 0.002242)</title>
+    <rect height="100%" width="100%" fill="rgb(182, 182, 255)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">&lt;openpifpaf.functional.paf_center&gt;</text>
+</g></svg>
+<svg class="func_g" x="1137.1739592401912" y="240" width="8.221340974369166" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:325:_grow_connection 0.77% (207 207 0.002242 0.002242)</title>
+    <rect height="100%" width="100%" fill="rgb(232, 232, 232)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_grow_connection</text>
+</g></svg>
+<svg class="func_g" x="1137.1739592401912" y="264" width="8.221340974369166" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:378:_grow 1.23% (207 207 0.0035949999999999997 0.01045)</title>
+    <rect height="100%" width="100%" fill="rgb(211, 211, 211)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_grow</text>
+</g></svg>
+<svg class="func_g" x="1137.1739592401912" y="288" width="8.221340974369166" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:247:annotations 0.66% (12 12 0.001921 0.014282999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(232, 232, 232)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations</text>
+</g></svg>
+<svg class="func_g" x="1137.1739592401912" y="312" width="8.221340974369166" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 0.58% (1 1 0.001694 0.120151)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="1137.1739592401912" y="336" width="8.221340974369166" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+<svg class="func_g" x="1146.3953002145604" y="216" width="52.604699785438605" height="23"><g>
+    <title>~:0:&lt;openpifpaf.functional.scalar_square_add_gauss&gt; 4.47% (34 34 0.013033 0.014544999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(255, 240, 141)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">&lt;openpifpaf.functional.scalar_square_add_gauss&gt;</text>
+</g></svg>
+<svg class="func_g" x="1146.3953002145604" y="240" width="52.604699785438605" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:165:_target_intensities 4.47% (34 34 0.013033 0.014544999999999999)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">_target_intensities</text>
+</g></svg>
+<svg class="func_g" x="1146.3953002145604" y="264" width="52.604699785438605" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:129:__init__ 1.53% (2 2 0.0044529999999999995 0.084016)</title>
+    <rect height="100%" width="100%" fill="rgb(197, 197, 197)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__init__</text>
+</g></svg>
+<svg class="func_g" x="1146.3953002145604" y="288" width="52.6046997854386" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/pifpaf.py:99:__call__ 1.15% (1 1 0.003369 0.093883)</title>
+    <rect height="100%" width="100%" fill="rgb(218, 218, 218)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">__call__</text>
+</g></svg>
+<svg class="func_g" x="1146.3953002145604" y="312" width="52.6046997854386" height="23"><g>
+    <title>/Users/svenkreiss/tech/openpifpaf/openpifpaf/decoder/processor.py:162:annotations_singlescale 1.49% (1 1 0.004346 0.25547)</title>
+    <rect height="100%" width="100%" fill="rgb(204, 204, 204)" rx="2" ry="2" />
+    <text alignment-baseline="central" x="4.0" y="12.0" font-size="12px" fill="rgb(0,0,0)">annotations_singlescale</text>
+</g></svg>
+</svg>
