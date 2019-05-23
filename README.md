@@ -226,9 +226,23 @@ python3 -m openpifpaf.predict \
 
 This will write a stats table to the terminal and also produce a `decoder.prof` file.
 You can use flameprof (`pip install flameprof`) to get a flame graph with
-`flameprof decoder.prof > docs/decoder_flame.svg`:
+`flameprof decoder.prof > docs/coco_decoder_flame.svg`:
 
-![flame graph for decoder](docs/decoder_flame.svg)
+![flame graph for decoder on a COCO image](docs/coco/000000081988.jpg.decoder_flame.svg)
+
+
+For a larger image as, e.g., from NuScenes:
+
+```
+python3 -m openpifpaf.predict \
+  --checkpoint resnet152 \
+  docs/nuscenes/test.jpg --show --profile --debug
+```
+
+Then create the flame graph with
+`flameprof decoder.prof > docs/nuscenes/test_decoder_flame.svg` to produce:
+
+![flame graph for decoder on a NuScenes image](docs/nuscenes/test.jpg.decoder_flame.svg)
 
 
 [CC-BY-2.0]: https://creativecommons.org/licenses/by/2.0/

@@ -6,7 +6,7 @@ import numpy as np
 
 @functools.lru_cache(maxsize=16)
 def index_field(shape):
-    yx = np.indices(shape, dtype=np.float)
+    yx = np.indices(shape, dtype=np.float32)
     xy = np.flip(yx, axis=0)
     return xy
 

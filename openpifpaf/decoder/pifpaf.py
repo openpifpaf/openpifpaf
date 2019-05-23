@@ -167,9 +167,9 @@ class PifPafGenerator(object):
 
         targets = np.zeros((self.pif.shape[0],
                             int(self.pif.shape[2] * self.stride),
-                            int(self.pif.shape[3] * self.stride)))
-        scales = np.zeros(targets.shape)
-        ns = np.zeros(targets.shape)
+                            int(self.pif.shape[3] * self.stride)), dtype=np.float32)
+        scales = np.zeros(targets.shape, dtype=np.float32)
+        ns = np.zeros(targets.shape, dtype=np.float32)
         for t, p, scale, n in zip(targets, self.pif, scales, ns):
             v, x, y, s = p[:, p[0] > v_th]
             x = x * self.stride
@@ -276,15 +276,15 @@ class PifPafGenerator(object):
     def _pifhr_seeds(self):
         start = time.perf_counter()
         seeds = []
+        occupied = np.zeros(self._pifhr_scales[0].shape, dtype=np.float32)
         for field_i, (f, s) in enumerate(zip(self._pifhr_core, self._pifhr_scales)):
+            occupied.fill(0.0)
             index_fields = index_field(f.shape)
 
-            f = f.reshape(-1)
             mask = f > self.seed_threshold
             f = f[mask]
-            index_fields = index_fields.reshape(2, -1)[:, mask]
+            index_fields = index_fields[:, mask]
 
-            occupied = np.zeros(s.shape)
             for entry_i in np.argsort(f)[::-1]:
                 x, y = index_fields[:, entry_i]
                 v = f[entry_i]
