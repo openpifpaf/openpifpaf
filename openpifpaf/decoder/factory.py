@@ -5,13 +5,19 @@ from .processor import Processor
 from .visualizer import Visualizer
 
 
-def cli(parser, force_complete_pose=True, instance_threshold=0.0):
+def cli(parser, *,
+        force_complete_pose=True,
+        seed_threshold=0.2,
+        instance_threshold=0.0,
+        keypoint_threshold=None):
     group = parser.add_argument_group('decoder configuration')
-    group.add_argument('--seed-threshold', default=0.2, type=float,
+    group.add_argument('--seed-threshold', default=seed_threshold, type=float,
                        help='minimum threshold for seeds')
-    group.add_argument('--instance-threshold', type=float, default=instance_threshold,
+    group.add_argument('--instance-threshold', type=float,
+                       default=instance_threshold,
                        help='filter instances by score')
-    group.add_argument('--keypoint-threshold', type=float, default=None,
+    group.add_argument('--keypoint-threshold', type=float,
+                       default=keypoint_threshold,
                        help='filter keypoints by score')
 
     if force_complete_pose:
