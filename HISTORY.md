@@ -1,6 +1,8 @@
 # History
 
-* [master](https://github.com/vita-epfl/openpifpaf/compare/v0.6.2...master)
+* [master](https://github.com/vita-epfl/openpifpaf/compare/v0.6.3...master)
+* [0.6.3](https://github.com/vita-epfl/openpifpaf/compare/v0.6.2...v0.6.3) (2019-05-28)
+    * support parallel decoding for `predict` and `eval_coco` (~4x speed improvement) which is automatically activated for batch sizes larger than 1
 * [0.6.2](https://github.com/vita-epfl/openpifpaf/compare/v0.6.1...v0.6.2) (2019-05-23)
     * improved decoder performance [#61](https://github.com/vita-epfl/openpifpaf/pull/61), [#63](https://github.com/vita-epfl/openpifpaf/pull/63), [#64](https://github.com/vita-epfl/openpifpaf/pull/64)
     * remove `apply_class_sigmoid` property from head nets and use the standard `model.train()` and `model.eval()` methods instead
