@@ -371,7 +371,7 @@ def main():
         pred_batch = processor.annotations_batch(
             fields_batch,
             meta_list_batch=meta_batch,
-            # debug_images=image_tensors_cpu,
+            debug_images=image_tensors_cpu,
         )
         eval_coco.decoder_time += time.perf_counter() - decoder_start
 

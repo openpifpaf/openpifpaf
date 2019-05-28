@@ -142,7 +142,10 @@ class Processor(object):
     def annotations_batch(self, fields_batch, *, meta_list_batch=None, debug_images=None):
         if meta_list_batch is None:
             meta_list_batch = [None for _ in fields_batch]
-        if debug_images is None:
+
+        if debug_images is None or self.debug_visualizer is None:
+            # remove debug_images if there is no visualizer to save
+            # time during pickle
             debug_images = [None for _ in fields_batch]
 
         LOG.debug('parallel execution with worker %s', self.worker_pool)
