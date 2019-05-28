@@ -16,6 +16,8 @@ from ..data import KINEMATIC_TREE_SKELETON, COCO_PERSON_SKELETON, DENSER_COCO_PE
 from ..functional import (cumulative_average, scalar_square_add_gauss,
                           weiszfeld_nd, paf_center)
 
+LOG = logging.getLogger(__name__)
+
 
 class PifPaf(Decoder):
     default_force_complete = True
@@ -30,8 +32,7 @@ class PifPaf(Decoder):
                  skeleton=None,
                  debug_visualizer=None,
                  **kwargs):
-        self.log = logging.getLogger(self.__class__.__name__)
-        self.log.debug('unused arguments %s', kwargs)
+        LOG.debug('unused arguments %s', kwargs)
 
         if head_names is None:
             head_names = ('pif', 'paf')
@@ -121,7 +122,7 @@ class PifPaf(Decoder):
         if self.force_complete:
             annotations = gen.complete_annotations(annotations)
 
-        self.log.debug('annotations %d, %.3fs', len(annotations), time.perf_counter() - start)
+        LOG.debug('annotations %d, %.3fs', len(annotations), time.perf_counter() - start)
         return annotations
 
 

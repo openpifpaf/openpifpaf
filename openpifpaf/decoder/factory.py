@@ -9,7 +9,8 @@ def cli(parser, *,
         force_complete_pose=True,
         seed_threshold=0.2,
         instance_threshold=0.0,
-        keypoint_threshold=None):
+        keypoint_threshold=None,
+        workers=None):
     group = parser.add_argument_group('decoder configuration')
     group.add_argument('--seed-threshold', default=seed_threshold, type=float,
                        help='minimum threshold for seeds')
@@ -19,6 +20,8 @@ def cli(parser, *,
     group.add_argument('--keypoint-threshold', type=float,
                        default=keypoint_threshold,
                        help='filter keypoints by score')
+    group.add_argument('--decoder-workers', default=workers, type=int,
+                       help='number of workers for pose decoding')
 
     if force_complete_pose:
         group.add_argument('--no-force-complete-pose', dest='force_complete_pose',
@@ -53,6 +56,10 @@ def factory_from_args(args, model, device=None):
     if args.keypoint_threshold is None:
         args.keypoint_threshold = 0.001 if not args.force_complete_pose else 0.0
 
+    # decoder workers
+    if args.decoder_workers is None and getattr(args, 'batch_size', 1) > 1:
+        args.decoder_workers = args.batch_size
+
     decode = factory_decode(model,
                             seed_threshold=args.seed_threshold,
                             debug_visualizer=debug_visualizer)
@@ -62,6 +69,7 @@ def factory_from_args(args, model, device=None):
                      keypoint_threshold=args.keypoint_threshold,
                      debug_visualizer=debug_visualizer,
                      profile=args.profile_decoder,
+                     worker_pool=args.decoder_workers,
                      device=device)
 
 
