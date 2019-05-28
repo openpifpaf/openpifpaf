@@ -3,6 +3,7 @@
 import cProfile
 import io
 import logging
+import multiprocessing
 import pstats
 import time
 
@@ -10,6 +11,14 @@ import numpy as np
 import torch
 
 from .utils import scalar_square_add_single
+
+LOG = logging.getLogger(__name__)
+
+
+class DummyPool():
+    @staticmethod
+    def starmap(f, iterable):
+        return [f(*i) for i in iterable]
 
 
 class Processor(object):
@@ -19,11 +28,15 @@ class Processor(object):
                  debug_visualizer=None,
                  profile=None,
                  device=None,
+                 worker_pool=None,
                  instance_scorer=None):
-        self.log = logging.getLogger(self.__class__.__name__)
-
         if profile is True:
             profile = cProfile.Profile()
+
+        if worker_pool is None or worker_pool == 0:
+            worker_pool = DummyPool
+        if isinstance(worker_pool, int):
+            worker_pool = multiprocessing.Pool(worker_pool)
 
         self.model = model
         self.decode = decode
@@ -33,7 +46,14 @@ class Processor(object):
         self.debug_visualizer = debug_visualizer
         self.profile = profile
         self.device = device
+        self.worker_pool = worker_pool
         self.instance_scorer = instance_scorer
+
+    def __getstate__(self):
+        return {
+            k: v for k, v in self.__dict__.items()
+            if k not in ('model', 'worker_pool', 'device')
+        }
 
     def set_cpu_image(self, cpu_image, processed_image):
         if self.debug_visualizer is not None:
@@ -62,7 +82,7 @@ class Processor(object):
                 for i in range(image_batch.shape[0])
             ]
 
-        self.log.debug('nn processing time: %.3fs', time.time() - start)
+        LOG.debug('nn processing time: %.3fs', time.time() - start)
         return fields
 
     def soft_nms(self, annotations):
@@ -96,7 +116,7 @@ class Processor(object):
                     scalar_square_add_single(occ, xyv[0], xyv[1], joint_s, 1)
 
         if self.debug_visualizer is not None:
-            self.log.debug('Occupied fields after NMS')
+            LOG.debug('Occupied fields after NMS')
             self.debug_visualizer.occupied(occupied[0])
             self.debug_visualizer.occupied(occupied[4])
 
@@ -119,10 +139,23 @@ class Processor(object):
 
         return keypoint_sets, scores
 
-    def annotations(self, fields, meta_list=None):
+    def annotations_batch(self, fields_batch, *, meta_list_batch=None, debug_images=None):
+        if meta_list_batch is None:
+            meta_list_batch = [None for _ in fields_batch]
+        if debug_images is None:
+            debug_images = [None for _ in fields_batch]
+
+        LOG.debug('parallel execution with worker %s', self.worker_pool)
+        return self.worker_pool.starmap(
+            self.annotations, zip(fields_batch, meta_list_batch, debug_images))
+
+    def annotations(self, fields, meta_list=None, debug_image=None):
         start = time.time()
         if self.profile is not None:
             self.profile.enable()
+
+        if debug_image is not None:
+            self.set_cpu_image(None, debug_image)
 
         if isinstance(meta_list, (list, tuple)):
             annotations = self.annotations_multiscale(fields, meta_list)
@@ -154,13 +187,13 @@ class Processor(object):
             ps.dump_stats('decoder.prof')
             print(iostream.getvalue())
 
-        self.log.info('%d annotations: %s', len(annotations),
-                      [np.sum(ann.data[:, 2] > 0.1) for ann in annotations])
-        self.log.debug('total processing time: %.3fs', time.time() - start)
+        LOG.info('%d annotations: %s', len(annotations),
+                 [np.sum(ann.data[:, 2] > 0.1) for ann in annotations])
+        LOG.debug('total processing time: %.3fs', time.time() - start)
         return annotations
 
     def annotations_singlescale(self, fields):
-        self.log.debug('singlescale')
+        LOG.debug('singlescale')
         annotations = self.decode(fields)
 
         # scale to input size
@@ -172,7 +205,7 @@ class Processor(object):
         return annotations
 
     def annotations_multiscale(self, fields_list, meta_list):
-        self.log.debug('multiscale')
+        LOG.debug('multiscale')
         annotations_list = [self.decode(f) for f in fields_list]
 
         # scale to input size
