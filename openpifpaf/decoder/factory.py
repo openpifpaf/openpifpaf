@@ -56,6 +56,10 @@ def factory_from_args(args, model, device=None):
     if args.keypoint_threshold is None:
         args.keypoint_threshold = 0.001 if not args.force_complete_pose else 0.0
 
+    # decoder workers
+    if args.decoder_workers is None and getattr(args, 'batch_size', 1) > 1:
+        args.decoder_workers = args.batch_size
+
     decode = factory_decode(model,
                             seed_threshold=args.seed_threshold,
                             debug_visualizer=debug_visualizer)

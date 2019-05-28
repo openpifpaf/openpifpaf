@@ -57,10 +57,6 @@ def cli():
         log_level = logging.DEBUG
     logging.basicConfig(level=log_level)
 
-    # decoder workers
-    if args.decoder_workers is None and args.batch_size > 1:
-        args.decoder_workers = args.batch_size
-
     # glob
     if args.glob:
         args.images += glob.glob(args.glob)
