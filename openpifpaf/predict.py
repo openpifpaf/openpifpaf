@@ -10,7 +10,7 @@ import numpy as np
 import torch
 
 from .network import nets
-from . import datasets, decoder, show
+from . import datasets, decoder, show, transforms
 
 
 def cli():
@@ -31,6 +31,10 @@ def cli():
                         help='show image of output overlay')
     parser.add_argument('--output-types', nargs='+', default=['skeleton', 'json'],
                         help='what to output: skeleton, keypoints, json')
+    parser.add_argument('--batch-size', default=1, type=int,
+                        help='processing batch size')
+    parser.add_argument('--long-edge', default=None, type=int,
+                        help='apply preprocessing to batch images')
     parser.add_argument('--loader-workers', default=2, type=int,
                         help='number of workers for data loading')
     parser.add_argument('--disable-cuda', action='store_true',
@@ -52,6 +56,10 @@ def cli():
     if args.debug:
         log_level = logging.DEBUG
     logging.basicConfig(level=log_level)
+
+    # decoder workers
+    if args.decoder_workers is None and args.batch_size > 1:
+        args.decoder_workers = args.batch_size
 
     # glob
     if args.glob:
@@ -78,9 +86,15 @@ def main():
     processor = decoder.factory_from_args(args, model)
 
     # data
-    data = datasets.ImageList(args.images)
+    preprocess = None
+    if args.long_edge:
+        preprocess = transforms.Compose([
+            transforms.RescaleAbsolute(args.long_edge),
+            transforms.CenterPad(args.long_edge),
+        ])
+    data = datasets.ImageList(args.images, preprocess=preprocess)
     data_loader = torch.utils.data.DataLoader(
-        data, batch_size=1, shuffle=False,
+        data, batch_size=args.batch_size, shuffle=False,
         pin_memory=args.pin_memory, num_workers=args.loader_workers)
 
     # visualizers
@@ -93,13 +107,14 @@ def main():
 
         processed_images = processed_images_cpu.to(args.device, non_blocking=True)
         fields_batch = processor.fields(processed_images)
+        pred_batch = processor.annotations_batch(fields_batch, debug_images=processed_images_cpu)
 
         # unbatch
-        for image_path, image, processed_image_cpu, fields in zip(
+        for image_path, image, processed_image_cpu, pred in zip(
                 image_paths,
                 images,
                 processed_images_cpu,
-                fields_batch):
+                pred_batch):
 
             if args.output_directory is None:
                 output_path = image_path
@@ -109,7 +124,7 @@ def main():
             logging.info('image %d: %s to %s', image_i, image_path, output_path)
 
             processor.set_cpu_image(image, processed_image_cpu)
-            keypoint_sets, scores = processor.keypoint_sets(fields)
+            keypoint_sets, scores = processor.keypoint_sets_from_annotations(pred)
 
             if 'json' in args.output_types:
                 with open(output_path + '.pifpaf.json', 'w') as f:
