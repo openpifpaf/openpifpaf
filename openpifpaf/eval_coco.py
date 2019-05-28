@@ -95,16 +95,9 @@ class EvalCoco(object):
             keypoint_painter.keypoints(ax, instances_gt, color='lightgrey')
             keypoint_painter.annotations(ax, [ann for ann in annotations if ann.score() > 0.01])
 
-    def from_fields(self, fields, meta,
-                    debug=False, gt=None, image_cpu=None, verbose=False,
-                    category_id=1):
-        if image_cpu is not None:
-            self.processor.set_cpu_image(None, image_cpu)
-
-        start = time.time()
-        annotations = self.processor.annotations(fields, meta)[:20]
-        self.decoder_time += time.time() - start
-
+    def from_predictions(self, annotations, meta,
+                         debug=False, gt=None, image_cpu=None, verbose=False,
+                         category_id=1):
         if isinstance(meta, (list, tuple)):
             meta = meta[0]
 
@@ -359,7 +352,7 @@ def main():
         # detect multiscale
         multiscale = isinstance(image_tensors_cpu, list)
         if multiscale:
-            # only look at first scale
+            # only debug first scale
             anns_batch = anns_batch[0]
 
         if len([a
@@ -371,23 +364,26 @@ def main():
         fields_batch = processor.fields(image_tensors_cpu)
 
         if multiscale:
-            # only look at first scale
+            # only debug first scale
             image_tensors_cpu = image_tensors_cpu[0]
+
+        decoder_start = time.perf_counter()
+        pred_batch = processor.annotations_batch(
+            fields_batch,
+            meta_list_batch=meta_batch,
+            # debug_images=image_tensors_cpu,
+        )
+        eval_coco.decoder_time += time.perf_counter() - decoder_start
 
         # loop over batch
         assert len(image_tensors_cpu) == len(fields_batch)
         assert len(image_tensors_cpu) == len(anns_batch)
         assert len(image_tensors_cpu) == len(meta_batch)
-        for image_tensor_cpu, fields, anns, meta in zip(
-                image_tensors_cpu, fields_batch, anns_batch, meta_batch):
-            if args.debug and multiscale:
-                for scale_i, (f, m) in enumerate(zip(fields, meta)):
-                    print('scale', scale_i)
-                    eval_coco.from_fields(f, m,
-                                          debug=args.debug, gt=anns, image_cpu=image_tensor_cpu)
-
-            eval_coco.from_fields(fields, meta,
-                                  debug=args.debug, gt=anns, image_cpu=image_tensor_cpu)
+        for image_tensor_cpu, pred, anns, meta in zip(
+                image_tensors_cpu, pred_batch, anns_batch, meta_batch):
+            eval_coco.from_predictions(pred, meta,
+                                       debug=args.debug, gt=anns,
+                                       image_cpu=image_tensor_cpu)
     total_time = time.time() - total_start
 
     # processor.instance_scorer.write_data('instance_score_data.json')
