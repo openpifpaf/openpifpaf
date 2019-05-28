@@ -224,11 +224,16 @@ class RescaleAbsolute(Preprocess):
     def scale(self, image, anns):
         # scale image
         w, h = image.size
-        s = self.long_edge / max(h, w)
+
+        this_long_edge = self.long_edge
+        if isinstance(this_long_edge, (tuple, list)):
+            this_long_edge = int(torch.randint(this_long_edge[0], this_long_edge[1], (1,)).item())
+
+        s = this_long_edge / max(h, w)
         if h > w:
-            image = image.resize((int(w * s), self.long_edge), self.resample)
+            image = image.resize((int(w * s), this_long_edge), self.resample)
         else:
-            image = image.resize((self.long_edge, int(h * s)), self.resample)
+            image = image.resize((this_long_edge, int(h * s)), self.resample)
         self.log.debug('before resize = (%f, %f), scale factor = %f, after = %s',
                        w, h, s, image.size)
 
