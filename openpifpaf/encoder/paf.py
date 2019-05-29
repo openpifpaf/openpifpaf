@@ -14,7 +14,11 @@ class Paf(Encoder):
     default_fixed_size = False
     default_aspect_ratio = 0.0
 
-    def __init__(self, head_name, stride, *, skeleton=None, n_keypoints=17, **kwargs):
+    def __init__(self, head_name, stride, *,
+                 skeleton=None,
+                 n_keypoints=17,
+                 v_threshold=0,
+                 **kwargs):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.debug('unused arguments in %s: %s', head_name, kwargs)
 
@@ -30,6 +34,7 @@ class Paf(Encoder):
 
         self.stride = stride
         self.n_keypoints = n_keypoints
+        self.v_threshold = v_threshold
         self.skeleton = skeleton
 
         self.min_size = self.default_min_size
@@ -73,6 +78,7 @@ class Paf(Encoder):
         self.log.debug('valid area: %s, paf min size = %d', valid_area, self.min_size)
 
         f = PafGenerator(self.min_size, self.skeleton,
+                         v_threshold=self.v_threshold,
                          fixed_size=self.fixed_size, aspect_ratio=self.aspect_ratio)
         f.init_fields(bg_mask)
         f.fill(keypoint_sets)
@@ -81,7 +87,7 @@ class Paf(Encoder):
 
 class PafGenerator(object):
     def __init__(self, min_size, skeleton, *,
-                 v_threshold=0, padding=10, fixed_size=False, aspect_ratio=0.0):
+                 v_threshold, fixed_size, aspect_ratio, padding=10):
         self.min_size = min_size
         self.skeleton = skeleton
         self.v_threshold = v_threshold
