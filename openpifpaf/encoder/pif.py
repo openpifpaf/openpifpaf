@@ -13,7 +13,10 @@ from ..utils import create_sink, mask_valid_area
 class Pif(Encoder):
     default_side_length = 4
 
-    def __init__(self, head_name, stride, *, n_keypoints=None, **kwargs):
+    def __init__(self, head_name, stride, *,
+                 n_keypoints=None,
+                 v_threshold=0,
+                 **kwargs):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.debug('unused arguments in %s: %s', head_name, kwargs)
 
@@ -26,6 +29,7 @@ class Pif(Encoder):
             else:
                 n_keypoints = 17
         self.n_keypoints = n_keypoints
+        self.v_threshold = v_threshold
         self.side_length = self.default_side_length
 
     @staticmethod
@@ -53,14 +57,14 @@ class Pif(Encoder):
         self.log.debug('valid area: %s, pif side length = %d', valid_area, self.side_length)
 
         n_fields = keypoint_sets.shape[1]
-        f = PifGenerator(self.side_length)
+        f = PifGenerator(self.side_length, self.v_threshold)
         f.init_fields(n_fields, bg_mask)
         f.fill(keypoint_sets)
         return f.fields(valid_area)
 
 
 class PifGenerator(object):
-    def __init__(self, side_length, v_threshold=0, padding=10):
+    def __init__(self, side_length, v_threshold, padding=10):
         self.side_length = side_length
         self.v_threshold = v_threshold
         self.padding = padding
