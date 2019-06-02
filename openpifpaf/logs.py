@@ -1,6 +1,7 @@
 """Configuring and visualizing log files."""
 
 import argparse
+from collections import defaultdict
 import datetime
 import json
 import logging
@@ -58,6 +59,11 @@ class Plots(object):
 
     def process(self):
         return {label: data['process']
+                for data, label in zip(self.datas, self.labels)}
+
+    def field_names(self):
+        placeholder = ['head {}'.format(i) for i in range(6)]
+        return {label: data['config'][0]['field_names'] if 'config' in data else placeholder
                 for data, label in zip(self.datas, self.labels)}
 
     def process_arguments(self):
@@ -133,24 +139,31 @@ class Plots(object):
         ax.grid(linestyle='dotted')
         ax.legend()
 
-    def epoch_head(self, ax, head_i):
+    def epoch_head(self, ax, field_name):
+        field_names = self.field_names()
         for data, label in zip(self.datas, self.labels):
+            if field_name not in field_names[label]:
+                print('field {} not found for {}'.format(field_name, label))
+                continue
+            field_i = field_names[label].index(field_name)
+
             val_color = None
             if 'val-epoch' in data:
                 x = np.array([row.get('epoch') for row in data['val-epoch']])
-                y = np.array([row.get('head_losses')[head_i]
+                y = np.array([row.get('head_losses')[field_i]
                               for row in data['val-epoch']], dtype=np.float)
                 val_line, = ax.plot(x, y, 'o-', markersize=2, label=label)
                 val_color = val_line.get_color()
+
             if 'train-epoch' in data:
                 x = np.array([row.get('epoch') for row in data['train-epoch']])
-                y = np.array([row.get('head_losses')[head_i]
+                y = np.array([row.get('head_losses')[field_i]
                               for row in data['train-epoch']], dtype=np.float)
                 m = x > 0
                 ax.plot(x[m], y[m], 'x-', color=val_color, linestyle='dotted', markersize=2)
 
         ax.set_xlabel('epoch')
-        ax.set_ylabel('loss, head {}'.format(head_i))
+        ax.set_ylabel('loss, {}'.format(field_name))
         # ax.set_ylim(0.0, 1.0)
         # if min(y) > -0.1:
         #     ax.set_yscale('log', nonposy='clip')
@@ -210,12 +223,18 @@ class Plots(object):
         ax.grid(linestyle='dotted')
         ax.legend()
 
-    def train_head(self, ax, head_i):
+    def train_head(self, ax, field_name):
+        field_names = self.field_names()
         for data, label in zip(self.datas, self.labels):
+            if field_name not in field_names[label]:
+                print('field {} not found for {}'.format(field_name, label))
+                continue
+            field_i = field_names[label].index(field_name)
+
             if 'train' in data:
                 x = np.array([row.get('epoch') + row.get('batch') / row.get('n_batches')
                               for row in data['train']])
-                y = np.array([row.get('head_losses')[head_i]
+                y = np.array([row.get('head_losses')[field_i]
                               for row in data['train']], dtype=np.float)
                 m = np.logical_not(np.isnan(y))
                 x, y = x[m], y[m]
@@ -233,7 +252,7 @@ class Plots(object):
                     ax.plot(x, y, label=label)
 
         ax.set_xlabel('epoch')
-        ax.set_ylabel('training loss, head {}'.format(head_i))
+        ax.set_ylabel('training loss, {}'.format(field_name))
         ax.set_ylim(3e-3, 3.0)
         if min(y) > -0.1:
             ax.set_yscale('log', nonposy='clip')
@@ -245,8 +264,16 @@ class Plots(object):
             if 'train' in data:
                 print('{}: {}'.format(label, data['train'][-1]))
 
-    def show_all(self, n_heads=5, *, share_y=True):
+    def show_all(self, *, share_y=True):
         pprint(self.process_arguments())
+
+        field_names = next(iter(self.field_names().values()))
+        rows = defaultdict(list)
+        for f in field_names:
+            row_name, _, _ = f.partition('.') if '.' in f else ('default', None, None)
+            rows[row_name].append(f)
+        n_rows = len(rows)
+        n_cols = max(len(r) for r in rows.values())
 
         with show.canvas() as ax:
             self.time(ax)
@@ -257,19 +284,23 @@ class Plots(object):
         with show.canvas() as ax:
             self.lr(ax)
 
-        with show.canvas(ncols=n_heads, figsize=(20, 5), sharey=share_y) as axs:
-            for i, ax in enumerate(axs):
-                self.epoch_head(ax, -n_heads + i)
+        with show.canvas(nrows=n_rows, ncols=n_cols, squeeze=False,
+                         figsize=(20, 5), sharey=share_y) as axs:
+            for row_i, row in enumerate(rows.values()):
+                for col_i, field_name in enumerate(row):
+                    self.epoch_head(axs[row_i, col_i], field_name)
 
         with show.canvas() as ax:
             self.epoch_loss(ax)
 
-        # with show.canvas() as ax:
-        #     self.preprocess_time(ax)
+        with show.canvas() as ax:
+            self.preprocess_time(ax)
 
-        with show.canvas(ncols=n_heads, figsize=(20, 5), sharey=share_y) as axs:
-            for i, ax in enumerate(axs):
-                self.train_head(ax, -n_heads + i)
+        with show.canvas(nrows=n_rows, ncols=n_cols, squeeze=False,
+                         figsize=(20, 5), sharey=share_y) as axs:
+            for row_i, row in enumerate(rows.values()):
+                for col_i, field_name in enumerate(row):
+                    self.train_head(axs[row_i, col_i], field_name)
 
         with show.canvas() as ax:
             self.train(ax)
@@ -390,8 +421,6 @@ def main():
                         help='path to log file')
     parser.add_argument('--label', nargs='+',
                         help='labels in the same order as files')
-    parser.add_argument('--n-heads', default=6, type=int,
-                        help='number of head losses')
     parser.add_argument('--eval-edge', default=593, type=int,
                         help='side length during eval')
     parser.add_argument('--eval-samples', default=200, type=int,
@@ -409,8 +438,7 @@ def main():
     EvalPlots(args.log_file, args.label, args.output,
               edge=args.eval_edge,
               samples=args.eval_samples).show_all(share_y=args.share_y)
-    Plots(args.log_file, args.label, args.output).show_all(
-        args.n_heads, share_y=args.share_y)
+    Plots(args.log_file, args.label, args.output).show_all(share_y=args.share_y)
 
 
 if __name__ == '__main__':
