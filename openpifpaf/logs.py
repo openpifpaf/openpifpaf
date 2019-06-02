@@ -62,7 +62,7 @@ class Plots(object):
                 for data, label in zip(self.datas, self.labels)}
 
     def field_names(self):
-        placeholder = ['head {}'.format(i) for i in range(6)]
+        placeholder = ['field {}'.format(i) for i in range(6)]
         return {label: data['config'][0]['field_names'] if 'config' in data else placeholder
                 for data, label in zip(self.datas, self.labels)}
 
