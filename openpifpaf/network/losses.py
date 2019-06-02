@@ -219,7 +219,7 @@ class CompositeLoss(Loss, torch.nn.Module):
             return None, None, None
 
         batch_size = x_intensity.shape[0]
-        LOG.info('batch size = %d', batch_size)
+        LOG.debug('batch size = %d', batch_size)
 
         bce_x_intensity = x_intensity
         bce_target_intensity = target_intensity[:, :-1]
