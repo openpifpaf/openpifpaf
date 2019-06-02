@@ -90,6 +90,7 @@ class MultiHeadLoss(torch.nn.Module):
         self.lambdas = lambdas
 
         self.field_names = [n for l in self.losses for n in l.field_names]
+        LOG.info('multihead loss: %s, %s', self.field_names, self.lambdas)
 
     def forward(self, head_fields, head_targets):  # pylint: disable=arguments-differ
         assert len(self.losses) == len(head_fields)
@@ -174,6 +175,8 @@ class CompositeLoss(Loss, torch.nn.Module):
             ['{}.scales{}'.format(head_name, i + 1) for i in range(self.n_scales)]
         )
 
+        self.bce_blackout = None
+
     @staticmethod
     def match(head_name):
         return head_name in (
@@ -212,23 +215,32 @@ class CompositeLoss(Loss, torch.nn.Module):
         target_scale = t[-1]
 
         bce_masks = torch.sum(target_intensity, dim=1, keepdim=True) > 0.5
-        if torch.sum(bce_masks) < 1:
+        if not torch.any(bce_masks):
             return None, None, None
 
         batch_size = x_intensity.shape[0]
+        LOG.info('batch size = %d', batch_size)
 
-        bce_target = torch.masked_select(target_intensity[:, :-1], bce_masks)
-        bce_weight = torch.ones_like(bce_target)
-        bce_weight[bce_target == 0] = self.background_weight
+        bce_x_intensity = x_intensity
+        bce_target_intensity = target_intensity[:, :-1]
+        if self.bce_blackout:
+            bce_x_intensity = bce_x_intensity[:, self.bce_blackout]
+            bce_target_intensity = bce_target_intensity[:, self.bce_blackout]
+
+        bce_target = torch.masked_select(bce_target_intensity, bce_masks)
+        bce_weight = None
+        if self.background_weight != 1.0:
+            bce_weight = torch.ones_like(bce_target)
+            bce_weight[bce_target == 0] = self.background_weight
         ce_loss = torch.nn.functional.binary_cross_entropy_with_logits(
-            torch.masked_select(x_intensity, bce_masks),
+            torch.masked_select(bce_x_intensity, bce_masks),
             bce_target,
             weight=bce_weight,
         )
 
         reg_losses = [None for _ in target_regs]
         reg_masks = target_intensity[:, :-1] > 0.5
-        if torch.sum(reg_masks) > 0:
+        if torch.any(reg_masks):
             weight = None
             if self.multiplicity_correction:
                 assert len(target_regs) == 2
