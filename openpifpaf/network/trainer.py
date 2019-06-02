@@ -158,6 +158,7 @@ class Trainer(object):
 
         epoch_loss = 0.0
         head_epoch_losses = None
+        head_epoch_counts = None
         last_batch_end = time.time()
         self.optimizer.zero_grad()
         for batch_idx, (data, target, meta) in enumerate(scenes):
@@ -172,10 +173,12 @@ class Trainer(object):
                 epoch_loss += loss
             if head_epoch_losses is None:
                 head_epoch_losses = [0.0 for _ in head_losses]
+                head_epoch_counts = [0 for _ in head_losses]
             for i, head_loss in enumerate(head_losses):
                 if head_loss is None:
                     continue
                 head_epoch_losses[i] += head_loss
+                head_epoch_counts[i] += 1
 
             batch_time = time.time() - batch_start
 
@@ -209,7 +212,8 @@ class Trainer(object):
             'type': 'train-epoch',
             'epoch': epoch + 1,
             'loss': round(epoch_loss / len(scenes), 5),
-            'head_losses': [round(l / len(scenes), 5) for l in head_epoch_losses],
+            'head_losses': [round(l / max(1, c), 5)
+                            for l, c in zip(head_epoch_losses, head_epoch_counts)],
             'time': round(time.time() - start_time, 1),
         })
 
@@ -235,6 +239,7 @@ class Trainer(object):
 
         epoch_loss = 0.0
         head_epoch_losses = None
+        head_epoch_counts = None
         for data, target, _ in scenes:
             loss, head_losses = self.val_batch(data, target)
 
@@ -243,10 +248,12 @@ class Trainer(object):
                 epoch_loss += loss
             if head_epoch_losses is None:
                 head_epoch_losses = [0.0 for _ in head_losses]
+                head_epoch_counts = [0 for _ in head_losses]
             for i, head_loss in enumerate(head_losses):
                 if head_loss is None:
                     continue
                 head_epoch_losses[i] += head_loss
+                head_epoch_counts[i] += 1
 
         eval_time = time.time() - start_time
 
@@ -254,7 +261,8 @@ class Trainer(object):
             'type': 'val-epoch',
             'epoch': epoch,
             'loss': round(epoch_loss / len(scenes), 5),
-            'head_losses': [round(l / len(scenes), 5) for l in head_epoch_losses],
+            'head_losses': [round(l / max(1, c), 5)
+                            for l, c in zip(head_epoch_losses, head_epoch_counts)],
             'time': round(eval_time, 1),
         })
 
