@@ -219,7 +219,11 @@ class Visualizer(object):
         print('pifhr')
         for g in self.pif_indices:
             for f in g:
-                with show.canvas(figsize=(8, 5)) as ax:
+                fig_file = (
+                    self.file_prefix + '.pif{}.hr.png'.format(f)
+                    if self.file_prefix else None
+                )
+                with show.canvas(fig_file, figsize=(8, 5)) as ax:
                     ax.imshow(self.image)
                     o = ax.imshow(pifhr[f], alpha=0.9, vmin=0.0, vmax=1.0, cmap='Oranges')
 
@@ -229,3 +233,5 @@ class Visualizer(object):
 
                     ax.get_xaxis().set_visible(False)
                     ax.get_yaxis().set_visible(False)
+                    ax.set_xlim(0, self.image.shape[1])
+                    ax.set_ylim(self.image.shape[0], 0)
