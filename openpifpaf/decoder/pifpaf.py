@@ -155,7 +155,7 @@ class PifPafGenerator(object):
         self._pifhr_core = self._target_intensities(core_only=True)
         if self.debug_visualizer:
             self.debug_visualizer.pifhr(self._pifhr)
-            self.debug_visualizer.pifhr(self._pifhr_core)
+            # self.debug_visualizer.pifhr(self._pifhr_core)
 
         # paf init
         self._paf_forward = None

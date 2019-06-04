@@ -7,9 +7,20 @@ from .. import show
 
 
 class Visualizer(object):
-    def __init__(self, pif_indices, paf_indices):
+    def __init__(self, pif_indices, paf_indices, *,
+                 file_prefix=None,
+                 keypoints=None,
+                 skeleton=None):
+        self.keypoints = keypoints or COCO_KEYPOINTS
+        self.skeleton = skeleton or COCO_PERSON_SKELETON
+
         self.pif_indices = self.process_indices(pif_indices)
+        if self.pif_indices and self.pif_indices[0][0] == -1:
+            self.pif_indices = [[i] for i, _ in enumerate(self.keypoints)]
         self.paf_indices = self.process_indices(paf_indices)
+        if self.paf_indices and self.paf_indices[0][0] == -1:
+            self.paf_indices = [[i] for i, _ in enumerate(self.skeleton)]
+        self.file_prefix = file_prefix
 
         self.image = None
         self.processed_image = None
@@ -62,8 +73,8 @@ class Visualizer(object):
 
                 for f in g:
                     print('association field',
-                          COCO_KEYPOINTS[COCO_PERSON_SKELETON[f][0] - 1],
-                          COCO_KEYPOINTS[COCO_PERSON_SKELETON[f][1] - 1])
+                          self.keypoints[self.skeleton[f][0] - 1],
+                          self.keypoints[self.skeleton[f][1] - 1])
 
                     qr = show.arrows(ax,
                                      original_paf[f],
@@ -89,9 +100,10 @@ class Visualizer(object):
         for g in self.paf_indices:
             for f in g:
                 print('association field',
-                      COCO_KEYPOINTS[COCO_PERSON_SKELETON[f][0] - 1],
-                      COCO_KEYPOINTS[COCO_PERSON_SKELETON[f][1] - 1])
-                with show.canvas() as ax:
+                      self.keypoints[self.skeleton[f][0] - 1],
+                      self.keypoints[self.skeleton[f][1] - 1])
+                fig_file = self.file_prefix + '.paf{}.c.png'.format(f) if self.file_prefix else None
+                with show.canvas(fig_file) as ax:
                     ax.imshow(self.resized_image(io_scale))
                     im = ax.imshow(intensity_fields[f], alpha=0.9,
                                    vmin=0.0, vmax=1.0, cmap='Oranges')
@@ -104,21 +116,25 @@ class Visualizer(object):
                     ax.get_yaxis().set_visible(False)
 
         for g in self.paf_indices:
-            with show.canvas() as ax:
+            fig_file = (
+                self.file_prefix + '.paf{}.v.png'.format(''.join([str(f) for f in g]))
+                if self.file_prefix else None
+            )
+            with show.canvas(fig_file) as ax:
                 print('reg', reg_components)
                 ax.imshow(self.image)
                 show.white_screen(ax)
 
                 for f in g:
                     print('association field',
-                          COCO_KEYPOINTS[COCO_PERSON_SKELETON[f][0] - 1],
-                          COCO_KEYPOINTS[COCO_PERSON_SKELETON[f][1] - 1])
-                    q1 = show.quiver(ax, reg1_fields[f],
-                                     intensity_fields[f],
+                          self.keypoints[self.skeleton[f][0] - 1],
+                          self.keypoints[self.skeleton[f][1] - 1])
+                    q1 = show.quiver(ax, reg1_fields[f], intensity_fields[f],
+                                     reg_uncertainty=reg1_fields_b[f],
                                      threshold=0.5, width=0.003, step=1,
                                      cmap='viridis_r', clim=(0.5, 1.0), xy_scale=io_scale)
-                    show.quiver(ax, reg2_fields[f],
-                                intensity_fields[f],
+                    show.quiver(ax, reg2_fields[f], intensity_fields[f],
+                                reg_uncertainty=reg2_fields_b[f],
                                 threshold=0.5, width=0.003, step=1,
                                 cmap='viridis_r', clim=(0.5, 1.0), xy_scale=io_scale)
 
@@ -137,8 +153,8 @@ class Visualizer(object):
 
                 for f in g:
                     print('association field',
-                          COCO_KEYPOINTS[COCO_PERSON_SKELETON[f][0] - 1],
-                          COCO_KEYPOINTS[COCO_PERSON_SKELETON[f][1] - 1])
+                          self.keypoints[self.skeleton[f][0] - 1],
+                          self.keypoints[self.skeleton[f][1] - 1])
                     with show.canvas() as ax:
                         ax.imshow(self.resized_image)
                         show.white_screen(ax, alpha=0.9)
@@ -157,8 +173,9 @@ class Visualizer(object):
         intensity_fields, reg_fields, reg_fields_b, scale_fields = pif  # pylint: disable=unused-variable
         for g in self.pif_indices:
             for f in g:
-                print('pif field', COCO_KEYPOINTS[f])
-                with show.canvas(figsize=(8, 5)) as ax:
+                print('pif field', self.keypoints[f])
+                fig_file = self.file_prefix + '.pif{}.c.png'.format(f) if self.file_prefix else None
+                with show.canvas(fig_file, figsize=(8, 5)) as ax:
                     ax.imshow(self.resized_image(io_scale))
                     im = ax.imshow(intensity_fields[f], alpha=0.9,
                                    vmin=0.0, vmax=1.0, cmap='Oranges')
@@ -172,13 +189,28 @@ class Visualizer(object):
 
         for g in self.pif_indices:
             for f in g:
-                print('pif field', COCO_KEYPOINTS[f])
-                with show.canvas() as ax:
+                print('pif field', self.keypoints[f])
+                fig_file = self.file_prefix + '.pif{}.v.png'.format(f) if self.file_prefix else None
+                with show.canvas(fig_file) as ax:
                     ax.imshow(self.image)
                     show.white_screen(ax, alpha=0.5)
-                    show.quiver(ax, reg_fields[f],
-                                cmap='viridis_r', clim=(0.0, 1.0),
-                                threshold=0.0, xy_scale=io_scale)
+                    show.quiver(ax, reg_fields[f], intensity_fields[f],
+                                reg_uncertainty=reg_fields_b[f],
+                                cmap='viridis_r', clim=(0.5, 1.0),
+                                threshold=0.5, xy_scale=io_scale)
+
+                    ax.get_xaxis().set_visible(False)
+                    ax.get_yaxis().set_visible(False)
+
+        for g in self.pif_indices:
+            for f in g:
+                print('pif field', self.keypoints[f])
+                fig_file = self.file_prefix + '.pif{}.s.png'.format(f) if self.file_prefix else None
+                with show.canvas(fig_file) as ax:
+                    ax.imshow(self.image)
+                    show.white_screen(ax, alpha=0.5)
+                    show.circles(ax, scale_fields[f], intensity_fields[f],
+                                 xy_scale=io_scale, fill=False)
 
                     ax.get_xaxis().set_visible(False)
                     ax.get_yaxis().set_visible(False)
@@ -187,7 +219,11 @@ class Visualizer(object):
         print('pifhr')
         for g in self.pif_indices:
             for f in g:
-                with show.canvas(figsize=(8, 5)) as ax:
+                fig_file = (
+                    self.file_prefix + '.pif{}.hr.png'.format(f)
+                    if self.file_prefix else None
+                )
+                with show.canvas(fig_file, figsize=(8, 5)) as ax:
                     ax.imshow(self.image)
                     o = ax.imshow(pifhr[f], alpha=0.9, vmin=0.0, vmax=1.0, cmap='Oranges')
 
@@ -197,3 +233,5 @@ class Visualizer(object):
 
                     ax.get_xaxis().set_visible(False)
                     ax.get_yaxis().set_visible(False)
+                    ax.set_xlim(0, self.image.shape[1])
+                    ax.set_ylim(self.image.shape[0], 0)
