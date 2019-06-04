@@ -7,6 +7,7 @@ import json
 import logging
 from pprint import pprint
 
+import matplotlib
 import numpy as np
 import pysparkling
 
@@ -71,25 +72,30 @@ class Plots(object):
                 for data, label in zip(self.datas, self.labels)}
 
     def time(self, ax):
-        for data, label in zip(self.datas, self.labels):
+        for color_i, (data, label) in enumerate(zip(self.datas, self.labels)):
+            color = matplotlib.cm.get_cmap('tab10')((color_i % 10 + 0.05) / 10)
+
             if 'train' in data:
                 x = np.array([row.get('epoch') + row.get('batch') / row.get('n_batches')
                               for row in data['train']])
                 y = [datetime.datetime.strptime(row.get('asctime')[:-4], '%Y-%m-%d %H:%M:%S')
                      for row in data['train']]
                 y = [(yi - y[0]).total_seconds() / 3600.0 for yi in y]
-                ax.plot(x, y, label=label)
+                ax.plot(x, y, color=color, label=label)
 
         ax.set_xlabel('epoch')
         ax.set_ylabel('time [h]')
         ax.legend()
 
     def epoch_time(self, ax):
-        for data, label in zip(self.datas, self.labels):
+        for color_i, (data, label) in enumerate(zip(self.datas, self.labels)):
+            color = matplotlib.cm.get_cmap('tab10')((color_i % 10 + 0.05) / 10)
+
             y0 = None
             if 'train' in data:
                 row = data['train'][0]
                 y0 = datetime.datetime.strptime(row.get('asctime')[:-4], '%Y-%m-%d %H:%M:%S')
+
             if 'train-epoch' in data:
                 x = [row.get('epoch') for row in data['train-epoch']]
                 y = [datetime.datetime.strptime(row.get('asctime')[:-4], '%Y-%m-%d %H:%M:%S')
@@ -99,18 +105,20 @@ class Plots(object):
                     y = [y0] + y
                 y = [(yi - prev_yi).total_seconds() / 60.0
                      for prev_yi, yi in zip(y[:-1], y[1:])]
-                ax.plot(x[1:], y, label=label)
+                ax.plot(x[1:], y, color=color, label=label)
 
         ax.set_xlabel('epoch')
         ax.set_ylabel('epoch-time [min]')
         ax.legend()
 
     def lr(self, ax):
-        for data, label in zip(self.datas, self.labels):
+        for color_i, (data, label) in enumerate(zip(self.datas, self.labels)):
+            color = matplotlib.cm.get_cmap('tab10')((color_i % 10 + 0.05) / 10)
+
             if 'train' in data:
                 x = [row.get('epoch') for row in data['train']]
                 y = [row.get('lr') for row in data['train']]
-                ax.plot(x, y, label=label)
+                ax.plot(x, y, color=color, label=label)
 
         ax.set_xlabel('epoch')
         ax.set_ylabel('learning rate')
@@ -118,18 +126,19 @@ class Plots(object):
         ax.legend()
 
     def epoch_loss(self, ax):
-        for data, label in zip(self.datas, self.labels):
-            val_color = None
+        for color_i, (data, label) in enumerate(zip(self.datas, self.labels)):
+            color = matplotlib.cm.get_cmap('tab10')((color_i % 10 + 0.05) / 10)
+
             if 'val-epoch' in data:
                 x = np.array([row.get('epoch') for row in data['val-epoch']])
                 y = np.array([row.get('loss') for row in data['val-epoch']], dtype=np.float)
-                val_line, = ax.plot(x, y, 'o-', markersize=2, label=label)
-                val_color = val_line.get_color()
+                ax.plot(x, y, 'o-', color=color, markersize=2, label=label)
+
             if 'train-epoch' in data:
                 x = np.array([row.get('epoch') for row in data['train-epoch']])
                 y = np.array([row.get('loss') for row in data['train-epoch']], dtype=np.float)
                 m = x > 0
-                ax.plot(x[m], y[m], 'x-', color=val_color, linestyle='dotted', markersize=2)
+                ax.plot(x[m], y[m], 'x-', color=color, linestyle='dotted', markersize=2)
 
         ax.set_xlabel('epoch')
         ax.set_ylabel('loss')
@@ -141,26 +150,25 @@ class Plots(object):
 
     def epoch_head(self, ax, field_name):
         field_names = self.field_names()
-        for data, label in zip(self.datas, self.labels):
+        for color_i, (data, label) in enumerate(zip(self.datas, self.labels)):
+            color = matplotlib.cm.get_cmap('tab10')((color_i % 10 + 0.05) / 10)
             if field_name not in field_names[label]:
-                print('field {} not found for {}'.format(field_name, label))
                 continue
             field_i = field_names[label].index(field_name)
+            color = matplotlib.cm.get_cmap('tab10')((color_i % 10 + 0.05) / 10)
 
-            val_color = None
             if 'val-epoch' in data:
                 x = np.array([row.get('epoch') for row in data['val-epoch']])
                 y = np.array([row.get('head_losses')[field_i]
                               for row in data['val-epoch']], dtype=np.float)
-                val_line, = ax.plot(x, y, 'o-', markersize=2, label=label)
-                val_color = val_line.get_color()
+                ax.plot(x, y, 'o-', color=color, markersize=2, label=label)
 
             if 'train-epoch' in data:
                 x = np.array([row.get('epoch') for row in data['train-epoch']])
                 y = np.array([row.get('head_losses')[field_i]
                               for row in data['train-epoch']], dtype=np.float)
                 m = x > 0
-                ax.plot(x[m], y[m], 'x-', color=val_color, linestyle='dotted', markersize=2)
+                ax.plot(x[m], y[m], 'x-', color=color, linestyle='dotted', markersize=2)
 
         ax.set_xlabel('epoch')
         ax.set_ylabel('loss, {}'.format(field_name))
@@ -171,7 +179,9 @@ class Plots(object):
         # ax.legend()
 
     def preprocess_time(self, ax):
-        for data, label in zip(self.datas, self.labels):
+        for color_i, (data, label) in enumerate(zip(self.datas, self.labels)):
+            color = matplotlib.cm.get_cmap('tab10')((color_i % 10 + 0.05) / 10)
+
             if 'train' in data:
                 x = np.array([row.get('epoch') + row.get('batch') / row.get('n_batches')
                               for row in data['train']])
@@ -184,11 +194,10 @@ class Plots(object):
                     y_mean = np.mean(y_binned, axis=1)
                     y_min = np.min(y_binned, axis=1)
                     y_max = np.max(y_binned, axis=1)
-                    line, = ax.plot(x_binned, y_mean, label=label)
-                    ax.fill_between(x_binned, y_min, y_max, alpha=0.2,
-                                    facecolor=line.get_color())
+                    ax.plot(x_binned, y_mean, color=color, label=label)
+                    ax.fill_between(x_binned, y_min, y_max, alpha=0.2, facecolor=color)
                 else:
-                    ax.plot(x, y, label=label)
+                    ax.plot(x, y, color=color, label=label)
 
         ax.set_xlabel('epoch')
         ax.set_ylabel('data preprocessing time [%]')
@@ -196,7 +205,8 @@ class Plots(object):
         ax.legend()
 
     def train(self, ax):
-        for data, label in zip(self.datas, self.labels):
+        for color_i, (data, label) in enumerate(zip(self.datas, self.labels)):
+            color = matplotlib.cm.get_cmap('tab10')((color_i % 10 + 0.05) / 10)
             if 'train' in data:
                 x = np.array([row.get('epoch') + row.get('batch') / row.get('n_batches')
                               for row in data['train']])
@@ -209,11 +219,10 @@ class Plots(object):
                     y_mean = np.mean(y_binned, axis=1)
                     y_min = np.min(y_binned, axis=1)
                     y_max = np.max(y_binned, axis=1)
-                    line, = ax.plot(x_binned, y_mean, label=label)
-                    ax.fill_between(x_binned, y_min, y_max, alpha=0.2,
-                                    facecolor=line.get_color())
+                    ax.plot(x_binned, y_mean, color=color, label=label)
+                    ax.fill_between(x_binned, y_min, y_max, alpha=0.2, facecolor=color)
                 else:
-                    ax.plot(x, y, label=label)
+                    ax.plot(x, y, color=color, label=label)
 
         ax.set_xlabel('epoch')
         ax.set_ylabel('training loss')
@@ -225,9 +234,9 @@ class Plots(object):
 
     def train_head(self, ax, field_name):
         field_names = self.field_names()
-        for data, label in zip(self.datas, self.labels):
+        for color_i, (data, label) in enumerate(zip(self.datas, self.labels)):
+            color = matplotlib.cm.get_cmap('tab10')((color_i % 10 + 0.05) / 10)
             if field_name not in field_names[label]:
-                print('field {} not found for {}'.format(field_name, label))
                 continue
             field_i = field_names[label].index(field_name)
 
@@ -245,11 +254,10 @@ class Plots(object):
                     y_mean = np.mean(y_binned, axis=1)
                     y_min = np.min(y_binned, axis=1)
                     y_max = np.max(y_binned, axis=1)
-                    line, = ax.plot(x_binned, y_mean, label=label)
-                    ax.fill_between(x_binned, y_min, y_max, alpha=0.2,
-                                    facecolor=line.get_color())
+                    ax.plot(x_binned, y_mean, color=color, label=label)
+                    ax.fill_between(x_binned, y_min, y_max, alpha=0.2, facecolor=color)
                 else:
-                    ax.plot(x, y, label=label)
+                    ax.plot(x, y, color=color, label=label)
 
         ax.set_xlabel('epoch')
         ax.set_ylabel('training loss, {}'.format(field_name))
@@ -267,11 +275,12 @@ class Plots(object):
     def show_all(self, *, share_y=True):
         pprint(self.process_arguments())
 
-        field_names = next(iter(self.field_names().values()))
         rows = defaultdict(list)
-        for f in field_names:
-            row_name, _, _ = f.partition('.') if '.' in f else ('default', None, None)
-            rows[row_name].append(f)
+        for field_names in self.field_names().values():
+            for f in field_names:
+                row_name, _, _ = f.partition('.') if '.' in f else ('default', None, None)
+                if f not in rows[row_name]:
+                    rows[row_name].append(f)
         n_rows = len(rows)
         n_cols = max(len(r) for r in rows.values())
 
