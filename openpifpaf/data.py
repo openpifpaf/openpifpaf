@@ -137,5 +137,11 @@ def draw_skeletons():
         keypoint_painter.keypoints(ax, coordinates)
 
 
+def print_associations():
+    for j1, j2 in COCO_PERSON_SKELETON:
+        print(COCO_KEYPOINTS[j1 - 1], '-', COCO_KEYPOINTS[j2 - 1])
+
+
 if __name__ == '__main__':
+    print_associations()
     draw_skeletons()
