@@ -37,6 +37,8 @@ def cli(parser, *,
     group.add_argument('--debug-paf-indices', default=[], nargs='+',
                        help=('indices of PAF fields to create debug plots for '
                              '(same grouping behavior as debug-pif-indices)'))
+    group.add_argument('--debug-file-prefix', default=None,
+                       help='save debug plots with this prefix')
     group.add_argument('--profile-decoder', default=None, action='store_true',
                        help='profile decoder')
 
@@ -50,7 +52,8 @@ def factory_from_args(args, model, device=None):
 
     debug_visualizer = None
     if args.debug_pif_indices or args.debug_paf_indices:
-        debug_visualizer = Visualizer(args.debug_pif_indices, args.debug_paf_indices)
+        debug_visualizer = Visualizer(args.debug_pif_indices, args.debug_paf_indices,
+                                      file_prefix=args.debug_file_prefix)
 
     # default value for keypoint filter depends on whether complete pose is forced
     if args.keypoint_threshold is None:

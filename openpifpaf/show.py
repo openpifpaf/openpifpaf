@@ -260,7 +260,8 @@ def quiver(ax, vector_field, intensity_field=None, step=1, threshold=0.5,
         if not rr:
             continue
         circle = matplotlib.patches.Circle(
-            (xx + uu, yy + vv), rr / 2.0, zorder=10, linewidth=1, alpha=0.5)
+            (xx + uu, yy + vv), rr / 2.0, zorder=11, linewidth=1, alpha=1.0,
+            fill=False, color='orange')
         ax.add_artist(circle)
 
     return ax.quiver(x[s], y[s], u[s], v[s], c[s],
@@ -275,6 +276,50 @@ def arrows(ax, fourd, xy_scale=1.0, threshold=0.0, **kwargs):
     s = np.argsort(c)
     return ax.quiver(x1[s], y1[s], (x2 - x1)[s], (y2 - y1)[s], c[s],
                      angles='xy', scale_units='xy', scale=1, zOrder=10, **kwargs)
+
+
+def boxes(ax, scalar_field, intensity_field=None, xy_scale=1.0, step=1, threshold=0.5,
+          cmap='viridis_r', clim=(0.5, 1.0), **kwargs):
+    x, y, s, c = [], [], [], []
+    for j in range(0, scalar_field.shape[0], step):
+        for i in range(0, scalar_field.shape[1], step):
+            if intensity_field is not None and intensity_field[j, i] < threshold:
+                continue
+            x.append(i * xy_scale)
+            y.append(j * xy_scale)
+            s.append(scalar_field[j, i] * xy_scale)
+            c.append(intensity_field[j, i] if intensity_field is not None else 1.0)
+
+    cmap = matplotlib.cm.get_cmap(cmap)
+    cnorm = matplotlib.colors.Normalize(vmin=clim[0], vmax=clim[1])
+    for xx, yy, ss, cc in zip(x, y, s, c):
+        color = cmap(cnorm(cc))
+        rectangle = matplotlib.patches.Rectangle(
+            (xx - ss, yy - ss), ss * 2.0, ss * 2.0,
+            color=color, zorder=10, linewidth=1, **kwargs)
+        ax.add_artist(rectangle)
+
+
+def circles(ax, scalar_field, intensity_field=None, xy_scale=1.0, step=1, threshold=0.5,
+            cmap='viridis_r', clim=(0.5, 1.0), **kwargs):
+    x, y, s, c = [], [], [], []
+    for j in range(0, scalar_field.shape[0], step):
+        for i in range(0, scalar_field.shape[1], step):
+            if intensity_field is not None and intensity_field[j, i] < threshold:
+                continue
+            x.append(i * xy_scale)
+            y.append(j * xy_scale)
+            s.append(scalar_field[j, i] * xy_scale)
+            c.append(intensity_field[j, i] if intensity_field is not None else 1.0)
+
+    cmap = matplotlib.cm.get_cmap(cmap)
+    cnorm = matplotlib.colors.Normalize(vmin=clim[0], vmax=clim[1])
+    for xx, yy, ss, cc in zip(x, y, s, c):
+        color = cmap(cnorm(cc))
+        circle = matplotlib.patches.Circle(
+            (xx, yy), ss,
+            color=color, zorder=10, linewidth=1, **kwargs)
+        ax.add_artist(circle)
 
 
 def white_screen(ax, alpha=0.9):
