@@ -326,7 +326,7 @@ class PifPafGenerator(object):
             return 0, 0, 0
 
         # source distance
-        d = np.linalg.norm(np.expand_dims(xy, 1) - paf_field[1:3], axis=0)
+        d = np.linalg.norm(((xy[0],), (xy[1],)) - paf_field[1:3], axis=0)
         b_source = paf_field[3] * 3.0
         # b_target = paf_field[6]
 
