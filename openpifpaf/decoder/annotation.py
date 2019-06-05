@@ -17,8 +17,8 @@ class Annotation(object):
             if xyv[2] == 0.0:
                 continue
             scale_field = scales[xyv_i]
-            i = max(0, min(scale_field.shape[1] - 1, int(round(xyv[0] * hr_scale))))
-            j = max(0, min(scale_field.shape[0] - 1, int(round(xyv[1] * hr_scale))))
+            i = max(0, min(scale_field.shape[1] - 1, int(xyv[0] * hr_scale)))
+            j = max(0, min(scale_field.shape[0] - 1, int(xyv[1] * hr_scale)))
             self.joint_scales[xyv_i] = scale_field[j, i] / hr_scale
 
     def score(self):

@@ -133,8 +133,8 @@ def normalize_pifs(joint_intensity_fields, joint_fields, scale_fields, *,
 
 
 def scalar_square_add_single(field, x, y, width, value):
-    minx = max(0, int(round(x - width)))
-    miny = max(0, int(round(y - width)))
-    maxx = max(minx + 1, min(field.shape[1], int(round(x + width)) + 1))
-    maxy = max(miny + 1, min(field.shape[0], int(round(y + width)) + 1))
+    minx = max(0, int(x - width))
+    miny = max(0, int(y - width))
+    maxx = max(minx + 1, min(field.shape[1], int(x + width) + 1))
+    maxy = max(miny + 1, min(field.shape[0], int(y + width) + 1))
     field[miny:maxy, minx:maxx] += value
