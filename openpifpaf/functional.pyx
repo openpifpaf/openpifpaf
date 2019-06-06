@@ -182,6 +182,14 @@ def scalar_value(float[:, :] field, float x, float y, float default=-1):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+def scalar_value_clipped(float[:, :] field, float x, float y):
+    x = clip(x, 0.0, field.shape[1] - 1)
+    y = clip(y, 0.0, field.shape[0] - 1)
+    return field[<Py_ssize_t>y, <Py_ssize_t>x]
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def scalar_nonzero(unsigned char[:, :] field, float x, float y, unsigned char default=0):
     if x < 0.0 or y < 0.0 or x > field.shape[1] - 1 or y > field.shape[0] - 1:
         return default
