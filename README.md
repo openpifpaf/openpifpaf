@@ -214,46 +214,9 @@ total processing time = 1198.353811264038s
 ```
 
 
-# Profiling Decoder
+# Performance
 
-Run predict with the `--profile` option:
-
-```sh
-python3 -m openpifpaf.predict --checkpoint resnet152 \
-  docs/coco/000000081988.jpg --show --profile --debug
-```
-
-This will write a stats table to the terminal and also produce a `decoder.prof` file.
-You can use flameprof (`pip install flameprof`) to get a flame graph with
-`flameprof decoder.prof > docs/coco/000000081988.jpg.decoder_flame.svg`:
-
-![flame graph for decoder on a COCO image](docs/coco/000000081988.jpg.decoder_flame.svg)
-
-
-For a larger image as, e.g., from NuScenes:
-
-```
-python3 -m openpifpaf.predict --checkpoint resnet152 \
-  docs/nuscenes/test.jpg --show --profile --debug
-```
-
-Then create the flame graph with
-`flameprof decoder.prof > docs/nuscenes/test.jpg.decoder_flame.svg` to produce:
-
-![flame graph for decoder on a NuScenes image](docs/nuscenes/test.jpg.decoder_flame.svg)
-
-
-For a crowded image:
-
-```
-python3 -m openpifpaf.predict --checkpoint resnet152 \
-  docs/crowd.png --show --profile --debug
-```
-
-Then create the flame graph with
-`flameprof decoder.prof > docs/crowd.png.decoder_flame.svg` to produce:
-
-![flame graph for decoder on a NuScenes image](docs/crowd.png.decoder_flame.svg)
+See the specific documentation page on [performance](docs/performance.md).
 
 
 [CC-BY-2.0]: https://creativecommons.org/licenses/by/2.0/
