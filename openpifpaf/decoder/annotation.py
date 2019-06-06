@@ -1,4 +1,6 @@
 import numpy as np
+
+# pylint: disable=import-error
 from ..functional import scalar_value_clipped
 
 

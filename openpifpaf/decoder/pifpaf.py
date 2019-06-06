@@ -13,7 +13,7 @@ from ..data import KINEMATIC_TREE_SKELETON, COCO_PERSON_SKELETON, DENSER_COCO_PE
 
 # pylint: disable=import-error
 from ..functional import (cumulative_average, scalar_square_add_gauss,
-                          weiszfeld_nd, paf_center, scalar_value, scalar_values, scalar_nonzero)
+                          weiszfeld_nd, paf_center, scalar_values, scalar_nonzero)
 
 LOG = logging.getLogger(__name__)
 
