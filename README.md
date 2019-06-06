@@ -72,8 +72,7 @@ pip3 install --editable '.[train,test]'
 
 The last command installs the Python package in the current directory
 (signified by the dot) with the optional dependencies needed for training and
-testing. The current changelog and the changelogs for prior releases are
-in [HISTORY.md](HISTORY.md).
+testing.
 
 
 # Interfaces
@@ -193,30 +192,17 @@ ffmpeg -framerate 24 -pattern_type glob -i ${VIDEO}.images/'*.jpg.skeleton.png' 
 In this process, ffmpeg scales the video to `641px` which can be adjusted.
 
 
-# Evaluations
+# Documentation Pages
 
-See [evaluation logs](docs/eval_logs.md) for a long list.
-This result was produced with `python -m openpifpaf.eval_coco --checkpoint outputs/resnet101block5-pif-paf-edge401-190313-100107.pkl --long-edge=641 --loader-workers=8`:
+* [datasets](docs/datasets.md)
+* [studies.ipynb](docs/studies.ipynb)
+* [evaluation logs](docs/eval_logs.md)
+* [performance analysis](docs/performance.md)
+* [HISTORY](HISTORY.md)
 
-```
- Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.657
- Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.866
- Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.719
- Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.619
- Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.718
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.712
- Average Recall     (AR) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.895
- Average Recall     (AR) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.768
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.660
- Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.785
-Decoder 0: decoder time = 875.4406125545502s
-total processing time = 1198.353811264038s
-```
+# Related Projects
 
-
-# Performance
-
-See the specific documentation page on [performance](docs/performance.md).
+* [openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo)
 
 
 [CC-BY-2.0]: https://creativecommons.org/licenses/by/2.0/
