@@ -12,6 +12,9 @@ import torch
 
 from .utils import scalar_square_add_single
 
+# pylint: disable=import-error
+from ..functional import scalar_nonzero_clipped
+
 LOG = logging.getLogger(__name__)
 
 
@@ -93,7 +96,7 @@ class Processor(object):
             len(annotations[0].data),
             int(max(np.max(ann.data[:, 1]) for ann in annotations) + 1),
             int(max(np.max(ann.data[:, 0]) for ann in annotations) + 1),
-        ))
+        ), dtype=np.uint8)
 
         annotations = sorted(annotations, key=lambda a: -a.score())
         for ann in annotations:
@@ -107,10 +110,7 @@ class Processor(object):
                 if v == 0.0:
                     continue
 
-                ij = np.round(xyv[:2]).astype(np.int)
-                i = np.clip(ij[0], 0, occ.shape[1] - 1)
-                j = np.clip(ij[1], 0, occ.shape[0] - 1)
-                if occ[j, i]:
+                if scalar_nonzero_clipped(occ, xyv[0], xyv[1]):
                     xyv[2] = 0.0
                 else:
                     scalar_square_add_single(occ, xyv[0], xyv[1], joint_s, 1)

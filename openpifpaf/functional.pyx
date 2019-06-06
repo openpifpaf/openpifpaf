@@ -1,62 +1,60 @@
 # cython: infer_types=True
 cimport cython
-from libc.math cimport exp, fabs, sqrt
+from libc.math cimport exp, fabs, sqrt, fmin, fmax
 import numpy as np
 
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def scalar_square_add_constant(float[:, :] field, x_np, y_np, width_np, float[:] v):
-    minx_np = np.round(x_np - width_np).astype(np.int)
-    minx_np = np.clip(minx_np, 0, field.shape[1] - 1)
-    miny_np = np.round(y_np - width_np).astype(np.int)
-    miny_np = np.clip(miny_np, 0, field.shape[0] - 1)
-    maxx_np = np.round(x_np + width_np).astype(np.int)
-    maxx_np = np.clip(maxx_np + 1, minx_np + 1, field.shape[1])
-    maxy_np = np.round(y_np + width_np).astype(np.int)
-    maxy_np = np.clip(maxy_np + 1, miny_np + 1, field.shape[0])
-
-    cdef long[:] minx = minx_np
-    cdef long[:] miny = miny_np
-    cdef long[:] maxx = maxx_np
-    cdef long[:] maxy = maxy_np
-
+cpdef void scalar_square_add_constant(float[:, :] field, float[:] x, float[:] y, float[:] width, float[:] v) nogil:
+    cdef long minx, miny, maxx, maxy
     cdef Py_ssize_t i, xx, yy
-    for i in range(minx.shape[0]):
-        for xx in range(minx[i], maxx[i]):
-            for yy in range(miny[i], maxy[i]):
-                field[yy, xx] += v[i]
+    cdef float cx, cy, cv, cwidth
+
+    for i in range(x.shape[0]):
+        cx = x[i]
+        cy = y[i]
+        cv = v[i]
+        cwidth = width[i]
+
+        minx = (<long>clip(cx - cwidth, 0, field.shape[1] - 1))
+        maxx = (<long>clip(cx + cwidth, minx + 1, field.shape[1]))
+        miny = (<long>clip(cy - cwidth, 0, field.shape[0] - 1))
+        maxy = (<long>clip(cy + cwidth, miny + 1, field.shape[0]))
+        for xx in range(minx, maxx):
+            for yy in range(miny, maxy):
+                field[yy, xx] += cv
 
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.cdivision(True)
-def cumulative_average(float[:, :] ca, float[:, :] cw, x_np, y_np, width_np, float[:] v, float[:] w):
-    minx_np = np.round(x_np - width_np).astype(np.int)
-    minx_np = np.clip(minx_np, 0, ca.shape[1] - 1)
-    miny_np = np.round(y_np - width_np).astype(np.int)
-    miny_np = np.clip(miny_np, 0, ca.shape[0] - 1)
-    maxx_np = np.round(x_np + width_np).astype(np.int)
-    maxx_np = np.clip(maxx_np + 1, minx_np + 1, ca.shape[1])
-    maxy_np = np.round(y_np + width_np).astype(np.int)
-    maxy_np = np.clip(maxy_np + 1, miny_np + 1, ca.shape[0])
-
-    cdef long[:] minx = minx_np
-    cdef long[:] miny = miny_np
-    cdef long[:] maxx = maxx_np
-    cdef long[:] maxy = maxy_np
-
+cpdef void cumulative_average(float[:, :] cuma, float[:, :] cumw, float[:] x, float[:] y, float[:] width, float[:] v, float[:] w) nogil:
+    cdef long minx, miny, maxx, maxy
+    cdef float cv, cw, cx, cy, cwidth
     cdef Py_ssize_t i, xx, yy
-    for i in range(minx.shape[0]):
-        if w[i] <= 0.0:
+
+    for i in range(x.shape[0]):
+        cw = w[i]
+        if cw <= 0.0:
             continue
-        for xx in range(minx[i], maxx[i]):
-            for yy in range(miny[i], maxy[i]):
-                ca[yy, xx] = (w[i] * v[i] + cw[yy, xx] * ca[yy, xx]) / (cw[yy, xx] + w[i])
-                cw[yy, xx] += w[i]
+
+        cv = v[i]
+        cx = x[i]
+        cy = y[i]
+        cwidth = width[i]
+
+        minx = (<long>clip(cx - cwidth, 0, cuma.shape[1] - 1))
+        maxx = (<long>clip(cx + cwidth, minx + 1, cuma.shape[1]))
+        miny = (<long>clip(cy - cwidth, 0, cuma.shape[0] - 1))
+        maxy = (<long>clip(cy + cwidth, miny + 1, cuma.shape[0]))
+        for xx in range(minx, maxx):
+            for yy in range(miny, maxy):
+                cuma[yy, xx] = (cw * cv + cumw[yy, xx] * cuma[yy, xx]) / (cumw[yy, xx] + cw)
+                cumw[yy, xx] += cw
 
 
-cdef inline float approx_exp(float x):
+cdef inline float approx_exp(float x) nogil:
     if x > 2.0 or x < -2.0:
         return 0.0
     x = 1.0 + x / 8.0
@@ -66,44 +64,33 @@ cdef inline float approx_exp(float x):
     return x
 
 
+cdef inline float clip(float v, float minv, float maxv) nogil:
+    return fmax(minv, fmin(maxv, v))
+
+
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.cdivision(True)
-def scalar_square_add_gauss(float[:, :] field, x_np, y_np, sigma_np, v_np, float truncate=2.0):
-    sigma_np = np.maximum(1.0, sigma_np)
-    width_np = np.maximum(1.0, truncate * sigma_np)
-    minx_np = np.round(x_np - width_np).astype(np.int)
-    minx_np = np.clip(minx_np, 0, field.shape[1] - 1)
-    miny_np = np.round(y_np - width_np).astype(np.int)
-    miny_np = np.clip(miny_np, 0, field.shape[0] - 1)
-    maxx_np = np.round(x_np + width_np).astype(np.int)
-    maxx_np = np.clip(maxx_np + 1, minx_np + 1, field.shape[1])
-    maxy_np = np.round(y_np + width_np).astype(np.int)
-    maxy_np = np.clip(maxy_np + 1, miny_np + 1, field.shape[0])
-
-    cdef float[:] x = x_np
-    cdef float[:] y = y_np
-    cdef float[:] sigma = sigma_np
-    cdef long[:] minx = minx_np
-    cdef long[:] miny = miny_np
-    cdef long[:] maxx = maxx_np
-    cdef long[:] maxy = maxy_np
-    cdef float[:] v = v_np
-
+cpdef void scalar_square_add_gauss(float[:, :] field, float[:] x, float[:] y, float[:] sigma, float[:] v, float truncate=2.0) nogil:
     cdef Py_ssize_t i, xx, yy
-    cdef Py_ssize_t l = minx.shape[0]
-    cdef float deltax2, deltay2
-    cdef float vv
-    cdef float cv, cx, cy, csigma2
+    cdef float vv, deltax2, deltay2
+    cdef float cv, cx, cy, csigma, csigma2
+    cdef long minx, miny, maxx, maxy
 
-    for i in range(l):
-        csigma2 = sigma[i]**2
+    for i in range(x.shape[0]):
+        csigma = sigma[i]
+        csigma2 = csigma * csigma
         cx = x[i]
         cy = y[i]
         cv = v[i]
-        for xx in range(minx[i], maxx[i]):
+
+        minx = (<long>clip(cx - truncate * csigma, 0, field.shape[1] - 1))
+        maxx = (<long>clip(cx + truncate * csigma, minx + 1, field.shape[1]))
+        miny = (<long>clip(cy - truncate * csigma, 0, field.shape[0] - 1))
+        maxy = (<long>clip(cy + truncate * csigma, miny + 1, field.shape[0]))
+        for xx in range(minx, maxx):
             deltax2 = (xx - cx)**2
-            for yy in range(miny[i], maxy[i]):
+            for yy in range(miny, maxy):
                 deltay2 = (yy - cy)**2
                 vv = cv * approx_exp(-0.5 * (deltax2 + deltay2) / csigma2)
                 field[yy, xx] += vv
@@ -166,6 +153,56 @@ def paf_mask_center(float[:, :] paf_field, float x, float y, float sigma=1.0):
         )
 
     return mask_np != 0
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def scalar_values(float[:, :] field, float[:] x, float[:] y, float default=-1):
+    values_np = np.full((x.shape[0],), default, dtype=np.float32)
+    cdef float[:] values = values_np
+    cdef float maxx = <float>field.shape[1] - 1, maxy = <float>field.shape[0] - 1
+
+    for i in range(values.shape[0]):
+        if x[i] < 0.0 or y[i] < 0.0 or x[i] > maxx or y[i] > maxy:
+            continue
+
+        values[i] = field[<Py_ssize_t>y[i], <Py_ssize_t>x[i]]
+
+    return values_np
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def scalar_value(float[:, :] field, float x, float y, float default=-1):
+    if x < 0.0 or y < 0.0 or x > field.shape[1] - 1 or y > field.shape[0] - 1:
+        return default
+
+    return field[<Py_ssize_t>y, <Py_ssize_t>x]
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def scalar_value_clipped(float[:, :] field, float x, float y):
+    x = clip(x, 0.0, field.shape[1] - 1)
+    y = clip(y, 0.0, field.shape[0] - 1)
+    return field[<Py_ssize_t>y, <Py_ssize_t>x]
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def scalar_nonzero(unsigned char[:, :] field, float x, float y, unsigned char default=0):
+    if x < 0.0 or y < 0.0 or x > field.shape[1] - 1 or y > field.shape[0] - 1:
+        return default
+
+    return field[<Py_ssize_t>y, <Py_ssize_t>x]
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def scalar_nonzero_clipped(unsigned char[:, :] field, float x, float y):
+    x = clip(x, 0.0, field.shape[1] - 1)
+    y = clip(y, 0.0, field.shape[0] - 1)
+    return field[<Py_ssize_t>y, <Py_ssize_t>x]
 
 
 @cython.boundscheck(False)

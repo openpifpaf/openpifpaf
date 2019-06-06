@@ -1,5 +1,8 @@
 import numpy as np
 
+# pylint: disable=import-error
+from ..functional import scalar_value_clipped
+
 
 class Annotation(object):
     def __init__(self, j, xyv, skeleton):
@@ -16,10 +19,8 @@ class Annotation(object):
         for xyv_i, xyv in enumerate(self.data):
             if xyv[2] == 0.0:
                 continue
-            scale_field = scales[xyv_i]
-            i = max(0, min(scale_field.shape[1] - 1, int(round(xyv[0] * hr_scale))))
-            j = max(0, min(scale_field.shape[0] - 1, int(round(xyv[1] * hr_scale))))
-            self.joint_scales[xyv_i] = scale_field[j, i] / hr_scale
+            scale = scalar_value_clipped(scales[xyv_i], xyv[0] * hr_scale, xyv[1] * hr_scale)
+            self.joint_scales[xyv_i] = scale / hr_scale
 
     def score(self):
         if self.fixed_score is not None:

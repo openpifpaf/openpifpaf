@@ -72,7 +72,7 @@ def main():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     nets.cli(parser)
-    decoder.cli(parser, force_complete_pose=False, instance_threshold=0.05)
+    decoder.cli(parser, force_complete_pose=False, instance_threshold=0.1, seed_threshold=0.5)
     parser.add_argument('--no-colored-connections',
                         dest='colored_connections', default=True, action='store_false',
                         help='do not use colored connections to draw poses')
