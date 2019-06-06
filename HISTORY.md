@@ -1,6 +1,10 @@
 # History
 
-* [master](https://github.com/vita-epfl/openpifpaf/compare/v0.6.3...master)
+* [master](https://github.com/vita-epfl/openpifpaf/compare/v0.7.0...master)
+* [0.7.0](https://github.com/vita-epfl/openpifpaf/compare/v0.6.3...v0.7.0) (2019-06-06)
+    * faster seed generation in decoder
+    * training log plot improvements (labels, consistent colors)
+    * improved debug visualizer for decoder
 * [0.6.3](https://github.com/vita-epfl/openpifpaf/compare/v0.6.2...v0.6.3) (2019-05-28)
     * support parallel decoding for `predict` and `eval_coco` (~4x speed improvement) which is automatically activated for batch sizes larger than 1
 * [0.6.2](https://github.com/vita-epfl/openpifpaf/compare/v0.6.1...v0.6.2) (2019-05-23)
