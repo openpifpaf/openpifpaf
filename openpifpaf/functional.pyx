@@ -157,6 +157,48 @@ def paf_mask_center(float[:, :] paf_field, float x, float y, float sigma=1.0):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+def scalar_values(float[:, :] field, float[:] x, float[:] y, float default=-1):
+    values_np = np.full((x.shape[0],), default, dtype=np.float32)
+    cdef float[:] values = values_np
+    cdef float maxx = <float>field.shape[1] - 1, maxy = <float>field.shape[0] - 1
+
+    for i in range(values.shape[0]):
+        if x[i] < 0.0 or y[i] < 0.0 or x[i] > maxx or y[i] > maxy:
+            continue
+
+        values[i] = field[<Py_ssize_t>y[i], <Py_ssize_t>x[i]]
+
+    return values_np
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def scalar_value(float[:, :] field, float x, float y, float default=-1):
+    if x < 0.0 or y < 0.0 or x > field.shape[1] - 1 or y > field.shape[0] - 1:
+        return default
+
+    return field[<Py_ssize_t>y, <Py_ssize_t>x]
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def scalar_nonzero(unsigned char[:, :] field, float x, float y, unsigned char default=0):
+    if x < 0.0 or y < 0.0 or x > field.shape[1] - 1 or y > field.shape[0] - 1:
+        return default
+
+    return field[<Py_ssize_t>y, <Py_ssize_t>x]
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def scalar_nonzero_clipped(unsigned char[:, :] field, float x, float y):
+    x = clip(x, 0.0, field.shape[1] - 1)
+    y = clip(y, 0.0, field.shape[0] - 1)
+    return field[<Py_ssize_t>y, <Py_ssize_t>x]
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def paf_center(float[:, :] paf_field, float x, float y, float sigma=1.0):
     result_np = np.empty_like(paf_field)
     cdef float[:, :] result = result_np

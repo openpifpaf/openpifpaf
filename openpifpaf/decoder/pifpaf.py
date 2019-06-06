@@ -8,13 +8,12 @@ import numpy as np
 
 from .annotation import Annotation
 from .decoder import Decoder
-from .utils import (index_field, scalar_square_add_single,
-                    normalize_pif, normalize_paf)
+from .utils import scalar_square_add_single, normalize_pif, normalize_paf
 from ..data import KINEMATIC_TREE_SKELETON, COCO_PERSON_SKELETON, DENSER_COCO_PERSON_SKELETON
 
 # pylint: disable=import-error
 from ..functional import (cumulative_average, scalar_square_add_gauss,
-                          weiszfeld_nd, paf_center)
+                          weiszfeld_nd, paf_center, scalar_value, scalar_values, scalar_nonzero)
 
 LOG = logging.getLogger(__name__)
 
@@ -152,16 +151,13 @@ class PifPafGenerator(object):
 
         # pif init
         self._pifhr, self._pifhr_scales = self._target_intensities()
-        self._pifhr_core = self._target_intensities(core_only=True)
         if self.debug_visualizer:
             self.debug_visualizer.pifhr(self._pifhr)
-            # self.debug_visualizer.pifhr(self._pifhr_core)
 
         # paf init
         self._paf_forward = None
         self._paf_backward = None
         self._paf_forward, self._paf_backward = self._score_paf_target()
-
 
     def _target_intensities(self, v_th=0.1, core_only=False):
         start = time.perf_counter()
@@ -205,10 +201,10 @@ class PifPafGenerator(object):
 
             j1i = self.skeleton[c][0] - 1
             if pifhr_floor < 1.0:
-                ij_b = np.round(fourds[0, 1:3] * self.stride).astype(np.int)
-                ij_b[0] = np.clip(ij_b[0], 0, self._pifhr.shape[2] - 1)
-                ij_b[1] = np.clip(ij_b[1], 0, self._pifhr.shape[1] - 1)
-                pifhr_b = self._pifhr[j1i, ij_b[1], ij_b[0]]
+                pifhr_b = scalar_values(self._pifhr[j1i],
+                                        fourds[0, 1] * self.stride,
+                                        fourds[0, 2] * self.stride,
+                                        default=0.0)
                 scores_b = scores * (pifhr_floor + (1.0 - pifhr_floor) * pifhr_b)
             else:
                 scores_b = scores
@@ -221,10 +217,10 @@ class PifPafGenerator(object):
 
             j2i = self.skeleton[c][1] - 1
             if pifhr_floor < 1.0:
-                ij_f = np.round(fourds[1, 1:3] * self.stride).astype(np.int)
-                ij_f[0] = np.clip(ij_f[0], 0, self._pifhr.shape[2] - 1)
-                ij_f[1] = np.clip(ij_f[1], 0, self._pifhr.shape[1] - 1)
-                pifhr_f = self._pifhr[j2i, ij_f[1], ij_f[0]]
+                pifhr_f = scalar_values(self._pifhr[j2i],
+                                        fourds[1, 1] * self.stride,
+                                        fourds[1, 2] * self.stride,
+                                        default=0.0)
                 scores_f = scores * (pifhr_floor + (1.0 - pifhr_floor) * pifhr_f)
             else:
                 scores_f = scores
@@ -241,78 +237,57 @@ class PifPafGenerator(object):
     def annotations(self):
         start = time.perf_counter()
 
-        seeds = self._pifhr_seeds()
-
-        occupied = np.zeros(self._pifhr_scales.shape)
+        occupied = np.zeros(self._pifhr_scales.shape, dtype=np.uint8)
         annotations = []
-        for v, f, x, y in seeds:
-            i = np.clip(int(round(x * self.stride)), 0, occupied.shape[2] - 1)
-            j = np.clip(int(round(y * self.stride)), 0, occupied.shape[1] - 1)
-            if occupied[f, j, i]:
+        for v, f, x, y, s in self._pif_seeds():
+            if scalar_nonzero(occupied[f], x * self.stride, y * self.stride):
                 continue
+            scalar_square_add_single(occupied[f],
+                                     x * self.stride,
+                                     y * self.stride,
+                                     max(4.0, s * self.stride),
+                                     1)
 
             ann = Annotation(f, (x, y, v), self.skeleton)
             self._grow(ann, self._paf_forward, self._paf_backward)
             ann.fill_joint_scales(self._pifhr_scales, self.stride)
             annotations.append(ann)
 
-            for i, xyv in enumerate(ann.data):
+            for joint_i, xyv in enumerate(ann.data):
                 if xyv[2] == 0.0:
                     continue
 
-                width = ann.joint_scales[i] * self.stride
-                scalar_square_add_single(occupied[i],
+                width = ann.joint_scales[joint_i]
+                scalar_square_add_single(occupied[joint_i],
                                          xyv[0] * self.stride,
                                          xyv[1] * self.stride,
-                                         max(4.0, width / 2.0),
-                                         1.0)
+                                         max(4.0, width * self.stride),
+                                         1)
 
         if self.debug_visualizer:
-            self.log.debug('occupied annotations field 0')
+            self.log.debug('occupied field 0')
             self.debug_visualizer.occupied(occupied[0])
 
         self.log.debug('keypoint sets %d, %.3fs', len(annotations), time.perf_counter() - start)
         return annotations
 
-    def _pifhr_seeds(self):
+    def _pif_seeds(self):
         start = time.perf_counter()
+
         seeds = []
-        occupied = np.zeros(self._pifhr_scales[0].shape, dtype=np.float32)
-        for field_i, (f, s) in enumerate(zip(self._pifhr_core, self._pifhr_scales)):
-            occupied.fill(0.0)
-            index_fields = index_field(f.shape)
+        for field_i, p in enumerate(self.pif):
+            _, x, y, s = p[:, p[0] > self.seed_threshold / 2.0]
+            v = scalar_values(self._pifhr[field_i], x * self.stride, y * self.stride)
+            m = v > self.seed_threshold
+            x, y, v = x[m], y[m], v[m]
 
-            mask = f > self.seed_threshold
-            f = f[mask]
-            index_fields = index_fields[:, mask]
-
-            for entry_i in np.argsort(f)[::-1]:
-                x, y = index_fields[:, entry_i]
-                v = f[entry_i]
-
-                i, j = int(x), int(y)
-                if occupied[j, i]:
-                    continue
-
-                width = max(4, s[j, i])
-                scalar_square_add_single(occupied, x, y, width / 2.0, 1.0)
-                seeds.append((v, field_i, x / self.stride, y / self.stride))
-
-            if self.debug_visualizer:
-                if field_i in self.debug_visualizer.pif_indices:
-                    self.log.debug('occupied seed, field %d', field_i)
-                    self.debug_visualizer.occupied(occupied)
-
-        seeds = list(sorted(seeds, reverse=True))
-        if len(seeds) > 500:
-            if seeds[500][0] > 0.1:
-                seeds = [s for s in seeds if s[0] > 0.1]
-            else:
-                seeds = seeds[:500]
+            for vv, xx, yy, ss in zip(v, x, y, s):
+                seeds.append((vv, field_i, xx, yy, ss))
 
         if self.debug_visualizer:
             self.debug_visualizer.seeds(seeds, self.stride)
 
+        seeds = sorted(seeds, reverse=True)
         self.log.debug('seeds %d, %.3fs', len(seeds), time.perf_counter() - start)
         return seeds
 
