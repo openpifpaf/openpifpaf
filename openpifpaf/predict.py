@@ -73,6 +73,16 @@ def cli():
     return args
 
 
+def bbox_from_keypoints(kps):
+    m = kps[:, 2] > 0
+    if not np.any(m):
+        return [0, 0, 0, 0]
+
+    x, y = np.min(kps[:, 0][m]), np.min(kps[:, 1][m])
+    w, h = np.max(kps[:, 0][m]) - x, np.max(kps[:, 1][m]) - y
+    return [x, y, w, h]
+
+
 def main():
     args = cli()
 
@@ -125,9 +135,10 @@ def main():
             if 'json' in args.output_types:
                 with open(output_path + '.pifpaf.json', 'w') as f:
                     json.dump([
-                        {'keypoints': np.around(kps, 1).reshape(-1).tolist(),
-                         'bbox': [np.min(kps[:, 0]), np.min(kps[:, 1]),
-                                  np.max(kps[:, 0]), np.max(kps[:, 1])]}
+                        {
+                            'keypoints': np.around(kps, 1).reshape(-1).tolist(),
+                            'bbox': bbox_from_keypoints(kps),
+                        }
                         for kps in keypoint_sets
                     ], f)
 
