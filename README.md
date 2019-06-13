@@ -178,10 +178,11 @@ In this process, ffmpeg scales the video to `641px` which can be adjusted.
 # Documentation Pages
 
 * [datasets](docs/datasets.md)
+* [Google Colab demo](https://colab.research.google.com/drive/1H8T4ZE6wc0A9xJE4oGnhgHpUpAH5HL7W)
 * [studies.ipynb](docs/studies.ipynb)
 * [evaluation logs](docs/eval_logs.md)
 * [performance analysis](docs/performance.md)
-* [HISTORY](HISTORY.md)
+* [history](HISTORY.md)
 
 # Related Projects
 
