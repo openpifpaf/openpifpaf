@@ -97,29 +97,12 @@ python3 -m openpifpaf.predict my_image.jpg --show
 # Pre-trained Models
 
 Put the files from this
-[Google Drive](https://drive.google.com/drive/folders/1v8UNDjZbqeMZY64T33tSDOq1jtcBJBy7?usp=sharing>)
-into your `outputs` folder.
-Alternative downloads:
+__[Google Drive](https://drive.google.com/drive/folders/1v8UNDjZbqeMZY64T33tSDOq1jtcBJBy7?usp=sharing>)__
+into your `outputs` folder. The three standard, pretrained models are also available when
+using the command line option `--checkpoint resnet50`, `--checkpoint resnet101`
+and `--checkpoint resnet152`.
 
-| models            | [Cloudflare IPFS gateway] to https | [IPFS]      | [DAT] (broken?) |
-|-------------------|------------------------------------|-------------|-----------------|
-| ResNet50 (97MB)   | [CF R50]                           | [IPFS R50]  | [DAT repo]      |
-| ResNet101 (169MB) | [CF R101]                          | [IPFS R101] | [DAT repo]      |
-| ResNet152 (229MB) | [CF R152]                          | [IPFS R152] | [DAT repo]      |
-
-[Cloudflare IPFS gateway]: https://blog.cloudflare.com/distributed-web-gateway/
-[IPFS]: https://ipfs.io/
-[DAT]: https://datproject.org/
-[CF R50]: https://cloudflare-ipfs.com/ipfs/QmVySuAqA2MMMPDHM1p4wLpNo93FPsZC21nApUdsqX7uDB
-[IPFS R50]: ipfs://QmVySuAqA2MMMPDHM1p4wLpNo93FPsZC21nApUdsqX7uDB
-[CF R101]: https://cloudflare-ipfs.com/ipfs/QmdmrxTRnDucpkEQhPY9bKFcP5sb9cqRZKPC7tGKWkfqJw
-[IPFS R101]: ipfs://QmdmrxTRnDucpkEQhPY9bKFcP5sb9cqRZKPC7tGKWkfqJw
-[CF R152]: https://cloudflare-ipfs.com/ipfs/QmPhJVjt3jw9q6bpKQgvuN2aszcwSBFYszyU9Lkeg9pPZu
-[IPFS R152]: ipfs://QmPhJVjt3jw9q6bpKQgvuN2aszcwSBFYszyU9Lkeg9pPZu
-[DAT repo]: dat://339c3ba0e0cc7e1dd3d3d6d2241004fda7ceabb36d17216027da87d48fd3ece8
-
-
-Visualize logs:
+To visualize logs:
 
 ```sh
 python3 -m openpifpaf.logs \
