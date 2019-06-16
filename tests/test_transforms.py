@@ -1,7 +1,7 @@
 import numpy as np
 import PIL
 
-from openpifpaf.transforms import SquareCrop
+from openpifpaf import transforms
 
 
 def rescale_from_12_to_6(im_np, x, y):
@@ -14,9 +14,12 @@ def rescale_from_12_to_6(im_np, x, y):
         'segmentation': None,
     }]
 
-    transform = SquareCrop(6, min_scale=1.0)
+    transform = transforms.Compose([
+        transforms.Normalize(),
+        transforms.RescaleAbsolute(6),
+    ])
 
-    return transform(im, anns)
+    return transform(im, anns, None)
 
 
 def test_1():
