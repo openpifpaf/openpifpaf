@@ -105,6 +105,7 @@ def main():
 
     if args.augmentation:
         preprocess = transforms.Compose([
+            transforms.Normalize(),
             transforms.RandomApply(transforms.HFlip(), 0.5),
             transforms.RescaleRelative(),
             transforms.Crop(args.square_edge),
