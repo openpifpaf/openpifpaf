@@ -13,8 +13,10 @@ from abc import ABCMeta, abstractmethod
 import copy
 import io
 import logging
+import math
 import numpy as np
 import PIL
+import scipy
 import torch
 import torchvision
 
@@ -56,7 +58,7 @@ image_transform_train = torchvision.transforms.Compose([  # pylint: disable=inva
 
 class Preprocess(metaclass=ABCMeta):
     @abstractmethod
-    def __call__(self, image, anns, meta=None):
+    def __call__(self, image, anns, meta):
         """Implementation of preprocess operation."""
 
     @staticmethod
@@ -94,7 +96,7 @@ class Normalize(Preprocess):
 
         return anns
 
-    def __call__(self, image, anns, meta=None):
+    def __call__(self, image, anns, meta):
         anns = self.normalize_annotations(anns)
 
         if meta is None:
@@ -114,7 +116,7 @@ class Compose(Preprocess):
     def __init__(self, preprocess_list):
         self.preprocess_list = preprocess_list
 
-    def __call__(self, image, anns, meta=None):
+    def __call__(self, image, anns, meta):
         for p in self.preprocess_list:
             image, anns, meta = p(image, anns, meta)
 
@@ -130,7 +132,7 @@ class MultiScale(Preprocess):
         """
         self.preprocess_list = preprocess_list
 
-    def __call__(self, image, anns, meta=None):
+    def __call__(self, image, anns, meta):
         image_list, anns_list, meta_list = [], [], []
         for p in self.preprocess_list:
             this_image, this_anns, this_meta = p(image, anns, meta)
@@ -147,11 +149,8 @@ class RescaleRelative(Preprocess):
         self.scale_range = scale_range
         self.resample = resample
 
-    def __call__(self, image, anns, meta=None):
-        if meta is None:
-            image, anns, meta = Normalize()(image, anns)
-        else:
-            meta = copy.deepcopy(meta)
+    def __call__(self, image, anns, meta):
+        meta = copy.deepcopy(meta)
         anns = copy.deepcopy(anns)
 
         if isinstance(self.scale_range, tuple):
@@ -201,11 +200,8 @@ class RescaleAbsolute(Preprocess):
         self.long_edge = long_edge
         self.resample = resample
 
-    def __call__(self, image, anns, meta=None):
-        if meta is None:
-            image, anns, meta = Normalize()(image, anns)
-        else:
-            meta = copy.deepcopy(meta)
+    def __call__(self, image, anns, meta):
+        meta = copy.deepcopy(meta)
         anns = copy.deepcopy(anns)
 
         image, anns, scale_factors = self.scale(image, anns)
@@ -256,11 +252,8 @@ class Crop(Preprocess):
         self.log = logging.getLogger(self.__class__.__name__)
         self.long_edge = long_edge
 
-    def __call__(self, image, anns, meta=None):
-        if meta is None:
-            image, anns, meta = Normalize()(image, anns)
-        else:
-            meta = copy.deepcopy(meta)
+    def __call__(self, image, anns, meta):
+        meta = copy.deepcopy(meta)
         anns = copy.deepcopy(anns)
 
         image, anns, ltrb = self.crop(image, anns)
@@ -315,11 +308,8 @@ class CenterPad(Preprocess):
             target_size = (target_size, target_size)
         self.target_size = target_size
 
-    def __call__(self, image, anns, meta=None):
-        if meta is None:
-            image, anns, meta = Normalize()(image, anns)
-        else:
-            meta = copy.deepcopy(meta)
+    def __call__(self, image, anns, meta):
+        meta = copy.deepcopy(meta)
         anns = copy.deepcopy(anns)
 
         image, anns, ltrb = self.center_pad(image, anns)
@@ -363,11 +353,8 @@ class HFlip(Preprocess):
     def __init__(self, *, swap=horizontal_swap_coco):
         self.swap = swap
 
-    def __call__(self, image, anns, meta=None):
-        if meta is None:
-            image, anns, meta = Normalize()(image, anns)
-        else:
-            meta = copy.deepcopy(meta)
+    def __call__(self, image, anns, meta):
+        meta = copy.deepcopy(meta)
         anns = copy.deepcopy(anns)
 
         w, _ = image.size
@@ -394,10 +381,81 @@ class RandomApply(Preprocess):
         self.transform = transform
         self.probability = probability
 
-    def __call__(self, image, anns, meta=None):
+    def __call__(self, image, anns, meta):
         if float(torch.rand(1).item()) > self.probability:
             return image, anns, meta
         return self.transform(image, anns, meta)
+
+
+class RotateBy90(Preprocess):
+    def __init__(self, angle_perturbation=5.0):
+        super().__init__()
+        self.log = logging.getLogger(self.__class__.__name__)
+
+        self.angle_perturbation = angle_perturbation
+
+    def __call__(self, image, anns, meta):
+        meta = copy.deepcopy(meta)
+        anns = copy.deepcopy(anns)
+
+        w, h = image.size
+        rnd1 = float(torch.rand(1).item())
+        angle = int(rnd1 * 4.0) * 90.0
+        rnd2 = float(torch.rand(1).item())
+        angle += -self.angle_perturbation + 2.0 * self.angle_perturbation * rnd2
+        self.log.debug('rotation angle = %f', angle)
+
+        # rotate image
+        im_np = np.asarray(image)
+        im_np = scipy.ndimage.rotate(im_np, angle=angle, cval=127, reshape=False)
+        image = PIL.Image.fromarray(im_np)
+        self.log.debug('rotated by = %f degrees', angle)
+
+        # rotate keypoints
+        cangle = math.cos(angle / 180.0 * math.pi)
+        sangle = math.sin(angle / 180.0 * math.pi)
+        for ann in anns:
+            xy = ann['keypoints'][:, :2]
+            x_old = xy[:, 0].copy() - w/2
+            y_old = xy[:, 1].copy() - h/2
+            xy[:, 0] = w/2 + cangle * x_old + sangle * y_old
+            xy[:, 1] = h/2 - sangle * x_old + cangle * y_old
+            ann['bbox'] = self.rotate_box(ann['bbox'], w, h, angle)
+
+        self.log.debug('meta before: %s', meta)
+        meta['valid_area'] = self.rotate_box(meta['valid_area'], w, h, angle)
+        self.log.debug('meta after: %s', meta)
+
+        for ann in anns:
+            ann['valid_area'] = meta['valid_area']
+
+        return image, anns, meta
+
+    @staticmethod
+    def rotate_box(bbox, width, height, angle_degrees):
+        """Input bounding box is of the form x, y, width, height."""
+
+        cangle = math.cos(angle_degrees / 180.0 * math.pi)
+        sangle = math.sin(angle_degrees / 180.0 * math.pi)
+
+        four_corners = np.array([
+            [bbox[0], bbox[1]],
+            [bbox[0] + bbox[2], bbox[1]],
+            [bbox[0], bbox[1] + bbox[3]],
+            [bbox[0] + bbox[2], bbox[1] + bbox[3]],
+        ])
+
+        x_old = four_corners[:, 0].copy() - width/2
+        y_old = four_corners[:, 1].copy() - height/2
+        four_corners[:, 0] = width/2 + cangle * x_old + sangle * y_old
+        four_corners[:, 1] = height/2 - sangle * x_old + cangle * y_old
+
+        x = np.min(four_corners[:, 0])
+        y = np.min(four_corners[:, 1])
+        xmax = np.max(four_corners[:, 0])
+        ymax = np.max(four_corners[:, 1])
+
+        return np.array([x, y, xmax - x, ymax - y])
 
 
 class SquareRescale(object):
