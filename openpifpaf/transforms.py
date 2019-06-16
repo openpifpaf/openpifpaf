@@ -360,8 +360,7 @@ class CenterPad(Preprocess):
 
 
 class HFlip(Preprocess):
-    def __init__(self, probability=1.0, swap=horizontal_swap_coco):
-        self.probability = probability
+    def __init__(self, *, swap=horizontal_swap_coco):
         self.swap = swap
 
     def __call__(self, image, anns, meta=None):
@@ -370,9 +369,6 @@ class HFlip(Preprocess):
         else:
             meta = copy.deepcopy(meta)
         anns = copy.deepcopy(anns)
-
-        if torch.rand(1).item() > self.probability:
-            return image, anns, meta
 
         w, _ = image.size
         image = image.transpose(PIL.Image.FLIP_LEFT_RIGHT)
@@ -391,6 +387,17 @@ class HFlip(Preprocess):
             ann['valid_area'] = meta['valid_area']
 
         return image, anns, meta
+
+
+class RandomApply(Preprocess):
+    def __init__(self, transform, probability):
+        self.transform = transform
+        self.probability = probability
+
+    def __call__(self, image, anns, meta=None):
+        if float(torch.rand(1).item()) > self.probability:
+            return image, anns, meta
+        return self.transform(image, anns, meta)
 
 
 class SquareRescale(object):
