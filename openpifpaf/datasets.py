@@ -130,7 +130,7 @@ class CocoKeypoints(torch.utils.data.Dataset):
             meta_init['flickr_full_page'] = 'http://flickr.com/photo.gne?id={}'.format(flickr_id)
 
         # preprocess image and annotations
-        image, anns, meta = self.preprocess(image, anns)
+        image, anns, meta = self.preprocess(image, anns, None)
         if isinstance(image, list):
             return self.multi_image_processing(image, anns, meta, meta_init)
 

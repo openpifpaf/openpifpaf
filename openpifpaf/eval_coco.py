@@ -294,9 +294,13 @@ def preprocess_factory_from_args(args):
         ])
         collate_fn = datasets.collate_multiscale_images_anns_meta
     elif args.batch_size == 1:
-        preprocess = transforms.RescaleAbsolute(args.long_edge)
+        preprocess = transforms.Compose([
+            transforms.Normalize(),
+            transforms.RescaleAbsolute(args.long_edge),
+        ])
     else:
         preprocess = transforms.Compose([
+            transforms.Normalize(),
             transforms.RescaleAbsolute(args.long_edge),
             transforms.CenterPad(args.long_edge),
         ])
