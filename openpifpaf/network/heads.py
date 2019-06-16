@@ -8,6 +8,8 @@ import torch
 
 LOG = logging.getLogger(__name__)
 
+HEADS = None
+
 
 class Head(metaclass=ABCMeta):
     @abstractstaticmethod
