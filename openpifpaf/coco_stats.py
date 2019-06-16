@@ -20,7 +20,10 @@ def main():
                         help='long edge of input images')
     args = parser.parse_args()
 
-    preprocess = transforms.SquareRescale(args.long_edge)
+    preprocess = transforms.Compose([
+        transforms.RescaleAbsolute(args.long_edge),
+        transforms.CenterPad(args.long_edge),
+    ])
     data = datasets.CocoKeypoints(
         root=IMAGE_DIR,
         annFile=ANNOTATIONS,
