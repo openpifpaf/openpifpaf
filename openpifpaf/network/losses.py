@@ -10,6 +10,8 @@ from ..data import (COCO_PERSON_SIGMAS, COCO_PERSON_SKELETON, KINEMATIC_TREE_SKE
 
 LOG = logging.getLogger(__name__)
 
+LOSSES = None
+
 
 class Loss(metaclass=ABCMeta):
     @abstractstaticmethod
@@ -342,7 +344,7 @@ def factory(head_names, lambdas, reg_loss_name=None, r_smooth=None, device=None)
 
 
 def factory_loss(head_name, reg_loss):
-    for loss in Loss.__subclasses__():
+    for loss in (LOSSES or Loss.__subclasses__()):
         LOG.debug('checking whether loss %s matches %s', loss.__name__, head_name)
         if not loss.match(head_name):
             continue

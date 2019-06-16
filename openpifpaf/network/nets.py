@@ -91,7 +91,7 @@ class ShellFork(torch.nn.Module):
 
 
 def factory_from_args(args):
-    for head in heads.Head.__subclasses__():
+    for head in (heads.HEADS or heads.Head.__subclasses__()):
         head.apply_args(args)
 
     return factory(checkpoint=args.checkpoint,
@@ -185,7 +185,7 @@ def factory(*,
 
 
 def create_headnet(name, n_features):
-    for head in heads.Head.__subclasses__():
+    for head in (heads.HEADS or heads.Head.__subclasses__()):
         LOG.debug('checking head %s matches %s', head.__name__, name)
         if not head.match(name):
             continue
@@ -289,5 +289,5 @@ def cli(parser):
     group.add_argument('--no-pretrain', dest='pretrained', default=True, action='store_false',
                        help='create model without ImageNet pretraining')
 
-    for head in heads.Head.__subclasses__():
+    for head in (heads.HEADS or heads.Head.__subclasses__()):
         head.cli(parser)
