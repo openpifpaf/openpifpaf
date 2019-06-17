@@ -29,6 +29,13 @@ def jpeg_compression_augmentation(im):
     return PIL.Image.open(f)
 
 
+def blur_augmentation(im, max_sigma=5.0):
+    im_np = np.asarray(im)
+    sigma = max_sigma * float(torch.rand(1).item())
+    im_np = scipy.ndimage.filters.gaussian_filter(im_np, sigma=(sigma, sigma, 0))
+    return PIL.Image.fromarray(im_np)
+
+
 normalize = torchvision.transforms.Normalize(  # pylint: disable=invalid-name
     mean=[0.485, 0.456, 0.406],
     std=[0.229, 0.224, 0.225]
