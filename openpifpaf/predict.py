@@ -95,6 +95,7 @@ def main():
     preprocess = None
     if args.long_edge:
         preprocess = transforms.Compose([
+            transforms.Normalize(),
             transforms.RescaleAbsolute(args.long_edge),
             transforms.CenterPad(args.long_edge),
         ])
