@@ -41,9 +41,9 @@ class AnnRescaler(object):
         mask = np.ones(width_height[::-1], dtype=np.bool)
         for ann in anns:
             if include_annotated and \
-            not ann['iscrowd'] and \
-            'keypoints' in ann and \
-            np.any(ann['keypoints'][:, 2] > 0):
+               not ann['iscrowd'] and \
+               'keypoints' in ann and \
+               np.any(ann['keypoints'][:, 2] > 0):
                 continue
 
             if 'mask' not in ann:
@@ -56,5 +56,7 @@ class AnnRescaler(object):
                 bb = bb.astype(np.int)
                 mask[bb[1]:bb[3] + 1, bb[0]:bb[2] + 1] = 0
                 continue
+
             mask[ann['mask']] = 0
+
         return mask
