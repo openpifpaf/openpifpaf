@@ -216,7 +216,7 @@ class CompositeLoss(Loss, torch.nn.Module):
         target_regs = t[1:1 + self.n_vectors]
         target_scale = t[-1]
 
-        bce_masks = torch.sum(target_intensity, dim=1, keepdim=True) > 0.5
+        bce_masks = (target_intensity[:, :-1] + target_intensity[:, -1:]) > 0.5
         if not torch.any(bce_masks):
             return None, None, None
 
