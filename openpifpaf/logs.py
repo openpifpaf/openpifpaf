@@ -319,10 +319,11 @@ class Plots(object):
 
 class EvalPlots(object):
     def __init__(self, log_files, labels=None, output_prefix=None,
-                 edge=321, samples=200, decoder=0):
+                 edge=321, samples=200, decoder=0, legend_last_ap=True):
         self.edge = edge
         self.samples = samples
         self.decoder = decoder
+        self.legend_last_ap = legend_last_ap
 
         self.datas = [self.read_log(f) for f in log_files]
         self.labels = labels or log_files
@@ -357,6 +358,9 @@ class EvalPlots(object):
         for data, label in zip(self.datas, self.labels):
             if not data:
                 continue
+            if self.legend_last_ap:
+                last_ap = data[-1][1][0]
+                label = '{} (AP={:.1%})'.format(label, last_ap)
             x = np.array([e for e, _ in data])
             y = np.array([d[entry] for _, d in data])
             ax.plot(x, y, 'o-', label=label, markersize=2)
