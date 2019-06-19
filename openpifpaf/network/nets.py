@@ -207,6 +207,10 @@ def factory_from_scratch(basename, headnames, *, pretrained=True):
         assert pretrained is False
         base_vision = torchvision.models.ResNet(
             torchvision.models.resnet.Bottleneck, [3, 8, 72, 3])
+    elif 'resnext50' in basename:
+        base_vision = torchvision.models.resnext50_32x4d(pretrained)
+    elif 'resnext101' in basename:
+        base_vision = torchvision.models.resnext101_32x8d(pretrained)
     # elif basename == 'densenet121':
     #     basenet = basenetworks.DenseNet(torchvision.models.densenet121(pretrained), 'DenseNet121')
     # else:
