@@ -33,13 +33,14 @@ class Visualizer(object):
 
     def pif17(self, image, target, stride, keypoint_sets):
         resized_image = image[::stride, ::stride]
+        bce_targets = target[0]
+        bce_masks = (bce_targets[:-1] + bce_targets[-1:]) > 0.5
         for f in [1, 2]:
             print('intensity field', COCO_KEYPOINTS[f])
 
             with show.canvas() as ax:
                 ax.imshow(resized_image)
-                bce_mask = np.sum(target[0], axis=0) > 0.0
-                ax.imshow(target[0][f] + 0.5 * bce_mask, alpha=0.9, vmin=0.0, vmax=1.0)
+                ax.imshow(target[0][f] + 0.5 * bce_masks[f], alpha=0.9, vmin=0.0, vmax=1.0)
 
             with show.canvas() as ax:
                 ax.imshow(image)
@@ -49,14 +50,15 @@ class Visualizer(object):
 
     def paf19(self, image, target, stride, keypoint_sets):
         resized_image = image[::stride, ::stride]
+        bce_targets = target[0]
+        bce_masks = (bce_targets[:-1] + bce_targets[-1:]) > 0.5
         for f in [1, 2]:
             print('association field',
                   COCO_KEYPOINTS[COCO_PERSON_SKELETON[f][0] - 1],
                   COCO_KEYPOINTS[COCO_PERSON_SKELETON[f][1] - 1])
             with show.canvas() as ax:
                 ax.imshow(resized_image)
-                bce_mask = np.sum(target[0], axis=0) > 0.0
-                ax.imshow(target[0][f] + 0.5 * bce_mask, alpha=0.9, vmin=0.0, vmax=1.0)
+                ax.imshow(target[0][f] + 0.5 * bce_masks[f], alpha=0.9, vmin=0.0, vmax=1.0)
 
             with show.canvas() as ax:
                 ax.imshow(image)

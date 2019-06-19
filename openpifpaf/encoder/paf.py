@@ -179,9 +179,6 @@ class PafGenerator(object):
             # update intensity
             self.intensities[i, fminy:fmaxy, fminx:fmaxx] = 1.0
 
-            # update background
-            self.intensities[-1, fminy:fmaxy, fminx:fmaxx] = 0.0
-
             # update regressions
             sink1 = sink + joint1_offset
             sink2 = sink + joint2_offset

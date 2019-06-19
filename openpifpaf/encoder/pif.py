@@ -130,9 +130,6 @@ class PifGenerator(object):
         # update intensity
         self.intensities[f, miny:maxy, minx:maxx] = 1.0
 
-        # allow unknown margin in background
-        self.intensities[-1, miny:maxy, minx:maxx] = 0.0
-
         # update regression
         sink_reg = self.sink + offset
         sink_l = np.linalg.norm(sink_reg, axis=0)
