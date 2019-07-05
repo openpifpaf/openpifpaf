@@ -210,28 +210,63 @@ def create_headnet(name, n_features):
     raise Exception('unknown head to create a head network: {}'.format(name))
 
 
-# pylint: disable=too-many-branches
+# pylint: disable=too-many-return-statements
 def factory_from_scratch(basename, headnames, *, pretrained=True):
     if 'resnet50' in basename:
         base_vision = torchvision.models.resnet50(pretrained)
-    elif 'resnet101' in basename:
+        return resnet_factory_from_scratch(basename, base_vision, headnames)
+    if 'resnet101' in basename:
         base_vision = torchvision.models.resnet101(pretrained)
-    elif 'resnet152' in basename:
+        return resnet_factory_from_scratch(basename, base_vision, headnames)
+    if 'resnet152' in basename:
         base_vision = torchvision.models.resnet152(pretrained)
-    elif 'resnet260' in basename:
+        return resnet_factory_from_scratch(basename, base_vision, headnames)
+    if 'resnet260' in basename:
         assert pretrained is False
         base_vision = torchvision.models.ResNet(
             torchvision.models.resnet.Bottleneck, [3, 8, 72, 3])
-    elif 'resnext50' in basename:
+        return resnet_factory_from_scratch(basename, base_vision, headnames)
+    if 'resnext50' in basename:
         base_vision = torchvision.models.resnext50_32x4d(pretrained)
-    elif 'resnext101' in basename:
+        return resnet_factory_from_scratch(basename, base_vision, headnames)
+    if 'resnext101' in basename:
         base_vision = torchvision.models.resnext101_32x8d(pretrained)
-    # elif basename == 'densenet121':
+        return resnet_factory_from_scratch(basename, base_vision, headnames)
+    if 'shufflenetv2x1' in basename:
+        base_vision = torchvision.models.shufflenet_v2_x1_0(pretrained)
+        return shufflenet_factory_from_scratch(basename, base_vision, 1024, headnames)
+    if 'shufflenetv2x2' in basename:
+        base_vision = torchvision.models.shufflenet_v2_x2_0(pretrained)
+        return shufflenet_factory_from_scratch(basename, base_vision, 2048, headnames)
+    if 'shufflenetv2x2w' in basename:
+        base_vision = torchvision.models._shufflenetv2(  # pylint: disable=protected-access
+            'shufflenetv2_x2.0_w', pretrained, False,
+            [4, 8, 4], [24, 244, 488, 976, 3072],
+        )
+        return shufflenet_factory_from_scratch(basename, base_vision, 3072, headnames)
+    # if basename == 'densenet121':
     #     basenet = basenetworks.DenseNet(torchvision.models.densenet121(pretrained), 'DenseNet121')
     # else:
     #     raise Exception('basenet not supported')
-    else:
-        raise Exception('unknown base network in {}'.format(basename))
+
+    raise Exception('unknown base network in {}'.format(basename))
+
+
+def shufflenet_factory_from_scratch(basename, base_vision, out_features, headnames):
+    blocks = basenetworks.ShuffleNetV2Factory(base_vision).blocks()
+    basenet = basenetworks.BaseNetwork(
+        torch.nn.Sequential(*blocks),
+        basename,
+        input_output_scale=16,
+        out_features=out_features,
+    )
+    headnets = [create_headnet(h, basenet.out_features) for h in headnames if h != 'skeleton']
+    net_cpu = Shell(basenet, headnets)
+    model_defaults(net_cpu)
+    return net_cpu
+
+
+def resnet_factory_from_scratch(basename, base_vision, headnames):
     resnet_factory = basenetworks.ResnetBlocks(base_vision)
 
     # input block
