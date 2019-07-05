@@ -36,6 +36,21 @@ class BaseNetwork(torch.nn.Module):
         return self.net(image)
 
 
+class ShuffleNetV2Factory(object):
+    def __init__(self, torchvision_shufflenetv2):
+        self.torchvision_shufflenetv2 = torchvision_shufflenetv2
+
+    def blocks(self):
+        return [
+            self.torchvision_shufflenetv2.conv1,
+            # self.torchvision_shufflenetv2.maxpool,
+            self.torchvision_shufflenetv2.stage2,
+            self.torchvision_shufflenetv2.stage3,
+            self.torchvision_shufflenetv2.stage4,
+            self.torchvision_shufflenetv2.conv5,
+        ]
+
+
 class ResnetC4(BaseNetwork):
     """Resnet capped after stage4. Default is a Resnet50.
 
