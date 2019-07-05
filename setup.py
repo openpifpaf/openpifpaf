@@ -63,7 +63,7 @@ setup(
         'python-json-logger',
         'scipy',
         'torch>=1.1.0',
-        'torchvision',
+        'torchvision>=0.3',
     ],
     extras_require={
         'test': [
