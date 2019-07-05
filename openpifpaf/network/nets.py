@@ -102,6 +102,8 @@ def factory_from_args(args):
 
 # pylint: disable=too-many-branches
 def model_migration(net_cpu):
+    model_defaults(net_cpu)
+
     for m in net_cpu.modules():
         if not isinstance(m, torch.nn.Conv2d):
             continue
@@ -130,6 +132,19 @@ def model_migration(net_cpu):
             head.dequad_op = torch.nn.PixelShuffle(2)
         if not hasattr(head, 'class_convs') and hasattr(head, 'class_conv'):
             head.class_convs = torch.nn.ModuleList([head.class_conv])
+
+
+def model_defaults(net_cpu):
+    for m in net_cpu.modules():
+        if isinstance(m, (torch.nn.BatchNorm1d, torch.nn.BatchNorm2d)):
+            # avoid numerical instabilities
+            # (only seen sometimes when training with GPU)
+            # Variances in pretrained models can be as low as 1e-17.
+            # m.running_var.clamp_(min=1e-8)
+            m.eps = 1e-4  # tf default is 0.001
+
+            # less momentum for variance and expectation
+            m.momentum = 0.01  # tf default is 0.99
 
 
 # pylint: disable=too-many-branches
@@ -273,7 +288,9 @@ def factory_from_scratch(basename, headnames, *, pretrained=True):
         resnet_factory.out_channels(blocks[-1]),
     )
     headnets = [create_headnet(h, basenet.out_features) for h in headnames if h != 'skeleton']
-    return Shell(basenet, headnets)
+    net_cpu = Shell(basenet, headnets)
+    model_defaults(net_cpu)
+    return net_cpu
 
 
 def cli(parser):

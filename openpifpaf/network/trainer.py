@@ -148,11 +148,6 @@ class Trainer(object):
                     # m.weight.requires_grad = False
                     # m.bias.requires_grad = False
 
-                    # avoid numerical instabilities
-                    # (only seen sometimes when training with GPU)
-                    # Variances in pretrained models can be as low as 1e-17.
-                    # m.running_var.clamp_(min=1e-8)
-                    m.eps = 1e-4
         self.ema_restore()
         self.ema = None
 
@@ -230,12 +225,6 @@ class Trainer(object):
                     m.eval()
                     # m.weight.requires_grad = False
                     # m.bias.requires_grad = False
-
-                    # avoid numerical instabilities
-                    # (only seen sometimes when training with GPU)
-                    # Variances in pretrained models can be as low as 1e-17.
-                    # m.running_var.clamp_(min=1e-8)
-                    m.eps = 1e-4
 
         epoch_loss = 0.0
         head_epoch_losses = None
