@@ -76,6 +76,9 @@ def cli():
     if args.debug and 'skeleton' not in args.headnets:
         raise Exception('add "skeleton" as last headnet to see debug output')
 
+    if args.freeze_base and args.checkpoint:
+        raise Exception('remove --freeze-base when running from a checkpoint')
+
     if args.debug_without_plots:
         args.debug = True
 
