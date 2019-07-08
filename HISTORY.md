@@ -1,6 +1,12 @@
 # History
 
-* [master](https://github.com/vita-epfl/openpifpaf/compare/v0.7.0...master)
+* [master](https://github.com/vita-epfl/openpifpaf/compare/v0.8.0...master)
+* [0.8.0](https://github.com/vita-epfl/openpifpaf/compare/v0.7.0...v0.8.0) (2019-07-08)
+    * add support for `resnext50`, `shufflenetv2x1` and `shufflenetv2x2`
+    * new pretrained models
+    * new transforms.RandomApply() and transforms.RotateBy90(); removed old transforms
+    * new blur augmentation
+    * improved BCE masks [#87](https://github.com/vita-epfl/openpifpaf/pull/87)
 * [0.7.0](https://github.com/vita-epfl/openpifpaf/compare/v0.6.3...v0.7.0) (2019-06-06)
     * faster seed generation in decoder
     * training log plot improvements (labels, consistent colors)
