@@ -6,17 +6,18 @@ from . import basenetworks, heads
 
 # generate hash values with: shasum -a 256 filename.pkl
 
-# DEFAULT_MODEL = ('https://documents.epfl.ch/users/k/kr/kreiss/www/'
-#                  'resnet101block5-pif-paf-edge401-190313-100107-81e34321.pkl')
-# DEFAULT_MODEL = ('https://documents.epfl.ch/users/k/kr/kreiss/www/'
-#                  'resnet50block5-pif-paf-edge401-190315-214317-8c9fbafe.pkl')
-
-RESNET50_MODEL = ('https://storage.googleapis.com/openpifpaf-pretrained/v0.5.0/'
-                  'resnet50block5-pif-paf-edge401-190424-122009-f26a1f53.pkl')
-RESNET101_MODEL = ('https://storage.googleapis.com/openpifpaf-pretrained/v0.5.0/'
-                   'resnet101block5-pif-paf-edge401-190412-151013-513a2d2d.pkl')
-RESNET152_MODEL = ('https://storage.googleapis.com/openpifpaf-pretrained/v0.5.0/'
-                   'resnet152block5-pif-paf-edge401-190412-121848-8d771fcc.pkl')
+RESNET50_MODEL = ('https://storage.googleapis.com/openpifpaf-pretrained/v0.8.0/'
+                  'resnet50block5-pif-paf-edge401-190625-025154-4e47f5ec.pkl')
+RESNET101_MODEL = ('https://storage.googleapis.com/openpifpaf-pretrained/v0.8.0/'
+                   'resnet101block5-pif-paf-edge401-190629-151620-b2db8c7e.pkl')
+RESNET152_MODEL = ('https://storage.googleapis.com/openpifpaf-pretrained/v0.8.0/'
+                   'resnet152block5-pif-paf-edge401-190625-185426-3e2f28ed.pkl')
+RESNEXT50_MODEL = ('https://storage.googleapis.com/openpifpaf-pretrained/v0.8.0/'
+                   'resnext50block5-pif-paf-edge401-190629-151121-24491655.pkl')
+SHUFFLENETV2X1_MODEL = ('https://storage.googleapis.com/openpifpaf-pretrained/v0.8.0/'
+                        'shufflenetv2x1-pif-paf-edge401-190705-151607-d9a35d7e.pkl')
+SHUFFLENETV2X2_MODEL = ('https://storage.googleapis.com/openpifpaf-pretrained/v0.8.0/'
+                        'shufflenetv2x2-pif-paf-edge401-190705-151618-f8da8c15.pkl')
 
 LOG = logging.getLogger(__name__)
 
@@ -167,6 +168,12 @@ def factory(*,
             checkpoint = torch.utils.model_zoo.load_url(RESNET101_MODEL)
         elif checkpoint == 'resnet152':
             checkpoint = torch.utils.model_zoo.load_url(RESNET152_MODEL)
+        elif checkpoint == 'resnext50':
+            checkpoint = torch.utils.model_zoo.load_url(RESNEXT50_MODEL)
+        elif checkpoint == 'shufflenetv2x1':
+            checkpoint = torch.utils.model_zoo.load_url(SHUFFLENETV2X1_MODEL)
+        elif checkpoint == 'shufflenetv2x2':
+            checkpoint = torch.utils.model_zoo.load_url(SHUFFLENETV2X2_MODEL)
         elif checkpoint.startswith('http'):
             checkpoint = torch.utils.model_zoo.load_url(checkpoint)
         else:
@@ -232,10 +239,10 @@ def factory_from_scratch(basename, headnames, *, pretrained=True):
     if 'resnext101' in basename:
         base_vision = torchvision.models.resnext101_32x8d(pretrained)
         return resnet_factory_from_scratch(basename, base_vision, headnames)
-    if 'shufflenetv2x1' in basename:
+    if basename == 'shufflenetv2x1':
         base_vision = torchvision.models.shufflenet_v2_x1_0(pretrained)
         return shufflenet_factory_from_scratch(basename, base_vision, 1024, headnames)
-    if 'shufflenetv2x2' in basename:
+    if basename == 'shufflenetv2x2':
         base_vision = torchvision.models.shufflenet_v2_x2_0(pretrained)
         return shufflenet_factory_from_scratch(basename, base_vision, 2048, headnames)
     if 'shufflenetv2x2w' in basename:

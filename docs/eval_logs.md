@@ -299,3 +299,56 @@ total processing time = 486.5417158603668s
 Decoder 0: decoder time = 137.40693471115083s
 total processing time = 595.8605711460114s
 ```
+
+# 0.8.0
+
+`time CUDA_VISIBLE_DEVICES=1 python -m openpifpaf.eval_coco --checkpoint resnet50 --long-edge=641 --all-images --loader-workers=8`:
+
+```
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.633
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.850
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.695
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.603
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.682
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.692
+ Average Recall     (AR) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.885
+ Average Recall     (AR) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.747
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.646
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.758
+Decoder 0: decoder time = 178.62342172674835s
+total processing time = 384.1026601791382s
+```
+
+`time CUDA_VISIBLE_DEVICES=1 python -m openpifpaf.eval_coco --checkpoint resnet101 --long-edge=641 --all-images --loader-workers=8`:
+
+```
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.664
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.861
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.729
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.626
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.722
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.718
+ Average Recall     (AR) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.896
+ Average Recall     (AR) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.775
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.666
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.790
+Decoder 0: decoder time = 167.94371821917593s
+total processing time = 495.8108365535736s
+```
+
+`time CUDA_VISIBLE_DEVICES=1 python -m openpifpaf.eval_coco --checkpoint resnet152 --long-edge=641 --all-images --loader-workers=8`:
+
+```
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.677
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.868
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.744
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.641
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.735
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.729
+ Average Recall     (AR) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.900
+ Average Recall     (AR) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.788
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.680
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.798
+Decoder 0: decoder time = 159.6303431801498s
+total processing time = 620.2563769817352s
+```

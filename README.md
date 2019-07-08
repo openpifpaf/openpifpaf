@@ -97,7 +97,7 @@ python3 -m openpifpaf.predict my_image.jpg --show
 # Pre-trained Models
 
 Put the files from this
-__[Google Drive](https://drive.google.com/drive/folders/1v8UNDjZbqeMZY64T33tSDOq1jtcBJBy7?usp=sharing>)__
+__[Google Drive](https://drive.google.com/drive/folders/13cXISujwI6-D3ijK6fGnoSNOthKUQWnN?usp=sharing)__
 into your `outputs` folder. The three standard, pretrained models are also available when
 using the command line option `--checkpoint resnet50`, `--checkpoint resnet101`
 and `--checkpoint resnet152`.
