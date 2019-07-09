@@ -227,8 +227,10 @@ class CompositeLoss(Loss, torch.nn.Module):
         bce_target_intensity = target_intensity[:, :-1]
         if self.bce_blackout:
             bce_x_intensity = bce_x_intensity[:, self.bce_blackout]
+            bce_masks = bce_masks[:, self.bce_blackout]
             bce_target_intensity = bce_target_intensity[:, self.bce_blackout]
 
+        LOG.debug('BCE: target = %s, mask = %s', bce_target_intensity.shape, bce_masks.shape)
         bce_target = torch.masked_select(bce_target_intensity, bce_masks)
         bce_weight = None
         if self.background_weight != 1.0:
