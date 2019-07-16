@@ -23,6 +23,7 @@ class PifPaf(Decoder):
     default_connection_method = 'max'
     default_fixed_b = None
     default_pif_fixed_scale = None
+    default_paf_th = 0.1
 
     def __init__(self, stride, *,
                  seed_threshold=0.2,
@@ -64,6 +65,7 @@ class PifPaf(Decoder):
 
         self.pif_nn = 16
         self.paf_nn = 1 if self.connection_method == 'max' else 35
+        self.paf_th = self.default_paf_th
 
     @staticmethod
     def match(head_names):
@@ -83,6 +85,8 @@ class PifPaf(Decoder):
                            help='overwrite b with fixed value, e.g. 0.5')
         group.add_argument('--pif-fixed-scale', default=None, type=float,
                            help='overwrite pif scale with a fixed value')
+        group.add_argument('--paf-th', default=0.1, type=float,
+                           help='paf threshold')
         group.add_argument('--connection-method',
                            default='max', choices=('median', 'max'),
                            help='connection method to use, max is faster')
@@ -91,6 +95,7 @@ class PifPaf(Decoder):
     def apply_args(cls, args):
         cls.default_fixed_b = args.fixed_b
         cls.default_pif_fixed_scale = args.pif_fixed_scale
+        cls.default_paf_th = args.paf_th
         cls.default_connection_method = args.connection_method
 
         # arg defined in factory
@@ -113,6 +118,7 @@ class PifPaf(Decoder):
             connection_method=self.connection_method,
             pif_nn=self.pif_nn,
             paf_nn=self.paf_nn,
+            paf_th=self.paf_th,
             skeleton=self.skeleton,
             debug_visualizer=self.debug_visualizer,
         )
@@ -132,6 +138,7 @@ class PifPafGenerator(object):
                  connection_method,
                  pif_nn,
                  paf_nn,
+                 paf_th,
                  skeleton,
                  debug_visualizer=None):
         self.log = logging.getLogger(self.__class__.__name__)
@@ -144,6 +151,7 @@ class PifPafGenerator(object):
         self.connection_method = connection_method
         self.pif_nn = pif_nn
         self.paf_nn = paf_nn
+        self.paf_th = paf_th
         self.skeleton = skeleton
 
         self.debug_visualizer = debug_visualizer
@@ -157,7 +165,7 @@ class PifPafGenerator(object):
         # paf init
         self._paf_forward = None
         self._paf_backward = None
-        self._paf_forward, self._paf_backward = self._score_paf_target()
+        self._paf_forward, self._paf_backward = self._score_paf_target(self.paf_th)
 
     def _target_intensities(self, v_th=0.1, core_only=False):
         start = time.perf_counter()
@@ -185,7 +193,7 @@ class PifPafGenerator(object):
         self.log.debug('target_intensities %.3fs', time.perf_counter() - start)
         return targets, scales
 
-    def _score_paf_target(self, pifhr_floor=0.1, score_th=0.1):
+    def _score_paf_target(self, score_th, pifhr_floor=0.1):
         start = time.perf_counter()
 
         scored_forward = []
@@ -249,7 +257,7 @@ class PifPafGenerator(object):
                                      1)
 
             ann = Annotation(f, (x, y, v), self.skeleton)
-            self._grow(ann, self._paf_forward, self._paf_backward)
+            self._grow(ann, self._paf_forward, self._paf_backward, self.paf_th)
             ann.fill_joint_scales(self._pifhr_scales, self.stride)
             annotations.append(ann)
 
@@ -344,7 +352,7 @@ class PifPafGenerator(object):
         score = scores[max_i]
         return max_entry[0], max_entry[1], score
 
-    def _grow(self, ann, paf_forward, paf_backward, th=0.1):
+    def _grow(self, ann, paf_forward, paf_backward, th):
         for _, i, forward, j1i, j2i in ann.frontier_iter():
             if forward:
                 xyv = ann.data[j1i]
