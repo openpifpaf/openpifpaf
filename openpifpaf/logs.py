@@ -41,6 +41,20 @@ def configure(args):
     })
 
 
+def optionally_shaded(ax, x, y, *, color, label, **kwargs):
+    stride = int(len(x) / (x[-1] - x[0]) / 30.0)  # 30 per epoch
+    if stride > 5 and len(x) / stride > 2:
+        x_binned = np.array([x[i] for i in range(0, len(x), stride)][:-1])
+        y_binned = np.stack([y[i:i + stride] for i in range(0, len(x), stride)][:-1])
+        y_mean = np.mean(y_binned, axis=1)
+        y_min = np.min(y_binned, axis=1)
+        y_max = np.max(y_binned, axis=1)
+        ax.plot(x_binned, y_mean, color=color, label=label, **kwargs)
+        ax.fill_between(x_binned, y_min, y_max, alpha=0.2, facecolor=color)
+    else:
+        ax.plot(x, y, color=color, label=label, **kwargs)
+
+
 class Plots(object):
     def __init__(self, log_files, labels=None, output_prefix=None):
         self.log_files = log_files
@@ -208,21 +222,22 @@ class Plots(object):
         for color_i, (data, label) in enumerate(zip(self.datas, self.labels)):
             color = matplotlib.cm.get_cmap('tab10')((color_i % 10 + 0.05) / 10)
             if 'train' in data:
-                x = np.array([row.get('epoch') + row.get('batch') / row.get('n_batches')
-                              for row in data['train']])
-                y = np.array([row.get('loss')
-                              for row in data['train']], dtype=np.float)
-                stride = int(len(x) / (x[-1] - x[0]) / 30.0)  # 30 per epoch
-                if stride > 5 and len(x) / stride > 2:
-                    x_binned = np.array([x[i] for i in range(0, len(x), stride)][:-1])
-                    y_binned = np.stack([y[i:i + stride] for i in range(0, len(x), stride)][:-1])
-                    y_mean = np.mean(y_binned, axis=1)
-                    y_min = np.min(y_binned, axis=1)
-                    y_max = np.max(y_binned, axis=1)
-                    ax.plot(x_binned, y_mean, color=color, label=label)
-                    ax.fill_between(x_binned, y_min, y_max, alpha=0.2, facecolor=color)
-                else:
-                    ax.plot(x, y, color=color, label=label)
+                xy_all = defaultdict(list)
+                for row in data['train']:
+                    xy_all[row.get('loss_index', 0)].append(
+                        (row.get('epoch') + row.get('batch') / row.get('n_batches'),
+                         row.get('loss'))
+                    )
+                for loss_index, xy in xy_all.items():
+                    x = np.array([x for x, _ in xy])
+                    y = np.array([y for _, y in xy], dtype=np.float)
+
+                    kwargs = {}
+                    this_label = label
+                    if loss_index != 0:
+                        kwargs['alpha'] = 0.5
+                        this_label = '{} ({})'.format(label, loss_index)
+                    optionally_shaded(ax, x, y, color=color, label=this_label, **kwargs)
 
         ax.set_xlabel('epoch')
         ax.set_ylabel('training loss')
