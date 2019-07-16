@@ -5,7 +5,9 @@ from PIL import Image
 
 try:
     import matplotlib
+    import matplotlib.collections
     import matplotlib.pyplot as plt
+    import matplotlib.patches
 except ImportError:
     matplotlib = None
     plt = None
@@ -61,6 +63,23 @@ def load_image(path, scale=1.0):
         image = Image.open(f).convert('RGB')
         image = np.asarray(image) * scale / 255.0
         return image
+
+
+class CrowdPainter(object):
+    def __init__(self, *, alpha=0.5, color='orange'):
+        self.alpha = alpha
+        self.color = color
+
+    def draw(self, ax, outlines):
+        for outline in outlines:
+            assert outline.shape[1] == 2
+
+        patches = []
+        for outline in outlines:
+            polygon = matplotlib.patches.Polygon(
+                outline[:, :2], color=self.color, facecolor=self.color, alpha=self.alpha)
+            patches.append(polygon)
+        ax.add_collection(matplotlib.collections.PatchCollection(patches, match_original=True))
 
 
 class KeypointPainter(object):
