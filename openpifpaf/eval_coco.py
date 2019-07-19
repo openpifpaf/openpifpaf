@@ -247,56 +247,56 @@ def write_evaluations(eval_cocos, args):
 
 def preprocess_factory_from_args(args):
     collate_fn = datasets.collate_images_anns_meta
-    if args.two_scale:
-        preprocess = transforms.MultiScale([
-            transforms.NormalizeAnnotations(),
-            transforms.Compose([
-                transforms.HFlip(),
-                transforms.RescaleAbsolute(args.long_edge),
-            ]),
-            transforms.EVAL_TRANSFORM,
-        ])
-        collate_fn = datasets.collate_multiscale_images_anns_meta
-    elif args.three_scale:
-        preprocess = transforms.MultiScale([
-            transforms.NormalizeAnnotations(),
-            transforms.Compose([
-                transforms.HFlip(),
-                transforms.RescaleRelative(2.0),
-            ]),
-            transforms.Compose([
-                transforms.HFlip(),
-                transforms.RescaleAbsolute(args.long_edge),
-            ]),
-            transforms.EVAL_TRANSFORM,
-        ])
-        collate_fn = datasets.collate_multiscale_images_anns_meta
-    elif args.multi_scale:
-        preprocess = transforms.MultiScale([
-            transforms.RescaleAbsolute((args.long_edge - 1) * 4 + 1),
-            transforms.RescaleAbsolute((args.long_edge - 1) * 3 + 1),
-            transforms.RescaleAbsolute((args.long_edge - 1) * 2 + 1),
-            transforms.RescaleAbsolute(args.long_edge),
-            transforms.Compose([
-                transforms.HFlip(),
-                transforms.RescaleAbsolute(args.long_edge),
-            ]),
-            transforms.Compose([
-                transforms.HFlip(),
-                transforms.RescaleAbsolute((args.long_edge - 1) * 2 + 1),
-            ]),
-            transforms.Compose([
-                transforms.HFlip(),
-                transforms.RescaleAbsolute((args.long_edge - 1) * 3 + 1),
-            ]),
-            transforms.Compose([
-                transforms.HFlip(),
-                transforms.RescaleAbsolute((args.long_edge - 1) * 4 + 1),
-            ]),
-            transforms.EVAL_TRANSFORM,
-        ])
-        collate_fn = datasets.collate_multiscale_images_anns_meta
-    elif args.batch_size == 1:
+    # if args.two_scale:
+    #     preprocess = transforms.MultiScale([
+    #         transforms.NormalizeAnnotations(),
+    #         transforms.Compose([
+    #             transforms.HFlip(),
+    #             transforms.RescaleAbsolute(args.long_edge),
+    #         ]),
+    #         transforms.EVAL_TRANSFORM,
+    #     ])
+    #     collate_fn = datasets.collate_multiscale_images_anns_meta
+    # elif args.three_scale:
+    #     preprocess = transforms.MultiScale([
+    #         transforms.NormalizeAnnotations(),
+    #         transforms.Compose([
+    #             transforms.HFlip(),
+    #             transforms.RescaleRelative(2.0),
+    #         ]),
+    #         transforms.Compose([
+    #             transforms.HFlip(),
+    #             transforms.RescaleAbsolute(args.long_edge),
+    #         ]),
+    #         transforms.EVAL_TRANSFORM,
+    #     ])
+    #     collate_fn = datasets.collate_multiscale_images_anns_meta
+    # elif args.multi_scale:
+    #     preprocess = transforms.MultiScale([
+    #         transforms.RescaleAbsolute((args.long_edge - 1) * 4 + 1),
+    #         transforms.RescaleAbsolute((args.long_edge - 1) * 3 + 1),
+    #         transforms.RescaleAbsolute((args.long_edge - 1) * 2 + 1),
+    #         transforms.RescaleAbsolute(args.long_edge),
+    #         transforms.Compose([
+    #             transforms.HFlip(),
+    #             transforms.RescaleAbsolute(args.long_edge),
+    #         ]),
+    #         transforms.Compose([
+    #             transforms.HFlip(),
+    #             transforms.RescaleAbsolute((args.long_edge - 1) * 2 + 1),
+    #         ]),
+    #         transforms.Compose([
+    #             transforms.HFlip(),
+    #             transforms.RescaleAbsolute((args.long_edge - 1) * 3 + 1),
+    #         ]),
+    #         transforms.Compose([
+    #             transforms.HFlip(),
+    #             transforms.RescaleAbsolute((args.long_edge - 1) * 4 + 1),
+    #         ]),
+    #         transforms.EVAL_TRANSFORM,
+    #     ])
+    #     collate_fn = datasets.collate_multiscale_images_anns_meta
+    if args.batch_size == 1:
         preprocess = transforms.Compose([
             transforms.NormalizeAnnotations(),
             transforms.RescaleAbsolute(args.long_edge),
@@ -338,6 +338,8 @@ def main():
         num_workers=args.loader_workers, collate_fn=collate_fn)
 
     model, _ = nets.factory_from_args(args)
+    if args.two_scale:
+        model = nets.Shell2Scale(model.base_net, model.head_nets)
     model = model.to(args.device)
     processor = decoder.factory_from_args(args, model, args.device)
     # processor.instance_scorer = decocder.instance_scorer.InstanceScoreRecorder()

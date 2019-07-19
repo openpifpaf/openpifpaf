@@ -38,6 +38,48 @@ class Shell(torch.nn.Module):
         return [hn(x) for hn in self.head_nets]
 
 
+class Shell2Scale(torch.nn.Module):
+    def __init__(self, base_net, head_nets):
+        super(Shell2Scale, self).__init__()
+
+        self.base_net = base_net
+        self.head_nets = torch.nn.ModuleList(head_nets)
+
+    def io_scales(self):
+        return [self.base_net.input_output_scale // (2 ** getattr(h, '_quad', 0))
+                for h in self.head_nets]
+
+    def forward(self, *args):
+        original_input = args[0]
+        original_x = self.base_net(original_input)
+        original_heads = [hn(original_x) for hn in self.head_nets]
+
+        reduced_input = original_input[:, :, ::4, ::4]
+        reduced_x = self.base_net(reduced_input)
+        reduced_heads = [hn(reduced_x) for hn in self.head_nets]
+
+        for original_h, reduced_h in zip(original_heads, reduced_heads):
+            mask = original_h[0][:, :, :4*reduced_h[0].shape[2]:4, :4*reduced_h[0].shape[3]:4] < reduced_h[0]
+            mask_vector = torch.stack((mask, mask), dim=2)
+
+            for ci, (original_c, reduced_c) in enumerate(zip(original_h, reduced_h)):
+                if ci > 0:
+                    reduced_c = reduced_c * 4
+
+                if len(original_c.shape) == 4:
+                    original_c[:, :, :4*reduced_c.shape[2]:4, :4*reduced_c.shape[3]:4][mask] = reduced_c[mask]
+                elif len(original_c.shape) == 5:
+                    original_c[:, :, :, :4*reduced_c.shape[3]:4, :4*reduced_c.shape[4]:4][mask_vector] = reduced_c[mask_vector]
+                else:
+                    raise Exception('cannot process component with shape {}'
+                                    ''.format(original_c.shape))
+
+                if ci == 0:
+                    original_c *= 0.8
+
+        return original_heads
+
+
 class Shell2Stage(torch.nn.Module):
     def __init__(self, base_net, head_nets1, head_nets2):
         super(Shell2Stage, self).__init__()
