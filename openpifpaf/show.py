@@ -38,6 +38,7 @@ def canvas(fig_file=None, show=True, **kwargs):
 
 @contextmanager
 def image_canvas(image, fig_file=None, show=True, dpi_factor=1.0, fig_width=10.0, **kwargs):
+    image = np.asarray(image)
     if 'figsize' not in kwargs:
         kwargs['figsize'] = (fig_width, fig_width * image.shape[0] / image.shape[1])
 

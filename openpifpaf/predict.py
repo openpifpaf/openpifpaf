@@ -7,6 +7,7 @@ import logging
 import os
 
 import numpy as np
+import PIL
 import torch
 
 from .network import nets
@@ -103,36 +104,34 @@ def main():
     data = datasets.ImageList(args.images, preprocess=preprocess)
     data_loader = torch.utils.data.DataLoader(
         data, batch_size=args.batch_size, shuffle=False,
-        pin_memory=args.pin_memory, num_workers=args.loader_workers)
+        pin_memory=args.pin_memory, num_workers=args.loader_workers,
+        collate_fn=datasets.collate_images_anns_meta)
 
     # visualizers
     keypoint_painter = show.KeypointPainter(show_box=False)
     skeleton_painter = show.KeypointPainter(show_box=False, color_connections=True,
                                             markersize=1, linewidth=6)
 
-    for image_i, (image_paths, image_tensors, processed_images_cpu) in enumerate(data_loader):
-        images = image_tensors.permute(0, 2, 3, 1)
-
-        processed_images = processed_images_cpu.to(args.device, non_blocking=True)
-        fields_batch = processor.fields(processed_images)
-        pred_batch = processor.annotations_batch(fields_batch, debug_images=processed_images_cpu)
+    for image_i, (image_tensors_batch, _, meta_batch) in enumerate(data_loader):
+        image_tensors_batch_gpu = image_tensors_batch.to(args.device, non_blocking=True)
+        fields_batch = processor.fields(image_tensors_batch_gpu)
+        pred_batch = processor.annotations_batch(fields_batch, debug_images=image_tensors_batch)
 
         # unbatch
-        for image_path, image, processed_image_cpu, pred in zip(
-                image_paths,
-                images,
-                processed_images_cpu,
-                pred_batch):
-
+        for pred, meta in zip(pred_batch, meta_batch):
             if args.output_directory is None:
-                output_path = image_path
+                output_path = meta['file_name']
             else:
-                file_name = os.path.basename(image_path)
+                file_name = os.path.basename(meta['file_name'])
                 output_path = os.path.join(args.output_directory, file_name)
-            logging.info('image %d: %s to %s', image_i, image_path, output_path)
+            logging.info('image %d: %s to %s', image_i, meta['file_name'], output_path)
 
-            processor.set_cpu_image(image, processed_image_cpu)
+            with open(meta['file_name'], 'rb') as f:
+                cpu_image = PIL.Image.open(f).convert('RGB')
+            processor.set_cpu_image(cpu_image, None)
             keypoint_sets, scores = processor.keypoint_sets_from_annotations(pred)
+            if preprocess is not None:
+                keypoint_sets = preprocess.keypoint_sets_inverse(keypoint_sets, meta)
 
             if 'json' in args.output_types:
                 with open(output_path + '.pifpaf.json', 'w') as f:
@@ -145,7 +144,7 @@ def main():
                     ], f)
 
             if 'keypoints' in args.output_types:
-                with show.image_canvas(image,
+                with show.image_canvas(cpu_image,
                                        output_path + '.keypoints.png',
                                        show=args.show,
                                        fig_width=args.figure_width,
@@ -153,7 +152,7 @@ def main():
                     keypoint_painter.keypoints(ax, keypoint_sets)
 
             if 'skeleton' in args.output_types:
-                with show.image_canvas(image,
+                with show.image_canvas(cpu_image,
                                        output_path + '.skeleton.png',
                                        show=args.show,
                                        fig_width=args.figure_width,
