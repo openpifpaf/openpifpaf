@@ -15,8 +15,9 @@ def rescale_from_12_to_6(im_np, x, y):
     }]
 
     transform = transforms.Compose([
-        transforms.Normalize(),
+        transforms.NormalizeAnnotations(),
         transforms.RescaleAbsolute(6),
+        transforms.EVAL_TRANSFORM,
     ])
 
     return transform(im, anns, None)
