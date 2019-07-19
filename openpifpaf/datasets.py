@@ -2,7 +2,6 @@ import copy
 import logging
 import os
 import torch.utils.data
-import torchvision
 from PIL import Image
 
 from . import transforms, utils

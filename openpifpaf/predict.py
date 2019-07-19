@@ -95,9 +95,10 @@ def main():
     preprocess = None
     if args.long_edge:
         preprocess = transforms.Compose([
-            transforms.Normalize(),
+            transforms.NormalizeAnnotations(),
             transforms.RescaleAbsolute(args.long_edge),
             transforms.CenterPad(args.long_edge),
+            transforms.EVAL_TRANSFORM,
         ])
     data = datasets.ImageList(args.images, preprocess=preprocess)
     data_loader = torch.utils.data.DataLoader(
