@@ -126,8 +126,14 @@ def main():
                 output_path = os.path.join(args.output_directory, file_name)
             logging.info('image %d: %s to %s', image_i, meta['file_name'], output_path)
 
-            with open(meta['file_name'], 'rb') as f:
-                cpu_image = PIL.Image.open(f).convert('RGB')
+            # load the original image if necessary
+            cpu_image = None
+            if args.debug or \
+               'keypoints' in args.output_types or \
+               'skeleton' in args.output_types:
+                with open(meta['file_name'], 'rb') as f:
+                    cpu_image = PIL.Image.open(f).convert('RGB')
+
             processor.set_cpu_image(cpu_image, None)
             keypoint_sets, scores = processor.keypoint_sets_from_annotations(pred)
             if preprocess is not None:
