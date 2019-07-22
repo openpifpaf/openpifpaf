@@ -249,16 +249,17 @@ def preprocess_factory_from_args(args):
     collate_fn = datasets.collate_images_anns_meta
     if args.two_scale:
         preprocess = transforms.MultiScale([
-            transforms.Normalize(),
+            transforms.NormalizeAnnotations(),
             transforms.Compose([
                 transforms.HFlip(),
                 transforms.RescaleAbsolute(args.long_edge),
             ]),
+            transforms.EVAL_TRANSFORM,
         ])
         collate_fn = datasets.collate_multiscale_images_anns_meta
     elif args.three_scale:
         preprocess = transforms.MultiScale([
-            transforms.Normalize(),
+            transforms.NormalizeAnnotations(),
             transforms.Compose([
                 transforms.HFlip(),
                 transforms.RescaleRelative(2.0),
@@ -267,6 +268,7 @@ def preprocess_factory_from_args(args):
                 transforms.HFlip(),
                 transforms.RescaleAbsolute(args.long_edge),
             ]),
+            transforms.EVAL_TRANSFORM,
         ])
         collate_fn = datasets.collate_multiscale_images_anns_meta
     elif args.multi_scale:
@@ -291,18 +293,21 @@ def preprocess_factory_from_args(args):
                 transforms.HFlip(),
                 transforms.RescaleAbsolute((args.long_edge - 1) * 4 + 1),
             ]),
+            transforms.EVAL_TRANSFORM,
         ])
         collate_fn = datasets.collate_multiscale_images_anns_meta
     elif args.batch_size == 1:
         preprocess = transforms.Compose([
-            transforms.Normalize(),
+            transforms.NormalizeAnnotations(),
             transforms.RescaleAbsolute(args.long_edge),
+            transforms.EVAL_TRANSFORM,
         ])
     else:
         preprocess = transforms.Compose([
-            transforms.Normalize(),
+            transforms.NormalizeAnnotations(),
             transforms.RescaleAbsolute(args.long_edge),
             transforms.CenterPad(args.long_edge),
+            transforms.EVAL_TRANSFORM,
         ])
 
     return preprocess, collate_fn
@@ -353,12 +358,6 @@ def main():
 
         loop_start = time.time()
 
-        # detect multiscale
-        multiscale = isinstance(image_tensors_cpu, list)
-        if multiscale:
-            # only debug first scale
-            anns_batch = anns_batch[0]
-
         if len([a
                 for anns in anns_batch
                 for a in anns
@@ -366,10 +365,6 @@ def main():
             continue
 
         fields_batch = processor.fields(image_tensors_cpu)
-
-        if multiscale:
-            # only debug first scale
-            image_tensors_cpu = image_tensors_cpu[0]
 
         decoder_start = time.perf_counter()
         pred_batch = processor.annotations_batch(

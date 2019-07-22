@@ -2,7 +2,6 @@ import copy
 import logging
 import os
 import torch.utils.data
-import torchvision
 from PIL import Image
 
 from . import transforms, utils
@@ -60,7 +59,7 @@ class CocoKeypoints(torch.utils.data.Dataset):
             target and transforms it.
     """
 
-    def __init__(self, root, annFile, image_transform=None, target_transforms=None,
+    def __init__(self, root, annFile, *, target_transforms=None,
                  n_images=None, preprocess=None, all_images=False, all_persons=False):
         from pycocotools.coco import COCO
         self.root = root
@@ -78,8 +77,7 @@ class CocoKeypoints(torch.utils.data.Dataset):
             self.ids = self.ids[:n_images]
         print('Images: {}'.format(len(self.ids)))
 
-        self.preprocess = preprocess or transforms.Normalize()
-        self.image_transform = image_transform or transforms.image_transform
+        self.preprocess = preprocess or transforms.EVAL_TRANSFORM
         self.target_transforms = target_transforms
 
         self.log = logging.getLogger(self.__class__.__name__)
@@ -131,25 +129,7 @@ class CocoKeypoints(torch.utils.data.Dataset):
 
         # preprocess image and annotations
         image, anns, meta = self.preprocess(image, anns, None)
-        if isinstance(image, list):
-            return self.multi_image_processing(image, anns, meta, meta_init)
-
-        return self.single_image_processing(image, anns, meta, meta_init)
-
-    def multi_image_processing(self, image_list, anns_list, meta_list, meta_init):
-        return list(zip(*[
-            self.single_image_processing(image, anns, meta, meta_init)
-            for image, anns, meta in zip(image_list, anns_list, meta_list)
-        ]))
-
-    def single_image_processing(self, image, anns, meta, meta_init):
         meta.update(meta_init)
-
-        # transform image
-        original_size = image.size
-        image = self.image_transform(image)
-        assert image.size(2) == original_size[0]
-        assert image.size(1) == original_size[1]
 
         # mask valid
         valid_area = meta['valid_area']
@@ -159,7 +139,8 @@ class CocoKeypoints(torch.utils.data.Dataset):
 
         # transform targets
         if self.target_transforms is not None:
-            anns = [t(anns, original_size) for t in self.target_transforms]
+            width_height = image.shape[2:0:-1]
+            anns = [t(anns, width_height) for t in self.target_transforms]
 
         return image, anns, meta
 
@@ -168,44 +149,44 @@ class CocoKeypoints(torch.utils.data.Dataset):
 
 
 class ImageList(torch.utils.data.Dataset):
-    def __init__(self, image_paths, preprocess=None, image_transform=None):
+    def __init__(self, image_paths, preprocess=None):
         self.image_paths = image_paths
-        self.image_transform = image_transform or transforms.image_transform
-        self.preprocess = preprocess
+        self.preprocess = preprocess or transforms.EVAL_TRANSFORM
 
     def __getitem__(self, index):
         image_path = self.image_paths[index]
         with open(image_path, 'rb') as f:
             image = Image.open(f).convert('RGB')
 
-        if self.preprocess is not None:
-            image = self.preprocess(image, [], None)[0]
+        anns = []
+        image, anns, meta = self.preprocess(image, anns, None)
+        meta.update({
+            'dataset_index': index,
+            'file_name': image_path,
+        })
 
-        original_image = torchvision.transforms.functional.to_tensor(image)
-        image = self.image_transform(image)
-
-        return image_path, original_image, image
+        return image, anns, meta
 
     def __len__(self):
         return len(self.image_paths)
 
 
 class PilImageList(torch.utils.data.Dataset):
-    def __init__(self, images, preprocess=None, image_transform=None):
+    def __init__(self, images, preprocess=None):
         self.images = images
-        self.preprocess = preprocess
-        self.image_transform = image_transform or transforms.image_transform
+        self.preprocess = preprocess or transforms.EVAL_TRANSFORM
 
     def __getitem__(self, index):
-        pil_image = self.images[index].copy().convert('RGB')
+        image = self.images[index].copy().convert('RGB')
 
-        if self.preprocess is not None:
-            pil_image = self.preprocess(pil_image, [], None)[0]
+        anns = []
+        image, anns, meta = self.preprocess(image, anns, None)
+        meta.update({
+            'dataset_index': index,
+            'file_name': 'pilimage{}'.format(index),
+        })
 
-        original_image = torchvision.transforms.functional.to_tensor(pil_image)
-        image = self.image_transform(pil_image)
-
-        return 'pilimage{}'.format(index), original_image, image
+        return image, anns, meta
 
     def __len__(self):
         return len(self.images)
@@ -236,7 +217,6 @@ def train_factory(args, preprocess, target_transforms):
         root=args.train_image_dir,
         annFile=args.train_annotations,
         preprocess=preprocess,
-        image_transform=transforms.image_transform_train,
         target_transforms=target_transforms,
         n_images=args.n_images,
     )
@@ -252,7 +232,6 @@ def train_factory(args, preprocess, target_transforms):
         root=args.val_image_dir,
         annFile=args.val_annotations,
         preprocess=preprocess,
-        image_transform=transforms.image_transform_train,
         target_transforms=target_transforms,
         n_images=args.n_images,
     )
@@ -268,7 +247,6 @@ def train_factory(args, preprocess, target_transforms):
         root=args.train_image_dir,
         annFile=args.train_annotations,
         preprocess=preprocess,
-        image_transform=transforms.image_transform_train,
         target_transforms=target_transforms,
         n_images=args.pre_n_images,
     )

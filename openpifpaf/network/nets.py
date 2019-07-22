@@ -33,8 +33,8 @@ class Shell(torch.nn.Module):
         return [self.base_net.input_output_scale // (2 ** getattr(h, '_quad', 0))
                 for h in self.head_nets]
 
-    def forward(self, x):  # pylint: disable=arguments-differ
-        x = self.base_net(x)
+    def forward(self, *args):
+        x = self.base_net(*args)
         return [hn(x) for hn in self.head_nets]
 
 
@@ -56,8 +56,8 @@ class Shell2Stage(torch.nn.Module):
             [self.base_net.input_output_scale[1] for _ in self.head_nets2]
         )
 
-    def forward(self, x):  # pylint: disable=arguments-differ
-        x1, x2 = self.base_net(x)
+    def forward(self, *args):
+        x1, x2 = self.base_net(*args)
         h1 = [hn(x1) for hn in self.head_nets1]
         h2 = [hn(x2) for hn in self.head_nets2]
         return [h for hs in (h1, h2) for h in hs]
@@ -83,8 +83,8 @@ class ShellFork(torch.nn.Module):
             [self.base_net.input_output_scale[2] for _ in self.head_nets3]
         )
 
-    def forward(self, x):  # pylint: disable=arguments-differ
-        x1, x2, x3 = self.base_net(x)
+    def forward(self, *args):
+        x1, x2, x3 = self.base_net(*args)
         h1 = [hn(x1) for hn in self.head_nets1]
         h2 = [hn(x2) for hn in self.head_nets2]
         h3 = [hn(x3) for hn in self.head_nets3]

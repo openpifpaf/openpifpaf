@@ -108,17 +108,20 @@ def main():
 
     if args.augmentation:
         preprocess = transforms.Compose([
-            transforms.Normalize(),
+            transforms.NormalizeAnnotations(),
             transforms.RandomApply(transforms.RotateBy90(), 0.01),
             transforms.RandomApply(transforms.HFlip(), 0.5),
             transforms.RescaleRelative(),
             transforms.Crop(args.square_edge),
             transforms.CenterPad(args.square_edge),
+            transforms.TRAIN_TRANSFORM,
         ])
     else:
         preprocess = transforms.Compose([
+            transforms.NormalizeAnnotations(),
             transforms.RescaleAbsolute(args.square_edge),
             transforms.CenterPad(args.square_edge),
+            transforms.EVAL_TRANSFORM,
         ])
     train_loader, val_loader, pre_train_loader = datasets.train_factory(
         args, preprocess, target_transforms)

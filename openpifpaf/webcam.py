@@ -113,7 +113,7 @@ def main():
             visualizer.send(None)
 
         start = time.time()
-        processed_image_cpu = transforms.image_transform(image.copy())
+        processed_image_cpu, _, __ = transforms.EVAL_TRANSFORM(image.copy(), [], None)
         processed_image = processed_image_cpu.contiguous().to(args.device, non_blocking=True)
         print('preprocessing time', time.time() - start)
 

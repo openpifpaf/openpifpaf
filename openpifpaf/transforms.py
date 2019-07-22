@@ -23,46 +23,6 @@ import torchvision
 from .utils import horizontal_swap_coco
 
 
-def jpeg_compression_augmentation(im):
-    f = io.BytesIO()
-    im.save(f, 'jpeg', quality=50)
-    return PIL.Image.open(f)
-
-
-def blur_augmentation(im, max_sigma=5.0):
-    im_np = np.asarray(im)
-    sigma = max_sigma * float(torch.rand(1).item())
-    im_np = scipy.ndimage.filters.gaussian_filter(im_np, sigma=(sigma, sigma, 0))
-    return PIL.Image.fromarray(im_np)
-
-
-normalize = torchvision.transforms.Normalize(  # pylint: disable=invalid-name
-    mean=[0.485, 0.456, 0.406],
-    std=[0.229, 0.224, 0.225]
-)
-
-
-image_transform = torchvision.transforms.Compose([  # pylint: disable=invalid-name
-    torchvision.transforms.ToTensor(),
-    normalize,
-])
-
-
-image_transform_train = torchvision.transforms.Compose([  # pylint: disable=invalid-name
-    torchvision.transforms.ColorJitter(brightness=0.1,
-                                       contrast=0.1,
-                                       saturation=0.1,
-                                       hue=0.1),
-    torchvision.transforms.RandomApply([
-        # maybe not relevant for COCO, but good for other datasets:
-        torchvision.transforms.Lambda(jpeg_compression_augmentation),
-    ], p=0.1),
-    torchvision.transforms.RandomGrayscale(p=0.01),
-    torchvision.transforms.ToTensor(),
-    normalize,
-])
-
-
 class Preprocess(metaclass=ABCMeta):
     @abstractmethod
     def __call__(self, image, anns, meta):
@@ -88,7 +48,16 @@ class Preprocess(metaclass=ABCMeta):
         return keypoint_sets
 
 
-class Normalize(Preprocess):
+class ImageTransform(Preprocess):
+    def __init__(self, image_transform):
+        self.image_transform = image_transform
+
+    def __call__(self, image, anns, meta):
+        image = self.image_transform(image)
+        return image, anns, meta
+
+
+class NormalizeAnnotations(Preprocess):
     @staticmethod
     def normalize_annotations(anns):
         anns = copy.deepcopy(anns)
@@ -99,7 +68,8 @@ class Normalize(Preprocess):
             ann['keypoints'] = np.asarray(ann['keypoints'], dtype=np.float32).reshape(-1, 3)
             ann['bbox'] = np.asarray(ann['bbox'], dtype=np.float32)
             ann['bbox_original'] = np.copy(ann['bbox'])
-            del ann['segmentation']
+            if 'segementation' in ann:
+                del ann['segmentation']
 
         return anns
 
@@ -463,3 +433,45 @@ class RotateBy90(Preprocess):
         ymax = np.max(four_corners[:, 1])
 
         return np.array([x, y, xmax - x, ymax - y])
+
+
+class JpegCompression(Preprocess):
+    def __init__(self, quality=50):
+        self.quality = quality
+
+    def __call__(self, image, anns, meta):
+        f = io.BytesIO()
+        image.save(f, 'jpeg', quality=self.quality)
+        return PIL.Image.open(f), anns, meta
+
+
+class Blur(Preprocess):
+    def __init__(self, max_sigma=5.0):
+        self.max_sigma = max_sigma
+
+    def __call__(self, image, anns, meta):
+        im_np = np.asarray(image)
+        sigma = self.max_sigma * float(torch.rand(1).item())
+        im_np = scipy.ndimage.filters.gaussian_filter(im_np, sigma=(sigma, sigma, 0))
+        return PIL.Image.fromarray(im_np), anns, meta
+
+
+EVAL_TRANSFORM = Compose([
+    NormalizeAnnotations(),
+    ImageTransform(torchvision.transforms.ToTensor()),
+    ImageTransform(
+        torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                         std=[0.229, 0.224, 0.225]),
+    ),
+])
+
+
+TRAIN_TRANSFORM = Compose([
+    NormalizeAnnotations(),
+    ImageTransform(torchvision.transforms.ColorJitter(
+        brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1)),
+    RandomApply(JpegCompression(), 0.1),  # maybe irrelevant for COCO, but good for others
+    # RandomApply(Blur(), 0.01),  # maybe irrelevant for COCO, but good for others
+    ImageTransform(torchvision.transforms.RandomGrayscale(p=0.01)),
+    EVAL_TRANSFORM,
+])

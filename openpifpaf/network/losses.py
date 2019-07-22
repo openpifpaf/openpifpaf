@@ -323,7 +323,7 @@ def factory(head_names, lambdas, reg_loss_name=None, r_smooth=None, device=None)
         return [factory(hn, lam, reg_loss_name, r_smooth, device)
                 for hn, lam in zip(head_names, lambdas)]
 
-    head_names = [h for h in head_names if h not in ('skeleton',)]
+    head_names = [h for h in head_names if h not in ('skeleton', 'tskeleton')]
 
     if reg_loss_name == 'smoothl1':
         reg_loss = SmoothL1Loss(r_smooth)
