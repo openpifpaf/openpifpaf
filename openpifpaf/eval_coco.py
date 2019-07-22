@@ -179,12 +179,6 @@ def cli():
                         help='number of workers for data loading')
     parser.add_argument('--skip-existing', default=False, action='store_true',
                         help='skip if output eval file exists already')
-    parser.add_argument('--two-scale', default=False, action='store_true',
-                        help='two scale')
-    parser.add_argument('--three-scale', default=False, action='store_true',
-                        help='three scale')
-    parser.add_argument('--multi-scale', default=False, action='store_true',
-                        help='multi scale')
     parser.add_argument('--disable-cuda', action='store_true',
                         help='disable CUDA')
     parser.add_argument('--write-predictions', default=False, action='store_true',
@@ -289,8 +283,6 @@ def main():
         num_workers=args.loader_workers, collate_fn=collate_fn)
 
     model, _ = nets.factory_from_args(args)
-    if args.two_scale:
-        model = nets.Shell2Scale(model.base_net, model.head_nets)
     model = model.to(args.device)
     processor = decoder.factory_from_args(args, model, args.device)
     # processor.instance_scorer = decocder.instance_scorer.InstanceScoreRecorder()

@@ -150,7 +150,8 @@ def factory_from_args(args):
     return factory(checkpoint=args.checkpoint,
                    basenet=args.basenet,
                    headnets=args.headnets,
-                   pretrained=args.pretrained)
+                   pretrained=args.pretrained,
+                   two_scale=args.two_scale)
 
 
 # pylint: disable=too-many-branches
@@ -207,7 +208,8 @@ def factory(*,
             headnets=('pif', 'paf'),
             pretrained=True,
             dilation=None,
-            dilation_end=None):
+            dilation_end=None,
+            two_scale=False):
     if not checkpoint and basenet:
         net_cpu = factory_from_scratch(basenet, headnets, pretrained=pretrained)
         epoch = 0
@@ -238,6 +240,9 @@ def factory(*,
 
         # normalize for backwards compatibility
         model_migration(net_cpu)
+
+    if two_scale:
+        net_cpu = Shell2Scale(net_cpu.base_net, net_cpu.head_nets)
 
     if dilation is not None:
         net_cpu.base_net.atrous0(dilation)
@@ -403,6 +408,8 @@ def cli(parser):
                        help='head networks')
     group.add_argument('--no-pretrain', dest='pretrained', default=True, action='store_false',
                        help='create model without ImageNet pretraining')
+    group.add_argument('--two-scale', default=False, action='store_true',
+                       help='two scale')
 
     for head in (heads.HEADS or heads.Head.__subclasses__()):
         head.cli(parser)
