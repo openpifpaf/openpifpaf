@@ -160,17 +160,8 @@ class KeypointPainter(object):
         if not np.any(v > 0):
             return
 
-        # keypoint bounding box
-        x1, x2 = np.min(x[v > 0]), np.max(x[v > 0])
-        y1, y2 = np.min(y[v > 0]), np.max(y[v > 0])
-        if x2 - x1 < 5.0:
-            x1 -= 2.0
-            x2 += 2.0
-        if y2 - y1 < 5.0:
-            y1 -= 2.0
-            y2 += 2.0
-
-        ax.text(x1 + 2, y1 - 2, text, fontsize=8,
+        coord_i = np.argmin(y[v > 0])
+        ax.text(x[coord_i], y[coord_i], text, fontsize=8,
                 color='white', bbox={'facecolor': color, 'alpha': 0.5, 'linewidth': 0})
 
     @staticmethod
@@ -208,8 +199,8 @@ class KeypointPainter(object):
                 score = scores[i] if scores is not None else None
                 self._draw_box(ax, x, y, v, color, score)
 
-                if texts is not None:
-                    self._draw_text(ax, x, y, v, texts[i], color)
+            if texts is not None:
+                self._draw_text(ax, x, y, v, texts[i], color)
 
 
     def annotations(self, ax, annotations, *,
@@ -247,8 +238,8 @@ class KeypointPainter(object):
         if self.show_box:
             self._draw_box(ax, x, y, v, color, ann.score())
 
-            if text is not None:
-                self._draw_text(ax, x, y, v, text, color)
+        if text is not None:
+            self._draw_text(ax, x, y, v, text, color)
 
 
 def quiver(ax, vector_field, intensity_field=None, step=1, threshold=0.5,
