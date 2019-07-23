@@ -38,6 +38,58 @@ class Shell(torch.nn.Module):
         return [hn(x) for hn in self.head_nets]
 
 
+class Shell2Scale(torch.nn.Module):
+    def __init__(self, base_net, head_nets):
+        super(Shell2Scale, self).__init__()
+
+        self.base_net = base_net
+        self.head_nets = torch.nn.ModuleList(head_nets)
+
+    def io_scales(self):
+        return [self.base_net.input_output_scale // (2 ** getattr(h, '_quad', 0))
+                for h in self.head_nets]
+
+    def forward(self, *args):
+        original_input = args[0]
+        original_x = self.base_net(original_input)
+        original_heads = [hn(original_x) for hn in self.head_nets]
+
+        reduced_input = original_input[:, :, ::4, ::4]
+        reduced_x = self.base_net(reduced_input)
+        reduced_heads = [hn(reduced_x) for hn in self.head_nets]
+
+        for hi, (original_h, reduced_h) in enumerate(zip(original_heads, reduced_heads)):
+            mask = original_h[0][:, :,
+                                 :4*reduced_h[0].shape[2]:4,
+                                 :4*reduced_h[0].shape[3]:4] < reduced_h[0]
+            mask_vector = torch.stack((mask, mask), dim=2)
+
+            for ci, (original_c, reduced_c) in enumerate(zip(original_h, reduced_h)):
+                if ci == 0:
+                    # confidence component
+                    reduced_c = reduced_c * 0.3
+                elif (hi == 0 and ci == 2) or (hi == 1 and ci in (3, 4)):
+                    # log(b) components
+                    reduced_c = torch.log(torch.exp(reduced_c) * 4.0)
+                else:
+                    # vectorial and scale components
+                    reduced_c = reduced_c * 4.0
+
+                if len(original_c.shape) == 4:
+                    original_c[:, :,
+                               :4*reduced_c.shape[2]:4,
+                               :4*reduced_c.shape[3]:4][mask] = reduced_c[mask]
+                elif len(original_c.shape) == 5:
+                    original_c[:, :, :,
+                               :4*reduced_c.shape[3]:4,
+                               :4*reduced_c.shape[4]:4][mask_vector] = reduced_c[mask_vector]
+                else:
+                    raise Exception('cannot process component with shape {}'
+                                    ''.format(original_c.shape))
+
+        return original_heads
+
+
 class Shell2Stage(torch.nn.Module):
     def __init__(self, base_net, head_nets1, head_nets2):
         super(Shell2Stage, self).__init__()
@@ -98,7 +150,8 @@ def factory_from_args(args):
     return factory(checkpoint=args.checkpoint,
                    basenet=args.basenet,
                    headnets=args.headnets,
-                   pretrained=args.pretrained)
+                   pretrained=args.pretrained,
+                   two_scale=args.two_scale)
 
 
 # pylint: disable=too-many-branches
@@ -155,7 +208,8 @@ def factory(*,
             headnets=('pif', 'paf'),
             pretrained=True,
             dilation=None,
-            dilation_end=None):
+            dilation_end=None,
+            two_scale=False):
     if not checkpoint and basenet:
         net_cpu = factory_from_scratch(basenet, headnets, pretrained=pretrained)
         epoch = 0
@@ -186,6 +240,9 @@ def factory(*,
 
         # normalize for backwards compatibility
         model_migration(net_cpu)
+
+    if two_scale:
+        net_cpu = Shell2Scale(net_cpu.base_net, net_cpu.head_nets)
 
     if dilation is not None:
         net_cpu.base_net.atrous0(dilation)
@@ -351,6 +408,8 @@ def cli(parser):
                        help='head networks')
     group.add_argument('--no-pretrain', dest='pretrained', default=True, action='store_false',
                        help='create model without ImageNet pretraining')
+    group.add_argument('--two-scale', default=False, action='store_true',
+                       help='two scale')
 
     for head in (heads.HEADS or heads.Head.__subclasses__()):
         head.cli(parser)

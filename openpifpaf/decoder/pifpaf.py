@@ -13,7 +13,7 @@ from ..data import KINEMATIC_TREE_SKELETON, COCO_PERSON_SKELETON, DENSER_COCO_PE
 
 # pylint: disable=import-error
 from ..functional import (cumulative_average, scalar_square_add_gauss,
-                          weiszfeld_nd, paf_center, scalar_values, scalar_nonzero)
+                          weiszfeld_nd, paf_center, scalar_values, scalar_value, scalar_nonzero)
 
 LOG = logging.getLogger(__name__)
 
@@ -299,23 +299,21 @@ class PifPafGenerator(object):
         self.log.debug('seeds %d, %.3fs', len(seeds), time.perf_counter() - start)
         return seeds
 
-    def _grow_connection(self, xy, paf_field):
+    def _grow_connection(self, xy, xy_scale, paf_field):
         assert len(xy) == 2
         assert paf_field.shape[0] == 7
 
         # source value
-        paf_field = paf_center(paf_field, xy[0], xy[1], sigma=2.0)
+        paf_field = paf_center(paf_field, xy[0], xy[1], sigma=2.0 * xy_scale)
         if paf_field.shape[1] == 0:
             return 0, 0, 0
 
         # source distance
         d = np.linalg.norm(((xy[0],), (xy[1],)) - paf_field[1:3], axis=0)
-        b_source = paf_field[3] * 3.0
-        # b_target = paf_field[6]
 
         # combined value and source distance
         v = paf_field[0]
-        scores = np.exp(-1.0 * d / b_source) * v  # two-tailed cumulative Laplace
+        scores = np.exp(-1.0 * d / xy_scale) * v  # two-tailed cumulative Laplace
 
         if self.connection_method == 'median':
             return self._target_with_median(paf_field[4:6], scores, sigma=1.0)
@@ -355,33 +353,43 @@ class PifPafGenerator(object):
     def _grow(self, ann, paf_forward, paf_backward, th):
         for _, i, forward, j1i, j2i in ann.frontier_iter():
             if forward:
-                xyv = ann.data[j1i]
+                jsi, jti = j1i, j2i
                 directed_paf_field = paf_forward[i]
                 directed_paf_field_reverse = paf_backward[i]
             else:
-                xyv = ann.data[j2i]
+                jsi, jti = j2i, j1i
                 directed_paf_field = paf_backward[i]
                 directed_paf_field_reverse = paf_forward[i]
+            xyv = ann.data[jsi]
+            xy_scale_s = max(
+                1.0,
+                scalar_value(self._pifhr_scales[jsi],
+                             xyv[0] * self.stride,
+                             xyv[1] * self.stride) / self.stride
+            )
 
-            new_xyv = self._grow_connection(xyv[:2], directed_paf_field)
+            new_xyv = self._grow_connection(xyv[:2], xy_scale_s, directed_paf_field)
             if new_xyv[2] < th:
                 continue
+            xy_scale_t = max(
+                1.0,
+                scalar_value(self._pifhr_scales[jti],
+                             new_xyv[0] * self.stride,
+                             new_xyv[1] * self.stride) / self.stride
+            )
 
             # reverse match
             if th >= 0.1:
-                reverse_xyv = self._grow_connection(new_xyv[:2], directed_paf_field_reverse)
+                reverse_xyv = self._grow_connection(
+                    new_xyv[:2], xy_scale_t, directed_paf_field_reverse)
                 if reverse_xyv[2] < th:
                     continue
-                if abs(xyv[0] - reverse_xyv[0]) + abs(xyv[1] - reverse_xyv[1]) > 1.0:
+                if abs(xyv[0] - reverse_xyv[0]) + abs(xyv[1] - reverse_xyv[1]) > xy_scale_s:
                     continue
 
             new_xyv = (new_xyv[0], new_xyv[1], np.sqrt(new_xyv[2] * xyv[2]))  # geometric mean
-            if forward:
-                if new_xyv[2] > ann.data[j2i, 2]:
-                    ann.data[j2i] = new_xyv
-            else:
-                if new_xyv[2] > ann.data[j1i, 2]:
-                    ann.data[j1i] = new_xyv
+            if new_xyv[2] > ann.data[jti, 2]:
+                ann.data[jti] = new_xyv
 
     @staticmethod
     def _flood_fill(ann):
