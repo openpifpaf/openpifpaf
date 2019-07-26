@@ -49,7 +49,7 @@ setup(
     ],
     license='GNU AGPLv3',
     description='PifPaf: Composite Fields for Human Pose Estimation',
-    long_description=open('README.md').read(),
+    long_description=open('README.md', encoding='utf-8').read(),
     long_description_content_type='text/markdown',
     author='Sven Kreiss',
     author_email='research@svenkreiss.com',
