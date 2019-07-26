@@ -96,11 +96,22 @@ python3 -m openpifpaf.predict my_image.jpg --show
 
 # Pre-trained Models
 
-Put the files from this
+Performance metrics with version 0.8.0 on the COCO val set obtained with a GTX1080Ti:
+
+| Backbone       | AP       | APᴹ      | APᴸ     | t_{total} [ms]  | t_{dec} [ms] |
+|---------------:|:--------:|:--------:|:-------:|:---------------:|:------------:|
+| shufflenetv2x1 | __50.3__ | 46.6     | 56.1    | 55              | 43           |
+| shufflenetv2x2 | __58.5__ | 55.0     | 64.0    | 59              | 39           |
+| resnet50       | __63.3__ | 60.3     | 68.2    | 79              | 36           |
+| resnext50      | __63.9__ | 60.9     | 68.7    | 91              | 31           |
+| resnet101      | __66.4__ | 62.6     | 72.2    | 99              | 34           |
+| resnet152      | __67.7__ | 64.1     | 73.5    | 124             | 32           |
+
+Pretrained model files are shared in this
 __[Google Drive](https://drive.google.com/drive/folders/13cXISujwI6-D3ijK6fGnoSNOthKUQWnN?usp=sharing)__
-into your `outputs` folder. The three standard, pretrained models are also available when
-using the command line option `--checkpoint resnet50`, `--checkpoint resnet101`
-and `--checkpoint resnet152`.
+which you can put into your `outputs` folder. The pretrained models are
+downloaded automatically when
+using the command line option `--checkpoint backbonenameasintableabove`.
 
 To visualize logs:
 
