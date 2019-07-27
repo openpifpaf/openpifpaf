@@ -49,6 +49,36 @@ class Shell2Scale(torch.nn.Module):
         return [self.base_net.input_output_scale // (2 ** getattr(h, '_quad', 0))
                 for h in self.head_nets]
 
+    @staticmethod
+    def merge_heads(original_h, reduced_h, logb_component_indices):
+        mask = reduced_h[0] > original_h[0][:, :,
+                                            :4*reduced_h[0].shape[2]:4,
+                                            :4*reduced_h[0].shape[3]:4]
+        mask_vector = torch.stack((mask, mask), dim=2)
+
+        for ci, (original_c, reduced_c) in enumerate(zip(original_h, reduced_h)):
+            if ci == 0:
+                # confidence component
+                reduced_c = reduced_c * 0.3
+            elif ci in logb_component_indices:
+                # log(b) components
+                reduced_c = torch.log(torch.exp(reduced_c) * 4.0)
+            else:
+                # vectorial and scale components
+                reduced_c = reduced_c * 4.0
+
+            if len(original_c.shape) == 4:
+                original_c[:, :,
+                           :4*reduced_c.shape[2]:4,
+                           :4*reduced_c.shape[3]:4][mask] = reduced_c[mask]
+            elif len(original_c.shape) == 5:
+                original_c[:, :, :,
+                           :4*reduced_c.shape[3]:4,
+                           :4*reduced_c.shape[4]:4][mask_vector] = reduced_c[mask_vector]
+            else:
+                raise Exception('cannot process component with shape {}'
+                                ''.format(original_c.shape))
+
     def forward(self, *args):
         original_input = args[0]
         original_x = self.base_net(original_input)
@@ -58,34 +88,12 @@ class Shell2Scale(torch.nn.Module):
         reduced_x = self.base_net(reduced_input)
         reduced_heads = [hn(reduced_x) for hn in self.head_nets]
 
-        for hi, (original_h, reduced_h) in enumerate(zip(original_heads, reduced_heads)):
-            mask = original_h[0][:, :,
-                                 :4*reduced_h[0].shape[2]:4,
-                                 :4*reduced_h[0].shape[3]:4] < reduced_h[0]
-            mask_vector = torch.stack((mask, mask), dim=2)
+        logb_component_indices = [(2,), (3, 4)]
 
-            for ci, (original_c, reduced_c) in enumerate(zip(original_h, reduced_h)):
-                if ci == 0:
-                    # confidence component
-                    reduced_c = reduced_c * 0.3
-                elif (hi == 0 and ci == 2) or (hi == 1 and ci in (3, 4)):
-                    # log(b) components
-                    reduced_c = torch.log(torch.exp(reduced_c) * 4.0)
-                else:
-                    # vectorial and scale components
-                    reduced_c = reduced_c * 4.0
-
-                if len(original_c.shape) == 4:
-                    original_c[:, :,
-                               :4*reduced_c.shape[2]:4,
-                               :4*reduced_c.shape[3]:4][mask] = reduced_c[mask]
-                elif len(original_c.shape) == 5:
-                    original_c[:, :, :,
-                               :4*reduced_c.shape[3]:4,
-                               :4*reduced_c.shape[4]:4][mask_vector] = reduced_c[mask_vector]
-                else:
-                    raise Exception('cannot process component with shape {}'
-                                    ''.format(original_c.shape))
+        for original_h, reduced_h, lci in zip(original_heads,
+                                              reduced_heads,
+                                              logb_component_indices):
+            self.merge_heads(original_h, reduced_h, lci)
 
         return original_heads
 
