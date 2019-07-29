@@ -98,9 +98,6 @@ class EvalCoco(object):
     def from_predictions(self, annotations, meta,
                          debug=False, gt=None, image_cpu=None, verbose=False,
                          category_id=1):
-        if isinstance(meta, (list, tuple)):
-            meta = meta[0]
-
         image_id = int(meta['image_id'])
         self.image_ids.append(image_id)
 
@@ -111,13 +108,17 @@ class EvalCoco(object):
         instances = self.keypoint_sets_inverse(instances, meta)
         image_annotations = []
         for instance, score in zip(instances, scores):
+            # avoid visible keypoints becoming invisible due to rounding
+            v_mask = instance[:, 2] > 0.0
+            instance[v_mask, 2] = np.maximum(0.01, instance[v_mask, 2])
+
             keypoints = np.around(instance, 2)
             keypoints[:, 2] = 2.0
             image_annotations.append({
                 'image_id': image_id,
                 'category_id': category_id,
                 'keypoints': keypoints.reshape(-1).tolist(),
-                'score': score,
+                'score': max(0.01, score),
             })
 
         # force at least one annotation per image (for pycocotools)
@@ -147,11 +148,11 @@ class EvalCoco(object):
              if k in ('image_id', 'category_id', 'keypoints', 'score')}
             for annotation in self.predictions
         ]
-        with open(filename + '.json', 'w') as f:
+        with open(filename + '.pred.json', 'w') as f:
             json.dump(predictions, f)
-        print('wrote {}'.format(filename + '.json'))
+        print('wrote {}'.format(filename + '.pred.json'))
         with zipfile.ZipFile(filename + '.zip', 'w') as myzip:
-            myzip.write(filename + '.json', arcname='predictions.json')
+            myzip.write(filename + '.pred.json', arcname='predictions.json')
         print('wrote {}'.format(filename + '.zip'))
 
 
@@ -163,6 +164,8 @@ def cli():
     nets.cli(parser)
     decoder.cli(parser, force_complete_pose=True)
     encoder.cli(parser)
+    parser.add_argument('--output', default=None,
+                        help='output filename without file extension')
     parser.add_argument('-n', default=0, type=int,
                         help='number of batches')
     parser.add_argument('--skip-n', default=0, type=int,
@@ -193,14 +196,14 @@ def cli():
     logging.basicConfig(level=logging.INFO if not args.debug else logging.DEBUG)
 
     if args.dataset == 'val':
-        image_dir = IMAGE_DIR_VAL
-        annotation_file = ANNOTATIONS_VAL
+        args.image_dir = IMAGE_DIR_VAL
+        args.annotation_file = ANNOTATIONS_VAL
     elif args.dataset == 'test':
-        image_dir = IMAGE_DIR_TEST
-        annotation_file = ANNOTATIONS_TEST
+        args.image_dir = IMAGE_DIR_TEST
+        args.annotation_file = ANNOTATIONS_TEST
     elif args.dataset == 'test-dev':
-        image_dir = IMAGE_DIR_TEST
-        annotation_file = ANNOTATIONS_TESTDEV
+        args.image_dir = IMAGE_DIR_TEST
+        args.annotation_file = ANNOTATIONS_TESTDEV
     else:
         raise Exception
 
@@ -216,27 +219,45 @@ def cli():
         args.device = torch.device('cuda')
         args.pin_memory = True
 
-    return args, image_dir, annotation_file
-
-
-def write_evaluations(eval_cocos, args):
-    for i, eval_coco in enumerate(eval_cocos):
-        filename = '{}.evalcoco-{}edge{}-samples{}-{}decoder{}'.format(
+    # generate a default output filename
+    if args.output is None:
+        args.output = '{}.evalcoco-{}edge{}-samples{}{}{}'.format(
             args.checkpoint,
             '{}-'.format(args.dataset) if args.dataset != 'val' else '',
-            args.long_edge, args.n,
-            'noforcecompletepose-' if not args.force_complete_pose else '', i)
+            args.long_edge,
+            args.n,
+            '-noforcecompletepose' if not args.force_complete_pose else '',
+            '-twoscale' if args.two_scale else '',
+        )
 
-        if args.write_predictions:
-            eval_coco.write_predictions(filename)
+    return args
 
-        if args.dataset not in ('test', 'test-dev'):
-            stats = eval_coco.stats()
-            np.savetxt(filename + '.txt', stats)
-        else:
-            print('given dataset does not have ground truth, so no stats summary')
 
-        print('Decoder {}: decoder time = {}s'.format(i, eval_coco.decoder_time))
+def write_evaluations(eval_coco, filename, args, total_time):
+    if args.write_predictions:
+        eval_coco.write_predictions(filename)
+
+    n_images = len(eval_coco.image_ids)
+
+    if args.dataset not in ('test', 'test-dev'):
+        stats = eval_coco.stats()
+        np.savetxt(filename + '.txt', stats)
+        with open(filename + '.stats.json', 'w') as f:
+            json.dump({
+                'stats': stats.tolist(),
+                'n_images': n_images,
+                'decoder_time': eval_coco.decoder_time,
+                'total_time': total_time,
+                'checkpoint': args.checkpoint,
+            }, f)
+    else:
+        print('given dataset does not have ground truth, so no stats summary')
+
+    print('n images = {}'.format(n_images))
+    print('decoder time = {:.1f}s ({:.0f}ms / image)'
+          ''.format(eval_coco.decoder_time, 1000 * eval_coco.decoder_time / n_images))
+    print('total time = {:.1f}s ({:.0f}ms / image)'
+          ''.format(total_time, 1000 * total_time / n_images))
 
 
 def preprocess_factory_from_args(args):
@@ -259,21 +280,20 @@ def preprocess_factory_from_args(args):
 
 
 def main():
-    args, image_dir, annotation_file = cli()
+    args = cli()
 
     # skip existing?
-    eval_output_filename = '{}.evalcoco-edge{}-samples{}-decoder{}.txt'.format(
-        args.checkpoint, args.long_edge, args.n, 0)
     if args.skip_existing:
-        if os.path.exists(eval_output_filename):
-            print('Output file {} exists already. Exiting.'.format(eval_output_filename))
+        if os.path.exists(args.output + '.stats.json'):
+            print('Output file {} exists already. Exiting.'
+                  ''.format(args.output + '.stats.json'))
             return
         print('Processing: {}'.format(args.checkpoint))
 
     preprocess, collate_fn = preprocess_factory_from_args(args)
     data = datasets.CocoKeypoints(
-        root=image_dir,
-        annFile=annotation_file,
+        root=args.image_dir,
+        annFile=args.annotation_file,
         preprocess=preprocess,
         all_persons=True,
         all_images=args.all_images,
@@ -288,7 +308,7 @@ def main():
     # processor.instance_scorer = decocder.instance_scorer.InstanceScoreRecorder()
     # processor.instance_scorer = torch.load('instance_scorer.pkl')
 
-    coco = pycocotools.coco.COCO(annotation_file)
+    coco = pycocotools.coco.COCO(args.annotation_file)
     eval_coco = EvalCoco(coco, processor, preprocess.keypoint_sets_inverse)
     total_start = time.time()
     loop_start = time.time()
@@ -331,8 +351,7 @@ def main():
     total_time = time.time() - total_start
 
     # processor.instance_scorer.write_data('instance_score_data.json')
-    write_evaluations([eval_coco], args)
-    print('total processing time = {}s'.format(total_time))
+    write_evaluations(eval_coco, args.output, args, total_time)
 
 
 if __name__ == '__main__':
