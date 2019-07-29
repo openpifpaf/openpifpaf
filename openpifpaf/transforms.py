@@ -62,8 +62,6 @@ class NormalizeAnnotations(Preprocess):
     def normalize_annotations(anns):
         anns = copy.deepcopy(anns)
 
-        # convert as much data as possible to numpy arrays to avoid every float
-        # being turned into its own torch.Tensor()
         for ann in anns:
             ann['keypoints'] = np.asarray(ann['keypoints'], dtype=np.float32).reshape(-1, 3)
             ann['bbox'] = np.asarray(ann['bbox'], dtype=np.float32)
