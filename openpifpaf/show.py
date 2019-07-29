@@ -161,7 +161,7 @@ class KeypointPainter(object):
             return
 
         coord_i = np.argmin(y[v > 0])
-        ax.text(x[coord_i], y[coord_i], text, fontsize=8,
+        ax.text(x[v > 0][coord_i], y[v > 0][coord_i], text, fontsize=8,
                 color='white', bbox={'facecolor': color, 'alpha': 0.5, 'linewidth': 0})
 
     @staticmethod
