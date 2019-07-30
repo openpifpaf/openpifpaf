@@ -1,6 +1,11 @@
 # History
 
-* [master](https://github.com/vita-epfl/openpifpaf/compare/v0.8.0...master)
+* [master](https://github.com/vita-epfl/openpifpaf/compare/v0.9.0...master)
+* [0.9.0](https://github.com/vita-epfl/openpifpaf/compare/v0.8.0...v0.9.0) (2019-07-30)
+    * make image transforms part of preprocessing [#100](https://github.com/vita-epfl/openpifpaf/pull/100)
+    * field-based two-scale implementation [#101](https://github.com/vita-epfl/openpifpaf/pull/101), also modifies single-scale decoder
+    * added a `show.CrowdPainter` to visualize crowd annotations
+    * new benchmark script and updated performance numbers in [README.md](https://github.com/vita-epfl/openpifpaf/blob/master/README.md), [#104](https://github.com/vita-epfl/openpifpaf/pull/104)
 * [0.8.0](https://github.com/vita-epfl/openpifpaf/compare/v0.7.0...v0.8.0) (2019-07-08)
     * add support for `resnext50`, `shufflenetv2x1` and `shufflenetv2x2`
     * new pretrained models
