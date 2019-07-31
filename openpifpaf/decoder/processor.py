@@ -139,10 +139,7 @@ class Processor(object):
 
         return keypoint_sets, scores
 
-    def annotations_batch(self, fields_batch, *, meta_list_batch=None, debug_images=None):
-        if meta_list_batch is None:
-            meta_list_batch = [None for _ in fields_batch]
-
+    def annotations_batch(self, fields_batch, *, debug_images=None):
         if debug_images is None or self.debug_visualizer is None:
             # remove debug_images if there is no visualizer to save
             # time during pickle
@@ -150,9 +147,9 @@ class Processor(object):
 
         LOG.debug('parallel execution with worker %s', self.worker_pool)
         return self.worker_pool.starmap(
-            self.annotations, zip(fields_batch, meta_list_batch, debug_images))
+            self.annotations, zip(fields_batch, debug_images))
 
-    def annotations(self, fields, meta_list=None, debug_image=None):
+    def annotations(self, fields, debug_image=None):
         start = time.time()
         if self.profile is not None:
             self.profile.enable()
@@ -160,10 +157,13 @@ class Processor(object):
         if debug_image is not None:
             self.set_cpu_image(None, debug_image)
 
-        if isinstance(meta_list, (list, tuple)):
-            annotations = self.annotations_multiscale(fields, meta_list)
-        else:
-            annotations = self.annotations_singlescale(fields)
+        annotations = self.decode(fields)
+
+        # scale to input size
+        for ann in annotations:
+            ann.data[:, 0:2] *= self.output_stride
+            if ann.joint_scales is not None:
+                ann.joint_scales *= self.output_stride
 
         # instance scorer
         if self.instance_scorer is not None:
@@ -194,35 +194,3 @@ class Processor(object):
                  [np.sum(ann.data[:, 2] > 0.1) for ann in annotations])
         LOG.debug('total processing time: %.3fs', time.time() - start)
         return annotations
-
-    def annotations_singlescale(self, fields):
-        LOG.debug('singlescale')
-        annotations = self.decode(fields)
-
-        # scale to input size
-        for ann in annotations:
-            ann.data[:, 0:2] *= self.output_stride
-            if ann.joint_scales is not None:
-                ann.joint_scales *= self.output_stride
-
-        return annotations
-
-    def annotations_multiscale(self, fields_list, meta_list):
-        LOG.debug('multiscale')
-        annotations_list = [self.decode(f) for f in fields_list]
-
-        # scale to input size
-        w = meta_list[0]['scale'][0] * meta_list[0]['width_height'][0]
-        for annotations, meta in zip(annotations_list, meta_list):
-            scale_factor = meta['scale'][0] / meta_list[0]['scale'][0]
-            for ann in annotations:
-                ann.data[:, 0:2] *= self.output_stride / scale_factor
-                if ann.joint_scales is not None:
-                    ann.joint_scales *= self.output_stride / scale_factor
-
-                if meta['hflip']:
-                    ann.data[:, 0] = -ann.data[:, 0] - 1.0 + w
-                    if meta.get('horizontal_swap'):
-                        ann.data[:] = meta['horizontal_swap'](ann.data)
-
-        return sum(annotations_list, [])
