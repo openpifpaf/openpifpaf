@@ -5,14 +5,17 @@ from ..functional import scalar_value_clipped
 
 
 class Annotation(object):
-    def __init__(self, j, xyv, skeleton):
+    def __init__(self, skeleton):
         n_joints = len(set(i for c in skeleton for i in c))
         self.data = np.zeros((n_joints, 3))
         self.joint_scales = None
-        self.data[j] = xyv
         self.fixed_score = None
 
         self.skeleton_m1 = (np.asarray(skeleton) - 1).tolist()
+
+    def add(self, joint_i, xyv):
+        self.data[joint_i] = xyv
+        return self
 
     def fill_joint_scales(self, scales, hr_scale):
         self.joint_scales = np.zeros((self.data.shape[0],))

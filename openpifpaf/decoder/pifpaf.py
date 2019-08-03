@@ -256,7 +256,7 @@ class PifPafGenerator(object):
                                      max(4.0, s * self.stride),
                                      1)
 
-            ann = Annotation(f, (x, y, v), self.skeleton)
+            ann = Annotation(self.skeleton).add(f, (x, y, v))
             self._grow(ann, self._paf_forward, self._paf_backward, self.paf_th)
             ann.fill_joint_scales(self._pifhr_scales, self.stride)
             annotations.append(ann)

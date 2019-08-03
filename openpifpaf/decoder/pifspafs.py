@@ -225,7 +225,7 @@ class PifsPafsGenerator(object):
             if occupied[f, j, i]:
                 continue
 
-            ann = Annotation(f, (x, y, v), self.skeleton)
+            ann = Annotation(self.skeleton).add(f, (x, y, v))
             self._grow(ann, self._paf_forward, self._paf_backward)
             ann.fill_joint_scales(self._pifhr_scales, self.stride)
             annotations.append(ann)
