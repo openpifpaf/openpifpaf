@@ -19,7 +19,7 @@ import torch
 import cv2  # pylint: disable=import-error
 from .network import nets
 from . import decoder, show, transforms
-
+from PIL import Image
 
 class Visualizer(object):
     def __init__(self, processor, args):
@@ -113,7 +113,7 @@ def main():
             visualizer.send(None)
 
         start = time.time()
-        processed_image_cpu, _, __ = transforms.EVAL_TRANSFORM(image.copy(), [], None)
+        processed_image_cpu, _, __ = transforms.EVAL_TRANSFORM(Image.fromarray(image), [], None)
         processed_image = processed_image_cpu.contiguous().to(args.device, non_blocking=True)
         print('preprocessing time', time.time() - start)
 
