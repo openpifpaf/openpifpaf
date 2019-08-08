@@ -63,12 +63,6 @@ class Processor(object):
             self.debug_visualizer.set_image(cpu_image, processed_image)
 
     def fields(self, image_batch):
-        # detect multi scale
-        if isinstance(image_batch, list):
-            fields_by_scale_batch = [self.fields(i) for i in image_batch]
-            fields_by_batch_scale = list(zip(*fields_by_scale_batch))
-            return fields_by_batch_scale
-
         start = time.time()
         if self.device is not None:
             image_batch = image_batch.to(self.device, non_blocking=True)
@@ -149,7 +143,7 @@ class Processor(object):
         return self.worker_pool.starmap(
             self.annotations, zip(fields_batch, debug_images))
 
-    def annotations(self, fields, debug_image=None):
+    def annotations(self, fields, *, initial_annotations=None, debug_image=None):
         start = time.time()
         if self.profile is not None:
             self.profile.enable()
@@ -157,13 +151,13 @@ class Processor(object):
         if debug_image is not None:
             self.set_cpu_image(None, debug_image)
 
-        annotations = self.decode(fields)
+        for ann in initial_annotations:
+            ann.rescale(1.0 / self.output_stride)
+        annotations = self.decode(fields, initial_annotations=initial_annotations)
 
         # scale to input size
         for ann in annotations:
-            ann.data[:, 0:2] *= self.output_stride
-            if ann.joint_scales is not None:
-                ann.joint_scales *= self.output_stride
+            ann.rescale(self.output_stride)
 
         # instance scorer
         if self.instance_scorer is not None:

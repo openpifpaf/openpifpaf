@@ -101,7 +101,7 @@ class PifPaf(Decoder):
         # arg defined in factory
         cls.default_force_complete = args.force_complete_pose
 
-    def __call__(self, fields):
+    def __call__(self, fields, initial_annotations=None):
         start = time.perf_counter()
 
         pif, paf = fields[self.head_indices[0]], fields[self.head_indices[1]]
@@ -123,7 +123,7 @@ class PifPaf(Decoder):
             debug_visualizer=self.debug_visualizer,
         )
 
-        annotations = gen.annotations()
+        annotations = gen.annotations(initial_annotations=initial_annotations)
         if self.force_complete:
             annotations = gen.complete_annotations(annotations)
 
@@ -167,7 +167,7 @@ class PifPafGenerator(object):
         self._paf_backward = None
         self._paf_forward, self._paf_backward = self._score_paf_target(self.paf_th)
 
-    def _target_intensities(self, v_th=0.1, core_only=False):
+    def _target_intensities(self, v_th=0.1):
         start = time.perf_counter()
 
         targets = np.zeros((self.pif.shape[0],
@@ -180,15 +180,8 @@ class PifPafGenerator(object):
             x = x * self.stride
             y = y * self.stride
             s = s * self.stride
-            if core_only:
-                scalar_square_add_gauss(t, x, y, s, v / self.pif_nn, truncate=0.5)
-            else:
-                scalar_square_add_gauss(t, x, y, s, v / self.pif_nn)
-                cumulative_average(scale, n, x, y, s, s, v)
-
-        if core_only:
-            self.log.debug('target_intensities %.3fs', time.perf_counter() - start)
-            return targets
+            scalar_square_add_gauss(t, x, y, s, v / self.pif_nn)
+            cumulative_average(scale, n, x, y, s, s, v)
 
         self.log.debug('target_intensities %.3fs', time.perf_counter() - start)
         return targets, scales
@@ -242,11 +235,35 @@ class PifPafGenerator(object):
         self.log.debug('scored paf %.3fs', time.perf_counter() - start)
         return scored_forward, scored_backward
 
-    def annotations(self):
+    def annotations(self, initial_annotations=None):
         start = time.perf_counter()
+        if not initial_annotations:
+            initial_annotations = []
+        self.log.debug('initial annotations = %d', len(initial_annotations))
 
         occupied = np.zeros(self._pifhr_scales.shape, dtype=np.uint8)
         annotations = []
+
+        def mark_occupied(ann):
+            for joint_i, xyv in enumerate(ann.data):
+                if xyv[2] == 0.0:
+                    continue
+
+                width = ann.joint_scales[joint_i]
+                scalar_square_add_single(occupied[joint_i],
+                                         xyv[0] * self.stride,
+                                         xyv[1] * self.stride,
+                                         max(4.0, width * self.stride),
+                                         1)
+
+        for ann in initial_annotations:
+            if ann.joint_scales is None:
+                ann.fill_joint_scales(self._pifhr_scales, self.stride)
+            self._grow(ann, self._paf_forward, self._paf_backward, self.paf_th)
+            ann.fill_joint_scales(self._pifhr_scales, self.stride)
+            annotations.append(ann)
+            mark_occupied(ann)
+
         for v, f, x, y, s in self._pif_seeds():
             if scalar_nonzero(occupied[f], x * self.stride, y * self.stride):
                 continue
@@ -260,17 +277,7 @@ class PifPafGenerator(object):
             self._grow(ann, self._paf_forward, self._paf_backward, self.paf_th)
             ann.fill_joint_scales(self._pifhr_scales, self.stride)
             annotations.append(ann)
-
-            for joint_i, xyv in enumerate(ann.data):
-                if xyv[2] == 0.0:
-                    continue
-
-                width = ann.joint_scales[joint_i]
-                scalar_square_add_single(occupied[joint_i],
-                                         xyv[0] * self.stride,
-                                         xyv[1] * self.stride,
-                                         max(4.0, width * self.stride),
-                                         1)
+            mark_occupied(ann)
 
         if self.debug_visualizer:
             self.log.debug('occupied field 0')
