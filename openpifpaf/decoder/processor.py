@@ -143,7 +143,7 @@ class Processor(object):
         return self.worker_pool.starmap(
             self.annotations, zip(fields_batch, debug_images))
 
-    def annotations(self, fields, debug_image=None):
+    def annotations(self, fields, *, initial_annotations=None, debug_image=None):
         start = time.time()
         if self.profile is not None:
             self.profile.enable()
@@ -151,7 +151,9 @@ class Processor(object):
         if debug_image is not None:
             self.set_cpu_image(None, debug_image)
 
-        annotations = self.decode(fields)
+        for ann in initial_annotations:
+            ann.rescale(1.0 / self.output_stride)
+        annotations = self.decode(fields, initial_annotations=initial_annotations)
 
         # scale to input size
         for ann in annotations:
