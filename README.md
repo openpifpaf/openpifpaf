@@ -19,11 +19,12 @@
 
 
 ```
-@article{kreiss2019pifpaf,
-  title={PifPaf: Composite Fields for Human Pose Estimation},
-  author={Kreiss, Sven and Bertoni, Lorenzo and Alahi, Alexandre},
-  journal={CVPR, arXiv preprint arXiv:1903.06593},
-  year={2019}
+@InProceedings{kreiss2019pifpaf,
+  author = {Kreiss, Sven and Bertoni, Lorenzo and Alahi, Alexandre},
+  title = {PifPaf: Composite Fields for Human Pose Estimation},
+  booktitle = {The IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
+  month = {June},
+  year = {2019}
 }
 ```
 
