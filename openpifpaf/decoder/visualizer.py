@@ -96,7 +96,7 @@ class Visualizer(object):
 
     def paf_raw(self, paf, io_scale, reg_components=2):
         print('raw paf')
-        intensity_fields, reg1_fields, reg2_fields, reg1_fields_b, reg2_fields_b = paf  # pylint: disable=unused-variable
+        intensity_fields, reg1_fields, reg2_fields, reg1_fields_b, reg2_fields_b = paf
         for g in self.paf_indices:
             for f in g:
                 print('association field',
@@ -170,7 +170,7 @@ class Visualizer(object):
 
     def pif_raw(self, pif, io_scale):
         print('raw pif')
-        intensity_fields, reg_fields, reg_fields_b, scale_fields = pif  # pylint: disable=unused-variable
+        intensity_fields, reg_fields, reg_fields_b, scale_fields = pif
         for g in self.pif_indices:
             for f in g:
                 print('pif field', self.keypoints[f])

@@ -17,6 +17,12 @@ class Annotation(object):
         self.data[joint_i] = xyv
         return self
 
+    def rescale(self, scale_factor):
+        self.data[:, 0:2] *= scale_factor
+        if self.joint_scales is not None:
+            self.joint_scales *= scale_factor
+        return self
+
     def fill_joint_scales(self, scales, hr_scale):
         self.joint_scales = np.zeros((self.data.shape[0],))
         for xyv_i, xyv in enumerate(self.data):

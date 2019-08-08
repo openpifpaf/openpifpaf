@@ -63,12 +63,6 @@ class Processor(object):
             self.debug_visualizer.set_image(cpu_image, processed_image)
 
     def fields(self, image_batch):
-        # detect multi scale
-        if isinstance(image_batch, list):
-            fields_by_scale_batch = [self.fields(i) for i in image_batch]
-            fields_by_batch_scale = list(zip(*fields_by_scale_batch))
-            return fields_by_batch_scale
-
         start = time.time()
         if self.device is not None:
             image_batch = image_batch.to(self.device, non_blocking=True)
@@ -161,9 +155,7 @@ class Processor(object):
 
         # scale to input size
         for ann in annotations:
-            ann.data[:, 0:2] *= self.output_stride
-            if ann.joint_scales is not None:
-                ann.joint_scales *= self.output_stride
+            ann.rescale(self.output_stride)
 
         # instance scorer
         if self.instance_scorer is not None:
