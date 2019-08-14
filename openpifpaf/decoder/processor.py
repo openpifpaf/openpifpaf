@@ -140,12 +140,11 @@ class Processor(object):
             debug_images = [None for _ in fields_batch]
 
         LOG.debug('parallel execution with worker %s', self.worker_pool)
-
-        def mappable_annotations(fields, debug_image):
-            return self.annotations(fields, debug_image=debug_image)
-
         return self.worker_pool.starmap(
-            mappable_annotations, zip(fields_batch, debug_images))
+            self._mappable_annotations, zip(fields_batch, debug_images))
+
+    def _mappable_annotations(self, fields, debug_image):
+        return self.annotations(fields, debug_image=debug_image)
 
     def annotations(self, fields, *, initial_annotations=None, debug_image=None):
         start = time.time()
