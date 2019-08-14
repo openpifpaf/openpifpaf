@@ -16,6 +16,7 @@ from . import datasets, decoder, show, transforms
 
 def cli():
     parser = argparse.ArgumentParser(
+        prog='python3 -m openpifpaf.predict',
         description=__doc__,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
