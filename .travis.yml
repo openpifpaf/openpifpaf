@@ -6,7 +6,7 @@ python:
  - "3.7"
 install:
  - pip install --upgrade pip setuptools
- - "pip install .[test]"
+ - "pip install --editable .[test]"
 script:
  - pylint openpifpaf --disable=fixme
  - pytest -vv
