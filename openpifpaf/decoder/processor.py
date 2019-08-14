@@ -82,7 +82,7 @@ class Processor(object):
         LOG.debug('nn processing time: %.3fs', time.time() - start)
         return fields
 
-    def soft_nms(self, annotations, pre_fill=None):
+    def soft_nms(self, annotations):
         if not annotations:
             return annotations
 
@@ -91,20 +91,6 @@ class Processor(object):
             int(max(np.max(ann.data[:, 1]) for ann in annotations) + 1),
             int(max(np.max(ann.data[:, 0]) for ann in annotations) + 1),
         ), dtype=np.uint8)
-
-        if pre_fill:
-            for ann in pre_fill:
-                joint_scales = (np.maximum(4.0, ann.joint_scales)
-                                if ann.joint_scales is not None
-                                else np.ones((ann.data.shape[0]),) * 4.0)
-
-                assert len(occupied) == len(ann.data)
-                for xyv, occ, joint_s in zip(ann.data, occupied, joint_scales):
-                    v = xyv[2]
-                    if v == 0.0:
-                        continue
-
-                    scalar_square_add_single(occ, xyv[0], xyv[1], joint_s, 1)
 
         annotations = sorted(annotations, key=lambda a: -a.score())
         for ann in annotations:
