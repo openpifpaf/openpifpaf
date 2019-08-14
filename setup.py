@@ -69,6 +69,7 @@ setup(
         'test': [
             'pylint',
             'pytest',
+            'opencv-python',
         ],
         'train': [
             'pycocotools',  # pre-install cython
