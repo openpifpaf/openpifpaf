@@ -140,8 +140,12 @@ class Processor(object):
             debug_images = [None for _ in fields_batch]
 
         LOG.debug('parallel execution with worker %s', self.worker_pool)
+
+        def mappable_annotations(fields, debug_image):
+            return self.annotations(fields, debug_image=debug_image)
+
         return self.worker_pool.starmap(
-            self.annotations, zip(fields_batch, debug_images))
+            mappable_annotations, zip(fields_batch, debug_images))
 
     def annotations(self, fields, *, initial_annotations=None, debug_image=None):
         start = time.time()
@@ -151,8 +155,9 @@ class Processor(object):
         if debug_image is not None:
             self.set_cpu_image(None, debug_image)
 
-        for ann in initial_annotations:
-            ann.rescale(1.0 / self.output_stride)
+        if initial_annotations:
+            for ann in initial_annotations:
+                ann.rescale(1.0 / self.output_stride)
         annotations = self.decode(fields, initial_annotations=initial_annotations)
 
         # scale to input size
