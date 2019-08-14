@@ -78,11 +78,11 @@ testing.
 
 # Interfaces
 
-* `python3 -m openpifpaf.predict --help`
-* `python3 -m openpifpaf.webcam --help`
-* `python3 -m openpifpaf.train --help`
-* `python3 -m openpifpaf.eval_coco --help`
-* `python3 -m openpifpaf.logs --help`
+* `python3 -m openpifpaf.predict --help`: [help screen](docs/cli-help-predict.txt)
+* `python3 -m openpifpaf.webcam --help`: [help screen](docs/cli-help-webcam.txt)
+* `python3 -m openpifpaf.train --help`: [help screen](docs/cli-help-train.txt)
+* `python3 -m openpifpaf.eval_coco --help`: [help screen](docs/cli-help-eval_coco.txt)
+* `python3 -m openpifpaf.logs --help`: [help screen](docs/cli-help-logs.txt)
 
 Example commands to try:
 
