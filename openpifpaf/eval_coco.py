@@ -10,8 +10,13 @@ import zipfile
 import numpy as np
 import torch
 
-import pycocotools.coco
-from pycocotools.cocoeval import COCOeval
+try:
+    import pycocotools.coco
+    from pycocotools.cocoeval import COCOeval
+    # monkey patch for Python 3 compat
+    pycocotools.coco.unicode = str
+except ImportError:
+    pass
 
 from .data import COCO_PERSON_SKELETON
 from .network import nets
@@ -22,9 +27,6 @@ IMAGE_DIR_VAL = 'data-mscoco/images/val2017/'
 ANNOTATIONS_TESTDEV = 'data-mscoco/annotations/image_info_test-dev2017.json'
 ANNOTATIONS_TEST = 'data-mscoco/annotations/image_info_test2017.json'
 IMAGE_DIR_TEST = 'data-mscoco/images/test2017/'
-
-# monkey patch for Python 3 compat
-pycocotools.coco.unicode = str
 
 
 class EvalCoco(object):
