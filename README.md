@@ -60,9 +60,7 @@ pip3 install openpifpaf
 For a live demo, we recommend to try the
 [openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo) project.
 Alternatively, `openpifpaf.webcam` provides a live demo as well.
-It requires OpenCV. To use a globally installed
-OpenCV from inside a virtual environment, create the virtualenv with the
-`--system-site-packages` option and verify that you can do `import cv2`.
+It requires OpenCV.
 
 For development of the openpifpaf source code itself, you need to clone this repository and then:
 
