@@ -1,11 +1,7 @@
-from abc import ABCMeta, abstractmethod, abstractstaticmethod
+from abc import ABCMeta, abstractmethod
 
 
 class Encoder(metaclass=ABCMeta):
-    @abstractstaticmethod
-    def match(head_name):  # pylint: disable=unused-argument
-        return False
-
     @classmethod
     def cli(cls, parser):
         """Add decoder specific command line arguments to the parser."""

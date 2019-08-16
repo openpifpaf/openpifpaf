@@ -44,18 +44,6 @@ class Paf(Encoder):
         if self.fixed_size:
             assert self.aspect_ratio == 0.0
 
-    @staticmethod
-    def match(head_name):
-        return head_name in (
-            'paf',
-            'paf19',
-            'paf16',
-            'paf44',
-            'pafs',
-            'wpaf',
-            'pafb',
-        )
-
     @classmethod
     def cli(cls, parser):
         group = parser.add_argument_group('paf encoder')

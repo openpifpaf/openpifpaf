@@ -32,15 +32,6 @@ class Pif(Encoder):
         self.v_threshold = v_threshold
         self.side_length = self.default_side_length
 
-    @staticmethod
-    def match(head_name):
-        return head_name in (
-            'pif',
-            'ppif',
-            'pifb',
-            'pifs',
-        ) or re.match('pif([0-9]+)$', head_name) is not None
-
     @classmethod
     def cli(cls, parser):
         group = parser.add_argument_group('pif encoder')
