@@ -1,3 +1,5 @@
+import logging
+
 from .decoder import Decoder
 from .pif import Pif
 from .pifpaf import PifPaf
@@ -101,6 +103,7 @@ def factory_decode(model, *, experimental=False, **kwargs):
                       ('pif', 'pif', 'paf'),
                       ('pif', 'wpaf')):
         if experimental:
+            logging.warning('using experimental decoder')
             return PifPaf2(model.io_scales()[-1],
                            head_names=head_names,
                            **kwargs)
