@@ -1,6 +1,7 @@
 from .decoder import Decoder
 from .pif import Pif
 from .pifpaf import PifPaf
+from .pifpaf2 import PifPaf2
 from .processor import Processor
 from .visualizer import Visualizer
 
@@ -22,6 +23,8 @@ def cli(parser, *,
                        help='filter keypoints by score')
     group.add_argument('--decoder-workers', default=workers, type=int,
                        help='number of workers for pose decoding')
+    group.add_argument('--experimental-decoder', default=False, action='store_true',
+                       help='use an experimental decoder')
 
     if force_complete_pose:
         group.add_argument('--no-force-complete-pose', dest='force_complete_pose',
@@ -66,6 +69,7 @@ def factory_from_args(args, model, device=None):
         args.decoder_workers = args.batch_size
 
     decode = factory_decode(model,
+                            experimental=args.experimental_decoder,
                             seed_threshold=args.seed_threshold,
                             debug_visualizer=debug_visualizer)
 
@@ -78,7 +82,7 @@ def factory_from_args(args, model, device=None):
                      device=device)
 
 
-def factory_decode(model, *, profile=None, **kwargs):
+def factory_decode(model, *, experimental=False, **kwargs):
     """Instantiate a decoder for the given model.
 
     All subclasses of decoder.Decoder are checked for a match.
@@ -96,6 +100,10 @@ def factory_decode(model, *, profile=None, **kwargs):
                       ('paf', 'pif', 'paf'),
                       ('pif', 'pif', 'paf'),
                       ('pif', 'wpaf')):
+        if experimental:
+            return PifPaf2(model.io_scales()[-1],
+                           head_names=head_names,
+                           **kwargs)
         return PifPaf(model.io_scales()[-1],
                       head_names=head_names,
                       **kwargs)
