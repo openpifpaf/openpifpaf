@@ -1,6 +1,6 @@
-import logging
-
 from .decoder import Decoder
+from .pif import Pif
+from .pifpaf import PifPaf
 from .processor import Processor
 from .visualizer import Visualizer
 
@@ -83,16 +83,21 @@ def factory_decode(model, *, profile=None, **kwargs):
 
     All subclasses of decoder.Decoder are checked for a match.
     """
-    headnames = tuple(h.shortname for h in model.head_nets)
+    head_names = tuple(h.shortname for h in model.head_nets)
 
-    for decoder in Decoder.__subclasses__():
-        logging.debug('checking whether decoder %s matches %s',
-                      decoder.__name__, headnames)
-        if not decoder.match(headnames):
-            continue
-        logging.info('selected decoder: %s', decoder.__name__)
-        return decoder(model.io_scales()[-1],
-                       head_names=headnames,
-                       **kwargs)
+    if head_names in (('pif',),):
+        return Pif(model.io_scales()[-1],
+                   head_names=head_names,
+                   **kwargs)
 
-    raise Exception('unknown head nets {} for decoder'.format(headnames))
+    if head_names in (('pif', 'paf'),
+                      ('pif', 'paf44'),
+                      ('pif', 'paf16'),
+                      ('paf', 'pif', 'paf'),
+                      ('pif', 'pif', 'paf'),
+                      ('pif', 'wpaf')):
+        return PifPaf(model.io_scales()[-1],
+                      head_names=head_names,
+                      **kwargs)
+
+    raise Exception('unknown head nets {} for decoder'.format(head_names))

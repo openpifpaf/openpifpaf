@@ -35,12 +35,6 @@ class Pif(Decoder):
 
         self.pif_nn = 16
 
-    @staticmethod
-    def match(head_names):
-        return head_names in (
-            ('pif',),
-        )
-
     @classmethod
     def apply_args(cls, args):
         cls.default_pif_fixed_scale = args.pif_fixed_scale

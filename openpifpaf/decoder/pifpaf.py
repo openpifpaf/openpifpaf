@@ -67,17 +67,6 @@ class PifPaf(Decoder):
         self.paf_nn = 1 if self.connection_method == 'max' else 35
         self.paf_th = self.default_paf_th
 
-    @staticmethod
-    def match(head_names):
-        return head_names in (
-            ('pif', 'paf'),
-            ('pif', 'paf44'),
-            ('pif', 'paf16'),
-            ('paf', 'pif', 'paf'),
-            ('pif', 'pif', 'paf'),
-            ('pif', 'wpaf'),
-        )
-
     @classmethod
     def cli(cls, parser):
         group = parser.add_argument_group('PifPaf decoder')
