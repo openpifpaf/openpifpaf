@@ -1,4 +1,5 @@
 import logging
+import re
 import torch
 import torchvision
 
@@ -275,12 +276,16 @@ def factory(*,
 
 
 def create_headnet(name, n_features):
-    for head in (heads.HEADS or heads.Head.__subclasses__()):
-        LOG.debug('checking head %s matches %s', head.__name__, name)
-        if not head.match(name):
-            continue
-        LOG.info('selected head %s for %s', head.__name__, name)
-        return head(name, n_features)
+    if name in ('pif',
+                'paf',
+                'pafs',
+                'wpaf',
+                'pafb',
+                'pafs19',
+                'pafsb') or \
+       re.match('p[ia]f([0-9]+)$', name) is not None:
+        LOG.info('selected head CompositeField for %s', name)
+        return heads.CompositeField(name, n_features)
 
     raise Exception('unknown head to create a head network: {}'.format(name))
 

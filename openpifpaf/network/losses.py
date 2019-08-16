@@ -1,6 +1,6 @@
 """Losses."""
 
-from abc import ABCMeta, abstractstaticmethod
+from abc import ABCMeta
 import logging
 import re
 import torch
@@ -14,10 +14,6 @@ LOSSES = None
 
 
 class Loss(metaclass=ABCMeta):
-    @abstractstaticmethod
-    def match(head_name):  # pylint: disable=unused-argument
-        return False
-
     @classmethod
     def cli(cls, parser):
         """Add decoder specific command line arguments to the parser."""
@@ -179,18 +175,6 @@ class CompositeLoss(Loss, torch.nn.Module):
 
         self.bce_blackout = None
 
-    @staticmethod
-    def match(head_name):
-        return head_name in (
-            'pif',
-            'paf',
-            'pafs',
-            'wpaf',
-            'pafb',
-            'pafs19',
-            'pafsb',
-        ) or re.match('p[ia]f([0-9]+)$', head_name) is not None
-
     @classmethod
     def cli(cls, parser):
         # group = parser.add_argument_group('composite loss')
@@ -346,11 +330,15 @@ def factory(head_names, lambdas, reg_loss_name=None, r_smooth=None, device=None)
 
 
 def factory_loss(head_name, reg_loss):
-    for loss in (LOSSES or Loss.__subclasses__()):
-        LOG.debug('checking whether loss %s matches %s', loss.__name__, head_name)
-        if not loss.match(head_name):
-            continue
-        LOG.info('selected loss %s for %s', loss.__name__, head_name)
-        return loss(head_name, reg_loss)
+    if head_name in ('pif',
+                     'paf',
+                     'pafs',
+                     'wpaf',
+                     'pafb',
+                     'pafs19',
+                     'pafsb') or \
+       re.match('p[ia]f([0-9]+)$', head_name) is not None:
+        LOG.info('selected loss CompositeLoss for %s', head_name)
+        return CompositeLoss(head_name, reg_loss)
 
     raise Exception('unknown headname {} for loss'.format(head_name))
