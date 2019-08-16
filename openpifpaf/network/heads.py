@@ -1,6 +1,6 @@
 """Head networks."""
 
-from abc import ABCMeta, abstractstaticmethod
+from abc import ABCMeta
 import logging
 import re
 
@@ -12,10 +12,6 @@ HEADS = None
 
 
 class Head(metaclass=ABCMeta):
-    @abstractstaticmethod
-    def match(head_name):  # pylint: disable=unused-argument
-        return False
-
     @classmethod
     def cli(cls, parser):
         """Add decoder specific command line arguments to the parser."""
@@ -118,18 +114,6 @@ class CompositeField(Head, torch.nn.Module):
         if 'paf' in head_name:
             return 0
         return 0
-
-    @staticmethod
-    def match(head_name):
-        return head_name in (
-            'pif',
-            'paf',
-            'pafs',
-            'wpaf',
-            'pafb',
-            'pafs19',
-            'pafsb',
-        ) or re.match('p[ia]f([0-9]+)$', head_name) is not None
 
     @classmethod
     def cli(cls, parser):

@@ -1,6 +1,9 @@
 import logging
+import re
 
 from .encoder import Encoder
+from .paf import Paf
+from .pif import Pif
 from .skeleton import Skeleton
 
 LOG = logging.getLogger(__name__)
@@ -32,12 +35,22 @@ def factory_heads(headnames, strides):
 
 
 def factory_head(head_name, stride):
-    for encoder in Encoder.__subclasses__():
-        LOG.debug('checking whether encoder %s matches %s',
-                  encoder.__name__, head_name)
-        if not encoder.match(head_name):
-            continue
-        LOG.info('selected encoder %s for %s', encoder.__name__, head_name)
-        return encoder(head_name, stride)
+    if head_name in ('pif',
+                     'ppif',
+                     'pifb',
+                     'pifs') or \
+       re.match('pif([0-9]+)$', head_name) is not None:
+        LOG.info('selected encoder Pif for %s', head_name)
+        return Pif(head_name, stride)
+
+    if head_name in ('paf',
+                     'paf19',
+                     'paf16',
+                     'paf44',
+                     'pafs',
+                     'wpaf',
+                     'pafb'):
+        LOG.info('selected encoder Paf for %s', head_name)
+        return Paf(head_name, stride)
 
     raise Exception('unknown head to create an encoder: {}'.format(head_name))
