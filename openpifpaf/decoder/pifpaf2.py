@@ -2,6 +2,7 @@
 
 from collections import defaultdict
 import logging
+from queue import PriorityQueue
 import time
 
 import numpy as np
@@ -142,6 +143,7 @@ class PifPafGenerator(object):
         self.paf_nn = paf_nn
         self.paf_th = paf_th
         self.skeleton = skeleton
+        self.skeleton_m1 = np.asarray(skeleton) - 1
 
         self.debug_visualizer = debug_visualizer
         self.timers = defaultdict(float)
@@ -346,8 +348,59 @@ class PifPafGenerator(object):
         score = scores[max_i]
         return max_entry[0], max_entry[1], score
 
+    def connection_proposal(self, annotation):
+        candidates = set()
+        evaluated_connections = set()
+        connection_queue = PriorityQueue()
+
+        def connections_to_explore(starting_i):
+            starting_v = annotation.data[starting_i][2]
+            for paf_i, (j1, j2) in enumerate(self.skeleton_m1):
+                if j1 == starting_i:
+                    end_i = j2
+                    forward = True
+                elif j2 == starting_i:
+                    end_i = j1
+                    forward = False
+                else:
+                    continue
+
+                if end_i not in candidates and annotation.data[end_i][2] > 0.0:
+                    continue
+                if (-starting_v, (paf_i, forward)) in evaluated_connections:
+                    continue
+
+                yield paf_i, forward
+
+        # seeding the connection queue
+        for i, xyv in enumerate(annotation.data):
+            if xyv[2] == 0.0:
+                continue
+            for connection in connections_to_explore(i):
+                connection_queue.put((-xyv[2], connection))
+
+        # walk
+        while connection_queue.qsize():
+            priority, (paf_i, forward) = connection_queue.get()
+            j1i, j2i = self.skeleton_m1[paf_i]
+            yield priority, paf_i, forward, j1i, j2i
+
+            # update evaluated connections
+            evaluated_connections.add((priority, (paf_i, forward)))
+
+            # update candidates and queue
+            end_i = j2i if forward else j1i
+            starting_i = j1i if forward else j2i
+            end_v = annotation.data[end_i][2]
+            if end_v > 0.0:
+                candidates.add(end_i)
+                if starting_i in candidates:
+                    candidates.remove(starting_i)
+                for connection in connections_to_explore(end_i):
+                    connection_queue.put((-end_v, connection))
+
     def _grow(self, ann, paf_forward, paf_backward, th):
-        for _, i, forward, j1i, j2i in ann.frontier_iter():
+        for _, i, forward, j1i, j2i in self.connection_proposal(ann):
             if forward:
                 jsi, jti = j1i, j2i
                 directed_paf_field = paf_forward[i]
