@@ -309,7 +309,7 @@ class Plots(object):
             self.lr(ax)
 
         with show.canvas(nrows=n_rows, ncols=n_cols, squeeze=False,
-                         figsize=(20, 5), sharey=share_y) as axs:
+                         figsize=(20, 5), sharey=share_y, sharex=True) as axs:
             for row_i, row in enumerate(rows.values()):
                 for col_i, field_name in enumerate(row):
                     self.epoch_head(axs[row_i, col_i], field_name)
@@ -321,7 +321,7 @@ class Plots(object):
             self.preprocess_time(ax)
 
         with show.canvas(nrows=n_rows, ncols=n_cols, squeeze=False,
-                         figsize=(20, 5), sharey=share_y) as axs:
+                         figsize=(20, 5), sharey=share_y, sharex=True) as axs:
             for row_i, row in enumerate(rows.values()):
                 for col_i, field_name in enumerate(row):
                     self.train_head(axs[row_i, col_i], field_name)
@@ -350,9 +350,15 @@ class EvalPlots(object):
         # modify individual file names and comma-seperated filenames
         files = path.split(',')
         files = ','.join(
-            '{}.epoch???.evalcoco-edge{}-samples{}-decoder{}.txt'
-            ''.format(f[:-4], self.edge, self.samples, self.decoder)
-            for f in files
+            [
+                '{}.epoch???.evalcoco-edge{}-samples{}-decoder{}.txt'
+                ''.format(f[:-4], self.edge, self.samples, self.decoder)
+                for f in files
+            ] + [
+                '{}.epoch???.evalcoco-edge{}-samples{}.txt'
+                ''.format(f[:-4], self.edge, self.samples)
+                for f in files
+            ]
         )
 
         def epoch_from_filename(filename):

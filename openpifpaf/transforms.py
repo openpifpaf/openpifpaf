@@ -66,7 +66,7 @@ class NormalizeAnnotations(Preprocess):
             ann['keypoints'] = np.asarray(ann['keypoints'], dtype=np.float32).reshape(-1, 3)
             ann['bbox'] = np.asarray(ann['bbox'], dtype=np.float32)
             ann['bbox_original'] = np.copy(ann['bbox'])
-            if 'segementation' in ann:
+            if 'segmentation' in ann:
                 del ann['segmentation']
 
         return anns
