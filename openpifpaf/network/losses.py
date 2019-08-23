@@ -6,7 +6,7 @@ import re
 import torch
 
 from ..data import (COCO_PERSON_SIGMAS, COCO_PERSON_SKELETON, KINEMATIC_TREE_SKELETON,
-                    DENSER_COCO_PERSON_SKELETON)
+                    DENSER_COCO_PERSON_SKELETON, DENSER_COCO_PERSON_CONNECTIONS)
 
 LOG = logging.getLogger(__name__)
 
@@ -141,6 +141,11 @@ class CompositeLoss(Loss, torch.nn.Module):
             sigmas = [
                 [COCO_PERSON_SIGMAS[j1i - 1] for j1i, _ in DENSER_COCO_PERSON_SKELETON],
                 [COCO_PERSON_SIGMAS[j2i - 1] for _, j2i in DENSER_COCO_PERSON_SKELETON],
+            ]
+        if sigmas is None and head_name in ('paf25',):
+            sigmas = [
+                [COCO_PERSON_SIGMAS[j1i - 1] for j1i, _ in DENSER_COCO_PERSON_CONNECTIONS],
+                [COCO_PERSON_SIGMAS[j2i - 1] for _, j2i in DENSER_COCO_PERSON_CONNECTIONS],
             ]
         if sigmas is None:
             sigmas = [[1.0] for _ in range(n_vectors)]

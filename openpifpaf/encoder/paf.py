@@ -3,7 +3,8 @@ import numpy as np
 import scipy
 import torch
 
-from ..data import COCO_PERSON_SKELETON, DENSER_COCO_PERSON_SKELETON, KINEMATIC_TREE_SKELETON
+from ..data import (COCO_PERSON_SKELETON, DENSER_COCO_PERSON_SKELETON,
+                    KINEMATIC_TREE_SKELETON, DENSER_COCO_PERSON_CONNECTIONS)
 from .annrescaler import AnnRescaler
 from .encoder import Encoder
 from ..utils import create_sink, mask_valid_area
@@ -29,6 +30,8 @@ class Paf(Encoder):
                 skeleton = KINEMATIC_TREE_SKELETON
             elif head_name in ('paf44',):
                 skeleton = DENSER_COCO_PERSON_SKELETON
+            elif head_name in ('paf25',):
+                skeleton = DENSER_COCO_PERSON_CONNECTIONS
             else:
                 raise Exception('unknown skeleton type of head')
 
