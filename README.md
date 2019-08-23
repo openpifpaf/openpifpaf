@@ -127,10 +127,10 @@ python3 -m openpifpaf.logs \
 See [datasets](docs/datasets.md) for setup instructions.
 See [studies.ipynb](docs/studies.ipynb) for previous studies.
 
-Train a model:
+Train a ResNet model:
 
 ```sh
-python3 -m openpifpaf.train \
+time CUDA_VISIBLE_DEVICES=0,1 python3 -m openpifpaf.train \
   --lr=1e-3 \
   --momentum=0.95 \
   --epochs=75 \
@@ -143,6 +143,26 @@ python3 -m openpifpaf.train \
   --regression-loss=laplace \
   --lambdas 30 2 2 50 3 3 \
   --freeze-base=1
+```
+
+ShuffleNet models are trained without ImageNet pretraining:
+
+```sh
+time CUDA_VISIBLE_DEVICES=0,1 python3 -m openpifpaf.train \
+  --batch-size=64 \
+  --basenet=shufflenetv2x2 \
+  --head-quad=1 \
+  --epochs=75 \
+  --momentum=0.9 \
+  --headnets pif paf \
+  --lambdas 30 2 2 50 3 3 \
+  --loader-workers=8 \
+  --lr=1e-1 \
+  --lr-decay 60 70 \
+  --no-pretrain \
+  --weight-decay=1e-5 \
+  --update-batchnorm-runningstatistics \
+  --ema=0.03
 ```
 
 You can refine an existing model with the `--checkpoint` option.
