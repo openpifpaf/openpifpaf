@@ -68,6 +68,11 @@ class PifPaf2(Decoder):
         self.paf_nn = 1 if self.connection_method == 'max' else 35
         self.paf_th = self.default_paf_th
 
+        self.confidence_scales = [
+            1.0 if c in COCO_PERSON_SKELETON else 0.25
+            for c in self.skeleton
+        ]
+
     # @classmethod
     # def cli(cls, parser):
     #     group = parser.add_argument_group('PifPaf2 decoder')
@@ -95,6 +100,12 @@ class PifPaf2(Decoder):
         start = time.perf_counter()
 
         pif, paf = fields[self.head_indices[0]], fields[self.head_indices[1]]
+        if self.confidence_scales:
+            cs = np.array(self.confidence_scales).reshape((-1, 1, 1))
+            # print(paf[0].shape, cs.shape)
+            # print('applying cs', cs)
+            paf[0] = np.copy(paf[0])
+            paf[0] *= cs
         if self.debug_visualizer:
             self.debug_visualizer.pif_raw(pif, self.stride)
             self.debug_visualizer.paf_raw(paf, self.stride, reg_components=3)
@@ -310,7 +321,7 @@ class PifPafGenerator(object):
         d = np.linalg.norm(((xy[0],), (xy[1],)) - paf_field[1:3], axis=0)
 
         # combined value and source distance
-        v = paf_field[0]
+        v = np.clip(paf_field[0], 0.0, 1.0)  # TODO: changed versus v1
         scores = np.exp(-1.0 * d / xy_scale) * v  # two-tailed cumulative Laplace
 
         if self.connection_method == 'median':
@@ -383,23 +394,33 @@ class PifPafGenerator(object):
         while connection_queue.qsize():
             priority, (paf_i, forward) = connection_queue.get()
             j1i, j2i = self.skeleton_m1[paf_i]
+            end_i = j2i if forward else j1i
+            starting_i = j1i if forward else j2i
+            end_v_before = annotation.data[end_i, 2]
+
+            if end_i not in candidates and annotation.data[end_i][2] > 0.0:
+                continue
+
             yield priority, paf_i, forward, j1i, j2i
 
             # update evaluated connections
             evaluated_connections.add((priority, (paf_i, forward)))
 
             # update candidates and queue
-            end_i = j2i if forward else j1i
-            starting_i = j1i if forward else j2i
-            end_v = annotation.data[end_i][2]
-            if end_v > 0.0:
+            end_v = annotation.data[end_i, 2]
+            if end_v != end_v_before:
                 candidates.add(end_i)
+                self.log.debug('!!! connected joint %d', end_i)
                 if starting_i in candidates:
                     candidates.remove(starting_i)
                 for connection in connections_to_explore(end_i):
                     connection_queue.put((-end_v, connection))
 
     def _grow(self, ann, paf_forward, paf_backward, th):
+        self.log.debug('=============== new _grow ==============')
+        if not hasattr(ann, 'cumulative_scores'):
+            ann.cumulative_scores = np.copy(ann.data[:, 2])
+
         for _, i, forward, j1i, j2i in self.connection_proposal(ann):
             if forward:
                 jsi, jti = j1i, j2i
@@ -436,9 +457,17 @@ class PifPafGenerator(object):
                 if abs(xyv[0] - reverse_xyv[0]) + abs(xyv[1] - reverse_xyv[1]) > xy_scale_s:
                     continue
 
-            new_xyv = (new_xyv[0], new_xyv[1], np.sqrt(new_xyv[2] * xyv[2]))  # geometric mean
-            if new_xyv[2] > ann.data[jti, 2]:
-                ann.data[jti] = new_xyv
+            # new_xyv = (new_xyv[0], new_xyv[1], np.sqrt(new_xyv[2] * xyv[2]))  # geometric mean
+            # new_xyv = (new_xyv[0], new_xyv[1], new_xyv[2] * xyv[2])  # product
+            # new_xyv = (new_xyv[0], new_xyv[1], new_xyv[2])  # no history
+            new_cumulative_score = new_xyv[2] * ann.cumulative_scores[jsi]
+            # if new_xyv[2] > ann.data[jti, 2]:
+            if new_cumulative_score > ann.cumulative_scores[jti]:
+                if ann.data[jti, 2] > 0.0:
+                    self.log.debug('!!!!!!!!! updating candidate %d: %.3f -> %.3f',
+                                   jti, ann.data[jti, 2], np.sqrt(new_xyv[2] * xyv[2]))
+                ann.data[jti] = (new_xyv[0], new_xyv[1], np.sqrt(new_xyv[2] * xyv[2]))  # geometric median
+                ann.cumulative_scores[jti] = new_cumulative_score
 
     @staticmethod
     def _flood_fill(ann):
