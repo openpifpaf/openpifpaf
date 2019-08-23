@@ -309,7 +309,8 @@ class Plots(object):
             self.lr(ax)
 
         with show.canvas(nrows=n_rows, ncols=n_cols, squeeze=False,
-                         figsize=(20, 5), sharey=share_y, sharex=True) as axs:
+                         figsize=(5 * n_cols, 2.5 * n_rows),
+                         sharey=share_y, sharex=True) as axs:
             for row_i, row in enumerate(rows.values()):
                 for col_i, field_name in enumerate(row):
                     self.epoch_head(axs[row_i, col_i], field_name)
@@ -321,7 +322,8 @@ class Plots(object):
             self.preprocess_time(ax)
 
         with show.canvas(nrows=n_rows, ncols=n_cols, squeeze=False,
-                         figsize=(20, 5), sharey=share_y, sharex=True) as axs:
+                         figsize=(5 * n_cols, 2.5 * n_rows),
+                         sharey=share_y, sharex=True) as axs:
             for row_i, row in enumerate(rows.values()):
                 for col_i, field_name in enumerate(row):
                     self.train_head(axs[row_i, col_i], field_name)
