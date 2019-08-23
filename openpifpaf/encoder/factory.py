@@ -44,12 +44,10 @@ def factory_head(head_name, stride):
         return Pif(head_name, stride)
 
     if head_name in ('paf',
-                     'paf19',
-                     'paf16',
-                     'paf44',
                      'pafs',
                      'wpaf',
-                     'pafb'):
+                     'pafb') or \
+       re.match('paf([0-9]+)$', head_name) is not None:
         LOG.info('selected encoder Paf for %s', head_name)
         return Paf(head_name, stride)
 
