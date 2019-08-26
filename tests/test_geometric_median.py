@@ -1,9 +1,12 @@
-
-import matplotlib.pyplot as plt
 import numpy as np
 import scipy.interpolate
 
 from openpifpaf.decoder.utils import weiszfeld_nd
+
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    plt = None
 
 
 def test_robust_1d():
@@ -13,11 +16,13 @@ def test_robust_1d():
     print(diff.shape)
     f = np.sum(np.abs(diff), axis=1)
 
-    plt.figure()
-    plt.plot(x, f, 'x-')
-    plt.xlabel('$y$')
-    plt.tight_layout()
-    plt.show()
+    if plt is not None:
+        plt.figure()
+        plt.plot(x, f, 'x-')
+        plt.xlabel('$y$')
+        plt.tight_layout()
+        plt.show()
+
     assert x[np.argmin(f)] == 7.0
 
 
@@ -31,17 +36,18 @@ def test_iterative_1d():
     diff = np.expand_dims(data, 0) - np.expand_dims(ys, 1)
     f = np.sum(np.abs(diff), axis=1)
 
-    plt.figure()
     y = [2.0]
     for _ in range(10):
         y.append(weiszfeld_1d(data, y[-1]))
     vs = scipy.interpolate.interp1d(ys, f)(y)
 
     # iterations
-    plt.plot(y, vs, 'x-')
-    plt.xlabel('$y$')
-    plt.tight_layout()
-    plt.show()
+    if plt is not None:
+        plt.figure()
+        plt.plot(y, vs, 'x-')
+        plt.xlabel('$y$')
+        plt.tight_layout()
+        plt.show()
 
 
 def test_iterative_nd():
