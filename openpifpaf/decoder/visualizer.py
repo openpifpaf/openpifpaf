@@ -1,6 +1,11 @@
-import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
+
+try:
+    import matplotlib.pyplot as plt
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+except ImportError:
+    plt = None
+    make_axes_locatable = None
 
 from ..data import COCO_KEYPOINTS, COCO_PERSON_SKELETON
 from .. import show
