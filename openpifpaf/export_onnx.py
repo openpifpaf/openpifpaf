@@ -48,14 +48,15 @@ class MonkeyPatches:
             scales_x = [self_.dequad_op(scale_x)[:, :, :-1, :-1]
                         for scale_x in scales_x]
 
-        n_fields = 17 if len(regs_x) == 1 else 19
-        # print(self_.shortname, n_fields)
+        # reshape regressions:
+        # Accessing the shape of .data instead of the shape of reg_x saves
+        # nodes in the ONNX graph.
         regs_x = [
-            reg_x.reshape(1,
-                          n_fields,
+            reg_x.reshape(reg_x.data.shape[0],
+                          reg_x.data.shape[1] // 2,
                           2,
-                          25,
-                          33)
+                          reg_x.data.shape[2],
+                          reg_x.data.shape[3])
             for reg_x in regs_x
         ]
 
@@ -76,7 +77,8 @@ def apply(checkpoint, outfile, verbose=True):
     monkey_patches = MonkeyPatches()
     monkey_patches.apply()
 
-    dummy_input = torch.randn(1, 3, 193, 257)
+    # dummy_input = torch.randn(1, 3, 193, 257)
+    dummy_input = torch.randn(1, 3, 97, 129)
     model, _ = openpifpaf.network.nets.factory(checkpoint=checkpoint)
     # model = torch.nn.Sequential(model, GetPifC())
 
@@ -97,13 +99,30 @@ def apply(checkpoint, outfile, verbose=True):
         'pif_s',
         'paf_c',
         'paf_r1',
-        'paf_b1',
         'paf_r2',
+        'paf_b1',
         'paf_b2',
     ]
 
-    torch.onnx.export(model, dummy_input, outfile, verbose=verbose,
-                      input_names=input_names, output_names=output_names)
+    torch.onnx.export(
+        model, dummy_input, outfile, verbose=verbose,
+        input_names=input_names, output_names=output_names,
+        opset_version=10,
+        # do_constant_folding=True,
+        dynamic_axes={  # TODO: gives warnings
+            'input_batch': {0: 'batch', 2: 'height', 3: 'width'},
+            'pif_c': {0: 'batch', 2: 'fheight', 3: 'fwidth'},
+            'pif_r': {0: 'batch', 3: 'fheight', 4: 'fwidth'},
+            'pif_b': {0: 'batch', 2: 'fheight', 3: 'fwidth'},
+            'pif_s': {0: 'batch', 2: 'fheight', 3: 'fwidth'},
+
+            'paf_c': {0: 'batch', 2: 'fheight', 3: 'fwidth'},
+            'paf_r1': {0: 'batch', 3: 'fheight', 4: 'fwidth'},
+            'paf_b1': {0: 'batch', 2: 'fheight', 3: 'fwidth'},
+            'paf_r2': {0: 'batch', 3: 'fheight', 4: 'fwidth'},
+            'paf_b2': {0: 'batch', 2: 'fheight', 3: 'fwidth'},
+        },
+    )
 
     monkey_patches.revert()
 
