@@ -58,7 +58,6 @@ setup(
     zip_safe=False,
 
     install_requires=[
-        'matplotlib',
         'pysparkling',  # for log analysis
         'python-json-logger',
         'scipy',
@@ -72,6 +71,7 @@ setup(
             'opencv-python',
         ],
         'train': [
+            'matplotlib',
             'pycocotools',  # pre-install cython
         ],
     },

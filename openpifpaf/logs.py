@@ -7,11 +7,15 @@ import json
 import logging
 from pprint import pprint
 
-import matplotlib
 import numpy as np
 import pysparkling
 
 from . import show
+
+try:
+    import matplotlib
+except ImportError:
+    matplotlib = None
 
 
 def cli(parser):

@@ -13,12 +13,16 @@ Example command:
 import argparse
 import time
 
-import matplotlib.pyplot as plt
 import torch
 
 import cv2  # pylint: disable=import-error
 from .network import nets
 from . import decoder, show, transforms
+
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    plt = None
 
 
 class Visualizer(object):
