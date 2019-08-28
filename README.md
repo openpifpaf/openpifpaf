@@ -195,7 +195,7 @@ export VIDEO=video.avi  # change to your video file
 mkdir ${VIDEO}.images
 ffmpeg -i ${VIDEO} -qscale:v 2 -vf scale=641:-1 -f image2 ${VIDEO}.images/%05d.jpg
 python3 -m openpifpaf.predict --checkpoint resnet152 ${VIDEO}.images/*.jpg
-ffmpeg -framerate 24 -pattern_type glob -i ${VIDEO}.images/'*.jpg.skeleton.png' -vf scale=640:-1 -c:v libx264 -pix_fmt yuv420p ${VIDEO}.pose.mp4
+ffmpeg -framerate 24 -pattern_type glob -i ${VIDEO}.images/'*.jpg.skeleton.png' -vf scale=640:-2 -c:v libx264 -pix_fmt yuv420p ${VIDEO}.pose.mp4
 ```
 
 In this process, ffmpeg scales the video to `641px` which can be adjusted.
