@@ -65,6 +65,10 @@ setup(
         'torchvision>=0.3',
     ],
     extras_require={
+        'onnx': [
+            'onnx',
+            'onnx-simplifier',
+        ],
         'test': [
             'pylint',
             'pytest',

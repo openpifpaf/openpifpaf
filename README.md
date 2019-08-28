@@ -82,6 +82,11 @@ testing.
 * `python3 -m openpifpaf.eval_coco --help`: [help screen](docs/cli-help-eval_coco.txt)
 * `python3 -m openpifpaf.logs --help`: [help screen](docs/cli-help-logs.txt)
 
+Tools to work with models:
+
+* `python3 -m openpifpaf.migrate --help`: [help screen](docs/cli-help-migrate.txt)
+* `python3 -m openpifpaf.export_onnx --help`: [help screen](docs/cli-help-export_onnx.txt)
+
 Example commands to try:
 
 ```sh

@@ -1,7 +1,29 @@
+"""Export a checkpoint as an ONNX model.
+
+Applies onnx utilities to improve the exported model and
+also tries to simplify the model with onnx-simplifier.
+
+https://github.com/onnx/onnx/blob/master/docs/PythonAPIOverview.md
+https://github.com/daquexian/onnx-simplifier
+"""
+
 import argparse
+import shutil
+
 import torch
 
 import openpifpaf
+
+try:
+    import onnx
+    import onnx.utils
+except ImportError:
+    onnx = None
+
+try:
+    import onnxsim
+except ImportError:
+    onnxsim = None
 
 
 # monkey patch
@@ -107,7 +129,7 @@ def apply(checkpoint, outfile, verbose=True):
     torch.onnx.export(
         model, dummy_input, outfile, verbose=verbose,
         input_names=input_names, output_names=output_names,
-        opset_version=10,
+        # opset_version=10,
         # do_constant_folding=True,
         dynamic_axes={  # TODO: gives warnings
             'input_batch': {0: 'batch', 2: 'height', 3: 'width'},
@@ -127,12 +149,66 @@ def apply(checkpoint, outfile, verbose=True):
     monkey_patches.revert()
 
 
+def optimize(infile, outfile=None):
+    if outfile is None:
+        assert infile.endswith('.onnx')
+        outfile = infile
+        infile = infile.replace('.onnx', '.unoptimized.onnx')
+        shutil.copyfile(outfile, infile)
+
+    model = onnx.load(infile)
+    optimized_model = onnx.optimizer.optimize(model)
+    onnx.save(optimized_model, outfile)
+
+
+def check(modelfile):
+    model = onnx.load(modelfile)
+    onnx.checker.check_model(model)
+
+
+def polish(infile, outfile=None):
+    if outfile is None:
+        assert infile.endswith('.onnx')
+        outfile = infile
+        infile = infile.replace('.onnx', '.unpolished.onnx')
+        shutil.copyfile(outfile, infile)
+
+    model = onnx.load(infile)
+    polished_model = onnx.utils.polish_model(model)
+    onnx.save(polished_model, outfile)
+
+
+def simplify(infile, outfile=None):
+    if outfile is None:
+        assert infile.endswith('.onnx')
+        outfile = infile
+        infile = infile.replace('.onnx', '.unsimplified.onnx')
+        shutil.copyfile(outfile, infile)
+
+    simplified_model = onnxsim.simplify(infile, check_n=0, perform_optimization=False)
+    onnx.save(simplified_model, outfile)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--checkpoint', default='resnet50')
     parser.add_argument('--outfile', default='openpifpaf-resnet50.onnx')
+    parser.add_argument('--simplify', dest='simplify', default=False, action='store_true')
+    parser.add_argument('--no-polish', dest='polish', default=True, action='store_false',
+                        help='runs checker, optimizer and shape inference')
+    parser.add_argument('--optimize', dest='optimize', default=False, action='store_true')
+    parser.add_argument('--no-check', dest='check', default=True, action='store_false')
     args = parser.parse_args()
+
     apply(args.checkpoint, args.outfile)
+    if args.simplify:
+        simplify(args.outfile)
+    if args.optimize:
+        optimize(args.outfile)
+    if args.polish:
+        polish(args.outfile)
+    if args.check:
+        check(args.outfile)
 
 
 if __name__ == '__main__':

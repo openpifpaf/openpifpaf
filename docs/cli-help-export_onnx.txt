@@ -1,0 +1,11 @@
+usage: export_onnx.py [-h] [--checkpoint CHECKPOINT] [--outfile OUTFILE]
+                      [--simplify] [--no-polish] [--optimize] [--no-check]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --checkpoint CHECKPOINT
+  --outfile OUTFILE
+  --simplify
+  --no-polish           runs checker, optimizer and shape inference
+  --optimize
+  --no-check
