@@ -1,6 +1,8 @@
 import logging
 
+from ..data import COCO_PERSON_SKELETON, DENSER_COCO_PERSON_CONNECTIONS
 from .decoder import Decoder
+from .paf_stack import PafStack
 from .pif import Pif
 from .pifpaf import PifPaf
 from .pifpaf2 import PifPaf2
@@ -27,6 +29,8 @@ def cli(parser, *,
                        help='number of workers for pose decoding')
     group.add_argument('--experimental-decoder', default=False, action='store_true',
                        help='use an experimental decoder')
+    group.add_argument('--extra-coupling', default=0.0, type=float,
+                       help='extra coupling')
 
     if force_complete_pose:
         group.add_argument('--no-force-complete-pose', dest='force_complete_pose',
@@ -58,7 +62,8 @@ def factory_from_args(args, model, device=None):
     debug_visualizer = None
     if args.debug_pif_indices or args.debug_paf_indices:
         debug_visualizer = Visualizer(args.debug_pif_indices, args.debug_paf_indices,
-                                      file_prefix=args.debug_file_prefix)
+                                      file_prefix=args.debug_file_prefix,
+                                      skeleton=COCO_PERSON_SKELETON + DENSER_COCO_PERSON_CONNECTIONS)
 
     # default value for keypoint filter depends on whether complete pose is forced
     if args.keypoint_threshold is None:
@@ -73,6 +78,7 @@ def factory_from_args(args, model, device=None):
     decode = factory_decode(model,
                             experimental=args.experimental_decoder,
                             seed_threshold=args.seed_threshold,
+                            extra_coupling=args.extra_coupling,
                             debug_visualizer=debug_visualizer)
 
     return Processor(model, decode,
@@ -109,6 +115,22 @@ def factory_decode(model, *, experimental=False, **kwargs):
                            **kwargs)
         return PifPaf(model.io_scales()[-1],
                       head_names=head_names,
+                      **kwargs)
+
+    if head_names in (('pif', 'paf', 'paf25'),):
+        if experimental:
+            logging.warning('using experimental decoder')
+            return PafStack(
+                (1, 2),
+                PifPaf2(model.io_scales()[-1],
+                        head_names=head_names,
+                        skeleton=COCO_PERSON_SKELETON + DENSER_COCO_PERSON_CONNECTIONS,
+                        **kwargs),
+            )
+
+        return PifPaf(model.io_scales()[-1],
+                      head_names=head_names,
+                      skeleton=COCO_PERSON_SKELETON,
                       **kwargs)
 
     raise Exception('unknown head nets {} for decoder'.format(head_names))

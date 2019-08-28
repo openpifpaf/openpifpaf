@@ -31,6 +31,7 @@ class PifPaf2(Decoder):
                  head_names=None,
                  head_indices=None,
                  skeleton=None,
+                 extra_coupling=0.0,
                  debug_visualizer=None,
                  **kwargs):
         LOG.debug('unused arguments %s', kwargs)
@@ -69,7 +70,7 @@ class PifPaf2(Decoder):
         self.paf_th = self.default_paf_th
 
         self.confidence_scales = [
-            1.0 if c in COCO_PERSON_SKELETON else 0.25
+            1.0 if c in COCO_PERSON_SKELETON else extra_coupling
             for c in self.skeleton
         ]
 
@@ -80,7 +81,7 @@ class PifPaf2(Decoder):
     #                        help='overwrite b with fixed value, e.g. 0.5')
     #     group.add_argument('--pif-fixed-scale', default=None, type=float,
     #                        help='overwrite pif scale with a fixed value')
-    #     group.add_argument('--paf-th', default=0.1, type=float,
+    #     group.add_argument('--paf-th', default=cls.default_paf_th, type=float,
     #                        help='paf threshold')
     #     group.add_argument('--connection-method',
     #                        default='max', choices=('median', 'max'),
@@ -184,6 +185,7 @@ class PifPafGenerator(object):
             s = s * self.stride
             scalar_square_add_gauss(t, x, y, s, v / self.pif_nn)
             cumulative_average(scale, n, x, y, s, s, v)
+        targets = np.minimum(targets, 1.0)
 
         self.log.debug('target_intensities %.3fs', time.perf_counter() - start)
         return targets, scales
@@ -321,7 +323,7 @@ class PifPafGenerator(object):
         d = np.linalg.norm(((xy[0],), (xy[1],)) - paf_field[1:3], axis=0)
 
         # combined value and source distance
-        v = np.clip(paf_field[0], 0.0, 1.0)  # TODO: changed versus v1
+        v = paf_field[0]
         scores = np.exp(-1.0 * d / xy_scale) * v  # two-tailed cumulative Laplace
 
         if self.connection_method == 'median':
@@ -360,68 +362,61 @@ class PifPafGenerator(object):
         return max_entry[0], max_entry[1], score
 
     def connection_proposal(self, annotation):
-        candidates = set()
-        evaluated_connections = set()
         connection_queue = PriorityQueue()
 
-        def connections_to_explore(starting_i):
-            starting_v = annotation.data[starting_i][2]
+        def connections_to_explore(start_i):
+            start_v = annotation.cumulative_scores[start_i]
             for paf_i, (j1, j2) in enumerate(self.skeleton_m1):
-                if j1 == starting_i:
+                if j1 == start_i:
                     end_i = j2
                     forward = True
-                elif j2 == starting_i:
+                elif j2 == start_i:
                     end_i = j1
                     forward = False
                 else:
                     continue
 
-                if end_i not in candidates and annotation.data[end_i][2] > 0.0:
-                    continue
-                if (-starting_v, (paf_i, forward)) in evaluated_connections:
+                if annotation.cumulative_scores[end_i] > start_v:
                     continue
 
                 yield paf_i, forward
 
         # seeding the connection queue
-        for i, xyv in enumerate(annotation.data):
-            if xyv[2] == 0.0:
+        for i, cs in enumerate(annotation.cumulative_scores):
+            if cs == 0.0:
                 continue
             for connection in connections_to_explore(i):
-                connection_queue.put((-xyv[2], connection))
+                connection_queue.put((-cs, connection))
 
         # walk
         while connection_queue.qsize():
             priority, (paf_i, forward) = connection_queue.get()
             j1i, j2i = self.skeleton_m1[paf_i]
             end_i = j2i if forward else j1i
-            starting_i = j1i if forward else j2i
-            end_v_before = annotation.data[end_i, 2]
+            start_i = j1i if forward else j2i
+            start_v = annotation.cumulative_scores[start_i]
+            end_v_before = annotation.cumulative_scores[end_i]
 
-            if end_i not in candidates and annotation.data[end_i][2] > 0.0:
+            if annotation.cumulative_scores[end_i] > start_v:
                 continue
 
             yield priority, paf_i, forward, j1i, j2i
 
-            # update evaluated connections
-            evaluated_connections.add((priority, (paf_i, forward)))
-
             # update candidates and queue
-            end_v = annotation.data[end_i, 2]
+            end_v = annotation.cumulative_scores[end_i]
             if end_v != end_v_before:
-                candidates.add(end_i)
                 self.log.debug('!!! connected joint %d', end_i)
-                if starting_i in candidates:
-                    candidates.remove(starting_i)
                 for connection in connections_to_explore(end_i):
                     connection_queue.put((-end_v, connection))
 
-    def _grow(self, ann, paf_forward, paf_backward, th):
+    def _grow(self, ann, paf_forward, paf_backward, th, reverse_match=True):
         self.log.debug('=============== new _grow ==============')
         if not hasattr(ann, 'cumulative_scores'):
             ann.cumulative_scores = np.copy(ann.data[:, 2])
+        if not hasattr(ann, 'decoding_order'):
+            ann.decoding_order = []
 
-        for _, i, forward, j1i, j2i in self.connection_proposal(ann):
+        for priority, i, forward, j1i, j2i in self.connection_proposal(ann):
             if forward:
                 jsi, jti = j1i, j2i
                 directed_paf_field = paf_forward[i]
@@ -430,6 +425,7 @@ class PifPafGenerator(object):
                 jsi, jti = j2i, j1i
                 directed_paf_field = paf_backward[i]
                 directed_paf_field_reverse = paf_forward[i]
+            self.log.debug('cumulative score %.3f, %.3f', ann.cumulative_scores[jsi], priority)
             xyv = ann.data[jsi]
             xy_scale_s = max(
                 1.0,
@@ -449,25 +445,32 @@ class PifPafGenerator(object):
             )
 
             # reverse match
-            if th >= 0.1:
+            if reverse_match:
                 reverse_xyv = self._grow_connection(
                     new_xyv[:2], xy_scale_t, directed_paf_field_reverse)
                 if reverse_xyv[2] < th:
                     continue
-                if abs(xyv[0] - reverse_xyv[0]) + abs(xyv[1] - reverse_xyv[1]) > xy_scale_s:
+                if np.linalg.norm(xyv[:2] - reverse_xyv[:2]) > 2.0 * xy_scale_s:
                     continue
 
             # new_xyv = (new_xyv[0], new_xyv[1], np.sqrt(new_xyv[2] * xyv[2]))  # geometric mean
             # new_xyv = (new_xyv[0], new_xyv[1], new_xyv[2] * xyv[2])  # product
             # new_xyv = (new_xyv[0], new_xyv[1], new_xyv[2])  # no history
-            new_cumulative_score = new_xyv[2] * ann.cumulative_scores[jsi]
+            new_cumulative_score = min(0.99, new_xyv[2] * ann.cumulative_scores[jsi])
             # if new_xyv[2] > ann.data[jti, 2]:
             if new_cumulative_score > ann.cumulative_scores[jti]:
                 if ann.data[jti, 2] > 0.0:
-                    self.log.debug('!!!!!!!!! updating candidate %d: %.3f -> %.3f',
-                                   jti, ann.data[jti, 2], np.sqrt(new_xyv[2] * xyv[2]))
-                ann.data[jti] = (new_xyv[0], new_xyv[1], np.sqrt(new_xyv[2] * xyv[2]))  # geometric median
+                    self.log.debug('!!!!!!!!! updating candidate %d: %.3f -> %.3f '
+                                   '(cumulative %.3f -> %.3f)',
+                                   jti, ann.data[jti, 2], np.sqrt(new_xyv[2] * xyv[2]),
+                                   ann.cumulative_scores[jti], new_cumulative_score)
+
+                ann.data[jti] = (
+                    new_xyv[0], new_xyv[1],
+                    np.sqrt(new_xyv[2] * xyv[2])  # geometric median
+                )
                 ann.cumulative_scores[jti] = new_cumulative_score
+                ann.decoding_order.append((jsi, jti))
 
     @staticmethod
     def _flood_fill(ann):
@@ -488,7 +491,7 @@ class PifPafGenerator(object):
         paf_forward_c, paf_backward_c = self._score_paf_target(score_th=0.0001)
         for ann in annotations:
             unfilled_mask = ann.data[:, 2] == 0.0
-            self._grow(ann, paf_forward_c, paf_backward_c, th=1e-8)
+            self._grow(ann, paf_forward_c, paf_backward_c, th=1e-8, reverse_match=False)
             now_filled_mask = ann.data[:, 2] > 0.0
             updated = np.logical_and(unfilled_mask, now_filled_mask)
             ann.data[updated, 2] = np.minimum(0.001, ann.data[updated, 2])
