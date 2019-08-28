@@ -74,7 +74,7 @@ class PifPaf(Decoder):
                            help='overwrite b with fixed value, e.g. 0.5')
         group.add_argument('--pif-fixed-scale', default=None, type=float,
                            help='overwrite pif scale with a fixed value')
-        group.add_argument('--paf-th', default=0.1, type=float,
+        group.add_argument('--paf-th', default=cls.default_paf_th, type=float,
                            help='paf threshold')
         group.add_argument('--connection-method',
                            default='max', choices=('median', 'max'),
@@ -171,6 +171,7 @@ class PifPafGenerator(object):
             s = s * self.stride
             scalar_square_add_gauss(t, x, y, s, v / self.pif_nn)
             cumulative_average(scale, n, x, y, s, s, v)
+        targets = np.minimum(targets, 1.0)
 
         self.log.debug('target_intensities %.3fs', time.perf_counter() - start)
         return targets, scales
@@ -346,7 +347,7 @@ class PifPafGenerator(object):
         score = scores[max_i]
         return max_entry[0], max_entry[1], score
 
-    def _grow(self, ann, paf_forward, paf_backward, th):
+    def _grow(self, ann, paf_forward, paf_backward, th, reverse_match=True):
         for _, i, forward, j1i, j2i in ann.frontier_iter():
             if forward:
                 jsi, jti = j1i, j2i
@@ -375,7 +376,7 @@ class PifPafGenerator(object):
             )
 
             # reverse match
-            if th >= 0.1:
+            if reverse_match:
                 reverse_xyv = self._grow_connection(
                     new_xyv[:2], xy_scale_t, directed_paf_field_reverse)
                 if reverse_xyv[2] < th:
@@ -406,7 +407,7 @@ class PifPafGenerator(object):
         paf_forward_c, paf_backward_c = self._score_paf_target(score_th=0.0001)
         for ann in annotations:
             unfilled_mask = ann.data[:, 2] == 0.0
-            self._grow(ann, paf_forward_c, paf_backward_c, th=1e-8)
+            self._grow(ann, paf_forward_c, paf_backward_c, th=1e-8, reverse_match=False)
             now_filled_mask = ann.data[:, 2] > 0.0
             updated = np.logical_and(unfilled_mask, now_filled_mask)
             ann.data[updated, 2] = np.minimum(0.001, ann.data[updated, 2])
