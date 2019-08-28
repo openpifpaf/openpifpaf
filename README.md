@@ -39,10 +39,11 @@ Image credit: "[Learning to surf](https://www.flickr.com/photos/fotologic/603891
 Created with:
 `python3 -m openpifpaf.predict --show docs/coco/000000081988.jpg`
 
-For more demos, see the
-[openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo) project and
-the `openpifpaf.webcam` command.
-There is also a [Google Colab demo](https://colab.research.google.com/drive/1H8T4ZE6wc0A9xJE4oGnhgHpUpAH5HL7W).
+More demos:
+* [openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo) project (best performance)
+* OpenPifPaf running in your browser: https://vita-epfl.github.io/openpifpafwebdemo/ (experimental)
+* the `openpifpaf.webcam` command (requires OpenCV)
+* [Google Colab demo](https://colab.research.google.com/drive/1H8T4ZE6wc0A9xJE4oGnhgHpUpAH5HL7W)
 
 <img src="docs/wave3.gif" height=250 alt="example image" />
 
