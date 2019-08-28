@@ -131,19 +131,19 @@ def apply(checkpoint, outfile, verbose=True):
         input_names=input_names, output_names=output_names,
         # opset_version=10,
         # do_constant_folding=True,
-        dynamic_axes={  # TODO: gives warnings
-            'input_batch': {0: 'batch', 2: 'height', 3: 'width'},
-            'pif_c': {0: 'batch', 2: 'fheight', 3: 'fwidth'},
-            'pif_r': {0: 'batch', 3: 'fheight', 4: 'fwidth'},
-            'pif_b': {0: 'batch', 2: 'fheight', 3: 'fwidth'},
-            'pif_s': {0: 'batch', 2: 'fheight', 3: 'fwidth'},
+        # dynamic_axes={  # TODO: gives warnings
+        #     'input_batch': {0: 'batch', 2: 'height', 3: 'width'},
+        #     'pif_c': {0: 'batch', 2: 'fheight', 3: 'fwidth'},
+        #     'pif_r': {0: 'batch', 3: 'fheight', 4: 'fwidth'},
+        #     'pif_b': {0: 'batch', 2: 'fheight', 3: 'fwidth'},
+        #     'pif_s': {0: 'batch', 2: 'fheight', 3: 'fwidth'},
 
-            'paf_c': {0: 'batch', 2: 'fheight', 3: 'fwidth'},
-            'paf_r1': {0: 'batch', 3: 'fheight', 4: 'fwidth'},
-            'paf_b1': {0: 'batch', 2: 'fheight', 3: 'fwidth'},
-            'paf_r2': {0: 'batch', 3: 'fheight', 4: 'fwidth'},
-            'paf_b2': {0: 'batch', 2: 'fheight', 3: 'fwidth'},
-        },
+        #     'paf_c': {0: 'batch', 2: 'fheight', 3: 'fwidth'},
+        #     'paf_r1': {0: 'batch', 3: 'fheight', 4: 'fwidth'},
+        #     'paf_b1': {0: 'batch', 2: 'fheight', 3: 'fwidth'},
+        #     'paf_r2': {0: 'batch', 3: 'fheight', 4: 'fwidth'},
+        #     'paf_b2': {0: 'batch', 2: 'fheight', 3: 'fwidth'},
+        # },
     )
 
     monkey_patches.revert()
