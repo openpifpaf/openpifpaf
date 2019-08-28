@@ -348,6 +348,9 @@ class PifPafGenerator(object):
         return max_entry[0], max_entry[1], score
 
     def _grow(self, ann, paf_forward, paf_backward, th, reverse_match=True):
+        if not hasattr(ann, 'decoding_order'):
+            ann.decoding_order = []
+
         for _, i, forward, j1i, j2i in ann.frontier_iter():
             if forward:
                 jsi, jti = j1i, j2i
@@ -387,6 +390,7 @@ class PifPafGenerator(object):
             new_xyv = (new_xyv[0], new_xyv[1], np.sqrt(new_xyv[2] * xyv[2]))  # geometric mean
             if new_xyv[2] > ann.data[jti, 2]:
                 ann.data[jti] = new_xyv
+                ann.decoding_order.append((jsi, jti))
 
     @staticmethod
     def _flood_fill(ann):
