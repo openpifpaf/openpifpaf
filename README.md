@@ -88,16 +88,6 @@ Tools to work with models:
 * `python3 -m openpifpaf.migrate --help`: [help screen](docs/cli-help-migrate.txt)
 * `python3 -m openpifpaf.export_onnx --help`: [help screen](docs/cli-help-export_onnx.txt)
 
-Example commands to try:
-
-```sh
-# live demo
-MPLBACKEND=macosx python3 -m openpifpaf.webcam --scale 0.1 --source=0
-
-# single image
-python3 -m openpifpaf.predict my_image.jpg --show
-```
-
 
 # Pre-trained Models
 
