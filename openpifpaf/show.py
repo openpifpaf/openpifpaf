@@ -244,12 +244,14 @@ class KeypointPainter(object):
         if hasattr(ann, 'decoding_order'):
             self._draw_decoding_order(ax, x, y, ann.decoding_order)
 
-    def _draw_decoding_order(self, ax, x, y, decoding_order):
+    @staticmethod
+    def _draw_decoding_order(ax, x, y, decoding_order):
         for step_i, (jsi, jti) in enumerate(decoding_order):
             ax.plot([x[jsi], x[jti]], [y[jsi], y[jti]], '--', color='black')
             ax.text(0.5 * (x[jsi] + x[jti]), 0.5 * (y[jsi] + y[jti]),
                     '{}'.format(step_i), fontsize=8,
                     color='white', bbox={'facecolor': 'black', 'alpha': 0.5, 'linewidth': 0})
+
 
 def quiver(ax, vector_field, intensity_field=None, step=1, threshold=0.5,
            xy_scale=1.0, uv_is_offset=False,
