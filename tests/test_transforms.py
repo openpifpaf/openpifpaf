@@ -48,7 +48,7 @@ def test_rescale_absolute(x=5, y=5):
 
 
 def test_crop(x=4, y=6):
-    image_xy, keypoint_xy = single_pixel_transform(x, y, transforms.Crop(7))
+    image_xy, keypoint_xy = single_pixel_transform(x, y, transforms.Crop(7), (9, 11))
     print(image_xy, keypoint_xy)
     assert image_xy == keypoint_xy
 
