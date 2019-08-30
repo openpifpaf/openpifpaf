@@ -115,6 +115,7 @@ def main():
     if args.augmentation:
         preprocess_transformations = [
             transforms.NormalizeAnnotations(),
+            transforms.AnnotationJitter(),
             transforms.RandomApply(transforms.HFlip(), 0.5),
             transforms.RescaleRelative(scale_range=(0.5 * args.rescale_images,
                                                     1.0 * args.rescale_images)),
@@ -123,8 +124,8 @@ def main():
             transforms.TRAIN_TRANSFORM,
         ]
         if args.orientation_invariant:
-            preprocess_transformations.insert(1, transforms.SquarePad())
-            preprocess_transformations.insert(2, transforms.RotateBy90())
+            preprocess_transformations.insert(2, transforms.SquarePad())
+            preprocess_transformations.insert(3, transforms.RotateBy90())
     else:
         preprocess_transformations = [
             transforms.NormalizeAnnotations(),

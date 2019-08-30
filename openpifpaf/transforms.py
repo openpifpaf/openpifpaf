@@ -138,6 +138,22 @@ class MultiScale(Preprocess):
         return image_list, anns_list, meta_list
 
 
+class AnnotationJitter(Preprocess):
+    def __init__(self, epsilon=0.5):
+        self.epsilon = epsilon
+
+    def __call__(self, image, anns, meta):
+        meta = copy.deepcopy(meta)
+        anns = copy.deepcopy(anns)
+
+        for ann in anns:
+            keypoints_xy = ann['keypoints'][:, :2]
+            sym_rnd = (torch.rand(*keypoints_xy.shape).numpy() - 0.5) * 2.0
+            keypoints_xy += self.epsilon * sym_rnd
+
+        return image, anns, meta
+
+
 class RescaleRelative(Preprocess):
     def __init__(self, scale_range=(0.5, 1.0), *, resample=PIL.Image.BICUBIC):
         self.log = logging.getLogger(self.__class__.__name__)
@@ -425,9 +441,20 @@ class RotateBy90(Preprocess):
         self.log.debug('rotation angle = %f', angle)
 
         # rotate image
-        im_np = np.asarray(image)
-        im_np = scipy.ndimage.rotate(im_np, angle=angle, cval=127, reshape=False)
-        image = PIL.Image.fromarray(im_np)
+        if angle != 0.0:
+            im_np = np.asarray(image)
+            if im_np.shape[0] == im_np.shape[1] and angle == 90:
+                im_np = np.swapaxes(im_np, 0, 1)
+                im_np = np.flip(im_np, axis=0)
+            elif im_np.shape[0] == im_np.shape[1] and angle == 270:
+                im_np = np.swapaxes(im_np, 0, 1)
+                im_np = np.flip(im_np, axis=1)
+            elif im_np.shape[0] == im_np.shape[1] and angle == 180:
+                im_np = np.flip(im_np, axis=0)
+                im_np = np.flip(im_np, axis=1)
+            else:
+                im_np = scipy.ndimage.rotate(im_np, angle=angle, cval=127, reshape=False)
+            image = PIL.Image.fromarray(im_np)
         self.log.debug('rotated by = %f degrees', angle)
 
         # rotate keypoints

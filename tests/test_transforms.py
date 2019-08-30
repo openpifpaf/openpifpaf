@@ -1,5 +1,6 @@
 import numpy as np
 import PIL
+import pytest
 
 from openpifpaf import transforms
 
@@ -58,11 +59,12 @@ def test_pad(x=4, y=6):
     assert image_xy == keypoint_xy
 
 
-def test_rotateby90(x=4, y=6):
+@pytest.mark.parametrize('x', range(10))
+def test_rotateby90(x, y=6):
     transform = transforms.Compose([
         transforms.SquarePad(),
         transforms.RotateBy90(),
     ])
     image_xy, keypoint_xy = single_pixel_transform(x, y, transform)
     print(image_xy, keypoint_xy)
-    assert image_xy == keypoint_xy
+    assert image_xy == pytest.approx(keypoint_xy)
