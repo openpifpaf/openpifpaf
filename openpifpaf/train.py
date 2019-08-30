@@ -123,7 +123,8 @@ def main():
             transforms.TRAIN_TRANSFORM,
         ]
         if args.orientation_invariant:
-            preprocess_transformations.insert(1, transforms.RotateBy90())
+            preprocess_transformations.insert(1, transforms.SquarePad())
+            preprocess_transformations.insert(2, transforms.RotateBy90())
     else:
         preprocess_transformations = [
             transforms.NormalizeAnnotations(),
