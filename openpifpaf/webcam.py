@@ -29,6 +29,7 @@ try:
     import matplotlib.pyplot as plt
 except ImportError:
     plt = None
+    print('matplotlib is not installed')
 
 
 class Visualizer(object):
@@ -37,12 +38,13 @@ class Visualizer(object):
         self.args = args
 
     def __call__(self, first_image, fig_width=4.0, **kwargs):
+        if plt is None:
+            while True:
+                image, all_fields = yield
+            return
+
         if 'figsize' not in kwargs:
             kwargs['figsize'] = (fig_width, fig_width * first_image.shape[0] / first_image.shape[1])
-
-        if plt is None:
-            print('matplotlib is not installed')
-            return
 
         fig = plt.figure(**kwargs)
         ax = plt.Axes(fig, [0.0, 0.0, 1.0, 1.0])
