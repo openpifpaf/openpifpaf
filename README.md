@@ -212,7 +212,8 @@ In this process, ffmpeg scales the video to `641px` which can be adjusted.
 
 # Related Projects
 
-* [openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo)
+* [monoloco](https://github.com/vita-epfl/monoloco): "Monocular 3D Pedestrian Localization and Uncertainty Estimation" which uses OpenPifPaf for poses.
+* [openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo): web front-end.
 
 
 [CC-BY-2.0]: https://creativecommons.org/licenses/by/2.0/
