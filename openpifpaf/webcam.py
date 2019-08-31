@@ -40,6 +40,10 @@ class Visualizer(object):
         if 'figsize' not in kwargs:
             kwargs['figsize'] = (fig_width, fig_width * first_image.shape[0] / first_image.shape[1])
 
+        if plt is None:
+            print('matplotlib is not installed')
+            return
+
         fig = plt.figure(**kwargs)
         ax = plt.Axes(fig, [0.0, 0.0, 1.0, 1.0])
         ax.set_axis_off()
