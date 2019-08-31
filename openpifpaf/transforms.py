@@ -17,6 +17,7 @@ import math
 import numpy as np
 import PIL
 import scipy
+import scipy.ndimage
 import torch
 import torchvision
 
@@ -35,17 +36,36 @@ class Preprocess(metaclass=ABCMeta):
         keypoint_sets[:, :, 0] += meta['offset'][0]
         keypoint_sets[:, :, 1] += meta['offset'][1]
 
-        keypoint_sets[:, :, 0] = (keypoint_sets[:, :, 0] + 0.5) / meta['scale'][0] - 0.5
-        keypoint_sets[:, :, 1] = (keypoint_sets[:, :, 1] + 0.5) / meta['scale'][1] - 0.5
+        keypoint_sets[:, :, 0] = keypoint_sets[:, :, 0] / meta['scale'][0]
+        keypoint_sets[:, :, 1] = keypoint_sets[:, :, 1] / meta['scale'][1]
 
         if meta['hflip']:
             w = meta['width_height'][0]
-            keypoint_sets[:, :, 0] = -keypoint_sets[:, :, 0] - 1.0 + w
+            keypoint_sets[:, :, 0] = -keypoint_sets[:, :, 0] + (w - 1)
             for keypoints in keypoint_sets:
                 if meta.get('horizontal_swap'):
                     keypoints[:] = meta['horizontal_swap'](keypoints)
 
         return keypoint_sets
+
+    @staticmethod
+    def annotations_inverse(annotations, meta):
+        annotations = copy.deepcopy(annotations)
+
+        for ann in annotations:
+            ann.data[:, 0] += meta['offset'][0]
+            ann.data[:, 1] += meta['offset'][1]
+
+            ann.data[:, 0] = ann.data[:, 0] / meta['scale'][0]
+            ann.data[:, 1] = ann.data[:, 1] / meta['scale'][1]
+
+            if meta['hflip']:
+                w = meta['width_height'][0]
+                ann.data[:, 0] = -ann.data[:, 0] + (w - 1)
+                if meta.get('horizontal_swap'):
+                    ann.data[:] = meta['horizontal_swap'](ann.data)
+
+        return annotations
 
 
 class ImageTransform(Preprocess):
@@ -118,6 +138,22 @@ class MultiScale(Preprocess):
         return image_list, anns_list, meta_list
 
 
+class AnnotationJitter(Preprocess):
+    def __init__(self, epsilon=0.5):
+        self.epsilon = epsilon
+
+    def __call__(self, image, anns, meta):
+        meta = copy.deepcopy(meta)
+        anns = copy.deepcopy(anns)
+
+        for ann in anns:
+            keypoints_xy = ann['keypoints'][:, :2]
+            sym_rnd = (torch.rand(*keypoints_xy.shape).numpy() - 0.5) * 2.0
+            keypoints_xy += self.epsilon * sym_rnd
+
+        return image, anns, meta
+
+
 class RescaleRelative(Preprocess):
     def __init__(self, scale_range=(0.5, 1.0), *, resample=PIL.Image.BICUBIC):
         self.log = logging.getLogger(self.__class__.__name__)
@@ -156,11 +192,11 @@ class RescaleRelative(Preprocess):
         self.log.debug('before resize = (%f, %f), after = %s', w, h, image.size)
 
         # rescale keypoints
-        x_scale = image.size[0] / w
-        y_scale = image.size[1] / h
+        x_scale = (image.size[0] - 1) / (w - 1)
+        y_scale = (image.size[1] - 1) / (h - 1)
         for ann in anns:
-            ann['keypoints'][:, 0] = (ann['keypoints'][:, 0] + 0.5) * x_scale - 0.5
-            ann['keypoints'][:, 1] = (ann['keypoints'][:, 1] + 0.5) * y_scale - 0.5
+            ann['keypoints'][:, 0] = ann['keypoints'][:, 0] * x_scale
+            ann['keypoints'][:, 1] = ann['keypoints'][:, 1] * y_scale
             ann['bbox'][0] *= x_scale
             ann['bbox'][1] *= y_scale
             ann['bbox'][2] *= x_scale
@@ -209,11 +245,11 @@ class RescaleAbsolute(Preprocess):
                        w, h, s, image.size)
 
         # rescale keypoints
-        x_scale = image.size[0] / w
-        y_scale = image.size[1] / h
+        x_scale = (image.size[0] - 1) / (w - 1)
+        y_scale = (image.size[1] - 1) / (h - 1)
         for ann in anns:
-            ann['keypoints'][:, 0] = (ann['keypoints'][:, 0] + 0.5) * x_scale - 0.5
-            ann['keypoints'][:, 1] = (ann['keypoints'][:, 1] + 0.5) * y_scale - 0.5
+            ann['keypoints'][:, 0] = ann['keypoints'][:, 0] * x_scale
+            ann['keypoints'][:, 1] = ann['keypoints'][:, 1] * y_scale
             ann['bbox'][0] *= x_scale
             ann['bbox'][1] *= y_scale
             ann['bbox'][2] *= x_scale
@@ -230,16 +266,20 @@ class Crop(Preprocess):
     def __call__(self, image, anns, meta):
         meta = copy.deepcopy(meta)
         anns = copy.deepcopy(anns)
+        original_valid_area = meta['valid_area'].copy()
 
-        image, anns, ltrb = self.crop(image, anns)
+        image, anns, ltrb = self.crop(image, anns, meta['valid_area'])
         meta['offset'] += ltrb[:2]
 
-        self.log.debug('valid area before crop of %s: %s', ltrb, meta['valid_area'])
+        new_wh = image.size
+        self.log.debug('valid area before crop of %s: %s', ltrb, original_valid_area)
         # process crops from left and top
-        meta['valid_area'][:2] = np.maximum(0.0, meta['valid_area'][:2] - ltrb[:2])
-        meta['valid_area'][2:] = np.maximum(0.0, meta['valid_area'][2:] - ltrb[:2])
+        meta['valid_area'][:2] = np.maximum(0.0, original_valid_area[:2] - ltrb[:2])
         # process cropps from right and bottom
-        meta['valid_area'][2:] = np.minimum(meta['valid_area'][2:], ltrb[2:] - ltrb[:2])
+        new_rb_corner = original_valid_area[:2] + original_valid_area[2:] - ltrb[:2]
+        new_rb_corner = np.maximum(0.0, new_rb_corner)
+        new_rb_corner = np.minimum(new_wh, new_rb_corner)
+        meta['valid_area'][2:] = new_rb_corner - meta['valid_area'][:2]
         self.log.debug('valid area after crop: %s', meta['valid_area'])
 
         for ann in anns:
@@ -247,21 +287,28 @@ class Crop(Preprocess):
 
         return image, anns, meta
 
-    def crop(self, image, anns):
+    def crop(self, image, anns, valid_area):
         w, h = image.size
         padding = int(self.long_edge / 2.0)
         x_offset, y_offset = 0, 0
         if w > self.long_edge:
-            x_offset = torch.randint(-padding, w - self.long_edge + padding, (1,))
-            x_offset = torch.clamp(x_offset, min=0, max=w - self.long_edge).item()
+            min_x = int(valid_area[0])
+            max_x = int(valid_area[0] + valid_area[2]) - self.long_edge
+            x_offset = torch.randint(-padding + min_x, max_x + padding, (1,))
+            x_offset = torch.clamp(x_offset, min=min_x, max=max_x).item()
         if h > self.long_edge:
-            y_offset = torch.randint(-padding, h - self.long_edge + padding, (1,))
-            y_offset = torch.clamp(y_offset, min=0, max=h - self.long_edge).item()
+            min_y = int(valid_area[1])
+            max_y = int(valid_area[1] + valid_area[3]) - self.long_edge
+            y_offset = torch.randint(-padding + min_y, max_y + padding, (1,))
+            y_offset = torch.clamp(y_offset, min=min_y, max=max_y).item()
         self.log.debug('crop offsets (%d, %d)', x_offset, y_offset)
 
         # crop image
         new_w = min(self.long_edge, w - x_offset)
         new_h = min(self.long_edge, h - y_offset)
+        # ltrb might be confusing name:
+        # it's the coordinates of the top-left corner and the coordinates
+        # of the bottom right corner
         ltrb = (x_offset, y_offset, x_offset + new_w, y_offset + new_h)
         image = image.crop(ltrb)
 
@@ -301,14 +348,21 @@ class CenterPad(Preprocess):
 
     def center_pad(self, image, anns):
         w, h = image.size
+
         left = int((self.target_size[0] - w) / 2.0)
         top = int((self.target_size[1] - h) / 2.0)
-        ltrb = (
-            left,
-            top,
-            self.target_size[0] - w - left,
-            self.target_size[1] - h - top,
-        )
+        if left < 0:
+            left = 0
+        if top < 0:
+            top = 0
+
+        right = self.target_size[0] - w - left
+        bottom = self.target_size[1] - h - top
+        if right < 0:
+            right = 0
+        if bottom < 0:
+            bottom = 0
+        ltrb = (left, top, right, bottom)
 
         # pad image
         image = torchvision.transforms.functional.pad(
@@ -322,6 +376,12 @@ class CenterPad(Preprocess):
             ann['bbox'][1] += ltrb[1]
 
         return image, anns, ltrb
+
+
+class SquarePad(Preprocess):
+    def __call__(self, image, anns, meta):
+        center_pad = CenterPad(max(image.size))
+        return center_pad(image, anns, meta)
 
 
 class HFlip(Preprocess):
@@ -363,7 +423,7 @@ class RandomApply(Preprocess):
 
 
 class RotateBy90(Preprocess):
-    def __init__(self, angle_perturbation=5.0):
+    def __init__(self, angle_perturbation=0.0):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
 
@@ -376,14 +436,25 @@ class RotateBy90(Preprocess):
         w, h = image.size
         rnd1 = float(torch.rand(1).item())
         angle = int(rnd1 * 4.0) * 90.0
-        rnd2 = float(torch.rand(1).item())
-        angle += -self.angle_perturbation + 2.0 * self.angle_perturbation * rnd2
+        sym_rnd2 = (float(torch.rand(1).item()) - 0.5) * 2.0
+        angle += sym_rnd2 * self.angle_perturbation
         self.log.debug('rotation angle = %f', angle)
 
         # rotate image
-        im_np = np.asarray(image)
-        im_np = scipy.ndimage.rotate(im_np, angle=angle, cval=127, reshape=False)
-        image = PIL.Image.fromarray(im_np)
+        if angle != 0.0:
+            im_np = np.asarray(image)
+            if im_np.shape[0] == im_np.shape[1] and angle == 90:
+                im_np = np.swapaxes(im_np, 0, 1)
+                im_np = np.flip(im_np, axis=0)
+            elif im_np.shape[0] == im_np.shape[1] and angle == 270:
+                im_np = np.swapaxes(im_np, 0, 1)
+                im_np = np.flip(im_np, axis=1)
+            elif im_np.shape[0] == im_np.shape[1] and angle == 180:
+                im_np = np.flip(im_np, axis=0)
+                im_np = np.flip(im_np, axis=1)
+            else:
+                im_np = scipy.ndimage.rotate(im_np, angle=angle, cval=127, reshape=False)
+            image = PIL.Image.fromarray(im_np)
         self.log.debug('rotated by = %f degrees', angle)
 
         # rotate keypoints
@@ -391,14 +462,22 @@ class RotateBy90(Preprocess):
         sangle = math.sin(angle / 180.0 * math.pi)
         for ann in anns:
             xy = ann['keypoints'][:, :2]
-            x_old = xy[:, 0].copy() - w/2
-            y_old = xy[:, 1].copy() - h/2
-            xy[:, 0] = w/2 + cangle * x_old + sangle * y_old
-            xy[:, 1] = h/2 - sangle * x_old + cangle * y_old
-            ann['bbox'] = self.rotate_box(ann['bbox'], w, h, angle)
+            x_old = xy[:, 0].copy() - (w - 1)/2
+            y_old = xy[:, 1].copy() - (h - 1)/2
+            xy[:, 0] = (w - 1)/2 + cangle * x_old + sangle * y_old
+            xy[:, 1] = (h - 1)/2 - sangle * x_old + cangle * y_old
+            ann['bbox'] = self.rotate_box(ann['bbox'], w - 1, h - 1, angle)
 
         self.log.debug('meta before: %s', meta)
-        meta['valid_area'] = self.rotate_box(meta['valid_area'], w, h, angle)
+        meta['valid_area'] = self.rotate_box(meta['valid_area'], w - 1, h - 1, angle)
+        # fix valid area to be inside original image dimensions
+        original_valid_area = meta['valid_area'].copy()
+        meta['valid_area'][0] = np.clip(meta['valid_area'][0], 0, w)
+        meta['valid_area'][1] = np.clip(meta['valid_area'][1], 0, h)
+        new_rb_corner = original_valid_area[:2] + original_valid_area[2:]
+        new_rb_corner[0] = np.clip(new_rb_corner[0], 0, w)
+        new_rb_corner[1] = np.clip(new_rb_corner[1], 0, h)
+        meta['valid_area'][2:] = new_rb_corner - meta['valid_area'][:2]
         self.log.debug('meta after: %s', meta)
 
         for ann in anns:
