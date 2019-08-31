@@ -16,10 +16,13 @@ usage: webcam.py [-h] [--checkpoint CHECKPOINT] [--dilation DILATION]
                  [--no-colored-connections] [--disable-cuda] [--source SOURCE]
                  [--scale SCALE]
 
-Webcam demo application. Example command: python -m pifpaf.webcam --checkpoint
-outputs/resnet101-pif-paf-rsmooth0.5-181121-170119.pkl --src
-http://128.179.139.21:8080/video --seed-threshold=0.3 --scale 0.2
---connection-method=max
+Webcam demo application. Example commands: python3 -m pifpaf.webcam # usbcam
+or webcam 0 python3 -m pifpaf.webcam --source=1 # usbcam or webcam 1 #
+streaming source python3 -m pifpaf.webcam
+--source=http://128.179.139.21:8080/video # file system source (any valid
+OpenCV source) python3 -m pifpaf.webcam --source=docs/coco/000000081988.jpg
+Trouble shooting: * MacOSX: try to prefix the command with
+"MPLBACKEND=MACOSX".
 
 optional arguments:
   -h, --help            show this help message and exit
