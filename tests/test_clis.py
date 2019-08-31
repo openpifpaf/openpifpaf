@@ -20,3 +20,10 @@ def test_predict(batch_size):
     ])
 
     assert os.path.exists(test_hash + '/000000081988.jpg.pifpaf.json')
+
+
+def test_webcam():
+    subprocess.run([
+        'python', '-m', 'openpifpaf.webcam',
+        '--source=docs/coco/000000081988.jpg',
+    ]).check_returncode()

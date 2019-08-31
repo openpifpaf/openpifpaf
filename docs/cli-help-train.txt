@@ -26,6 +26,7 @@ usage: train.py [-h] [--debug] [--checkpoint CHECKPOINT] [--dilation DILATION]
                 [--loader-workers LOADER_WORKERS] [--batch-size BATCH_SIZE]
                 [-o OUTPUT] [--stride-apply STRIDE_APPLY] [--epochs EPOCHS]
                 [--freeze-base FREEZE_BASE] [--pre-lr PRE_LR]
+                [--rescale-images RESCALE_IMAGES] [--orientation-invariant]
                 [--update-batchnorm-runningstatistics]
                 [--square-edge SQUARE_EDGE] [--ema EMA]
                 [--debug-without-plots] [--profile PROFILE] [--disable-cuda]
@@ -44,6 +45,10 @@ optional arguments:
                         number of epochs to train with frozen base (default:
                         0)
   --pre-lr PRE_LR       pre learning rate (default: 0.0001)
+  --rescale-images RESCALE_IMAGES
+                        overall image rescale factor (default: 1.0)
+  --orientation-invariant
+                        augment with random orientations (default: False)
   --update-batchnorm-runningstatistics
                         update batch norm running statistics (default: False)
   --square-edge SQUARE_EDGE
