@@ -319,8 +319,7 @@ def factory_from_scratch(basename, headnames, *, pretrained=True):
         base_vision = torchvision.models.shufflenet_v2_x2_0(pretrained)
         return shufflenet_factory_from_scratch(basename, base_vision, 2048, headnames)
     if 'shufflenetv2x2w' in basename:
-        base_vision = torchvision.models._shufflenetv2(  # pylint: disable=protected-access
-            'shufflenetv2_x2.0_w', pretrained, False,
+        base_vision = torchvision.models.ShuffleNetV2(
             [4, 8, 4], [24, 244, 488, 976, 3072],
         )
         return shufflenet_factory_from_scratch(basename, base_vision, 3072, headnames)
