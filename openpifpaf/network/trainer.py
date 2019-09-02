@@ -136,7 +136,7 @@ class Trainer(object):
              for l in head_losses],
         )
 
-    def train(self, scenes, epoch):
+    def train(self, scenes, epoch):  # pylint: disable=too-many-branches
         start_time = time.time()
         self.model.train()
         if self.fix_batch_norm:
@@ -150,6 +150,16 @@ class Trainer(object):
 
         self.ema_restore()
         self.ema = None
+
+        # configure lr scheduler
+        if hasattr(self.lr_scheduler, 'lr_lambdas') and \
+           self.lr_scheduler.lr_lambdas and \
+           hasattr(self.lr_scheduler.lr_lambdas[0], 'steps_per_epoch'):
+            lr_steps_per_epoch = len(scenes)
+            self.log.debug('setting lr steps per epoch = %d', lr_steps_per_epoch)
+            self.lr_scheduler.lr_lambdas[0].steps_per_epoch = lr_steps_per_epoch
+        else:
+            self.log.warning('not setting the steps per epoch in lr_scheduler')
 
         epoch_loss = 0.0
         head_epoch_losses = None
@@ -184,7 +194,7 @@ class Trainer(object):
                     'epoch': epoch, 'batch': batch_idx, 'n_batches': len(scenes),
                     'time': round(batch_time, 3),
                     'data_time': round(preprocess_time, 3),
-                    'lr': self.lr(),
+                    'lr': round(self.lr(), 8),
                     'loss': round(loss, 3) if loss is not None else None,
                     'head_losses': [round(l, 3) if l is not None else None
                                     for l in head_losses],
@@ -197,10 +207,11 @@ class Trainer(object):
             if self.ema is None and self.ema_decay:
                 self.ema = copy.deepcopy([p.data for p in self.model.parameters()])
 
-            last_batch_end = time.time()
+            # update learning rate
+            if self.lr_scheduler is not None:
+                self.lr_scheduler.step()
 
-        if self.lr_scheduler is not None:
-            self.lr_scheduler.step()
+            last_batch_end = time.time()
 
         self.apply_ema()
         self.log.info({

@@ -32,6 +32,32 @@ def cli(parser):
                          help='learning rate decay factor')
 
 
+class LearningRateLambda(object):
+    def __init__(self, decay_schedule, *,
+                 gamma=0.1,
+                 burn_in_epochs=3,
+                 burn_in_factor=0.01,
+                 steps_per_epoch=1):
+        self.decay_schedule = decay_schedule
+        self.gamma = gamma
+        self.burn_in_epochs = burn_in_epochs
+        self.burn_in_factor = burn_in_factor
+        self.steps_per_epoch = steps_per_epoch
+
+    def __call__(self, step_i):
+        epoch = step_i / self.steps_per_epoch
+
+        if epoch < self.burn_in_epochs:
+            return self.burn_in_factor**(1.0 - epoch / self.burn_in_epochs)
+
+        lambda_ = 1.0
+        for d in self.decay_schedule:
+            if epoch >= d:
+                lambda_ *= self.gamma
+
+        return lambda_
+
+
 def factory(args, parameters):
     if args.amsgrad:
         args.adam = True
@@ -49,16 +75,9 @@ def factory(args, parameters):
             lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay,
             nesterov=args.nesterov)
 
-    def lambda_schedule(epoch):
-        if epoch < args.lr_burn_in_epochs:
-            return args.lr_burn_in_factor**(1.0 - epoch / args.lr_burn_in_epochs)
-
-        lambda_ = 1.0
-        for d in args.lr_decay:
-            if epoch >= d:
-                lambda_ *= args.lr_gamma
-
-        return lambda_
-
-    scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, [lambda_schedule])
+    scheduler = torch.optim.lr_scheduler.LambdaLR(
+        optimizer, [LearningRateLambda(args.lr_decay,
+                                       gamma=args.lr_gamma,
+                                       burn_in_epochs=args.lr_burn_in_epochs,
+                                       burn_in_factor=args.lr_burn_in_factor)])
     return optimizer, scheduler
