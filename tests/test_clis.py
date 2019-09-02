@@ -6,7 +6,7 @@ import sys
 import pytest
 
 
-PYTHON = 'python3' if sys.platform != "win32" else 'python'
+PYTHON = 'python3' if sys.platform != 'win32' else 'python'
 
 
 @pytest.mark.parametrize('batch_size', [1, 2])
@@ -26,6 +26,7 @@ def test_predict(batch_size):
     assert os.path.exists(test_hash + '/000000081988.jpg.pifpaf.json')
 
 
+@pytest.mark.skipif(sys.platform == 'win32', reason='does not run on windows')
 def test_webcam():
     subprocess.run([
         PYTHON, '-m', 'openpifpaf.webcam',

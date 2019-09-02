@@ -5,7 +5,7 @@ import sys
 import pytest
 
 
-PYTHON = 'python3' if sys.platform != "win32" else 'python'
+PYTHON = 'python3' if sys.platform != 'win32' else 'python'
 
 
 @pytest.mark.parametrize('module_name', [
