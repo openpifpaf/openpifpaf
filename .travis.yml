@@ -5,31 +5,43 @@ matrix:
   include:
     - name: "Python 3.7 on Linux"
       python: 3.7
-      env: TORCH_VERSION=1.2+cpu TORCHVISION_VERSION=0.4+cpu
+      before_install:
+        - pip3 install --upgrade pip setuptools
+        - pip3 install torch==1.2+cpu torchvision==0.4+cpu -f https://download.pytorch.org/whl/torch_stable.html
     - name: "Python 3.6 on Linux"
       python: 3.6
-      env: TORCH_VERSION=1.2+cpu TORCHVISION_VERSION=0.4+cpu
+      before_install:
+        - pip3 install --upgrade pip setuptools
+        - pip3 install torch==1.2+cpu torchvision==0.4+cpu -f https://download.pytorch.org/whl/torch_stable.html
     - name: "Python 3.5 on Linux"
       python: 3.5
-      env: TORCH_VERSION=1.2+cpu TORCHVISION_VERSION=0.4+cpu
+      before_install:
+        - pip3 install --upgrade pip setuptools
+        - pip3 install torch==1.2+cpu torchvision==0.4+cpu -f https://download.pytorch.org/whl/torch_stable.html
     - name: "Python 3.7 on Linux (PyTorch 1.1)"
       python: 3.7
-      env: TORCH_VERSION=1.1+cpu TORCHVISION_VERSION=0.3+cpu
+      before_install:
+        - pip3 install --upgrade pip setuptools
+        - pip3 install torch==1.1 -f https://download.pytorch.org/whl/cpu/torch_stable.html
+        - pip3 install torchvision==0.3
     - name: "macOS"
       os: osx
       osx_image: xcode11
       language: shell       # 'language: python' is an error on Travis CI macOS
       env: TORCH_VERSION=1.2 TORCHVISION_VERSION=0.4
+      before_install:
+        - pip3 install --upgrade pip setuptools
+        - pip3 install torch==1.2 torchvision==0.4 -f https://download.pytorch.org/whl/torch_stable.html
     - name: "Windows"
       os: windows
       language: shell       # 'language: python' is an error on Travis CI Windows
       before_install:
         - choco install python
         - python -m pip install --upgrade pip
-      env: PATH=/c/Python37:/c/Python37/Scripts:$PATH TORCH_VERSION=1.2.0+cpu TORCHVISION_VERSION=0.4.0+cpu
+        - pip3 install --upgrade pip setuptools
+        - pip3 install torch==1.2+cpu torchvision==0.4+cpu -f https://download.pytorch.org/whl/torch_stable.html
+      env: PATH=/c/Python37:/c/Python37/Scripts:$PATH
 install:
- - pip3 install --upgrade pip setuptools
- - pip3 install torch==$TORCH_VERSION torchvision==$TORCHVISION_VERSION -f https://download.pytorch.org/whl/torch_stable.html
  - "pip3 install --editable .[test]"
 script:
  - pylint openpifpaf --disable=fixme
