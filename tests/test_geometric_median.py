@@ -21,7 +21,7 @@ def test_robust_1d():
         plt.plot(x, f, 'x-')
         plt.xlabel('$y$')
         plt.tight_layout()
-        plt.show()
+        # plt.show()
 
     assert x[np.argmin(f)] == 7.0
 
@@ -47,7 +47,7 @@ def test_iterative_1d():
         plt.plot(y, vs, 'x-')
         plt.xlabel('$y$')
         plt.tight_layout()
-        plt.show()
+        # plt.show()
 
 
 def test_iterative_nd():
