@@ -4,8 +4,12 @@ python:
  - "3.5"
  - "3.6"
  - "3.7"
+env:
+  - TORCH_VERSION=1.1 TORCHVISION_VERSION=0.3
+  - TORCH_VERSION=1.2 TORCHVISION_VERSION=0.4
 install:
- - pip install --upgrade pip setuptools
+ - pip install -q --upgrade pip setuptools
+ - pip install -q torch==$TORCH_VERSION torchvision==$TORCHVISION_VERSION
  - "pip install --editable .[test]"
 script:
  - pylint openpifpaf --disable=fixme
