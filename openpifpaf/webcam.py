@@ -1,18 +1,24 @@
 """Webcam demo application.
 
-Example command:
-    python -m pifpaf.webcam \
-        --checkpoint outputs/resnet101-pif-paf-rsmooth0.5-181121-170119.pkl \
-        --src http://128.179.139.21:8080/video \
-        --seed-threshold=0.3 \
-        --scale 0.2 \
-        --connection-method=max
+Example commands:
+    python3 -m pifpaf.webcam  # usbcam or webcam 0
+    python3 -m pifpaf.webcam --source=1  # usbcam or webcam 1
+
+    # streaming source
+    python3 -m pifpaf.webcam --source=http://128.179.139.21:8080/video
+
+    # file system source (any valid OpenCV source)
+    python3 -m pifpaf.webcam --source=docs/coco/000000081988.jpg
+
+Trouble shooting:
+* MacOSX: try to prefix the command with "MPLBACKEND=MACOSX".
 """
 
 
 import argparse
 import time
 
+import PIL
 import torch
 
 import cv2  # pylint: disable=import-error
@@ -23,6 +29,7 @@ try:
     import matplotlib.pyplot as plt
 except ImportError:
     plt = None
+    print('matplotlib is not installed')
 
 
 class Visualizer(object):
@@ -31,6 +38,11 @@ class Visualizer(object):
         self.args = args
 
     def __call__(self, first_image, fig_width=4.0, **kwargs):
+        if plt is None:
+            while True:
+                image, all_fields = yield
+            return
+
         if 'figsize' not in kwargs:
             kwargs['figsize'] = (fig_width, fig_width * first_image.shape[0] / first_image.shape[1])
 
@@ -70,7 +82,7 @@ class Visualizer(object):
         plt.close(fig)
 
 
-def main():
+def cli():
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -82,7 +94,7 @@ def main():
                         help='do not use colored connections to draw poses')
     parser.add_argument('--disable-cuda', action='store_true',
                         help='disable CUDA')
-    parser.add_argument('--source', default=0,
+    parser.add_argument('--source', default='0',
                         help='OpenCV source url. Integer for webcams. Or ipwebcam streams.')
     parser.add_argument('--scale', default=0.1, type=float,
                         help='input image scale factor')
@@ -97,6 +109,12 @@ def main():
     if not args.disable_cuda and torch.cuda.is_available():
         args.device = torch.device('cuda')
 
+    return args
+
+
+def main():
+    args = cli()
+
     # load model
     model, _ = nets.factory_from_args(args)
     model = model.to(args.device)
@@ -108,6 +126,10 @@ def main():
     visualizer = None
     while True:
         _, image_original = capture.read()
+        if image_original is None:
+            print('no more images captured')
+            break
+
         image = cv2.resize(image_original, None, fx=args.scale, fy=args.scale)
         print('resized image size: {}'.format(image.shape))
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -117,7 +139,8 @@ def main():
             visualizer.send(None)
 
         start = time.time()
-        processed_image_cpu, _, __ = transforms.EVAL_TRANSFORM(image.copy(), [], None)
+        image_pil = PIL.Image.fromarray(image)
+        processed_image_cpu, _, __ = transforms.EVAL_TRANSFORM(image_pil, [], None)
         processed_image = processed_image_cpu.contiguous().to(args.device, non_blocking=True)
         print('preprocessing time', time.time() - start)
 

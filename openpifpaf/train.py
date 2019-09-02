@@ -23,6 +23,8 @@ def default_output_file(args):
         out += '-dilation{}'.format(args.dilation)
     if args.dilation_end:
         out += '-dilationend{}'.format(args.dilation_end)
+    if args.orientation_invariant:
+        out += '-orientationinvariant'
 
     now = datetime.datetime.now().strftime('%y%m%d-%H%M%S')
     out += '-{}.pkl'.format(now)
@@ -52,6 +54,10 @@ def cli():
                         help='number of epochs to train with frozen base')
     parser.add_argument('--pre-lr', type=float, default=1e-4,
                         help='pre learning rate')
+    parser.add_argument('--rescale-images', type=float, default=1.0,
+                        help='overall image rescale factor')
+    parser.add_argument('--orientation-invariant', default=False, action='store_true',
+                        help='augment with random orientations')
     parser.add_argument('--update-batchnorm-runningstatistics',
                         default=False, action='store_true',
                         help='update batch norm running statistics')
@@ -107,22 +113,27 @@ def main():
     target_transforms = encoder.factory(args, net_cpu.io_scales())
 
     if args.augmentation:
-        preprocess = transforms.Compose([
+        preprocess_transformations = [
             transforms.NormalizeAnnotations(),
-            transforms.RandomApply(transforms.RotateBy90(), 0.01),
+            transforms.AnnotationJitter(),
             transforms.RandomApply(transforms.HFlip(), 0.5),
-            transforms.RescaleRelative(),
+            transforms.RescaleRelative(scale_range=(0.5 * args.rescale_images,
+                                                    1.0 * args.rescale_images)),
             transforms.Crop(args.square_edge),
             transforms.CenterPad(args.square_edge),
             transforms.TRAIN_TRANSFORM,
-        ])
+        ]
+        if args.orientation_invariant:
+            preprocess_transformations.insert(2, transforms.SquarePad())
+            preprocess_transformations.insert(3, transforms.RotateBy90())
     else:
-        preprocess = transforms.Compose([
+        preprocess_transformations = [
             transforms.NormalizeAnnotations(),
             transforms.RescaleAbsolute(args.square_edge),
             transforms.CenterPad(args.square_edge),
             transforms.EVAL_TRANSFORM,
-        ])
+        ]
+    preprocess = transforms.Compose(preprocess_transformations)
     train_loader, val_loader, pre_train_loader = datasets.train_factory(
         args, preprocess, target_transforms)
 

@@ -36,6 +36,7 @@ def configure(args):
     stdout_handler = logging.StreamHandler(sys.stdout)
     logging.basicConfig(level=logging.INFO if not args.debug else logging.DEBUG,
                         handlers=[stdout_handler, file_handler])
+    logging.getLogger('matplotlib').setLevel(logging.WARNING)
     logging.info({
         'type': 'process',
         'argv': sys.argv,
@@ -134,7 +135,8 @@ class Plots(object):
             color = matplotlib.cm.get_cmap('tab10')((color_i % 10 + 0.05) / 10)
 
             if 'train' in data:
-                x = [row.get('epoch') for row in data['train']]
+                x = [row.get('epoch') + row.get('batch') / row.get('n_batches')
+                     for row in data['train']]
                 y = [row.get('lr') for row in data['train']]
                 ax.plot(x, y, color=color, label=label)
 

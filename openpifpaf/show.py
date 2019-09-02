@@ -241,6 +241,17 @@ class KeypointPainter(object):
         if text is not None:
             self._draw_text(ax, x, y, v, text, color)
 
+        if hasattr(ann, 'decoding_order'):
+            self._draw_decoding_order(ax, x, y, ann.decoding_order)
+
+    @staticmethod
+    def _draw_decoding_order(ax, x, y, decoding_order):
+        for step_i, (jsi, jti) in enumerate(decoding_order):
+            ax.plot([x[jsi], x[jti]], [y[jsi], y[jti]], '--', color='black')
+            ax.text(0.5 * (x[jsi] + x[jti]), 0.5 * (y[jsi] + y[jti]),
+                    '{}'.format(step_i), fontsize=8,
+                    color='white', bbox={'facecolor': 'black', 'alpha': 0.5, 'linewidth': 0})
+
 
 def quiver(ax, vector_field, intensity_field=None, step=1, threshold=0.5,
            xy_scale=1.0, uv_is_offset=False,

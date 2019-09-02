@@ -39,10 +39,11 @@ Image credit: "[Learning to surf](https://www.flickr.com/photos/fotologic/603891
 Created with:
 `python3 -m openpifpaf.predict --show docs/coco/000000081988.jpg`
 
-For more demos, see the
-[openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo) project and
-the `openpifpaf.webcam` command.
-There is also a [Google Colab demo](https://colab.research.google.com/drive/1H8T4ZE6wc0A9xJE4oGnhgHpUpAH5HL7W).
+More demos:
+* [openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo) project (best performance)
+* OpenPifPaf running in your browser: https://vita-epfl.github.io/openpifpafwebdemo/ (experimental)
+* the `openpifpaf.webcam` command (requires OpenCV)
+* [Google Colab demo](https://colab.research.google.com/drive/1H8T4ZE6wc0A9xJE4oGnhgHpUpAH5HL7W)
 
 <img src="docs/wave3.gif" height=250 alt="example image" />
 
@@ -82,15 +83,10 @@ testing.
 * `python3 -m openpifpaf.eval_coco --help`: [help screen](docs/cli-help-eval_coco.txt)
 * `python3 -m openpifpaf.logs --help`: [help screen](docs/cli-help-logs.txt)
 
-Example commands to try:
+Tools to work with models:
 
-```sh
-# live demo
-MPLBACKEND=macosx python3 -m openpifpaf.webcam --scale 0.1 --source=0
-
-# single image
-python3 -m openpifpaf.predict my_image.jpg --show
-```
+* `python3 -m openpifpaf.migrate --help`: [help screen](docs/cli-help-migrate.txt)
+* `python3 -m openpifpaf.export_onnx --help`: [help screen](docs/cli-help-export_onnx.txt)
 
 
 # Pre-trained Models
@@ -199,7 +195,7 @@ export VIDEO=video.avi  # change to your video file
 mkdir ${VIDEO}.images
 ffmpeg -i ${VIDEO} -qscale:v 2 -vf scale=641:-1 -f image2 ${VIDEO}.images/%05d.jpg
 python3 -m openpifpaf.predict --checkpoint resnet152 ${VIDEO}.images/*.jpg
-ffmpeg -framerate 24 -pattern_type glob -i ${VIDEO}.images/'*.jpg.skeleton.png' -vf scale=640:-1 -c:v libx264 -pix_fmt yuv420p ${VIDEO}.pose.mp4
+ffmpeg -framerate 24 -pattern_type glob -i ${VIDEO}.images/'*.jpg.skeleton.png' -vf scale=640:-2 -c:v libx264 -pix_fmt yuv420p ${VIDEO}.pose.mp4
 ```
 
 In this process, ffmpeg scales the video to `641px` which can be adjusted.
@@ -216,7 +212,8 @@ In this process, ffmpeg scales the video to `641px` which can be adjusted.
 
 # Related Projects
 
-* [openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo)
+* [monoloco](https://github.com/vita-epfl/monoloco): "Monocular 3D Pedestrian Localization and Uncertainty Estimation" which uses OpenPifPaf for poses.
+* [openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo): web front-end.
 
 
 [CC-BY-2.0]: https://creativecommons.org/licenses/by/2.0/

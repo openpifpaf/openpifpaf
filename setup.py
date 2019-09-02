@@ -58,6 +58,7 @@ setup(
     zip_safe=False,
 
     install_requires=[
+        'numpy>=1.16',
         'pysparkling',  # for log analysis
         'python-json-logger',
         'scipy',
@@ -65,6 +66,10 @@ setup(
         'torchvision>=0.3',
     ],
     extras_require={
+        'onnx': [
+            'onnx',
+            'onnx-simplifier',
+        ],
         'test': [
             'pylint',
             'pytest',
