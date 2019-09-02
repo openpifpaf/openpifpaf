@@ -2,34 +2,35 @@ dist: xenial
 language: python
 matrix:
   include:
-    - name: "Python 3.7 on Xenial Linux (PyTorch 1.1)"
-      python: 3.7
-      env: TORCH_VERSION=1.1 TORCHVISION_VERSION=0.3
-    - name: "Python 3.7 on Xenial Linux"
+    - name: "Python 3.7 on Linux"
       python: 3.7
       env: TORCH_VERSION=1.2 TORCHVISION_VERSION=0.4
-    - name: "Python 3.6 on Xenial Linux"
+    - name: "Python 3.6 on Linux"
       python: 3.6
       env: TORCH_VERSION=1.2 TORCHVISION_VERSION=0.4
-    - name: "Python 3.5 on Xenial Linux"
+    - name: "Python 3.5 on Linux"
       python: 3.5
       env: TORCH_VERSION=1.2 TORCHVISION_VERSION=0.4
+    - name: "Python 3.7 on Linux (PyTorch 1.1)"
+      python: 3.7
+      env: TORCH_VERSION=1.1 TORCHVISION_VERSION=0.3
     - name: "Python on macOS"
       os: osx
-      osx_image: xcode11    # Python 3.7.4 running on macOS 10.14.4
+      osx_image: xcode11
       language: shell       # 'language: python' is an error on Travis CI macOS
       env: TORCH_VERSION=1.2 TORCHVISION_VERSION=0.4
-    - name: "Python 3.7.4 on Windows"
-      os: windows           # Windows 10.0.17134 N/A Build 17134
+    - name: "Python on Windows"
+      os: windows
       language: shell       # 'language: python' is an error on Travis CI Windows
       before_install:
         - choco install python
-        - python -m pip install --upgrade pip
+        - python -m pip install --upgrade pip setuptools
+        - python -m pip install torch==1.2.0+cpu torchvision==0.4.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
       env: PATH=/c/Python37:/c/Python37/Scripts:$PATH TORCH_VERSION=1.2 TORCHVISION_VERSION=0.4
 install:
- - pip install -q --upgrade pip setuptools
- - pip install -q torch==$TORCH_VERSION torchvision==$TORCHVISION_VERSION
- - "pip install --editable .[test]"
+ - pip3 install -q --upgrade pip setuptools
+ - pip3 install -q torch==$TORCH_VERSION torchvision==$TORCHVISION_VERSION
+ - "pip3 install --editable .[test]"
 script:
  - pylint openpifpaf --disable=fixme
  - pytest -vv
