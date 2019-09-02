@@ -12,7 +12,7 @@ PYTHON = 'python3' if sys.platform != 'win32' else 'python'
     'predict',
     'train',
     'logs',
-    'webcam',
+    pytest.mark.skipif(sys.platform == 'win32', reason='does not run on windows')('webcam'),
     'eval_coco',
     'export_onnx',
     'migrate',
