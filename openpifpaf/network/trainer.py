@@ -136,7 +136,7 @@ class Trainer(object):
              for l in head_losses],
         )
 
-    def train(self, scenes, epoch):
+    def train(self, scenes, epoch):  # pylint: disable=too-many-branches
         start_time = time.time()
         self.model.train()
         if self.fix_batch_norm:
