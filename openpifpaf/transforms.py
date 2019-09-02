@@ -433,6 +433,10 @@ class RotateBy90(Preprocess):
         meta = copy.deepcopy(meta)
         anns = copy.deepcopy(anns)
 
+        # invalidate some meta information
+        meta['offset'][:] = np.nan
+        meta['scale'][:] = np.nan
+
         w, h = image.size
         rnd1 = float(torch.rand(1).item())
         angle = int(rnd1 * 4.0) * 90.0
