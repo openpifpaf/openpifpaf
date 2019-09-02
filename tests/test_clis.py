@@ -1,8 +1,12 @@
 import datetime
 import os
 import subprocess
+import sys
 
 import pytest
+
+
+PYTHON = 'python3' if sys.platform != "win32" else 'python'
 
 
 @pytest.mark.parametrize('batch_size', [1, 2])
@@ -12,7 +16,7 @@ def test_predict(batch_size):
     os.makedirs(test_hash)
 
     subprocess.run([
-        'python', '-m', 'openpifpaf.predict',
+        PYTHON, '-m', 'openpifpaf.predict',
         '--checkpoint=shufflenetv2x1',
         '--batch-size={}'.format(batch_size),
         '-o', test_hash,
@@ -24,6 +28,6 @@ def test_predict(batch_size):
 
 def test_webcam():
     subprocess.run([
-        'python', '-m', 'openpifpaf.webcam',
+        PYTHON, '-m', 'openpifpaf.webcam',
         '--source=docs/coco/000000081988.jpg',
     ]).check_returncode()

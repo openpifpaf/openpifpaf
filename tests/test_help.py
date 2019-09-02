@@ -1,7 +1,11 @@
 import os
 import subprocess
+import sys
 
 import pytest
+
+
+PYTHON = 'python3' if sys.platform != "win32" else 'python'
 
 
 @pytest.mark.parametrize('module_name', [
@@ -17,7 +21,7 @@ def test_predict(module_name):
     out_file = 'docs/cli-help-{}.txt'.format(module_name)
     with open(out_file, 'w') as f:
         subprocess.run([
-            'python', '-m', 'openpifpaf.{}'.format(module_name),
+            PYTHON, '-m', 'openpifpaf.{}'.format(module_name),
             '--help',
         ], stdout=f)
 
