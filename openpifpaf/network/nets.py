@@ -385,7 +385,7 @@ def resnet_factory_from_scratch(basename, base_vision, out_features, headnames):
             torch.nn.ModuleList([torch.nn.Sequential(*blocks[:-1]), blocks[-1]]),
             basename,
             [resnet_factory.stride(blocks[:-1]), resnet_factory.stride(blocks)],
-            [resnet_factory.out_channels(blocks[-2]), resnet_factory.out_channels(blocks[-1])],
+            [out_features // 2, out_features],
         )
         head1 = [create_headnet(h, basenet.out_features[0])
                  for h in headnames if h.endswith('b')]
