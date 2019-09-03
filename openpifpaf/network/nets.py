@@ -292,26 +292,29 @@ def create_headnet(name, n_features):
 
 # pylint: disable=too-many-return-statements
 def factory_from_scratch(basename, headnames, *, pretrained=True):
+    if 'resnet18' in basename:
+        base_vision = torchvision.models.resnet18(pretrained)
+        return resnet_factory_from_scratch(basename, base_vision, 512, headnames)
     if 'resnet50' in basename:
         base_vision = torchvision.models.resnet50(pretrained)
-        return resnet_factory_from_scratch(basename, base_vision, headnames)
+        return resnet_factory_from_scratch(basename, base_vision, 2048, headnames)
     if 'resnet101' in basename:
         base_vision = torchvision.models.resnet101(pretrained)
-        return resnet_factory_from_scratch(basename, base_vision, headnames)
+        return resnet_factory_from_scratch(basename, base_vision, 2048, headnames)
     if 'resnet152' in basename:
         base_vision = torchvision.models.resnet152(pretrained)
-        return resnet_factory_from_scratch(basename, base_vision, headnames)
+        return resnet_factory_from_scratch(basename, base_vision, 2048, headnames)
     if 'resnet260' in basename:
         assert pretrained is False
         base_vision = torchvision.models.ResNet(
             torchvision.models.resnet.Bottleneck, [3, 8, 72, 3])
-        return resnet_factory_from_scratch(basename, base_vision, headnames)
+        return resnet_factory_from_scratch(basename, base_vision, 2048, headnames)
     if 'resnext50' in basename:
         base_vision = torchvision.models.resnext50_32x4d(pretrained)
-        return resnet_factory_from_scratch(basename, base_vision, headnames)
+        return resnet_factory_from_scratch(basename, base_vision, 2048, headnames)
     if 'resnext101' in basename:
         base_vision = torchvision.models.resnext101_32x8d(pretrained)
-        return resnet_factory_from_scratch(basename, base_vision, headnames)
+        return resnet_factory_from_scratch(basename, base_vision, 2048, headnames)
     if basename == 'shufflenetv2x1':
         base_vision = torchvision.models.shufflenet_v2_x1_0(pretrained)
         return shufflenet_factory_from_scratch(basename, base_vision, 1024, headnames)
@@ -345,7 +348,7 @@ def shufflenet_factory_from_scratch(basename, base_vision, out_features, headnam
     return net_cpu
 
 
-def resnet_factory_from_scratch(basename, base_vision, headnames):
+def resnet_factory_from_scratch(basename, base_vision, out_features, headnames):
     resnet_factory = basenetworks.ResnetBlocks(base_vision)
 
     # input block
@@ -368,6 +371,8 @@ def resnet_factory_from_scratch(basename, base_vision, headnames):
     ]
     if 'block5' in basename:
         blocks.append(resnet_factory.block5())
+    else:
+        out_features //= 2
 
     # downsample
     if 'concat' in basename:
@@ -375,11 +380,12 @@ def resnet_factory_from_scratch(basename, base_vision, headnames):
             resnet_factory.replace_downsample(b)
 
     if 'pifb' in headnames or 'pafb' in headnames:
+        # TODO
         basenet = basenetworks.BaseNetwork(
             torch.nn.ModuleList([torch.nn.Sequential(*blocks[:-1]), blocks[-1]]),
             basename,
             [resnet_factory.stride(blocks[:-1]), resnet_factory.stride(blocks)],
-            [resnet_factory.out_channels(blocks[-2]), resnet_factory.out_channels(blocks[-1])],
+            [out_features // 2, out_features],
         )
         head1 = [create_headnet(h, basenet.out_features[0])
                  for h in headnames if h.endswith('b')]
@@ -398,8 +404,8 @@ def resnet_factory_from_scratch(basename, base_vision, headnames):
     basenet = basenetworks.BaseNetwork(
         torch.nn.Sequential(*blocks),
         basename,
-        resnet_factory.stride(blocks),
-        resnet_factory.out_channels(blocks[-1]),
+        input_output_scale=resnet_factory.stride(blocks),
+        out_features=out_features,
     )
     headnets = [create_headnet(h, basenet.out_features) for h in headnames if h != 'skeleton']
     net_cpu = Shell(basenet, headnets)

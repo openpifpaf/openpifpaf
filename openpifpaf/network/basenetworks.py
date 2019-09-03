@@ -1,5 +1,8 @@
 import copy
+import logging
 import torch
+
+LOG = logging.getLogger(__name__)
 
 
 class BaseNetwork(torch.nn.Module):
@@ -179,8 +182,7 @@ class DownsampleCat(torch.nn.Module):
 class ResnetBlocks(object):
     def __init__(self, resnet):
         self.modules = list(resnet.children())
-        # print('===============')
-        # print(self.modules)
+        LOG.debug('modules = %s', self.modules)
 
     def input_block(self, use_pool=False, conv_stride=2, pool_stride=2):
         modules = self.modules[:4]
@@ -247,12 +249,6 @@ class ResnetBlocks(object):
         print(first_bottleneck.downsample)
         first_bottleneck.downsample = DownsampleCat()
         print(first_bottleneck)
-
-    @staticmethod
-    def out_channels(block):
-        """For blocks 2-5."""
-        last_conv = list(block.modules())[-3]
-        return last_conv.out_channels
 
     def block2(self):
         return self.modules[4]
