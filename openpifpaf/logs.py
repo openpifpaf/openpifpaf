@@ -104,7 +104,7 @@ class Plots(object):
 
         ax.set_xlabel('epoch')
         ax.set_ylabel('time [h]')
-        ax.legend()
+        ax.legend(loc='upper left')
 
     def epoch_time(self, ax):
         for color_i, (data, label) in enumerate(zip(self.datas, self.labels)):
@@ -128,7 +128,7 @@ class Plots(object):
 
         ax.set_xlabel('epoch')
         ax.set_ylabel('epoch-time [min]')
-        ax.legend()
+        ax.legend(loc='lower right')
 
     def lr(self, ax):
         for color_i, (data, label) in enumerate(zip(self.datas, self.labels)):
@@ -143,7 +143,7 @@ class Plots(object):
         ax.set_xlabel('epoch')
         ax.set_ylabel('learning rate')
         ax.set_yscale('log', nonposy='clip')
-        ax.legend()
+        ax.legend(loc='upper left')
 
     def epoch_loss(self, ax):
         for color_i, (data, label) in enumerate(zip(self.datas, self.labels)):
@@ -166,7 +166,7 @@ class Plots(object):
         # if min(y) > -0.1:
         #     ax.set_yscale('log', nonposy='clip')
         ax.grid(linestyle='dotted')
-        ax.legend()
+        ax.legend(loc='upper right')
 
     def epoch_head(self, ax, field_name):
         field_names = self.field_names()
@@ -196,7 +196,7 @@ class Plots(object):
         # if min(y) > -0.1:
         #     ax.set_yscale('log', nonposy='clip')
         ax.grid(linestyle='dotted')
-        # ax.legend()
+        # ax.legend(loc='upper right')
 
     def preprocess_time(self, ax):
         for color_i, (data, label) in enumerate(zip(self.datas, self.labels)):
@@ -222,7 +222,7 @@ class Plots(object):
         ax.set_xlabel('epoch')
         ax.set_ylabel('data preprocessing time [%]')
         ax.set_ylim(0, 100)
-        ax.legend()
+        ax.legend(loc='upper right')
 
     def train(self, ax):
         for color_i, (data, label) in enumerate(zip(self.datas, self.labels)):
@@ -251,7 +251,7 @@ class Plots(object):
         if min(y) > -0.1:
             ax.set_yscale('log', nonposy='clip')
         ax.grid(linestyle='dotted')
-        ax.legend()
+        ax.legend(loc='upper right')
 
     def train_head(self, ax, field_name):
         field_names = self.field_names()
@@ -286,7 +286,7 @@ class Plots(object):
         if min(y) > -0.1:
             ax.set_yscale('log', nonposy='clip')
         ax.grid(linestyle='dotted')
-        # ax.legend()
+        # ax.legend(loc='upper right')
 
     def print_last_line(self):
         for data, label in zip(self.datas, self.labels):
@@ -396,7 +396,7 @@ class EvalPlots(object):
 
         ax.set_xlabel('epoch')
         ax.grid(linestyle='dotted')
-        # ax.legend()
+        # ax.legend(loc='upper right')
 
     def ap(self, ax):
         self.frame(ax, entry=0)
@@ -451,7 +451,7 @@ class EvalPlots(object):
         with show.canvas(nrows=2, ncols=5, figsize=(20, 10),
                          sharex=True, sharey=share_y) as axs:
             self.fill_all(axs)
-            axs[0, 4].legend(fontsize=5)
+            axs[0, 4].legend(fontsize=5, loc='lower right')
 
 
 def main():

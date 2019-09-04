@@ -136,7 +136,7 @@ class Trainer(object):
              for l in head_losses],
         )
 
-    def train(self, scenes, epoch):  # pylint: disable=too-many-branches
+    def train(self, scenes, epoch):
         start_time = time.time()
         self.model.train()
         if self.fix_batch_norm:
@@ -150,16 +150,6 @@ class Trainer(object):
 
         self.ema_restore()
         self.ema = None
-
-        # configure lr scheduler
-        if hasattr(self.lr_scheduler, 'lr_lambdas') and \
-           self.lr_scheduler.lr_lambdas and \
-           hasattr(self.lr_scheduler.lr_lambdas[0], 'steps_per_epoch'):
-            lr_steps_per_epoch = len(scenes)
-            self.log.debug('setting lr steps per epoch = %d', lr_steps_per_epoch)
-            self.lr_scheduler.lr_lambdas[0].steps_per_epoch = lr_steps_per_epoch
-        else:
-            self.log.warning('not setting the steps per epoch in lr_scheduler')
 
         epoch_loss = 0.0
         head_epoch_losses = None
