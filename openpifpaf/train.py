@@ -121,11 +121,14 @@ def main():
                                                     1.0 * args.rescale_images)),
             transforms.Crop(args.square_edge),
             transforms.CenterPad(args.square_edge),
-            transforms.TRAIN_TRANSFORM,
         ]
         if args.orientation_invariant:
-            preprocess_transformations.insert(2, transforms.SquarePad())
-            preprocess_transformations.insert(3, transforms.RotateBy90())
+            preprocess_transformations += [
+                transforms.RotateBy90(),
+            ]
+        preprocess_transformations += [
+            transforms.TRAIN_TRANSFORM,
+        ]
     else:
         preprocess_transformations = [
             transforms.NormalizeAnnotations(),
