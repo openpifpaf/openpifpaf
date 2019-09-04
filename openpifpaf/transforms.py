@@ -423,11 +423,12 @@ class RandomApply(Preprocess):
 
 
 class RotateBy90(Preprocess):
-    def __init__(self, angle_perturbation=0.0):
+    def __init__(self, angle_perturbation=0.0, fixed_angle=None):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
 
         self.angle_perturbation = angle_perturbation
+        self.fixed_angle = fixed_angle
 
     def __call__(self, image, anns, meta):
         meta = copy.deepcopy(meta)
@@ -438,10 +439,13 @@ class RotateBy90(Preprocess):
         meta['scale'][:] = np.nan
 
         w, h = image.size
-        rnd1 = float(torch.rand(1).item())
-        angle = int(rnd1 * 4.0) * 90.0
-        sym_rnd2 = (float(torch.rand(1).item()) - 0.5) * 2.0
-        angle += sym_rnd2 * self.angle_perturbation
+        if self.fixed_angle is not None:
+            angle = self.fixed_angle
+        else:
+            rnd1 = float(torch.rand(1).item())
+            angle = int(rnd1 * 4.0) * 90.0
+            sym_rnd2 = (float(torch.rand(1).item()) - 0.5) * 2.0
+            angle += sym_rnd2 * self.angle_perturbation
         self.log.debug('rotation angle = %f', angle)
 
         # rotate image
