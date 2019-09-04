@@ -108,7 +108,6 @@ def main():
         print('Using multiple GPUs: {}'.format(torch.cuda.device_count()))
         net = torch.nn.DataParallel(net)
 
-    optimizer, lr_scheduler = optimize.factory(args, net.parameters())
     loss = losses.factory_from_args(args)
     target_transforms = encoder.factory(args, net_cpu.io_scales())
 
@@ -140,6 +139,7 @@ def main():
     train_loader, val_loader, pre_train_loader = datasets.train_factory(
         args, preprocess, target_transforms)
 
+    optimizer, lr_scheduler = optimize.factory(args, net.parameters(), len(train_loader))
     encoder_visualizer = None
     if args.debug and not args.debug_without_plots:
         encoder_visualizer = encoder.Visualizer(args.headnets, net_cpu.io_scales())
