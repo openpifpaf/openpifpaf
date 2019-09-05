@@ -130,8 +130,6 @@ class PifPafGenerator(object):
                  paf_th,
                  skeleton,
                  debug_visualizer=None):
-        self.log = logging.getLogger(self.__class__.__name__)
-
         self.pif = pifs_field
         self.paf = pafs_field
 
@@ -173,7 +171,7 @@ class PifPafGenerator(object):
             cumulative_average(scale, n, x, y, s, s, v)
         targets = np.minimum(targets, 1.0)
 
-        self.log.debug('target_intensities %.3fs', time.perf_counter() - start)
+        LOG.debug('target_intensities %.3fs', time.perf_counter() - start)
         return targets, scales
 
     def _score_paf_target(self, score_th, pifhr_floor=0.1):
@@ -222,14 +220,14 @@ class PifPafGenerator(object):
                 fourds[1, 1:4][:, mask_f],
             )))
 
-        self.log.debug('scored paf %.3fs', time.perf_counter() - start)
+        LOG.debug('scored paf %.3fs', time.perf_counter() - start)
         return scored_forward, scored_backward
 
     def annotations(self, initial_annotations=None):
         start = time.perf_counter()
         if not initial_annotations:
             initial_annotations = []
-        self.log.debug('initial annotations = %d', len(initial_annotations))
+        LOG.debug('initial annotations = %d', len(initial_annotations))
 
         occupied = np.zeros(self._pifhr_scales.shape, dtype=np.uint8)
         annotations = []
@@ -270,10 +268,10 @@ class PifPafGenerator(object):
             mark_occupied(ann)
 
         if self.debug_visualizer:
-            self.log.debug('occupied field 0')
+            LOG.debug('occupied field 0')
             self.debug_visualizer.occupied(occupied[0])
 
-        self.log.debug('keypoint sets %d, %.3fs', len(annotations), time.perf_counter() - start)
+        LOG.debug('keypoint sets %d, %.3fs', len(annotations), time.perf_counter() - start)
         return annotations
 
     def _pif_seeds(self):
@@ -293,7 +291,7 @@ class PifPafGenerator(object):
             self.debug_visualizer.seeds(seeds, self.stride)
 
         seeds = sorted(seeds, reverse=True)
-        self.log.debug('seeds %d, %.3fs', len(seeds), time.perf_counter() - start)
+        LOG.debug('seeds %d, %.3fs', len(seeds), time.perf_counter() - start)
         return seeds
 
     def _grow_connection(self, xy, xy_scale, paf_field):
@@ -421,5 +419,5 @@ class PifPafGenerator(object):
             if np.any(ann.data[:, 2] == 0.0):
                 self._flood_fill(ann)
 
-        self.log.debug('complete annotations %.3fs', time.perf_counter() - start)
+        LOG.debug('complete annotations %.3fs', time.perf_counter() - start)
         return annotations
