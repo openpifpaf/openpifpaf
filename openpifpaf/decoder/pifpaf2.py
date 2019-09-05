@@ -32,6 +32,7 @@ class PifPaf2(Decoder):
                  head_indices=None,
                  skeleton=None,
                  extra_coupling=0.0,
+                 confidence_scales=None,
                  debug_visualizer=None,
                  **kwargs):
         LOG.debug('unused arguments %s', kwargs)
@@ -69,7 +70,7 @@ class PifPaf2(Decoder):
         self.paf_nn = 1 if self.connection_method == 'max' else 35
         self.paf_th = self.default_paf_th
 
-        self.confidence_scales = [
+        self.confidence_scales = confidence_scales or [
             1.0 if c in COCO_PERSON_SKELETON else extra_coupling
             for c in self.skeleton
         ]
@@ -143,8 +144,6 @@ class PifPafGenerator(object):
                  paf_th,
                  skeleton,
                  debug_visualizer=None):
-        self.log = logging.getLogger(self.__class__.__name__)
-
         self.pif = pifs_field
         self.paf = pafs_field
 
@@ -187,7 +186,7 @@ class PifPafGenerator(object):
             cumulative_average(scale, n, x, y, s, s, v)
         targets = np.minimum(targets, 1.0)
 
-        self.log.debug('target_intensities %.3fs', time.perf_counter() - start)
+        LOG.debug('target_intensities %.3fs', time.perf_counter() - start)
         return targets, scales
 
     def _score_paf_target(self, score_th, pifhr_floor=0.1):
@@ -236,14 +235,14 @@ class PifPafGenerator(object):
                 fourds[1, 1:4][:, mask_f],
             )))
 
-        self.log.debug('scored paf %.3fs', time.perf_counter() - start)
+        LOG.debug('scored paf %.3fs', time.perf_counter() - start)
         return scored_forward, scored_backward
 
     def annotations(self, initial_annotations=None):
         start = time.perf_counter()
         if not initial_annotations:
             initial_annotations = []
-        self.log.debug('initial annotations = %d', len(initial_annotations))
+        LOG.debug('initial annotations = %d', len(initial_annotations))
 
         occupied = np.zeros(self._pifhr_scales.shape, dtype=np.uint8)
         annotations = []
@@ -284,10 +283,10 @@ class PifPafGenerator(object):
             mark_occupied(ann)
 
         if self.debug_visualizer:
-            self.log.debug('occupied field 0')
+            LOG.debug('occupied field 0')
             self.debug_visualizer.occupied(occupied[0])
 
-        self.log.debug('keypoint sets %d, %.3fs', len(annotations), time.perf_counter() - start)
+        LOG.debug('keypoint sets %d, %.3fs', len(annotations), time.perf_counter() - start)
         return annotations
 
     def _pif_seeds(self):
@@ -307,7 +306,7 @@ class PifPafGenerator(object):
             self.debug_visualizer.seeds(seeds, self.stride)
 
         seeds = sorted(seeds, reverse=True)
-        self.log.debug('seeds %d, %.3fs', len(seeds), time.perf_counter() - start)
+        LOG.debug('seeds %d, %.3fs', len(seeds), time.perf_counter() - start)
         return seeds
 
     def _grow_connection(self, xy, xy_scale, paf_field):
@@ -405,12 +404,12 @@ class PifPafGenerator(object):
             # update candidates and queue
             end_v = annotation.cumulative_scores[end_i]
             if end_v != end_v_before:
-                self.log.debug('!!! connected joint %d', end_i)
+                LOG.debug('!!! connected joint %d', end_i)
                 for connection in connections_to_explore(end_i):
                     connection_queue.put((-end_v, connection))
 
     def _grow(self, ann, paf_forward, paf_backward, th, reverse_match=True):
-        self.log.debug('=============== new _grow ==============')
+        LOG.debug('=============== new _grow ==============')
         if not hasattr(ann, 'cumulative_scores'):
             ann.cumulative_scores = np.copy(ann.data[:, 2])
         if not hasattr(ann, 'decoding_order'):
@@ -425,7 +424,7 @@ class PifPafGenerator(object):
                 jsi, jti = j2i, j1i
                 directed_paf_field = paf_backward[i]
                 directed_paf_field_reverse = paf_forward[i]
-            self.log.debug('cumulative score %.3f, %.3f', ann.cumulative_scores[jsi], priority)
+            LOG.debug('cumulative score %.3f, %.3f', ann.cumulative_scores[jsi], priority)
             xyv = ann.data[jsi]
             xy_scale_s = max(
                 1.0,
@@ -460,10 +459,10 @@ class PifPafGenerator(object):
             # if new_xyv[2] > ann.data[jti, 2]:
             if new_cumulative_score > ann.cumulative_scores[jti]:
                 if ann.data[jti, 2] > 0.0:
-                    self.log.debug('!!!!!!!!! updating candidate %d: %.3f -> %.3f '
-                                   '(cumulative %.3f -> %.3f)',
-                                   jti, ann.data[jti, 2], np.sqrt(new_xyv[2] * xyv[2]),
-                                   ann.cumulative_scores[jti], new_cumulative_score)
+                    LOG.debug('!!!!!!!!! updating candidate %d: %.3f -> %.3f '
+                              '(cumulative %.3f -> %.3f)',
+                              jti, ann.data[jti, 2], np.sqrt(new_xyv[2] * xyv[2]),
+                              ann.cumulative_scores[jti], new_cumulative_score)
 
                 ann.data[jti] = (
                     new_xyv[0], new_xyv[1],
@@ -501,5 +500,5 @@ class PifPafGenerator(object):
             if np.any(ann.data[:, 2] == 0.0):
                 self._flood_fill(ann)
 
-        self.log.debug('complete annotations %.3fs', time.perf_counter() - start)
+        LOG.debug('complete annotations %.3fs', time.perf_counter() - start)
         return annotations
