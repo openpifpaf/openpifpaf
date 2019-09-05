@@ -58,6 +58,7 @@ def cli():
     if args.debug:
         log_level = logging.DEBUG
     logging.basicConfig(level=log_level)
+    logging.getLogger('matplotlib').setLevel(logging.WARNING)
 
     # glob
     if args.glob:
@@ -113,7 +114,7 @@ def main():
     skeleton_painter = show.KeypointPainter(show_box=False, color_connections=True,
                                             markersize=1, linewidth=6)
 
-    for image_i, (image_tensors_batch, _, meta_batch) in enumerate(data_loader):
+    for batch_i, (image_tensors_batch, _, meta_batch) in enumerate(data_loader):
         image_tensors_batch_gpu = image_tensors_batch.to(args.device, non_blocking=True)
         fields_batch = processor.fields(image_tensors_batch_gpu)
         pred_batch = processor.annotations_batch(fields_batch, debug_images=image_tensors_batch)
@@ -125,7 +126,7 @@ def main():
             else:
                 file_name = os.path.basename(meta['file_name'])
                 output_path = os.path.join(args.output_directory, file_name)
-            logging.info('image %d: %s to %s', image_i, meta['file_name'], output_path)
+            logging.info('batch %d: %s to %s', batch_i, meta['file_name'], output_path)
 
             # load the original image if necessary
             cpu_image = None
