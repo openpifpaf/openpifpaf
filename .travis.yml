@@ -2,6 +2,7 @@ dist: xenial
 language: python
 cache: pip
 matrix:
+  fast_finish: true
   include:
     - name: "Python 3.7 on Linux"
       python: 3.7
@@ -9,22 +10,26 @@ matrix:
         - pip3 install --upgrade pip setuptools
         - pip3 install torch==1.2+cpu torchvision==0.4+cpu -f https://download.pytorch.org/whl/torch_stable.html
     - name: "Python 3.6 on Linux"
+      if: branch = master
       python: 3.6
       before_install:
         - pip3 install --upgrade pip setuptools
         - pip3 install torch==1.2+cpu torchvision==0.4+cpu -f https://download.pytorch.org/whl/torch_stable.html
     - name: "Python 3.5 on Linux"
+      if: branch = master
       python: 3.5
       before_install:
         - pip3 install --upgrade pip setuptools
         - pip3 install torch==1.2+cpu torchvision==0.4+cpu -f https://download.pytorch.org/whl/torch_stable.html
     - name: "Python 3.7 on Linux (PyTorch 1.1)"
+      if: branch = master
       python: 3.7
       before_install:
         - pip3 install --upgrade pip setuptools
         - pip3 install torch==1.1 -f https://download.pytorch.org/whl/cpu/torch_stable.html
         - pip3 install torchvision==0.3
     - name: "macOS"
+      if: branch = master
       os: osx
       osx_image: xcode11
       language: shell       # 'language: python' is an error on Travis CI macOS
@@ -33,6 +38,7 @@ matrix:
         - pip3 install --upgrade pip setuptools
         - pip3 install torch==1.2 torchvision==0.4 -f https://download.pytorch.org/whl/torch_stable.html
     - name: "Windows"
+      if: branch = master
       os: windows
       language: shell       # 'language: python' is an error on Travis CI Windows
       before_install:
