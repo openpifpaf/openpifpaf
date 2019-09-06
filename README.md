@@ -1,6 +1,6 @@
 # openpifpaf
 
-[![Build Status](https://travis-ci.org/vita-epfl/openpifpaf.svg?branch=master)](https://travis-ci.org/vita-epfl/openpifpaf)
+Continuously tested on Linux, MacOS and Windows: [![Build Status](https://travis-ci.org/vita-epfl/openpifpaf.svg?branch=master)](https://travis-ci.org/vita-epfl/openpifpaf)
 
 > We propose a new bottom-up method for multi-person 2D human pose
 > estimation that is particularly well suited for urban mobility such as self-driving cars
