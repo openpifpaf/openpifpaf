@@ -329,6 +329,8 @@ class PifPafGenerator(object):
             return self._target_with_median(paf_field[4:6], scores, sigma=1.0)
         if self.connection_method == 'max':
             return self._target_with_maxscore(paf_field[4:7], scores)
+        if self.connection_method == 'blend':
+            return self._target_with_blend(paf_field[4:7], scores)
         raise Exception('connection method not known')
 
     def _target_with_median(self, target_coordinates, scores, sigma, max_steps=20):
@@ -359,6 +361,29 @@ class PifPafGenerator(object):
 
         score = scores[max_i]
         return max_entry[0], max_entry[1], score
+
+    @staticmethod
+    def _target_with_blend(target_coordinates, scores):
+        """Blending the top two candidates with a weighted average.
+
+        Similar to the post processing step in
+        "BlazeFace: Sub-millisecond Neural Face Detection on Mobile GPUs".
+        """
+        assert target_coordinates.shape[1] == len(scores)
+        if len(scores) == 1:
+            return target_coordinates[0, 0], target_coordinates[1, 0], scores[0]
+
+        sorted_i = np.argsort(scores)
+        max_entry_1 = target_coordinates[:, sorted_i[-1]]
+        max_entry_2 = target_coordinates[:, sorted_i[-2]]
+
+        score_1 = scores[sorted_i[-1]]
+        score_2 = scores[sorted_i[-2]]
+        return (
+            (score_1 * max_entry_1[0] + score_2 * max_entry_2[0]) / (score_1 + score_2),
+            (score_1 * max_entry_1[1] + score_2 * max_entry_2[1]) / (score_1 + score_2),
+            0.5 * (score_1 + score_2),
+        )
 
     def connection_proposal(self, annotation):
         connection_queue = PriorityQueue()
