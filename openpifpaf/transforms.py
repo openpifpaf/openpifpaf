@@ -23,6 +23,8 @@ import torchvision
 
 from .utils import horizontal_swap_coco
 
+LOG = logging.getLogger(__name__)
+
 
 class Preprocess(metaclass=ABCMeta):
     @abstractmethod
@@ -154,82 +156,80 @@ class AnnotationJitter(Preprocess):
         return image, anns, meta
 
 
+def _scale(image, anns, meta, target_w, target_h, resample):
+    """target_w and target_h as integers"""
+    meta = copy.deepcopy(meta)
+    anns = copy.deepcopy(anns)
+
+    # scale image
+    w, h = image.size
+    image = image.resize((target_w, target_h), resample)
+    LOG.debug('before resize = (%f, %f), after = %s', w, h, image.size)
+
+    # rescale keypoints
+    x_scale = (image.size[0] - 1) / (w - 1)
+    y_scale = (image.size[1] - 1) / (h - 1)
+    for ann in anns:
+        ann['keypoints'][:, 0] = ann['keypoints'][:, 0] * x_scale
+        ann['keypoints'][:, 1] = ann['keypoints'][:, 1] * y_scale
+        ann['bbox'][0] *= x_scale
+        ann['bbox'][1] *= y_scale
+        ann['bbox'][2] *= x_scale
+        ann['bbox'][3] *= y_scale
+
+    # adjust meta
+    scale_factors = np.array((x_scale, y_scale))
+    LOG.debug('meta before: %s', meta)
+    meta['offset'] *= scale_factors
+    meta['scale'] *= scale_factors
+    meta['valid_area'][:2] *= scale_factors
+    meta['valid_area'][2:] *= scale_factors
+    LOG.debug('meta after: %s', meta)
+
+    for ann in anns:
+        ann['valid_area'] = meta['valid_area']
+
+    return image, anns, meta
+
+
 class RescaleRelative(Preprocess):
-    def __init__(self, scale_range=(0.5, 1.0), *, resample=PIL.Image.BICUBIC):
-        self.log = logging.getLogger(self.__class__.__name__)
+    def __init__(self, scale_range=(0.5, 1.0), *,
+                 resample=PIL.Image.BICUBIC,
+                 power_law=False):
         self.scale_range = scale_range
         self.resample = resample
+        self.power_law = power_law
 
     def __call__(self, image, anns, meta):
-        meta = copy.deepcopy(meta)
-        anns = copy.deepcopy(anns)
-
         if isinstance(self.scale_range, tuple):
-            scale_factor = (
-                self.scale_range[0] +
-                torch.rand(1).item() * (self.scale_range[1] - self.scale_range[0])
-            )
+            if self.power_law:
+                rnd_range = np.log2(self.scale_range[0]), np.log2(self.scale_range[1])
+                log2_scale_factor = (
+                    rnd_range[0] +
+                    torch.rand(1).item() * (rnd_range[1] - rnd_range[0])
+                )
+                scale_factor = 2 ** log2_scale_factor
+                LOG.debug('rnd range = %s, log2_scale_Factor = %f, scale factor = %f',
+                          rnd_range, log2_scale_factor, scale_factor)
+            else:
+                scale_factor = (
+                    self.scale_range[0] +
+                    torch.rand(1).item() * (self.scale_range[1] - self.scale_range[0])
+                )
         else:
             scale_factor = self.scale_range
 
-        image, anns, scale_factors = self.scale(image, anns, scale_factor)
-        self.log.debug('meta before: %s', meta)
-        meta['offset'] *= scale_factors
-        meta['scale'] *= scale_factors
-        meta['valid_area'][:2] *= scale_factors
-        meta['valid_area'][2:] *= scale_factors
-        self.log.debug('meta after: %s', meta)
-
-        for ann in anns:
-            ann['valid_area'] = meta['valid_area']
-
-        return image, anns, meta
-
-    def scale(self, image, anns, factor):
-        # scale image
         w, h = image.size
-        image = image.resize((int(w * factor), int(h * factor)), self.resample)
-        self.log.debug('before resize = (%f, %f), after = %s', w, h, image.size)
-
-        # rescale keypoints
-        x_scale = (image.size[0] - 1) / (w - 1)
-        y_scale = (image.size[1] - 1) / (h - 1)
-        for ann in anns:
-            ann['keypoints'][:, 0] = ann['keypoints'][:, 0] * x_scale
-            ann['keypoints'][:, 1] = ann['keypoints'][:, 1] * y_scale
-            ann['bbox'][0] *= x_scale
-            ann['bbox'][1] *= y_scale
-            ann['bbox'][2] *= x_scale
-            ann['bbox'][3] *= y_scale
-
-        return image, anns, np.array((x_scale, y_scale))
+        target_w, target_h = int(w * scale_factor), int(h * scale_factor)
+        return _scale(image, anns, meta, target_w, target_h, self.resample)
 
 
 class RescaleAbsolute(Preprocess):
     def __init__(self, long_edge, *, resample=PIL.Image.BICUBIC):
-        self.log = logging.getLogger(self.__class__.__name__)
         self.long_edge = long_edge
         self.resample = resample
 
     def __call__(self, image, anns, meta):
-        meta = copy.deepcopy(meta)
-        anns = copy.deepcopy(anns)
-
-        image, anns, scale_factors = self.scale(image, anns)
-        self.log.debug('meta before: %s', meta)
-        meta['offset'] *= scale_factors
-        meta['scale'] *= scale_factors
-        meta['valid_area'][:2] *= scale_factors
-        meta['valid_area'][2:] *= scale_factors
-        self.log.debug('meta after: %s', meta)
-
-        for ann in anns:
-            ann['valid_area'] = meta['valid_area']
-
-        return image, anns, meta
-
-    def scale(self, image, anns):
-        # scale image
         w, h = image.size
 
         this_long_edge = self.long_edge
@@ -238,24 +238,10 @@ class RescaleAbsolute(Preprocess):
 
         s = this_long_edge / max(h, w)
         if h > w:
-            image = image.resize((int(w * s), this_long_edge), self.resample)
+            target_w, target_h = int(w * s), this_long_edge
         else:
-            image = image.resize((this_long_edge, int(h * s)), self.resample)
-        self.log.debug('before resize = (%f, %f), scale factor = %f, after = %s',
-                       w, h, s, image.size)
-
-        # rescale keypoints
-        x_scale = (image.size[0] - 1) / (w - 1)
-        y_scale = (image.size[1] - 1) / (h - 1)
-        for ann in anns:
-            ann['keypoints'][:, 0] = ann['keypoints'][:, 0] * x_scale
-            ann['keypoints'][:, 1] = ann['keypoints'][:, 1] * y_scale
-            ann['bbox'][0] *= x_scale
-            ann['bbox'][1] *= y_scale
-            ann['bbox'][2] *= x_scale
-            ann['bbox'][3] *= y_scale
-
-        return image, anns, np.array((x_scale, y_scale))
+            target_w, target_h = this_long_edge, int(h * s)
+        return _scale(image, anns, meta, target_w, target_h, self.resample)
 
 
 class Crop(Preprocess):
