@@ -291,8 +291,10 @@ class Crop(Preprocess):
     def area_of_interest(anns, valid_area):
         """area that contains annotations with keypoints"""
 
-        anns_of_interest = [ann for ann in anns
-                            if not ann['iscrowd'] and np.any(ann['keypoints'][:, 2] > 0)]
+        anns_of_interest = [
+            ann for ann in anns
+            if not ann.get('iscrowd', False) and np.any(ann['keypoints'][:, 2] > 0)
+        ]
         if not anns_of_interest:
             return valid_area
 
