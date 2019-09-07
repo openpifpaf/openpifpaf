@@ -287,18 +287,55 @@ class Crop(Preprocess):
 
         return image, anns, meta
 
+    @staticmethod
+    def area_of_interest(anns, valid_area):
+        """area that contains annotations with keypoints"""
+
+        anns_of_interest = [
+            ann for ann in anns
+            if not ann.get('iscrowd', False) and np.any(ann['keypoints'][:, 2] > 0)
+        ]
+        if not anns_of_interest:
+            return valid_area
+
+        min_x = min(np.min(ann['keypoints'][ann['keypoints'][:, 2] > 0, 0])
+                    for ann in anns_of_interest) - 50
+        min_y = min(np.min(ann['keypoints'][ann['keypoints'][:, 2] > 0, 1])
+                    for ann in anns_of_interest) - 50
+        max_x = max(np.max(ann['keypoints'][ann['keypoints'][:, 2] > 0, 0])
+                    for ann in anns_of_interest) + 50
+        max_y = max(np.max(ann['keypoints'][ann['keypoints'][:, 2] > 0, 1])
+                    for ann in anns_of_interest) + 50
+
+        topleft = (
+            max(valid_area[0], min_x),
+            max(valid_area[1], min_y),
+        )
+        bottomright = (
+            min(valid_area[0] + valid_area[2], max_x),
+            min(valid_area[1] + valid_area[3], max_y),
+        )
+
+        return (
+            topleft[0],
+            topleft[1],
+            bottomright[0] - topleft[0],
+            bottomright[1] - topleft[1],
+        )
+
     def crop(self, image, anns, valid_area):
+        area_of_interest = self.area_of_interest(anns, valid_area)
         w, h = image.size
         padding = int(self.long_edge / 2.0)
         x_offset, y_offset = 0, 0
         if w > self.long_edge:
-            min_x = int(valid_area[0])
-            max_x = int(valid_area[0] + valid_area[2]) - self.long_edge
+            min_x = int(area_of_interest[0])
+            max_x = int(area_of_interest[0] + area_of_interest[2]) - self.long_edge
             x_offset = torch.randint(-padding + min_x, max_x + padding, (1,))
             x_offset = torch.clamp(x_offset, min=min_x, max=max_x).item()
         if h > self.long_edge:
-            min_y = int(valid_area[1])
-            max_y = int(valid_area[1] + valid_area[3]) - self.long_edge
+            min_y = int(area_of_interest[1])
+            max_y = int(area_of_interest[1] + area_of_interest[3]) - self.long_edge
             y_offset = torch.randint(-padding + min_y, max_y + padding, (1,))
             y_offset = torch.clamp(y_offset, min=min_y, max=max_y).item()
         self.log.debug('crop offsets (%d, %d)', x_offset, y_offset)
