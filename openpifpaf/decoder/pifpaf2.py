@@ -437,8 +437,6 @@ class PifPafGenerator(object):
         LOG.debug('=============== new _grow ==============')
         if not hasattr(ann, 'cumulative_scores'):
             ann.cumulative_scores = np.copy(ann.data[:, 2])
-        if not hasattr(ann, 'decoding_order'):
-            ann.decoding_order = []
 
         for priority, i, forward, j1i, j2i in self.connection_proposal(ann):
             if forward:
@@ -494,7 +492,8 @@ class PifPafGenerator(object):
                     np.sqrt(new_xyv[2] * xyv[2])  # geometric median
                 )
                 ann.cumulative_scores[jti] = new_cumulative_score
-                ann.decoding_order.append((jsi, jti))
+                ann.decoding_order.append(
+                    (jsi, jti, np.copy(ann.data[jsi]), np.copy(ann.data[jti])))
 
     @staticmethod
     def _flood_fill(ann):
