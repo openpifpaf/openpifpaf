@@ -414,7 +414,8 @@ class PifPafGenerator(object):
             new_xyv = (new_xyv[0], new_xyv[1], np.sqrt(new_xyv[2] * xyv[2]))  # geometric mean
             if new_xyv[2] > ann.data[jti, 2]:
                 ann.data[jti] = new_xyv
-                ann.decoding_order.append((jsi, jti))
+                ann.decoding_order.append(
+                    (jsi, jti, np.copy(ann.data[jsi]), np.copy(ann.data[jti])))
 
     @staticmethod
     def _flood_fill(ann):

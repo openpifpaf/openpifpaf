@@ -67,6 +67,14 @@ class Preprocess(metaclass=ABCMeta):
                 if meta.get('horizontal_swap'):
                     ann.data[:] = meta['horizontal_swap'](ann.data)
 
+        for ann in annotations:
+            for _, __, c1, c2 in ann.decoding_order:
+                c1[:2] += meta['offset']
+                c2[:2] += meta['offset']
+
+                c1[:2] /= meta['scale']
+                c2[:2] /= meta['scale']
+
         return annotations
 
 
