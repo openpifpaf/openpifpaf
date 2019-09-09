@@ -123,20 +123,22 @@ python3 -m openpifpaf.logs \
 See [datasets](docs/datasets.md) for setup instructions.
 See [studies.ipynb](docs/studies.ipynb) for previous studies.
 
+The exact training command that was used for a model is in the first
+line of the training log file.
+
 Train a ResNet model:
 
 ```sh
 time CUDA_VISIBLE_DEVICES=0,1 python3 -m openpifpaf.train \
+  --batch-size=8 \
+  --loader-workers=8 \
+  --basenet=resnet50block5 \
+  --head-quad=1 \
+  --headnets pif paf \
   --lr=1e-3 \
   --momentum=0.95 \
   --epochs=75 \
   --lr-decay 60 70 \
-  --batch-size=8 \
-  --basenet=resnet50block5 \
-  --head-quad=1 \
-  --headnets pif paf \
-  --square-edge=401 \
-  --regression-loss=laplace \
   --lambdas 30 2 2 50 3 3 \
   --freeze-base=1
 ```
@@ -146,15 +148,15 @@ ShuffleNet models are trained without ImageNet pretraining:
 ```sh
 time CUDA_VISIBLE_DEVICES=0,1 python3 -m openpifpaf.train \
   --batch-size=64 \
+  --loader-workers=8 \
   --basenet=shufflenetv2x2 \
   --head-quad=1 \
-  --epochs=75 \
-  --momentum=0.9 \
   --headnets pif paf \
-  --lambdas 30 2 2 50 3 3 \
-  --loader-workers=8 \
   --lr=1e-1 \
+  --momentum=0.9 \
+  --epochs=75 \
   --lr-decay 60 70 \
+  --lambdas 30 2 2 50 3 3 \
   --no-pretrain \
   --weight-decay=1e-5 \
   --update-batchnorm-runningstatistics \
