@@ -90,8 +90,8 @@ def main():
     args = cli()
 
     # load model
-    model, _ = nets.factory_from_args(args)
-    model = model.to(args.device)
+    model_cpu, _ = nets.factory_from_args(args)
+    model = model_cpu.to(args.device)
     processor = decoder.factory_from_args(args, model)
 
     # data
