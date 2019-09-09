@@ -242,14 +242,14 @@ class KeypointPainter(object):
             self._draw_text(ax, x, y, v, text, color)
 
         if hasattr(ann, 'decoding_order'):
-            self._draw_decoding_order(ax, x, y, ann.decoding_order)
+            self._draw_decoding_order(ax, ann.decoding_order)
 
     @staticmethod
-    def _draw_decoding_order(ax, x, y, decoding_order):
-        for step_i, (jsi, jti) in enumerate(decoding_order):
-            ax.plot([x[jsi], x[jti]], [y[jsi], y[jti]], '--', color='black')
-            ax.text(0.5 * (x[jsi] + x[jti]), 0.5 * (y[jsi] + y[jti]),
-                    '{}'.format(step_i), fontsize=8,
+    def _draw_decoding_order(ax, decoding_order):
+        for step_i, (jsi, jti, jsxyv, jtxyv) in enumerate(decoding_order):
+            ax.plot([jsxyv[0], jtxyv[0]], [jsxyv[1], jtxyv[1]], '--', color='black')
+            ax.text(0.5 * (jsxyv[0] + jtxyv[0]), 0.5 * (jsxyv[1] +jtxyv[1]),
+                    '{}: {} -> {}'.format(step_i, jsi, jti), fontsize=8,
                     color='white', bbox={'facecolor': 'black', 'alpha': 0.5, 'linewidth': 0})
 
 

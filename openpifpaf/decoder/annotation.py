@@ -10,6 +10,7 @@ class Annotation(object):
         self.data = np.zeros((n_joints, 3))
         self.joint_scales = None
         self.fixed_score = None
+        self.decoding_order = []
 
         self.skeleton_m1 = (np.asarray(skeleton) - 1).tolist()
 
@@ -21,6 +22,9 @@ class Annotation(object):
         self.data[:, 0:2] *= scale_factor
         if self.joint_scales is not None:
             self.joint_scales *= scale_factor
+        for _, __, c1, c2 in self.decoding_order:
+            c1[:2] *= scale_factor
+            c2[:2] *= scale_factor
         return self
 
     def fill_joint_scales(self, scales, hr_scale):
