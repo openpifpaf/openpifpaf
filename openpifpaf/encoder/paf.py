@@ -9,6 +9,8 @@ from .annrescaler import AnnRescaler
 from .encoder import Encoder
 from ..utils import create_sink, mask_valid_area
 
+LOG = logging.getLogger(__name__)
+
 
 class Paf(Encoder):
     default_min_size = 3
@@ -20,8 +22,7 @@ class Paf(Encoder):
                  n_keypoints=17,
                  v_threshold=0,
                  **kwargs):
-        self.log = logging.getLogger(self.__class__.__name__)
-        self.log.debug('unused arguments in %s: %s', head_name, kwargs)
+        LOG.debug('unused arguments in %s: %s', head_name, kwargs)
 
         if skeleton is None:
             if head_name in ('paf', 'paf19', 'pafs', 'wpaf', 'pafb'):
@@ -66,7 +67,7 @@ class Paf(Encoder):
     def __call__(self, anns, width_height_original):
         rescaler = AnnRescaler(self.stride, self.n_keypoints)
         keypoint_sets, bg_mask, valid_area = rescaler(anns, width_height_original)
-        self.log.debug('valid area: %s, paf min size = %d', valid_area, self.min_size)
+        LOG.debug('valid area: %s, paf min size = %d', valid_area, self.min_size)
 
         f = PafGenerator(self.min_size, self.skeleton,
                          v_threshold=self.v_threshold,

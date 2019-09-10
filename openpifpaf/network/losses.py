@@ -2,7 +2,6 @@
 
 from abc import ABCMeta
 import logging
-import re
 import torch
 
 from ..data import (COCO_PERSON_SIGMAS, COCO_PERSON_SKELETON, KINEMATIC_TREE_SKELETON,
@@ -325,25 +324,10 @@ def factory(head_names, lambdas, reg_loss_name=None, r_smooth=None, device=None)
     else:
         raise Exception('unknown regression loss type {}'.format(reg_loss_name))
 
-    losses = [factory_loss(head_name, reg_loss) for head_name in head_names]
+    losses = [CompositeLoss(head_name, reg_loss) for head_name in head_names]
     loss = MultiHeadLoss(losses, lambdas)
 
     if device is not None:
         loss = loss.to(device)
 
     return loss
-
-
-def factory_loss(head_name, reg_loss):
-    if head_name in ('pif',
-                     'paf',
-                     'pafs',
-                     'wpaf',
-                     'pafb',
-                     'pafs19',
-                     'pafsb') or \
-       re.match('p[ia]f([0-9]+)$', head_name) is not None:
-        LOG.info('selected loss CompositeLoss for %s', head_name)
-        return CompositeLoss(head_name, reg_loss)
-
-    raise Exception('unknown headname {} for loss'.format(head_name))

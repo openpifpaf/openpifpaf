@@ -24,7 +24,7 @@ def cli(parser):
                        help='print debug messages')
 
 
-def configure(args):
+def configure(args, package_name='openpifpaf'):
     from pythonjsonlogger import jsonlogger
     import socket
     import sys
@@ -34,9 +34,8 @@ def configure(args):
     file_handler.setFormatter(
         jsonlogger.JsonFormatter('(message) (levelname) (name) (asctime)'))
     stdout_handler = logging.StreamHandler(sys.stdout)
-    logging.basicConfig(level=logging.INFO if not args.debug else logging.DEBUG,
-                        handlers=[stdout_handler, file_handler])
-    logging.getLogger('matplotlib').setLevel(logging.WARNING)
+    logging.basicConfig(handlers=[stdout_handler, file_handler])
+    logging.getLogger(package_name).setLevel(logging.INFO if not args.debug else logging.DEBUG)
     logging.info({
         'type': 'process',
         'argv': sys.argv,

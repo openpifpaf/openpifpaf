@@ -7,6 +7,8 @@ import shutil
 import time
 import torch
 
+LOG = logging.getLogger(__name__)
+
 
 class Trainer(object):
     def __init__(self, model, loss, optimizer, out, *,
@@ -19,8 +21,6 @@ class Trainer(object):
                  encoder_visualizer=None,
                  train_profile=None,
                  model_meta_data=None):
-        self.log = logging.getLogger(self.__class__.__name__)
-
         self.model = model
         self.loss = loss
         self.optimizer = optimizer
@@ -51,7 +51,7 @@ class Trainer(object):
                 return result
             self.train_batch = train_batch_with_profile
 
-        self.log.info({
+        LOG.info({
             'type': 'config',
             'field_names': self.loss.field_names,
         })
@@ -71,7 +71,7 @@ class Trainer(object):
         if self.ema is None:
             return
 
-        self.log.info('applying ema')
+        LOG.info('applying ema')
         self.ema_restore_params = copy.deepcopy(
             [p.data for p in self.model.parameters()])
         for p, ema_p in zip(self.model.parameters(), self.ema):
@@ -81,7 +81,7 @@ class Trainer(object):
         if self.ema_restore_params is None:
             return
 
-        self.log.info('restoring params from before ema')
+        LOG.info('restoring params from before ema')
         for p, ema_p in zip(self.model.parameters(), self.ema_restore_params):
             p.data.copy_(ema_p)
         self.ema_restore_params = None
@@ -191,7 +191,7 @@ class Trainer(object):
                 }
                 if hasattr(self.loss, 'batch_meta'):
                     batch_info.update(self.loss.batch_meta())
-                self.log.info(batch_info)
+                LOG.info(batch_info)
 
             # initialize ema
             if self.ema is None and self.ema_decay:
@@ -204,7 +204,7 @@ class Trainer(object):
             last_batch_end = time.time()
 
         self.apply_ema()
-        self.log.info({
+        LOG.info({
             'type': 'train-epoch',
             'epoch': epoch + 1,
             'loss': round(epoch_loss / len(scenes), 5),
@@ -247,7 +247,7 @@ class Trainer(object):
 
         eval_time = time.time() - start_time
 
-        self.log.info({
+        LOG.info({
             'type': 'val-epoch',
             'epoch': epoch,
             'loss': round(epoch_loss / len(scenes), 5),
@@ -260,20 +260,20 @@ class Trainer(object):
         self.model.cpu()
 
         if isinstance(self.model, torch.nn.DataParallel):
-            self.log.debug('Writing a dataparallel model.')
+            LOG.debug('Writing a dataparallel model.')
             model = self.model.module
         else:
-            self.log.debug('Writing a single-thread model.')
+            LOG.debug('Writing a single-thread model.')
             model = self.model
 
         filename = '{}.epoch{:03d}'.format(self.out, epoch)
-        self.log.debug('about to write model')
+        LOG.debug('about to write model')
         torch.save({
             'model': model,
             'epoch': epoch,
             'meta': self.model_meta_data,
         }, filename)
-        self.log.debug('model written')
+        LOG.debug('model written')
 
         if final:
             sha256_hash = hashlib.sha256()
