@@ -9,6 +9,8 @@ from .annrescaler import AnnRescaler
 from .encoder import Encoder
 from ..utils import create_sink, mask_valid_area
 
+LOG = logging.getLogger(__name__)
+
 
 class Pif(Encoder):
     default_side_length = 4
@@ -17,15 +19,14 @@ class Pif(Encoder):
                  n_keypoints=None,
                  v_threshold=0,
                  **kwargs):
-        self.log = logging.getLogger(self.__class__.__name__)
-        self.log.debug('unused arguments in %s: %s', head_name, kwargs)
+        LOG.debug('unused arguments in %s: %s', head_name, kwargs)
 
         self.stride = stride
         if n_keypoints is None:
             m = re.match('pif([0-9]+)$', head_name)
             if m is not None:
                 n_keypoints = int(m.group(1))
-                self.log.debug('using %d keypoints for pif', n_keypoints)
+                LOG.debug('using %d keypoints for pif', n_keypoints)
             else:
                 n_keypoints = 17
         self.n_keypoints = n_keypoints
@@ -45,7 +46,7 @@ class Pif(Encoder):
     def __call__(self, anns, width_height_original):
         rescaler = AnnRescaler(self.stride, self.n_keypoints)
         keypoint_sets, bg_mask, valid_area = rescaler(anns, width_height_original)
-        self.log.debug('valid area: %s, pif side length = %d', valid_area, self.side_length)
+        LOG.debug('valid area: %s, pif side length = %d', valid_area, self.side_length)
 
         n_fields = keypoint_sets.shape[1]
         f = PifGenerator(self.side_length, self.v_threshold)
@@ -67,8 +68,6 @@ class PifGenerator(object):
 
         self.sink = create_sink(side_length)
         self.s_offset = (side_length - 1.0) / 2.0
-
-        self.log = logging.getLogger(self.__class__.__name__)
 
     def init_fields(self, n_fields, bg_mask):
         field_w = bg_mask.shape[1] + 2 * self.padding
@@ -99,7 +98,7 @@ class PifGenerator(object):
             (np.max(keypoints[visible, 1]) - np.min(keypoints[visible, 1]))
         )
         scale = np.sqrt(area)
-        self.log.debug('instance scale = %.3f', scale)
+        LOG.debug('instance scale = %.3f', scale)
 
         for f, xyv in enumerate(keypoints):
             if xyv[2] <= self.v_threshold:

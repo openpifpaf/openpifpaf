@@ -12,6 +12,8 @@ ANNOTATIONS_VAL = 'data-mscoco/annotations/person_keypoints_val2017.json'
 IMAGE_DIR_TRAIN = 'data-mscoco/images/train2017/'
 IMAGE_DIR_VAL = 'data-mscoco/images/val2017/'
 
+LOG = logging.getLogger(__name__)
+
 
 def collate_images_anns_meta(batch):
     images = torch.utils.data.dataloader.default_collate([b[0] for b in batch])
@@ -64,8 +66,6 @@ class CocoKeypoints(torch.utils.data.Dataset):
         self.preprocess = preprocess or transforms.EVAL_TRANSFORM
         self.target_transforms = target_transforms
 
-        self.log = logging.getLogger(self.__class__.__name__)
-
     def filter_for_keypoint_annotations(self):
         print('filter for keypoint annotations ...')
         def has_keypoint_annotation(image_id):
@@ -96,7 +96,7 @@ class CocoKeypoints(torch.utils.data.Dataset):
         anns = copy.deepcopy(anns)
 
         image_info = self.coco.loadImgs(image_id)[0]
-        self.log.debug(image_info)
+        LOG.debug(image_info)
         with open(os.path.join(self.root, image_info['file_name']), 'rb') as f:
             image = Image.open(f).convert('RGB')
 
@@ -119,7 +119,7 @@ class CocoKeypoints(torch.utils.data.Dataset):
         valid_area = meta['valid_area']
         utils.mask_valid_area(image, valid_area)
 
-        self.log.debug(meta)
+        LOG.debug(meta)
 
         # transform targets
         if self.target_transforms is not None:
