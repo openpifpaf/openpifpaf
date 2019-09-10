@@ -2,7 +2,6 @@
 
 from abc import ABCMeta
 import logging
-import re
 import torch
 
 from ..data import (COCO_PERSON_SIGMAS, COCO_PERSON_SKELETON, KINEMATIC_TREE_SKELETON,
