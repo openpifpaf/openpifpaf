@@ -4,11 +4,11 @@ import numpy as np
 from ..data import COCO_KEYPOINTS, COCO_PERSON_SKELETON
 from .. import show
 
+LOG = logging.getLogger(__name__)
+
 
 class Visualizer(object):
     def __init__(self, headnames, strides):
-        self.log = logging.getLogger(self.__class__.__name__)
-
         self.headnames = headnames
         self.strides = strides
         self.keypoint_painter = show.KeypointPainter(skeleton=COCO_PERSON_SKELETON)
@@ -29,7 +29,7 @@ class Visualizer(object):
             elif headname in ('pif', 'pif17', 'pifs'):
                 self.pif17(image, target, stride, keypoint_sets)
             else:
-                self.log.warning('unknown head: %s', headname)
+                LOG.warning('unknown head: %s', headname)
 
     def pif17(self, image, target, stride, keypoint_sets):
         resized_image = image[::stride, ::stride]

@@ -254,7 +254,7 @@ class RescaleAbsolute(Preprocess):
 
 class Crop(Preprocess):
     def __init__(self, long_edge):
-        self.log = logging.getLogger(self.__class__.__name__)
+        self.log = logging.getLogger(__name__ + '.' + self.__class__.__name__)
         self.long_edge = long_edge
 
     def __call__(self, image, anns, meta):
@@ -355,7 +355,7 @@ class Crop(Preprocess):
 
 class CenterPad(Preprocess):
     def __init__(self, target_size):
-        self.log = logging.getLogger(self.__class__.__name__)
+        self.log = logging.getLogger(__name__ + '.' + self.__class__.__name__)
 
         if isinstance(target_size, int):
             target_size = (target_size, target_size)
@@ -456,7 +456,7 @@ class RandomApply(Preprocess):
 class RotateBy90(Preprocess):
     def __init__(self, angle_perturbation=0.0, fixed_angle=None):
         super().__init__()
-        self.log = logging.getLogger(self.__class__.__name__)
+        self.log = logging.getLogger(__name__ + '.' + self.__class__.__name__)
 
         self.angle_perturbation = angle_perturbation
         self.fixed_angle = fixed_angle

@@ -13,6 +13,8 @@ from .utils import index_field, scalar_square_add_single, normalize_pif
 # pylint: disable=import-error
 from ..functional import (scalar_square_add_constant, scalar_square_add_gauss)
 
+LOG = logging.getLogger(__name__)
+
 
 class Pif(Decoder):
     default_pif_fixed_scale = None
@@ -22,8 +24,7 @@ class Pif(Decoder):
                  profile=None,
                  debug_visualizer=None,
                  **kwargs):
-        self.log = logging.getLogger(self.__class__.__name__)
-        self.log.debug('unused arguments %s', kwargs)
+        LOG.debug('unused arguments %s', kwargs)
 
         self.stride = stride
         self.hr_scale = self.stride
@@ -59,7 +60,7 @@ class Pif(Decoder):
 
         annotations = gen.annotations()
 
-        self.log.debug('annotations %d, %.3fs', len(annotations), time.perf_counter() - start)
+        LOG.debug('annotations %d, %.3fs', len(annotations), time.perf_counter() - start)
         if self.profile is not None:
             self.profile.disable()
         return annotations
@@ -71,8 +72,6 @@ class PifGenerator(object):
                  seed_threshold,
                  pif_nn,
                  debug_visualizer=None):
-        self.log = logging.getLogger(self.__class__.__name__)
-
         self.pif = pif_field
 
         self.stride = stride
@@ -107,7 +106,7 @@ class PifGenerator(object):
 
         m = ns > 0
         scales[m] = scales[m] / ns[m]
-        self.log.debug('target_intensities %.3fs', time.perf_counter() - start)
+        LOG.debug('target_intensities %.3fs', time.perf_counter() - start)
         return targets, scales
 
     def annotations(self):
@@ -120,7 +119,7 @@ class PifGenerator(object):
             ann.fill_joint_scales(self._pifhr_scales, self.stride)
             annotations.append(ann)
 
-        self.log.debug('keypoint sets %d, %.3fs', len(annotations), time.perf_counter() - start)
+        LOG.debug('keypoint sets %d, %.3fs', len(annotations), time.perf_counter() - start)
         return annotations
 
     def _pifhr_seeds(self):
@@ -145,7 +144,7 @@ class PifGenerator(object):
 
             if self.debug_visualizer:
                 if field_i in self.debug_visualizer.pif_indices:
-                    self.log.debug('occupied seed, field %d', field_i)
+                    LOG.debug('occupied seed, field %d', field_i)
                     self.debug_visualizer.occupied(occupied)
 
         seeds = list(sorted(seeds, reverse=True))
@@ -158,5 +157,5 @@ class PifGenerator(object):
         if self.debug_visualizer:
             self.debug_visualizer.seeds(seeds, self.stride)
 
-        self.log.debug('seeds %d, %.3fs', len(seeds), time.perf_counter() - start)
+        LOG.debug('seeds %d, %.3fs', len(seeds), time.perf_counter() - start)
         return seeds
