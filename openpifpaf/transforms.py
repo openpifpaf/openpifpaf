@@ -325,13 +325,19 @@ class Crop(Preprocess):
         if w > self.long_edge:
             min_x = int(area_of_interest[0])
             max_x = int(area_of_interest[0] + area_of_interest[2]) - self.long_edge
-            x_offset = torch.randint(-padding + min_x, max_x + padding, (1,))
-            x_offset = torch.clamp(x_offset, min=min_x, max=max_x).item()
+            if max_x > min_x:
+                x_offset = torch.randint(-padding + min_x, max_x + padding, (1,))
+                x_offset = torch.clamp(x_offset, min=min_x, max=max_x).item()
+            else:
+                x_offset = min_x
         if h > self.long_edge:
             min_y = int(area_of_interest[1])
             max_y = int(area_of_interest[1] + area_of_interest[3]) - self.long_edge
-            y_offset = torch.randint(-padding + min_y, max_y + padding, (1,))
-            y_offset = torch.clamp(y_offset, min=min_y, max=max_y).item()
+            if max_y > min_y:
+                y_offset = torch.randint(-padding + min_y, max_y + padding, (1,))
+                y_offset = torch.clamp(y_offset, min=min_y, max=max_y).item()
+            else:
+                y_offset = min_y
         self.log.debug('crop offsets (%d, %d)', x_offset, y_offset)
 
         # crop image

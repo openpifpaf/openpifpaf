@@ -17,6 +17,8 @@ try:
 except ImportError:
     matplotlib = None
 
+LOG = logging.getLogger(__name__)
+
 
 def cli(parser):
     group = parser.add_argument_group('logging')
@@ -24,7 +26,7 @@ def cli(parser):
                        help='print debug messages')
 
 
-def configure(args, package_name='openpifpaf'):
+def configure(args):
     from pythonjsonlogger import jsonlogger
     import socket
     import sys
@@ -35,14 +37,16 @@ def configure(args, package_name='openpifpaf'):
         jsonlogger.JsonFormatter('(message) (levelname) (name) (asctime)'))
     stdout_handler = logging.StreamHandler(sys.stdout)
     logging.basicConfig(handlers=[stdout_handler, file_handler])
-    logging.getLogger(package_name).setLevel(logging.INFO if not args.debug else logging.DEBUG)
-    logging.info({
+    log_level = logging.INFO if not args.debug else logging.DEBUG
+    logging.getLogger('openpifpaf').setLevel(log_level)
+    LOG.info({
         'type': 'process',
         'argv': sys.argv,
         'args': vars(args),
         'version': VERSION,
         'hostname': socket.gethostname(),
     })
+    return log_level
 
 
 def optionally_shaded(ax, x, y, *, color, label, **kwargs):
