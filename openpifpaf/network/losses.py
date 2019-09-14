@@ -4,8 +4,12 @@ from abc import ABCMeta
 import logging
 import torch
 
-from ..data import (COCO_PERSON_SIGMAS, COCO_PERSON_SKELETON, KINEMATIC_TREE_SKELETON,
-                    DENSER_COCO_PERSON_SKELETON)
+from ..data import (
+    COCO_PERSON_SIGMAS,
+    COCO_PERSON_SKELETON,
+    DENSER_COCO_PERSON_SKELETON,
+    KINEMATIC_TREE_SKELETON,
+)
 
 LOG = logging.getLogger(__name__)
 
@@ -304,11 +308,6 @@ def loss_parameters(head_name):
         sigmas = [
             [COCO_PERSON_SIGMAS[j1i - 1] for j1i, _ in DENSER_COCO_PERSON_SKELETON],
             [COCO_PERSON_SIGMAS[j2i - 1] for _, j2i in DENSER_COCO_PERSON_SKELETON],
-        ]
-    elif head_name in ('paf25',):
-        sigmas = [
-            [COCO_PERSON_SIGMAS[j1i - 1] for j1i, _ in DENSER_COCO_PERSON_CONNECTIONS],
-            [COCO_PERSON_SIGMAS[j2i - 1] for _, j2i in DENSER_COCO_PERSON_CONNECTIONS],
         ]
 
     return {
