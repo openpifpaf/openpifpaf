@@ -447,7 +447,6 @@ class PifPafGenerator(object):
                 jsi, jti = j2i, j1i
                 directed_paf_field = paf_backward[i]
                 directed_paf_field_reverse = paf_forward[i]
-            LOG.debug('cumulative score %.3f, %.3f', ann.cumulative_scores[jsi], priority)
             xyv = ann.data[jsi]
             xy_scale_s = max(
                 1.0,
