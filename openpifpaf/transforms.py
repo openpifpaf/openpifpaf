@@ -253,9 +253,10 @@ class RescaleAbsolute(Preprocess):
 
 
 class Crop(Preprocess):
-    def __init__(self, long_edge):
+    def __init__(self, long_edge, use_area_of_interest=True):
         self.log = logging.getLogger(__name__ + '.' + self.__class__.__name__)
         self.long_edge = long_edge
+        self.use_area_of_interest = use_area_of_interest
 
     def __call__(self, image, anns, meta):
         meta = copy.deepcopy(meta)
@@ -318,7 +319,11 @@ class Crop(Preprocess):
         )
 
     def crop(self, image, anns, valid_area):
-        area_of_interest = self.area_of_interest(anns, valid_area)
+        if self.use_area_of_interest:
+            area_of_interest = self.area_of_interest(anns, valid_area)
+        else:
+            area_of_interest = valid_area
+
         w, h = image.size
         padding = int(self.long_edge / 2.0)
         x_offset, y_offset = 0, 0
