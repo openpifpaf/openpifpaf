@@ -437,6 +437,8 @@ class PifPafGenerator(object):
         LOG.debug('=============== new _grow ==============')
         if not hasattr(ann, 'cumulative_scores'):
             ann.cumulative_scores = np.copy(ann.data[:, 2])
+        if not hasattr(ann, 'dependency_set'):
+            ann.dependency_set = [set() for _ in ann.data]
 
         for priority, i, forward, j1i, j2i in self.connection_proposal(ann):
             if forward:
@@ -486,11 +488,20 @@ class PifPafGenerator(object):
                               jti, ann.data[jti, 2], np.sqrt(new_xyv[2] * xyv[2]),
                               ann.cumulative_scores[jti], new_cumulative_score)
 
+                for joint_i, dset in enumerate(ann.dependency_set):
+                    if jti in dset:
+                        ann.data[joint_i] = 0
+                        ann.cumulative_scores[joint_i] = 0.0
+                        ann.dependency_set[joint_i] = set()
+                        LOG.debug('resetting joint %d', joint_i)
+
                 ann.data[jti] = (
                     new_xyv[0], new_xyv[1],
                     np.sqrt(new_xyv[2] * xyv[2])  # geometric median
                 )
                 ann.cumulative_scores[jti] = new_cumulative_score
+                ann.dependency_set[jti] = set(ann.dependency_set[jsi])
+                ann.dependency_set[jti].add(jsi)
                 ann.decoding_order.append(
                     (jsi, jti, np.copy(ann.data[jsi]), np.copy(ann.data[jti])))
 
