@@ -111,36 +111,9 @@ class CompositeLoss(Loss, torch.nn.Module):
     default_independence_scale = 3.0
 
     def __init__(self, head_name, regression_loss, *,
-                 n_vectors=None, n_scales=None, sigmas=None):
+                 n_vectors, n_scales, sigmas=None):
         super(CompositeLoss, self).__init__()
 
-        if n_vectors is None and 'pif' in head_name:
-            n_vectors = 1
-        if n_vectors is None and 'paf' in head_name:
-            n_vectors = 2
-
-        if n_scales is None and 'pif' in head_name:
-            n_scales = 1
-        if n_scales is None and 'paf' in head_name:
-            n_scales = 0
-
-        if sigmas is None and head_name == 'pif':
-            sigmas = [COCO_PERSON_SIGMAS]
-        if sigmas is None and head_name in ('paf', 'paf19', 'wpaf'):
-            sigmas = [
-                [COCO_PERSON_SIGMAS[j1i - 1] for j1i, _ in COCO_PERSON_SKELETON],
-                [COCO_PERSON_SIGMAS[j2i - 1] for _, j2i in COCO_PERSON_SKELETON],
-            ]
-        if sigmas is None and head_name in ('paf16',):
-            sigmas = [
-                [COCO_PERSON_SIGMAS[j1i - 1] for j1i, _ in KINEMATIC_TREE_SKELETON],
-                [COCO_PERSON_SIGMAS[j2i - 1] for _, j2i in KINEMATIC_TREE_SKELETON],
-            ]
-        if sigmas is None and head_name in ('paf44',):
-            sigmas = [
-                [COCO_PERSON_SIGMAS[j1i - 1] for j1i, _ in DENSER_COCO_PERSON_SKELETON],
-                [COCO_PERSON_SIGMAS[j2i - 1] for _, j2i in DENSER_COCO_PERSON_SKELETON],
-            ]
         if sigmas is None:
             sigmas = [[1.0] for _ in range(n_vectors)]
 
@@ -301,6 +274,50 @@ def factory_from_args(args):
     )
 
 
+def loss_parameters(head_name):
+    n_vectors = None
+    if 'pif' in head_name:
+        n_vectors = 1
+    elif 'paf' in head_name:
+        n_vectors = 2
+
+    n_scales = None
+    if 'pif' in head_name:
+        n_scales = 1
+    elif 'paf' in head_name:
+        n_scales = 0
+
+    sigmas = None
+    if head_name == 'pif':
+        sigmas = [COCO_PERSON_SIGMAS]
+    elif head_name in ('paf', 'paf19', 'wpaf'):
+        sigmas = [
+            [COCO_PERSON_SIGMAS[j1i - 1] for j1i, _ in COCO_PERSON_SKELETON],
+            [COCO_PERSON_SIGMAS[j2i - 1] for _, j2i in COCO_PERSON_SKELETON],
+        ]
+    elif head_name in ('paf16',):
+        sigmas = [
+            [COCO_PERSON_SIGMAS[j1i - 1] for j1i, _ in KINEMATIC_TREE_SKELETON],
+            [COCO_PERSON_SIGMAS[j2i - 1] for _, j2i in KINEMATIC_TREE_SKELETON],
+        ]
+    elif head_name in ('paf44',):
+        sigmas = [
+            [COCO_PERSON_SIGMAS[j1i - 1] for j1i, _ in DENSER_COCO_PERSON_SKELETON],
+            [COCO_PERSON_SIGMAS[j2i - 1] for _, j2i in DENSER_COCO_PERSON_SKELETON],
+        ]
+    elif head_name in ('paf25',):
+        sigmas = [
+            [COCO_PERSON_SIGMAS[j1i - 1] for j1i, _ in DENSER_COCO_PERSON_CONNECTIONS],
+            [COCO_PERSON_SIGMAS[j2i - 1] for _, j2i in DENSER_COCO_PERSON_CONNECTIONS],
+        ]
+
+    return {
+        'n_vectors': n_vectors,
+        'n_scales': n_scales,
+        'sigmas': sigmas,
+    }
+
+
 def factory(head_names, lambdas, reg_loss_name=None, r_smooth=None, device=None):
     if isinstance(head_names[0], (list, tuple)):
         return [factory(hn, lam, reg_loss_name, r_smooth, device)
@@ -319,7 +336,8 @@ def factory(head_names, lambdas, reg_loss_name=None, r_smooth=None, device=None)
     else:
         raise Exception('unknown regression loss type {}'.format(reg_loss_name))
 
-    losses = [CompositeLoss(head_name, reg_loss) for head_name in head_names]
+    losses = [CompositeLoss(head_name, reg_loss, **loss_parameters(head_name))
+              for head_name in head_names]
     loss = MultiHeadLoss(losses, lambdas)
 
     if device is not None:
