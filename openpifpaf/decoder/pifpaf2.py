@@ -429,7 +429,7 @@ class PifPafGenerator(object):
             # update candidates and queue
             end_v = annotation.cumulative_scores[end_i]
             if end_v != end_v_before:
-                LOG.debug('!!! connected joint %d', end_i)
+                LOG.debug('connected joint %d', end_i)
                 for connection in connections_to_explore(end_i):
                     connection_queue.put((-end_v, connection))
 
@@ -479,11 +479,11 @@ class PifPafGenerator(object):
             # new_xyv = (new_xyv[0], new_xyv[1], np.sqrt(new_xyv[2] * xyv[2]))  # geometric mean
             # new_xyv = (new_xyv[0], new_xyv[1], new_xyv[2] * xyv[2])  # product
             # new_xyv = (new_xyv[0], new_xyv[1], new_xyv[2])  # no history
-            new_cumulative_score = min(0.99, new_xyv[2] * ann.cumulative_scores[jsi])
+            new_cumulative_score = min(0.99, np.sqrt(new_xyv[2]) * ann.cumulative_scores[jsi])
             # if new_xyv[2] > ann.data[jti, 2]:
             if new_cumulative_score > ann.cumulative_scores[jti]:
                 if ann.data[jti, 2] > 0.0:
-                    LOG.debug('!!!!!!!!! updating candidate %d: %.3f -> %.3f '
+                    LOG.debug('updating candidate %d: %.3f -> %.3f '
                               '(cumulative %.3f -> %.3f)',
                               jti, ann.data[jti, 2], np.sqrt(new_xyv[2] * xyv[2]),
                               ann.cumulative_scores[jti], new_cumulative_score)
@@ -493,7 +493,7 @@ class PifPafGenerator(object):
                         ann.data[joint_i] = 0
                         ann.cumulative_scores[joint_i] = 0.0
                         ann.dependency_set[joint_i] = set()
-                        LOG.debug('resetting joint %d', joint_i)
+                        LOG.debug('!!!! resetting joint %d', joint_i)
 
                 ann.data[jti] = (
                     new_xyv[0], new_xyv[1],
