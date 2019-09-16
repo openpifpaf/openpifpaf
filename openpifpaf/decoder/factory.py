@@ -6,6 +6,7 @@ from .paf_stack import PafStack
 from .pif import Pif
 from .pifpaf import PifPaf
 from .pifpaf2 import PifPaf2
+from .pifpaf3 import PifPaf3
 from .processor import Processor
 from .visualizer import Visualizer
 
