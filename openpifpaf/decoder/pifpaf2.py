@@ -479,7 +479,7 @@ class PifPafGenerator(object):
             # new_xyv = (new_xyv[0], new_xyv[1], np.sqrt(new_xyv[2] * xyv[2]))  # geometric mean
             # new_xyv = (new_xyv[0], new_xyv[1], new_xyv[2] * xyv[2])  # product
             # new_xyv = (new_xyv[0], new_xyv[1], new_xyv[2])  # no history
-            new_cumulative_score = min(0.99, np.sqrt(new_xyv[2]) * ann.cumulative_scores[jsi])
+            new_cumulative_score = min(0.99, np.power(new_xyv[2], 0.25) * ann.cumulative_scores[jsi])
             # if new_xyv[2] > ann.data[jti, 2]:
             if new_cumulative_score > ann.cumulative_scores[jti]:
                 if ann.data[jti, 2] > 0.0:
