@@ -87,8 +87,8 @@ class Trainer(object):
         self.ema_restore_params = None
 
     def loop(self, train_scenes, val_scenes, epochs, start_epoch=0):
-        for _ in range(start_epoch):
-            if self.lr_scheduler is not None:
+        if self.lr_scheduler is not None:
+            for _ in range(start_epoch * len(train_scenes)):
                 self.lr_scheduler.step()
 
         for epoch in range(start_epoch, epochs):
