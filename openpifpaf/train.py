@@ -139,7 +139,8 @@ def main():
     train_loader, val_loader, pre_train_loader = datasets.train_factory(
         args, preprocess, target_transforms)
 
-    optimizer, lr_scheduler = optimize.factory(args, net.parameters(), len(train_loader))
+    optimizer = optimize.factory_optimizer(args, net.parameters())
+    lr_scheduler = optimize.factory_lrscheduler(args, optimizer, len(train_loader))
     encoder_visualizer = None
     if args.debug and not args.debug_without_plots:
         encoder_visualizer = encoder.Visualizer(args.headnets, net_cpu.io_scales())

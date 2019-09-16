@@ -1,6 +1,8 @@
 import logging
 import torch
 
+LOG = logging.getLogger(__name__)
+
 
 def cli(parser):
     group = parser.add_argument_group('optimizer')
@@ -53,26 +55,31 @@ class LearningRateLambda(object):
         return lambda_
 
 
-def factory(args, parameters, training_batches_per_epoch):
+def factory_optimizer(args, parameters):
     if args.amsgrad:
         args.adam = True
 
     if args.adam:
-        logging.info('Adam optimizer')
+        LOG.info('Adam optimizer')
         optimizer = torch.optim.Adam(
             (p for p in parameters if p.requires_grad),
             lr=args.lr, betas=(args.momentum, args.beta2),
             weight_decay=args.weight_decay, eps=args.adam_eps, amsgrad=args.amsgrad)
     else:
-        logging.info('SGD optimizer')
+        LOG.info('SGD optimizer')
         optimizer = torch.optim.SGD(
             (p for p in parameters if p.requires_grad),
             lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay,
             nesterov=args.nesterov)
 
-    scheduler = torch.optim.lr_scheduler.LambdaLR(
-        optimizer, [LearningRateLambda(args.lr_burn_in_epochs * training_batches_per_epoch,
-                                       [s * training_batches_per_epoch for s in args.lr_decay],
-                                       gamma=args.lr_gamma,
-                                       burn_in_factor=args.lr_burn_in_factor)])
-    return optimizer, scheduler
+    return optimizer
+
+
+def factory_lrscheduler(args, optimizer, training_batches_per_epoch):
+    return torch.optim.lr_scheduler.LambdaLR(
+        optimizer,
+        [LearningRateLambda(args.lr_burn_in_epochs * training_batches_per_epoch,
+                            [s * training_batches_per_epoch for s in args.lr_decay],
+                            gamma=args.lr_gamma,
+                            burn_in_factor=args.lr_burn_in_factor)],
+    )
