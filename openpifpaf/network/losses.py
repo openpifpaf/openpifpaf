@@ -33,7 +33,12 @@ def laplace_loss(x1, x2, logb, t1, t2, weight=None):
     Loss for a single two-dimensional vector (x1, x2) with radial
     spread b and true (t1, t2) vector.
     """
-    norm = torch.sqrt((x1 - t1)**2 + (x2 - t2)**2)
+
+    # left derivative of sqrt at zero is not defined, so prefer torch.norm():
+    # https://github.com/pytorch/pytorch/issues/2421
+    # norm = torch.sqrt((x1 - t1)**2 + (x2 - t2)**2)
+    norm = (torch.stack((x1, x2)) - torch.stack((t1, t2))).norm(dim=0)
+
     losses = 0.694 + logb + norm * torch.exp(-logb)
     if weight is not None:
         losses = losses * weight
