@@ -87,7 +87,10 @@ class KeypointPainter(object):
     def __init__(self, *,
                  skeleton=None,
                  xy_scale=1.0, highlight=None, highlight_invisible=False,
-                 show_box=True, linewidth=2, markersize=3,
+                 show_box=False,
+                 show_joint_scale=False,
+                 show_decoding_order=False,
+                 linewidth=2, markersize=3,
                  color_connections=False,
                  solid_threshold=0.5):
         self.skeleton = skeleton or COCO_PERSON_SKELETON
@@ -95,6 +98,8 @@ class KeypointPainter(object):
         self.highlight = highlight
         self.highlight_invisible = highlight_invisible
         self.show_box = show_box
+        self.show_joint_scale = show_joint_scale
+        self.show_decoding_order = show_decoding_order
         self.linewidth = linewidth
         self.markersize = markersize
         self.color_connections = color_connections
@@ -232,7 +237,7 @@ class KeypointPainter(object):
 
         self._draw_skeleton(ax, x, y, v, color=color)
 
-        if ann.joint_scales is not None:
+        if self.show_joint_scale and ann.joint_scales is not None:
             self._draw_scales(ax, x, y, v, color, ann.joint_scales)
 
         if self.show_box:
@@ -241,7 +246,7 @@ class KeypointPainter(object):
         if text is not None:
             self._draw_text(ax, x, y, v, text, color)
 
-        if hasattr(ann, 'decoding_order'):
+        if self.show_decoding_order and hasattr(ann, 'decoding_order'):
             self._draw_decoding_order(ax, ann.decoding_order)
 
     @staticmethod

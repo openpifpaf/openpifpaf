@@ -110,8 +110,8 @@ def main():
         collate_fn=datasets.collate_images_anns_meta)
 
     # visualizers
-    keypoint_painter = show.KeypointPainter(show_box=False)
-    skeleton_painter = show.KeypointPainter(show_box=False, color_connections=True,
+    keypoint_painter = show.KeypointPainter()
+    skeleton_painter = show.KeypointPainter(color_connections=True,
                                             markersize=1, linewidth=6)
 
     for batch_i, (image_tensors_batch, _, meta_batch) in enumerate(data_loader):
@@ -137,18 +137,18 @@ def main():
                     cpu_image = PIL.Image.open(f).convert('RGB')
 
             processor.set_cpu_image(cpu_image, None)
-            keypoint_sets, scores = processor.keypoint_sets_from_annotations(pred)
             if preprocess is not None:
-                keypoint_sets = preprocess.keypoint_sets_inverse(keypoint_sets, meta)
+                pred = preprocess.annotations_inverse(pred, meta)
 
             if 'json' in args.output_types:
                 with open(output_path + '.pifpaf.json', 'w') as f:
                     json.dump([
                         {
-                            'keypoints': np.around(kps, 1).reshape(-1).tolist(),
-                            'bbox': bbox_from_keypoints(kps),
+                            'keypoints': np.around(ann.data, 1).reshape(-1).tolist(),
+                            'bbox': np.around(bbox_from_keypoints(ann.data), 1).tolist(),
+                            'score': round(ann.score(), 3),
                         }
-                        for kps in keypoint_sets
+                        for ann in pred
                     ], f)
 
             if 'keypoints' in args.output_types:
@@ -157,7 +157,7 @@ def main():
                                        show=args.show,
                                        fig_width=args.figure_width,
                                        dpi_factor=args.dpi_factor) as ax:
-                    keypoint_painter.keypoints(ax, keypoint_sets)
+                    keypoint_painter.annotations(ax, pred)
 
             if 'skeleton' in args.output_types:
                 with show.image_canvas(cpu_image,
@@ -165,7 +165,7 @@ def main():
                                        show=args.show,
                                        fig_width=args.figure_width,
                                        dpi_factor=args.dpi_factor) as ax:
-                    skeleton_painter.keypoints(ax, keypoint_sets, scores=scores)
+                    skeleton_painter.annotations(ax, pred)
 
 
 if __name__ == '__main__':
