@@ -123,7 +123,7 @@ def factory_decode(model, *, experimental=False, **kwargs):
             logging.warning('using experimental decoder')
             return PafStack(
                 (1, 2),
-                PifPaf2(model.io_scales()[-1],
+                PifPaf3(model.io_scales()[-1],
                         head_names=head_names,
                         skeleton=COCO_PERSON_SKELETON + DENSER_COCO_PERSON_CONNECTIONS,
                         **kwargs),

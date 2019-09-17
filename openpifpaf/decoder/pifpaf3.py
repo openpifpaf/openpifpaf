@@ -422,6 +422,9 @@ class PifPafGenerator(object):
 
             if (start_i, end_i) in annotation.evaluated_connections:
                 continue
+            # prevent cycles
+            if end_i in annotation.dependency_set[start_i]:
+                continue
 
             yield priority, paf_i, forward, j1i, j2i
 
@@ -477,9 +480,9 @@ class PifPafGenerator(object):
                 if np.linalg.norm(xyv[:2] - reverse_xyv[:2]) > 2.0 * xy_scale_s:
                     continue
 
-            # new_xyv = (new_xyv[0], new_xyv[1], np.sqrt(new_xyv[2] * xyv[2]))  # geometric mean
+            new_xyv = (new_xyv[0], new_xyv[1], np.sqrt(new_xyv[2] * xyv[2]))  # geometric mean
             # new_xyv = (new_xyv[0], new_xyv[1], new_xyv[2] * xyv[2])  # product
-            new_xyv = (new_xyv[0], new_xyv[1], new_xyv[2])  # no history
+            # new_xyv = (new_xyv[0], new_xyv[1], new_xyv[2])  # no history
             if new_xyv[2] > 1.01 * ann.data[jti, 2]:
                 if ann.data[jti, 2] > 0.0:
                     LOG.debug('updating candidate %d: %.7f -> %.7f',
@@ -487,8 +490,8 @@ class PifPafGenerator(object):
 
                 for joint_i, dset in enumerate(ann.dependency_set):
                     if jti in dset:
-                        # ann.data[joint_i] = 0
-                        # ann.dependency_set[joint_i] = set()
+                        ann.data[joint_i] = 0
+                        ann.dependency_set[joint_i] = set()
                         ann.evaluated_connections = {
                             (j1, j2) for j1, j2 in ann.evaluated_connections
                             if j2 != joint_i
@@ -496,8 +499,6 @@ class PifPafGenerator(object):
                         LOG.debug('!!!! resetting joint %d (%d, %d)', joint_i, jsi, jti)
 
                 ann.data[jti] = new_xyv
-                # prevent cycles
-                # if jti not in ann.dependency_set[jsi]:
                 ann.dependency_set[jti] = set(ann.dependency_set[jsi])
                 ann.dependency_set[jti].add(jsi)
                 ann.decoding_order.append(
