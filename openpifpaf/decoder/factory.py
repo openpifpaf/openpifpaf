@@ -7,6 +7,7 @@ from .pif import Pif
 from .pifpaf import PifPaf
 from .pifpaf2 import PifPaf2
 from .pifpaf3 import PifPaf3
+from .pifpaf4 import PifPaf4
 from .processor import Processor
 from .visualizer import Visualizer
 
@@ -123,7 +124,7 @@ def factory_decode(model, *, experimental=False, **kwargs):
             logging.warning('using experimental decoder')
             return PafStack(
                 (1, 2),
-                PifPaf3(model.io_scales()[-1],
+                PifPaf4(model.io_scales()[-1],
                         head_names=head_names,
                         skeleton=COCO_PERSON_SKELETON + DENSER_COCO_PERSON_CONNECTIONS,
                         **kwargs),
