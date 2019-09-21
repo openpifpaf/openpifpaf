@@ -295,7 +295,7 @@ class PifPafGenerator(object):
             _, x, y, s = p[:, p[0] > self.seed_threshold / 2.0]
             v = scalar_values(self._pifhr[field_i], x * self.stride, y * self.stride)
             m = v > self.seed_threshold
-            x, y, v = x[m], y[m], v[m]
+            x, y, v, s = x[m], y[m], v[m], s[m]
 
             for vv, xx, yy, ss in zip(v, x, y, s):
                 seeds.append((vv, field_i, xx, yy, ss))
