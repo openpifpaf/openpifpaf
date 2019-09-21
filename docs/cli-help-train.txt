@@ -69,26 +69,29 @@ network configuration:
                         Load a model from a checkpoint. Use "resnet50",
                         "resnet101" or "resnet152" for pretrained OpenPifPaf
                         models. (default: None)
-  --dilation DILATION   apply atrous (default: None)
+  --dilation DILATION   [never-worked] apply atrous (default: None)
   --dilation-end DILATION_END
-                        apply atrous (default: None)
+                        [never-worked] apply atrous (default: None)
   --basenet BASENET     base network, e.g. resnet50block5 (default: None)
   --headnets HEADNETS [HEADNETS ...]
                         head networks (default: ['pif', 'paf'])
   --no-pretrain         create model without ImageNet pretraining (default:
                         True)
-  --two-scale           two scale (default: False)
+  --two-scale           [experimental] two scale (default: False)
 
 head:
   --head-dropout HEAD_DROPOUT
-                        zeroing probability of feature in head input (default:
-                        0.0)
+                        [experimental] zeroing probability of feature in head
+                        input (default: 0.0)
   --head-quad HEAD_QUAD
                         number of times to apply quad (subpixel conv) to heads
                         (default: 0)
   --head-kernel-size HEAD_KERNEL_SIZE
+                        [experimental] (default: 1)
   --head-padding HEAD_PADDING
+                        [experimental] (default: 0)
   --head-dilation HEAD_DILATION
+                        [never-worked] (default: 1)
 
 losses:
   --lambdas LAMBDAS [LAMBDAS ...]
@@ -98,13 +101,13 @@ losses:
   --regression-loss {smoothl1,smootherl1,l1,laplace}
                         type of regression loss (default: laplace)
   --background-weight BACKGROUND_WEIGHT
-                        BCE weight of background (default: 1.0)
+                        [experimental] BCE weight of background (default: 1.0)
   --paf-multiplicity-correction
-                        use multiplicity correction for PAF loss (default:
-                        False)
+                        [experimental] use multiplicity correction for PAF
+                        loss (default: False)
   --paf-independence-scale PAF_INDEPENDENCE_SCALE
-                        linear length scale of independence for PAF regression
-                        (default: 3.0)
+                        [experimental] linear length scale of independence for
+                        PAF regression (default: 3.0)
 
 paf encoder:
   --paf-min-size PAF_MIN_SIZE

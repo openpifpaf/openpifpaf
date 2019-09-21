@@ -16,7 +16,7 @@ usage: eval_coco.py [-h] [--checkpoint CHECKPOINT] [--dilation DILATION]
                     [--debug-file-prefix DEBUG_FILE_PREFIX]
                     [--profile-decoder] [--fixed-b FIXED_B]
                     [--pif-fixed-scale PIF_FIXED_SCALE] [--paf-th PAF_TH]
-                    [--connection-method {median,max}]
+                    [--connection-method {median,max,blend}]
                     [--paf-min-size PAF_MIN_SIZE] [--paf-fixed-size]
                     [--paf-aspect-ratio PAF_ASPECT_RATIO]
                     [--pif-side-length PIF_SIDE_LENGTH] [--output OUTPUT]
@@ -55,26 +55,29 @@ network configuration:
                         Load a model from a checkpoint. Use "resnet50",
                         "resnet101" or "resnet152" for pretrained OpenPifPaf
                         models. (default: None)
-  --dilation DILATION   apply atrous (default: None)
+  --dilation DILATION   [never-worked] apply atrous (default: None)
   --dilation-end DILATION_END
-                        apply atrous (default: None)
+                        [never-worked] apply atrous (default: None)
   --basenet BASENET     base network, e.g. resnet50block5 (default: None)
   --headnets HEADNETS [HEADNETS ...]
                         head networks (default: ['pif', 'paf'])
   --no-pretrain         create model without ImageNet pretraining (default:
                         True)
-  --two-scale           two scale (default: False)
+  --two-scale           [experimental] two scale (default: False)
 
 head:
   --head-dropout HEAD_DROPOUT
-                        zeroing probability of feature in head input (default:
-                        0.0)
+                        [experimental] zeroing probability of feature in head
+                        input (default: 0.0)
   --head-quad HEAD_QUAD
                         number of times to apply quad (subpixel conv) to heads
                         (default: 0)
   --head-kernel-size HEAD_KERNEL_SIZE
+                        [experimental] (default: 1)
   --head-padding HEAD_PADDING
+                        [experimental] (default: 0)
   --head-dilation HEAD_DILATION
+                        [never-worked] (default: 1)
 
 decoder configuration:
   --seed-threshold SEED_THRESHOLD
@@ -102,7 +105,7 @@ PifPaf decoder:
   --pif-fixed-scale PIF_FIXED_SCALE
                         overwrite pif scale with a fixed value (default: None)
   --paf-th PAF_TH       paf threshold (default: 0.1)
-  --connection-method {median,max}
+  --connection-method {median,max,blend}
                         connection method to use, max is faster (default: max)
 
 paf encoder:

@@ -119,12 +119,15 @@ class CompositeField(Head, torch.nn.Module):
     def cli(cls, parser):
         group = parser.add_argument_group('head')
         group.add_argument('--head-dropout', default=cls.default_dropout_p, type=float,
-                           help='zeroing probability of feature in head input')
+                           help='[experimental] zeroing probability of feature in head input')
         group.add_argument('--head-quad', default=cls.default_quad, type=int,
                            help='number of times to apply quad (subpixel conv) to heads')
-        group.add_argument('--head-kernel-size', default=cls.default_kernel_size, type=int)
-        group.add_argument('--head-padding', default=cls.default_padding, type=int)
-        group.add_argument('--head-dilation', default=cls.default_dilation, type=int)
+        group.add_argument('--head-kernel-size', default=cls.default_kernel_size, type=int,
+                           help='[experimental]')
+        group.add_argument('--head-padding', default=cls.default_padding, type=int,
+                           help='[experimental]')
+        group.add_argument('--head-dilation', default=cls.default_dilation, type=int,
+                           help='[never-worked]')
 
     @classmethod
     def apply_args(cls, args):

@@ -19,23 +19,26 @@ network configuration:
                         Load a model from a checkpoint. Use "resnet50",
                         "resnet101" or "resnet152" for pretrained OpenPifPaf
                         models. (default: None)
-  --dilation DILATION   apply atrous (default: None)
+  --dilation DILATION   [never-worked] apply atrous (default: None)
   --dilation-end DILATION_END
-                        apply atrous (default: None)
+                        [never-worked] apply atrous (default: None)
   --basenet BASENET     base network, e.g. resnet50block5 (default: None)
   --headnets HEADNETS [HEADNETS ...]
                         head networks (default: ['pif', 'paf'])
   --no-pretrain         create model without ImageNet pretraining (default:
                         True)
-  --two-scale           two scale (default: False)
+  --two-scale           [experimental] two scale (default: False)
 
 head:
   --head-dropout HEAD_DROPOUT
-                        zeroing probability of feature in head input (default:
-                        0.0)
+                        [experimental] zeroing probability of feature in head
+                        input (default: 0.0)
   --head-quad HEAD_QUAD
                         number of times to apply quad (subpixel conv) to heads
                         (default: 0)
   --head-kernel-size HEAD_KERNEL_SIZE
+                        [experimental] (default: 1)
   --head-padding HEAD_PADDING
+                        [experimental] (default: 0)
   --head-dilation HEAD_DILATION
+                        [never-worked] (default: 1)
