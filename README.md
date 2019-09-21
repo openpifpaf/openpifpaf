@@ -211,6 +211,8 @@ In this process, ffmpeg scales the video to `641px` which can be adjusted.
 * [evaluation logs](docs/eval_logs.md)
 * [performance analysis](docs/performance.md)
 * [history](HISTORY.md)
+* [contributing](CONTRIBUTING.md)
+
 
 # Related Projects
 

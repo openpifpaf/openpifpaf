@@ -420,9 +420,9 @@ def cli(parser):
                              'Use "resnet50", "resnet101" '
                              'or "resnet152" for pretrained OpenPifPaf models.'))
     group.add_argument('--dilation', default=None, type=int,
-                       help='apply atrous')
+                       help='[never-worked] apply atrous')
     group.add_argument('--dilation-end', default=None, type=int,
-                       help='apply atrous')
+                       help='[never-worked] apply atrous')
     group.add_argument('--basenet', default=None,
                        help='base network, e.g. resnet50block5')
     group.add_argument('--headnets', default=['pif', 'paf'], nargs='+',
@@ -430,7 +430,7 @@ def cli(parser):
     group.add_argument('--no-pretrain', dest='pretrained', default=True, action='store_false',
                        help='create model without ImageNet pretraining')
     group.add_argument('--two-scale', default=False, action='store_true',
-                       help='two scale')
+                       help='[experimental] two scale')
 
     for head in (heads.HEADS or heads.Head.__subclasses__()):
         head.cli(parser)
