@@ -372,9 +372,6 @@ class PifPafGenerator(object):
         )
 
     def _grow(self, ann, paf_forward, paf_backward, th, reverse_match=True):
-        if not hasattr(ann, 'decoding_order'):
-            ann.decoding_order = []
-
         for _, i, forward, j1i, j2i in ann.frontier_iter():
             if forward:
                 jsi, jti = j1i, j2i
