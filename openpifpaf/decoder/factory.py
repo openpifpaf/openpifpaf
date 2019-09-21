@@ -92,7 +92,7 @@ def factory_from_args(args, model, device=None):
                      device=device)
 
 
-def factory_decode(model, *, experimental=False, **kwargs):
+def factory_decode(model, *, extra_coupling=0.0, experimental=False, **kwargs):
     """Instantiate a decoder for the given model.
 
     All subclasses of decoder.Decoder are checked for a match.
@@ -122,16 +122,21 @@ def factory_decode(model, *, experimental=False, **kwargs):
     if head_names in (('pif', 'paf', 'paf25'),):
         if experimental:
             logging.warning('using experimental decoder')
+            confidence_scales = (
+                [1.0 for _ in COCO_PERSON_SKELETON] +
+                [extra_coupling for _ in DENSER_COCO_PERSON_CONNECTIONS]
+            )
             return PafStack(
                 (1, 2),
                 PifPaf4(model.io_scales()[-1],
-                        head_names=head_names,
+                        head_indices=(0, 1),
                         skeleton=COCO_PERSON_SKELETON + DENSER_COCO_PERSON_CONNECTIONS,
+                        confidence_scales=confidence_scales,
                         **kwargs),
             )
 
         return PifPaf(model.io_scales()[-1],
-                      head_names=head_names,
+                      head_indices=(0, 1),
                       skeleton=COCO_PERSON_SKELETON,
                       **kwargs)
 

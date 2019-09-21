@@ -9,12 +9,13 @@ import numpy as np
 
 from .annotation import Annotation
 from .decoder import Decoder
+from .paf_scored import PafScored
+from .pif_hr import PifHr
+from .pif_seeds import PifSeeds
 from .utils import scalar_square_add_single, normalize_pif, normalize_paf
-from ..data import KINEMATIC_TREE_SKELETON, COCO_PERSON_SKELETON, DENSER_COCO_PERSON_SKELETON
 
 # pylint: disable=import-error
-from ..functional import (cumulative_average, scalar_square_add_gauss,
-                          weiszfeld_nd, paf_center, scalar_values, scalar_value, scalar_nonzero)
+from ..functional import paf_center, scalar_value, scalar_nonzero, weiszfeld_nd
 
 LOG = logging.getLogger(__name__)
 
@@ -28,34 +29,14 @@ class PifPaf4(Decoder):
 
     def __init__(self, stride, *,
                  seed_threshold=0.2,
-                 head_names=None,
                  head_indices=None,
                  skeleton=None,
-                 extra_coupling=0.0,
                  confidence_scales=None,
                  debug_visualizer=None):
-        if head_names is None:
-            head_names = ('pif', 'paf')
-
         self.head_indices = head_indices
-        if self.head_indices is None:
-            self.head_indices = {
-                ('paf', 'pif', 'paf'): [1, 2],
-                ('pif', 'pif', 'paf'): [1, 2],
-            }.get(head_names, [0, 1])
-
         self.skeleton = skeleton
-        if self.skeleton is None:
-            paf_name = head_names[self.head_indices[1]]
-            if paf_name == 'paf16':
-                self.skeleton = KINEMATIC_TREE_SKELETON
-            elif paf_name == 'paf44':
-                self.skeleton = DENSER_COCO_PERSON_SKELETON
-            else:
-                self.skeleton = COCO_PERSON_SKELETON
 
         self.stride = stride
-        self.hr_scale = self.stride
         self.seed_threshold = seed_threshold
         self.debug_visualizer = debug_visualizer
         self.force_complete = self.default_force_complete
@@ -67,10 +48,7 @@ class PifPaf4(Decoder):
         self.paf_nn = 1 if self.connection_method == 'max' else 35
         self.paf_th = self.default_paf_th
 
-        self.confidence_scales = confidence_scales or [
-            1.0 if c in COCO_PERSON_SKELETON else extra_coupling
-            for c in self.skeleton
-        ]
+        self.confidence_scales = confidence_scales
 
     # @classmethod
     # def cli(cls, parser):
@@ -111,13 +89,16 @@ class PifPaf4(Decoder):
             self.debug_visualizer.paf_raw(paf, self.stride, reg_components=3)
         paf = normalize_paf(*paf, fixed_b=self.fixed_b)
         pif = normalize_pif(*pif, fixed_scale=self.pif_fixed_scale)
+        pifhr = PifHr(self.pif_nn).fill(pif, self.stride)
+        seeds = PifSeeds(pifhr.targets, self.seed_threshold,
+                         debug_visualizer=self.debug_visualizer).fill(pif, self.stride).get()
+        paf_scored = PafScored(pifhr.targets, self.skeleton, self.paf_th).fill(paf, self.stride)
 
         gen = PifPafGenerator(
-            pif, paf,
+            pifhr, paf_scored, seeds,
             stride=self.stride,
             seed_threshold=self.seed_threshold,
             connection_method=self.connection_method,
-            pif_nn=self.pif_nn,
             paf_nn=self.paf_nn,
             paf_th=self.paf_th,
             skeleton=self.skeleton,
@@ -126,6 +107,9 @@ class PifPaf4(Decoder):
 
         annotations = gen.annotations(initial_annotations=initial_annotations)
         if self.force_complete:
+            paf_scored_c = PafScored(
+                pifhr.targets, self.skeleton, score_th=0.0001).fill(paf, self.stride)
+            gen.paf_scored = paf_scored_c
             annotations = gen.complete_annotations(annotations)
 
         LOG.debug('annotations %d, %.3fs', len(annotations), time.perf_counter() - start)
@@ -133,22 +117,20 @@ class PifPaf4(Decoder):
 
 
 class PifPafGenerator(object):
-    def __init__(self, pifs_field, pafs_field, *,
+    def __init__(self, pifhr, paf_scored, seeds, *,
                  stride,
                  seed_threshold,
                  connection_method,
-                 pif_nn,
                  paf_nn,
                  paf_th,
                  skeleton,
                  debug_visualizer=None):
-        self.pif = pifs_field
-        self.paf = pafs_field
+        self.paf_scored = paf_scored
+        self.seeds = seeds
 
         self.stride = stride
         self.seed_threshold = seed_threshold
         self.connection_method = connection_method
-        self.pif_nn = pif_nn
         self.paf_nn = paf_nn
         self.paf_th = paf_th
         self.skeleton = skeleton
@@ -158,83 +140,9 @@ class PifPafGenerator(object):
         self.timers = defaultdict(float)
 
         # pif init
-        self._pifhr, self._pifhr_scales = self._target_intensities()
+        self._pifhr, self._pifhr_scales = pifhr.clipped()
         if self.debug_visualizer:
             self.debug_visualizer.pifhr(self._pifhr)
-
-        # paf init
-        self._paf_forward = None
-        self._paf_backward = None
-        self._paf_forward, self._paf_backward = self._score_paf_target(self.paf_th)
-
-    def _target_intensities(self, v_th=0.1):
-        start = time.perf_counter()
-
-        targets = np.zeros((self.pif.shape[0],
-                            int(self.pif.shape[2] * self.stride),
-                            int(self.pif.shape[3] * self.stride)), dtype=np.float32)
-        scales = np.zeros(targets.shape, dtype=np.float32)
-        ns = np.zeros(targets.shape, dtype=np.float32)
-        for t, p, scale, n in zip(targets, self.pif, scales, ns):
-            v, x, y, s = p[:, p[0] > v_th]
-            x = x * self.stride
-            y = y * self.stride
-            s = s * self.stride
-            scalar_square_add_gauss(t, x, y, s, v / self.pif_nn)
-            cumulative_average(scale, n, x, y, s, s, v)
-        targets = np.minimum(targets, 1.0)
-
-        LOG.debug('target_intensities %.3fs', time.perf_counter() - start)
-        return targets, scales
-
-    def _score_paf_target(self, score_th, pifhr_floor=0.1):
-        start = time.perf_counter()
-
-        scored_forward = []
-        scored_backward = []
-        for c, fourds in enumerate(self.paf):
-            assert fourds.shape[0] == 2
-            assert fourds.shape[1] == 4
-
-            scores = np.min(fourds[:, 0], axis=0)
-            mask = scores > score_th
-            scores = scores[mask]
-            fourds = fourds[:, :, mask]
-
-            j1i = self.skeleton[c][0] - 1
-            if pifhr_floor < 1.0:
-                pifhr_b = scalar_values(self._pifhr[j1i],
-                                        fourds[0, 1] * self.stride,
-                                        fourds[0, 2] * self.stride,
-                                        default=0.0)
-                scores_b = scores * (pifhr_floor + (1.0 - pifhr_floor) * pifhr_b)
-            else:
-                scores_b = scores
-            mask_b = scores_b > score_th
-            scored_backward.append(np.concatenate((
-                np.expand_dims(scores_b[mask_b], 0),
-                fourds[1, 1:4][:, mask_b],
-                fourds[0, 1:4][:, mask_b],
-            )))
-
-            j2i = self.skeleton[c][1] - 1
-            if pifhr_floor < 1.0:
-                pifhr_f = scalar_values(self._pifhr[j2i],
-                                        fourds[1, 1] * self.stride,
-                                        fourds[1, 2] * self.stride,
-                                        default=0.0)
-                scores_f = scores * (pifhr_floor + (1.0 - pifhr_floor) * pifhr_f)
-            else:
-                scores_f = scores
-            mask_f = scores_f > score_th
-            scored_forward.append(np.concatenate((
-                np.expand_dims(scores_f[mask_f], 0),
-                fourds[0, 1:4][:, mask_f],
-                fourds[1, 1:4][:, mask_f],
-            )))
-
-        LOG.debug('scored paf %.3fs', time.perf_counter() - start)
-        return scored_forward, scored_backward
 
     def annotations(self, initial_annotations=None):
         start = time.perf_counter()
@@ -260,22 +168,18 @@ class PifPafGenerator(object):
         for ann in initial_annotations:
             if ann.joint_scales is None:
                 ann.fill_joint_scales(self._pifhr_scales, self.stride)
-            self._grow(ann, self._paf_forward, self._paf_backward, self.paf_th)
+            self._grow(ann, self.paf_th)
             ann.fill_joint_scales(self._pifhr_scales, self.stride)
             annotations.append(ann)
             mark_occupied(ann)
 
-        for v, f, x, y, s in self._pif_seeds():
-            if scalar_nonzero(occupied[f], x * self.stride, y * self.stride):
+        for v, f, x, y, s in self.seeds:
+            if scalar_nonzero(occupied[f], x, y):
                 continue
-            scalar_square_add_single(occupied[f],
-                                     x * self.stride,
-                                     y * self.stride,
-                                     max(4.0, s * self.stride),
-                                     1)
+            scalar_square_add_single(occupied[f], x, y, max(4.0, s), 1)
 
-            ann = Annotation(self.skeleton).add(f, (x, y, v))
-            self._grow(ann, self._paf_forward, self._paf_backward, self.paf_th)
+            ann = Annotation(self.skeleton).add(f, (x / self.stride, y / self.stride, v))
+            self._grow(ann, self.paf_th)
             ann.fill_joint_scales(self._pifhr_scales, self.stride)
             annotations.append(ann)
             mark_occupied(ann)
@@ -286,26 +190,6 @@ class PifPafGenerator(object):
 
         LOG.debug('keypoint sets %d, %.3fs', len(annotations), time.perf_counter() - start)
         return annotations
-
-    def _pif_seeds(self):
-        start = time.perf_counter()
-
-        seeds = []
-        for field_i, p in enumerate(self.pif):
-            _, x, y, s = p[:, p[0] > self.seed_threshold / 2.0]
-            v = scalar_values(self._pifhr[field_i], x * self.stride, y * self.stride)
-            m = v > self.seed_threshold
-            x, y, v, s = x[m], y[m], v[m], s[m]
-
-            for vv, xx, yy, ss in zip(v, x, y, s):
-                seeds.append((vv, field_i, xx, yy, ss))
-
-        if self.debug_visualizer:
-            self.debug_visualizer.seeds(seeds, self.stride)
-
-        seeds = sorted(seeds, reverse=True)
-        LOG.debug('seeds %d, %.3fs', len(seeds), time.perf_counter() - start)
-        return seeds
 
     def _grow_connection(self, xy, xy_scale, paf_field):
         assert len(xy) == 2
@@ -383,22 +267,22 @@ class PifPafGenerator(object):
             0.5 * (score_1 + score_2),
         )
 
-    def connection_value(self, ann, paf_i, forward, paf_forward, paf_backward, th, reverse_match=True):
+    def connection_value(self, ann, paf_i, forward, th, reverse_match=True):
         j1i, j2i = self.skeleton_m1[paf_i]
         if forward:
             jsi, jti = j1i, j2i
-            directed_paf_field = paf_forward[paf_i]
-            directed_paf_field_reverse = paf_backward[paf_i]
+            directed_paf_field = self.paf_scored.forward[paf_i]
+            directed_paf_field_reverse = self.paf_scored.backward[paf_i]
         else:
             jsi, jti = j2i, j1i
-            directed_paf_field = paf_backward[paf_i]
-            directed_paf_field_reverse = paf_forward[paf_i]
+            directed_paf_field = self.paf_scored.backward[paf_i]
+            directed_paf_field_reverse = self.paf_scored.forward[paf_i]
         xyv = ann.data[jsi]
         xy_scale_s = max(
             1.0,
             scalar_value(self._pifhr_scales[jsi],
-                            xyv[0] * self.stride,
-                            xyv[1] * self.stride) / self.stride
+                         xyv[0] * self.stride,
+                         xyv[1] * self.stride) / self.stride
         )
 
         new_xyv = self._grow_connection(xyv[:2], xy_scale_s, directed_paf_field)
@@ -407,8 +291,8 @@ class PifPafGenerator(object):
         xy_scale_t = max(
             1.0,
             scalar_value(self._pifhr_scales[jti],
-                            new_xyv[0] * self.stride,
-                            new_xyv[1] * self.stride) / self.stride
+                         new_xyv[0] * self.stride,
+                         new_xyv[1] * self.stride) / self.stride
         )
 
         # reverse match
@@ -422,7 +306,7 @@ class PifPafGenerator(object):
 
         return (new_xyv[0], new_xyv[1], np.sqrt(new_xyv[2] * xyv[2]))  # geometric mean
 
-    def _grow(self, ann, paf_forward, paf_backward, th, reverse_match=True):
+    def _grow(self, ann, th, reverse_match=True):
         LOG.debug('_____________new grow_________')
         frontier = PriorityQueue()
         evaluated_connections = set()
@@ -447,7 +331,7 @@ class PifPafGenerator(object):
 
                 LOG.debug('computing value for %d to %d', start_i, end_i)
                 new_xyv = self.connection_value(
-                    ann, paf_i, forward, paf_forward, paf_backward, th, reverse_match=reverse_match)
+                    ann, paf_i, forward, th, reverse_match=reverse_match)
                 if new_xyv[2] == 0.0:
                     continue
                 frontier.put((-new_xyv[2], new_xyv, start_i, end_i))
@@ -487,10 +371,9 @@ class PifPafGenerator(object):
     def complete_annotations(self, annotations):
         start = time.perf_counter()
 
-        paf_forward_c, paf_backward_c = self._score_paf_target(score_th=0.0001)
         for ann in annotations:
             unfilled_mask = ann.data[:, 2] == 0.0
-            self._grow(ann, paf_forward_c, paf_backward_c, th=1e-8, reverse_match=False)
+            self._grow(ann, th=1e-8, reverse_match=False)
             now_filled_mask = ann.data[:, 2] > 0.0
             updated = np.logical_and(unfilled_mask, now_filled_mask)
             ann.data[updated, 2] = np.minimum(0.001, ann.data[updated, 2])
