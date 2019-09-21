@@ -262,12 +262,12 @@ def cli(parser):
                        choices=['smoothl1', 'smootherl1', 'l1', 'laplace'],
                        help='type of regression loss')
     group.add_argument('--background-weight', default=1.0, type=float,
-                       help='BCE weight of background')
+                       help='[experimental] BCE weight of background')
     group.add_argument('--paf-multiplicity-correction',
                        default=False, action='store_true',
-                       help='use multiplicity correction for PAF loss')
+                       help='[experimental] use multiplicity correction for PAF loss')
     group.add_argument('--paf-independence-scale', default=3.0, type=float,
-                       help='linear length scale of independence for PAF regression')
+                       help='[experimental] linear length scale of independence for PAF regression')
 
 
 def factory_from_args(args):
