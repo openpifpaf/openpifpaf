@@ -199,7 +199,7 @@ class PifPafGenerator(object):
         assert paf_field.shape[0] == 7
 
         # source value
-        paf_field = paf_center(paf_field, xy[0], xy[1], sigma=2.0 * xy_scale)
+        paf_field = paf_center(paf_field, xy[0], xy[1], sigma=5.0 * xy_scale)
         if paf_field.shape[1] == 0:
             return 0, 0, 0
 
