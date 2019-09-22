@@ -96,7 +96,6 @@ class PifPaf4(Decoder):
 
         gen = PifPafGenerator(
             pifhr, paf_scored, seeds,
-            stride=self.stride,
             seed_threshold=self.seed_threshold,
             connection_method=self.connection_method,
             paf_nn=self.paf_nn,
@@ -118,7 +117,6 @@ class PifPaf4(Decoder):
 
 class PifPafGenerator(object):
     def __init__(self, pifhr, paf_scored, seeds, *,
-                 stride,
                  seed_threshold,
                  connection_method,
                  paf_nn,
@@ -128,7 +126,6 @@ class PifPafGenerator(object):
         self.paf_scored = paf_scored
         self.seeds = seeds
 
-        self.stride = stride
         self.seed_threshold = seed_threshold
         self.connection_method = connection_method
         self.paf_nn = paf_nn
@@ -160,16 +157,16 @@ class PifPafGenerator(object):
 
                 width = ann.joint_scales[joint_i]
                 scalar_square_add_single(occupied[joint_i],
-                                         xyv[0] * self.stride,
-                                         xyv[1] * self.stride,
-                                         max(4.0, width * self.stride),
+                                         xyv[0],
+                                         xyv[1],
+                                         max(4.0, width),
                                          1)
 
         for ann in initial_annotations:
             if ann.joint_scales is None:
-                ann.fill_joint_scales(self._pifhr_scales, self.stride)
+                ann.fill_joint_scales(self._pifhr_scales, 1)
             self._grow(ann, self.paf_th)
-            ann.fill_joint_scales(self._pifhr_scales, self.stride)
+            ann.fill_joint_scales(self._pifhr_scales, 1)
             annotations.append(ann)
             mark_occupied(ann)
 
@@ -178,9 +175,9 @@ class PifPafGenerator(object):
                 continue
             scalar_square_add_single(occupied[f], x, y, max(4.0, s), 1)
 
-            ann = Annotation(self.skeleton).add(f, (x / self.stride, y / self.stride, v))
+            ann = Annotation(self.skeleton).add(f, (x, y, v))
             self._grow(ann, self.paf_th)
-            ann.fill_joint_scales(self._pifhr_scales, self.stride)
+            ann.fill_joint_scales(self._pifhr_scales, 1)
             annotations.append(ann)
             mark_occupied(ann)
 
@@ -281,8 +278,8 @@ class PifPafGenerator(object):
         xy_scale_s = max(
             1.0,
             scalar_value(self._pifhr_scales[jsi],
-                         xyv[0] * self.stride,
-                         xyv[1] * self.stride) / self.stride
+                         xyv[0],
+                         xyv[1])
         )
 
         new_xyv = self._grow_connection(xyv[:2], xy_scale_s, directed_paf_field)
@@ -291,8 +288,8 @@ class PifPafGenerator(object):
         xy_scale_t = max(
             1.0,
             scalar_value(self._pifhr_scales[jti],
-                         new_xyv[0] * self.stride,
-                         new_xyv[1] * self.stride) / self.stride
+                         new_xyv[0],
+                         new_xyv[1])
         )
 
         # reverse match
@@ -377,7 +374,7 @@ class PifPafGenerator(object):
             now_filled_mask = ann.data[:, 2] > 0.0
             updated = np.logical_and(unfilled_mask, now_filled_mask)
             ann.data[updated, 2] = np.minimum(0.001, ann.data[updated, 2])
-            ann.fill_joint_scales(self._pifhr_scales, self.stride)
+            ann.fill_joint_scales(self._pifhr_scales, 1)
 
             # some joints might still be unfilled
             if np.any(ann.data[:, 2] == 0.0):

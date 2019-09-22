@@ -48,7 +48,7 @@ class Visualizer(object):
             np.asarray(self.processed_image)[:, ::int(io_scale), ::int(io_scale)], 0, -1)
         return np.clip((resized_image + 2.0) / 4.0, 0.0, 1.0)
 
-    def seeds(self, seeds, io_scale):
+    def seeds(self, seeds, io_scale=1.0):
         print('seeds')
         field_indices = {f for _, f, __, ___, ____ in seeds}
 

@@ -30,12 +30,14 @@ class PafScored(object):
             mask = scores > self.score_th
             scores = scores[mask]
             fourds = fourds[:, :, mask]
+            fourds[:, 1] *= stride
+            fourds[:, 2] *= stride
 
             j1i = self.skeleton[c][0] - 1
             if self.pif_floor < 1.0:
                 pifhr_b = scalar_values(self.pifhr[j1i],
-                                        fourds[0, 1] * stride,
-                                        fourds[0, 2] * stride,
+                                        fourds[0, 1],
+                                        fourds[0, 2],
                                         default=0.0)
                 scores_b = scores * (self.pif_floor + (1.0 - self.pif_floor) * pifhr_b)
             else:
@@ -50,8 +52,8 @@ class PafScored(object):
             j2i = self.skeleton[c][1] - 1
             if self.pif_floor < 1.0:
                 pifhr_f = scalar_values(self.pifhr[j2i],
-                                        fourds[1, 1] * stride,
-                                        fourds[1, 2] * stride,
+                                        fourds[1, 1],
+                                        fourds[1, 2],
                                         default=0.0)
                 scores_f = scores * (self.pif_floor + (1.0 - self.pif_floor) * pifhr_f)
             else:
