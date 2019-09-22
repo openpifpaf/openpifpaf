@@ -32,6 +32,7 @@ class PafScored(object):
             fourds = fourds[:, :, mask]
             fourds[:, 1] *= stride
             fourds[:, 2] *= stride
+            # TODO scale b (laplace width)
 
             j1i = self.skeleton[c][0] - 1
             if self.pif_floor < 1.0:
