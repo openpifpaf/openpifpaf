@@ -235,7 +235,7 @@ def scalar_nonzero_clipped(unsigned char[:, :] field, float x, float y):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def paf_center(float[:, :] paf_field, float x, float y, float sigma=1.0):
+def paf_center_b(float[:, :] paf_field, float x, float y, float sigma=1.0):
     result_np = np.empty_like(paf_field)
     cdef float[:, :] result = result_np
     cdef unsigned int result_i = 0
@@ -249,6 +249,30 @@ def paf_center(float[:, :] paf_field, float x, float y, float sigma=1.0):
             paf_field[2, i] < y + sigma * paf_field[3, i]
         )
         if not take:
+            continue
+
+        result[:, result_i] = paf_field[:, i]
+        result_i += 1
+
+    return result_np[:, :result_i]
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def paf_center(float[:, :] paf_field, float x, float y, float sigma):
+    result_np = np.empty_like(paf_field)
+    cdef float[:, :] result = result_np
+    cdef unsigned int result_i = 0
+    cdef bint take
+
+    for i in range(paf_field.shape[1]):
+        if paf_field[1, i] < x - sigma:
+            continue
+        if paf_field[1, i] > x + sigma:
+            continue
+        if paf_field[2, i] < y - sigma:
+            continue
+        if paf_field[2, i] > y + sigma:
             continue
 
         result[:, result_i] = paf_field[:, i]
