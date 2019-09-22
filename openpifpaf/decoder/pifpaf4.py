@@ -92,7 +92,11 @@ class PifPaf4(Decoder):
         pifhr = PifHr(self.pif_nn).fill(pif, self.stride)
         seeds = PifSeeds(pifhr.targets, self.seed_threshold,
                          debug_visualizer=self.debug_visualizer).fill(pif, self.stride).get()
-        paf_scored = PafScored(pifhr.targets, self.skeleton, self.paf_th).fill(paf, self.stride)
+        paf_scored = PafScored(
+            np.minimum(1.0, pifhr.targets),
+            self.skeleton,
+            score_th=self.paf_th,
+        ).fill(paf, self.stride)
 
         gen = PifPafGenerator(
             pifhr, paf_scored, seeds,
@@ -107,7 +111,10 @@ class PifPaf4(Decoder):
         annotations = gen.annotations(initial_annotations=initial_annotations)
         if self.force_complete:
             paf_scored_c = PafScored(
-                pifhr.targets, self.skeleton, score_th=0.0001).fill(paf, self.stride)
+                np.minimum(1.0, pifhr.targets),
+                self.skeleton,
+                score_th=0.0001,
+            ).fill(paf, self.stride)
             gen.paf_scored = paf_scored_c
             annotations = gen.complete_annotations(annotations)
 
@@ -259,8 +266,8 @@ class PifPafGenerator(object):
         score_1 = scores[sorted_i[-1]]
         score_2 = scores[sorted_i[-2]]
         return (
-            (score_1 * max_entry_1[0] + score_2 * max_entry_2[0]) / (score_1 + score_2),
-            (score_1 * max_entry_1[1] + score_2 * max_entry_2[1]) / (score_1 + score_2),
+            (score_1 * max_entry_1[0] + score_2 * max_entry_2[0]) / (score_1 + score_2 + 1e-3),
+            (score_1 * max_entry_1[1] + score_2 * max_entry_2[1]) / (score_1 + score_2 + 1e-3),
             0.5 * (score_1 + score_2),
         )
 
@@ -276,20 +283,16 @@ class PifPafGenerator(object):
             directed_paf_field_reverse = self.paf_scored.forward[paf_i]
         xyv = ann.data[jsi]
         xy_scale_s = max(
-            1.0,
-            scalar_value(self._pifhr_scales[jsi],
-                         xyv[0],
-                         xyv[1])
+            8.0,
+            scalar_value(self._pifhr_scales[jsi], xyv[0], xyv[1])
         )
 
         new_xyv = self._grow_connection(xyv[:2], xy_scale_s, directed_paf_field)
         if new_xyv[2] < th:
             return 0.0, 0.0, 0.0
         xy_scale_t = max(
-            1.0,
-            scalar_value(self._pifhr_scales[jti],
-                         new_xyv[0],
-                         new_xyv[1])
+            8.0,
+            scalar_value(self._pifhr_scales[jti], new_xyv[0], new_xyv[1])
         )
 
         # reverse match

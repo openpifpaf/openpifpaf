@@ -154,14 +154,14 @@ class Processor(object):
         if debug_image is not None:
             self.set_cpu_image(None, debug_image)
 
-        if initial_annotations:
-            for ann in initial_annotations:
-                ann.rescale(1.0 / self.output_stride)
+        # if initial_annotations:
+        #     for ann in initial_annotations:
+        #         ann.rescale(1.0 / self.output_stride)
         annotations = self.decode(fields, initial_annotations=initial_annotations)
 
-        # scale to input size
-        for ann in annotations:
-            ann.rescale(self.output_stride)
+        # # scale to input size
+        # for ann in annotations:
+        #     ann.rescale(self.output_stride)
 
         # instance scorer
         if self.instance_scorer is not None:
