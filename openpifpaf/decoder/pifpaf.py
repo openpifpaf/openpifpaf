@@ -35,7 +35,6 @@ class PifPaf(Decoder):
         self.skeleton = skeleton
 
         self.stride = stride
-        self.hr_scale = self.stride
         self.seed_threshold = seed_threshold
         self.debug_visualizer = debug_visualizer
         self.force_complete = self.default_force_complete
@@ -252,8 +251,8 @@ class PifPafGenerator(object):
         score_1 = scores[sorted_i[-1]]
         score_2 = scores[sorted_i[-2]]
         return (
-            (score_1 * max_entry_1[0] + score_2 * max_entry_2[0]) / (score_1 + score_2),
-            (score_1 * max_entry_1[1] + score_2 * max_entry_2[1]) / (score_1 + score_2),
+            (score_1 * max_entry_1[0] + score_2 * max_entry_2[0]) / (score_1 + score_2 + 1e-3),
+            (score_1 * max_entry_1[1] + score_2 * max_entry_2[1]) / (score_1 + score_2 + 1e-3),
             0.5 * (score_1 + score_2),
         )
 
