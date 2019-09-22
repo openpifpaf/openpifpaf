@@ -82,7 +82,11 @@ class PifPaf(Decoder):
         pifhr = PifHr(self.pif_nn).fill(pif, self.stride)
         seeds = PifSeeds(pifhr.targets, self.seed_threshold,
                          debug_visualizer=self.debug_visualizer).fill(pif, self.stride).get()
-        paf_scored = PafScored(pifhr.targets, self.skeleton, self.paf_th).fill(paf, self.stride)
+        paf_scored = PafScored(
+            np.minimum(1.0, pifhr.targets),
+            self.skeleton,
+            score_th=self.paf_th,
+        ).fill(paf, self.stride)
 
         gen = PifPafGenerator(
             pifhr, paf_scored, seeds,
@@ -98,7 +102,10 @@ class PifPaf(Decoder):
         annotations = gen.annotations(initial_annotations=initial_annotations)
         if self.force_complete:
             paf_scored_c = PafScored(
-                pifhr.targets, self.skeleton, score_th=0.0001).fill(paf, self.stride)
+                np.minimum(1.0, pifhr.targets),
+                self.skeleton,
+                score_th=0.0001,
+            ).fill(paf, self.stride)
             gen.paf_scored = paf_scored_c
             annotations = gen.complete_annotations(annotations)
 

@@ -110,12 +110,11 @@ class PifPaf4(Decoder):
 
         annotations = gen.annotations(initial_annotations=initial_annotations)
         if self.force_complete:
-            paf_scored_c = PafScored(
+            gen.paf_scored = PafScored(
                 np.minimum(1.0, pifhr.targets),
                 self.skeleton,
                 score_th=0.0001,
             ).fill(paf, self.stride)
-            gen.paf_scored = paf_scored_c
             annotations = gen.complete_annotations(annotations)
 
         LOG.debug('annotations %d, %.3fs', len(annotations), time.perf_counter() - start)
@@ -265,9 +264,12 @@ class PifPafGenerator(object):
 
         score_1 = scores[sorted_i[-1]]
         score_2 = scores[sorted_i[-2]]
+        if score_2 < 0.01 or score_2 < 0.5 * score_1:
+            return max_entry_1[0], max_entry_1[1], score_1
+
         return (
-            (score_1 * max_entry_1[0] + score_2 * max_entry_2[0]) / (score_1 + score_2 + 1e-3),
-            (score_1 * max_entry_1[1] + score_2 * max_entry_2[1]) / (score_1 + score_2 + 1e-3),
+            (score_1 * max_entry_1[0] + score_2 * max_entry_2[0]) / (score_1 + score_2),
+            (score_1 * max_entry_1[1] + score_2 * max_entry_2[1]) / (score_1 + score_2),
             0.5 * (score_1 + score_2),
         )
 
