@@ -27,7 +27,7 @@ class Annotation(object):
             c2[:2] *= scale_factor
         return self
 
-    def fill_joint_scales(self, scales, hr_scale):
+    def fill_joint_scales(self, scales, hr_scale=1.0):
         self.joint_scales = np.zeros((self.data.shape[0],))
         for xyv_i, xyv in enumerate(self.data):
             if xyv[2] == 0.0:

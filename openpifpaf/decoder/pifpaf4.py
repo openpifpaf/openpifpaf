@@ -171,9 +171,9 @@ class PifPafGenerator(object):
 
         for ann in initial_annotations:
             if ann.joint_scales is None:
-                ann.fill_joint_scales(self._pifhr_scales, 1)
+                ann.fill_joint_scales(self._pifhr_scales)
             self._grow(ann, self.paf_th)
-            ann.fill_joint_scales(self._pifhr_scales, 1)
+            ann.fill_joint_scales(self._pifhr_scales)
             annotations.append(ann)
             mark_occupied(ann)
 
@@ -184,7 +184,7 @@ class PifPafGenerator(object):
 
             ann = Annotation(self.skeleton).add(f, (x, y, v))
             self._grow(ann, self.paf_th)
-            ann.fill_joint_scales(self._pifhr_scales, 1)
+            ann.fill_joint_scales(self._pifhr_scales)
             annotations.append(ann)
             mark_occupied(ann)
 
@@ -377,7 +377,7 @@ class PifPafGenerator(object):
             now_filled_mask = ann.data[:, 2] > 0.0
             updated = np.logical_and(unfilled_mask, now_filled_mask)
             ann.data[updated, 2] = np.minimum(0.001, ann.data[updated, 2])
-            ann.fill_joint_scales(self._pifhr_scales, 1)
+            ann.fill_joint_scales(self._pifhr_scales)
 
             # some joints might still be unfilled
             if np.any(ann.data[:, 2] == 0.0):
