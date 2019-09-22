@@ -214,9 +214,9 @@ class PifPafGenerator(object):
         if self.connection_method == 'median':
             return self._target_with_median(paf_field[4:6], scores, sigma=1.0)
         if self.connection_method == 'max':
-            return self._target_with_maxscore(paf_field[4:7], scores)
+            return self._target_with_maxscore(paf_field[4:6], scores)
         if self.connection_method == 'blend':
-            return self._target_with_blend(paf_field[4:7], scores)
+            return self._target_with_blend(paf_field[4:6], scores)
         raise Exception('connection method not known')
 
     def _target_with_median(self, target_coordinates, scores, sigma, max_steps=20):

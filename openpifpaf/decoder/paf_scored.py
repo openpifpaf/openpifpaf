@@ -29,10 +29,10 @@ class PafScored(object):
             scores = np.min(fourds[:, 0], axis=0)
             mask = scores > self.score_th
             scores = scores[mask]
-            fourds = fourds[:, :, mask]
+            fourds = np.copy(fourds[:, :, mask])
             fourds[:, 1] *= stride
             fourds[:, 2] *= stride
-            # TODO scale b (laplace width)
+            fourds[:, 3] *= stride
 
             j1i = self.skeleton[c][0] - 1
             if self.pif_floor < 1.0:
