@@ -10,7 +10,7 @@ LOG = logging.getLogger(__name__)
 
 
 class PafScored(object):
-    def __init__(self, pifhr, skeleton, score_th, pif_floor=0.1):
+    def __init__(self, pifhr, skeleton, *, score_th, pif_floor=0.1):
         self.pifhr = pifhr
         self.skeleton = skeleton
         self.score_th = score_th
