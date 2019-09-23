@@ -61,9 +61,11 @@ def factory_from_args(args, model, device=None):
 
     debug_visualizer = None
     if args.debug_pif_indices or args.debug_paf_indices:
-        debug_visualizer = Visualizer(args.debug_pif_indices, args.debug_paf_indices,
-                                      file_prefix=args.debug_file_prefix,
-                                      skeleton=COCO_PERSON_SKELETON + DENSER_COCO_PERSON_CONNECTIONS)
+        debug_visualizer = Visualizer(
+            args.debug_pif_indices, args.debug_paf_indices,
+            file_prefix=args.debug_file_prefix,
+            skeleton=COCO_PERSON_SKELETON + DENSER_COCO_PERSON_CONNECTIONS,
+        )
 
     # default value for keypoint filter depends on whether complete pose is forced
     if args.keypoint_threshold is None:
@@ -99,7 +101,7 @@ def factory_decode(model, *, extra_coupling=0.0, experimental=False, **kwargs):
 
     if head_names in (('pif',),):
         return Pif(model.io_scales()[-1],
-                   head_names=head_names,
+                   head_index=0,
                    **kwargs)
 
     if head_names in (('pif', 'paf'),

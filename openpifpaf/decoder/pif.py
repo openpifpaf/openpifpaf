@@ -20,11 +20,11 @@ class Pif(Decoder):
     default_pif_fixed_scale = None
 
     def __init__(self, stride, seed_threshold,
-                 head_index=None,
+                 head_index=0,
                  profile=None,
                  debug_visualizer=None):
         self.stride = stride
-        self.head_index = head_index or 0
+        self.head_index = head_index
         self.profile = profile
         self.seed_threshold = seed_threshold
         self.debug_visualizer = debug_visualizer
