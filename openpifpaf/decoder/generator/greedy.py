@@ -15,7 +15,6 @@ LOG = logging.getLogger(__name__)
 
 class Greedy(object):
     def __init__(self, pifhr, paf_scored, seeds, *,
-                 stride,
                  seed_threshold,
                  connection_method,
                  paf_nn,
@@ -26,7 +25,6 @@ class Greedy(object):
         self.paf_scored = paf_scored
         self.seeds = seeds
 
-        self.stride = stride
         self.seed_threshold = seed_threshold
         self.connection_method = connection_method
         self.paf_nn = paf_nn
@@ -55,16 +53,16 @@ class Greedy(object):
 
                 width = ann.joint_scales[joint_i]
                 scalar_square_add_single(occupied[joint_i],
-                                         xyv[0] * self.stride,
-                                         xyv[1] * self.stride,
-                                         max(4.0, width * self.stride),
+                                         xyv[0],
+                                         xyv[1],
+                                         max(4.0, width),
                                          1)
 
         for ann in initial_annotations:
             if ann.joint_scales is None:
-                ann.fill_joint_scales(self.pifhr.scales, self.stride)
+                ann.fill_joint_scales(self.pifhr.scales)
             self._grow(ann, self.paf_th)
-            ann.fill_joint_scales(self.pifhr.scales, self.stride)
+            ann.fill_joint_scales(self.pifhr.scales)
             annotations.append(ann)
             mark_occupied(ann)
 
@@ -73,9 +71,9 @@ class Greedy(object):
                 continue
             scalar_square_add_single(occupied[f], x, y, max(4.0, s), 1)
 
-            ann = Annotation(self.skeleton).add(f, (x / self.stride, y / self.stride, v))
+            ann = Annotation(self.skeleton).add(f, (x, y, v))
             self._grow(ann, self.paf_th)
-            ann.fill_joint_scales(self.pifhr.scales, self.stride)
+            ann.fill_joint_scales(self.pifhr.scales)
             annotations.append(ann)
             mark_occupied(ann)
 
@@ -177,20 +175,16 @@ class Greedy(object):
                 directed_paf_field_reverse = self.paf_scored.forward[i]
             xyv = ann.data[jsi]
             xy_scale_s = max(
-                1.0,
-                scalar_value(self.pifhr.scales[jsi],
-                             xyv[0] * self.stride,
-                             xyv[1] * self.stride) / self.stride
+                8.0,
+                scalar_value(self.pifhr.scales[jsi], xyv[0], xyv[1])
             )
 
             new_xyv = self._grow_connection(xyv[:2], xy_scale_s, directed_paf_field)
             if new_xyv[2] < th:
                 continue
             xy_scale_t = max(
-                1.0,
-                scalar_value(self.pifhr.scales[jti],
-                             new_xyv[0] * self.stride,
-                             new_xyv[1] * self.stride) / self.stride
+                8.0,
+                scalar_value(self.pifhr.scales[jti], new_xyv[0], new_xyv[1])
             )
 
             # reverse match
@@ -230,7 +224,7 @@ class Greedy(object):
             now_filled_mask = ann.data[:, 2] > 0.0
             updated = np.logical_and(unfilled_mask, now_filled_mask)
             ann.data[updated, 2] = np.minimum(0.001, ann.data[updated, 2])
-            ann.fill_joint_scales(self.pifhr.scales, self.stride)
+            ann.fill_joint_scales(self.pifhr.scales)
 
             # some joints might still be unfilled
             if np.any(ann.data[:, 2] == 0.0):

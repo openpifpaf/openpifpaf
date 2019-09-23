@@ -83,7 +83,6 @@ class PifPaf(Decoder):
 
         gen = generator.Greedy(
             pifhr, paf_scored, seeds,
-            stride=self.stride,
             seed_threshold=self.seed_threshold,
             connection_method=self.connection_method,
             paf_nn=self.paf_nn,
