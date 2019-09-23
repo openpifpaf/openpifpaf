@@ -44,6 +44,7 @@ setup(
     packages=[
         'openpifpaf',
         'openpifpaf.decoder',
+        'openpifpaf.decoder.generator',
         'openpifpaf.encoder',
         'openpifpaf.network',
     ],

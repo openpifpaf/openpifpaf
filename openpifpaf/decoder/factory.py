@@ -5,9 +5,7 @@ from .decoder import Decoder
 from .paf_stack import PafStack
 from .pif import Pif
 from .pifpaf import PifPaf
-from .pifpaf2 import PifPaf2
-from .pifpaf3 import PifPaf3
-from .pifpaf4 import PifPaf4
+from .pifpaf_dijkstra import PifPafDijkstra
 from .processor import Processor
 from .visualizer import Visualizer
 
@@ -107,16 +105,9 @@ def factory_decode(model, *, extra_coupling=0.0, experimental=False, **kwargs):
     if head_names in (('pif', 'paf'),
                       ('pif', 'paf44'),
                       ('pif', 'paf16'),
-                      ('paf', 'pif', 'paf'),
-                      ('pif', 'pif', 'paf'),
                       ('pif', 'wpaf')):
-        if experimental:
-            logging.warning('using experimental decoder')
-            return PifPaf2(model.io_scales()[-1],
-                           head_names=head_names,
-                           **kwargs)
         return PifPaf(model.io_scales()[-1],
-                      head_names=head_names,
+                      head_indices=(0, 1),
                       **kwargs)
 
     if head_names in (('pif', 'paf', 'paf25'),):
@@ -128,11 +119,11 @@ def factory_decode(model, *, extra_coupling=0.0, experimental=False, **kwargs):
             )
             return PafStack(
                 (1, 2),
-                PifPaf4(model.io_scales()[-1],
-                        head_indices=(0, 1),
-                        skeleton=COCO_PERSON_SKELETON + DENSER_COCO_PERSON_CONNECTIONS,
-                        confidence_scales=confidence_scales,
-                        **kwargs),
+                PifPafDijkstra(model.io_scales()[-1],
+                               head_indices=(0, 1),
+                               skeleton=COCO_PERSON_SKELETON + DENSER_COCO_PERSON_CONNECTIONS,
+                               confidence_scales=confidence_scales,
+                               **kwargs),
             )
 
         return PifPaf(model.io_scales()[-1],

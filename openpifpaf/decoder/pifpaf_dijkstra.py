@@ -15,7 +15,7 @@ from .utils import normalize_pif, normalize_paf
 LOG = logging.getLogger(__name__)
 
 
-class PifPaf(Decoder):
+class PifPafDijkstra(Decoder):
     default_force_complete = True
     default_connection_method = 'max'
     default_fixed_b = None
@@ -24,8 +24,9 @@ class PifPaf(Decoder):
 
     def __init__(self, stride, *,
                  seed_threshold=0.2,
-                 head_indices,
-                 skeleton,
+                 head_indices=None,
+                 skeleton=None,
+                 confidence_scales=None,
                  debug_visualizer=None):
         self.head_indices = head_indices
         self.skeleton = skeleton
@@ -42,19 +43,21 @@ class PifPaf(Decoder):
         self.paf_nn = 1 if self.connection_method == 'max' else 35
         self.paf_th = self.default_paf_th
 
-    @classmethod
-    def cli(cls, parser):
-        group = parser.add_argument_group('PifPaf decoder')
-        group.add_argument('--fixed-b', default=None, type=float,
-                           help='overwrite b with fixed value, e.g. 0.5')
-        group.add_argument('--pif-fixed-scale', default=None, type=float,
-                           help='overwrite pif scale with a fixed value')
-        group.add_argument('--paf-th', default=cls.default_paf_th, type=float,
-                           help='paf threshold')
-        group.add_argument('--connection-method',
-                           default=cls.default_connection_method,
-                           choices=('median', 'max', 'blend'),
-                           help='connection method to use, max is faster')
+        self.confidence_scales = confidence_scales
+
+    # @classmethod
+    # def cli(cls, parser):
+    #     group = parser.add_argument_group('PifPaf decoder')
+    #     group.add_argument('--fixed-b', default=None, type=float,
+    #                        help='overwrite b with fixed value, e.g. 0.5')
+    #     group.add_argument('--pif-fixed-scale', default=None, type=float,
+    #                        help='overwrite pif scale with a fixed value')
+    #     group.add_argument('--paf-th', default=cls.default_paf_th, type=float,
+    #                        help='paf threshold')
+    #     group.add_argument('--connection-method',
+    #                        default=cls.default_connection_method,
+    #                        choices=('median', 'max', 'blend'),
+    #                        help='connection method to use, max is faster')
 
     @classmethod
     def apply_args(cls, args):
@@ -70,6 +73,12 @@ class PifPaf(Decoder):
         start = time.perf_counter()
 
         pif, paf = fields[self.head_indices[0]], fields[self.head_indices[1]]
+        if self.confidence_scales:
+            cs = np.array(self.confidence_scales).reshape((-1, 1, 1))
+            # print(paf[0].shape, cs.shape)
+            # print('applying cs', cs)
+            paf[0] = np.copy(paf[0])
+            paf[0] *= cs
         if self.debug_visualizer:
             self.debug_visualizer.pif_raw(pif, self.stride)
             self.debug_visualizer.paf_raw(paf, self.stride, reg_components=3)
@@ -84,9 +93,8 @@ class PifPaf(Decoder):
             score_th=self.paf_th,
         ).fill(paf, self.stride)
 
-        gen = generator.Greedy(
+        gen = generator.Dijkstra(
             pifhr, paf_scored, seeds,
-            stride=self.stride,
             seed_threshold=self.seed_threshold,
             connection_method=self.connection_method,
             paf_nn=self.paf_nn,
@@ -97,12 +105,11 @@ class PifPaf(Decoder):
 
         annotations = gen.annotations(initial_annotations=initial_annotations)
         if self.force_complete:
-            paf_scored_c = PafScored(
+            gen.paf_scored = PafScored(
                 np.minimum(1.0, pifhr.targets),
                 self.skeleton,
                 score_th=0.0001,
             ).fill(paf, self.stride)
-            gen.paf_scored = paf_scored_c
             annotations = gen.complete_annotations(annotations)
 
         LOG.debug('annotations %d, %.3fs', len(annotations), time.perf_counter() - start)

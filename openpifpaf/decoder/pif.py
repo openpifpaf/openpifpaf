@@ -22,12 +22,8 @@ class Pif(Decoder):
     def __init__(self, stride, seed_threshold,
                  head_index=None,
                  profile=None,
-                 debug_visualizer=None,
-                 **kwargs):
-        LOG.debug('unused arguments %s', kwargs)
-
+                 debug_visualizer=None):
         self.stride = stride
-        self.hr_scale = self.stride
         self.head_index = head_index or 0
         self.profile = profile
         self.seed_threshold = seed_threshold
@@ -66,6 +62,7 @@ class Pif(Decoder):
         return annotations
 
 
+# TODO refactor and move to generator
 class PifGenerator(object):
     def __init__(self, pif_field, *,
                  stride,
