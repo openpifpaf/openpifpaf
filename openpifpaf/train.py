@@ -117,7 +117,8 @@ def main():
             transforms.AnnotationJitter(),
             transforms.RandomApply(transforms.HFlip(), 0.5),
             transforms.RescaleRelative(scale_range=(0.5 * args.rescale_images,
-                                                    1.0 * args.rescale_images)),
+                                                    2.0 * args.rescale_images),
+                                       power_law=True),
             transforms.Crop(args.square_edge),
             transforms.CenterPad(args.square_edge),
         ]
