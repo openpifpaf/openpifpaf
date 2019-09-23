@@ -22,6 +22,7 @@ class Dijkstra(object):
                  paf_th,
                  skeleton,
                  debug_visualizer=None):
+        self.pifhr = pifhr
         self.paf_scored = paf_scored
         self.seeds = seeds
 
@@ -36,9 +37,8 @@ class Dijkstra(object):
         self.timers = defaultdict(float)
 
         # pif init
-        self._pifhr, self._pifhr_scales = pifhr.clipped()
         if self.debug_visualizer:
-            self.debug_visualizer.pifhr(self._pifhr)
+            self.debug_visualizer.pifhr(self.pifhr.targets)
 
     def annotations(self, initial_annotations=None):
         start = time.perf_counter()
@@ -46,7 +46,7 @@ class Dijkstra(object):
             initial_annotations = []
         LOG.debug('initial annotations = %d', len(initial_annotations))
 
-        occupied = np.zeros(self._pifhr_scales.shape, dtype=np.uint8)
+        occupied = np.zeros(self.pifhr.scales.shape, dtype=np.uint8)
         annotations = []
 
         def mark_occupied(ann):
@@ -63,9 +63,9 @@ class Dijkstra(object):
 
         for ann in initial_annotations:
             if ann.joint_scales is None:
-                ann.fill_joint_scales(self._pifhr_scales)
+                ann.fill_joint_scales(self.pifhr.scales)
             self._grow(ann, self.paf_th)
-            ann.fill_joint_scales(self._pifhr_scales)
+            ann.fill_joint_scales(self.pifhr.scales)
             annotations.append(ann)
             mark_occupied(ann)
 
@@ -76,7 +76,7 @@ class Dijkstra(object):
 
             ann = Annotation(self.skeleton).add(f, (x, y, v))
             self._grow(ann, self.paf_th)
-            ann.fill_joint_scales(self._pifhr_scales)
+            ann.fill_joint_scales(self.pifhr.scales)
             annotations.append(ann)
             mark_occupied(ann)
 
@@ -179,7 +179,7 @@ class Dijkstra(object):
         xyv = ann.data[jsi]
         xy_scale_s = max(
             8.0,
-            scalar_value(self._pifhr_scales[jsi], xyv[0], xyv[1])
+            scalar_value(self.pifhr.scales[jsi], xyv[0], xyv[1])
         )
 
         new_xyv = self._grow_connection(xyv[:2], xy_scale_s, directed_paf_field)
@@ -187,7 +187,7 @@ class Dijkstra(object):
             return 0.0, 0.0, 0.0
         xy_scale_t = max(
             8.0,
-            scalar_value(self._pifhr_scales[jti], new_xyv[0], new_xyv[1])
+            scalar_value(self.pifhr.scales[jti], new_xyv[0], new_xyv[1])
         )
 
         # reverse match
@@ -272,7 +272,7 @@ class Dijkstra(object):
             now_filled_mask = ann.data[:, 2] > 0.0
             updated = np.logical_and(unfilled_mask, now_filled_mask)
             ann.data[updated, 2] = np.minimum(0.001, ann.data[updated, 2])
-            ann.fill_joint_scales(self._pifhr_scales)
+            ann.fill_joint_scales(self.pifhr.scales)
 
             # some joints might still be unfilled
             if np.any(ann.data[:, 2] == 0.0):

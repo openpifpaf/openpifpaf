@@ -85,13 +85,10 @@ class PifPafDijkstra(Decoder):
         paf = normalize_paf(*paf, fixed_b=self.fixed_b)
         pif = normalize_pif(*pif, fixed_scale=self.pif_fixed_scale)
         pifhr = PifHr(self.pif_nn).fill(pif, self.stride)
-        seeds = PifSeeds(pifhr.targets, self.seed_threshold,
+        seeds = PifSeeds(pifhr.target_accumulator, self.seed_threshold,
                          debug_visualizer=self.debug_visualizer).fill(pif, self.stride).get()
-        paf_scored = PafScored(
-            np.minimum(1.0, pifhr.targets),
-            self.skeleton,
-            score_th=self.paf_th,
-        ).fill(paf, self.stride)
+        paf_scored = PafScored(pifhr.targets, self.skeleton,
+                               score_th=self.paf_th).fill(paf, self.stride)
 
         gen = generator.Dijkstra(
             pifhr, paf_scored, seeds,
@@ -105,11 +102,8 @@ class PifPafDijkstra(Decoder):
 
         annotations = gen.annotations(initial_annotations=initial_annotations)
         if self.force_complete:
-            gen.paf_scored = PafScored(
-                np.minimum(1.0, pifhr.targets),
-                self.skeleton,
-                score_th=0.0001,
-            ).fill(paf, self.stride)
+            gen.paf_scored = PafScored(pifhr.targets, self.skeleton,
+                                       score_th=0.0001).fill(paf, self.stride)
             annotations = gen.complete_annotations(annotations)
 
         LOG.debug('annotations %d, %.3fs', len(annotations), time.perf_counter() - start)

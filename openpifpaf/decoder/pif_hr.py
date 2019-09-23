@@ -14,24 +14,34 @@ class PifHr(object):
         self.pif_nn = pif_nn
         self.v_th = v_th
 
-        self.targets = None
+        self.target_accumulator = None
         self.scales = None
         self.scales_n = None
+
+        self._clipped = None
+
+    @property
+    def targets(self):
+        if self._clipped is not None:
+            return self._clipped
+
+        self._clipped = np.minimum(1.0, self.target_accumulator)
+        return self._clipped
 
     def fill(self, pif, stride):
         start = time.perf_counter()
 
-        if self.targets is None:
+        if self.target_accumulator is None:
             shape = (
                 pif.shape[0],
                 int((pif.shape[2] - 1) * stride + 1),
                 int((pif.shape[3] - 1) * stride + 1),
             )
-            self.targets = np.zeros(shape, dtype=np.float32)
+            self.target_accumulator = np.zeros(shape, dtype=np.float32)
             self.scales = np.zeros(shape, dtype=np.float32)
             self.scales_n = np.zeros(shape, dtype=np.float32)
 
-        for t, p, scale, n in zip(self.targets, pif, self.scales, self.scales_n):
+        for t, p, scale, n in zip(self.target_accumulator, pif, self.scales, self.scales_n):
             v, x, y, s = p[:, p[0] > self.v_th]
             x = x * stride
             y = y * stride
@@ -41,6 +51,3 @@ class PifHr(object):
 
         LOG.debug('target_intensities %.3fs', time.perf_counter() - start)
         return self
-
-    def clipped(self, max_v=1.0):
-        return np.minimum(self.targets, max_v), self.scales
