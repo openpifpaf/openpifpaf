@@ -14,4 +14,6 @@ generated-members=numpy.*,torch.*,cv2.*,openpifpaf.functional.*
 ignored-modules=openpifpaf.functional,pycocotools
 
 
-disable=E1102,missing-docstring,useless-object-inheritance,duplicate-code,too-many-arguments,too-many-instance-attributes,too-many-locals,too-few-public-methods
+# for pylint bugs related to numpy: unsubscriptable-object,comparison-with-callable
+# for pytorch: not-callable
+disable=missing-docstring,useless-object-inheritance,duplicate-code,too-many-arguments,too-many-instance-attributes,too-many-locals,too-few-public-methods,unsubscriptable-object,comparison-with-callable,not-callable
