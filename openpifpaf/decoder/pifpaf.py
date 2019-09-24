@@ -3,8 +3,6 @@
 import logging
 import time
 
-import numpy as np
-
 from . import generator
 from .decoder import Decoder
 from .paf_scored import PafScored
@@ -16,16 +14,16 @@ LOG = logging.getLogger(__name__)
 
 
 class PifPaf(Decoder):
-    default_force_complete = True
-    default_connection_method = 'max'
-    default_fixed_b = None
-    default_pif_fixed_scale = None
-    default_paf_th = 0.1
+    force_complete = True
+    connection_method = 'max'
+    fixed_b = None
+    pif_fixed_scale = None
+    paf_th = 0.1
 
     def __init__(self, stride, *,
-                 seed_threshold=0.2,
                  head_indices,
                  skeleton,
+                 seed_threshold=0.2,
                  debug_visualizer=None):
         self.head_indices = head_indices
         self.skeleton = skeleton
@@ -33,38 +31,9 @@ class PifPaf(Decoder):
         self.stride = stride
         self.seed_threshold = seed_threshold
         self.debug_visualizer = debug_visualizer
-        self.force_complete = self.default_force_complete
-        self.connection_method = self.default_connection_method
-        self.fixed_b = self.default_fixed_b
-        self.pif_fixed_scale = self.default_pif_fixed_scale
 
         self.pif_nn = 16
         self.paf_nn = 1 if self.connection_method == 'max' else 35
-        self.paf_th = self.default_paf_th
-
-    @classmethod
-    def cli(cls, parser):
-        group = parser.add_argument_group('PifPaf decoder')
-        group.add_argument('--fixed-b', default=None, type=float,
-                           help='overwrite b with fixed value, e.g. 0.5')
-        group.add_argument('--pif-fixed-scale', default=None, type=float,
-                           help='overwrite pif scale with a fixed value')
-        group.add_argument('--paf-th', default=cls.default_paf_th, type=float,
-                           help='paf threshold')
-        group.add_argument('--connection-method',
-                           default=cls.default_connection_method,
-                           choices=('median', 'max', 'blend'),
-                           help='connection method to use, max is faster')
-
-    @classmethod
-    def apply_args(cls, args):
-        cls.default_fixed_b = args.fixed_b
-        cls.default_pif_fixed_scale = args.pif_fixed_scale
-        cls.default_paf_th = args.paf_th
-        cls.default_connection_method = args.connection_method
-
-        # arg defined in factory
-        cls.default_force_complete = args.force_complete_pose
 
     def __call__(self, fields, initial_annotations=None):
         start = time.perf_counter()

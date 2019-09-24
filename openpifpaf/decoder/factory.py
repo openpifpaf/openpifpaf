@@ -51,6 +51,18 @@ def cli(parser, *,
     group.add_argument('--profile-decoder', default=None, action='store_true',
                        help='profile decoder')
 
+    group = parser.add_argument_group('PifPaf decoders')
+    group.add_argument('--fixed-b', default=PifPaf.fixed_b, type=float,
+                       help='overwrite b with fixed value, e.g. 0.5')
+    group.add_argument('--pif-fixed-scale', default=PifPaf.pif_fixed_scale, type=float,
+                       help='overwrite pif scale with a fixed value')
+    group.add_argument('--paf-th', default=PifPaf.paf_th, type=float,
+                       help='paf threshold')
+    group.add_argument('--connection-method',
+                       default=PifPaf.connection_method,
+                       choices=('median', 'max', 'blend'),
+                       help='connection method to use, max is faster')
+
     for decoder in Decoder.__subclasses__():
         decoder.cli(parser)
 
@@ -58,6 +70,20 @@ def cli(parser, *,
 def factory_from_args(args, model, device=None):
     for decoder in Decoder.__subclasses__():
         decoder.apply_args(args)
+
+    # configure PifPaf
+    PifPaf.fixed_b = args.fixed_b
+    PifPaf.pif_fixed_scale = args.pif_fixed_scale
+    PifPaf.paf_th = args.paf_th
+    PifPaf.connection_method = args.connection_method
+    PifPaf.force_complete = args.force_complete_pose
+
+    # configure PifPafDijkstra
+    PifPafDijkstra.fixed_b = args.fixed_b
+    PifPafDijkstra.pif_fixed_scale = args.pif_fixed_scale
+    PifPafDijkstra.paf_th = args.paf_th
+    PifPafDijkstra.connection_method = args.connection_method
+    PifPafDijkstra.force_complete = args.force_complete_pose
 
     debug_visualizer = None
     if args.debug_pif_indices or args.debug_paf_indices:
