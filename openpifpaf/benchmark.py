@@ -63,7 +63,7 @@ def run_eval_coco(output_folder, backbone, eval_args):
         'python', '-m', 'openpifpaf.eval_coco',
         '--output', out_file,
         '--checkpoint', backbone,
-    ] + eval_args)
+    ] + eval_args, check=True)
 
 
 def main():
