@@ -9,6 +9,8 @@ import subprocess
 
 import pysparkling
 
+LOG = logging.getLogger(__name__)
+
 
 DEFAULT_BACKBONES = [
     'shufflenetv2x1',
@@ -56,7 +58,7 @@ def run_eval_coco(output_folder, backbone, eval_args):
                         out_file + '.stats.json')
         return
 
-    logging.debug('Launching eval for %s.', backbone)
+    LOG.debug('Launching eval for %s.', backbone)
     subprocess.run([
         'python', '-m', 'openpifpaf.eval_coco',
         '--output', out_file,
@@ -78,7 +80,7 @@ def main():
         .map(lambda d: (d['checkpoint'], d))
         .collectAsMap()
     )
-    logging.debug('all data: %s', stats)
+    LOG.debug('all data: %s', stats)
 
     # pretty printing
     for backbone, data in sorted(stats.items(), key=lambda b_d: b_d[1]['stats'][0]):

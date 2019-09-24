@@ -13,6 +13,8 @@ import torch
 from .network import nets
 from . import datasets, decoder, show, transforms
 
+LOG = logging.getLogger(__name__)
+
 
 def cli():
     parser = argparse.ArgumentParser(
@@ -126,7 +128,7 @@ def main():
             else:
                 file_name = os.path.basename(meta['file_name'])
                 output_path = os.path.join(args.output_directory, file_name)
-            logging.info('batch %d: %s to %s', batch_i, meta['file_name'], output_path)
+            LOG.info('batch %d: %s to %s', batch_i, meta['file_name'], output_path)
 
             # load the original image if necessary
             cpu_image = None
