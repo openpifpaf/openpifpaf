@@ -1,3 +1,5 @@
+import numpy as np
+
 
 COCO_PERSON_SKELETON = [
     (16, 14), (14, 12), (17, 15), (15, 13), (12, 13), (6, 12), (7, 13),
@@ -104,7 +106,6 @@ COCO_PERSON_SIGMAS = [
 
 
 def draw_skeletons():
-    import numpy as np
     from . import show
     coordinates = np.array([[
         [0.0, 9.3, 2.0],  # 'nose',            # 1

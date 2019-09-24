@@ -6,6 +6,8 @@ import datetime
 import json
 import logging
 from pprint import pprint
+import socket
+import sys
 
 import numpy as np
 import pysparkling
@@ -28,8 +30,6 @@ def cli(parser):
 
 def configure(args):
     from pythonjsonlogger import jsonlogger
-    import socket
-    import sys
     from . import __version__ as VERSION
 
     file_handler = logging.FileHandler(args.output + '.log', mode='w')
