@@ -28,6 +28,8 @@ ANNOTATIONS_TESTDEV = 'data-mscoco/annotations/image_info_test-dev2017.json'
 ANNOTATIONS_TEST = 'data-mscoco/annotations/image_info_test2017.json'
 IMAGE_DIR_TEST = 'data-mscoco/images/test2017/'
 
+LOG = logging.getLogger(__name__)
+
 
 class EvalCoco(object):
     def __init__(self, coco, processor, keypoint_sets_inverse, skeleton=None):
@@ -315,9 +317,9 @@ def main():
     total_start = time.time()
     loop_start = time.time()
     for batch_i, (image_tensors_cpu, anns_batch, meta_batch) in enumerate(data_loader):
-        logging.info('batch %d, last loop: %.3fs, batches per second=%.1f',
-                     batch_i, time.time() - loop_start,
-                     batch_i / max(1, (time.time() - total_start)))
+        LOG.info('batch %d, last loop: %.3fs, batches per second=%.1f',
+                 batch_i, time.time() - loop_start,
+                 batch_i / max(1, (time.time() - total_start)))
         if batch_i < args.skip_n:
             continue
         if args.n and batch_i >= args.n:
