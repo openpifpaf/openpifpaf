@@ -150,12 +150,12 @@ def factory_decode(model, *,
         pif_min_scale = 0.0
         paf_min_distance = 0.0
         if multi_scale:
-            resulutions = [1, 1.125, 1.5, 2, 4, 8]
+            resulutions = [1, 1.5, 2, 4, 8]
             stride = [model.io_scales()[-1] * r for r in resulutions]
-            pif_index = [0, 3, 6, 9, 12, 15]
-            paf_index = [1, 4, 7, 10, 13, 16]
-            pif_min_scale = [0.0, 9.0, 12.0, 16.0, 32.0, 64.0]
-            paf_min_distance = [0.0, 9.0, 12.0, 16.0, 32.0, 64.0]
+            pif_index = [0, 3, 6, 9, 12]
+            paf_index = [1, 4, 7, 10, 13]
+            pif_min_scale = [0.0, 12.0, 16.0, 32.0, 64.0]
+            paf_min_distance = [0.0, 12.0, 16.0, 32.0, 64.0]
 
         if experimental:
             logging.warning('using experimental decoder')

@@ -117,8 +117,14 @@ class ShellMultiScale(torch.nn.Module):
         original_input = args[0]
 
         head_outputs = []
-        for reduction in [1, 2, 3, 4]:
-            reduced_input = original_input[:, :, ::reduction, ::reduction]
+        for reduction in [1, 1.5, 2, 4, 8]:
+            if reduction == 1.5:
+                x_red = torch.ByteTensor([i % 3 != 0 for i in range(original_input.shape[3])])
+                y_red = torch.ByteTensor([i % 3 != 0 for i in range(original_input.shape[2])])
+                reduced_input = original_input[:, :, y_red, :]
+                reduced_input = reduced_input[:, :, :, x_red]
+            else:
+                reduced_input = original_input[:, :, ::reduction, ::reduction]
             reduced_x = self.base_net(reduced_input)
             head_outputs += [hn(reduced_x) for hn in self.head_nets]
 
