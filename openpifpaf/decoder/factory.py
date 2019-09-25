@@ -107,6 +107,7 @@ def factory_from_args(args, model, device=None):
                             experimental=args.experimental_decoder,
                             seed_threshold=args.seed_threshold,
                             extra_coupling=args.extra_coupling,
+                            multi_scale=args.multi_scale,
                             debug_visualizer=debug_visualizer)
 
     return Processor(model, decode,
@@ -118,7 +119,11 @@ def factory_from_args(args, model, device=None):
                      device=device)
 
 
-def factory_decode(model, *, extra_coupling=0.0, experimental=False, **kwargs):
+def factory_decode(model, *,
+                   extra_coupling=0.0,
+                   experimental=False,
+                   multi_scale=False,
+                   **kwargs):
     """Instantiate a decoder for the given model.
 
     All subclasses of decoder.Decoder are checked for a match.
@@ -152,6 +157,17 @@ def factory_decode(model, *, extra_coupling=0.0, experimental=False, **kwargs):
                                confidence_scales=confidence_scales,
                                **kwargs),
             )
+
+        if multi_scale:
+            return PifPaf(
+                [model.io_scales()[-1],
+                 model.io_scales()[-1] * 2,
+                 model.io_scales()[-1] * 3,
+                 model.io_scales()[-1] * 4],
+                pif_index=[0, 3, 6, 9],
+                paf_index=[1, 4, 7, 10],
+                skeleton=COCO_PERSON_SKELETON,
+                **kwargs)
 
         return PifPaf(model.io_scales()[-1],
                       skeleton=COCO_PERSON_SKELETON,

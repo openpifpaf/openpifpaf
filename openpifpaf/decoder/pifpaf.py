@@ -26,12 +26,12 @@ class PifPaf(Decoder):
                  seed_threshold=0.2,
                  debug_visualizer=None):
         self.strides = stride
-        self.pif_indeces = pif_index
-        self.paf_indeces = paf_index
+        self.pif_indices = pif_index
+        self.paf_indices = paf_index
         if not isinstance(self.strides, (list, tuple)):
             self.strides = [self.strides]
-            self.pif_indeces = [self.pif_indeces]
-            self.paf_indeces = [self.paf_indeces]
+            self.pif_indices = [self.pif_indices]
+            self.paf_indices = [self.paf_indices]
 
         self.skeleton = skeleton
 
@@ -45,16 +45,16 @@ class PifPaf(Decoder):
         start = time.perf_counter()
 
         if self.debug_visualizer:
-            for stride, pif_i in zip(self.strides, self.pif_indeces):
+            for stride, pif_i in zip(self.strides, self.pif_indices):
                 self.debug_visualizer.pif_raw(fields[pif_i], stride)
-            for stride, paf_i in zip(self.strides, self.pif_indeces):
+            for stride, paf_i in zip(self.strides, self.paf_indices):
                 self.debug_visualizer.paf_raw(fields[paf_i], stride, reg_components=3)
 
         # normalize
         normalized_pifs = [normalize_pif(*fields[pif_i], fixed_scale=self.pif_fixed_scale)
-                           for pif_i in self.pif_indeces]
+                           for pif_i in self.pif_indices]
         normalized_pafs = [normalize_paf(*fields[paf_i], fixed_b=self.fixed_b)
-                           for paf_i in self.paf_indeces]
+                           for paf_i in self.paf_indices]
 
         # pif hr
         pifhr = PifHr(self.pif_nn)

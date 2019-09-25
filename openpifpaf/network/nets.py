@@ -102,6 +102,29 @@ class Shell2Scale(torch.nn.Module):
         return original_heads
 
 
+class ShellMultiScale(torch.nn.Module):
+    def __init__(self, base_net, head_nets):
+        super(ShellMultiScale, self).__init__()
+
+        self.base_net = base_net
+        self.head_nets = torch.nn.ModuleList(head_nets)
+
+    def io_scales(self):
+        return [self.base_net.input_output_scale // (2 ** getattr(h, '_quad', 0))
+                for h in self.head_nets]
+
+    def forward(self, *args):
+        original_input = args[0]
+
+        head_outputs = []
+        for reduction in [1, 2, 3, 4]:
+            reduced_input = original_input[:, :, ::reduction, ::reduction]
+            reduced_x = self.base_net(reduced_input)
+            head_outputs += [hn(reduced_x) for hn in self.head_nets]
+
+        return head_outputs
+
+
 class Shell2Stage(torch.nn.Module):
     def __init__(self, base_net, head_nets1, head_nets2):
         super(Shell2Stage, self).__init__()
@@ -163,7 +186,8 @@ def factory_from_args(args):
                    basenet=args.basenet,
                    headnets=args.headnets,
                    pretrained=args.pretrained,
-                   two_scale=args.two_scale)
+                   two_scale=args.two_scale,
+                   multi_scale=args.multi_scale)
 
 
 # pylint: disable=too-many-branches
@@ -221,7 +245,8 @@ def factory(*,
             pretrained=True,
             dilation=None,
             dilation_end=None,
-            two_scale=False):
+            two_scale=False,
+            multi_scale=False):
     if not checkpoint and basenet:
         net_cpu = factory_from_scratch(basenet, headnets, pretrained=pretrained)
         epoch = 0
@@ -255,6 +280,9 @@ def factory(*,
 
     if two_scale:
         net_cpu = Shell2Scale(net_cpu.base_net, net_cpu.head_nets)
+
+    if multi_scale:
+        net_cpu = ShellMultiScale(net_cpu.base_net, net_cpu.head_nets)
 
     if dilation is not None:
         net_cpu.base_net.atrous0(dilation)
@@ -431,6 +459,8 @@ def cli(parser):
                        help='create model without ImageNet pretraining')
     group.add_argument('--two-scale', default=False, action='store_true',
                        help='[experimental] two scale')
+    group.add_argument('--multi-scale', default=False, action='store_true',
+                       help='[experimental] multi scale')
 
     for head in (heads.HEADS or heads.Head.__subclasses__()):
         head.cli(parser)

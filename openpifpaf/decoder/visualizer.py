@@ -59,8 +59,8 @@ class Visualizer(object):
                 y = [yy * io_scale for _, ff, __, yy, ___ in seeds if ff == f]
                 c = [cc for cc, ff, _, __, ___ in seeds if ff == f]
                 ax.plot(x, y, 'o')
-                for xx, yy, cc in zip(x, y, c):
-                    ax.text(xx, yy, '{:.2f}'.format(cc))
+                # for xx, yy, cc in zip(x, y, c):
+                #     ax.text(xx, yy, '{:.2f}'.format(cc))
 
     @staticmethod
     def occupied(occ):

@@ -37,17 +37,24 @@ class PifHr(object):
                 int((pif.shape[2] - 1) * stride + 1),
                 int((pif.shape[3] - 1) * stride + 1),
             )
-            self.target_accumulator = np.zeros(shape, dtype=np.float32)
+            ta = np.zeros(shape, dtype=np.float32)
             self.scales = np.zeros(shape, dtype=np.float32)
             self.scales_n = np.zeros(shape, dtype=np.float32)
+        else:
+            ta = np.zeros(self.target_accumulator.shape, dtype=np.float32)
 
-        for t, p, scale, n in zip(self.target_accumulator, pif, self.scales, self.scales_n):
+        for t, p, scale, n in zip(ta, pif, self.scales, self.scales_n):
             v, x, y, s = p[:, p[0] > self.v_th]
             x = x * stride
             y = y * stride
             s = s * stride
             scalar_square_add_gauss(t, x, y, s, v / self.pif_nn)
             cumulative_average(scale, n, x, y, s, s, v)
+
+        if self.target_accumulator is None:
+            self.target_accumulator = ta
+        else:
+            self.target_accumulator = np.maximum(ta, self.target_accumulator)
 
         LOG.debug('target_intensities %.3fs', time.perf_counter() - start)
         return self
