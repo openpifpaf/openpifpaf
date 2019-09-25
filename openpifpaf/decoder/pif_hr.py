@@ -28,7 +28,7 @@ class PifHr(object):
         self._clipped = np.minimum(1.0, self.target_accumulator)
         return self._clipped
 
-    def fill(self, pif, stride):
+    def fill(self, pif, stride, min_scale=0.0):
         start = time.perf_counter()
 
         if self.target_accumulator is None:
@@ -44,10 +44,15 @@ class PifHr(object):
             ta = np.zeros(self.target_accumulator.shape, dtype=np.float32)
 
         for t, p, scale, n in zip(ta, pif, self.scales, self.scales_n):
-            v, x, y, s = p[:, p[0] > self.v_th]
+            p = p[:, p[0] > self.v_th]
+            if min_scale:
+                p = p[:, p[3] > min_scale / stride]
+
+            v, x, y, s = p
             x = x * stride
             y = y * stride
             s = s * stride
+
             scalar_square_add_gauss(t, x, y, s, v / self.pif_nn)
             cumulative_average(scale, n, x, y, s, s, v)
 

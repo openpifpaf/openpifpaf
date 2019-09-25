@@ -144,6 +144,23 @@ def factory_decode(model, *,
                       **kwargs)
 
     if head_names in (('pif', 'paf', 'paf25'),):
+        stride = model.io_scales()[-1]
+        pif_index = 0
+        paf_index = 1
+        pif_min_scale = 0.0
+        paf_min_distance = 0.0
+        if multi_scale:
+            stride = [
+                model.io_scales()[-1],
+                model.io_scales()[-1] * 2,
+                model.io_scales()[-1] * 3,
+                model.io_scales()[-1] * 4,
+            ]
+            pif_index = [0, 3, 6, 9]
+            paf_index = [1, 4, 7, 10]
+            pif_min_scale = [0.0, 16.0, 24.0, 32.0]
+            paf_min_distance = [0.0, 16.0, 24.0, 32.0]
+
         if experimental:
             logging.warning('using experimental decoder')
             confidence_scales = (
@@ -152,25 +169,26 @@ def factory_decode(model, *,
             )
             return PafStack(
                 (1, 2),
-                PifPafDijkstra(model.io_scales()[-1],
-                               skeleton=COCO_PERSON_SKELETON + DENSER_COCO_PERSON_CONNECTIONS,
-                               confidence_scales=confidence_scales,
-                               **kwargs),
+                PifPafDijkstra(
+                    stride,
+                    pif_index=pif_index,
+                    paf_index=paf_index,
+                    pif_min_scale=pif_min_scale,
+                    paf_min_distance=paf_min_distance,
+                    skeleton=COCO_PERSON_SKELETON + DENSER_COCO_PERSON_CONNECTIONS,
+                    confidence_scales=confidence_scales,
+                    **kwargs
+                ),
             )
 
-        if multi_scale:
-            return PifPaf(
-                [model.io_scales()[-1],
-                 model.io_scales()[-1] * 2,
-                 model.io_scales()[-1] * 3,
-                 model.io_scales()[-1] * 4],
-                pif_index=[0, 3, 6, 9],
-                paf_index=[1, 4, 7, 10],
-                skeleton=COCO_PERSON_SKELETON,
-                **kwargs)
-
-        return PifPaf(model.io_scales()[-1],
-                      skeleton=COCO_PERSON_SKELETON,
-                      **kwargs)
+        return PifPaf(
+            stride,
+            pif_index=pif_index,
+            paf_index=paf_index,
+            pif_min_scale=pif_min_scale,
+            paf_min_distance=paf_min_distance,
+            skeleton=COCO_PERSON_SKELETON,
+            **kwargs
+        )
 
     raise Exception('unknown head nets {} for decoder'.format(head_names))

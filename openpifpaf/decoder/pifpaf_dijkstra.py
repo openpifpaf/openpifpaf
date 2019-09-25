@@ -25,16 +25,24 @@ class PifPafDijkstra(Decoder):
     def __init__(self, stride, *,
                  skeleton,
                  pif_index=0, paf_index=1,
+                 pif_min_scale=0.0,
+                 paf_min_distance=0.0,
                  seed_threshold=0.2,
                  confidence_scales=None,
                  debug_visualizer=None):
         self.strides = stride
         self.pif_indeces = pif_index
         self.paf_indeces = paf_index
+        self.pif_min_scales = pif_min_scale
+        self.paf_min_distances = paf_min_distance
         if not isinstance(self.strides, (list, tuple)):
             self.strides = [self.strides]
             self.pif_indeces = [self.pif_indeces]
             self.paf_indeces = [self.paf_indeces]
+        if not isinstance(self.pif_min_scales, (list, tuple)):
+            self.pif_min_scales = [self.pif_min_scales for _ in self.strides]
+        if not isinstance(self.paf_min_distances, (list, tuple)):
+            self.paf_min_distances = [self.paf_min_distances for _ in self.strides]
 
         self.skeleton = skeleton
 
@@ -70,19 +78,25 @@ class PifPafDijkstra(Decoder):
 
         # pif hr
         pifhr = PifHr(self.pif_nn)
-        for stride, pif in zip(self.strides, normalized_pifs):
-            pifhr.fill(pif, stride)
+        for stride, pif, min_scale in zip(self.strides,
+                                          normalized_pifs,
+                                          self.pif_min_scales):
+            pifhr.fill(pif, stride, min_scale=min_scale)
 
         # seeds
         seeds = PifSeeds(pifhr.target_accumulator, self.seed_threshold,
                          debug_visualizer=self.debug_visualizer)
-        for stride, pif in zip(self.strides, normalized_pifs):
-            seeds.fill(pif, stride)
+        for stride, pif, min_scale in zip(self.strides,
+                                          normalized_pifs,
+                                          self.pif_min_scales):
+            seeds.fill(pif, stride, min_scale=min_scale)
 
         # paf_scored
         paf_scored = PafScored(pifhr.targets, self.skeleton, score_th=self.paf_th)
-        for stride, paf in zip(self.strides, normalized_pafs):
-            paf_scored.fill(paf, stride)
+        for stride, paf, min_distance in zip(self.strides,
+                                             normalized_pafs,
+                                             self.paf_min_distances):
+            paf_scored.fill(paf, stride, min_distance=min_distance)
 
         gen = generator.Dijkstra(
             pifhr, paf_scored, seeds,

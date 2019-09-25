@@ -16,11 +16,14 @@ class PifSeeds(object):
 
         self.seeds = []
 
-    def fill(self, pif, stride):
+    def fill(self, pif, stride, min_scale=0.0):
         start = time.perf_counter()
 
         for field_i, p in enumerate(pif):
-            _, x, y, s = p[:, p[0] > self.seed_threshold / 2.0]
+            p = p[:, p[0] > self.seed_threshold / 2.0]
+            if min_scale:
+                p = p[:, p[3] > min_scale / stride]
+            _, x, y, s = p
             v = scalar_values(self.pifhr[field_i], x * stride, y * stride)
             m = v > self.seed_threshold
             x, y, v, s = x[m] * stride, y[m] * stride, v[m], s[m] * stride
