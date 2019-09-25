@@ -40,6 +40,10 @@ class PifPaf(Decoder):
             self.pif_min_scales = [self.pif_min_scales for _ in self.strides]
         if not isinstance(self.paf_min_distances, (list, tuple)):
             self.paf_min_distances = [self.paf_min_distances for _ in self.strides]
+        assert len(self.strides) == len(self.pif_indices)
+        assert len(self.strides) == len(self.paf_indices)
+        assert len(self.strides) == len(self.pif_min_scales)
+        assert len(self.strides) == len(self.paf_min_distances)
 
         self.skeleton = skeleton
 
