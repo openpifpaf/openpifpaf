@@ -23,15 +23,21 @@ class PifPafDijkstra(Decoder):
     paf_th = 0.1
 
     def __init__(self, stride, *,
-                 head_indices,
                  skeleton,
+                 pif_index=0, paf_index=1,
                  seed_threshold=0.2,
                  confidence_scales=None,
                  debug_visualizer=None):
-        self.head_indices = head_indices
+        self.strides = stride
+        self.pif_indeces = pif_index
+        self.paf_indeces = paf_index
+        if not isinstance(self.strides, (list, tuple)):
+            self.strides = [self.strides]
+            self.pif_indeces = [self.pif_indeces]
+            self.paf_indeces = [self.paf_indeces]
+
         self.skeleton = skeleton
 
-        self.stride = stride
         self.seed_threshold = seed_threshold
         self.debug_visualizer = debug_visualizer
 
@@ -43,23 +49,40 @@ class PifPafDijkstra(Decoder):
     def __call__(self, fields, initial_annotations=None):
         start = time.perf_counter()
 
-        pif, paf = fields[self.head_indices[0]], fields[self.head_indices[1]]
-        if self.confidence_scales:
-            cs = np.array(self.confidence_scales).reshape((-1, 1, 1))
-            # print(paf[0].shape, cs.shape)
-            # print('applying cs', cs)
-            paf[0] = np.copy(paf[0])
-            paf[0] *= cs
         if self.debug_visualizer:
-            self.debug_visualizer.pif_raw(pif, self.stride)
-            self.debug_visualizer.paf_raw(paf, self.stride, reg_components=3)
-        paf = normalize_paf(*paf, fixed_b=self.fixed_b)
-        pif = normalize_pif(*pif, fixed_scale=self.pif_fixed_scale)
-        pifhr = PifHr(self.pif_nn).fill(pif, self.stride)
+            for stride, pif_i in zip(self.strides, self.pif_indeces):
+                self.debug_visualizer.pif_raw(fields[pif_i], stride)
+            for stride, paf_i in zip(self.strides, self.pif_indeces):
+                self.debug_visualizer.paf_raw(fields[paf_i], stride, reg_components=3)
+
+        # confidence scales
+        if self.confidence_scales:
+            for paf_i in self.paf_indeces:
+                paf = fields[paf_i]
+                cs = np.array(self.confidence_scales, dtype=np.float32).reshape((-1, 1, 1,))
+                paf[0] = cs * paf[0]
+
+        # normalize
+        normalized_pifs = [normalize_pif(*fields[pif_i], fixed_scale=self.pif_fixed_scale)
+                           for pif_i in self.pif_indeces]
+        normalized_pafs = [normalize_paf(*fields[paf_i], fixed_b=self.fixed_b)
+                           for paf_i in self.paf_indeces]
+
+        # pif hr
+        pifhr = PifHr(self.pif_nn)
+        for stride, pif in zip(self.strides, normalized_pifs):
+            pifhr.fill(pif, stride)
+
+        # seeds
         seeds = PifSeeds(pifhr.target_accumulator, self.seed_threshold,
-                         debug_visualizer=self.debug_visualizer).fill(pif, self.stride).get()
-        paf_scored = PafScored(pifhr.targets, self.skeleton,
-                               score_th=self.paf_th).fill(paf, self.stride)
+                         debug_visualizer=self.debug_visualizer)
+        for stride, pif in zip(self.strides, normalized_pifs):
+            seeds.fill(pif, stride)
+
+        # paf_scored
+        paf_scored = PafScored(pifhr.targets, self.skeleton, score_th=self.paf_th)
+        for stride, paf in zip(self.strides, normalized_pafs):
+            paf_scored.fill(paf, stride)
 
         gen = generator.Dijkstra(
             pifhr, paf_scored, seeds,
@@ -73,8 +96,9 @@ class PifPafDijkstra(Decoder):
 
         annotations = gen.annotations(initial_annotations=initial_annotations)
         if self.force_complete:
-            gen.paf_scored = PafScored(pifhr.targets, self.skeleton,
-                                       score_th=0.0001).fill(paf, self.stride)
+            gen.paf_scored = PafScored(pifhr.targets, self.skeleton, score_th=0.0001)
+            for stride, paf in zip(self.strides, normalized_pafs):
+                gen.paf_scored.fill(paf, stride)
             annotations = gen.complete_annotations(annotations)
 
         LOG.debug('annotations %d, %.3fs', len(annotations), time.perf_counter() - start)

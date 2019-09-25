@@ -135,7 +135,7 @@ def factory_decode(model, *, extra_coupling=0.0, experimental=False, **kwargs):
                       ('pif', 'paf16'),
                       ('pif', 'wpaf')):
         return PifPaf(model.io_scales()[-1],
-                      head_indices=(0, 1),
+                      skeleton=COCO_PERSON_SKELETON,
                       **kwargs)
 
     if head_names in (('pif', 'paf', 'paf25'),):
@@ -148,14 +148,12 @@ def factory_decode(model, *, extra_coupling=0.0, experimental=False, **kwargs):
             return PafStack(
                 (1, 2),
                 PifPafDijkstra(model.io_scales()[-1],
-                               head_indices=(0, 1),
                                skeleton=COCO_PERSON_SKELETON + DENSER_COCO_PERSON_CONNECTIONS,
                                confidence_scales=confidence_scales,
                                **kwargs),
             )
 
         return PifPaf(model.io_scales()[-1],
-                      head_indices=(0, 1),
                       skeleton=COCO_PERSON_SKELETON,
                       **kwargs)
 
