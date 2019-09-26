@@ -54,8 +54,8 @@ def cli():
 def run_eval_coco(output_folder, backbone, eval_args):
     out_file = os.path.join(output_folder, backbone)
     if os.path.exists(out_file + '.stats.json'):
-        logging.warning('Output file %s exists already. Skipping.',
-                        out_file + '.stats.json')
+        LOG.warning('Output file %s exists already. Skipping.',
+                    out_file + '.stats.json')
         return
 
     LOG.debug('Launching eval for %s.', backbone)
