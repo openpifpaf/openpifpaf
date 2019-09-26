@@ -9,6 +9,8 @@ from .pifpaf_dijkstra import PifPafDijkstra
 from .processor import Processor
 from .visualizer import Visualizer
 
+LOG = logging.getLogger(__name__)
+
 
 def cli(parser, *,
         force_complete_pose=True,
@@ -158,7 +160,7 @@ def factory_decode(model, *,
             paf_min_distance = [0.0, 12.0, 16.0, 32.0, 64.0]
 
         if experimental:
-            logging.warning('using experimental decoder')
+            LOG.warning('using experimental decoder')
             confidence_scales = (
                 [1.0 for _ in COCO_PERSON_SKELETON] +
                 [extra_coupling for _ in DENSER_COCO_PERSON_CONNECTIONS]
@@ -186,5 +188,3 @@ def factory_decode(model, *,
             skeleton=COCO_PERSON_SKELETON,
             **kwargs
         )
-
-    raise Exception('unknown head nets {} for decoder'.format(head_names))
