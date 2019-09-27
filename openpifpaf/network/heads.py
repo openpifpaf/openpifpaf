@@ -21,6 +21,32 @@ class Head(metaclass=ABCMeta):
         """Read command line arguments args to set class properties."""
 
 
+class HeadStacks(torch.nn.Module):
+    def __init__(self, stacks):
+        super(HeadStacks, self).__init__()
+        self.stacks_by_pos = {s[0]: s for s in stacks}
+        self.ignore = {head_i for s in stacks for head_i in s[1:]}
+
+    def forward(self, *args):
+        heads = args
+
+        stacked = []
+        for head_i, head in enumerate(heads):
+            if head_i in self.ignore:
+                continue
+            if head_i not in self.stacks_by_pos:
+                stacked.append(head)
+                continue
+
+            fields = [heads[si] for si in self.stacks_by_pos[head_i]]
+            stacked.append([
+                torch.cat(fields_by_type, dim=1)
+                for fields_by_type in zip(*fields)
+            ])
+
+        return stacked
+
+
 class CompositeField(Head, torch.nn.Module):
     default_dropout_p = 0.0
     default_quad = 0

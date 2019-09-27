@@ -2,7 +2,6 @@ import logging
 
 from ..data import COCO_PERSON_SKELETON, DENSER_COCO_PERSON_CONNECTIONS
 from .decoder import Decoder
-from .paf_stack import PafStack
 from .pif import Pif
 from .pifpaf import PifPaf
 from .pifpaf_dijkstra import PifPafDijkstra
@@ -154,8 +153,12 @@ def factory_decode(model, *,
         if multi_scale:
             resulutions = [1, 1.5, 2, 4, 8]
             stride = [model.io_scales()[-1] * r for r in resulutions]
-            pif_index = [0, 3, 6, 9, 12]
-            paf_index = [1, 4, 7, 10, 13]
+            if not experimental:
+                pif_index = [0, 3, 6, 9, 12]
+                paf_index = [1, 4, 7, 10, 13]
+            else:
+                pif_index = [0, 2, 4, 6, 8]
+                paf_index = [1, 3, 5, 7, 9]
             pif_min_scale = [0.0, 12.0, 16.0, 32.0, 64.0]
             paf_min_distance = [0.0, 12.0, 16.0, 32.0, 64.0]
 
@@ -165,18 +168,15 @@ def factory_decode(model, *,
                 [1.0 for _ in COCO_PERSON_SKELETON] +
                 [extra_coupling for _ in DENSER_COCO_PERSON_CONNECTIONS]
             )
-            return PafStack(
-                (1, 2),
-                PifPafDijkstra(
-                    stride,
-                    pif_index=pif_index,
-                    paf_index=paf_index,
-                    pif_min_scale=pif_min_scale,
-                    paf_min_distance=paf_min_distance,
-                    skeleton=COCO_PERSON_SKELETON + DENSER_COCO_PERSON_CONNECTIONS,
-                    confidence_scales=confidence_scales,
-                    **kwargs
-                ),
+            return PifPafDijkstra(
+                stride,
+                pif_index=pif_index,
+                paf_index=paf_index,
+                pif_min_scale=pif_min_scale,
+                paf_min_distance=paf_min_distance,
+                skeleton=COCO_PERSON_SKELETON + DENSER_COCO_PERSON_CONNECTIONS,
+                confidence_scales=confidence_scales,
+                **kwargs
             )
 
         return PifPaf(

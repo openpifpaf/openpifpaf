@@ -24,11 +24,12 @@ LOG = logging.getLogger(__name__)
 
 
 class Shell(torch.nn.Module):
-    def __init__(self, base_net, head_nets):
+    def __init__(self, base_net, head_nets, process_heads=None):
         super(Shell, self).__init__()
 
         self.base_net = base_net
         self.head_nets = torch.nn.ModuleList(head_nets)
+        self.process_heads = process_heads
 
     def io_scales(self):
         return [self.base_net.input_output_scale // (2 ** getattr(h, '_quad', 0))
@@ -36,7 +37,12 @@ class Shell(torch.nn.Module):
 
     def forward(self, *args):
         x = self.base_net(*args)
-        return [hn(x) for hn in self.head_nets]
+        head_outputs = [hn(x) for hn in self.head_nets]
+
+        if self.process_heads is not None:
+            head_outputs = self.process_heads(*head_outputs)
+
+        return head_outputs
 
 
 class Shell2Scale(torch.nn.Module):
@@ -103,11 +109,12 @@ class Shell2Scale(torch.nn.Module):
 
 
 class ShellMultiScale(torch.nn.Module):
-    def __init__(self, base_net, head_nets):
+    def __init__(self, base_net, head_nets, process_heads=None):
         super(ShellMultiScale, self).__init__()
 
         self.base_net = base_net
         self.head_nets = torch.nn.ModuleList(head_nets)
+        self.process_heads = process_heads
 
     def io_scales(self):
         return [self.base_net.input_output_scale // (2 ** getattr(h, '_quad', 0))
@@ -127,6 +134,9 @@ class ShellMultiScale(torch.nn.Module):
                 reduced_input = original_input[:, :, ::reduction, ::reduction]
             reduced_x = self.base_net(reduced_input)
             head_outputs += [hn(reduced_x) for hn in self.head_nets]
+
+        if self.process_heads is not None:
+            head_outputs = self.process_heads(*head_outputs)
 
         return head_outputs
 
@@ -192,6 +202,7 @@ def factory_from_args(args):
                    basenet=args.basenet,
                    headnets=args.headnets,
                    pretrained=args.pretrained,
+                   experimental=args.experimental_decoder,
                    two_scale=args.two_scale,
                    multi_scale=args.multi_scale)
 
@@ -205,6 +216,9 @@ def model_migration(net_cpu):
             continue
         if not hasattr(m, 'padding_mode'):  # introduced in PyTorch 1.1.0
             m.padding_mode = 'zeros'
+
+    if not hasattr(net_cpu, 'process_heads'):
+        net_cpu.process_heads = None
 
     for head in net_cpu.head_nets:
         head.shortname = head.shortname.replace('PartsIntensityFields', 'pif')
@@ -251,6 +265,7 @@ def factory(*,
             pretrained=True,
             dilation=None,
             dilation_end=None,
+            experimental=False,
             two_scale=False,
             multi_scale=False):
     if not checkpoint and basenet:
@@ -284,11 +299,18 @@ def factory(*,
         # normalize for backwards compatibility
         model_migration(net_cpu)
 
+    if experimental and not multi_scale:
+        net_cpu.process_heads = heads.HeadStacks([(1, 2)])
+    if experimental and multi_scale:
+        net_cpu.process_heads = heads.HeadStacks(
+            [(1, 2), (4, 5), (7, 8), (10, 11), (13, 14)])
+
     if two_scale:
         net_cpu = Shell2Scale(net_cpu.base_net, net_cpu.head_nets)
 
     if multi_scale:
-        net_cpu = ShellMultiScale(net_cpu.base_net, net_cpu.head_nets)
+        net_cpu = ShellMultiScale(net_cpu.base_net, net_cpu.head_nets,
+                                  process_heads=net_cpu.process_heads)
 
     if dilation is not None:
         net_cpu.base_net.atrous0(dilation)
