@@ -69,7 +69,6 @@ class Greedy(object):
         for v, f, x, y, s in self.seeds.get():
             if scalar_nonzero(occupied[f], x, y):
                 continue
-            scalar_square_add_single(occupied[f], x, y, max(4.0, s), 1)
 
             ann = Annotation(self.skeleton).add(f, (x, y, v))
             self._grow(ann, self.paf_th)
