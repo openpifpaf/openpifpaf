@@ -160,6 +160,24 @@ class EvalCoco(object):
         print('wrote {}'.format(filename + '.zip'))
 
 
+def default_output_name(args):
+    output = '{}.evalcoco-{}edge{}'.format(
+        args.checkpoint,
+        '{}-'.format(args.dataset) if args.dataset != 'val' else '',
+        args.long_edge,
+    )
+    if args.n:
+        output += '-samples{}'.format(args.n)
+    if not args.force_complete_pose:
+        output += '-noforcecompletepose'
+    if args.two_scale:
+        output += '-twoscale'
+    if args.multi_scale:
+        output += '-multiscale'
+
+    return output
+
+
 def cli():
     parser = argparse.ArgumentParser(
         description=__doc__,
@@ -197,7 +215,10 @@ def cli():
                        help='print debug messages')
     args = parser.parse_args()
 
-    logging.basicConfig(level=logging.INFO if not args.debug else logging.DEBUG)
+    logging.basicConfig()
+    log_level = logging.INFO if not args.debug else logging.DEBUG
+    logging.getLogger('openpifpaf').setLevel(log_level)
+    LOG.setLevel(log_level)
 
     if args.dataset == 'val':
         args.image_dir = IMAGE_DIR_VAL
@@ -225,14 +246,7 @@ def cli():
 
     # generate a default output filename
     if args.output is None:
-        args.output = '{}.evalcoco-{}edge{}-samples{}{}{}'.format(
-            args.checkpoint,
-            '{}-'.format(args.dataset) if args.dataset != 'val' else '',
-            args.long_edge,
-            args.n,
-            '-noforcecompletepose' if not args.force_complete_pose else '',
-            '-twoscale' if args.two_scale else '',
-        )
+        args.output = default_output_name(args)
 
     return args
 
