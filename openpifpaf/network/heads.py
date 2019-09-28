@@ -47,6 +47,78 @@ class HeadStacks(torch.nn.Module):
         return stacked
 
 
+class PifHFlip(torch.nn.Module):
+    def __init__(self, keypoints, hflip):
+        super(PifHFlip, self).__init__()
+
+        flip_indices = torch.LongTensor([
+            keypoints.index(hflip[kp_name]) if kp_name in hflip else kp_i
+            for kp_i, kp_name in enumerate(keypoints)
+        ])
+        LOG.debug('hflip indices: %s', flip_indices)
+        self.register_buffer('flip_indices', flip_indices)
+
+
+    def forward(self, *args):
+        out = []
+        for field in args:
+            field = torch.index_select(field, 1, self.flip_indices)
+            field = torch.flip(field, dims=[len(field.shape) - 1])
+            out.append(field)
+
+        # flip the x-coordinate of the vector component
+        out[1][:, :, 0, :, :] *= -1.0
+
+        return out
+
+
+class PafHFlip(torch.nn.Module):
+    def __init__(self, keypoints, skeleton, hflip):
+        super(PafHFlip, self).__init__()
+        skeleton_names = [
+            (keypoints[j1 - 1], keypoints[j2 - 1])
+            for j1, j2 in skeleton
+        ]
+        flipped_skeleton_names = [
+            (hflip[j1] if j1 in hflip else j1, hflip[j2] if j2 in hflip else j2)
+            for j1, j2 in skeleton_names
+        ]
+        LOG.debug('skeleton = %s, flipped_skeleton = %s',
+                  skeleton_names, flipped_skeleton_names)
+
+        flip_indices = list(range(len(skeleton)))
+        reverse_direction = []
+        for paf_i, (n1, n2) in enumerate(skeleton_names):
+            if (n1, n2) in flipped_skeleton_names:
+                flip_indices[paf_i] = flipped_skeleton_names.index((n1, n2))
+            if (n2, n1) in flipped_skeleton_names:
+                flip_indices[paf_i] = flipped_skeleton_names.index((n2, n1))
+                reverse_direction.append(paf_i)
+        LOG.debug('hflip indices: %s, reverse: %s', flip_indices, reverse_direction)
+
+        self.register_buffer('flip_indices', torch.LongTensor(flip_indices))
+        self.register_buffer('reverse_direction', torch.LongTensor(reverse_direction))
+
+    def forward(self, *args):
+        out = []
+        for field in args:
+            field = torch.index_select(field, 1, self.flip_indices)
+            field = torch.flip(field, dims=[len(field.shape) - 1])
+            out.append(field)
+
+        # flip the x-coordinate of the vector components
+        out[1][:, :, 0, :, :] *= -1.0
+        out[2][:, :, 0, :, :] *= -1.0
+
+        # reverse direction
+        for paf_i in self.reverse_direction:
+            cc = torch.clone(out[1][:, paf_i])
+            out[1][:, paf_i] = out[2][:, paf_i]
+            out[2][:, paf_i] = cc
+
+        return out
+
+
 class CompositeField(Head, torch.nn.Module):
     default_dropout_p = 0.0
     default_quad = 0
