@@ -369,7 +369,11 @@ class EvalPlots(object):
                 '{}.epoch???.evalcoco-edge{}-samples{}.txt'
                 ''.format(f[:-4], self.edge, self.samples)
                 for f in files
-            ]
+            ] + ([
+                '{}.epoch???.evalcoco-edge{}.txt'
+                ''.format(f[:-4], self.edge)
+                for f in files
+            ] if not self.samples else [])
         )
 
         def epoch_from_filename(filename):
