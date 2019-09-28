@@ -202,7 +202,7 @@ def factory_from_args(args):
                    basenet=args.basenet,
                    headnets=args.headnets,
                    pretrained=args.pretrained,
-                   experimental=args.experimental_decoder,
+                   experimental=getattr(args, 'experimental_decoder', False),
                    two_scale=args.two_scale,
                    multi_scale=args.multi_scale)
 
