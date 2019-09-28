@@ -223,7 +223,6 @@ class Dijkstra(object):
                 if (start_i, end_i) in evaluated_connections:
                     continue
 
-                LOG.debug('computing value for %d to %d', start_i, end_i)
                 new_xyv = self.connection_value(
                     ann, paf_i, forward, th, reverse_match=reverse_match)
                 if new_xyv[2] == 0.0:
