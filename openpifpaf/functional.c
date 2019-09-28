@@ -21280,7 +21280,7 @@ if (!__Pyx_RefNanny) {
   #endif
 
   /* "openpifpaf/functional.pyx":5
- * from cython.parallel import prange
+ * from cython.parallel import prange  # TODO: verify speedup
  * from libc.math cimport exp, fabs, sqrt, fmin, fmax
  * import numpy as np             # <<<<<<<<<<<<<<
  * 
@@ -21358,7 +21358,7 @@ if (!__Pyx_RefNanny) {
   /* "openpifpaf/functional.pyx":1
  * # cython: infer_types=True             # <<<<<<<<<<<<<<
  * cimport cython
- * from cython.parallel import prange
+ * from cython.parallel import prange  # TODO: verify speedup
  */
   __pyx_t_1 = __Pyx_PyDict_NewPresized(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
