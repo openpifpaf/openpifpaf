@@ -280,7 +280,7 @@ def write_evaluations(eval_coco, filename, args, total_time):
 
 def preprocess_factory_from_args(args):
     collate_fn = datasets.collate_images_anns_meta
-    if args.batch_size == 1:
+    if args.batch_size == 1 and not args.multi_scale:
         preprocess = transforms.Compose([
             transforms.NormalizeAnnotations(),
             transforms.RescaleAbsolute(args.long_edge),
