@@ -188,3 +188,5 @@ def factory_decode(model, *,
             skeleton=COCO_PERSON_SKELETON,
             **kwargs
         )
+
+    raise Exception('decoder unknown for head names: {}'.format(head_names))
