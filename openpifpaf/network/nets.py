@@ -25,19 +25,26 @@ LOG = logging.getLogger(__name__)
 
 
 class Shell(torch.nn.Module):
-    def __init__(self, base_net, head_nets, process_heads=None):
+    def __init__(self, base_net, head_nets, process_heads=None, cross_talk=0.0):
         super(Shell, self).__init__()
 
         self.base_net = base_net
         self.head_nets = torch.nn.ModuleList(head_nets)
         self.process_heads = process_heads
+        self.cross_talk = cross_talk
 
     def io_scales(self):
         return [self.base_net.input_output_scale // (2 ** getattr(h, '_quad', 0))
                 for h in self.head_nets]
 
     def forward(self, *args):
-        x = self.base_net(*args)
+        image_batch = args[0]
+
+        if self.training and self.cross_talk:
+            rolled_images = torch.cat((image_batch[-1:], image_batch[:-1]))
+            image_batch += rolled_images * self.cross_talk
+
+        x = self.base_net(image_batch)
         head_outputs = [hn(x) for hn in self.head_nets]
 
         if self.process_heads is not None:
@@ -221,6 +228,7 @@ def factory_from_args(args):
                    headnets=args.headnets,
                    pretrained=args.pretrained,
                    experimental=getattr(args, 'experimental_decoder', False),
+                   cross_talk=args.cross_talk,
                    two_scale=args.two_scale,
                    multi_scale=args.multi_scale)
 
@@ -284,6 +292,7 @@ def factory(*,
             dilation=None,
             dilation_end=None,
             experimental=False,
+            cross_talk=0.0,
             two_scale=False,
             multi_scale=False):
     if not checkpoint and basenet:
@@ -322,6 +331,7 @@ def factory(*,
     elif experimental and multi_scale:
         net_cpu.process_heads = heads.HeadStacks(
             [(v * 3 + 1, v * 3 + 2) for v in range(10)])
+    net_cpu.cross_talk = cross_talk
 
     if two_scale:
         net_cpu = Shell2Scale(net_cpu.base_net, net_cpu.head_nets)
@@ -507,6 +517,8 @@ def cli(parser):
                        help='[experimental] two scale')
     group.add_argument('--multi-scale', default=False, action='store_true',
                        help='[experimental] multi scale')
+    group.add_argument('--cross-talk', default=0.0, type=float,
+                       help='[experimental]')
 
     for head in (heads.HEADS or heads.Head.__subclasses__()):
         head.cli(parser)
