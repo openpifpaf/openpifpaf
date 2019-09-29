@@ -14,6 +14,10 @@ class Annotation(object):
 
         self.skeleton_m1 = (np.asarray(skeleton) - 1).tolist()
 
+        # self.score_weights = np.ones((n_joints,))
+        # self.score_weights[:3] = 3.0
+        # self.score_weights /= np.sum(self.score_weights)
+
     def add(self, joint_i, xyv):
         self.data[joint_i] = xyv
         return self
@@ -42,6 +46,7 @@ class Annotation(object):
         v = self.data[:, 2]
         return 0.1 * np.max(v) + 0.9 * np.mean(np.square(v))
         # return np.mean(np.square(v))
+        # return np.sum(self.score_weights * np.sort(np.square(v))[::-1])
 
     def frontier(self):
         """Frontier to complete annotation.
