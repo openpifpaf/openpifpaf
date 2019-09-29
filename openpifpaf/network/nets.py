@@ -4,6 +4,7 @@ import torch
 import torchvision
 
 from . import basenetworks, heads
+from ..data import COCO_KEYPOINTS, COCO_PERSON_SKELETON, DENSER_COCO_PERSON_CONNECTIONS, HFLIP
 
 # generate hash values with: shasum -a 256 filename.pkl
 
@@ -114,6 +115,10 @@ class ShellMultiScale(torch.nn.Module):
 
         self.base_net = base_net
         self.head_nets = torch.nn.ModuleList(head_nets)
+        self.pif_hflip = heads.PifHFlip(COCO_KEYPOINTS, HFLIP)
+        self.paf_hflip = heads.PafHFlip(COCO_KEYPOINTS, COCO_PERSON_SKELETON, HFLIP)
+        self.paf_hflip_dense = heads.PafHFlip(
+            COCO_KEYPOINTS, DENSER_COCO_PERSON_CONNECTIONS, HFLIP)
         self.process_heads = process_heads
 
     def io_scales(self):
@@ -124,16 +129,29 @@ class ShellMultiScale(torch.nn.Module):
         original_input = args[0]
 
         head_outputs = []
-        for reduction in [1, 1.5, 2, 4, 8]:
-            if reduction == 1.5:
-                x_red = torch.ByteTensor([i % 3 != 0 for i in range(original_input.shape[3])])
-                y_red = torch.ByteTensor([i % 3 != 0 for i in range(original_input.shape[2])])
-                reduced_input = original_input[:, :, y_red, :]
-                reduced_input = reduced_input[:, :, :, x_red]
-            else:
-                reduced_input = original_input[:, :, ::reduction, ::reduction]
-            reduced_x = self.base_net(reduced_input)
-            head_outputs += [hn(reduced_x) for hn in self.head_nets]
+        for hflip in [False, True]:
+            for reduction in [1, 1.5, 2, 3, 5]:
+                if reduction == 1.5:
+                    x_red = torch.ByteTensor(
+                        [i % 3 != 2 for i in range(original_input.shape[3])])
+                    y_red = torch.ByteTensor(
+                        [i % 3 != 2 for i in range(original_input.shape[2])])
+                    reduced_input = original_input[:, :, y_red, :]
+                    reduced_input = reduced_input[:, :, :, x_red]
+                else:
+                    reduced_input = original_input[:, :, ::reduction, ::reduction]
+
+                if hflip:
+                    reduced_input = torch.flip(reduced_input, dims=[3])
+
+                reduced_x = self.base_net(reduced_input)
+                head_outputs += [hn(reduced_x) for hn in self.head_nets]
+
+        for mscale_i in range(5, 10):
+            head_i = mscale_i * 3
+            head_outputs[head_i] = self.pif_hflip(*head_outputs[head_i])
+            head_outputs[head_i + 1] = self.paf_hflip(*head_outputs[head_i + 1])
+            head_outputs[head_i + 2] = self.paf_hflip_dense(*head_outputs[head_i + 2])
 
         if self.process_heads is not None:
             head_outputs = self.process_heads(*head_outputs)
@@ -301,9 +319,9 @@ def factory(*,
 
     if experimental and not multi_scale:
         net_cpu.process_heads = heads.HeadStacks([(1, 2)])
-    if experimental and multi_scale:
+    elif experimental and multi_scale:
         net_cpu.process_heads = heads.HeadStacks(
-            [(1, 2), (4, 5), (7, 8), (10, 11), (13, 14)])
+            [(v * 3 + 1, v * 3 + 2) for v in range(10)])
 
     if two_scale:
         net_cpu = Shell2Scale(net_cpu.base_net, net_cpu.head_nets)
