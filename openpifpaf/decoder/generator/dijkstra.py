@@ -69,7 +69,7 @@ class Dijkstra(object):
             annotations.append(ann)
             mark_occupied(ann)
 
-        for v, f, x, y, s in self.seeds.get():
+        for v, f, x, y, _ in self.seeds.get():
             if scalar_nonzero(occupied[f], x, y):
                 continue
 
