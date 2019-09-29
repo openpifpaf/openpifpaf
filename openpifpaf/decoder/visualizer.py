@@ -137,11 +137,11 @@ class Visualizer(object):
                     q1 = show.quiver(ax, reg1_fields[f], intensity_fields[f],
                                      reg_uncertainty=reg1_fields_b[f],
                                      threshold=0.5, width=0.003, step=1,
-                                     cmap='viridis_r', clim=(0.5, 1.0), xy_scale=io_scale)
+                                     cmap='Blues', clim=(0.5, 1.0), xy_scale=io_scale)
                     show.quiver(ax, reg2_fields[f], intensity_fields[f],
                                 reg_uncertainty=reg2_fields_b[f],
                                 threshold=0.5, width=0.003, step=1,
-                                cmap='viridis_r', clim=(0.5, 1.0), xy_scale=io_scale)
+                                cmap='Greens', clim=(0.5, 1.0), xy_scale=io_scale)
 
                     divider = make_axes_locatable(ax)
                     cax = divider.append_axes('right', size='3%', pad=0.05)
