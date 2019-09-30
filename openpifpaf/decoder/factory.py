@@ -109,6 +109,7 @@ def factory_from_args(args, model, device=None):
                             seed_threshold=args.seed_threshold,
                             extra_coupling=args.extra_coupling,
                             multi_scale=args.multi_scale,
+                            multi_scale_hflip=args.multi_scale_hflip,
                             debug_visualizer=debug_visualizer)
 
     return Processor(model, decode,
@@ -124,6 +125,7 @@ def factory_decode(model, *,
                    extra_coupling=0.0,
                    experimental=False,
                    multi_scale=False,
+                   multi_scale_hflip=True,
                    **kwargs):
     """Instantiate a decoder for the given model.
 
@@ -150,7 +152,7 @@ def factory_decode(model, *,
         paf_index = 1
         pif_min_scale = 0.0
         paf_min_distance = 0.0
-        if multi_scale:
+        if multi_scale and multi_scale_hflip:
             resolutions = [1, 1.5, 2, 3, 5] * 2
             stride = [model.io_scales()[-1] * r for r in resolutions]
             if not experimental:
@@ -160,6 +162,17 @@ def factory_decode(model, *,
                 pif_index = [v * 2 for v in range(10)]
                 paf_index = [v * 2 + 1 for v in range(10)]
             pif_min_scale = [0.0, 12.0, 16.0, 24.0, 40.0] * 2
+            paf_min_distance = [v * 2.0 for v in pif_min_scale]
+        elif multi_scale and not multi_scale_hflip:
+            resolutions = [1, 1.5, 2, 3, 5]
+            stride = [model.io_scales()[-1] * r for r in resolutions]
+            if not experimental:
+                pif_index = [v * 3 for v in range(5)]
+                paf_index = [v * 3 + 1 for v in range(5)]
+            else:
+                pif_index = [v * 2 for v in range(5)]
+                paf_index = [v * 2 + 1 for v in range(5)]
+            pif_min_scale = [0.0, 12.0, 16.0, 24.0, 40.0]
             paf_min_distance = [v * 2.0 for v in pif_min_scale]
 
         if experimental:

@@ -174,6 +174,8 @@ def default_output_name(args):
         output += '-twoscale'
     if args.multi_scale:
         output += '-multiscale'
+        if args.multi_scale_hflip:
+            output += 'whflip'
 
     return output
 

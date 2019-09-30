@@ -117,7 +117,7 @@ class Shell2Scale(torch.nn.Module):
 
 
 class ShellMultiScale(torch.nn.Module):
-    def __init__(self, base_net, head_nets, process_heads=None):
+    def __init__(self, base_net, head_nets, process_heads=None, include_hflip=True):
         super(ShellMultiScale, self).__init__()
 
         self.base_net = base_net
@@ -127,6 +127,7 @@ class ShellMultiScale(torch.nn.Module):
         self.paf_hflip_dense = heads.PafHFlip(
             COCO_KEYPOINTS, DENSER_COCO_PERSON_CONNECTIONS, HFLIP)
         self.process_heads = process_heads
+        self.include_hflip = include_hflip
 
     def io_scales(self):
         return [self.base_net.input_output_scale // (2 ** getattr(h, '_quad', 0))
@@ -136,7 +137,7 @@ class ShellMultiScale(torch.nn.Module):
         original_input = args[0]
 
         head_outputs = []
-        for hflip in [False, True]:
+        for hflip in ([False, True] if self.include_hflip else [False]):
             for reduction in [1, 1.5, 2, 3, 5]:
                 if reduction == 1.5:
                     x_red = torch.ByteTensor(
@@ -154,11 +155,12 @@ class ShellMultiScale(torch.nn.Module):
                 reduced_x = self.base_net(reduced_input)
                 head_outputs += [hn(reduced_x) for hn in self.head_nets]
 
-        for mscale_i in range(5, 10):
-            head_i = mscale_i * 3
-            head_outputs[head_i] = self.pif_hflip(*head_outputs[head_i])
-            head_outputs[head_i + 1] = self.paf_hflip(*head_outputs[head_i + 1])
-            head_outputs[head_i + 2] = self.paf_hflip_dense(*head_outputs[head_i + 2])
+        if self.include_hflip:
+            for mscale_i in range(5, 10):
+                head_i = mscale_i * 3
+                head_outputs[head_i] = self.pif_hflip(*head_outputs[head_i])
+                head_outputs[head_i + 1] = self.paf_hflip(*head_outputs[head_i + 1])
+                head_outputs[head_i + 2] = self.paf_hflip_dense(*head_outputs[head_i + 2])
 
         if self.process_heads is not None:
             head_outputs = self.process_heads(*head_outputs)
@@ -223,14 +225,17 @@ def factory_from_args(args):
     for head in (heads.HEADS or heads.Head.__subclasses__()):
         head.apply_args(args)
 
-    return factory(checkpoint=args.checkpoint,
-                   basenet=args.basenet,
-                   headnets=args.headnets,
-                   pretrained=args.pretrained,
-                   experimental=getattr(args, 'experimental_decoder', False),
-                   cross_talk=args.cross_talk,
-                   two_scale=args.two_scale,
-                   multi_scale=args.multi_scale)
+    return factory(
+        checkpoint=args.checkpoint,
+        basenet=args.basenet,
+        headnets=args.headnets,
+        pretrained=args.pretrained,
+        experimental=getattr(args, 'experimental_decoder', False),
+        cross_talk=args.cross_talk,
+        two_scale=args.two_scale,
+        multi_scale=args.multi_scale,
+        multi_scale_hflip=args.multi_scale_hflip,
+    )
 
 
 # pylint: disable=too-many-branches
@@ -284,17 +289,20 @@ def model_defaults(net_cpu):
 
 
 # pylint: disable=too-many-branches
-def factory(*,
-            checkpoint=None,
-            basenet=None,
-            headnets=('pif', 'paf'),
-            pretrained=True,
-            dilation=None,
-            dilation_end=None,
-            experimental=False,
-            cross_talk=0.0,
-            two_scale=False,
-            multi_scale=False):
+def factory(
+        *,
+        checkpoint=None,
+        basenet=None,
+        headnets=('pif', 'paf'),
+        pretrained=True,
+        dilation=None,
+        dilation_end=None,
+        experimental=False,
+        cross_talk=0.0,
+        two_scale=False,
+        multi_scale=False,
+        multi_scale_hflip=True,
+    ):
     if not checkpoint and basenet:
         net_cpu = factory_from_scratch(basenet, headnets, pretrained=pretrained)
         epoch = 0
@@ -338,7 +346,8 @@ def factory(*,
 
     if multi_scale:
         net_cpu = ShellMultiScale(net_cpu.base_net, net_cpu.head_nets,
-                                  process_heads=net_cpu.process_heads)
+                                  process_heads=net_cpu.process_heads,
+                                  include_hflip=multi_scale_hflip)
 
     if dilation is not None:
         net_cpu.base_net.atrous0(dilation)
@@ -514,9 +523,12 @@ def cli(parser):
     group.add_argument('--no-pretrain', dest='pretrained', default=True, action='store_false',
                        help='create model without ImageNet pretraining')
     group.add_argument('--two-scale', default=False, action='store_true',
-                       help='[experimental] two scale')
+                       help='[experimental]')
     group.add_argument('--multi-scale', default=False, action='store_true',
-                       help='[experimental] multi scale')
+                       help='[experimental]')
+    group.add_argument('--no-multi-scale-hflip',
+                       dest='multi_scale_hflip', default=True, action='store_false',
+                       help='[experimental]')
     group.add_argument('--cross-talk', default=0.0, type=float,
                        help='[experimental]')
 
