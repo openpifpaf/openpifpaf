@@ -75,12 +75,12 @@ class EvalCoco(object):
 
         with show.canvas() as ax:
             ax.imshow((np.moveaxis(image_cpu.numpy(), 0, -1) + 2.0) / 4.0)
-            keypoint_painter.annotations(ax, annotations)
+            keypoint_painter.annotations(ax, [ann for ann in annotations if ann.score() > 0.01])
 
         with show.canvas() as ax:
             ax.set_axis_off()
             ax.imshow((np.moveaxis(image_cpu.numpy(), 0, -1) + 2.0) / 4.0)
-            skeleton_painter.annotations(ax, [ann for ann in annotations if ann.score() > 0.1])
+            skeleton_painter.annotations(ax, [ann for ann in annotations if ann.score() > 0.01])
 
         instances_gt = None
         if gt:
