@@ -57,7 +57,7 @@ class Visualizer(object):
             for f in field_indices:
                 x = [xx * io_scale for _, ff, xx, __, ___ in seeds if ff == f]
                 y = [yy * io_scale for _, ff, __, yy, ___ in seeds if ff == f]
-                c = [cc for cc, ff, _, __, ___ in seeds if ff == f]
+                # c = [cc for cc, ff, _, __, ___ in seeds if ff == f]
                 ax.plot(x, y, 'o')
                 # for xx, yy, cc in zip(x, y, c):
                 #     ax.text(xx, yy, '{:.2f}'.format(cc))
