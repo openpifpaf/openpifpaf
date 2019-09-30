@@ -152,6 +152,7 @@ def factory_decode(model, *,
         paf_index = 1
         pif_min_scale = 0.0
         paf_min_distance = 0.0
+        paf_max_distance = None
         if multi_scale and multi_scale_hflip:
             resolutions = [1, 1.5, 2, 3, 5] * 2
             stride = [model.io_scales()[-1] * r for r in resolutions]
@@ -163,6 +164,7 @@ def factory_decode(model, *,
                 paf_index = [v * 2 + 1 for v in range(10)]
             pif_min_scale = [0.0, 12.0, 16.0, 24.0, 40.0] * 2
             paf_min_distance = [v * 2.0 for v in pif_min_scale]
+            paf_max_distance = [160.0, 240.0, 320.0, 480.0, None] * 2
         elif multi_scale and not multi_scale_hflip:
             resolutions = [1, 1.5, 2, 3, 5]
             stride = [model.io_scales()[-1] * r for r in resolutions]
@@ -174,6 +176,7 @@ def factory_decode(model, *,
                 paf_index = [v * 2 + 1 for v in range(5)]
             pif_min_scale = [0.0, 12.0, 16.0, 24.0, 40.0]
             paf_min_distance = [v * 2.0 for v in pif_min_scale]
+            paf_max_distance = [160.0, 240.0, 320.0, 480.0, None]
 
         if experimental:
             LOG.warning('using experimental decoder')
@@ -187,6 +190,7 @@ def factory_decode(model, *,
                 paf_index=paf_index,
                 pif_min_scale=pif_min_scale,
                 paf_min_distance=paf_min_distance,
+                paf_max_distance=paf_max_distance,
                 skeleton=COCO_PERSON_SKELETON + DENSER_COCO_PERSON_CONNECTIONS,
                 confidence_scales=confidence_scales,
                 **kwargs
@@ -198,6 +202,7 @@ def factory_decode(model, *,
             paf_index=paf_index,
             pif_min_scale=pif_min_scale,
             paf_min_distance=paf_min_distance,
+            paf_max_distance=paf_max_distance,
             skeleton=COCO_PERSON_SKELETON,
             **kwargs
         )

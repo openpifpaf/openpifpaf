@@ -27,6 +27,7 @@ class PifPafDijkstra(Decoder):
                  pif_index=0, paf_index=1,
                  pif_min_scale=0.0,
                  paf_min_distance=0.0,
+                 paf_max_distance=None,
                  seed_threshold=0.2,
                  confidence_scales=None,
                  debug_visualizer=None):
@@ -35,6 +36,7 @@ class PifPafDijkstra(Decoder):
         self.paf_indices = paf_index
         self.pif_min_scales = pif_min_scale
         self.paf_min_distances = paf_min_distance
+        self.paf_max_distances = paf_max_distance
         if not isinstance(self.strides, (list, tuple)):
             self.strides = [self.strides]
             self.pif_indices = [self.pif_indices]
@@ -43,10 +45,13 @@ class PifPafDijkstra(Decoder):
             self.pif_min_scales = [self.pif_min_scales for _ in self.strides]
         if not isinstance(self.paf_min_distances, (list, tuple)):
             self.paf_min_distances = [self.paf_min_distances for _ in self.strides]
+        if not isinstance(self.paf_max_distances, (list, tuple)):
+            self.paf_max_distances = [self.paf_max_distances for _ in self.strides]
         assert len(self.strides) == len(self.pif_indices)
         assert len(self.strides) == len(self.paf_indices)
         assert len(self.strides) == len(self.pif_min_scales)
         assert len(self.strides) == len(self.paf_min_distances)
+        assert len(self.strides) == len(self.paf_max_distances)
 
         self.skeleton = skeleton
 
@@ -97,10 +102,11 @@ class PifPafDijkstra(Decoder):
 
         # paf_scored
         paf_scored = PafScored(pifhr.targets, self.skeleton, score_th=self.paf_th)
-        for stride, paf, min_distance in zip(self.strides,
-                                             normalized_pafs,
-                                             self.paf_min_distances):
-            paf_scored.fill(paf, stride, min_distance=min_distance)
+        for stride, paf, min_distance, max_distance in zip(self.strides,
+                                                           normalized_pafs,
+                                                           self.paf_min_distances,
+                                                           self.paf_max_distances):
+            paf_scored.fill(paf, stride, min_distance=min_distance, max_distance=max_distance)
 
         gen = generator.Dijkstra(
             pifhr, paf_scored, seeds,
@@ -115,8 +121,12 @@ class PifPafDijkstra(Decoder):
         annotations = gen.annotations(initial_annotations=initial_annotations)
         if self.force_complete:
             gen.paf_scored = PafScored(pifhr.targets, self.skeleton, score_th=0.0001)
-            for stride, paf in zip(self.strides, normalized_pafs):
-                gen.paf_scored.fill(paf, stride)
+            for stride, paf, min_distance, max_distance in zip(self.strides,
+                                                               normalized_pafs,
+                                                               self.paf_min_distances,
+                                                               self.paf_max_distances):
+                gen.paf_scored.fill(
+                    paf, stride, min_distance=min_distance, max_distance=max_distance)
             annotations = gen.complete_annotations(annotations)
 
         LOG.debug('annotations %d, %.3fs', len(annotations), time.perf_counter() - start)

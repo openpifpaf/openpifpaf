@@ -19,7 +19,7 @@ class PafScored(object):
         self.forward = None
         self.backward = None
 
-    def fill(self, paf, stride, min_distance=0.0):
+    def fill(self, paf, stride, min_distance=0.0, max_distance=None):
         start = time.perf_counter()
 
         if self.forward is None:
@@ -38,6 +38,12 @@ class PafScored(object):
             if min_distance:
                 dist = np.linalg.norm(fourds[0, 1:3] - fourds[1, 1:3], axis=0)
                 mask_dist = dist > min_distance / stride
+                scores = scores[mask_dist]
+                fourds = fourds[:, :, mask_dist]
+
+            if max_distance:
+                dist = np.linalg.norm(fourds[0, 1:3] - fourds[1, 1:3], axis=0)
+                mask_dist = dist < max_distance / stride
                 scores = scores[mask_dist]
                 fourds = fourds[:, :, mask_dist]
 
