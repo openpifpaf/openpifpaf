@@ -67,7 +67,7 @@ class Plots(object):
     def __init__(self, log_files, labels=None, output_prefix=None):
         self.log_files = log_files
         self.datas = [self.read_log(f) for f in log_files]
-        self.labels = labels or log_files
+        self.labels = labels or [lf.replace('outputs/', '') for lf in log_files]
         self.output_prefix = output_prefix or log_files[-1] + '.'
 
     @staticmethod
@@ -352,7 +352,7 @@ class EvalPlots(object):
         self.legend_last_ap = legend_last_ap
 
         self.datas = [self.read_log(f) for f in log_files]
-        self.labels = labels or log_files
+        self.labels = labels or [lf.replace('outputs/', '') for lf in log_files]
         self.output_prefix = output_prefix or log_files[-1] + '.'
 
     def read_log(self, path):
