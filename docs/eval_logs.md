@@ -352,3 +352,35 @@ total processing time = 495.8108365535736s
 Decoder 0: decoder time = 159.6303431801498s
 total processing time = 620.2563769817352s
 ```
+
+# v0.10.0
+
+`time CUDA_VISIBLE_DEVICES=2 python -m openpifpaf.eval_coco --checkpoint outputs/resnet152block5-pif-paf-paf25-edge401-190926-205058-3355106f.pkl --connection-method=blend --long-edge=641 --loader-workers=8 --dataset=test-dev --write-predictions --all-images`:
+
+```
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.682
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.883
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.751
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.635
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.748
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.737
+ Average Recall     (AR) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.914
+ Average Recall     (AR) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.798
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.679
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.815
+```
+
+`time CUDA_VISIBLE_DEVICES=2 python -m openpifpaf.eval_coco --checkpoint outputs/resnet152block5-pif-paf-paf25-edge401-190926-205058-3355106f.pkl --connection-method=blend --long-edge=961 --loader-workers=8 --dataset=test-dev --write-predictions --all-images --multi-scale`: 8h48min
+
+```
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.709
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.891
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.783
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.672
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.766
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.775
+ Average Recall     (AR) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.929
+ Average Recall     (AR) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.835
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.722
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.847
+```
