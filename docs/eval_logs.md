@@ -370,6 +370,23 @@ total processing time = 620.2563769817352s
  Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.821
 ```
 
+`time CUDA_VISIBLE_DEVICES=0,1 python -m openpifpaf.eval_coco --checkpoint outputs/resnet152block5-pif-paf-paf25-edge401-190926-205058-3355106f.pkl --connection-method=blend --long-edge=961 --loader-workers=16 --batch-size=16 --decoder-workers=16 --multi-scale`:
+
+```
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.726
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.887
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.793
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.689
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.787
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.781
+ Average Recall     (AR) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.916
+ Average Recall     (AR) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.836
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.729
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.854
+```
+
+### test-dev
+
 `time CUDA_VISIBLE_DEVICES=2 python -m openpifpaf.eval_coco --checkpoint outputs/resnet152block5-pif-paf-paf25-edge401-190926-205058-3355106f.pkl --connection-method=blend --long-edge=641 --loader-workers=8 --dataset=test-dev --write-predictions --all-images`:
 
 ```
@@ -399,6 +416,8 @@ total processing time = 620.2563769817352s
  Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.722
  Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.847
 ```
+
+### test
 
 `time CUDA_VISIBLE_DEVICES=2,3 python -m openpifpaf.eval_coco --checkpoint outputs/resnet152block5-pif-paf-paf25-edge401-190926-205058-3355106f.pkl --connection-method=blend --long-edge=961 --loader-workers=8 --dataset=test --write-predictions --all-images --multi-scale --batch-size=8 --decoder-workers=8`:
 
