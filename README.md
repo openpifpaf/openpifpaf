@@ -28,6 +28,7 @@ Continuously tested on Linux, MacOS and Windows: [![Build Status](https://travis
 }
 ```
 
+[CVPR 2019 website](http://openaccess.thecvf.com/content_CVPR_2019/html/Kreiss_PifPaf_Composite_Fields_for_Human_Pose_Estimation_CVPR_2019_paper.html),
 [arxiv.org/abs/1903.06593](https://arxiv.org/abs/1903.06593)
 
 
