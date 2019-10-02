@@ -32,11 +32,13 @@ LOG = logging.getLogger(__name__)
 
 
 class EvalCoco(object):
-    def __init__(self, coco, processor, keypoint_sets_inverse, skeleton=None):
+    def __init__(self, coco, processor, keypoint_sets_inverse, *,
+                 skeleton=None, max_per_image=20):
         self.coco = coco
         self.processor = processor
         self.keypoint_sets_inverse = keypoint_sets_inverse
         self.skeleton = skeleton or COCO_PERSON_SKELETON
+        self.max_per_image = max_per_image
 
         self.predictions = []
         self.image_ids = []
@@ -109,6 +111,9 @@ class EvalCoco(object):
             self.view_keypoints(image_cpu, annotations, gt)
 
         instances, scores = self.processor.keypoint_sets_from_annotations(annotations)
+        if len(instances) > self.max_per_image:
+            instances = instances[:self.max_per_image]
+            scores = scores[:self.max_per_image]
         instances = self.keypoint_sets_inverse(instances, meta)
         image_annotations = []
         for instance, score in zip(instances, scores):
@@ -131,7 +136,7 @@ class EvalCoco(object):
                 'image_id': image_id,
                 'category_id': category_id,
                 'keypoints': np.zeros((17*3,)).tolist(),
-                'score': 0.0,
+                'score': 0.01,
             })
 
         if debug:
@@ -322,11 +327,16 @@ def main():
         data, batch_size=args.batch_size, pin_memory=args.pin_memory,
         num_workers=args.loader_workers, collate_fn=collate_fn)
 
-    model, _ = nets.factory_from_args(args)
-    model = model.to(args.device)
-    processor = decoder.factory_from_args(args, model, args.device)
+    model_cpu, _ = nets.factory_from_args(args)
+    model = model_cpu.to(args.device)
+    if not args.disable_cuda and torch.cuda.device_count() > 1:
+        LOG.info('Using multiple GPUs: %d', torch.cuda.device_count())
+        model = torch.nn.DataParallel(model)
+
+    processor = decoder.factory_from_args(args, model_cpu, args.device)
     # processor.instance_scorer = decocder.instance_scorer.InstanceScoreRecorder()
     # processor.instance_scorer = torch.load('instance_scorer.pkl')
+    processor.model = model  # TODO: implement nicer
 
     coco = pycocotools.coco.COCO(args.annotation_file)
     eval_coco = EvalCoco(coco, processor, preprocess.keypoint_sets_inverse)
