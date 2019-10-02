@@ -78,7 +78,7 @@ def factory_from_args(args, model, device=None):
                      device=device)
 
 
-def factory_decode(model, *, profile=None, **kwargs):
+def factory_decode(model, **kwargs):
     """Instantiate a decoder for the given model.
 
     All subclasses of decoder.Decoder are checked for a match.
