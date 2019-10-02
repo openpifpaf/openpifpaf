@@ -126,6 +126,7 @@ class Processor(object):
     def keypoint_sets_from_annotations(annotations):
         keypoint_sets = [ann.data for ann in annotations]
         scores = [ann.score() for ann in annotations]
+        assert len(scores) == len(keypoint_sets)
         if not keypoint_sets:
             return np.zeros((0, 17, 3)), np.zeros((0,))
         keypoint_sets = np.array(keypoint_sets)
@@ -164,7 +165,7 @@ class Processor(object):
         # nms
         annotations = self.soft_nms(annotations)
 
-        # treshold
+        # threshold
         for ann in annotations:
             kps = ann.data
             kps[kps[:, 2] < self.keypoint_threshold] = 0.0
