@@ -39,6 +39,7 @@ class Processor(object):
         if worker_pool is None or worker_pool == 0:
             worker_pool = DummyPool
         if isinstance(worker_pool, int):
+            LOG.info('creating decoder worker pool with %d workers', worker_pool)
             worker_pool = multiprocessing.Pool(worker_pool)
 
         self.model = model
