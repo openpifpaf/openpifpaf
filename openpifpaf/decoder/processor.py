@@ -135,20 +135,32 @@ class Processor(object):
 
         return keypoint_sets, scores
 
-    def annotations_batch(self, fields_batch, *, debug_images=None):
+    def annotations_batch(self, fields_batch, *, meta_batch=None, debug_images=None):
         if debug_images is None or self.debug_visualizer is None:
             # remove debug_images if there is no visualizer to save
             # time during pickle
             debug_images = [None for _ in fields_batch]
+        if meta_batch is None:
+            meta_batch = [None for _ in fields_batch]
 
         LOG.debug('parallel execution with worker %s', self.worker_pool)
         return self.worker_pool.starmap(
-            self._mappable_annotations, zip(fields_batch, debug_images))
+            self._mappable_annotations, zip(fields_batch, meta_batch, debug_images))
 
-    def _mappable_annotations(self, fields, debug_image):
-        return self.annotations(fields, debug_image=debug_image)
+    def _mappable_annotations(self, fields, meta, debug_image):
+        return self.annotations(fields, meta=meta, debug_image=debug_image)
 
-    def annotations(self, fields, *, initial_annotations=None, debug_image=None):
+    @staticmethod
+    def suppress_outside_valid(ann, valid_area):
+        m = np.logical_or(
+            np.logical_or(ann.data[:, 0] < valid_area[0],
+                          ann.data[:, 0] > valid_area[0] + valid_area[2]),
+            np.logical_or(ann.data[:, 1] < valid_area[1],
+                          ann.data[:, 1] > valid_area[1] + valid_area[3]),
+        )
+        ann.data[m, 2] = np.maximum(ann.data[m, 2], 0.0)
+
+    def annotations(self, fields, *, initial_annotations=None, meta=None, debug_image=None):
         start = time.time()
         if self.profile is not None:
             self.profile.enable()
@@ -168,6 +180,8 @@ class Processor(object):
 
         # threshold
         for ann in annotations:
+            if meta is not None:
+                self.suppress_outside_valid(ann, meta['valid_area'])
             kps = ann.data
             kps[kps[:, 2] < self.keypoint_threshold] = 0.0
         annotations = [ann for ann in annotations

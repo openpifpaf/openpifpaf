@@ -32,11 +32,11 @@ LOG = logging.getLogger(__name__)
 
 
 class EvalCoco(object):
-    def __init__(self, coco, processor, keypoint_sets_inverse, *,
+    def __init__(self, coco, processor, annotations_inverse, *,
                  skeleton=None, max_per_image=20):
         self.coco = coco
         self.processor = processor
-        self.keypoint_sets_inverse = keypoint_sets_inverse
+        self.annotations_inverse = annotations_inverse
         self.skeleton = skeleton or COCO_PERSON_SKELETON
         self.max_per_image = max_per_image
 
@@ -101,33 +101,31 @@ class EvalCoco(object):
             keypoint_painter.keypoints(ax, instances_gt, color='lightgrey')
             keypoint_painter.annotations(ax, [ann for ann in annotations if ann.score() > 0.01])
 
-    def from_predictions(self, annotations, meta,
+    def from_predictions(self, predictions, meta,
                          debug=False, gt=None, image_cpu=None, verbose=False,
                          category_id=1):
         image_id = int(meta['image_id'])
         self.image_ids.append(image_id)
 
         if debug:
-            self.view_keypoints(image_cpu, annotations, gt)
+            self.view_keypoints(image_cpu, predictions, gt)
 
-        instances, scores = self.processor.keypoint_sets_from_annotations(annotations)
-        if len(instances) > self.max_per_image:
-            instances = instances[:self.max_per_image]
-            scores = scores[:self.max_per_image]
-        instances = self.keypoint_sets_inverse(instances, meta)
+        if len(predictions) > self.max_per_image:
+            predictions = predictions[:self.max_per_image]
+        predictions = self.annotations_inverse(predictions, meta)
         image_annotations = []
-        for instance, score in zip(instances, scores):
+        for pred in predictions:
             # avoid visible keypoints becoming invisible due to rounding
-            v_mask = instance[:, 2] > 0.0
-            instance[v_mask, 2] = np.maximum(0.01, instance[v_mask, 2])
+            v_mask = pred.data[:, 2] > 0.0
+            pred.data[v_mask, 2] = np.maximum(0.01, pred.data[v_mask, 2])
 
-            keypoints = np.around(instance, 2)
+            keypoints = np.around(pred.data, 2)
             keypoints[:, 2] = 2.0
             image_annotations.append({
                 'image_id': image_id,
                 'category_id': category_id,
                 'keypoints': keypoints.reshape(-1).tolist(),
-                'score': max(0.01, score),
+                'score': max(0.01, pred.score()),
             })
 
         # force at least one annotation per image (for pycocotools)
@@ -239,9 +237,9 @@ def cli():
     else:
         raise Exception
 
-    if args.dataset in ('test', 'test-dev') and not args.write_predictions:
+    if args.dataset in ('test', 'test-dev') and not args.write_predictions and not args.debug:
         raise Exception('have to use --write-predictions for this dataset')
-    if args.dataset in ('test', 'test-dev') and not args.all_images:
+    if args.dataset in ('test', 'test-dev') and not args.all_images and not args.debug:
         raise Exception('have to use --all-images for this dataset')
 
     # add args.device
@@ -339,7 +337,7 @@ def main():
     processor.model = model  # TODO: implement nicer
 
     coco = pycocotools.coco.COCO(args.annotation_file)
-    eval_coco = EvalCoco(coco, processor, preprocess.keypoint_sets_inverse)
+    eval_coco = EvalCoco(coco, processor, preprocess.annotations_inverse)
     total_start = time.time()
     loop_start = time.time()
     for batch_i, (image_tensors_cpu, anns_batch, meta_batch) in enumerate(data_loader):
@@ -363,7 +361,7 @@ def main():
 
         decoder_start = time.perf_counter()
         pred_batch = processor.annotations_batch(
-            fields_batch, debug_images=image_tensors_cpu)
+            fields_batch, meta_batch=meta_batch, debug_images=image_tensors_cpu)
         eval_coco.decoder_time += time.perf_counter() - decoder_start
 
         # loop over batch
