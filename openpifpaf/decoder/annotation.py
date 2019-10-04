@@ -100,8 +100,8 @@ class Annotation(object):
             ]
             frontier = list(sorted(frontier, reverse=True))
 
-    def scale(self):
-        m = self.data[:, 2] > 0.5
+    def scale(self, v_th=0.5):
+        m = self.data[:, 2] > v_th
         if not np.any(m):
             return 0.0
         return max(
