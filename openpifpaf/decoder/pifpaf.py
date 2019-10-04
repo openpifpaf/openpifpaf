@@ -75,10 +75,17 @@ class PifPaf(Decoder):
 
         # pif hr
         pifhr = PifHr(self.pif_nn)
-        for stride, pif, min_scale in zip(self.strides,
-                                          normalized_pifs,
-                                          self.pif_min_scales):
-            pifhr.fill(pif, stride, min_scale=min_scale)
+        if len(normalized_pifs) == 10:
+            for stride, pif1, pif2, min_scale in zip(self.strides,
+                                                     normalized_pifs[:5],
+                                                     normalized_pifs[5:],
+                                                     self.pif_min_scales):
+                pifhr.fill_multiple([pif1, pif2], stride, min_scale=min_scale)
+        else:
+            for stride, pif, min_scale in zip(self.strides,
+                                              normalized_pifs,
+                                              self.pif_min_scales):
+                pifhr.fill(pif, stride, min_scale=min_scale)
 
         # seeds
         seeds = PifSeeds(pifhr.target_accumulator, self.seed_threshold,
