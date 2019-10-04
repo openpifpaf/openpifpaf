@@ -33,12 +33,13 @@ LOG = logging.getLogger(__name__)
 
 class EvalCoco(object):
     def __init__(self, coco, processor, annotations_inverse, *,
-                 skeleton=None, max_per_image=20):
+                 skeleton=None, max_per_image=20, small_threshold=0.0):
         self.coco = coco
         self.processor = processor
         self.annotations_inverse = annotations_inverse
         self.skeleton = skeleton or COCO_PERSON_SKELETON
         self.max_per_image = max_per_image
+        self.small_threshold = small_threshold
 
         self.predictions = []
         self.image_ids = []
@@ -110,9 +111,12 @@ class EvalCoco(object):
         if debug:
             self.view_keypoints(image_cpu, predictions, gt)
 
+        predictions = self.annotations_inverse(predictions, meta)
+        if self.small_threshold:
+            predictions = [pred for pred in predictions
+                           if pred.scale(v_th=0.01) >= self.small_threshold]
         if len(predictions) > self.max_per_image:
             predictions = predictions[:self.max_per_image]
-        predictions = self.annotations_inverse(predictions, meta)
         image_annotations = []
         for pred in predictions:
             # avoid visible keypoints becoming invisible due to rounding
