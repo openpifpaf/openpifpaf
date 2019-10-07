@@ -93,6 +93,9 @@ class NormalizeAnnotations(Preprocess):
         anns = copy.deepcopy(anns)
 
         for ann in anns:
+            if 'keypoints' not in ann:
+                ann['keypoints'] = []
+
             ann['keypoints'] = np.asarray(ann['keypoints'], dtype=np.float32).reshape(-1, 3)
             ann['bbox'] = np.asarray(ann['bbox'], dtype=np.float32)
             ann['bbox_original'] = np.copy(ann['bbox'])
