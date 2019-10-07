@@ -3,6 +3,7 @@ import logging
 from ..data import COCO_PERSON_SKELETON, DENSER_COCO_PERSON_CONNECTIONS
 from .decoder import Decoder
 from .pif import Pif
+from .pif_hr import PifHr
 from .pifpaf import PifPaf
 from .pifpaf_dijkstra import PifPafDijkstra
 from .processor import Processor
@@ -57,6 +58,8 @@ def cli(parser, *,
                        help='overwrite b with fixed value, e.g. 0.5')
     group.add_argument('--pif-fixed-scale', default=PifPaf.pif_fixed_scale, type=float,
                        help='overwrite pif scale with a fixed value')
+    group.add_argument('--pif-th', default=PifHr.v_threshold, type=float,
+                       help='pif threshold')
     group.add_argument('--paf-th', default=PifPaf.paf_th, type=float,
                        help='paf threshold')
     group.add_argument('--connection-method',

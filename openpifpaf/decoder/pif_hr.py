@@ -10,9 +10,10 @@ LOG = logging.getLogger(__name__)
 
 
 class PifHr(object):
-    def __init__(self, pif_nn, v_th=0.1):
+    v_threshold = 0.1
+
+    def __init__(self, pif_nn):
         self.pif_nn = pif_nn
-        self.v_th = v_th
 
         self.target_accumulator = None
         self.scales = None
@@ -48,7 +49,7 @@ class PifHr(object):
 
         for pif in pifs:
             for t, p, scale, n in zip(ta, pif, self.scales, self.scales_n):
-                p = p[:, p[0] > self.v_th]
+                p = p[:, p[0] > self.v_threshold]
                 if min_scale:
                     p = p[:, p[3] > min_scale / stride]
 
