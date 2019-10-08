@@ -95,9 +95,9 @@ def main():
     sc = pysparkling.Context()
     stats = (
         sc
-        .textFile(args.output + '*.stats.json')
-        .map(json.loads)
-        .map(lambda d: (d['checkpoint'], d))
+        .wholeTextFiles(args.output + '*.stats.json')
+        .mapValues(json.loads)
+        .map(lambda d: (d[0].replace('.stats.json', '').replace(args.output + '/', ''), d[1]))
         .collectAsMap()
     )
     LOG.debug('all data: %s', stats)
@@ -105,7 +105,7 @@ def main():
     # pretty printing
     for backbone, data in sorted(stats.items(), key=lambda b_d: b_d[1]['stats'][0]):
         print(
-            '| {backbone: <15} '
+            '| {backbone: <25} '
             '| __{AP:.1f}__ '
             '| {APM: <8.1f} '
             '| {APL: <8.1f} '
