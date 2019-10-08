@@ -51,14 +51,17 @@ def cli():
     return args, eval_args
 
 
-def run_eval_coco(output_folder, backbone, eval_args):
-    out_file = os.path.join(output_folder, backbone)
+def run_eval_coco(output_folder, backbone, eval_args, output_name=None):
+    if output_name is None:
+        output_name = backbone
+
+    out_file = os.path.join(output_folder, output_name)
     if os.path.exists(out_file + '.stats.json'):
         LOG.warning('Output file %s exists already. Skipping.',
                     out_file + '.stats.json')
         return
 
-    LOG.debug('Launching eval for %s.', backbone)
+    LOG.debug('Launching eval for %s.', output_name)
     subprocess.run([
         'python', '-m', 'openpifpaf.eval_coco',
         '--output', out_file,
@@ -77,8 +80,14 @@ def main():
                          '--no-multi-scale-hflip'],
             eval_args + ['--connection-method=blend', '--long-edge=961', '--multi-scale'],
         ]
-        for eval_args_i in multi_eval_args:
-            run_eval_coco(args.output, args.backbones[0], eval_args_i)
+        names = [
+            'singlescale-max',
+            'singlescale',
+            'multiscale-nohflip',
+            'multiscale',
+        ]
+        for eval_args_i, name_i in zip(multi_eval_args, names):
+            run_eval_coco(args.output, args.backbones[0], eval_args_i, output_name=name_i)
     else:
         for backbone in args.backbones:
             run_eval_coco(args.output, backbone, eval_args)
