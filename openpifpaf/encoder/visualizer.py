@@ -46,7 +46,8 @@ class Visualizer(object):
                 ax.imshow(image)
                 show.white_screen(ax, alpha=0.5)
                 self.keypoint_painter.keypoints(ax, keypoint_sets)
-                show.quiver(ax, target[1][f], xy_scale=stride)
+                show.quiver(ax, target[1][f, :2], xy_scale=stride)
+                show.margins(ax, target[1][f, :6], xy_scale=stride)
 
     def paf19(self, image, target, stride, keypoint_sets):
         resized_image = image[::stride, ::stride]
@@ -70,7 +71,8 @@ class Visualizer(object):
                 ax.imshow(image)
                 show.white_screen(ax, alpha=0.5)
                 self.keypoint_painter.keypoints(ax, keypoint_sets)
-                show.quiver(ax, target[2][f], xy_scale=stride)
+                show.quiver(ax, target[2][f, :2], xy_scale=stride)
+                show.margins(ax, target[1][f, :6], xy_scale=stride)
 
     def __call__(self, images, targets, meta):
         n_heads = len(targets)

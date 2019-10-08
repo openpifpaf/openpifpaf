@@ -295,6 +295,45 @@ def quiver(ax, vector_field, intensity_field=None, step=1, threshold=0.5,
                      angles='xy', scale_units='xy', scale=1, zOrder=10, **kwargs)
 
 
+def margins(ax, vector_field, intensity_field=None, step=1, threshold=0.5,
+            xy_scale=1.0, uv_is_offset=False, **kwargs):
+    x, y, u, v, r = [], [], [], [], []
+    for j in range(0, vector_field.shape[1], step):
+        for i in range(0, vector_field.shape[2], step):
+            if intensity_field is not None and intensity_field[j, i] < threshold:
+                continue
+            x.append(i * xy_scale)
+            y.append(j * xy_scale)
+            u.append(vector_field[0, j, i] * xy_scale)
+            v.append(vector_field[1, j, i] * xy_scale)
+            r.append(vector_field[2:6, j, i] * xy_scale)
+    x = np.array(x)
+    y = np.array(y)
+    u = np.array(u)
+    v = np.array(v)
+    r = np.array(r)
+    if uv_is_offset:
+        u -= x
+        v -= y
+
+    wedge_angles = [
+        (0.0, 90.0),
+        (90.0, 180.0),
+        (270.0, 360.0),
+        (180.0, 270.0),
+    ]
+
+    for xx, yy, uu, vv, rr in zip(x, y, u, v, r):
+        for q_rr, (theta1, theta2) in zip(rr, wedge_angles):
+            if not np.isfinite(q_rr):
+                continue
+            wedge = matplotlib.patches.Wedge(
+                (xx + uu, yy + vv), q_rr, theta1, theta2,
+                zorder=9, linewidth=1, alpha=0.5 / 16.0,
+                fill=True, color='orange', **kwargs)
+            ax.add_artist(wedge)
+
+
 def arrows(ax, fourd, xy_scale=1.0, threshold=0.0, **kwargs):
     mask = np.min(fourd[:, 2], axis=0) >= threshold
     fourd = fourd[:, :, mask]
