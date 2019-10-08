@@ -69,8 +69,19 @@ def run_eval_coco(output_folder, backbone, eval_args):
 def main():
     args, eval_args = cli()
 
-    for backbone in args.backbones:
-        run_eval_coco(args.output, backbone, eval_args)
+    if len(args.backbones) == 1:
+        multi_eval_args = [
+            eval_args,
+            eval_args + ['--connection-method=blend'],
+            eval_args + ['--connection-method=blend', '--long-edge=961', '--multi-scale',
+                         '--no-multi-scale-hflip'],
+            eval_args + ['--connection-method=blend', '--long-edge=961', '--multi-scale'],
+        ]
+        for eval_args_i in multi_eval_args:
+            run_eval_coco(args.output, args.backbones[0], eval_args_i)
+    else:
+        for backbone in args.backbones:
+            run_eval_coco(args.output, backbone, eval_args)
 
     sc = pysparkling.Context()
     stats = (
