@@ -215,11 +215,16 @@ class RescaleRelative(Preprocess):
         if isinstance(self.scale_range, tuple):
             if self.power_law:
                 rnd_range = np.log2(self.scale_range[0]), np.log2(self.scale_range[1])
-                log2_scale_factor = (
-                    rnd_range[0] +
-                    torch.rand(1).item() * (rnd_range[1] - rnd_range[0])
-                )
+                # log2_scale_factor = (
+                #     rnd_range[0] +
+                #     torch.rand(1).item() * (rnd_range[1] - rnd_range[0])
+                # )
+                mean = 0.5 * (rnd_range[0] + rnd_range[1])
+                sigma = 0.5 * (rnd_range[1] - rnd_range[0])
+                log2_scale_factor = mean + sigma * torch.randn(1).item()
                 scale_factor = 2 ** log2_scale_factor
+                LOG.debug('mean = %f, sigma = %f, log2r = %f, scale = %f',
+                          mean, sigma, log2_scale_factor, scale_factor)
                 LOG.debug('rnd range = %s, log2_scale_Factor = %f, scale factor = %f',
                           rnd_range, log2_scale_factor, scale_factor)
             else:
