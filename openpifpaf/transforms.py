@@ -21,9 +21,29 @@ import scipy.ndimage
 import torch
 import torchvision
 
-from .utils import horizontal_swap_coco
+from .data import COCO_KEYPOINTS, HFLIP
 
 LOG = logging.getLogger(__name__)
+
+
+class HorizontalSwap():
+    def __init__(self, joints=None, hflip=None):
+        self.joints = joints or COCO_KEYPOINTS
+        self.hflip = hflip or HFLIP
+
+    def __call__(self, keypoints):
+        target = np.zeros(keypoints.shape)
+
+        for source_i, xyv in enumerate(keypoints):
+            source_name = self.joints[source_i]
+            target_name = self.hflip.get(source_name)
+            if target_name:
+                target_i = self.joints.index(target_name)
+            else:
+                target_i = source_i
+            target[target_i] = xyv
+
+        return target
 
 
 class Preprocess(metaclass=ABCMeta):
@@ -215,16 +235,17 @@ class RescaleRelative(Preprocess):
         if isinstance(self.scale_range, tuple):
             if self.power_law:
                 rnd_range = np.log2(self.scale_range[0]), np.log2(self.scale_range[1])
-                # log2_scale_factor = (
-                #     rnd_range[0] +
-                #     torch.rand(1).item() * (rnd_range[1] - rnd_range[0])
-                # )
-                mean = 0.5 * (rnd_range[0] + rnd_range[1])
-                sigma = 0.5 * (rnd_range[1] - rnd_range[0])
-                log2_scale_factor = mean + sigma * torch.randn(1).item()
+                log2_scale_factor = (
+                    rnd_range[0] +
+                    torch.rand(1).item() * (rnd_range[1] - rnd_range[0])
+                )
+                # mean = 0.5 * (rnd_range[0] + rnd_range[1])
+                # sigma = 0.5 * (rnd_range[1] - rnd_range[0])
+                # log2_scale_factor = mean + sigma * torch.randn(1).item()
+
                 scale_factor = 2 ** log2_scale_factor
-                LOG.debug('mean = %f, sigma = %f, log2r = %f, scale = %f',
-                          mean, sigma, log2_scale_factor, scale_factor)
+                # LOG.debug('mean = %f, sigma = %f, log2r = %f, scale = %f',
+                #           mean, sigma, log2_scale_factor, scale_factor)
                 LOG.debug('rnd range = %s, log2_scale_Factor = %f, scale factor = %f',
                           rnd_range, log2_scale_factor, scale_factor)
             else:
@@ -435,8 +456,8 @@ class SquarePad(Preprocess):
 
 
 class HFlip(Preprocess):
-    def __init__(self, *, swap=horizontal_swap_coco):
-        self.swap = swap
+    def __init__(self, *, swap=None):
+        self.swap = swap or HorizontalSwap()
 
     def __call__(self, image, anns, meta):
         meta = copy.deepcopy(meta)
@@ -446,7 +467,7 @@ class HFlip(Preprocess):
         image = image.transpose(PIL.Image.FLIP_LEFT_RIGHT)
         for ann in anns:
             ann['keypoints'][:, 0] = -ann['keypoints'][:, 0] - 1.0 + w
-            if self.swap is not None:
+            if self.swap is not None and not ann['iscrowd']:
                 ann['keypoints'] = self.swap(ann['keypoints'])
                 meta['horizontal_swap'] = self.swap
             ann['bbox'][0] = -(ann['bbox'][0] + ann['bbox'][2]) - 1.0 + w
