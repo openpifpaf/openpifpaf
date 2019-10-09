@@ -400,6 +400,16 @@ paf-th=0.03: `time CUDA_VISIBLE_DEVICES=2,3 python -m openpifpaf.eval_coco --che
  Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.850
 ```
 
+`time CUDA_VISIBLE_DEVICES=1 python -m openpifpaf.benchmark --backbones outputs/resnet152block5-pif-paf-paf25-edge401-191003-212408.pkl.epoch070 --paf-th=0.03`:
+
+| Backbone           | AP       | APᴹ      | APᴸ      | t_{total} [ms]  | t_{dec} [ms] |
+|-------------------:|:--------:|:--------:|:--------:|:---------------:|:------------:|
+| singlescale-max    | __69.7__ | 65.1     | 76.6     | 151             | 55           |
+| singlescale        | __69.8__ | 65.2     | 76.8     | 153             | 56           |
+| multiscale-nohflip | __72.2__ | 68.2     | 78.4     | 853             | 317          |
+| multiscale         | __73.0__ | 69.1     | 78.9     | 1507            | 433          |
+
+
 ### test-dev
 
 `time CUDA_VISIBLE_DEVICES=2 python -m openpifpaf.eval_coco --checkpoint outputs/resnet152block5-pif-paf-paf25-edge401-190926-205058-3355106f.pkl --connection-method=blend --long-edge=641 --loader-workers=8 --dataset=test-dev --write-predictions --all-images`:
