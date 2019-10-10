@@ -13,12 +13,6 @@ except ImportError:
     plt = None
 
 
-COCO_PERSON_SKELETON = [
-    [16, 14], [14, 12], [17, 15], [15, 13], [12, 13], [6, 12], [7, 13],
-    [6, 7], [6, 8], [7, 9], [8, 10], [9, 11], [2, 3], [1, 2], [1, 3],
-    [2, 4], [3, 5], [4, 6], [5, 7]]
-
-
 @contextmanager
 def canvas(fig_file=None, show=True, **kwargs):
     if 'figsize' not in kwargs:
@@ -85,7 +79,6 @@ class CrowdPainter(object):
 
 class KeypointPainter(object):
     def __init__(self, *,
-                 skeleton=None,
                  xy_scale=1.0, highlight=None, highlight_invisible=False,
                  show_box=False,
                  show_joint_scale=False,
@@ -93,7 +86,6 @@ class KeypointPainter(object):
                  linewidth=2, markersize=3,
                  color_connections=False,
                  solid_threshold=0.5):
-        self.skeleton = skeleton or COCO_PERSON_SKELETON
         self.xy_scale = xy_scale
         self.highlight = highlight
         self.highlight_invisible = highlight_invisible
@@ -105,22 +97,21 @@ class KeypointPainter(object):
         self.color_connections = color_connections
         self.solid_threshold = solid_threshold
 
-    def _draw_skeleton(self, ax, x, y, v, *, color=None):
+    def _draw_skeleton(self, ax, x, y, v, *, skeleton, color=None):
         if not np.any(v > 0):
             return
 
-        if self.skeleton is not None:
-            for ci, connection in enumerate(np.array(self.skeleton) - 1):
-                c = color
-                if self.color_connections:
-                    c = matplotlib.cm.get_cmap('tab20')(ci / len(self.skeleton))
-                if np.all(v[connection] > 0):
-                    ax.plot(x[connection], y[connection],
-                            linewidth=self.linewidth, color=c,
-                            linestyle='dashed', dash_capstyle='round')
-                if np.all(v[connection] > self.solid_threshold):
-                    ax.plot(x[connection], y[connection],
-                            linewidth=self.linewidth, color=c, solid_capstyle='round')
+        for ci, connection in enumerate(np.array(skeleton) - 1):
+            c = color
+            if self.color_connections:
+                c = matplotlib.cm.get_cmap('tab20')(ci / len(skeleton))
+            if np.all(v[connection] > 0):
+                ax.plot(x[connection], y[connection],
+                        linewidth=self.linewidth, color=c,
+                        linestyle='dashed', dash_capstyle='round')
+            if np.all(v[connection] > self.solid_threshold):
+                ax.plot(x[connection], y[connection],
+                        linewidth=self.linewidth, color=c, solid_capstyle='round')
 
         # highlight invisible keypoints
         inv_color = 'k' if self.highlight_invisible else color
@@ -178,7 +169,8 @@ class KeypointPainter(object):
                 matplotlib.patches.Rectangle(
                     (x - scale, y - scale), 2 * scale, 2 * scale, fill=False, color=color))
 
-    def keypoints(self, ax, keypoint_sets, *, scores=None, color=None, colors=None, texts=None):
+    def keypoints(self, ax, keypoint_sets, *,
+                  skeleton, scores=None, color=None, colors=None, texts=None):
         if keypoint_sets is None:
             return
 
@@ -199,7 +191,7 @@ class KeypointPainter(object):
             if isinstance(color, (int, np.integer)):
                 color = matplotlib.cm.get_cmap('tab20')((color % 20 + 0.05) / 20)
 
-            self._draw_skeleton(ax, x, y, v, color=color)
+            self._draw_skeleton(ax, x, y, v, skeleton=skeleton, color=color)
             if self.show_box:
                 score = scores[i] if scores is not None else None
                 self._draw_box(ax, x, y, v, color, score)
@@ -235,7 +227,7 @@ class KeypointPainter(object):
         y = kps[:, 1] * self.xy_scale
         v = kps[:, 2]
 
-        self._draw_skeleton(ax, x, y, v, color=color)
+        self._draw_skeleton(ax, x, y, v, color=color, skeleton=ann.skeleton)
 
         if self.show_joint_scale and ann.joint_scales is not None:
             self._draw_scales(ax, x, y, v, color, ann.joint_scales)

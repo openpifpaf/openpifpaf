@@ -132,18 +132,15 @@ def draw_skeletons():
 
     with show.canvas('docs/skeleton_coco.png', figsize=(2, 5)) as ax:
         ax.set_axis_off()
-        keypoint_painter.skeleton = COCO_PERSON_SKELETON
-        keypoint_painter.keypoints(ax, coordinates)
+        keypoint_painter.keypoints(ax, coordinates, skeleton=COCO_PERSON_SKELETON)
 
     with show.canvas('docs/skeleton_kinematic_tree.png', figsize=(2, 5)) as ax:
         ax.set_axis_off()
-        keypoint_painter.skeleton = KINEMATIC_TREE_SKELETON
-        keypoint_painter.keypoints(ax, coordinates)
+        keypoint_painter.keypoints(ax, coordinates, skeleton=KINEMATIC_TREE_SKELETON)
 
     with show.canvas('docs/skeleton_dense.png', figsize=(2, 5)) as ax:
         ax.set_axis_off()
-        keypoint_painter.skeleton = DENSER_COCO_PERSON_SKELETON
-        keypoint_painter.keypoints(ax, coordinates)
+        keypoint_painter.keypoints(ax, coordinates, skeleton=DENSER_COCO_PERSON_SKELETON)
 
 
 def print_associations():

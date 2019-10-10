@@ -1,7 +1,6 @@
 import logging
 
-from ..data import COCO_PERSON_SKELETON, DENSER_COCO_PERSON_CONNECTIONS
-from .decoder import Decoder
+from ..data import COCO_KEYPOINTS, COCO_PERSON_SKELETON, DENSER_COCO_PERSON_CONNECTIONS
 from .pif import Pif
 from .pif_hr import PifHr
 from .pifpaf import PifPaf
@@ -67,14 +66,8 @@ def cli(parser, *,
                        choices=('median', 'max', 'blend'),
                        help='connection method to use, max is faster')
 
-    for decoder in Decoder.__subclasses__():
-        decoder.cli(parser)
-
 
 def factory_from_args(args, model, device=None):
-    for decoder in Decoder.__subclasses__():
-        decoder.apply_args(args)
-
     # configure PifPaf
     PifPaf.fixed_b = args.fixed_b
     PifPaf.pif_fixed_scale = args.pif_fixed_scale
@@ -88,6 +81,9 @@ def factory_from_args(args, model, device=None):
     PifPafDijkstra.paf_th = args.paf_th
     PifPafDijkstra.connection_method = args.connection_method
     PifPafDijkstra.force_complete = args.force_complete_pose
+
+    # configure Pif
+    Pif.pif_fixed_scale = args.pif_fixed_scale
 
     debug_visualizer = None
     if args.debug_pif_indices or args.debug_paf_indices:
@@ -196,6 +192,7 @@ def factory_decode(model, *,
                 pif_min_scale=pif_min_scale,
                 paf_min_distance=paf_min_distance,
                 paf_max_distance=paf_max_distance,
+                keypoints=COCO_KEYPOINTS,
                 skeleton=COCO_PERSON_SKELETON + DENSER_COCO_PERSON_CONNECTIONS,
                 confidence_scales=confidence_scales,
                 **kwargs
@@ -208,6 +205,7 @@ def factory_decode(model, *,
             pif_min_scale=pif_min_scale,
             paf_min_distance=paf_min_distance,
             paf_max_distance=paf_max_distance,
+            keypoints=COCO_KEYPOINTS,
             skeleton=COCO_PERSON_SKELETON,
             **kwargs
         )

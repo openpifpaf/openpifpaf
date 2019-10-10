@@ -11,7 +11,7 @@ class Visualizer(object):
     def __init__(self, headnames, strides):
         self.headnames = headnames
         self.strides = strides
-        self.keypoint_painter = show.KeypointPainter(skeleton=COCO_PERSON_SKELETON)
+        self.keypoint_painter = show.KeypointPainter()
 
     def single(self, image, targets):
         keypoint_sets = None
@@ -45,7 +45,7 @@ class Visualizer(object):
             with show.canvas() as ax:
                 ax.imshow(image)
                 show.white_screen(ax, alpha=0.5)
-                self.keypoint_painter.keypoints(ax, keypoint_sets)
+                self.keypoint_painter.keypoints(ax, keypoint_sets, skeleton=COCO_PERSON_SKELETON)
                 show.quiver(ax, target[1][f, :2], xy_scale=stride)
                 show.margins(ax, target[1][f, :6], xy_scale=stride)
 
@@ -64,13 +64,13 @@ class Visualizer(object):
             with show.canvas() as ax:
                 ax.imshow(image)
                 show.white_screen(ax, alpha=0.5)
-                self.keypoint_painter.keypoints(ax, keypoint_sets)
+                self.keypoint_painter.keypoints(ax, keypoint_sets, skeleton=COCO_PERSON_SKELETON)
                 show.quiver(ax, target[1][f], xy_scale=stride)
 
             with show.canvas() as ax:
                 ax.imshow(image)
                 show.white_screen(ax, alpha=0.5)
-                self.keypoint_painter.keypoints(ax, keypoint_sets)
+                self.keypoint_painter.keypoints(ax, keypoint_sets, skeleton=COCO_PERSON_SKELETON)
                 show.quiver(ax, target[2][f, :2], xy_scale=stride)
                 show.margins(ax, target[1][f, :6], xy_scale=stride)
 

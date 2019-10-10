@@ -2,8 +2,6 @@ import functools
 import math
 import numpy as np
 
-from .data import COCO_KEYPOINTS, HFLIP
-
 
 @functools.lru_cache(maxsize=64)
 def create_sink(side):

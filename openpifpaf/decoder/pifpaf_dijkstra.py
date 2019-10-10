@@ -6,7 +6,6 @@ import time
 import numpy as np
 
 from . import generator
-from .decoder import Decoder
 from .paf_scored import PafScored
 from .pif_hr import PifHr
 from .pif_seeds import PifSeeds
@@ -15,7 +14,7 @@ from .utils import normalize_pif, normalize_paf
 LOG = logging.getLogger(__name__)
 
 
-class PifPafDijkstra(Decoder):
+class PifPafDijkstra(object):
     force_complete = True
     connection_method = 'max'
     fixed_b = None
@@ -23,6 +22,7 @@ class PifPafDijkstra(Decoder):
     paf_th = 0.1
 
     def __init__(self, stride, *,
+                 keypoints,
                  skeleton,
                  pif_index=0, paf_index=1,
                  pif_min_scale=0.0,
@@ -53,6 +53,7 @@ class PifPafDijkstra(Decoder):
         assert len(self.strides) == len(self.paf_min_distances)
         assert len(self.strides) == len(self.paf_max_distances)
 
+        self.keypoints = keypoints
         self.skeleton = skeleton
 
         self.seed_threshold = seed_threshold
@@ -121,6 +122,7 @@ class PifPafDijkstra(Decoder):
             connection_method=self.connection_method,
             paf_nn=self.paf_nn,
             paf_th=self.paf_th,
+            keypoints=self.keypoints,
             skeleton=self.skeleton,
             debug_visualizer=self.debug_visualizer,
         )

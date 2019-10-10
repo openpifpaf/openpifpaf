@@ -7,7 +7,6 @@ import time
 import numpy as np
 
 from .annotation import AnnotationWithoutSkeleton
-from .decoder import Decoder
 from .utils import index_field, scalar_square_add_single, normalize_pif
 
 # pylint: disable=import-error
@@ -16,8 +15,8 @@ from ..functional import (scalar_square_add_constant, scalar_square_add_gauss)
 LOG = logging.getLogger(__name__)
 
 
-class Pif(Decoder):
-    default_pif_fixed_scale = None
+class Pif(object):
+    pif_fixed_scale = None
 
     def __init__(self, stride, seed_threshold,
                  head_index=0,
@@ -28,13 +27,8 @@ class Pif(Decoder):
         self.profile = profile
         self.seed_threshold = seed_threshold
         self.debug_visualizer = debug_visualizer
-        self.pif_fixed_scale = self.default_pif_fixed_scale
 
         self.pif_nn = 16
-
-    @classmethod
-    def apply_args(cls, args):
-        cls.default_pif_fixed_scale = args.pif_fixed_scale
 
     def __call__(self, fields):
         start = time.perf_counter()

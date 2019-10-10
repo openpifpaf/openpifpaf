@@ -33,11 +33,10 @@ LOG = logging.getLogger(__name__)
 
 class EvalCoco(object):
     def __init__(self, coco, processor, annotations_inverse, *,
-                 skeleton=None, max_per_image=20, small_threshold=0.0):
+                 max_per_image=20, small_threshold=0.0):
         self.coco = coco
         self.processor = processor
         self.annotations_inverse = annotations_inverse
-        self.skeleton = skeleton or COCO_PERSON_SKELETON
         self.max_per_image = max_per_image
         self.small_threshold = small_threshold
 
@@ -71,9 +70,8 @@ class EvalCoco(object):
 
     def view_keypoints(self, image_cpu, annotations, gt):
         highlight = [5, 7, 9, 11, 13, 15]
-        keypoint_painter = show.KeypointPainter(skeleton=self.skeleton, highlight=highlight)
-        skeleton_painter = show.KeypointPainter(skeleton=self.skeleton,
-                                                show_box=False, color_connections=True,
+        keypoint_painter = show.KeypointPainter(highlight=highlight)
+        skeleton_painter = show.KeypointPainter(show_box=False, color_connections=True,
                                                 markersize=1, linewidth=6)
 
         with show.canvas() as ax:
@@ -94,12 +92,13 @@ class EvalCoco(object):
 
         with show.canvas() as ax:
             ax.imshow((np.moveaxis(image_cpu.numpy(), 0, -1) + 2.0) / 4.0)
-            keypoint_painter.keypoints(ax, instances_gt)
+            keypoint_painter.keypoints(ax, instances_gt, skeleton=COCO_PERSON_SKELETON)
 
         with show.canvas() as ax:
             ax.imshow((np.moveaxis(image_cpu.numpy(), 0, -1) + 2.0) / 4.0)
             show.white_screen(ax)
-            keypoint_painter.keypoints(ax, instances_gt, color='lightgrey')
+            keypoint_painter.keypoints(ax, instances_gt, color='lightgrey',
+                                       skeleton=COCO_PERSON_SKELETON)
             keypoint_painter.annotations(ax, [ann for ann in annotations if ann.score() > 0.01])
 
     def from_predictions(self, predictions, meta,

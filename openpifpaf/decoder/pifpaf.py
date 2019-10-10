@@ -4,7 +4,6 @@ import logging
 import time
 
 from . import generator
-from .decoder import Decoder
 from .paf_scored import PafScored
 from .pif_hr import PifHr
 from .pif_seeds import PifSeeds
@@ -13,7 +12,7 @@ from .utils import normalize_pif, normalize_paf
 LOG = logging.getLogger(__name__)
 
 
-class PifPaf(Decoder):
+class PifPaf(object):
     force_complete = True
     connection_method = 'max'
     fixed_b = None
@@ -21,6 +20,7 @@ class PifPaf(Decoder):
     paf_th = 0.1
 
     def __init__(self, stride, *,
+                 keypoints,
                  skeleton,
                  pif_index=0, paf_index=1,
                  pif_min_scale=0.0,
@@ -50,6 +50,7 @@ class PifPaf(Decoder):
         assert len(self.strides) == len(self.paf_min_distances)
         assert len(self.strides) == len(self.paf_max_distances)
 
+        self.keypoints = keypoints
         self.skeleton = skeleton
 
         self.seed_threshold = seed_threshold
@@ -109,6 +110,7 @@ class PifPaf(Decoder):
             connection_method=self.connection_method,
             paf_nn=self.paf_nn,
             paf_th=self.paf_th,
+            keypoints=self.keypoints,
             skeleton=self.skeleton,
             debug_visualizer=self.debug_visualizer,
         )

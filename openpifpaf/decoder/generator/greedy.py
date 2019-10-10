@@ -19,6 +19,7 @@ class Greedy(object):
                  connection_method,
                  paf_nn,
                  paf_th,
+                 keypoints,
                  skeleton,
                  debug_visualizer=None):
         self.pifhr = pifhr
@@ -29,6 +30,7 @@ class Greedy(object):
         self.connection_method = connection_method
         self.paf_nn = paf_nn
         self.paf_th = paf_th
+        self.keypoints = keypoints
         self.skeleton = skeleton
 
         self.debug_visualizer = debug_visualizer
@@ -70,7 +72,7 @@ class Greedy(object):
             if scalar_nonzero(occupied[f], x, y):
                 continue
 
-            ann = Annotation(self.skeleton).add(f, (x, y, v))
+            ann = Annotation(self.keypoints, self.skeleton).add(f, (x, y, v))
             self._grow(ann, self.paf_th)
             ann.fill_joint_scales(self.pifhr.scales)
             annotations.append(ann)

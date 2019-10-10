@@ -5,16 +5,18 @@ from ..functional import scalar_value_clipped
 
 
 class Annotation(object):
-    def __init__(self, skeleton):
-        n_joints = len(set(i for c in skeleton for i in c))
-        self.data = np.zeros((n_joints, 3))
+    def __init__(self, keypoints, skeleton):
+        self.keypoints = keypoints
+        self.skeleton = skeleton
+
+        self.data = np.zeros((len(keypoints), 3))
         self.joint_scales = None
         self.fixed_score = None
         self.decoding_order = []
 
         self.skeleton_m1 = (np.asarray(skeleton) - 1).tolist()
 
-        self.score_weights = np.ones((n_joints,))
+        self.score_weights = np.ones((len(keypoints),))
         self.score_weights[:3] = 3.0
         self.score_weights /= np.sum(self.score_weights)
 

@@ -20,6 +20,7 @@ class Dijkstra(object):
                  connection_method,
                  paf_nn,
                  paf_th,
+                 keypoints,
                  skeleton,
                  debug_visualizer=None):
         self.pifhr = pifhr
@@ -30,6 +31,8 @@ class Dijkstra(object):
         self.connection_method = connection_method
         self.paf_nn = paf_nn
         self.paf_th = paf_th
+
+        self.keypoints = keypoints
         self.skeleton = skeleton
         self.skeleton_m1 = np.asarray(skeleton) - 1
 
@@ -73,7 +76,7 @@ class Dijkstra(object):
             if scalar_nonzero(occupied[f], x, y):
                 continue
 
-            ann = Annotation(self.skeleton).add(f, (x, y, v))
+            ann = Annotation(self.keypoints, self.skeleton).add(f, (x, y, v))
             self._grow(ann, self.paf_th)
             ann.fill_joint_scales(self.pifhr.scales)
             annotations.append(ann)
@@ -201,11 +204,8 @@ class Dijkstra(object):
         return (new_xyv[0], new_xyv[1], np.sqrt(new_xyv[2] * xyv[2]))  # geometric mean
 
     def _grow(self, ann, th, reverse_match=True):
-        LOG.debug('_____________new grow_________')
         frontier = PriorityQueue()
         evaluated_connections = set()
-
-        LOG.debug('skeleton connections = %d', len(self.skeleton_m1))
 
         def add_to_frontier(start_i):
             for paf_i, (j1, j2) in enumerate(self.skeleton_m1):
@@ -240,8 +240,6 @@ class Dijkstra(object):
             _, new_xyv, jsi, jti = frontier.get()
             if ann.data[jti, 2] > 0.0:
                 continue
-
-            LOG.debug('setting joint %d: %s', jti, new_xyv)
 
             ann.data[jti] = new_xyv
             ann.decoding_order.append(
