@@ -43,6 +43,8 @@ def cli():
                         help='number of workers for data loading')
     parser.add_argument('--disable-cuda', action='store_true',
                         help='disable CUDA')
+    parser.add_argument('--line-width', default=6, type=int,
+                        help='line width for skeleton')
     parser.add_argument('--figure-width', default=10.0, type=float,
                         help='figure width')
     parser.add_argument('--dpi-factor', default=1.0, type=float,
@@ -113,8 +115,11 @@ def main():
 
     # visualizers
     keypoint_painter = show.KeypointPainter()
-    skeleton_painter = show.KeypointPainter(color_connections=True,
-                                            markersize=1, linewidth=6)
+    skeleton_painter = show.KeypointPainter(
+        color_connections=True,
+        markersize=args.line_width - 5,
+        linewidth=args.line_width,
+    )
 
     for batch_i, (image_tensors_batch, _, meta_batch) in enumerate(data_loader):
         image_tensors_batch_gpu = image_tensors_batch.to(args.device, non_blocking=True)
