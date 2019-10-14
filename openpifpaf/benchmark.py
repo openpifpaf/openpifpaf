@@ -13,10 +13,10 @@ LOG = logging.getLogger(__name__)
 
 
 DEFAULT_BACKBONES = [
-    'shufflenetv2x1',
+    # 'shufflenetv2x1',
     'shufflenetv2x2',
     'resnet50',
-    'resnext50',
+    # 'resnext50',
     'resnet101',
     'resnet152',
 ]

@@ -5,6 +5,7 @@ import torchvision
 
 from . import basenetworks, heads
 from ..data import COCO_KEYPOINTS, COCO_PERSON_SKELETON, DENSER_COCO_PERSON_CONNECTIONS, HFLIP
+from .. import torch_hub_patch
 
 # generate hash values with: shasum -a 256 filename.pkl
 
@@ -18,10 +19,14 @@ RESNEXT50_MODEL = ('https://storage.googleapis.com/openpifpaf-pretrained/v0.8.0/
                    'resnext50block5-pif-paf-edge401-190629-151121-24491655.pkl')
 SHUFFLENETV2X1_MODEL = ('https://storage.googleapis.com/openpifpaf-pretrained/v0.8.0/'
                         'shufflenetv2x1-pif-paf-edge401-190705-151607-d9a35d7e.pkl')
-SHUFFLENETV2X2_MODEL = ('https://storage.googleapis.com/openpifpaf-pretrained/v0.8.0/'
-                        'shufflenetv2x2-pif-paf-edge401-190705-151618-f8da8c15.pkl')
+SHUFFLENETV2X2_MODEL = ('https://drive.switch.ch/index.php/s/SveBDXZBvVyl8cX/download',
+                        'shufflenetv2x2-pif-paf-paf25-edge401-191010-172527-ef704f06.pkl')
 
 LOG = logging.getLogger(__name__)
+
+
+# monkey patch torch.hub
+torch.hub.load_state_dict_from_url = torch_hub_patch.load_state_dict_from_url
 
 
 class Shell(torch.nn.Module):
@@ -320,7 +325,8 @@ def factory(
         elif checkpoint == 'shufflenetv2x1':
             checkpoint = torch.utils.model_zoo.load_url(SHUFFLENETV2X1_MODEL)
         elif checkpoint == 'shufflenetv2x2':
-            checkpoint = torch.utils.model_zoo.load_url(SHUFFLENETV2X2_MODEL)
+            checkpoint = torch.hub.load_state_dict_from_url(
+                SHUFFLENETV2X2_MODEL[0], rename_file=SHUFFLENETV2X2_MODEL[1])
         elif checkpoint.startswith('http'):
             checkpoint = torch.utils.model_zoo.load_url(checkpoint)
         else:
