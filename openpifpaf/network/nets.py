@@ -471,7 +471,7 @@ def resnet_factory_from_scratch(basename, base_vision, out_features, headnames):
         resnet_factory.block3(),
         resnet_factory.block4(),
     ]
-    if 'block5' in basename:
+    if 'block4' not in basename:
         blocks.append(resnet_factory.block5())
     else:
         out_features //= 2
