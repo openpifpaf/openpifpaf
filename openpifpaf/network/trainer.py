@@ -41,13 +41,17 @@ class Trainer(object):
 
         if train_profile:
             # monkey patch to profile self.train_batch()
+            self.trace_counter = 0
             self.train_batch_without_profile = self.train_batch
             def train_batch_with_profile(*args, **kwargs):
-                with torch.autograd.profiler.profile() as prof:
+                with torch.autograd.profiler.profile(use_cuda=True) as prof:
                     result = self.train_batch_without_profile(*args, **kwargs)
                 print(prof.key_averages())
-                print(prof.total_average())
-                prof.export_chrome_trace(train_profile)
+                self.trace_counter += 1
+                tracefilename = train_profile.replace(
+                    '.json', '.{}.json'.format(self.trace_counter))
+                LOG.info('writing trace file %s', tracefilename)
+                prof.export_chrome_trace(tracefilename)
                 return result
             self.train_batch = train_batch_with_profile
 
@@ -106,14 +110,19 @@ class Trainer(object):
             targets = [[t.to(self.device, non_blocking=True) for t in head] for head in targets]
 
         # train encoder
-        outputs = self.model(data)
-        loss, head_losses = self.loss(outputs, targets)
+        with torch.autograd.profiler.record_function('model'):
+            outputs = self.model(data)
+        with torch.autograd.profiler.record_function('loss'):
+            loss, head_losses = self.loss(outputs, targets)
         if loss is not None:
-            loss.backward()
+            with torch.autograd.profiler.record_function('backward'):
+                loss.backward()
         if apply_gradients:
-            self.optimizer.step()
-            self.optimizer.zero_grad()
-            self.step_ema()
+            with torch.autograd.profiler.record_function('step'):
+                self.optimizer.step()
+                self.optimizer.zero_grad()
+            with torch.autograd.profiler.record_function('ema'):
+                self.step_ema()
 
         return (
             float(loss.item()) if loss is not None else None,
