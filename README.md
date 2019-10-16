@@ -137,7 +137,7 @@ time CUDA_VISIBLE_DEVICES=0,1 python3 -m openpifpaf.train \
   --lr-decay 130 140 \
   --lr-burn-in-epochs=2 \
   --batch-size=16 \
-  --basenet=resnet101block5 \
+  --basenet=resnet101 \
   --head-quad=1 \
   --headnets pif paf paf25 \
   --square-edge=401 \
