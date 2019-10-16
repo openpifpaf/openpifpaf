@@ -11,8 +11,8 @@ from .. import torch_hub_patch
 
 RESNET50_MODEL = ('https://storage.googleapis.com/openpifpaf-pretrained/v0.8.0/'
                   'resnet50block5-pif-paf-edge401-190625-025154-4e47f5ec.pkl')
-RESNET101_MODEL = ('https://storage.googleapis.com/openpifpaf-pretrained/v0.8.0/'
-                   'resnet101block5-pif-paf-edge401-190629-151620-b2db8c7e.pkl')
+RESNET101_MODEL = ('https://drive.switch.ch/index.php/s/9FdgUh0RAuiJdzB/download',
+                   'resnet101block5-pif-paf-paf25-edge401-191012-132602-a2bf7ecd.pkl')
 RESNET152_MODEL = ('https://storage.googleapis.com/openpifpaf-pretrained/v0.8.0/'
                    'resnet152block5-pif-paf-edge401-190625-185426-3e2f28ed.pkl')
 RESNEXT50_MODEL = ('https://storage.googleapis.com/openpifpaf-pretrained/v0.8.0/'
@@ -26,7 +26,10 @@ LOG = logging.getLogger(__name__)
 
 
 # monkey patch torch.hub
-torch.hub.load_state_dict_from_url = torch_hub_patch.load_state_dict_from_url
+if torch_hub_patch.USE_V13:
+    torch.hub.load_state_dict_from_url = torch_hub_patch.v13_load_state_dict_from_url
+else:
+    torch.hub.load_state_dict_from_url = torch_hub_patch.v12_load_state_dict_from_url
 
 
 class Shell(torch.nn.Module):
