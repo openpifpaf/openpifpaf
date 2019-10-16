@@ -1,47 +1,22 @@
 import logging
-import re
 
 import numpy as np
 import scipy.ndimage
 import torch
 
 from .annrescaler import AnnRescaler
-from .encoder import Encoder
 from ..utils import create_sink, mask_valid_area
 
 LOG = logging.getLogger(__name__)
 
 
-class Pif(Encoder):
-    default_side_length = 4
+class Pif(object):
+    side_length = 4
 
-    def __init__(self, head_name, stride, *,
-                 n_keypoints=None,
-                 v_threshold=0,
-                 **kwargs):
-        LOG.debug('unused arguments in %s: %s', head_name, kwargs)
-
+    def __init__(self, stride, *, n_keypoints, v_threshold=0):
         self.stride = stride
-        if n_keypoints is None:
-            m = re.match('pif([0-9]+)$', head_name)
-            if m is not None:
-                n_keypoints = int(m.group(1))
-                LOG.debug('using %d keypoints for pif', n_keypoints)
-            else:
-                n_keypoints = 17
         self.n_keypoints = n_keypoints
         self.v_threshold = v_threshold
-        self.side_length = self.default_side_length
-
-    @classmethod
-    def cli(cls, parser):
-        group = parser.add_argument_group('pif encoder')
-        group.add_argument('--pif-side-length', default=cls.default_side_length, type=int,
-                           help='side length of the PIF field')
-
-    @classmethod
-    def apply_args(cls, args):
-        cls.default_side_length = args.pif_side_length
 
     def __call__(self, anns, width_height_original):
         rescaler = AnnRescaler(self.stride, self.n_keypoints)

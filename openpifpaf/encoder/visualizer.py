@@ -8,10 +8,12 @@ LOG = logging.getLogger(__name__)
 
 
 class Visualizer(object):
-    def __init__(self, headnames, strides):
+    def __init__(self, headnames, strides, pif_indices=None, paf_indices=None):
         self.headnames = headnames
         self.strides = strides
         self.keypoint_painter = show.KeypointPainter()
+        self.pif_indices = pif_indices or []
+        self.paf_indices = paf_indices or []
 
     def single(self, image, targets):
         keypoint_sets = None
@@ -35,7 +37,7 @@ class Visualizer(object):
         resized_image = image[::stride, ::stride]
         bce_targets = target[0]
         bce_masks = (bce_targets[:-1] + bce_targets[-1:]) > 0.5
-        for f in [1, 2]:
+        for f in self.pif_indices:
             print('intensity field', COCO_KEYPOINTS[f])
 
             with show.canvas() as ax:
@@ -53,7 +55,7 @@ class Visualizer(object):
         resized_image = image[::stride, ::stride]
         bce_targets = target[0]
         bce_masks = (bce_targets[:-1] + bce_targets[-1:]) > 0.5
-        for f in [1, 2]:
+        for f in self.paf_indices:
             print('association field',
                   COCO_KEYPOINTS[COCO_PERSON_SKELETON[f][0] - 1],
                   COCO_KEYPOINTS[COCO_PERSON_SKELETON[f][1] - 1])
@@ -65,14 +67,15 @@ class Visualizer(object):
                 ax.imshow(image)
                 show.white_screen(ax, alpha=0.5)
                 self.keypoint_painter.keypoints(ax, keypoint_sets, skeleton=COCO_PERSON_SKELETON)
-                show.quiver(ax, target[1][f], xy_scale=stride)
+                show.quiver(ax, target[1][f, :2], xy_scale=stride)
+                show.margins(ax, target[1][f, :6], xy_scale=stride)
 
             with show.canvas() as ax:
                 ax.imshow(image)
                 show.white_screen(ax, alpha=0.5)
                 self.keypoint_painter.keypoints(ax, keypoint_sets, skeleton=COCO_PERSON_SKELETON)
                 show.quiver(ax, target[2][f, :2], xy_scale=stride)
-                show.margins(ax, target[1][f, :6], xy_scale=stride)
+                show.margins(ax, target[2][f, :6], xy_scale=stride)
 
     def __call__(self, images, targets, meta):
         n_heads = len(targets)
