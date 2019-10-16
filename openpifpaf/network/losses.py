@@ -1,6 +1,5 @@
 """Losses."""
 
-from abc import ABCMeta
 import logging
 import torch
 
@@ -13,18 +12,6 @@ from ..data import (
 )
 
 LOG = logging.getLogger(__name__)
-
-LOSSES = None
-
-
-class Loss(metaclass=ABCMeta):
-    @classmethod
-    def cli(cls, parser):
-        """Add decoder specific command line arguments to the parser."""
-
-    @classmethod
-    def apply_args(cls, args):
-        """Read command line arguments args to set class properties."""
 
 
 def laplace_loss(x1, x2, logb, t1, t2, weight=None):
@@ -164,29 +151,21 @@ class MultiHeadLoss(torch.nn.Module):
         return total_loss, flat_head_losses
 
 
-class CompositeLoss(Loss, torch.nn.Module):
-    default_background_weight = 1.0
-    default_multiplicity_correction = False
-    default_independence_scale = 3.0
+class CompositeLoss(torch.nn.Module):
+    background_weight = 1.0
+    multiplicity_correction = False
+    independence_scale = 3.0
 
     def __init__(self, head_name, regression_loss, *,
                  n_vectors, n_scales, sigmas=None, margin=False):
         super(CompositeLoss, self).__init__()
 
-        if sigmas is None:
-            sigmas = [[1.0] for _ in range(n_vectors)]
-
-        self.background_weight = self.default_background_weight
-        self.multiplicity_correction = self.default_multiplicity_correction
-        self.independence_scale = self.default_independence_scale
-
         self.n_vectors = n_vectors
         self.n_scales = n_scales
         if self.n_scales:
             assert len(sigmas) == n_scales
-        LOG.debug('%s: n_vectors = %d, n_scales = %d, len(sigmas) = %d, margin = %s',
-                  head_name, n_vectors, n_scales, len(sigmas), margin)
-
+        if sigmas is None:
+            sigmas = [[1.0] for _ in range(n_vectors)]
         if sigmas is not None:
             assert len(sigmas) == n_vectors
             scales_to_kp = torch.tensor(sigmas)
@@ -210,16 +189,8 @@ class CompositeLoss(Loss, torch.nn.Module):
 
         self.bce_blackout = None
 
-    @classmethod
-    def cli(cls, parser):
-        # group = parser.add_argument_group('composite loss')
-        pass
-
-    @classmethod
-    def apply_args(cls, args):
-        cls.default_background_weight = args.background_weight
-        cls.default_fixed_size = args.paf_fixed_size
-        cls.default_aspect_ratio = args.paf_aspect_ratio
+        LOG.debug('%s: n_vectors = %d, n_scales = %d, len(sigmas) = %d, margin = %s',
+                  head_name, n_vectors, n_scales, len(sigmas), margin)
 
     def forward(self, *args):
         x, t = args
@@ -344,8 +315,10 @@ def cli(parser):
 
 
 def factory_from_args(args):
-    for loss in Loss.__subclasses__():
-        loss.apply_args(args)
+    # apply for CompositeLoss
+    CompositeLoss.background_weight = args.background_weight
+    CompositeLoss.fixed_size = args.paf_fixed_size
+    CompositeLoss.aspect_ratio = args.paf_aspect_ratio
 
     return factory(
         args.headnets,

@@ -1,24 +1,11 @@
 """Head networks."""
 
-from abc import ABCMeta
 import logging
 import re
 
 import torch
 
 LOG = logging.getLogger(__name__)
-
-HEADS = None
-
-
-class Head(metaclass=ABCMeta):
-    @classmethod
-    def cli(cls, parser):
-        """Add decoder specific command line arguments to the parser."""
-
-    @classmethod
-    def apply_args(cls, args):
-        """Read command line arguments args to set class properties."""
 
 
 class HeadStacks(torch.nn.Module):
@@ -119,33 +106,22 @@ class PafHFlip(torch.nn.Module):
         return out
 
 
-class CompositeField(Head, torch.nn.Module):
-    default_dropout_p = 0.0
-    default_quad = 0
-    default_kernel_size = 1
-    default_padding = 0
-    default_dilation = 1
+class CompositeField(torch.nn.Module):
+    dropout_p = 0.0
+    quad = 0
 
     def __init__(self, head_name, in_features, *,
-                 n_fields=None,
-                 n_confidences=1, n_vectors=None, n_scales=None,
-                 kernel_size=None, padding=None, dilation=None):
+                 n_fields,
+                 n_confidences,
+                 n_vectors,
+                 n_scales,
+                 kernel_size=1, padding=0, dilation=1):
         super(CompositeField, self).__init__()
 
-        n_fields = n_fields or self.determine_nfields(head_name)
-        n_vectors = n_vectors or self.determine_nvectors(head_name)
-        n_scales = n_scales or self.determine_nscales(head_name)
-        LOG.debug('%s config: fields = %d, confidences = %d, vectors = %d, scales = %d',
-                  head_name, n_fields, n_confidences, n_vectors, n_scales)
-
-        if kernel_size is None:
-            kernel_size = {'wpaf': 3}.get(head_name, self.default_kernel_size)
-        if padding is None:
-            padding = {'wpaf': 5}.get(head_name, self.default_padding)
-        if dilation is None:
-            dilation = {'wpaf': 5}.get(head_name, self.default_dilation)
-        LOG.debug('%s config: kernel = %d, padding = %d, dilation = %d',
-                  head_name, kernel_size, padding, dilation)
+        LOG.debug('%s config: fields = %d, confidences = %d, vectors = %d, scales = %d '
+                  'kernel = %d, padding = %d, dilation = %d',
+                  head_name, n_fields, n_confidences, n_vectors, n_scales,
+                  kernel_size, padding, dilation)
 
         self.shortname = head_name
         self.dilation = dilation
@@ -182,58 +158,6 @@ class CompositeField(Head, torch.nn.Module):
 
         # dequad
         self.dequad_op = torch.nn.PixelShuffle(2)
-
-    @staticmethod
-    def determine_nfields(head_name):
-        m = re.match('p[ia]f([0-9]+)$', head_name)
-        if m is not None:
-            return int(m.group(1))
-
-        return {
-            'paf': 19,
-            'pafb': 19,
-            'pafsb': 19,
-            'pafs19': 19,
-            'wpaf': 19,
-        }.get(head_name, 17)
-
-    @staticmethod
-    def determine_nvectors(head_name):
-        if 'pif' in head_name:
-            return 1
-        if 'paf' in head_name:
-            return 2
-        return 0
-
-    @staticmethod
-    def determine_nscales(head_name):
-        if 'pif' in head_name:
-            return 1
-        if 'paf' in head_name:
-            return 0
-        return 0
-
-    @classmethod
-    def cli(cls, parser):
-        group = parser.add_argument_group('head')
-        group.add_argument('--head-dropout', default=cls.default_dropout_p, type=float,
-                           help='[experimental] zeroing probability of feature in head input')
-        group.add_argument('--head-quad', default=cls.default_quad, type=int,
-                           help='number of times to apply quad (subpixel conv) to heads')
-        group.add_argument('--head-kernel-size', default=cls.default_kernel_size, type=int,
-                           help='[experimental]')
-        group.add_argument('--head-padding', default=cls.default_padding, type=int,
-                           help='[experimental]')
-        group.add_argument('--head-dilation', default=cls.default_dilation, type=int,
-                           help='[never-worked]')
-
-    @classmethod
-    def apply_args(cls, args):
-        cls.default_dropout_p = args.head_dropout
-        cls.default_quad = args.head_quad
-        cls.default_kernel_size = args.head_kernel_size
-        cls.default_padding = args.head_padding
-        cls.default_dilation = args.head_dilation
 
     def forward(self, x):  # pylint: disable=arguments-differ
         x = self.dropout(x)
@@ -275,3 +199,56 @@ class CompositeField(Head, torch.nn.Module):
         ]
 
         return classes_x + regs_x + regs_x_spread + scales_x
+
+
+def determine_nfields(head_name):
+    m = re.match('p[ia]f([0-9]+)$', head_name)
+    if m is not None:
+        return int(m.group(1))
+
+    return {
+        'paf': 19,
+        'pafb': 19,
+        'pafsb': 19,
+        'pafs19': 19,
+        'wpaf': 19,
+    }.get(head_name, 17)
+
+
+def determine_nvectors(head_name):
+    if 'pif' in head_name:
+        return 1
+    if 'paf' in head_name:
+        return 2
+    return 0
+
+
+def determine_nscales(head_name):
+    if 'pif' in head_name:
+        return 1
+    if 'paf' in head_name:
+        return 0
+    return 0
+
+
+def factory(name, n_features):
+    if name in ('pif',
+                'paf',
+                'pafs',
+                'wpaf',
+                'pafb',
+                'pafs19',
+                'pafsb') or \
+       re.match('p[ia]f([0-9]+)$', name) is not None:
+        n_fields = determine_nfields(name)
+        n_vectors = determine_nvectors(name)
+        n_scales = determine_nscales(name)
+
+        LOG.info('selected head CompositeField for %s', name)
+        return CompositeField(name, n_features,
+                              n_fields=n_fields,
+                              n_confidences=1,
+                              n_vectors=n_vectors,
+                              n_scales=n_scales)
+
+    raise Exception('unknown head to create a head network: {}'.format(name))

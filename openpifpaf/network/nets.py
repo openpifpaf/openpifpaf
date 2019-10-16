@@ -230,8 +230,9 @@ class ShellFork(torch.nn.Module):
 
 
 def factory_from_args(args):
-    for head in (heads.HEADS or heads.Head.__subclasses__()):
-        head.apply_args(args)
+    # configure CompositeField
+    heads.CompositeField.dropout_p = args.head_dropout
+    heads.CompositeField.quad = args.head_quad
 
     return factory(
         checkpoint=args.checkpoint,
@@ -377,21 +378,6 @@ def factory(
     return net_cpu, epoch
 
 
-def create_headnet(name, n_features):
-    if name in ('pif',
-                'paf',
-                'pafs',
-                'wpaf',
-                'pafb',
-                'pafs19',
-                'pafsb') or \
-       re.match('p[ia]f([0-9]+)$', name) is not None:
-        LOG.info('selected head CompositeField for %s', name)
-        return heads.CompositeField(name, n_features)
-
-    raise Exception('unknown head to create a head network: {}'.format(name))
-
-
 # pylint: disable=too-many-return-statements
 def factory_from_scratch(basename, headnames, *, pretrained=True):
     if 'resnet18' in basename:
@@ -444,7 +430,7 @@ def shufflenet_factory_from_scratch(basename, base_vision, out_features, headnam
         input_output_scale=16,
         out_features=out_features,
     )
-    headnets = [create_headnet(h, basenet.out_features) for h in headnames if h != 'skeleton']
+    headnets = [heads.factory(h, basenet.out_features) for h in headnames if h != 'skeleton']
     net_cpu = Shell(basenet, headnets)
     model_defaults(net_cpu)
     return net_cpu
@@ -489,17 +475,17 @@ def resnet_factory_from_scratch(basename, base_vision, out_features, headnames):
             [resnet_factory.stride(blocks[:-1]), resnet_factory.stride(blocks)],
             [out_features // 2, out_features],
         )
-        head1 = [create_headnet(h, basenet.out_features[0])
+        head1 = [heads.factory(h, basenet.out_features[0])
                  for h in headnames if h.endswith('b')]
-        head2 = [create_headnet(h, basenet.out_features[1])
+        head2 = [heads.factory(h, basenet.out_features[1])
                  for h in headnames if not h.endswith('b')]
         return Shell2Stage(basenet, head1, head2)
 
     if 'ppif' in headnames:
         # TODO
-        head2 = [create_headnet(h, basenet.out_features[1])
+        head2 = [heads.factory(h, basenet.out_features[1])
                  for h in headnames if h == 'ppif']
-        head3 = [create_headnet(h, basenet.out_features[2])
+        head3 = [heads.factory(h, basenet.out_features[2])
                  for h in headnames if h != 'ppif']
         return ShellFork(basenet, [], head2, head3)
 
@@ -509,7 +495,7 @@ def resnet_factory_from_scratch(basename, base_vision, out_features, headnames):
         input_output_scale=resnet_factory.stride(blocks),
         out_features=out_features,
     )
-    headnets = [create_headnet(h, basenet.out_features) for h in headnames if h != 'skeleton']
+    headnets = [heads.factory(h, basenet.out_features) for h in headnames if h != 'skeleton']
     net_cpu = Shell(basenet, headnets)
     model_defaults(net_cpu)
     return net_cpu
@@ -541,5 +527,8 @@ def cli(parser):
     group.add_argument('--cross-talk', default=0.0, type=float,
                        help='[experimental]')
 
-    for head in (heads.HEADS or heads.Head.__subclasses__()):
-        head.cli(parser)
+    group = parser.add_argument_group('head')
+    group.add_argument('--head-dropout', default=heads.CompositeField.dropout_p, type=float,
+                       help='[experimental] zeroing probability of feature in head input')
+    group.add_argument('--head-quad', default=heads.CompositeField.quad, type=int,
+                       help='number of times to apply quad (subpixel conv) to heads')
