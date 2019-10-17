@@ -142,6 +142,7 @@ def factory_decode(model, *,
                       ('pif', 'paf16'),
                       ('pif', 'wpaf')):
         return PifPaf(model.io_scales()[-1],
+                      keypoints=COCO_KEYPOINTS,
                       skeleton=COCO_PERSON_SKELETON,
                       **kwargs)
 
