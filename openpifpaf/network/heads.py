@@ -126,8 +126,8 @@ class CompositeField(torch.nn.Module):
         self.shortname = head_name
         self.dilation = dilation
 
-        self.dropout = torch.nn.Dropout2d(p=self.default_dropout_p)
-        self._quad = self.default_quad
+        self.dropout = torch.nn.Dropout2d(p=self.dropout_p)
+        self._quad = self.quad
 
         # classification
         out_features = n_fields * (4 ** self._quad)
