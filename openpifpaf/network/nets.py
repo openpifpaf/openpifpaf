@@ -260,21 +260,21 @@ def factory(
         epoch = 0
     else:
         if not checkpoint:
-            checkpoint = torch.utils.model_zoo.load_url(RESNET50_MODEL)
+            checkpoint = torch.hub.load_state_dict_from_url(RESNET50_MODEL)
         elif checkpoint == 'resnet50':
-            checkpoint = torch.utils.model_zoo.load_url(RESNET50_MODEL)
+            checkpoint = torch.hub.load_state_dict_from_url(RESNET50_MODEL)
         elif checkpoint == 'resnet101':
-            checkpoint = torch.utils.model_zoo.load_url(RESNET101_MODEL)
+            checkpoint = torch.hub.load_state_dict_from_url(RESNET101_MODEL)
         elif checkpoint == 'resnet152':
-            checkpoint = torch.utils.model_zoo.load_url(RESNET152_MODEL)
+            checkpoint = torch.hub.load_state_dict_from_url(RESNET152_MODEL)
         elif checkpoint == 'resnext50':
-            checkpoint = torch.utils.model_zoo.load_url(RESNEXT50_MODEL)
+            checkpoint = torch.hub.load_state_dict_from_url(RESNEXT50_MODEL)
         elif checkpoint == 'shufflenetv2x1':
-            checkpoint = torch.utils.model_zoo.load_url(SHUFFLENETV2X1_MODEL)
+            checkpoint = torch.hub.load_state_dict_from_url(SHUFFLENETV2X1_MODEL)
         elif checkpoint == 'shufflenetv2x2':
             checkpoint = torch.hub.load_state_dict_from_url(SHUFFLENETV2X2_MODEL)
         elif checkpoint.startswith('http'):
-            checkpoint = torch.utils.model_zoo.load_url(checkpoint)
+            checkpoint = torch.hub.load_state_dict_from_url(checkpoint)
         else:
             checkpoint = torch.load(checkpoint)
         net_cpu = checkpoint['model']
