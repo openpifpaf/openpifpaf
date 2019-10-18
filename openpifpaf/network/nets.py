@@ -201,9 +201,13 @@ def model_migration(net_cpu):
     if not hasattr(net_cpu, 'process_heads'):
         net_cpu.process_heads = None
 
+    if not hasattr(net_cpu, 'head_strides'):
+        net_cpu.head_strides = [
+            net_cpu.base_net.input_output_scale // (2 ** getattr(h, '_quad', 0))
+            for h in net_cpu.head_nets
+        ]
+
     for head in net_cpu.head_nets:
-        head.shortname = head.shortname.replace('PartsIntensityFields', 'pif')
-        head.shortname = head.shortname.replace('PartsAssociationFields', 'paf')
         if not hasattr(head, 'dropout') or head.dropout is None:
             head.dropout = torch.nn.Dropout2d(p=0.0)
         if not hasattr(head, '_quad'):
@@ -245,8 +249,6 @@ def factory(
         base_name=None,
         head_names=('pif', 'paf'),
         pretrained=True,
-        dilation=None,
-        dilation_end=None,
         experimental=False,
         cross_talk=0.0,
         two_scale=False,
@@ -299,22 +301,6 @@ def factory(
                                   process_heads=net_cpu.process_heads,
                                   include_hflip=multi_scale_hflip)
 
-    if dilation is not None:
-        net_cpu.base_net.atrous0(dilation)
-        # for head in net_cpu.head_nets:
-        #     head.dilation = dilation
-    if dilation_end is not None:
-        if dilation_end == 1:
-            net_cpu.base_net.atrous((1, 1))
-        elif dilation_end == 2:
-            net_cpu.base_net.atrous((1, 2))
-        elif dilation_end == 4:
-            net_cpu.base_net.atrous((2, 4))
-        else:
-            raise Exception
-        # for head in net_cpu.head_nets:
-        #     head.dilation = (dilation or 1.0) * dilation_end
-
     return net_cpu, epoch
 
 
@@ -354,10 +340,6 @@ def factory_from_scratch(basename, headnames, *, pretrained=True):
             [4, 8, 4], [24, 244, 488, 976, 3072],
         )
         return shufflenet_factory_from_scratch(basename, base_vision, 3072, headnames)
-    # if basename == 'densenet121':
-    #     basenet = basenetworks.DenseNet(torchvision.models.densenet121(pretrained), 'DenseNet121')
-    # else:
-    #     raise Exception('basenet not supported')
 
     raise Exception('unknown base network in {}'.format(basename))
 
@@ -425,12 +407,8 @@ def cli(parser):
                        help=('Load a model from a checkpoint. '
                              'Use "resnet50", "resnet101" '
                              'or "resnet152" for pretrained OpenPifPaf models.'))
-    group.add_argument('--dilation', default=None, type=int,
-                       help='[never-worked] apply atrous')
-    group.add_argument('--dilation-end', default=None, type=int,
-                       help='[never-worked] apply atrous')
     group.add_argument('--basenet', default=None,
-                       help='base network, e.g. resnet50block5')
+                       help='base network, e.g. resnet50')
     group.add_argument('--headnets', default=['pif', 'paf'], nargs='+',
                        help='head networks')
     group.add_argument('--no-pretrain', dest='pretrained', default=True, action='store_false',
