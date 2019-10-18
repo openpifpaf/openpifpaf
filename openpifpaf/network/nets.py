@@ -177,8 +177,8 @@ def factory_from_args(args):
 
     return factory(
         checkpoint=args.checkpoint,
-        basenet=args.basenet,
-        headnets=args.headnets,
+        base_name=args.basenet,
+        head_names=args.headnets,
         pretrained=args.pretrained,
         experimental=getattr(args, 'experimental_decoder', False),
         cross_talk=args.cross_talk,
@@ -242,8 +242,8 @@ def model_defaults(net_cpu):
 def factory(
         *,
         checkpoint=None,
-        basenet=None,
-        headnets=('pif', 'paf'),
+        base_name=None,
+        head_names=('pif', 'paf'),
         pretrained=True,
         dilation=None,
         dilation_end=None,
@@ -253,8 +253,8 @@ def factory(
         multi_scale=False,
         multi_scale_hflip=True,
     ):
-    if not checkpoint and basenet:
-        net_cpu = factory_from_scratch(basenet, headnets, pretrained=pretrained)
+    if not checkpoint and base_name:
+        net_cpu = factory_from_scratch(base_name, head_names, pretrained=pretrained)
         epoch = 0
     else:
         if not checkpoint:
@@ -406,28 +406,6 @@ def resnet_factory_from_scratch(basename, base_vision, out_features, headnames):
     if 'concat' in basename:
         for b in blocks[2:]:
             resnet_factory.replace_downsample(b)
-
-    if 'pifb' in headnames or 'pafb' in headnames:
-        # TODO
-        basenet = basenetworks.BaseNetwork(
-            torch.nn.ModuleList([torch.nn.Sequential(*blocks[:-1]), blocks[-1]]),
-            basename,
-            [resnet_factory.stride(blocks[:-1]), resnet_factory.stride(blocks)],
-            [out_features // 2, out_features],
-        )
-        head1 = [heads.factory(h, basenet.out_features[0])
-                 for h in headnames if h.endswith('b')]
-        head2 = [heads.factory(h, basenet.out_features[1])
-                 for h in headnames if not h.endswith('b')]
-        return Shell2Stage(basenet, head1, head2)
-
-    if 'ppif' in headnames:
-        # TODO
-        head2 = [heads.factory(h, basenet.out_features[1])
-                 for h in headnames if h == 'ppif']
-        head3 = [heads.factory(h, basenet.out_features[2])
-                 for h in headnames if h != 'ppif']
-        return ShellFork(basenet, [], head2, head3)
 
     basenet = basenetworks.BaseNetwork(
         torch.nn.Sequential(*blocks),
