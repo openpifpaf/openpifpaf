@@ -133,7 +133,7 @@ def factory_decode(model, *,
     head_names = tuple(h.shortname for h in model.head_nets)
 
     if head_names in (('pif',),):
-        return Pif(model.io_scales()[-1],
+        return Pif(model.head_strides[-1],
                    head_index=0,
                    **kwargs)
 
@@ -141,13 +141,13 @@ def factory_decode(model, *,
                       ('pif', 'paf44'),
                       ('pif', 'paf16'),
                       ('pif', 'wpaf')):
-        return PifPaf(model.io_scales()[-1],
+        return PifPaf(model.head_strides[-1],
                       keypoints=COCO_KEYPOINTS,
                       skeleton=COCO_PERSON_SKELETON,
                       **kwargs)
 
     if head_names in (('pif', 'paf', 'paf25'),):
-        stride = model.io_scales()[-1]
+        stride = model.head_strides[-1]
         pif_index = 0
         paf_index = 1
         pif_min_scale = 0.0
@@ -155,7 +155,7 @@ def factory_decode(model, *,
         paf_max_distance = None
         if multi_scale and multi_scale_hflip:
             resolutions = [1, 1.5, 2, 3, 5] * 2
-            stride = [model.io_scales()[-1] * r for r in resolutions]
+            stride = [model.head_strides[-1] * r for r in resolutions]
             if not experimental:
                 pif_index = [v * 3 for v in range(10)]
                 paf_index = [v * 3 + 1 for v in range(10)]
@@ -168,7 +168,7 @@ def factory_decode(model, *,
             # paf_max_distance = [128.0, 192.0, 256.0, 384.0, None] * 2
         elif multi_scale and not multi_scale_hflip:
             resolutions = [1, 1.5, 2, 3, 5]
-            stride = [model.io_scales()[-1] * r for r in resolutions]
+            stride = [model.head_strides[-1] * r for r in resolutions]
             if not experimental:
                 pif_index = [v * 3 for v in range(5)]
                 paf_index = [v * 3 + 1 for v in range(5)]

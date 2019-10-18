@@ -109,7 +109,7 @@ def main():
         net = torch.nn.DataParallel(net)
 
     loss = losses.factory_from_args(args)
-    target_transforms = encoder.factory(args, net_cpu.io_scales())
+    target_transforms = encoder.factory(args, net_cpu.head_strides)
 
     if args.augmentation:
         preprocess_transformations = [
@@ -145,7 +145,7 @@ def main():
     lr_scheduler = optimize.factory_lrscheduler(args, optimizer, len(train_loader))
     encoder_visualizer = None
     if args.debug and not args.debug_without_plots:
-        encoder_visualizer = encoder.Visualizer(args.headnets, net_cpu.io_scales())
+        encoder_visualizer = encoder.Visualizer(args.headnets, net_cpu.head_strides)
 
     if args.freeze_base:
         # freeze base net parameters

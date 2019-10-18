@@ -24,17 +24,18 @@ LOG = logging.getLogger(__name__)
 
 
 class Shell(torch.nn.Module):
-    def __init__(self, base_net, head_nets, process_heads=None, cross_talk=0.0):
+    def __init__(self, base_net, head_nets, *,
+                 head_strides=None, process_heads=None, cross_talk=0.0):
         super(Shell, self).__init__()
 
         self.base_net = base_net
         self.head_nets = torch.nn.ModuleList(head_nets)
+        self.head_strides = head_strides or [
+            base_net.input_output_scale // (2 ** getattr(h, '_quad', 0))
+            for h in head_nets
+        ]
         self.process_heads = process_heads
         self.cross_talk = cross_talk
-
-    def io_scales(self):
-        return [self.base_net.input_output_scale // (2 ** getattr(h, '_quad', 0))
-                for h in self.head_nets]
 
     def forward(self, *args):
         image_batch = args[0]
@@ -53,16 +54,17 @@ class Shell(torch.nn.Module):
 
 
 class Shell2Scale(torch.nn.Module):
-    def __init__(self, base_net, head_nets, reduced_stride=3):
+    def __init__(self, base_net, head_nets, *,
+                 head_strides=None, reduced_stride=3):
         super(Shell2Scale, self).__init__()
 
         self.base_net = base_net
         self.head_nets = torch.nn.ModuleList(head_nets)
+        self.head_strides = head_strides or [
+            base_net.input_output_scale // (2 ** getattr(h, '_quad', 0))
+            for h in head_nets
+        ]
         self.reduced_stride = reduced_stride
-
-    def io_scales(self):
-        return [self.base_net.input_output_scale // (2 ** getattr(h, '_quad', 0))
-                for h in self.head_nets]
 
     @staticmethod
     def merge_heads(original_h, reduced_h,
@@ -116,21 +118,22 @@ class Shell2Scale(torch.nn.Module):
 
 
 class ShellMultiScale(torch.nn.Module):
-    def __init__(self, base_net, head_nets, process_heads=None, include_hflip=True):
+    def __init__(self, base_net, head_nets, *,
+                 head_strides=None, process_heads=None, include_hflip=True):
         super(ShellMultiScale, self).__init__()
 
         self.base_net = base_net
         self.head_nets = torch.nn.ModuleList(head_nets)
+        self.head_strides = head_strides or [
+            base_net.input_output_scale // (2 ** getattr(h, '_quad', 0))
+            for h in head_nets
+        ]
         self.pif_hflip = heads.PifHFlip(COCO_KEYPOINTS, HFLIP)
         self.paf_hflip = heads.PafHFlip(COCO_KEYPOINTS, COCO_PERSON_SKELETON, HFLIP)
         self.paf_hflip_dense = heads.PafHFlip(
             COCO_KEYPOINTS, DENSER_COCO_PERSON_CONNECTIONS, HFLIP)
         self.process_heads = process_heads
         self.include_hflip = include_hflip
-
-    def io_scales(self):
-        return [self.base_net.input_output_scale // (2 ** getattr(h, '_quad', 0))
-                for h in self.head_nets]
 
     def forward(self, *args):
         original_input = args[0]
@@ -165,59 +168,6 @@ class ShellMultiScale(torch.nn.Module):
             head_outputs = self.process_heads(*head_outputs)
 
         return head_outputs
-
-
-class Shell2Stage(torch.nn.Module):
-    def __init__(self, base_net, head_nets1, head_nets2):
-        super(Shell2Stage, self).__init__()
-
-        self.base_net = base_net
-        self.head_nets1 = torch.nn.ModuleList(head_nets1)
-        self.head_nets2 = torch.nn.ModuleList(head_nets2)
-
-    @property
-    def head_nets(self):
-        return list(self.head_nets1) + list(self.head_nets2)
-
-    def io_scales(self):
-        return (
-            [self.base_net.input_output_scale[0] for _ in self.head_nets1] +
-            [self.base_net.input_output_scale[1] for _ in self.head_nets2]
-        )
-
-    def forward(self, *args):
-        x1, x2 = self.base_net(*args)
-        h1 = [hn(x1) for hn in self.head_nets1]
-        h2 = [hn(x2) for hn in self.head_nets2]
-        return [h for hs in (h1, h2) for h in hs]
-
-
-class ShellFork(torch.nn.Module):
-    def __init__(self, base_net, head_nets1, head_nets2, head_nets3):
-        super(ShellFork, self).__init__()
-
-        self.base_net = base_net
-        self.head_nets1 = torch.nn.ModuleList(head_nets1)
-        self.head_nets2 = torch.nn.ModuleList(head_nets2)
-        self.head_nets3 = torch.nn.ModuleList(head_nets3)
-
-    @property
-    def head_nets(self):
-        return list(self.head_nets1) + list(self.head_nets2) + list(self.head_nets3)
-
-    def io_scales(self):
-        return (
-            [self.base_net.input_output_scale[0] for _ in self.head_nets1] +
-            [self.base_net.input_output_scale[1] for _ in self.head_nets2] +
-            [self.base_net.input_output_scale[2] for _ in self.head_nets3]
-        )
-
-    def forward(self, *args):
-        x1, x2, x3 = self.base_net(*args)
-        h1 = [hn(x1) for hn in self.head_nets1]
-        h2 = [hn(x2) for hn in self.head_nets2]
-        h3 = [hn(x3) for hn in self.head_nets3]
-        return [h for hs in (h1, h2, h3) for h in hs]
 
 
 def factory_from_args(args):

@@ -44,7 +44,7 @@ class Processor(object):
 
         self.model = model
         self.decode = decode
-        self.output_stride = output_stride or model.io_scales()[-1]
+        self.output_stride = output_stride or model.head_strides[-1]
         self.keypoint_threshold = keypoint_threshold
         self.instance_threshold = instance_threshold
         self.debug_visualizer = debug_visualizer
