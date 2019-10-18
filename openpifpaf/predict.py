@@ -39,7 +39,7 @@ def cli():
                         help='processing batch size')
     parser.add_argument('--long-edge', default=None, type=int,
                         help='apply preprocessing to batch images')
-    parser.add_argument('--loader-workers', default=2, type=int,
+    parser.add_argument('--loader-workers', default=None, type=int,
                         help='number of workers for data loading')
     parser.add_argument('--disable-cuda', action='store_true',
                         help='disable CUDA')
@@ -63,6 +63,9 @@ def cli():
         log_level = logging.DEBUG
     logging.basicConfig(level=log_level)
     logging.getLogger('matplotlib').setLevel(logging.WARNING)
+
+    if args.loader_workers is None:
+        args.loader_workers = args.batch_size
 
     # glob
     if args.glob:
@@ -96,7 +99,12 @@ def main():
     # load model
     model_cpu, _ = nets.factory_from_args(args)
     model = model_cpu.to(args.device)
-    processor = decoder.factory_from_args(args, model)
+    if not args.disable_cuda and torch.cuda.device_count() > 1:
+        LOG.info('Using multiple GPUs: %d', torch.cuda.device_count())
+        model = torch.nn.DataParallel(model)
+        model.head_names = tuple(h.shortname for h in model_cpu.head_nets)
+        model.head_strides = model_cpu.head_strides
+    processor = decoder.factory_from_args(args, model, args.device)
 
     # data
     preprocess = None
@@ -122,8 +130,7 @@ def main():
     )
 
     for batch_i, (image_tensors_batch, _, meta_batch) in enumerate(data_loader):
-        image_tensors_batch_gpu = image_tensors_batch.to(args.device, non_blocking=True)
-        fields_batch = processor.fields(image_tensors_batch_gpu)
+        fields_batch = processor.fields(image_tensors_batch)
         pred_batch = processor.annotations_batch(fields_batch, debug_images=image_tensors_batch)
 
         # unbatch

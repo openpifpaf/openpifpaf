@@ -126,11 +126,13 @@ def factory_decode(model, *,
                    multi_scale=False,
                    multi_scale_hflip=True,
                    **kwargs):
-    """Instantiate a decoder for the given model.
+    """Instantiate a decoder."""
 
-    All subclasses of decoder.Decoder are checked for a match.
-    """
-    head_names = tuple(h.shortname for h in model.head_nets)
+    head_names = (
+        model.head_names
+        if hasattr(model, 'head_names')
+        else tuple(h.shortname for h in model.head_nets)
+    )
 
     if head_names in (('pif',),):
         return Pif(model.head_strides[-1],

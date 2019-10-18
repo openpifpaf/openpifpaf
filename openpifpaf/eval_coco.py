@@ -209,7 +209,7 @@ def cli():
                         help='batch size')
     parser.add_argument('--long-edge', default=641, type=int,
                         help='long edge of input images')
-    parser.add_argument('--loader-workers', default=2, type=int,
+    parser.add_argument('--loader-workers', default=None, type=int,
                         help='number of workers for data loading')
     parser.add_argument('--skip-existing', default=False, action='store_true',
                         help='skip if output eval file exists already')
@@ -228,6 +228,9 @@ def cli():
     log_level = logging.INFO if not args.debug else logging.DEBUG
     logging.getLogger('openpifpaf').setLevel(log_level)
     LOG.setLevel(log_level)
+
+    if args.loader_workers is None:
+        args.loader_workers = args.batch_size
 
     if args.dataset == 'val':
         args.image_dir = IMAGE_DIR_VAL
@@ -334,11 +337,12 @@ def main():
     if not args.disable_cuda and torch.cuda.device_count() > 1:
         LOG.info('Using multiple GPUs: %d', torch.cuda.device_count())
         model = torch.nn.DataParallel(model)
+        model.head_names = tuple(h.shortname for h in model_cpu.head_nets)
+        model.head_strides = model_cpu.head_strides
 
-    processor = decoder.factory_from_args(args, model_cpu, args.device)
+    processor = decoder.factory_from_args(args, model, args.device)
     # processor.instance_scorer = decocder.instance_scorer.InstanceScoreRecorder()
     # processor.instance_scorer = torch.load('instance_scorer.pkl')
-    processor.model = model  # TODO: implement nicer
 
     coco = pycocotools.coco.COCO(args.annotation_file)
     eval_coco = EvalCoco(coco, processor, preprocess.annotations_inverse)
