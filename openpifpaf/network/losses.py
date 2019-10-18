@@ -192,7 +192,7 @@ class CompositeLoss(torch.nn.Module):
         LOG.debug('%s: n_vectors = %d, n_scales = %d, len(sigmas) = %d, margin = %s',
                   head_name, n_vectors, n_scales, len(sigmas), margin)
 
-    def forward(self, *args):
+    def forward(self, *args):  # pylint: disable=too-many-statements
         x, t = args
 
         assert len(x) == 1 + 2 * self.n_vectors + self.n_scales

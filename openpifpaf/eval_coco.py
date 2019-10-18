@@ -68,7 +68,8 @@ class EvalCoco(object):
         self.eval.summarize()
         return self.eval.stats
 
-    def view_keypoints(self, image_cpu, annotations, gt):
+    @staticmethod
+    def view_keypoints(image_cpu, annotations, gt):
         highlight = [5, 7, 9, 11, 13, 15]
         keypoint_painter = show.KeypointPainter(highlight=highlight)
         skeleton_painter = show.KeypointPainter(show_box=False, color_connections=True,

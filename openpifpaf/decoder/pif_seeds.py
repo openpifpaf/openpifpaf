@@ -39,3 +39,9 @@ class PifSeeds(object):
             self.debug_visualizer.seeds(self.seeds)
 
         return sorted(self.seeds, reverse=True)
+
+    def fill_sequence(self, pifs, strides, min_scales):
+        for pif, stride, min_scale in zip(pifs, strides, min_scales):
+            self.fill(pif, stride, min_scale=min_scale)
+
+        return self

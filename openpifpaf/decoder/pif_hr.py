@@ -68,3 +68,13 @@ class PifHr(object):
 
         LOG.debug('target_intensities %.3fs', time.perf_counter() - start)
         return self
+
+    def fill_sequence(self, pifs, strides, min_scales):
+        if len(pifs) == 10:
+            for pif1, pif2, stride, min_scale in zip(pifs[:5], pifs[5:], strides, min_scales):
+                self.fill_multiple([pif1, pif2], stride, min_scale=min_scale)
+        else:
+            for pif, stride, min_scale in zip(pifs, strides, min_scales):
+                self.fill(pif, stride, min_scale=min_scale)
+
+        return self

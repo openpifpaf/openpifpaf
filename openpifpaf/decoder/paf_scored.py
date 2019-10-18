@@ -93,3 +93,10 @@ class PafScored(object):
                   sum(b.shape[1] for b in self.backward),
                   time.perf_counter() - start)
         return self
+
+    def fill_sequence(self, pafs, strides, min_distances, max_distances):
+        for paf, stride, min_distance, max_distance in zip(
+                pafs, strides, min_distances, max_distances):
+            self.fill(paf, stride, min_distance=min_distance, max_distance=max_distance)
+
+        return self
