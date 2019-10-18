@@ -14,7 +14,7 @@ LOG = logging.getLogger(__name__)
 
 class PifPaf(object):
     force_complete = True
-    connection_method = 'max'
+    connection_method = 'blend'
     fixed_b = None
     pif_fixed_scale = None
     paf_th = 0.1
