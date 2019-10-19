@@ -129,10 +129,11 @@ def factory_decode(model, *,
     """Instantiate a decoder."""
 
     head_names = (
-        model.head_names
+        tuple(model.head_names)
         if hasattr(model, 'head_names')
         else tuple(h.shortname for h in model.head_nets)
     )
+    LOG.debug('head names = %s', head_names)
 
     if head_names in (('pif',),):
         return Pif(model.head_strides[-1],
