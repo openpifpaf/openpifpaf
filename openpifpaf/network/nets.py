@@ -31,7 +31,7 @@ class Shell(torch.nn.Module):
         self.base_net = base_net
         self.head_nets = torch.nn.ModuleList(head_nets)
         self.head_names = head_names or [
-            h.short_name for h in head_nets
+            h.shortname for h in head_nets
         ]
         self.head_strides = head_strides or [
             base_net.input_output_scale // (2 ** getattr(h, '_quad', 0))
@@ -64,7 +64,7 @@ class Shell2Scale(torch.nn.Module):
         self.base_net = base_net
         self.head_nets = torch.nn.ModuleList(head_nets)
         self.head_names = head_names or [
-            h.short_name for h in head_nets
+            h.shortname for h in head_nets
         ]
         self.head_strides = head_strides or [
             base_net.input_output_scale // (2 ** getattr(h, '_quad', 0))
