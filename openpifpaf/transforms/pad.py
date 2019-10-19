@@ -10,8 +10,6 @@ LOG = logging.getLogger(__name__)
 
 class CenterPad(Preprocess):
     def __init__(self, target_size):
-        self.log = logging.getLogger(__name__ + '.' + self.__class__.__name__)
-
         if isinstance(target_size, int):
             target_size = (target_size, target_size)
         self.target_size = target_size
@@ -23,9 +21,9 @@ class CenterPad(Preprocess):
         image, anns, ltrb = self.center_pad(image, anns)
         meta['offset'] -= ltrb[:2]
 
-        self.log.debug('valid area before pad with %s: %s', ltrb, meta['valid_area'])
+        LOG.debug('valid area before pad with %s: %s', ltrb, meta['valid_area'])
         meta['valid_area'][:2] += ltrb[:2]
-        self.log.debug('valid area after pad: %s', meta['valid_area'])
+        LOG.debug('valid area after pad: %s', meta['valid_area'])
 
         for ann in anns:
             ann['valid_area'] = meta['valid_area']
