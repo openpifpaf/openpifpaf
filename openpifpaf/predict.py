@@ -104,7 +104,7 @@ def main():
         model = torch.nn.DataParallel(model)
         model.head_names = model_cpu.head_names
         model.head_strides = model_cpu.head_strides
-    processor = decoder.factory_from_args(args, model, args.device, model.decoder)
+    processor = decoder.factory_from_args(args, model, args.device)
 
     # data
     preprocess = None
