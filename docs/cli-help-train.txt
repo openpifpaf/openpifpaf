@@ -27,9 +27,11 @@ usage: train.py [-h] [--debug] [--checkpoint CHECKPOINT] [--basenet BASENET]
                 [--freeze-base FREEZE_BASE] [--pre-lr PRE_LR]
                 [--rescale-images RESCALE_IMAGES] [--orientation-invariant]
                 [--update-batchnorm-runningstatistics]
-                [--square-edge SQUARE_EDGE] [--ema EMA]
-                [--debug-without-plots] [--profile PROFILE] [--disable-cuda]
+                [--square-edge SQUARE_EDGE] [--ema EMA] [--disable-cuda]
                 [--no-augmentation]
+                [--debug-pif-indices DEBUG_PIF_INDICES [DEBUG_PIF_INDICES ...]]
+                [--debug-paf-indices DEBUG_PAF_INDICES [DEBUG_PAF_INDICES ...]]
+                [--profile PROFILE]
 
 Train a pifpaf network.
 
@@ -53,10 +55,6 @@ optional arguments:
   --square-edge SQUARE_EDGE
                         square edge of input images (default: 401)
   --ema EMA             ema decay constant (default: 0.001)
-  --debug-without-plots
-                        enable debug but dont plot (default: False)
-  --profile PROFILE     enables profiling. specify path for chrome tracing
-                        file (default: None)
   --disable-cuda        disable CUDA (default: False)
   --no-augmentation     do not apply data augmentation (default: True)
 
@@ -154,6 +152,16 @@ dataset and loader:
   --pre-duplicate-data PRE_DUPLICATE_DATA
                         duplicate pre data in preprocessing (default: None)
   --loader-workers LOADER_WORKERS
-                        number of workers for data loading (default: 2)
+                        number of workers for data loading (default: None)
   --batch-size BATCH_SIZE
                         batch size (default: 8)
+
+debug:
+  --debug-pif-indices DEBUG_PIF_INDICES [DEBUG_PIF_INDICES ...]
+                        indices of PIF fields to create debug plots for
+                        (default: [])
+  --debug-paf-indices DEBUG_PAF_INDICES [DEBUG_PAF_INDICES ...]
+                        indices of PAF fields to create debug plots for
+                        (default: [])
+  --profile PROFILE     enables profiling. specify path for chrome tracing
+                        file (default: None)

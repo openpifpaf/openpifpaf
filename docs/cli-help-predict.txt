@@ -53,7 +53,7 @@ optional arguments:
   --long-edge LONG_EDGE
                         apply preprocessing to batch images (default: None)
   --loader-workers LOADER_WORKERS
-                        number of workers for data loading (default: 2)
+                        number of workers for data loading (default: None)
   --disable-cuda        disable CUDA (default: False)
   --line-width LINE_WIDTH
                         line width for skeleton (default: 6)

@@ -38,7 +38,7 @@ optional arguments:
   --long-edge LONG_EDGE
                         long edge of input images (default: 641)
   --loader-workers LOADER_WORKERS
-                        number of workers for data loading (default: 2)
+                        number of workers for data loading (default: None)
   --skip-existing       skip if output eval file exists already (default:
                         False)
   --disable-cuda        disable CUDA (default: False)
