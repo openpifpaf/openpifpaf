@@ -25,11 +25,14 @@ LOG = logging.getLogger(__name__)
 
 class Shell(torch.nn.Module):
     def __init__(self, base_net, head_nets, *,
-                 head_strides=None, process_heads=None, cross_talk=0.0):
+                 head_names=None, head_strides=None, process_heads=None, cross_talk=0.0):
         super(Shell, self).__init__()
 
         self.base_net = base_net
         self.head_nets = torch.nn.ModuleList(head_nets)
+        self.head_names = head_names or [
+            h.short_name for h in head_nets
+        ]
         self.head_strides = head_strides or [
             base_net.input_output_scale // (2 ** getattr(h, '_quad', 0))
             for h in head_nets
@@ -55,11 +58,14 @@ class Shell(torch.nn.Module):
 
 class Shell2Scale(torch.nn.Module):
     def __init__(self, base_net, head_nets, *,
-                 head_strides=None, reduced_stride=3):
+                 head_names=None, head_strides=None, reduced_stride=3):
         super(Shell2Scale, self).__init__()
 
         self.base_net = base_net
         self.head_nets = torch.nn.ModuleList(head_nets)
+        self.head_names = head_names or [
+            h.short_name for h in head_nets
+        ]
         self.head_strides = head_strides or [
             base_net.input_output_scale // (2 ** getattr(h, '_quad', 0))
             for h in head_nets
@@ -205,6 +211,11 @@ def model_migration(net_cpu):
         net_cpu.head_strides = [
             net_cpu.base_net.input_output_scale // (2 ** getattr(h, '_quad', 0))
             for h in net_cpu.head_nets
+        ]
+
+    if not hasattr(net_cpu, 'head_names'):
+        net_cpu.head_names = [
+            h.shortname for h in net_cpu.head_nets
         ]
 
     for head in net_cpu.head_nets:
