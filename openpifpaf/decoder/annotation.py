@@ -9,7 +9,7 @@ class Annotation(object):
         self.keypoints = keypoints
         self.skeleton = skeleton
 
-        self.data = np.zeros((len(keypoints), 3))
+        self.data = np.zeros((len(keypoints), 3), dtype=np.float32)
         self.joint_scales = None
         self.fixed_score = None
         self.decoding_order = []
