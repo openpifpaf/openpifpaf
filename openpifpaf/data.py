@@ -98,7 +98,7 @@ COCO_PERSON_SIGMAS = [
 
 
 def draw_skeletons():
-    from . import show
+    from . import show  # pylint: disable=import-outside-toplevel
     coordinates = np.array([[
         [0.0, 9.3, 2.0],  # 'nose',            # 1
         [-0.5, 9.7, 2.0],  # 'left_eye',        # 2
