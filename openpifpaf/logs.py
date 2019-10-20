@@ -29,6 +29,7 @@ def cli(parser):
 
 
 def configure(args):
+    # pylint: disable=import-outside-toplevel
     from pythonjsonlogger import jsonlogger
     from . import __version__ as VERSION
 

@@ -4,6 +4,11 @@ variable-rgx=[a-z0-9_]{1,30}$
 good-names=ap,ar,ax,d,f,g,gt,i,im,lr,r,s,t,t1,t2,th,v,vs,x,x1,x2,xs,y,ys,xy
 
 
+[IMPORTS]
+
+allow-any-import-level=pycocotools,pycocotools.coco
+
+
 [TYPECHECK]
 
 # List of members which are set dynamically and missed by pylint inference
