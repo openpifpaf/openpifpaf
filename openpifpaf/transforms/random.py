@@ -12,4 +12,3 @@ class RandomApply(Preprocess):
         if float(torch.rand(1).item()) > self.probability:
             return image, anns, meta
         return self.transform(image, anns, meta)
-
