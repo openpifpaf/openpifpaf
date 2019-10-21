@@ -20,6 +20,7 @@ def test_predict(batch_size):
         '--checkpoint=shufflenetv2x1',
         '--batch-size={}'.format(batch_size),
         '--loader-workers=0',
+        '--output-types', 'json',
         '-o', test_hash,
         'docs/coco/000000081988.jpg',
     ], check=True)
