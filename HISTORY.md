@@ -1,6 +1,13 @@
 # History
 
-* [master](https://github.com/vita-epfl/openpifpaf/compare/v0.9.0...master)
+* [master](https://github.com/vita-epfl/openpifpaf/compare/v0.10.0...master)
+* [0.10.0](https://github.com/vita-epfl/openpifpaf/compare/v0.9.0...v0.10.0) (2019-10-21)
+    * major refactor: move all factory-code into factories
+    * new experimental decoder
+    * improved image rescaling randomization
+    * module-level logging
+    * index-matching bug fixed by @junedgar [#147](https://github.com/vita-epfl/openpifpaf/pull/147)
+    * tests for Windows, PyTorch 1.3 and with pylint 2.4
 * [0.9.0](https://github.com/vita-epfl/openpifpaf/compare/v0.8.0...v0.9.0) (2019-07-30)
     * make image transforms part of preprocessing [#100](https://github.com/vita-epfl/openpifpaf/pull/100)
     * field-based two-scale implementation [#101](https://github.com/vita-epfl/openpifpaf/pull/101), also modifies single-scale decoder
