@@ -3,63 +3,25 @@ import numpy as np
 import scipy
 import torch
 
-from ..data import COCO_PERSON_SKELETON, DENSER_COCO_PERSON_SKELETON, KINEMATIC_TREE_SKELETON
 from .annrescaler import AnnRescaler
-from .encoder import Encoder
 from ..utils import create_sink, mask_valid_area
 
 LOG = logging.getLogger(__name__)
 
 
-class Paf(Encoder):
-    default_min_size = 3
-    default_fixed_size = False
-    default_aspect_ratio = 0.0
+class Paf(object):
+    min_size = 3
+    fixed_size = False
+    aspect_ratio = 0.0
 
-    def __init__(self, head_name, stride, *,
-                 skeleton=None,
-                 n_keypoints=17,
-                 v_threshold=0,
-                 **kwargs):
-        LOG.debug('unused arguments in %s: %s', head_name, kwargs)
-
-        if skeleton is None:
-            if head_name in ('paf', 'paf19', 'pafs', 'wpaf', 'pafb'):
-                skeleton = COCO_PERSON_SKELETON
-            elif head_name in ('paf16',):
-                skeleton = KINEMATIC_TREE_SKELETON
-            elif head_name in ('paf44',):
-                skeleton = DENSER_COCO_PERSON_SKELETON
-            else:
-                raise Exception('unknown skeleton type of head')
-
+    def __init__(self, stride, *, n_keypoints, skeleton, v_threshold=0):
         self.stride = stride
         self.n_keypoints = n_keypoints
-        self.v_threshold = v_threshold
         self.skeleton = skeleton
-
-        self.min_size = self.default_min_size
-        self.fixed_size = self.default_fixed_size
-        self.aspect_ratio = self.default_aspect_ratio
+        self.v_threshold = v_threshold
 
         if self.fixed_size:
             assert self.aspect_ratio == 0.0
-
-    @classmethod
-    def cli(cls, parser):
-        group = parser.add_argument_group('paf encoder')
-        group.add_argument('--paf-min-size', default=cls.default_min_size, type=int,
-                           help='min side length of the PAF field')
-        group.add_argument('--paf-fixed-size', default=cls.default_fixed_size, action='store_true',
-                           help='fixed paf size')
-        group.add_argument('--paf-aspect-ratio', default=cls.default_aspect_ratio, type=float,
-                           help='paf width relative to its length')
-
-    @classmethod
-    def apply_args(cls, args):
-        cls.default_min_size = args.paf_min_size
-        cls.default_fixed_size = args.paf_fixed_size
-        cls.default_aspect_ratio = args.paf_aspect_ratio
 
     def __call__(self, anns, width_height_original):
         rescaler = AnnRescaler(self.stride, self.n_keypoints)
@@ -95,8 +57,10 @@ class PafGenerator(object):
         field_w = bg_mask.shape[1] + 2 * self.padding
         field_h = bg_mask.shape[0] + 2 * self.padding
         self.intensities = np.zeros((n_fields + 1, field_h, field_w), dtype=np.float32)
-        self.fields_reg1 = np.zeros((n_fields, 2, field_h, field_w), dtype=np.float32)
-        self.fields_reg2 = np.zeros((n_fields, 2, field_h, field_w), dtype=np.float32)
+        self.fields_reg1 = np.zeros((n_fields, 6, field_h, field_w), dtype=np.float32)
+        self.fields_reg2 = np.zeros((n_fields, 6, field_h, field_w), dtype=np.float32)
+        self.fields_reg1[:, 2:] = np.inf
+        self.fields_reg2[:, 2:] = np.inf
         self.fields_scale = np.zeros((n_fields, field_h, field_w), dtype=np.float32)
         self.fields_reg_l = np.full((n_fields, field_h, field_w), np.inf, dtype=np.float32)
 
@@ -108,10 +72,20 @@ class PafGenerator(object):
                                                             border_value=1)
 
     def fill(self, keypoint_sets):
-        for keypoints in keypoint_sets:
-            self.fill_keypoints(keypoints)
+        for kps_i, keypoints in enumerate(keypoint_sets):
+            self.fill_keypoints(
+                keypoints,
+                [kps for i, kps in enumerate(keypoint_sets) if i != kps_i],
+            )
 
-    def fill_keypoints(self, keypoints):
+    @staticmethod
+    def quadrant(xys):
+        q = np.zeros((xys.shape[0],), dtype=np.int)
+        q[xys[:, 0] < 0.0] += 1
+        q[xys[:, 1] < 0.0] += 2
+        return q
+
+    def fill_keypoints(self, keypoints, other_keypoints):
         visible = keypoints[:, 2] > 0
         if not np.any(visible):
             return
@@ -128,9 +102,34 @@ class PafGenerator(object):
             if joint1[2] <= self.v_threshold or joint2[2] <= self.v_threshold:
                 continue
 
-            self.fill_association(i, joint1, joint2, scale)
+            other_j1s = [other_kps[joint1i - 1] for other_kps in other_keypoints
+                         if other_kps[joint1i - 1, 2] > self.v_threshold]
+            other_j2s = [other_kps[joint2i - 1] for other_kps in other_keypoints
+                         if other_kps[joint2i - 1, 2] > self.v_threshold]
+            max_r1 = [np.inf, np.inf, np.inf, np.inf]
+            max_r2 = [np.inf, np.inf, np.inf, np.inf]
+            if other_j1s:
+                other_j1s = np.asarray(other_j1s)
+                diffs1 = other_j1s[:, :2] - np.expand_dims(joint1[:2], 0)
+                qs1 = self.quadrant(diffs1)
+                for q1 in range(4):
+                    if not np.any(qs1 == q1):
+                        continue
+                    max_r1[q1] = np.min(np.linalg.norm(diffs1[qs1 == q1], axis=1)) / 2.0
+            if other_j2s:
+                other_j2s = np.asarray(other_j2s)
+                diffs2 = other_j2s[:, :2] - np.expand_dims(joint2[:2], 0)
+                qs2 = self.quadrant(diffs2)
+                for q2 in range(4):
+                    if not np.any(qs2 == q2):
+                        continue
+                    max_r2[q2] = np.min(np.linalg.norm(diffs2[qs2 == q2], axis=1)) / 2.0
 
-    def fill_association(self, i, joint1, joint2, scale):
+            max_r1 = np.expand_dims(max_r1, 1)
+            max_r2 = np.expand_dims(max_r2, 1)
+            self.fill_association(i, joint1, joint2, scale, max_r1, max_r2)
+
+    def fill_association(self, i, joint1, joint2, scale, max_r1, max_r2):
         # offset between joints
         offset = joint2[:2] - joint1[:2]
         offset_d = np.linalg.norm(offset)
@@ -174,10 +173,12 @@ class PafGenerator(object):
             sink_l = np.minimum(np.linalg.norm(sink1, axis=0),
                                 np.linalg.norm(sink2, axis=0))
             mask = sink_l < self.fields_reg_l[i, fminy:fmaxy, fminx:fmaxx]
-            self.fields_reg1[i, :, fminy:fmaxy, fminx:fmaxx][:, mask] = \
-                sink1[:, mask]
-            self.fields_reg2[i, :, fminy:fmaxy, fminx:fmaxx][:, mask] = \
-                sink2[:, mask]
+            patch1 = self.fields_reg1[i, :, fminy:fmaxy, fminx:fmaxx]
+            patch1[:2, mask] = sink1[:, mask]
+            patch1[2:, mask] = max_r1
+            patch2 = self.fields_reg2[i, :, fminy:fmaxy, fminx:fmaxx]
+            patch2[:2, mask] = sink2[:, mask]
+            patch2[2:, mask] = max_r2
             self.fields_reg_l[i, fminy:fmaxy, fminx:fmaxx][mask] = sink_l[mask]
 
             # update scale

@@ -19,10 +19,6 @@ def default_output_file(args):
         out += '-{}'.format(args.regression_loss)
     if args.r_smooth != 0.0:
         out += '-rsmooth{}'.format(args.r_smooth)
-    if args.dilation:
-        out += '-dilation{}'.format(args.dilation)
-    if args.dilation_end:
-        out += '-dilationend{}'.format(args.dilation_end)
     if args.orientation_invariant:
         out += '-orientationinvariant'
 
@@ -65,15 +61,20 @@ def cli():
                         help='square edge of input images')
     parser.add_argument('--ema', default=1e-3, type=float,
                         help='ema decay constant')
-    parser.add_argument('--debug-without-plots', default=False, action='store_true',
-                        help='enable debug but dont plot')
-    parser.add_argument('--profile', default=None,
-                        help='enables profiling. specify path for chrome tracing file')
     parser.add_argument('--disable-cuda', action='store_true',
                         help='disable CUDA')
     parser.add_argument('--no-augmentation', dest='augmentation',
                         default=True, action='store_false',
                         help='do not apply data augmentation')
+
+    group = parser.add_argument_group('debug')
+    group.add_argument('--debug-pif-indices', default=[], nargs='+', type=int,
+                       help='indices of PIF fields to create debug plots for')
+    group.add_argument('--debug-paf-indices', default=[], nargs='+', type=int,
+                       help='indices of PAF fields to create debug plots for')
+    group.add_argument('--profile', default=None,
+                       help='enables profiling. specify path for chrome tracing file')
+
     args = parser.parse_args()
 
     if args.output is None:
@@ -85,7 +86,7 @@ def cli():
     if args.freeze_base and args.checkpoint:
         raise Exception('remove --freeze-base when running from a checkpoint')
 
-    if args.debug_without_plots:
+    if args.debug_pif_indices or args.debug_paf_indices:
         args.debug = True
 
     # add args.device
@@ -109,15 +110,16 @@ def main():
         net = torch.nn.DataParallel(net)
 
     loss = losses.factory_from_args(args)
-    target_transforms = encoder.factory(args, net_cpu.io_scales())
+    target_transforms = encoder.factory(args, net_cpu.head_strides)
 
     if args.augmentation:
         preprocess_transformations = [
             transforms.NormalizeAnnotations(),
             transforms.AnnotationJitter(),
             transforms.RandomApply(transforms.HFlip(), 0.5),
-            transforms.RescaleRelative(scale_range=(0.5 * args.rescale_images,
-                                                    1.0 * args.rescale_images)),
+            transforms.RescaleRelative(scale_range=(0.4 * args.rescale_images,
+                                                    2.0 * args.rescale_images),
+                                       power_law=True),
             transforms.Crop(args.square_edge),
             transforms.CenterPad(args.square_edge),
         ]
@@ -142,8 +144,10 @@ def main():
     optimizer = optimize.factory_optimizer(args, net.parameters())
     lr_scheduler = optimize.factory_lrscheduler(args, optimizer, len(train_loader))
     encoder_visualizer = None
-    if args.debug and not args.debug_without_plots:
-        encoder_visualizer = encoder.Visualizer(args.headnets, net_cpu.io_scales())
+    if args.debug_pif_indices or args.debug_paf_indices:
+        encoder_visualizer = encoder.Visualizer(
+            args.headnets, net_cpu.head_strides,
+            pif_indices=args.debug_pif_indices, paf_indices=args.debug_paf_indices)
 
     if args.freeze_base:
         # freeze base net parameters

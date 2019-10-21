@@ -1,55 +1,76 @@
 import logging
-import re
 import torch
 import torchvision
 
 from . import basenetworks, heads
+from ..data import COCO_KEYPOINTS, COCO_PERSON_SKELETON, DENSER_COCO_PERSON_CONNECTIONS, HFLIP
 
 # generate hash values with: shasum -a 256 filename.pkl
 
-RESNET50_MODEL = ('https://storage.googleapis.com/openpifpaf-pretrained/v0.8.0/'
-                  'resnet50block5-pif-paf-edge401-190625-025154-4e47f5ec.pkl')
-RESNET101_MODEL = ('https://storage.googleapis.com/openpifpaf-pretrained/v0.8.0/'
-                   'resnet101block5-pif-paf-edge401-190629-151620-b2db8c7e.pkl')
-RESNET152_MODEL = ('https://storage.googleapis.com/openpifpaf-pretrained/v0.8.0/'
-                   'resnet152block5-pif-paf-edge401-190625-185426-3e2f28ed.pkl')
-RESNEXT50_MODEL = ('https://storage.googleapis.com/openpifpaf-pretrained/v0.8.0/'
-                   'resnext50block5-pif-paf-edge401-190629-151121-24491655.pkl')
-SHUFFLENETV2X1_MODEL = ('https://storage.googleapis.com/openpifpaf-pretrained/v0.8.0/'
-                        'shufflenetv2x1-pif-paf-edge401-190705-151607-d9a35d7e.pkl')
-SHUFFLENETV2X2_MODEL = ('https://storage.googleapis.com/openpifpaf-pretrained/v0.8.0/'
-                        'shufflenetv2x2-pif-paf-edge401-190705-151618-f8da8c15.pkl')
+RESNET50_MODEL = ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
+                  'v0.10.0/resnet50-pif-paf-paf25-edge401-191016-192503-d2b85396.pkl')
+RESNET101_MODEL = ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
+                   'v0.10.0/resnet101block5-pif-paf-paf25-edge401-191012-132602-a2bf7ecd.pkl')
+RESNET152_MODEL = ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
+                   'v0.1.0/resnet152block5-pif-paf-edge401-190625-185426-3e2f28ed.pkl')
+RESNEXT50_MODEL = ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
+                   'v0.1.0/resnext50block5-pif-paf-edge401-190629-151121-24491655.pkl')
+SHUFFLENETV2X1_MODEL = ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
+                        'v0.1.0/shufflenetv2x1-pif-paf-edge401-190705-151607-d9a35d7e.pkl')
+SHUFFLENETV2X2_MODEL = ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
+                        'v0.10.0/shufflenetv2x2-pif-paf-paf25-edge401-191010-172527-ef704f06.pkl')
 
 LOG = logging.getLogger(__name__)
 
 
 class Shell(torch.nn.Module):
-    def __init__(self, base_net, head_nets):
+    def __init__(self, base_net, head_nets, *,
+                 head_names=None, head_strides=None, process_heads=None, cross_talk=0.0):
         super(Shell, self).__init__()
 
         self.base_net = base_net
         self.head_nets = torch.nn.ModuleList(head_nets)
-
-    def io_scales(self):
-        return [self.base_net.input_output_scale // (2 ** getattr(h, '_quad', 0))
-                for h in self.head_nets]
+        self.head_names = head_names or [
+            h.shortname for h in head_nets
+        ]
+        self.head_strides = head_strides or [
+            base_net.input_output_scale // (2 ** getattr(h, '_quad', 0))
+            for h in head_nets
+        ]
+        self.process_heads = process_heads
+        self.cross_talk = cross_talk
 
     def forward(self, *args):
-        x = self.base_net(*args)
-        return [hn(x) for hn in self.head_nets]
+        image_batch = args[0]
+
+        if self.training and self.cross_talk:
+            rolled_images = torch.cat((image_batch[-1:], image_batch[:-1]))
+            image_batch += rolled_images * self.cross_talk
+
+        x = self.base_net(image_batch)
+        head_outputs = [hn(x) for hn in self.head_nets]
+
+        if self.process_heads is not None:
+            head_outputs = self.process_heads(*head_outputs)
+
+        return head_outputs
 
 
 class Shell2Scale(torch.nn.Module):
-    def __init__(self, base_net, head_nets, reduced_stride=3):
+    def __init__(self, base_net, head_nets, *,
+                 head_names=None, head_strides=None, reduced_stride=3):
         super(Shell2Scale, self).__init__()
 
         self.base_net = base_net
         self.head_nets = torch.nn.ModuleList(head_nets)
+        self.head_names = head_names or [
+            h.shortname for h in head_nets
+        ]
+        self.head_strides = head_strides or [
+            base_net.input_output_scale // (2 ** getattr(h, '_quad', 0))
+            for h in head_nets
+        ]
         self.reduced_stride = reduced_stride
-
-    def io_scales(self):
-        return [self.base_net.input_output_scale // (2 ** getattr(h, '_quad', 0))
-                for h in self.head_nets]
 
     @staticmethod
     def merge_heads(original_h, reduced_h,
@@ -102,68 +123,75 @@ class Shell2Scale(torch.nn.Module):
         return original_heads
 
 
-class Shell2Stage(torch.nn.Module):
-    def __init__(self, base_net, head_nets1, head_nets2):
-        super(Shell2Stage, self).__init__()
+class ShellMultiScale(torch.nn.Module):
+    def __init__(self, base_net, head_nets, *,
+                 head_strides=None, process_heads=None, include_hflip=True):
+        super(ShellMultiScale, self).__init__()
 
         self.base_net = base_net
-        self.head_nets1 = torch.nn.ModuleList(head_nets1)
-        self.head_nets2 = torch.nn.ModuleList(head_nets2)
-
-    @property
-    def head_nets(self):
-        return list(self.head_nets1) + list(self.head_nets2)
-
-    def io_scales(self):
-        return (
-            [self.base_net.input_output_scale[0] for _ in self.head_nets1] +
-            [self.base_net.input_output_scale[1] for _ in self.head_nets2]
-        )
-
-    def forward(self, *args):
-        x1, x2 = self.base_net(*args)
-        h1 = [hn(x1) for hn in self.head_nets1]
-        h2 = [hn(x2) for hn in self.head_nets2]
-        return [h for hs in (h1, h2) for h in hs]
-
-
-class ShellFork(torch.nn.Module):
-    def __init__(self, base_net, head_nets1, head_nets2, head_nets3):
-        super(ShellFork, self).__init__()
-
-        self.base_net = base_net
-        self.head_nets1 = torch.nn.ModuleList(head_nets1)
-        self.head_nets2 = torch.nn.ModuleList(head_nets2)
-        self.head_nets3 = torch.nn.ModuleList(head_nets3)
-
-    @property
-    def head_nets(self):
-        return list(self.head_nets1) + list(self.head_nets2) + list(self.head_nets3)
-
-    def io_scales(self):
-        return (
-            [self.base_net.input_output_scale[0] for _ in self.head_nets1] +
-            [self.base_net.input_output_scale[1] for _ in self.head_nets2] +
-            [self.base_net.input_output_scale[2] for _ in self.head_nets3]
-        )
+        self.head_nets = torch.nn.ModuleList(head_nets)
+        self.head_strides = head_strides or [
+            base_net.input_output_scale // (2 ** getattr(h, '_quad', 0))
+            for h in head_nets
+        ]
+        self.pif_hflip = heads.PifHFlip(COCO_KEYPOINTS, HFLIP)
+        self.paf_hflip = heads.PafHFlip(COCO_KEYPOINTS, COCO_PERSON_SKELETON, HFLIP)
+        self.paf_hflip_dense = heads.PafHFlip(
+            COCO_KEYPOINTS, DENSER_COCO_PERSON_CONNECTIONS, HFLIP)
+        self.process_heads = process_heads
+        self.include_hflip = include_hflip
 
     def forward(self, *args):
-        x1, x2, x3 = self.base_net(*args)
-        h1 = [hn(x1) for hn in self.head_nets1]
-        h2 = [hn(x2) for hn in self.head_nets2]
-        h3 = [hn(x3) for hn in self.head_nets3]
-        return [h for hs in (h1, h2, h3) for h in hs]
+        original_input = args[0]
+
+        head_outputs = []
+        for hflip in ([False, True] if self.include_hflip else [False]):
+            for reduction in [1, 1.5, 2, 3, 5]:
+                if reduction == 1.5:
+                    x_red = torch.ByteTensor(
+                        [i % 3 != 2 for i in range(original_input.shape[3])])
+                    y_red = torch.ByteTensor(
+                        [i % 3 != 2 for i in range(original_input.shape[2])])
+                    reduced_input = original_input[:, :, y_red, :]
+                    reduced_input = reduced_input[:, :, :, x_red]
+                else:
+                    reduced_input = original_input[:, :, ::reduction, ::reduction]
+
+                if hflip:
+                    reduced_input = torch.flip(reduced_input, dims=[3])
+
+                reduced_x = self.base_net(reduced_input)
+                head_outputs += [hn(reduced_x) for hn in self.head_nets]
+
+        if self.include_hflip:
+            for mscale_i in range(5, 10):
+                head_i = mscale_i * 3
+                head_outputs[head_i] = self.pif_hflip(*head_outputs[head_i])
+                head_outputs[head_i + 1] = self.paf_hflip(*head_outputs[head_i + 1])
+                head_outputs[head_i + 2] = self.paf_hflip_dense(*head_outputs[head_i + 2])
+
+        if self.process_heads is not None:
+            head_outputs = self.process_heads(*head_outputs)
+
+        return head_outputs
 
 
 def factory_from_args(args):
-    for head in (heads.HEADS or heads.Head.__subclasses__()):
-        head.apply_args(args)
+    # configure CompositeField
+    heads.CompositeField.dropout_p = args.head_dropout
+    heads.CompositeField.quad = args.head_quad
 
-    return factory(checkpoint=args.checkpoint,
-                   basenet=args.basenet,
-                   headnets=args.headnets,
-                   pretrained=args.pretrained,
-                   two_scale=args.two_scale)
+    return factory(
+        checkpoint=args.checkpoint,
+        base_name=args.basenet,
+        head_names=args.headnets,
+        pretrained=args.pretrained,
+        experimental=getattr(args, 'experimental_decoder', False),
+        cross_talk=args.cross_talk,
+        two_scale=args.two_scale,
+        multi_scale=args.multi_scale,
+        multi_scale_hflip=args.multi_scale_hflip,
+    )
 
 
 # pylint: disable=too-many-branches
@@ -176,9 +204,21 @@ def model_migration(net_cpu):
         if not hasattr(m, 'padding_mode'):  # introduced in PyTorch 1.1.0
             m.padding_mode = 'zeros'
 
+    if not hasattr(net_cpu, 'process_heads'):
+        net_cpu.process_heads = None
+
+    if not hasattr(net_cpu, 'head_strides'):
+        net_cpu.head_strides = [
+            net_cpu.base_net.input_output_scale // (2 ** getattr(h, '_quad', 0))
+            for h in net_cpu.head_nets
+        ]
+
+    if not hasattr(net_cpu, 'head_names'):
+        net_cpu.head_names = [
+            h.shortname for h in net_cpu.head_nets
+        ]
+
     for head in net_cpu.head_nets:
-        head.shortname = head.shortname.replace('PartsIntensityFields', 'pif')
-        head.shortname = head.shortname.replace('PartsAssociationFields', 'paf')
         if not hasattr(head, 'dropout') or head.dropout is None:
             head.dropout = torch.nn.Dropout2d(p=0.0)
         if not hasattr(head, '_quad'):
@@ -214,34 +254,38 @@ def model_defaults(net_cpu):
 
 
 # pylint: disable=too-many-branches
-def factory(*,
-            checkpoint=None,
-            basenet=None,
-            headnets=('pif', 'paf'),
-            pretrained=True,
-            dilation=None,
-            dilation_end=None,
-            two_scale=False):
-    if not checkpoint and basenet:
-        net_cpu = factory_from_scratch(basenet, headnets, pretrained=pretrained)
+def factory(
+        *,
+        checkpoint=None,
+        base_name=None,
+        head_names=('pif', 'paf'),
+        pretrained=True,
+        experimental=False,
+        cross_talk=0.0,
+        two_scale=False,
+        multi_scale=False,
+        multi_scale_hflip=True):
+
+    if not checkpoint and base_name:
+        net_cpu = factory_from_scratch(base_name, head_names, pretrained=pretrained)
         epoch = 0
     else:
         if not checkpoint:
-            checkpoint = torch.utils.model_zoo.load_url(RESNET50_MODEL)
+            checkpoint = torch.hub.load_state_dict_from_url(RESNET50_MODEL)
         elif checkpoint == 'resnet50':
-            checkpoint = torch.utils.model_zoo.load_url(RESNET50_MODEL)
+            checkpoint = torch.hub.load_state_dict_from_url(RESNET50_MODEL)
         elif checkpoint == 'resnet101':
-            checkpoint = torch.utils.model_zoo.load_url(RESNET101_MODEL)
+            checkpoint = torch.hub.load_state_dict_from_url(RESNET101_MODEL)
         elif checkpoint == 'resnet152':
-            checkpoint = torch.utils.model_zoo.load_url(RESNET152_MODEL)
+            checkpoint = torch.hub.load_state_dict_from_url(RESNET152_MODEL)
         elif checkpoint == 'resnext50':
-            checkpoint = torch.utils.model_zoo.load_url(RESNEXT50_MODEL)
+            checkpoint = torch.hub.load_state_dict_from_url(RESNEXT50_MODEL)
         elif checkpoint == 'shufflenetv2x1':
-            checkpoint = torch.utils.model_zoo.load_url(SHUFFLENETV2X1_MODEL)
+            checkpoint = torch.hub.load_state_dict_from_url(SHUFFLENETV2X1_MODEL)
         elif checkpoint == 'shufflenetv2x2':
-            checkpoint = torch.utils.model_zoo.load_url(SHUFFLENETV2X2_MODEL)
+            checkpoint = torch.hub.load_state_dict_from_url(SHUFFLENETV2X2_MODEL)
         elif checkpoint.startswith('http'):
-            checkpoint = torch.utils.model_zoo.load_url(checkpoint)
+            checkpoint = torch.hub.load_state_dict_from_url(checkpoint)
         else:
             checkpoint = torch.load(checkpoint)
         net_cpu = checkpoint['model']
@@ -253,41 +297,22 @@ def factory(*,
         # normalize for backwards compatibility
         model_migration(net_cpu)
 
+    if experimental and not multi_scale:
+        net_cpu.process_heads = heads.HeadStacks([(1, 2)])
+    elif experimental and multi_scale:
+        net_cpu.process_heads = heads.HeadStacks(
+            [(v * 3 + 1, v * 3 + 2) for v in range(10)])
+    net_cpu.cross_talk = cross_talk
+
     if two_scale:
         net_cpu = Shell2Scale(net_cpu.base_net, net_cpu.head_nets)
 
-    if dilation is not None:
-        net_cpu.base_net.atrous0(dilation)
-        # for head in net_cpu.head_nets:
-        #     head.dilation = dilation
-    if dilation_end is not None:
-        if dilation_end == 1:
-            net_cpu.base_net.atrous((1, 1))
-        elif dilation_end == 2:
-            net_cpu.base_net.atrous((1, 2))
-        elif dilation_end == 4:
-            net_cpu.base_net.atrous((2, 4))
-        else:
-            raise Exception
-        # for head in net_cpu.head_nets:
-        #     head.dilation = (dilation or 1.0) * dilation_end
+    if multi_scale:
+        net_cpu = ShellMultiScale(net_cpu.base_net, net_cpu.head_nets,
+                                  process_heads=net_cpu.process_heads,
+                                  include_hflip=multi_scale_hflip)
 
     return net_cpu, epoch
-
-
-def create_headnet(name, n_features):
-    if name in ('pif',
-                'paf',
-                'pafs',
-                'wpaf',
-                'pafb',
-                'pafs19',
-                'pafsb') or \
-       re.match('p[ia]f([0-9]+)$', name) is not None:
-        LOG.info('selected head CompositeField for %s', name)
-        return heads.CompositeField(name, n_features)
-
-    raise Exception('unknown head to create a head network: {}'.format(name))
 
 
 # pylint: disable=too-many-return-statements
@@ -326,10 +351,6 @@ def factory_from_scratch(basename, headnames, *, pretrained=True):
             [4, 8, 4], [24, 244, 488, 976, 3072],
         )
         return shufflenet_factory_from_scratch(basename, base_vision, 3072, headnames)
-    # if basename == 'densenet121':
-    #     basenet = basenetworks.DenseNet(torchvision.models.densenet121(pretrained), 'DenseNet121')
-    # else:
-    #     raise Exception('basenet not supported')
 
     raise Exception('unknown base network in {}'.format(basename))
 
@@ -342,7 +363,7 @@ def shufflenet_factory_from_scratch(basename, base_vision, out_features, headnam
         input_output_scale=16,
         out_features=out_features,
     )
-    headnets = [create_headnet(h, basenet.out_features) for h in headnames if h != 'skeleton']
+    headnets = [heads.factory(h, basenet.out_features) for h in headnames if h != 'skeleton']
     net_cpu = Shell(basenet, headnets)
     model_defaults(net_cpu)
     return net_cpu
@@ -369,7 +390,7 @@ def resnet_factory_from_scratch(basename, base_vision, out_features, headnames):
         resnet_factory.block3(),
         resnet_factory.block4(),
     ]
-    if 'block5' in basename:
+    if 'block4' not in basename:
         blocks.append(resnet_factory.block5())
     else:
         out_features //= 2
@@ -379,35 +400,13 @@ def resnet_factory_from_scratch(basename, base_vision, out_features, headnames):
         for b in blocks[2:]:
             resnet_factory.replace_downsample(b)
 
-    if 'pifb' in headnames or 'pafb' in headnames:
-        # TODO
-        basenet = basenetworks.BaseNetwork(
-            torch.nn.ModuleList([torch.nn.Sequential(*blocks[:-1]), blocks[-1]]),
-            basename,
-            [resnet_factory.stride(blocks[:-1]), resnet_factory.stride(blocks)],
-            [out_features // 2, out_features],
-        )
-        head1 = [create_headnet(h, basenet.out_features[0])
-                 for h in headnames if h.endswith('b')]
-        head2 = [create_headnet(h, basenet.out_features[1])
-                 for h in headnames if not h.endswith('b')]
-        return Shell2Stage(basenet, head1, head2)
-
-    if 'ppif' in headnames:
-        # TODO
-        head2 = [create_headnet(h, basenet.out_features[1])
-                 for h in headnames if h == 'ppif']
-        head3 = [create_headnet(h, basenet.out_features[2])
-                 for h in headnames if h != 'ppif']
-        return ShellFork(basenet, [], head2, head3)
-
     basenet = basenetworks.BaseNetwork(
         torch.nn.Sequential(*blocks),
         basename,
         input_output_scale=resnet_factory.stride(blocks),
         out_features=out_features,
     )
-    headnets = [create_headnet(h, basenet.out_features) for h in headnames if h != 'skeleton']
+    headnets = [heads.factory(h, basenet.out_features) for h in headnames if h != 'skeleton']
     net_cpu = Shell(basenet, headnets)
     model_defaults(net_cpu)
     return net_cpu
@@ -419,18 +418,24 @@ def cli(parser):
                        help=('Load a model from a checkpoint. '
                              'Use "resnet50", "resnet101" '
                              'or "resnet152" for pretrained OpenPifPaf models.'))
-    group.add_argument('--dilation', default=None, type=int,
-                       help='[never-worked] apply atrous')
-    group.add_argument('--dilation-end', default=None, type=int,
-                       help='[never-worked] apply atrous')
     group.add_argument('--basenet', default=None,
-                       help='base network, e.g. resnet50block5')
+                       help='base network, e.g. resnet50')
     group.add_argument('--headnets', default=['pif', 'paf'], nargs='+',
                        help='head networks')
     group.add_argument('--no-pretrain', dest='pretrained', default=True, action='store_false',
                        help='create model without ImageNet pretraining')
     group.add_argument('--two-scale', default=False, action='store_true',
-                       help='[experimental] two scale')
+                       help='[experimental]')
+    group.add_argument('--multi-scale', default=False, action='store_true',
+                       help='[experimental]')
+    group.add_argument('--no-multi-scale-hflip',
+                       dest='multi_scale_hflip', default=True, action='store_false',
+                       help='[experimental]')
+    group.add_argument('--cross-talk', default=0.0, type=float,
+                       help='[experimental]')
 
-    for head in (heads.HEADS or heads.Head.__subclasses__()):
-        head.cli(parser)
+    group = parser.add_argument_group('head')
+    group.add_argument('--head-dropout', default=heads.CompositeField.dropout_p, type=float,
+                       help='[experimental] zeroing probability of feature in head input')
+    group.add_argument('--head-quad', default=heads.CompositeField.quad, type=int,
+                       help='number of times to apply quad (subpixel conv) to heads')

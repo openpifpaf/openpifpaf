@@ -15,7 +15,8 @@ class Visualizer(object):
     def __init__(self, pif_indices, paf_indices, *,
                  file_prefix=None,
                  keypoints=None,
-                 skeleton=None):
+                 skeleton=None,
+                 show_seed_confidence=False):
         self.keypoints = keypoints or COCO_KEYPOINTS
         self.skeleton = skeleton or COCO_PERSON_SKELETON
 
@@ -26,6 +27,7 @@ class Visualizer(object):
         if self.paf_indices and self.paf_indices[0][0] == -1:
             self.paf_indices = [[i] for i, _ in enumerate(self.skeleton)]
         self.file_prefix = file_prefix
+        self.show_seed_confidence = show_seed_confidence
 
         self.image = None
         self.processed_image = None
@@ -48,7 +50,7 @@ class Visualizer(object):
             np.asarray(self.processed_image)[:, ::int(io_scale), ::int(io_scale)], 0, -1)
         return np.clip((resized_image + 2.0) / 4.0, 0.0, 1.0)
 
-    def seeds(self, seeds, io_scale):
+    def seeds(self, seeds, io_scale=1.0):
         print('seeds')
         field_indices = {f for _, f, __, ___, ____ in seeds}
 
@@ -59,8 +61,9 @@ class Visualizer(object):
                 y = [yy * io_scale for _, ff, __, yy, ___ in seeds if ff == f]
                 c = [cc for cc, ff, _, __, ___ in seeds if ff == f]
                 ax.plot(x, y, 'o')
-                for xx, yy, cc in zip(x, y, c):
-                    ax.text(xx, yy, '{:.2f}'.format(cc))
+                if self.show_seed_confidence:
+                    for xx, yy, cc in zip(x, y, c):
+                        ax.text(xx, yy, '{:.2f}'.format(cc))
 
     @staticmethod
     def occupied(occ):
@@ -137,11 +140,11 @@ class Visualizer(object):
                     q1 = show.quiver(ax, reg1_fields[f], intensity_fields[f],
                                      reg_uncertainty=reg1_fields_b[f],
                                      threshold=0.5, width=0.003, step=1,
-                                     cmap='viridis_r', clim=(0.5, 1.0), xy_scale=io_scale)
+                                     cmap='Blues', clim=(0.5, 1.0), xy_scale=io_scale)
                     show.quiver(ax, reg2_fields[f], intensity_fields[f],
                                 reg_uncertainty=reg2_fields_b[f],
                                 threshold=0.5, width=0.003, step=1,
-                                cmap='viridis_r', clim=(0.5, 1.0), xy_scale=io_scale)
+                                cmap='Greens', clim=(0.5, 1.0), xy_scale=io_scale)
 
                     divider = make_axes_locatable(ax)
                     cax = divider.append_axes('right', size='3%', pad=0.05)

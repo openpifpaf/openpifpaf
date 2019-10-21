@@ -1,25 +1,22 @@
-usage: eval_coco.py [-h] [--checkpoint CHECKPOINT] [--dilation DILATION]
-                    [--dilation-end DILATION_END] [--basenet BASENET]
+usage: eval_coco.py [-h] [--checkpoint CHECKPOINT] [--basenet BASENET]
                     [--headnets HEADNETS [HEADNETS ...]] [--no-pretrain]
-                    [--two-scale] [--head-dropout HEAD_DROPOUT]
-                    [--head-quad HEAD_QUAD]
-                    [--head-kernel-size HEAD_KERNEL_SIZE]
-                    [--head-padding HEAD_PADDING]
-                    [--head-dilation HEAD_DILATION]
-                    [--seed-threshold SEED_THRESHOLD]
+                    [--two-scale] [--multi-scale] [--no-multi-scale-hflip]
+                    [--cross-talk CROSS_TALK] [--head-dropout HEAD_DROPOUT]
+                    [--head-quad HEAD_QUAD] [--seed-threshold SEED_THRESHOLD]
                     [--instance-threshold INSTANCE_THRESHOLD]
                     [--keypoint-threshold KEYPOINT_THRESHOLD]
                     [--decoder-workers DECODER_WORKERS]
+                    [--experimental-decoder] [--extra-coupling EXTRA_COUPLING]
                     [--no-force-complete-pose]
                     [--debug-pif-indices DEBUG_PIF_INDICES [DEBUG_PIF_INDICES ...]]
                     [--debug-paf-indices DEBUG_PAF_INDICES [DEBUG_PAF_INDICES ...]]
                     [--debug-file-prefix DEBUG_FILE_PREFIX]
                     [--profile-decoder] [--fixed-b FIXED_B]
-                    [--pif-fixed-scale PIF_FIXED_SCALE] [--paf-th PAF_TH]
-                    [--connection-method {median,max,blend}]
+                    [--pif-fixed-scale PIF_FIXED_SCALE] [--pif-th PIF_TH]
+                    [--paf-th PAF_TH] [--connection-method {median,max,blend}]
+                    [--pif-side-length PIF_SIDE_LENGTH]
                     [--paf-min-size PAF_MIN_SIZE] [--paf-fixed-size]
-                    [--paf-aspect-ratio PAF_ASPECT_RATIO]
-                    [--pif-side-length PIF_SIDE_LENGTH] [--output OUTPUT]
+                    [--paf-aspect-ratio PAF_ASPECT_RATIO] [--output OUTPUT]
                     [-n N] [--skip-n SKIP_N] [--dataset {val,test,test-dev}]
                     [--min-ann MIN_ANN] [--batch-size BATCH_SIZE]
                     [--long-edge LONG_EDGE] [--loader-workers LOADER_WORKERS]
@@ -41,7 +38,7 @@ optional arguments:
   --long-edge LONG_EDGE
                         long edge of input images (default: 641)
   --loader-workers LOADER_WORKERS
-                        number of workers for data loading (default: 2)
+                        number of workers for data loading (default: None)
   --skip-existing       skip if output eval file exists already (default:
                         False)
   --disable-cuda        disable CUDA (default: False)
@@ -55,15 +52,17 @@ network configuration:
                         Load a model from a checkpoint. Use "resnet50",
                         "resnet101" or "resnet152" for pretrained OpenPifPaf
                         models. (default: None)
-  --dilation DILATION   [never-worked] apply atrous (default: None)
-  --dilation-end DILATION_END
-                        [never-worked] apply atrous (default: None)
-  --basenet BASENET     base network, e.g. resnet50block5 (default: None)
+  --basenet BASENET     base network, e.g. resnet50 (default: None)
   --headnets HEADNETS [HEADNETS ...]
                         head networks (default: ['pif', 'paf'])
   --no-pretrain         create model without ImageNet pretraining (default:
                         True)
-  --two-scale           [experimental] two scale (default: False)
+  --two-scale           [experimental] (default: False)
+  --multi-scale         [experimental] (default: False)
+  --no-multi-scale-hflip
+                        [experimental] (default: True)
+  --cross-talk CROSS_TALK
+                        [experimental] (default: 0.0)
 
 head:
   --head-dropout HEAD_DROPOUT
@@ -72,12 +71,6 @@ head:
   --head-quad HEAD_QUAD
                         number of times to apply quad (subpixel conv) to heads
                         (default: 0)
-  --head-kernel-size HEAD_KERNEL_SIZE
-                        [experimental] (default: 1)
-  --head-padding HEAD_PADDING
-                        [experimental] (default: 0)
-  --head-dilation HEAD_DILATION
-                        [never-worked] (default: 1)
 
 decoder configuration:
   --seed-threshold SEED_THRESHOLD
@@ -88,6 +81,10 @@ decoder configuration:
                         filter keypoints by score (default: None)
   --decoder-workers DECODER_WORKERS
                         number of workers for pose decoding (default: None)
+  --experimental-decoder
+                        use an experimental decoder (default: False)
+  --extra-coupling EXTRA_COUPLING
+                        extra coupling (default: 0.0)
   --no-force-complete-pose
   --debug-pif-indices DEBUG_PIF_INDICES [DEBUG_PIF_INDICES ...]
                         indices of PIF fields to create debug plots for (group
@@ -100,13 +97,19 @@ decoder configuration:
                         save debug plots with this prefix (default: None)
   --profile-decoder     profile decoder (default: None)
 
-PifPaf decoder:
+PifPaf decoders:
   --fixed-b FIXED_B     overwrite b with fixed value, e.g. 0.5 (default: None)
   --pif-fixed-scale PIF_FIXED_SCALE
                         overwrite pif scale with a fixed value (default: None)
+  --pif-th PIF_TH       pif threshold (default: 0.1)
   --paf-th PAF_TH       paf threshold (default: 0.1)
   --connection-method {median,max,blend}
-                        connection method to use, max is faster (default: max)
+                        connection method to use, max is faster (default:
+                        blend)
+
+pif encoder:
+  --pif-side-length PIF_SIDE_LENGTH
+                        side length of the PIF field (default: 4)
 
 paf encoder:
   --paf-min-size PAF_MIN_SIZE
@@ -114,10 +117,6 @@ paf encoder:
   --paf-fixed-size      fixed paf size (default: False)
   --paf-aspect-ratio PAF_ASPECT_RATIO
                         paf width relative to its length (default: 0.0)
-
-pif encoder:
-  --pif-side-length PIF_SIDE_LENGTH
-                        side length of the PIF field (default: 4)
 
 logging:
   --debug               print debug messages (default: False)

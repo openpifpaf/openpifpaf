@@ -33,3 +33,14 @@ cd data-mpii
 wget https://datasets.d2.mpi-inf.mpg.de/andriluka14cvpr/mpii_human_pose_v1.tar.gz
 wget https://datasets.d2.mpi-inf.mpg.de/andriluka14cvpr/mpii_human_pose_v1_u12_2.zip
 ```
+
+
+Download NightOwls:
+
+```sh
+mkdir data-nightowls
+cd data-nightowls
+wget http://www.robots.ox.ac.uk/\~vgg/data/nightowls/python/nightowls_validation.json
+wget http://www.robots.ox.ac.uk/\~vgg/data/nightowls/python/nightowls_validation.zip
+unzip nightowls_validation.zip
+```

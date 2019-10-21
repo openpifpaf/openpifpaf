@@ -1,29 +1,17 @@
 """Losses."""
 
-from abc import ABCMeta
 import logging
 import torch
 
 from ..data import (
     COCO_PERSON_SIGMAS,
     COCO_PERSON_SKELETON,
+    DENSER_COCO_PERSON_CONNECTIONS,
     DENSER_COCO_PERSON_SKELETON,
     KINEMATIC_TREE_SKELETON,
 )
 
 LOG = logging.getLogger(__name__)
-
-LOSSES = None
-
-
-class Loss(metaclass=ABCMeta):
-    @classmethod
-    def cli(cls, parser):
-        """Add decoder specific command line arguments to the parser."""
-
-    @classmethod
-    def apply_args(cls, args):
-        """Read command line arguments args to set class properties."""
 
 
 def laplace_loss(x1, x2, logb, t1, t2, weight=None):
@@ -54,6 +42,55 @@ def l1_loss(x1, x2, _, t1, t2, weight=None):
     if weight is not None:
         losses = losses * weight
     return torch.sum(losses)
+
+
+def margin_loss(x1, x2, t1, t2, max_r1, max_r2, max_r3, max_r4):
+    x = torch.stack((x1, x2))
+    t = torch.stack((t1, t2))
+
+    max_r = torch.min((torch.stack(max_r1, max_r2, max_r3, max_r4)), axis=0)
+    m0 = torch.isfinite(max_r)
+    x = x[:, m0]
+    t = t[:, m0]
+    max_r = max_r[m0]
+
+    # m1 = (x - t).norm(p=1, dim=0) > max_r
+    # x = x[:, m1]
+    # t = t[:, m1]
+    # max_r = max_r[m1]
+
+    norm = (x - t).norm(dim=0)
+    m2 = norm > max_r
+
+    return torch.sum(norm[m2] - max_r[m2])
+
+
+def quadrant(xys):
+    q = torch.zeros((xys.shape[1],), dtype=torch.long)
+    q[xys[0, :] < 0.0] += 1
+    q[xys[1, :] < 0.0] += 2
+    return q
+
+
+def quadrant_margin_loss(x1, x2, t1, t2, max_r1, max_r2, max_r3, max_r4):
+    x = torch.stack((x1, x2))
+    t = torch.stack((t1, t2))
+
+    diffs = x - t
+    qs = quadrant(diffs)
+    norms = diffs.norm(dim=0)
+
+    m1 = norms[qs == 0] > max_r1[qs == 0]
+    m2 = norms[qs == 1] > max_r2[qs == 1]
+    m3 = norms[qs == 2] > max_r3[qs == 2]
+    m4 = norms[qs == 3] > max_r4[qs == 3]
+
+    return (
+        torch.sum(norms[qs == 0][m1] - max_r1[qs == 0][m1]) +
+        torch.sum(norms[qs == 1][m2] - max_r2[qs == 1][m2]) +
+        torch.sum(norms[qs == 2][m3] - max_r3[qs == 2][m3]) +
+        torch.sum(norms[qs == 3][m4] - max_r4[qs == 3][m4])
+    )
 
 
 class SmoothL1Loss(object):
@@ -114,29 +151,21 @@ class MultiHeadLoss(torch.nn.Module):
         return total_loss, flat_head_losses
 
 
-class CompositeLoss(Loss, torch.nn.Module):
-    default_background_weight = 1.0
-    default_multiplicity_correction = False
-    default_independence_scale = 3.0
+class CompositeLoss(torch.nn.Module):
+    background_weight = 1.0
+    multiplicity_correction = False
+    independence_scale = 3.0
 
     def __init__(self, head_name, regression_loss, *,
-                 n_vectors, n_scales, sigmas=None):
+                 n_vectors, n_scales, sigmas=None, margin=False):
         super(CompositeLoss, self).__init__()
-
-        if sigmas is None:
-            sigmas = [[1.0] for _ in range(n_vectors)]
-
-        self.background_weight = self.default_background_weight
-        self.multiplicity_correction = self.default_multiplicity_correction
-        self.independence_scale = self.default_independence_scale
 
         self.n_vectors = n_vectors
         self.n_scales = n_scales
         if self.n_scales:
             assert len(sigmas) == n_scales
-        LOG.debug('%s: n_vectors = %d, n_scales = %d, len(sigmas) = %d',
-                  head_name, n_vectors, n_scales, len(sigmas))
-
+        if sigmas is None:
+            sigmas = [[1.0] for _ in range(n_vectors)]
         if sigmas is not None:
             assert len(sigmas) == n_vectors
             scales_to_kp = torch.tensor(sigmas)
@@ -153,21 +182,19 @@ class CompositeLoss(Loss, torch.nn.Module):
             ['{}.vec{}'.format(head_name, i + 1) for i in range(self.n_vectors)] +
             ['{}.scales{}'.format(head_name, i + 1) for i in range(self.n_scales)]
         )
+        self.margin = margin
+        if self.margin:
+            self.field_names += ['{}.margin{}'.format(head_name, i + 1)
+                                 for i in range(self.n_vectors)]
 
         self.bce_blackout = None
 
-    @classmethod
-    def cli(cls, parser):
-        # group = parser.add_argument_group('composite loss')
-        pass
+        LOG.debug('%s: n_vectors = %d, n_scales = %d, len(sigmas) = %d, margin = %s',
+                  head_name, n_vectors, n_scales, len(sigmas), margin)
 
-    @classmethod
-    def apply_args(cls, args):
-        cls.default_background_weight = args.background_weight
-        cls.default_fixed_size = args.paf_fixed_size
-        cls.default_aspect_ratio = args.paf_aspect_ratio
+    def forward(self, *args):  # pylint: disable=too-many-statements
+        x, t = args
 
-    def forward(self, x, t):  # pylint: disable=arguments-differ
         assert len(x) == 1 + 2 * self.n_vectors + self.n_scales
         x_intensity = x[0]
         x_regs = x[1:1 + self.n_vectors]
@@ -248,7 +275,22 @@ class CompositeLoss(Loss, torch.nn.Module):
                 for x_scale, scale_to_kp in zip(x_scales, self.scales_to_kp)
             ]
 
-        return [ce_loss] + reg_losses + scale_losses
+        margin_losses = [None for _ in target_regs] if self.margin else []
+        if self.margin and torch.any(reg_masks):
+            margin_losses = []
+            for i, (x_reg, target_reg) in enumerate(zip(x_regs, target_regs)):
+                margin_losses.append(quadrant_margin_loss(
+                    torch.masked_select(x_reg[:, :, 0], reg_masks),
+                    torch.masked_select(x_reg[:, :, 1], reg_masks),
+                    torch.masked_select(target_reg[:, :, 0], reg_masks),
+                    torch.masked_select(target_reg[:, :, 1], reg_masks),
+                    torch.masked_select(target_reg[:, :, 2], reg_masks),
+                    torch.masked_select(target_reg[:, :, 3], reg_masks),
+                    torch.masked_select(target_reg[:, :, 4], reg_masks),
+                    torch.masked_select(target_reg[:, :, 5], reg_masks),
+                ) / 100.0 / batch_size)
+
+        return [ce_loss] + reg_losses + scale_losses + margin_losses
 
 
 def cli(parser):
@@ -268,18 +310,23 @@ def cli(parser):
                        help='[experimental] use multiplicity correction for PAF loss')
     group.add_argument('--paf-independence-scale', default=3.0, type=float,
                        help='[experimental] linear length scale of independence for PAF regression')
+    group.add_argument('--margin-loss', default=False, action='store_true',
+                       help='[experimental]')
 
 
 def factory_from_args(args):
-    for loss in Loss.__subclasses__():
-        loss.apply_args(args)
+    # apply for CompositeLoss
+    CompositeLoss.background_weight = args.background_weight
+    CompositeLoss.fixed_size = args.paf_fixed_size
+    CompositeLoss.aspect_ratio = args.paf_aspect_ratio
 
     return factory(
         args.headnets,
         args.lambdas,
-        args.regression_loss,
-        args.r_smooth,
-        args.device,
+        reg_loss_name=args.regression_loss,
+        r_smooth=args.r_smooth,
+        device=args.device,
+        margin=args.margin_loss,
     )
 
 
@@ -314,6 +361,11 @@ def loss_parameters(head_name):
             [COCO_PERSON_SIGMAS[j1i - 1] for j1i, _ in DENSER_COCO_PERSON_SKELETON],
             [COCO_PERSON_SIGMAS[j2i - 1] for _, j2i in DENSER_COCO_PERSON_SKELETON],
         ]
+    elif head_name in ('paf25',):
+        sigmas = [
+            [COCO_PERSON_SIGMAS[j1i - 1] for j1i, _ in DENSER_COCO_PERSON_CONNECTIONS],
+            [COCO_PERSON_SIGMAS[j2i - 1] for _, j2i in DENSER_COCO_PERSON_CONNECTIONS],
+        ]
 
     return {
         'n_vectors': n_vectors,
@@ -322,9 +374,14 @@ def loss_parameters(head_name):
     }
 
 
-def factory(head_names, lambdas, reg_loss_name=None, r_smooth=None, device=None):
+def factory(head_names, lambdas, *,
+            reg_loss_name=None, r_smooth=None, device=None, margin=False):
     if isinstance(head_names[0], (list, tuple)):
-        return [factory(hn, lam, reg_loss_name, r_smooth, device)
+        return [factory(hn, lam,
+                        reg_loss_name=reg_loss_name,
+                        r_smooth=r_smooth,
+                        device=device,
+                        margin=margin)
                 for hn, lam in zip(head_names, lambdas)]
 
     head_names = [h for h in head_names if h not in ('skeleton', 'tskeleton')]
@@ -340,7 +397,8 @@ def factory(head_names, lambdas, reg_loss_name=None, r_smooth=None, device=None)
     else:
         raise Exception('unknown regression loss type {}'.format(reg_loss_name))
 
-    losses = [CompositeLoss(head_name, reg_loss, **loss_parameters(head_name))
+    losses = [CompositeLoss(head_name, reg_loss,
+                            margin=margin, **loss_parameters(head_name))
               for head_name in head_names]
     loss = MultiHeadLoss(losses, lambdas)
 

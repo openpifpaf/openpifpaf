@@ -190,13 +190,16 @@ def train_cli(parser):
                        help='duplicate data')
     group.add_argument('--pre-duplicate-data', default=None, type=int,
                        help='duplicate pre data in preprocessing')
-    group.add_argument('--loader-workers', default=2, type=int,
+    group.add_argument('--loader-workers', default=None, type=int,
                        help='number of workers for data loading')
     group.add_argument('--batch-size', default=8, type=int,
                        help='batch size')
 
 
 def train_factory(args, preprocess, target_transforms):
+    if args.loader_workers is None:
+        args.loader_workers = args.batch_size
+
     train_data = CocoKeypoints(
         root=args.train_image_dir,
         annFile=args.train_annotations,
