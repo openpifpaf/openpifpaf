@@ -16,7 +16,7 @@ class BaseNetwork(torch.nn.Module):
         self.out_features = out_features
 
         # print(list(net.children()))
-        LOG.info('stide = %d', self.input_output_scale)
+        LOG.info('stride = %d', self.input_output_scale)
         LOG.info('output features = %d', self.out_features)
 
     def forward(self, *args):
