@@ -92,21 +92,19 @@ Tools to work with models:
 
 # Pre-trained Models
 
-Performance metrics with version 0.9.0 on the COCO val set obtained with a GTX1080Ti:
+Performance metrics with version 0.10.0 on the COCO val set obtained with a GTX1080Ti:
 
 | Backbone               | AP       | APᴹ      | APᴸ      | t_{total} [ms]  | t_{dec} [ms] |
 |-----------------------:|:--------:|:--------:|:--------:|:---------------:|:------------:|
-| shufflenetv2x1 (v0.8)  | __50.2__ | 47.0     | 55.4     | 56              | 44           |
-| shufflenetv2x2         | __58.5__ | 55.2     | 63.6     | 60              | 41           |
-| resnet50               | __63.3__ | 60.7     | 67.8     | 79              | 38           |
-| resnext50 (v0.8)       | __63.8__ | 61.1     | 68.1     | 93              | 33           |
-| resnet101              | __66.5__ | 63.1     | 71.9     | 100             | 35           |
-| resnet152              | __67.8__ | 64.4     | 73.3     | 122             | 30           |
+| shufflenetv2x2         | __60.4__ | 55.3     | 68.1     | 80              | 56           |
+| resnet50               | __64.6__ | 61.1     | 70.2     | 100             | 55           |
+| (v0.8) resnext50       | __63.8__ | 61.1     | 68.1     | 93              | 33           |
+| resnet101              | __67.9__ | 63.6     | 74.7     | 120             | 51           |
+| (v0.8) resnet152       | __67.8__ | 64.4     | 73.3     | 122             | 30           |
 
-Pretrained model files are shared in this
-__[Google Drive](https://drive.google.com/drive/folders/13cXISujwI6-D3ijK6fGnoSNOthKUQWnN?usp=sharing)__
-which you can put into your `outputs` folder. The pretrained models are
-downloaded automatically when
+Pretrained model files are shared in the releases of the
+__[openpifpaf-torchhub](https://github.com/vita-epfl/openpifpaf-torchhub)__
+repository. The pretrained models are downloaded automatically when
 using the command line option `--checkpoint backbonenameasintableabove`.
 
 To visualize logs:
