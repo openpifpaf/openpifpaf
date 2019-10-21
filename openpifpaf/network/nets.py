@@ -8,9 +8,9 @@ from ..data import COCO_KEYPOINTS, COCO_PERSON_SKELETON, DENSER_COCO_PERSON_CONN
 # generate hash values with: shasum -a 256 filename.pkl
 
 RESNET50_MODEL = ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
-                  'v0.1.0/resnet50block5-pif-paf-edge401-190625-025154-4e47f5ec.pkl')
+                  'v0.10.0/resnet50-pif-paf-paf25-edge401-191016-192503-d2b85396.pkl')
 RESNET101_MODEL = ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
-                   'v0.1.0/resnet101block5-pif-paf-edge401-190629-151620-b2db8c7e.pkl')
+                   'v0.10.0/resnet101block5-pif-paf-paf25-edge401-191012-132602-a2bf7ecd.pkl')
 RESNET152_MODEL = ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
                    'v0.1.0/resnet152block5-pif-paf-edge401-190625-185426-3e2f28ed.pkl')
 RESNEXT50_MODEL = ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
@@ -18,7 +18,7 @@ RESNEXT50_MODEL = ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/do
 SHUFFLENETV2X1_MODEL = ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
                         'v0.1.0/shufflenetv2x1-pif-paf-edge401-190705-151607-d9a35d7e.pkl')
 SHUFFLENETV2X2_MODEL = ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
-                        'v0.1.0/shufflenetv2x2-pif-paf-edge401-190705-151618-f8da8c15.pkl')
+                        'v0.10.0/shufflenetv2x2-pif-paf-paf25-edge401-191010-172527-ef704f06.pkl')
 
 LOG = logging.getLogger(__name__)
 
