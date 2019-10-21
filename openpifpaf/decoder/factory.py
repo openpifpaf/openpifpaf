@@ -136,9 +136,7 @@ def factory_decode(model, *,
     LOG.debug('head names = %s', head_names)
 
     if head_names in (('pif',),):
-        return Pif(model.head_strides[-1],
-                   head_index=0,
-                   **kwargs)
+        return Pif(model.head_strides[-1], head_index=0, **kwargs)
 
     if head_names in (('pif', 'paf'),
                       ('pif', 'paf44'),

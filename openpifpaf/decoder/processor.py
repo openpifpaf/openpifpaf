@@ -72,12 +72,7 @@ class Processor(object):
             heads = self.model(image_batch)
 
             # to numpy
-            def to_cpu(inputs):
-                return [f.cpu().numpy()
-                        if not isinstance(f, (list, tuple))
-                        else to_cpu(f)
-                        for f in inputs]
-            fields = to_cpu(heads)
+            fields = [[field.cpu().numpy() for field in head] for head in heads]
 
             # index by batch entry
             fields = [

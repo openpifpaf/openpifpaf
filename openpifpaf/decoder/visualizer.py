@@ -15,7 +15,8 @@ class Visualizer(object):
     def __init__(self, pif_indices, paf_indices, *,
                  file_prefix=None,
                  keypoints=None,
-                 skeleton=None):
+                 skeleton=None,
+                 show_seed_confidence=False):
         self.keypoints = keypoints or COCO_KEYPOINTS
         self.skeleton = skeleton or COCO_PERSON_SKELETON
 
@@ -26,6 +27,7 @@ class Visualizer(object):
         if self.paf_indices and self.paf_indices[0][0] == -1:
             self.paf_indices = [[i] for i, _ in enumerate(self.skeleton)]
         self.file_prefix = file_prefix
+        self.show_seed_confidence = show_seed_confidence
 
         self.image = None
         self.processed_image = None
@@ -57,10 +59,11 @@ class Visualizer(object):
             for f in field_indices:
                 x = [xx * io_scale for _, ff, xx, __, ___ in seeds if ff == f]
                 y = [yy * io_scale for _, ff, __, yy, ___ in seeds if ff == f]
-                # c = [cc for cc, ff, _, __, ___ in seeds if ff == f]
+                c = [cc for cc, ff, _, __, ___ in seeds if ff == f]
                 ax.plot(x, y, 'o')
-                # for xx, yy, cc in zip(x, y, c):
-                #     ax.text(xx, yy, '{:.2f}'.format(cc))
+                if self.show_seed_confidence:
+                    for xx, yy, cc in zip(x, y, c):
+                        ax.text(xx, yy, '{:.2f}'.format(cc))
 
     @staticmethod
     def occupied(occ):
