@@ -264,8 +264,8 @@ def factory(
         cross_talk=0.0,
         two_scale=False,
         multi_scale=False,
-        multi_scale_hflip=True,
-    ):
+        multi_scale_hflip=True):
+
     if not checkpoint and base_name:
         net_cpu = factory_from_scratch(base_name, head_names, pretrained=pretrained)
         epoch = 0
