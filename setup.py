@@ -44,8 +44,10 @@ setup(
     packages=[
         'openpifpaf',
         'openpifpaf.decoder',
+        'openpifpaf.decoder.generator',
         'openpifpaf.encoder',
         'openpifpaf.network',
+        'openpifpaf.transforms',
     ],
     license='GNU AGPLv3',
     description='PifPaf: Composite Fields for Human Pose Estimation',

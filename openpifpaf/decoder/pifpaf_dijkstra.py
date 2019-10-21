@@ -3,6 +3,8 @@
 import logging
 import time
 
+import numpy as np
+
 from . import generator
 from .paf_scored import PafScored
 from .pif_hr import PifHr
@@ -12,7 +14,7 @@ from .utils import normalize_pif, normalize_paf
 LOG = logging.getLogger(__name__)
 
 
-class PifPaf(object):
+class PifPafDijkstra(object):
     force_complete = True
     connection_method = 'blend'
     fixed_b = None
@@ -27,6 +29,7 @@ class PifPaf(object):
                  paf_min_distance=0.0,
                  paf_max_distance=None,
                  seed_threshold=0.2,
+                 confidence_scales=None,
                  debug_visualizer=None):
         self.strides = stride
         self.pif_indices = pif_index
@@ -59,6 +62,8 @@ class PifPaf(object):
         self.pif_nn = 16
         self.paf_nn = 1 if self.connection_method == 'max' else 35
 
+        self.confidence_scales = confidence_scales
+
     def __call__(self, fields, initial_annotations=None):
         start = time.perf_counter()
 
@@ -67,6 +72,13 @@ class PifPaf(object):
                 self.debug_visualizer.pif_raw(fields[pif_i], stride)
             for stride, paf_i in zip(self.strides, self.paf_indices):
                 self.debug_visualizer.paf_raw(fields[paf_i], stride, reg_components=3)
+
+        # confidence scales
+        if self.confidence_scales:
+            for paf_i in self.paf_indices:
+                paf = fields[paf_i]
+                cs = np.array(self.confidence_scales, dtype=np.float32).reshape((-1, 1, 1,))
+                paf[0] = cs * paf[0]
 
         # normalize
         normalized_pifs = [normalize_pif(*fields[pif_i], fixed_scale=self.pif_fixed_scale)
@@ -88,7 +100,7 @@ class PifPaf(object):
         paf_scored.fill_sequence(
             normalized_pafs, self.strides, self.paf_min_distances, self.paf_max_distances)
 
-        gen = generator.Greedy(
+        gen = generator.Dijkstra(
             pifhr, paf_scored, seeds,
             seed_threshold=self.seed_threshold,
             connection_method=self.connection_method,

@@ -2,6 +2,7 @@ import numpy as np
 import torch
 import openpifpaf.network.nets
 import openpifpaf.utils
+from openpifpaf.data import COCO_KEYPOINTS, COCO_PERSON_SKELETON
 
 
 def localize(x):
@@ -14,7 +15,7 @@ def localize(x):
     )
     model.eval()
 
-    decode = openpifpaf.decoder.PifPaf(8)
+    decode = openpifpaf.decoder.PifPaf(8, keypoints=COCO_KEYPOINTS, skeleton=COCO_PERSON_SKELETON)
     processor = openpifpaf.decoder.Processor(model, decode)
     pif_ref = processor.fields(torch.unsqueeze(black, 0))[0][0]
     pif = processor.fields(torch.unsqueeze(im, 0))[0][0]

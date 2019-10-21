@@ -39,11 +39,12 @@ class Processor(object):
         if worker_pool is None or worker_pool == 0:
             worker_pool = DummyPool
         if isinstance(worker_pool, int):
+            LOG.info('creating decoder worker pool with %d workers', worker_pool)
             worker_pool = multiprocessing.Pool(worker_pool)
 
         self.model = model
         self.decode = decode
-        self.output_stride = output_stride or model.io_scales()[-1]
+        self.output_stride = output_stride or model.head_strides[-1]
         self.keypoint_threshold = keypoint_threshold
         self.instance_threshold = instance_threshold
         self.debug_visualizer = debug_visualizer
@@ -126,6 +127,7 @@ class Processor(object):
     def keypoint_sets_from_annotations(annotations):
         keypoint_sets = [ann.data for ann in annotations]
         scores = [ann.score() for ann in annotations]
+        assert len(scores) == len(keypoint_sets)
         if not keypoint_sets:
             return np.zeros((0, 17, 3)), np.zeros((0,))
         keypoint_sets = np.array(keypoint_sets)
@@ -133,20 +135,32 @@ class Processor(object):
 
         return keypoint_sets, scores
 
-    def annotations_batch(self, fields_batch, *, debug_images=None):
+    def annotations_batch(self, fields_batch, *, meta_batch=None, debug_images=None):
         if debug_images is None or self.debug_visualizer is None:
             # remove debug_images if there is no visualizer to save
             # time during pickle
             debug_images = [None for _ in fields_batch]
+        if meta_batch is None:
+            meta_batch = [None for _ in fields_batch]
 
         LOG.debug('parallel execution with worker %s', self.worker_pool)
         return self.worker_pool.starmap(
-            self._mappable_annotations, zip(fields_batch, debug_images))
+            self._mappable_annotations, zip(fields_batch, meta_batch, debug_images))
 
-    def _mappable_annotations(self, fields, debug_image):
-        return self.annotations(fields, debug_image=debug_image)
+    def _mappable_annotations(self, fields, meta, debug_image):
+        return self.annotations(fields, meta=meta, debug_image=debug_image)
 
-    def annotations(self, fields, *, initial_annotations=None, debug_image=None):
+    @staticmethod
+    def suppress_outside_valid(ann, valid_area):
+        m = np.logical_or(
+            np.logical_or(ann.data[:, 0] < valid_area[0],
+                          ann.data[:, 0] > valid_area[0] + valid_area[2]),
+            np.logical_or(ann.data[:, 1] < valid_area[1],
+                          ann.data[:, 1] > valid_area[1] + valid_area[3]),
+        )
+        ann.data[m, 2] = np.maximum(ann.data[m, 2], 0.0)
+
+    def annotations(self, fields, *, initial_annotations=None, meta=None, debug_image=None):
         start = time.time()
         if self.profile is not None:
             self.profile.enable()
@@ -154,14 +168,7 @@ class Processor(object):
         if debug_image is not None:
             self.set_cpu_image(None, debug_image)
 
-        if initial_annotations:
-            for ann in initial_annotations:
-                ann.rescale(1.0 / self.output_stride)
         annotations = self.decode(fields, initial_annotations=initial_annotations)
-
-        # scale to input size
-        for ann in annotations:
-            ann.rescale(self.output_stride)
 
         # instance scorer
         if self.instance_scorer is not None:
@@ -171,8 +178,10 @@ class Processor(object):
         # nms
         annotations = self.soft_nms(annotations)
 
-        # treshold
+        # threshold
         for ann in annotations:
+            if meta is not None:
+                self.suppress_outside_valid(ann, meta['valid_area'])
             kps = ann.data
             kps[kps[:, 2] < self.keypoint_threshold] = 0.0
         annotations = [ann for ann in annotations

@@ -29,6 +29,6 @@ def test_predict(module_name):
         subprocess.run([
             PYTHON, '-m', 'openpifpaf.{}'.format(module_name),
             '--help',
-        ], stdout=f)
+        ], stdout=f, check=True)
 
     assert os.path.getsize(out_file) > 0

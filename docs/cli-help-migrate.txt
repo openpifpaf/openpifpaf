@@ -1,11 +1,8 @@
 usage: migrate.py [-h] [--debug] [--output OUTPUT] [--checkpoint CHECKPOINT]
-                  [--dilation DILATION] [--dilation-end DILATION_END]
                   [--basenet BASENET] [--headnets HEADNETS [HEADNETS ...]]
-                  [--no-pretrain] [--two-scale] [--head-dropout HEAD_DROPOUT]
-                  [--head-quad HEAD_QUAD]
-                  [--head-kernel-size HEAD_KERNEL_SIZE]
-                  [--head-padding HEAD_PADDING]
-                  [--head-dilation HEAD_DILATION]
+                  [--no-pretrain] [--two-scale] [--multi-scale]
+                  [--no-multi-scale-hflip] [--cross-talk CROSS_TALK]
+                  [--head-dropout HEAD_DROPOUT] [--head-quad HEAD_QUAD]
 
 Migrate a model.
 
@@ -19,15 +16,17 @@ network configuration:
                         Load a model from a checkpoint. Use "resnet50",
                         "resnet101" or "resnet152" for pretrained OpenPifPaf
                         models. (default: None)
-  --dilation DILATION   [never-worked] apply atrous (default: None)
-  --dilation-end DILATION_END
-                        [never-worked] apply atrous (default: None)
-  --basenet BASENET     base network, e.g. resnet50block5 (default: None)
+  --basenet BASENET     base network, e.g. resnet50 (default: None)
   --headnets HEADNETS [HEADNETS ...]
                         head networks (default: ['pif', 'paf'])
   --no-pretrain         create model without ImageNet pretraining (default:
                         True)
-  --two-scale           [experimental] two scale (default: False)
+  --two-scale           [experimental] (default: False)
+  --multi-scale         [experimental] (default: False)
+  --no-multi-scale-hflip
+                        [experimental] (default: True)
+  --cross-talk CROSS_TALK
+                        [experimental] (default: 0.0)
 
 head:
   --head-dropout HEAD_DROPOUT
@@ -36,9 +35,3 @@ head:
   --head-quad HEAD_QUAD
                         number of times to apply quad (subpixel conv) to heads
                         (default: 0)
-  --head-kernel-size HEAD_KERNEL_SIZE
-                        [experimental] (default: 1)
-  --head-padding HEAD_PADDING
-                        [experimental] (default: 0)
-  --head-dilation HEAD_DILATION
-                        [never-worked] (default: 1)

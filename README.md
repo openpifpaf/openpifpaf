@@ -92,21 +92,19 @@ Tools to work with models:
 
 # Pre-trained Models
 
-Performance metrics with version 0.9.0 on the COCO val set obtained with a GTX1080Ti:
+Performance metrics with version 0.10.0 on the COCO val set obtained with a GTX1080Ti:
 
-| Backbone        | AP       | APᴹ      | APᴸ      | t_{total} [ms]  | t_{dec} [ms] |
-|----------------:|:--------:|:--------:|:--------:|:---------------:|:------------:|
-| shufflenetv2x1  | __50.2__ | 47.0     | 55.4     | 56              | 44           |
-| shufflenetv2x2  | __58.5__ | 55.2     | 63.6     | 60              | 41           |
-| resnet50        | __63.3__ | 60.7     | 67.8     | 79              | 38           |
-| resnext50       | __63.8__ | 61.1     | 68.1     | 93              | 33           |
-| resnet101       | __66.5__ | 63.1     | 71.9     | 100             | 35           |
-| resnet152       | __67.8__ | 64.4     | 73.3     | 122             | 30           |
+| Backbone               | AP       | APᴹ      | APᴸ      | t_{total} [ms]  | t_{dec} [ms] |
+|-----------------------:|:--------:|:--------:|:--------:|:---------------:|:------------:|
+| shufflenetv2x2         | __60.4__ | 55.3     | 68.1     | 80              | 56           |
+| resnet50               | __64.6__ | 61.1     | 70.2     | 100             | 55           |
+| (v0.8) resnext50       | __63.8__ | 61.1     | 68.1     | 93              | 33           |
+| resnet101              | __67.9__ | 63.6     | 74.7     | 120             | 51           |
+| (v0.8) resnet152       | __67.8__ | 64.4     | 73.3     | 122             | 30           |
 
-Pretrained model files are shared in this
-__[Google Drive](https://drive.google.com/drive/folders/13cXISujwI6-D3ijK6fGnoSNOthKUQWnN?usp=sharing)__
-which you can put into your `outputs` folder. The pretrained models are
-downloaded automatically when
+Pretrained model files are shared in the releases of the
+__[openpifpaf-torchhub](https://github.com/vita-epfl/openpifpaf-torchhub)__
+repository. The pretrained models are downloaded automatically when
 using the command line option `--checkpoint backbonenameasintableabove`.
 
 To visualize logs:
@@ -131,17 +129,17 @@ Train a ResNet model:
 
 ```sh
 time CUDA_VISIBLE_DEVICES=0,1 python3 -m openpifpaf.train \
-  --batch-size=8 \
-  --loader-workers=8 \
-  --basenet=resnet50block5 \
-  --head-quad=1 \
-  --headnets pif paf \
   --lr=1e-3 \
   --momentum=0.95 \
-  --epochs=75 \
-  --lr-decay 60 70 \
-  --lambdas 30 2 2 50 3 3 \
-  --freeze-base=1
+  --epochs=150 \
+  --lr-decay 120 140 \
+  --batch-size=16 \
+  --basenet=resnet101 \
+  --head-quad=1 \
+  --headnets pif paf paf25 \
+  --square-edge=401 \
+  --regression-loss=laplace \
+  --lambdas 10 1 1 15 1 1 15 1 1
 ```
 
 ShuffleNet models are trained without ImageNet pretraining:
@@ -149,15 +147,15 @@ ShuffleNet models are trained without ImageNet pretraining:
 ```sh
 time CUDA_VISIBLE_DEVICES=0,1 python3 -m openpifpaf.train \
   --batch-size=64 \
-  --loader-workers=8 \
   --basenet=shufflenetv2x2 \
   --head-quad=1 \
-  --headnets pif paf \
-  --lr=1e-1 \
+  --epochs=150 \
   --momentum=0.9 \
-  --epochs=75 \
-  --lr-decay 60 70 \
-  --lambdas 30 2 2 50 3 3 \
+  --headnets pif paf paf25 \
+  --lambdas 30 2 2 50 3 3 50 3 3 \
+  --loader-workers=16 \
+  --lr=0.1 \
+  --lr-decay 120 140 \
   --no-pretrain \
   --weight-decay=1e-5 \
   --update-batchnorm-runningstatistics \

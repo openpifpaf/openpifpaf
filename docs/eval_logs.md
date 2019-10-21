@@ -352,3 +352,140 @@ total processing time = 495.8108365535736s
 Decoder 0: decoder time = 159.6303431801498s
 total processing time = 620.2563769817352s
 ```
+
+# v0.10.0
+
+`time CUDA_VISIBLE_DEVICES=0,1 python -m openpifpaf.eval_coco --checkpoint outputs/resnet152block5-pif-paf-paf25-edge401-190926-205058-3355106f.pkl --connection-method=blend --long-edge=641 --loader-workers=16 --batch-size=16 --decoder-workers=16`:
+
+```
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.696
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.874
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.759
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.646
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.770
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.741
+ Average Recall     (AR) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.899
+ Average Recall     (AR) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.797
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.684
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.821
+```
+
+`time CUDA_VISIBLE_DEVICES=0,1 python -m openpifpaf.eval_coco --checkpoint outputs/resnet152block5-pif-paf-paf25-edge401-190926-205058-3355106f.pkl --connection-method=blend --long-edge=961 --loader-workers=16 --batch-size=16 --decoder-workers=16 --multi-scale`:
+
+```
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.728
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.887
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.792
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.689
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.788
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.777
+ Average Recall     (AR) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.912
+ Average Recall     (AR) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.831
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.725
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.850
+```
+
+paf-th=0.03: `time CUDA_VISIBLE_DEVICES=2,3 python -m openpifpaf.eval_coco --checkpoint outputs/resnet152block5-pif-paf-paf25-edge401-191003-212408.pkl.epoch070 --connection-method=blend --long-edge=961 --loader-workers=16 --batch-size=16 --paf-th=0.03 --multi-scale`:
+
+```
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.730
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.889
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.796
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.691
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.789
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.779
+ Average Recall     (AR) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.916
+ Average Recall     (AR) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.837
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.729
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.850
+```
+
+`time CUDA_VISIBLE_DEVICES=1 python -m openpifpaf.benchmark --backbones outputs/resnet152block5-pif-paf-paf25-edge401-191003-212408.pkl.epoch070 --paf-th=0.03`:
+
+| Backbone           | AP       | APᴹ      | APᴸ      | t_{total} [ms]  | t_{dec} [ms] |
+|-------------------:|:--------:|:--------:|:--------:|:---------------:|:------------:|
+| singlescale-max    | __69.7__ | 65.1     | 76.6     | 151             | 55           |
+| singlescale        | __69.8__ | 65.2     | 76.8     | 153             | 56           |
+| multiscale-nohflip | __72.2__ | 68.2     | 78.4     | 853             | 317          |
+| multiscale         | __73.0__ | 69.1     | 78.9     | 1507            | 433          |
+
+
+### test-dev
+
+`time CUDA_VISIBLE_DEVICES=2 python -m openpifpaf.eval_coco --checkpoint outputs/resnet152block5-pif-paf-paf25-edge401-190926-205058-3355106f.pkl --connection-method=blend --long-edge=641 --loader-workers=8 --dataset=test-dev --write-predictions --all-images`:
+
+```
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.682
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.883
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.751
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.635
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.748
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.737
+ Average Recall     (AR) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.914
+ Average Recall     (AR) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.798
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.679
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.815
+```
+
+`time CUDA_VISIBLE_DEVICES=2 python -m openpifpaf.eval_coco --checkpoint outputs/resnet152block5-pif-paf-paf25-edge401-190926-205058-3355106f.pkl --connection-method=blend --long-edge=961 --loader-workers=8 --dataset=test-dev --write-predictions --all-images --multi-scale`:
+
+```
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.711
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.892
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.784
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.673
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.768
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.771
+ Average Recall     (AR) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.925
+ Average Recall     (AR) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.832
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.718
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.843
+```
+
+`time CUDA_VISIBLE_DEVICES=2,3 python -m openpifpaf.eval_coco --checkpoint outputs/resnet152block5-pif-paf-paf25-edge401-191003-212408.pkl.epoch070 --connection-method=blend --long-edge=961 --loader-workers=16 --batch-size=16 --paf-th=0.03 --multi-scale --dataset=test --all-images --write-predictions`:
+
+```
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.712
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.894
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.785
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.674
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.769
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.773
+ Average Recall     (AR) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.928
+ Average Recall     (AR) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.833
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.720
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.845
+```
+
+
+### test
+
+`time CUDA_VISIBLE_DEVICES=2,3 python -m openpifpaf.eval_coco --checkpoint outputs/resnet152block5-pif-paf-paf25-edge401-190926-205058-3355106f.pkl --connection-method=blend --long-edge=961 --loader-workers=8 --dataset=test --write-predictions --all-images --multi-scale --batch-size=8 --decoder-workers=8`:
+
+```
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.694
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.874
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.757
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.646
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.764
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.760
+ Average Recall     (AR) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.915
+ Average Recall     (AR) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.813
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.704
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.836
+```
+
+`time CUDA_VISIBLE_DEVICES=2,3 python -m openpifpaf.eval_coco --checkpoint outputs/resnet152block5-pif-paf-paf25-edge401-191003-212408.pkl.epoch070 --connection-method=blend --long-edge=961 --loader-workers=16 --batch-size=16 --paf-th=0.03 --multi-scale --dataset=test --all-images --write-predictions`:
+
+```
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.694
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.876
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.758
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.647
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.765
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.760
+ Average Recall     (AR) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.917
+ Average Recall     (AR) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.815
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.704
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.836
+```

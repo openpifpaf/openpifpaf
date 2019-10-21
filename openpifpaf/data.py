@@ -2,9 +2,10 @@ import numpy as np
 
 
 COCO_PERSON_SKELETON = [
-    [16, 14], [14, 12], [17, 15], [15, 13], [12, 13], [6, 12], [7, 13],
-    [6, 7], [6, 8], [7, 9], [8, 10], [9, 11], [2, 3], [1, 2], [1, 3],
-    [2, 4], [3, 5], [4, 6], [5, 7]]
+    (16, 14), (14, 12), (17, 15), (15, 13), (12, 13), (6, 12), (7, 13),
+    (6, 7), (6, 8), (7, 9), (8, 10), (9, 11), (2, 3), (1, 2), (1, 3),
+    (2, 4), (3, 5), (4, 6), (5, 7),
+]
 
 
 KINEMATIC_TREE_SKELETON = [
@@ -76,6 +77,13 @@ DENSER_COCO_PERSON_SKELETON = [
 ]
 
 
+DENSER_COCO_PERSON_CONNECTIONS = [
+    c
+    for c in DENSER_COCO_PERSON_SKELETON
+    if c not in COCO_PERSON_SKELETON
+]
+
+
 COCO_PERSON_SIGMAS = [
     0.026,  # nose
     0.025,  # eyes
@@ -124,18 +132,15 @@ def draw_skeletons():
 
     with show.canvas('docs/skeleton_coco.png', figsize=(2, 5)) as ax:
         ax.set_axis_off()
-        keypoint_painter.skeleton = COCO_PERSON_SKELETON
-        keypoint_painter.keypoints(ax, coordinates)
+        keypoint_painter.keypoints(ax, coordinates, skeleton=COCO_PERSON_SKELETON)
 
     with show.canvas('docs/skeleton_kinematic_tree.png', figsize=(2, 5)) as ax:
         ax.set_axis_off()
-        keypoint_painter.skeleton = KINEMATIC_TREE_SKELETON
-        keypoint_painter.keypoints(ax, coordinates)
+        keypoint_painter.keypoints(ax, coordinates, skeleton=KINEMATIC_TREE_SKELETON)
 
     with show.canvas('docs/skeleton_dense.png', figsize=(2, 5)) as ax:
         ax.set_axis_off()
-        keypoint_painter.skeleton = DENSER_COCO_PERSON_SKELETON
-        keypoint_painter.keypoints(ax, coordinates)
+        keypoint_painter.keypoints(ax, coordinates, skeleton=DENSER_COCO_PERSON_SKELETON)
 
 
 def print_associations():

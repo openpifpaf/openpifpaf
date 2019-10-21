@@ -5,14 +5,20 @@ from ..functional import scalar_value_clipped
 
 
 class Annotation(object):
-    def __init__(self, skeleton):
-        n_joints = len(set(i for c in skeleton for i in c))
-        self.data = np.zeros((n_joints, 3))
+    def __init__(self, keypoints, skeleton):
+        self.keypoints = keypoints
+        self.skeleton = skeleton
+
+        self.data = np.zeros((len(keypoints), 3), dtype=np.float32)
         self.joint_scales = None
         self.fixed_score = None
         self.decoding_order = []
 
         self.skeleton_m1 = (np.asarray(skeleton) - 1).tolist()
+
+        self.score_weights = np.ones((len(keypoints),))
+        self.score_weights[:3] = 3.0
+        self.score_weights /= np.sum(self.score_weights)
 
     def add(self, joint_i, xyv):
         self.data[joint_i] = xyv
@@ -27,7 +33,7 @@ class Annotation(object):
             c2[:2] *= scale_factor
         return self
 
-    def fill_joint_scales(self, scales, hr_scale):
+    def fill_joint_scales(self, scales, hr_scale=1.0):
         self.joint_scales = np.zeros((self.data.shape[0],))
         for xyv_i, xyv in enumerate(self.data):
             if xyv[2] == 0.0:
@@ -40,8 +46,10 @@ class Annotation(object):
             return self.fixed_score
 
         v = self.data[:, 2]
-        return 0.1 * np.max(v) + 0.9 * np.mean(np.square(v))
+        # return 0.1 * np.max(v) + 0.9 * np.mean(np.square(v))
         # return np.mean(np.square(v))
+        # return np.sum(self.score_weights * np.sort(np.square(v))[::-1])
+        return np.sum(self.score_weights * np.sort(v)[::-1])
 
     def frontier(self):
         """Frontier to complete annotation.
@@ -94,8 +102,8 @@ class Annotation(object):
             ]
             frontier = list(sorted(frontier, reverse=True))
 
-    def scale(self):
-        m = self.data[:, 2] > 0.5
+    def scale(self, v_th=0.5):
+        m = self.data[:, 2] > v_th
         if not np.any(m):
             return 0.0
         return max(

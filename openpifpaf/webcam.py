@@ -68,13 +68,13 @@ class Visualizer(object):
 
         while True:
             image, all_fields = yield
-            keypoint_sets, _ = self.processor.keypoint_sets(all_fields)
+            annotations = self.processor.annotations(all_fields)
 
             draw_start = time.time()
             while ax.lines:
                 del ax.lines[0]
             mpl_im.set_data(image)
-            viz.keypoints(ax, keypoint_sets)
+            viz.annotations(ax, annotations)
             fig.canvas.draw()
             print('draw', time.time() - draw_start)
             plt.pause(0.01)

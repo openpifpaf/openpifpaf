@@ -1,5 +1,6 @@
 # cython: infer_types=True
 cimport cython
+from cython.parallel import prange  # TODO: verify speedup
 from libc.math cimport exp, fabs, sqrt, fmin, fmax
 import numpy as np
 
@@ -11,7 +12,7 @@ cpdef void scalar_square_add_constant(float[:, :] field, float[:] x, float[:] y,
     cdef Py_ssize_t i, xx, yy
     cdef float cx, cy, cv, cwidth
 
-    for i in range(x.shape[0]):
+    for i in prange(x.shape[0]):
         cx = x[i]
         cy = y[i]
         cv = v[i]
@@ -34,7 +35,7 @@ cpdef void cumulative_average(float[:, :] cuma, float[:, :] cumw, float[:] x, fl
     cdef float cv, cw, cx, cy, cwidth
     cdef Py_ssize_t i, xx, yy
 
-    for i in range(x.shape[0]):
+    for i in prange(x.shape[0]):
         cw = w[i]
         if cw <= 0.0:
             continue
@@ -77,7 +78,7 @@ cpdef void scalar_square_add_gauss(float[:, :] field, float[:] x, float[:] y, fl
     cdef float cv, cx, cy, csigma, csigma2
     cdef long minx, miny, maxx, maxy
 
-    for i in range(x.shape[0]):
+    for i in prange(x.shape[0]):
         csigma = sigma[i]
         csigma2 = csigma * csigma
         cx = x[i]
@@ -105,7 +106,7 @@ cpdef void scalar_square_max_gauss(float[:, :] field, float[:] x, float[:] y, fl
     cdef float cv, cx, cy, csigma, csigma2
     cdef long minx, miny, maxx, maxy
 
-    for i in range(x.shape[0]):
+    for i in prange(x.shape[0]):
         csigma = sigma[i]
         csigma2 = csigma * csigma
         cx = x[i]
@@ -201,7 +202,7 @@ def scalar_values(float[:, :] field, float[:] x, float[:] y, float default=-1):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def scalar_value(float[:, :] field, float x, float y, float default=-1):
+cpdef float scalar_value(float[:, :] field, float x, float y, float default=-1):
     if x < 0.0 or y < 0.0 or x > field.shape[1] - 1 or y > field.shape[0] - 1:
         return default
 
@@ -210,7 +211,7 @@ def scalar_value(float[:, :] field, float x, float y, float default=-1):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def scalar_value_clipped(float[:, :] field, float x, float y):
+cpdef float scalar_value_clipped(float[:, :] field, float x, float y):
     x = clip(x, 0.0, field.shape[1] - 1)
     y = clip(y, 0.0, field.shape[0] - 1)
     return field[<Py_ssize_t>y, <Py_ssize_t>x]
@@ -218,7 +219,7 @@ def scalar_value_clipped(float[:, :] field, float x, float y):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def scalar_nonzero(unsigned char[:, :] field, float x, float y, unsigned char default=0):
+cpdef unsigned char scalar_nonzero(unsigned char[:, :] field, float x, float y, unsigned char default=0):
     if x < 0.0 or y < 0.0 or x > field.shape[1] - 1 or y > field.shape[0] - 1:
         return default
 
@@ -227,7 +228,7 @@ def scalar_nonzero(unsigned char[:, :] field, float x, float y, unsigned char de
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def scalar_nonzero_clipped(unsigned char[:, :] field, float x, float y):
+cpdef unsigned char scalar_nonzero_clipped(unsigned char[:, :] field, float x, float y):
     x = clip(x, 0.0, field.shape[1] - 1)
     y = clip(y, 0.0, field.shape[0] - 1)
     return field[<Py_ssize_t>y, <Py_ssize_t>x]
@@ -264,6 +265,7 @@ def paf_center(float[:, :] paf_field, float x, float y, float sigma):
     cdef float[:, :] result = result_np
     cdef unsigned int result_i = 0
     cdef bint take
+    cdef Py_ssize_t i
 
     for i in range(paf_field.shape[1]):
         if paf_field[1, i] < x - sigma:
