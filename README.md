@@ -132,16 +132,14 @@ time CUDA_VISIBLE_DEVICES=0,1 python3 -m openpifpaf.train \
   --lr=1e-3 \
   --momentum=0.95 \
   --epochs=150 \
-  --lr-decay 130 140 \
-  --lr-burn-in-epochs=2 \
+  --lr-decay 120 140 \
   --batch-size=16 \
   --basenet=resnet101 \
   --head-quad=1 \
   --headnets pif paf paf25 \
   --square-edge=401 \
   --regression-loss=laplace \
-  --lambdas 10 1 1 15 1 1 15 1 1 \
-  --loader-workers=16
+  --lambdas 10 1 1 15 1 1 15 1 1
 ```
 
 ShuffleNet models are trained without ImageNet pretraining:
@@ -154,10 +152,8 @@ time CUDA_VISIBLE_DEVICES=0,1 python3 -m openpifpaf.train \
   --epochs=150 \
   --momentum=0.9 \
   --headnets pif paf paf25 \
-  --lambdas 30 2 10 50 3 3 50 3 3 \
+  --lambdas 30 2 2 50 3 3 50 3 3 \
   --loader-workers=16 \
-  --lr-burn-in-epochs=2 \
-  --lr-burn-in-factor=0.001 \
   --lr=0.1 \
   --lr-decay 120 140 \
   --no-pretrain \

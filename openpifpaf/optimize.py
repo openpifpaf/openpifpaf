@@ -26,9 +26,9 @@ def cli(parser):
                          help='learning rate')
     group_s.add_argument('--lr-decay', default=[], nargs='+', type=int,
                          help='epochs at which to decay the learning rate')
-    group_s.add_argument('--lr-burn-in-epochs', default=3, type=int,
+    group_s.add_argument('--lr-burn-in-epochs', default=2, type=int,
                          help='number of epochs at the beginning with lower learning rate')
-    group_s.add_argument('--lr-burn-in-factor', default=0.01, type=float,
+    group_s.add_argument('--lr-burn-in-factor', default=0.001, type=float,
                          help='learning pre-factor during burn-in')
     group_s.add_argument('--lr-gamma', default=0.1, type=float,
                          help='learning rate decay factor')
