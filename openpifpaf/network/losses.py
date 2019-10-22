@@ -152,25 +152,27 @@ class MultiHeadLoss(torch.nn.Module):
 
 
 class MultiHeadLossAutoTune(torch.nn.Module):
-    def __init__(self, losses):
+    def __init__(self, losses, lambdas):
         """Auto-tuning multi-head less.
 
         Uses idea from "Multi-Task Learning Using Uncertainty to Weigh Losses
         for Scene Geometry and Semantics" by Kendall, Gal and Cipolla.
         """
         super().__init__()
+        assert all(l in (0.0, 1.0) for l in lambdas)
 
         self.losses = torch.nn.ModuleList(losses)
+        self.lambdas = lambdas
         self.log_sigmas = torch.nn.Parameter(
-            torch.zeros(
-                (sum(len(h.field_names) for h in losses),),
-                dtype=torch.float32,
-            ),
+            torch.zeros((len(lambdas),), dtype=torch.float32),
             requires_grad=True,
         )
 
         self.field_names = [n for l in self.losses for n in l.field_names]
         LOG.info('multihead loss: %s', self.field_names)
+
+    def batch_meta(self):
+        return {'mtl_sigmas': [round(float(s), 3) for s in self.log_sigmas.exp()]}
 
     def forward(self, *args):
         head_fields, head_targets = args
@@ -181,15 +183,14 @@ class MultiHeadLossAutoTune(torch.nn.Module):
                             for ll in l(f, t)]
 
         assert len(self.log_sigmas) == len(flat_head_losses)
-        loss_values = [l / (2.0 * (log_sigma.exp() ** 2))
-                       for log_sigma, l in zip(self.log_sigmas, flat_head_losses)
+        loss_values = [lam * l / (2.0 * (log_sigma.exp() ** 2))
+                       for lam, log_sigma, l in zip(self.lambdas, self.log_sigmas, flat_head_losses)
                        if l is not None]
         auto_reg = [log_sigma
-                    for log_sigma, l in zip(self.log_sigmas, flat_head_losses)
-                    if l is not None]
+                    for lam, log_sigma, l in zip(self.lambdas, self.log_sigmas, flat_head_losses)
+                    if l is not None and lam]
         total_loss = sum(loss_values) + sum(auto_reg) if loss_values else None
 
-        LOG.debug('auto tune sigmas: %s', self.log_sigmas.exp())
         return total_loss, flat_head_losses
 
 
@@ -354,7 +355,7 @@ def cli(parser):
                        help='[experimental] linear length scale of independence for PAF regression')
     group.add_argument('--margin-loss', default=False, action='store_true',
                        help='[experimental]')
-    group.add_argument('--auto-tune', default=False, action='store_true',
+    group.add_argument('--auto-tune-mtl', default=False, action='store_true',
                        help='[experimental]')
 
 
@@ -371,7 +372,7 @@ def factory_from_args(args):
         r_smooth=args.r_smooth,
         device=args.device,
         margin=args.margin_loss,
-        auto_tune=args.auto_tune,
+        auto_tune_mtl=args.auto_tune_mtl,
     )
 
 
@@ -420,7 +421,8 @@ def loss_parameters(head_name):
 
 
 def factory(head_names, lambdas, *,
-            reg_loss_name=None, r_smooth=None, device=None, margin=False, auto_tune=False):
+            reg_loss_name=None, r_smooth=None, device=None, margin=False,
+            auto_tune_mtl=False):
     if isinstance(head_names[0], (list, tuple)):
         return [factory(hn, lam,
                         reg_loss_name=reg_loss_name,
@@ -445,8 +447,8 @@ def factory(head_names, lambdas, *,
     losses = [CompositeLoss(head_name, reg_loss,
                             margin=margin, **loss_parameters(head_name))
               for head_name in head_names]
-    if auto_tune:
-        loss = MultiHeadLossAutoTune(losses)
+    if auto_tune_mtl:
+        loss = MultiHeadLossAutoTune(losses, lambdas)
     else:
         loss = MultiHeadLoss(losses, lambdas)
 
