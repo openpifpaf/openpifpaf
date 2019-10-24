@@ -80,6 +80,8 @@ setup(
         'train': [
             'matplotlib',
             'pycocotools',  # pre-install cython
+            'torch>=1.3.0',
+            'torchvision>=0.4',
         ],
     },
 )
