@@ -7,6 +7,8 @@ from ..data import COCO_KEYPOINTS, COCO_PERSON_SKELETON, DENSER_COCO_PERSON_CONN
 
 # generate hash values with: shasum -a 256 filename.pkl
 
+RESNET18_MODEL = ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
+                  'v0.10.1/resnet18-pif-paf-paf25-edge401-191022-210137-84326f0f.pkl')
 RESNET50_MODEL = ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
                   'v0.10.0/resnet50-pif-paf-paf25-edge401-191016-192503-d2b85396.pkl')
 RESNET101_MODEL = ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
@@ -272,6 +274,8 @@ def factory(
     else:
         if not checkpoint:
             checkpoint = torch.hub.load_state_dict_from_url(RESNET50_MODEL)
+        elif checkpoint == 'resnet18':
+            checkpoint = torch.hub.load_state_dict_from_url(RESNET18_MODEL)
         elif checkpoint == 'resnet50':
             checkpoint = torch.hub.load_state_dict_from_url(RESNET50_MODEL)
         elif checkpoint == 'resnet101':
