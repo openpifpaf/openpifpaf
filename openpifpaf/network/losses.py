@@ -157,9 +157,14 @@ class MultiHeadLossAutoTune(torch.nn.Module):
 
         Uses idea from "Multi-Task Learning Using Uncertainty to Weigh Losses
         for Scene Geometry and Semantics" by Kendall, Gal and Cipolla.
+
+        In the common setting, use lambdas of zero and one to deactivate and
+        activate the tasks you want to train. Less common, if you have
+        secondary tasks, you can reduce their importance by choosing a
+        lambda value between zero and one.
         """
         super().__init__()
-        assert all(l in (0.0, 1.0) for l in lambdas)
+        assert all(l >= 0.0 for l in lambdas)
 
         self.losses = torch.nn.ModuleList(losses)
         self.lambdas = lambdas
@@ -186,9 +191,9 @@ class MultiHeadLossAutoTune(torch.nn.Module):
         loss_values = [lam * l / (2.0 * (log_sigma.exp() ** 2))
                        for lam, log_sigma, l in zip(self.lambdas, self.log_sigmas, flat_head_losses)
                        if l is not None]
-        auto_reg = [log_sigma
+        auto_reg = [lam * log_sigma
                     for lam, log_sigma, l in zip(self.lambdas, self.log_sigmas, flat_head_losses)
-                    if l is not None and lam]
+                    if l is not None]
         total_loss = sum(loss_values) + sum(auto_reg) if loss_values else None
 
         return total_loss, flat_head_losses
