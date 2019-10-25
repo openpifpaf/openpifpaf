@@ -122,11 +122,16 @@ def main():
         collate_fn=datasets.collate_images_anns_meta)
 
     # visualizers
-    keypoint_painter = show.KeypointPainter()
+    keypoint_painter = show.KeypointPainter(
+        show_box=args.debug,
+        show_joint_scale=args.debug,
+    )
     skeleton_painter = show.KeypointPainter(
         color_connections=True,
         markersize=args.line_width - 5,
         linewidth=args.line_width,
+        show_box=args.debug,
+        show_joint_scale=args.debug,
     )
 
     for batch_i, (image_tensors_batch, _, meta_batch) in enumerate(data_loader):
