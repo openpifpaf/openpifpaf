@@ -4,6 +4,11 @@ cache: pip
 matrix:
   fast_finish: true
   include:
+    - name: "Python 3.8 on Linux"
+      python: 3.8
+      before_install:
+        - pip3 install --upgrade pip setuptools
+        - pip3 install torch==1.2+cpu torchvision==0.4+cpu -f https://download.pytorch.org/whl/torch_stable.html
     - name: "Python 3.7 on Linux"
       python: 3.7
       before_install:
