@@ -14,7 +14,7 @@ except ImportError:
 
 
 @contextmanager
-def canvas(fig_file=None, show=True, **kwargs):
+def canvas(fig_file=None, show=True, dpi=200, **kwargs):
     if 'figsize' not in kwargs:
         # kwargs['figsize'] = (15, 8)
         kwargs['figsize'] = (10, 6)
@@ -24,7 +24,7 @@ def canvas(fig_file=None, show=True, **kwargs):
 
     fig.set_tight_layout(True)
     if fig_file:
-        fig.savefig(fig_file, dpi=200)  # , bbox_inches='tight')
+        fig.savefig(fig_file, dpi=dpi)  # , bbox_inches='tight')
     if show:
         plt.show()
     plt.close(fig)
