@@ -202,15 +202,15 @@ class CompositeField(torch.nn.Module):
 
 
 def determine_nfields(head_name):
-    m = re.match('p[ia]f([0-9]+)$', head_name)
+    m = re.match('p[ia]f[s]?([0-9]+)$', head_name)
     if m is not None:
         return int(m.group(1))
 
     return {
         'paf': 19,
+        'pafs': 19,
         'pafb': 19,
         'pafsb': 19,
-        'pafs19': 19,
         'wpaf': 19,
     }.get(head_name, 17)
 
@@ -226,6 +226,8 @@ def determine_nvectors(head_name):
 def determine_nscales(head_name):
     if 'pif' in head_name:
         return 1
+    if 'pafs' in head_name:
+        return 2
     if 'paf' in head_name:
         return 0
     return 0
@@ -237,9 +239,8 @@ def factory(name, n_features):
                 'pafs',
                 'wpaf',
                 'pafb',
-                'pafs19',
                 'pafsb') or \
-       re.match('p[ia]f([0-9]+)$', name) is not None:
+       re.match('p[ia]f[s]?([0-9]+)$', name) is not None:
         n_fields = determine_nfields(name)
         n_vectors = determine_nvectors(name)
         n_scales = determine_nscales(name)

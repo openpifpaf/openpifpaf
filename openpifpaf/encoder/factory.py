@@ -71,7 +71,7 @@ def factory_head(head_name, stride):
                      'pafs',
                      'wpaf',
                      'pafb') or \
-       re.match('paf([0-9]+)$', head_name) is not None:
+       re.match('paf[s]?([0-9]+)$', head_name) is not None:
         if head_name in ('paf', 'paf19', 'pafs', 'wpaf', 'pafb'):
             n_keypoints = 17
             skeleton = COCO_PERSON_SKELETON
@@ -81,7 +81,7 @@ def factory_head(head_name, stride):
         elif head_name in ('paf44',):
             n_keypoints = 17
             skeleton = DENSER_COCO_PERSON_SKELETON
-        elif head_name in ('paf25',):
+        elif head_name in ('paf25', 'pafs25'):
             n_keypoints = 17
             skeleton = DENSER_COCO_PERSON_CONNECTIONS
         else:

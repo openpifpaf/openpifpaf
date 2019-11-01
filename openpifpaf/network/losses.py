@@ -208,6 +208,9 @@ class CompositeLoss(torch.nn.Module):
                  n_vectors, n_scales, sigmas=None, margin=False):
         super(CompositeLoss, self).__init__()
 
+        LOG.debug('%s: n_vectors = %d, n_scales = %d, len(sigmas) = %d, margin = %s',
+                  head_name, n_vectors, n_scales, len(sigmas) if sigmas is not None else 0, margin)
+
         self.n_vectors = n_vectors
         self.n_scales = n_scales
         if self.n_scales:
@@ -217,7 +220,7 @@ class CompositeLoss(torch.nn.Module):
         if sigmas is not None:
             assert len(sigmas) == n_vectors
             scales_to_kp = torch.tensor(sigmas)
-            scales_to_kp = torch.unsqueeze(scales_to_kp, 0)
+            scales_to_kp = torch.unsqueeze(scales_to_kp, 1)
             scales_to_kp = torch.unsqueeze(scales_to_kp, -1)
             scales_to_kp = torch.unsqueeze(scales_to_kp, -1)
             self.register_buffer('scales_to_kp', scales_to_kp)
@@ -237,10 +240,9 @@ class CompositeLoss(torch.nn.Module):
 
         self.bce_blackout = None
 
-        LOG.debug('%s: n_vectors = %d, n_scales = %d, len(sigmas) = %d, margin = %s',
-                  head_name, n_vectors, n_scales, len(sigmas), margin)
-
     def forward(self, *args):  # pylint: disable=too-many-statements
+        LOG.debug('loss for %s', self.field_names)
+
         x, t = args
 
         assert len(x) == 1 + 2 * self.n_vectors + self.n_scales
@@ -270,7 +272,8 @@ class CompositeLoss(torch.nn.Module):
             bce_masks = bce_masks[:, self.bce_blackout]
             bce_target_intensity = bce_target_intensity[:, self.bce_blackout]
 
-        LOG.debug('BCE: target = %s, mask = %s', bce_target_intensity.shape, bce_masks.shape)
+        LOG.debug('BCE: x = %s, target = %s, mask = %s',
+                  x_intensity.shape, bce_target_intensity.shape, bce_masks.shape)
         bce_target = torch.masked_select(bce_target_intensity, bce_masks)
         bce_weight = None
         if self.background_weight != 1.0:
@@ -391,13 +394,15 @@ def loss_parameters(head_name):
     n_scales = None
     if 'pif' in head_name:
         n_scales = 1
+    elif 'pafs' in head_name:
+        n_scales = 2
     elif 'paf' in head_name:
         n_scales = 0
 
     sigmas = None
     if head_name == 'pif':
         sigmas = [COCO_PERSON_SIGMAS]
-    elif head_name in ('paf', 'paf19', 'wpaf'):
+    elif head_name in ('paf', 'pafs', 'paf19', 'pafs19', 'wpaf'):
         sigmas = [
             [COCO_PERSON_SIGMAS[j1i - 1] for j1i, _ in COCO_PERSON_SKELETON],
             [COCO_PERSON_SIGMAS[j2i - 1] for _, j2i in COCO_PERSON_SKELETON],
@@ -412,7 +417,7 @@ def loss_parameters(head_name):
             [COCO_PERSON_SIGMAS[j1i - 1] for j1i, _ in DENSER_COCO_PERSON_SKELETON],
             [COCO_PERSON_SIGMAS[j2i - 1] for _, j2i in DENSER_COCO_PERSON_SKELETON],
         ]
-    elif head_name in ('paf25',):
+    elif head_name in ('paf25', 'pafs25'):
         sigmas = [
             [COCO_PERSON_SIGMAS[j1i - 1] for j1i, _ in DENSER_COCO_PERSON_CONNECTIONS],
             [COCO_PERSON_SIGMAS[j2i - 1] for _, j2i in DENSER_COCO_PERSON_CONNECTIONS],
