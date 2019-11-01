@@ -138,7 +138,6 @@ time CUDA_VISIBLE_DEVICES=0,1 python3 -m openpifpaf.train \
   --head-quad=1 \
   --headnets pif paf paf25 \
   --square-edge=401 \
-  --regression-loss=laplace \
   --lambdas 10 1 1 15 1 1 15 1 1
 ```
 
