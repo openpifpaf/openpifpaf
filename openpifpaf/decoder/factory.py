@@ -5,6 +5,7 @@ from .pif import Pif
 from .pif_hr import PifHr
 from .pifpaf import PifPaf
 from .pifpaf_dijkstra import PifPafDijkstra
+from .pafs_dijkstra import PafsDijkstra
 from .processor import Processor
 from .visualizer import Visualizer
 
@@ -146,6 +147,22 @@ def factory_decode(model, *,
                       keypoints=COCO_KEYPOINTS,
                       skeleton=COCO_PERSON_SKELETON,
                       **kwargs)
+
+    if head_names in (('pif', 'pafs', 'pafs25'),):
+        confidence_scales = (
+            [1.0 for _ in COCO_PERSON_SKELETON] +
+            [extra_coupling for _ in DENSER_COCO_PERSON_CONNECTIONS]
+        )
+        return PafsDijkstra(
+            model.head_strides[-1],
+            pif_index=0,
+            paf_index=1,
+            keypoints=COCO_KEYPOINTS,
+            skeleton=COCO_PERSON_SKELETON + DENSER_COCO_PERSON_CONNECTIONS,
+            out_skeleton=COCO_PERSON_SKELETON,
+            confidence_scales=confidence_scales,
+            **kwargs
+        )
 
     if head_names in (('pif', 'paf', 'paf25'),):
         stride = model.head_strides[-1]
