@@ -324,6 +324,9 @@ class Plots(object):
                     rows[row_name].append(f)
         n_rows = len(rows)
         n_cols = max(len(r) for r in rows.values())
+        multi_figsize = (5 * n_cols, 2.5 * n_rows)
+        if multi_figsize[0] > 40.0:
+            multi_figsize = (40.0, multi_figsize[1] / multi_figsize[0] * 40.0)
 
         with show.canvas() as ax:
             self.time(ax)
@@ -335,7 +338,7 @@ class Plots(object):
             self.lr(ax)
 
         with show.canvas(nrows=n_rows, ncols=n_cols, squeeze=False,
-                         figsize=(5 * n_cols, 2.5 * n_rows),
+                         figsize=multi_figsize,
                          sharey=share_y, sharex=True) as axs:
             for row_i, row in enumerate(rows.values()):
                 for col_i, field_name in enumerate(row):
@@ -348,7 +351,7 @@ class Plots(object):
             self.preprocess_time(ax)
 
         with show.canvas(nrows=n_rows, ncols=n_cols, squeeze=False,
-                         figsize=(5 * n_cols, 2.5 * n_rows),
+                         figsize=multi_figsize,
                          sharey=share_y, sharex=True) as axs:
             for row_i, row in enumerate(rows.values()):
                 for col_i, field_name in enumerate(row):
@@ -356,7 +359,7 @@ class Plots(object):
 
         if show_mtl_sigmas:
             with show.canvas(nrows=n_rows, ncols=n_cols, squeeze=False,
-                             figsize=(5 * n_cols, 2.5 * n_rows),
+                             figsize=multi_figsize,
                              sharey=share_y, sharex=True) as axs:
                 for row_i, row in enumerate(rows.values()):
                     for col_i, field_name in enumerate(row):
