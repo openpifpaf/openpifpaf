@@ -309,8 +309,8 @@ class CompositeLoss(torch.nn.Module):
                     torch.masked_select(x_spread, reg_masks),
                     torch.masked_select(target_reg[:, :, 0], reg_masks),
                     torch.masked_select(target_reg[:, :, 1], reg_masks),
-                    weight=weight,
-                ) / 1000.0 / batch_size)
+                    weight=(weight if weight is not None else 1.0) * 0.1,
+                ) / 100.0 / batch_size)
 
         scale_losses = []
         if x_scales:

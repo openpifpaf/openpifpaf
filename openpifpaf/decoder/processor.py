@@ -32,6 +32,7 @@ class Processor(object):
                  profile=None,
                  device=None,
                  worker_pool=None,
+                 suppressed_v=0.0,
                  instance_scorer=None):
         if profile is True:
             profile = cProfile.Profile()
@@ -51,6 +52,7 @@ class Processor(object):
         self.profile = profile
         self.device = device
         self.worker_pool = worker_pool
+        self.suppressed_v = suppressed_v
         self.instance_scorer = instance_scorer
 
     def __getstate__(self):
@@ -106,7 +108,7 @@ class Processor(object):
                     continue
 
                 if scalar_nonzero_clipped(occ, xyv[0], xyv[1]):
-                    xyv[2] = 0.0
+                    xyv[2] = self.suppressed_v
                 else:
                     scalar_square_add_single(occ, xyv[0], xyv[1], joint_s, 1)
 
@@ -115,7 +117,7 @@ class Processor(object):
             self.debug_visualizer.occupied(occupied[0])
             self.debug_visualizer.occupied(occupied[4])
 
-        annotations = [ann for ann in annotations if np.any(ann.data[:, 2] > 0.0)]
+        annotations = [ann for ann in annotations if np.any(ann.data[:, 2] > self.suppressed_v)]
         annotations = sorted(annotations, key=lambda a: -a.score())
         return annotations
 
@@ -150,15 +152,14 @@ class Processor(object):
     def _mappable_annotations(self, fields, meta, debug_image):
         return self.annotations(fields, meta=meta, debug_image=debug_image)
 
-    @staticmethod
-    def suppress_outside_valid(ann, valid_area):
+    def suppress_outside_valid(self, ann, valid_area):
         m = np.logical_or(
             np.logical_or(ann.data[:, 0] < valid_area[0],
                           ann.data[:, 0] > valid_area[0] + valid_area[2]),
             np.logical_or(ann.data[:, 1] < valid_area[1],
                           ann.data[:, 1] > valid_area[1] + valid_area[3]),
         )
-        ann.data[m, 2] = np.maximum(ann.data[m, 2], 0.0)
+        ann.data[m, 2] = np.maximum(ann.data[m, 2], self.suppressed_v)
 
     def annotations(self, fields, *, initial_annotations=None, meta=None, debug_image=None):
         start = time.time()
