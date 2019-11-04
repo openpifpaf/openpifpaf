@@ -61,8 +61,9 @@ def cli():
         log_level = logging.WARNING
     if args.debug:
         log_level = logging.DEBUG
-    logging.basicConfig(level=log_level)
-    logging.getLogger('matplotlib').setLevel(logging.WARNING)
+    logging.basicConfig()
+    logging.getLogger('openpifpaf').setLevel(log_level)
+    LOG.setLevel(log_level)
 
     if args.loader_workers is None:
         args.loader_workers = args.batch_size
