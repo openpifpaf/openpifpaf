@@ -9,9 +9,11 @@ LOG = logging.getLogger(__name__)
 
 class PifSeeds(object):
     def __init__(self, pifhr, seed_threshold, *,
+                 score_scale=1.0,
                  debug_visualizer=None):
         self.pifhr = pifhr
         self.seed_threshold = seed_threshold
+        self.score_scale = score_scale
         self.debug_visualizer = debug_visualizer
 
         self.seeds = []
@@ -37,6 +39,11 @@ class PifSeeds(object):
     def get(self):
         if self.debug_visualizer:
             self.debug_visualizer.seeds(self.seeds)
+
+        seeds = self.seeds
+        if self.score_scale != 1.0:
+            seeds = [(self.score_scale * vv, ff, xx, yy, ss)
+                     for vv, ff, xx, yy, ss in seeds]
 
         return sorted(self.seeds, reverse=True)
 

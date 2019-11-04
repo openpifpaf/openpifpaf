@@ -29,6 +29,7 @@ class PafsDijkstra(object):
                  paf_min_distance=0.0,
                  paf_max_distance=None,
                  seed_threshold=0.2,
+                 seed_score_scale=1.0,
                  confidence_scales=None,
                  out_skeleton=None,
                  debug_visualizer=None):
@@ -59,6 +60,7 @@ class PafsDijkstra(object):
         self.out_skeleton = out_skeleton or skeleton
 
         self.seed_threshold = seed_threshold
+        self.seed_score_scale = seed_score_scale
         self.debug_visualizer = debug_visualizer
 
         self.pif_nn = 16
@@ -94,6 +96,7 @@ class PafsDijkstra(object):
 
         # seeds
         seeds = PifSeeds(pifhr.target_accumulator, self.seed_threshold,
+                         score_scale=self.seed_score_scale,
                          debug_visualizer=self.debug_visualizer)
         seeds.fill_sequence(normalized_pifs, self.strides, self.pif_min_scales)
 
