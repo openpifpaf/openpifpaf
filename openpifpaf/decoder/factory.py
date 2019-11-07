@@ -33,6 +33,8 @@ def cli(parser, *,
                        help='use an experimental decoder')
     group.add_argument('--extra-coupling', default=0.0, type=float,
                        help='extra coupling')
+    group.add_argument('--paf-seeds', default=False, action='store_true',
+                       help='[experimental]')
 
     if force_complete_pose:
         group.add_argument('--no-force-complete-pose', dest='force_complete_pose',

@@ -29,6 +29,7 @@ class PifPafDijkstra(object):
                  paf_min_distance=0.0,
                  paf_max_distance=None,
                  seed_threshold=0.2,
+                 seed_score_scale=1.0,
                  confidence_scales=None,
                  debug_visualizer=None):
         self.strides = stride
@@ -57,6 +58,7 @@ class PifPafDijkstra(object):
         self.skeleton = skeleton
 
         self.seed_threshold = seed_threshold
+        self.seed_score_scale = seed_score_scale
         self.debug_visualizer = debug_visualizer
 
         self.pif_nn = 16
@@ -83,7 +85,7 @@ class PifPafDijkstra(object):
         # normalize
         normalized_pifs = [normalize_pif(*fields[pif_i], fixed_scale=self.pif_fixed_scale)
                            for pif_i in self.pif_indices]
-        normalized_pafs = [normalize_paf(*fields[paf_i], fixed_b=self.fixed_b)
+        normalized_pafs = [normalize_paf(*fields[paf_i][:5], fixed_b=self.fixed_b)
                            for paf_i in self.paf_indices]
 
         # pif hr
@@ -92,6 +94,7 @@ class PifPafDijkstra(object):
 
         # seeds
         seeds = PifSeeds(pifhr.target_accumulator, self.seed_threshold,
+                         score_scale=self.seed_score_scale,
                          debug_visualizer=self.debug_visualizer)
         seeds.fill_sequence(normalized_pifs, self.strides, self.pif_min_scales)
 
