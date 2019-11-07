@@ -98,6 +98,29 @@ def normalize_paf(intensity_fields, j1_fields, j2_fields, j1_fields_logb, j2_fie
     return paf
 
 
+def normalize_paf7(intensity_fields, j1_fields, j2_fields, j1_fields_logb, j2_fields_logb,
+                   j1_fields_scale, j2_fields_scale, *,
+                   fixed_b=None):
+    intensity_fields = np.expand_dims(intensity_fields, 1)
+    j1_fields_b = np.expand_dims(np.exp(j1_fields_logb), 1)
+    j2_fields_b = np.expand_dims(np.exp(j2_fields_logb), 1)
+    if fixed_b:
+        j1_fields_b = np.full_like(j1_fields_b, fixed_b)
+        j2_fields_b = np.full_like(j2_fields_b, fixed_b)
+    j1_fields_scale = np.expand_dims(j1_fields_scale, 1)
+    j2_fields_scale = np.expand_dims(j2_fields_scale, 1)
+
+    index_fields = index_field(j1_fields[0, 0].shape)
+    index_fields = np.expand_dims(index_fields, 0)
+    j1_fields3 = np.concatenate((intensity_fields, index_fields + j1_fields,
+                                 j1_fields_b, j1_fields_scale), axis=1)
+    j2_fields3 = np.concatenate((intensity_fields, index_fields + j2_fields,
+                                 j2_fields_b, j2_fields_scale), axis=1)
+    paf = np.stack((j1_fields3, j2_fields3), axis=1)
+
+    return paf
+
+
 def normalize_pif(joint_intensity_fields, joint_fields, _, scale_fields, *,
                   fixed_scale=None):
     joint_intensity_fields = np.expand_dims(joint_intensity_fields.copy(), 1)

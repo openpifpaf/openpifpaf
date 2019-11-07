@@ -88,6 +88,13 @@ def factory_from_args(args, model, device=None):
     # configure Pif
     Pif.pif_fixed_scale = args.pif_fixed_scale
 
+    # configure PafsDijkstra
+    PafsDijkstra.fixed_b = args.fixed_b
+    PafsDijkstra.pif_fixed_scale = args.pif_fixed_scale
+    PafsDijkstra.paf_th = args.paf_th
+    PafsDijkstra.connection_method = args.connection_method
+    PafsDijkstra.force_complete = args.force_complete_pose
+
     debug_visualizer = None
     if args.debug_pif_indices or args.debug_paf_indices:
         debug_visualizer = Visualizer(
@@ -150,7 +157,16 @@ def factory_decode(model, *,
                       skeleton=COCO_PERSON_SKELETON,
                       **kwargs)
 
-    if head_names in (('pif', 'pafs', 'pafs25'),):
+    if head_names in (('pif', 'pafs', 'pafs25'),) and not experimental:
+        return PafsDijkstra(
+            model.head_strides[-1],
+            pif_index=0,
+            paf_index=1,
+            keypoints=COCO_KEYPOINTS,
+            skeleton=COCO_PERSON_SKELETON,
+            **kwargs
+        )
+    if head_names in (('pif', 'pafs', 'pafs25'),) and experimental:
         confidence_scales = (
             [1.0 for _ in COCO_PERSON_SKELETON] +
             [extra_coupling for _ in DENSER_COCO_PERSON_CONNECTIONS]
