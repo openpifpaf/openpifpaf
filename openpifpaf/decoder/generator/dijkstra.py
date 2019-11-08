@@ -22,6 +22,7 @@ class Dijkstra(object):
                  paf_th,
                  keypoints,
                  skeleton,
+                 out_skeleton=None,
                  debug_visualizer=None):
         self.pifhr = pifhr
         self.paf_scored = paf_scored
@@ -35,6 +36,7 @@ class Dijkstra(object):
         self.keypoints = keypoints
         self.skeleton = skeleton
         self.skeleton_m1 = np.asarray(skeleton) - 1
+        self.out_skeleton = out_skeleton or skeleton
 
         self.debug_visualizer = debug_visualizer
         self.timers = defaultdict(float)
@@ -76,7 +78,7 @@ class Dijkstra(object):
             if scalar_nonzero(occupied[f], x, y):
                 continue
 
-            ann = Annotation(self.keypoints, self.skeleton).add(f, (x, y, v))
+            ann = Annotation(self.keypoints, self.out_skeleton).add(f, (x, y, v))
             self._grow(ann, self.paf_th)
             ann.fill_joint_scales(self.pifhr.scales)
             annotations.append(ann)

@@ -115,6 +115,7 @@ def factory_from_args(args, model, device=None):
 
     decode = factory_decode(model,
                             experimental=args.experimental_decoder,
+                            paf_seeds=args.paf_seeds,
                             seed_threshold=args.seed_threshold,
                             extra_coupling=args.extra_coupling,
                             multi_scale=args.multi_scale,
@@ -133,6 +134,7 @@ def factory_from_args(args, model, device=None):
 def factory_decode(model, *,
                    extra_coupling=0.0,
                    experimental=False,
+                   paf_seeds=False,
                    multi_scale=False,
                    multi_scale_hflip=True,
                    **kwargs):
@@ -157,26 +159,34 @@ def factory_decode(model, *,
                       skeleton=COCO_PERSON_SKELETON,
                       **kwargs)
 
-    if head_names in (('pif', 'pafs', 'pafs25'),) and not experimental:
-        return PafsDijkstra(
+    if head_names in (('pif', 'pafs', 'pafs25'),):
+        if experimental:
+            confidence_scales = (
+                [1.0 for _ in COCO_PERSON_SKELETON] +
+                [extra_coupling for _ in DENSER_COCO_PERSON_CONNECTIONS]
+            )
+            skeleton = COCO_PERSON_SKELETON + DENSER_COCO_PERSON_CONNECTIONS
+        else:
+            confidence_scales = None
+            skeleton = COCO_PERSON_SKELETON
+
+        if paf_seeds:
+            return PafsDijkstra(
+                model.head_strides[-1],
+                pif_index=0,
+                paf_index=1,
+                keypoints=COCO_KEYPOINTS,
+                skeleton=skeleton,
+                out_skeleton=COCO_PERSON_SKELETON,
+                confidence_scales=confidence_scales,
+                **kwargs
+            )
+        return PifPafDijkstra(
             model.head_strides[-1],
             pif_index=0,
             paf_index=1,
             keypoints=COCO_KEYPOINTS,
-            skeleton=COCO_PERSON_SKELETON,
-            **kwargs
-        )
-    if head_names in (('pif', 'pafs', 'pafs25'),) and experimental:
-        confidence_scales = (
-            [1.0 for _ in COCO_PERSON_SKELETON] +
-            [extra_coupling for _ in DENSER_COCO_PERSON_CONNECTIONS]
-        )
-        return PafsDijkstra(
-            model.head_strides[-1],
-            pif_index=0,
-            paf_index=1,
-            keypoints=COCO_KEYPOINTS,
-            skeleton=COCO_PERSON_SKELETON + DENSER_COCO_PERSON_CONNECTIONS,
+            skeleton=skeleton,
             out_skeleton=COCO_PERSON_SKELETON,
             confidence_scales=confidence_scales,
             **kwargs
