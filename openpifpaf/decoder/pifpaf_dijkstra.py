@@ -73,7 +73,7 @@ class PifPafDijkstra(object):
             for stride, pif_i in zip(self.strides, self.pif_indices):
                 self.debug_visualizer.pif_raw(fields[pif_i], stride)
             for stride, paf_i in zip(self.strides, self.paf_indices):
-                self.debug_visualizer.paf_raw(fields[paf_i], stride, reg_components=3)
+                self.debug_visualizer.paf_raw(fields[paf_i][:5], stride, reg_components=3)
 
         # confidence scales
         if self.confidence_scales:
