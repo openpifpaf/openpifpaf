@@ -6,10 +6,8 @@ import time
 import numpy as np
 
 from . import generator
-from .paf_scored import PafScored
-from .pif_hr import PifHr
 from .paf_seeds import PafSeeds
-from .utils import normalize_pif, normalize_paf7
+from .utils import normalize_paf7
 
 LOG = logging.getLogger(__name__)
 
