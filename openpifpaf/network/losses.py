@@ -174,7 +174,7 @@ class MultiHeadLossAutoTune(torch.nn.Module):
         )
 
         self.field_names = [n for l in self.losses for n in l.field_names]
-        LOG.info('multihead loss: %s', self.field_names)
+        LOG.info('multihead loss with autotune: %s', self.field_names)
 
     def batch_meta(self):
         return {'mtl_sigmas': [round(float(s), 3) for s in self.log_sigmas.exp()]}
