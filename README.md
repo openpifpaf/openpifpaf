@@ -96,11 +96,19 @@ Performance metrics with version 0.10.0 on the COCO val set obtained with a GTX1
 
 | Backbone               | AP       | APᴹ      | APᴸ      | t_{total} [ms]  | t_{dec} [ms] |
 |-----------------------:|:--------:|:--------:|:--------:|:---------------:|:------------:|
-| shufflenetv2x2         | __60.4__ | 55.3     | 68.1     | 80              | 56           |
-| resnet50               | __64.6__ | 61.1     | 70.2     | 100             | 55           |
-| (v0.8) resnext50       | __63.8__ | 61.1     | 68.1     | 93              | 33           |
-| resnet101              | __67.9__ | 63.6     | 74.7     | 120             | 51           |
-| (v0.8) resnet152       | __67.8__ | 64.4     | 73.3     | 122             | 30           |
+| [shufflenetv2x2]       | __60.4__ | 55.3     | 68.1     | 80              | 56           |
+| [resnet50]             | __64.6__ | 61.1     | 70.2     | 100             | 55           |
+| [(v0.8) resnext50]     | __63.8__ | 61.1     | 68.1     | 93              | 33           |
+| [resnet101]            | __67.9__ | 63.6     | 74.7     | 120             | 51           |
+| [(v0.8) resnet152]     | __67.8__ | 64.4     | 73.3     | 122             | 30           |
+
+[SHUFFLENETV2X1]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.1.0/shufflenetv2x1-pif-paf-edge401-190705-151607-d9a35d7e.pkl
+[shufflenetv2x2]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.10.0/shufflenetv2x2-pif-paf-paf25-edge401-191010-172527-ef704f06.pkl
+[resnet18]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.10.1/resnet18-pif-paf-paf25-edge401-191022-210137-84326f0f.pkl
+[resnet50]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.10.0/resnet50-pif-paf-paf25-edge401-191016-192503-d2b85396.pkl
+[(v0.8) resnext50]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.1.0/resnext50block5-pif-paf-edge401-190629-151121-24491655.pkl
+[resnet101]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.10.0/resnet101block5-pif-paf-paf25-edge401-191012-132602-a2bf7ecd.pkl
+[(v0.8) resnet152]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.1.0/resnet152block5-pif-paf-edge401-190625-185426-3e2f28ed.pkl
 
 Pretrained model files are shared in the releases of the
 __[openpifpaf-torchhub](https://github.com/vita-epfl/openpifpaf-torchhub)__
