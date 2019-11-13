@@ -9,7 +9,7 @@ from ..annotation import Annotation
 from ..utils import scalar_square_add_single
 
 # pylint: disable=import-error
-from ...functional import paf_center_s, scalar_nonzero, weiszfeld_nd
+from ...functional import paf_center_s, scalar_nonzero
 
 LOG = logging.getLogger(__name__)
 
@@ -18,7 +18,6 @@ class DijkstraPafs(object):
     def __init__(self, paf, seeds, *,
                  seed_threshold,
                  connection_method,
-                 paf_nn,
                  paf_th,
                  keypoints,
                  skeleton,
@@ -29,7 +28,6 @@ class DijkstraPafs(object):
 
         self.seed_threshold = seed_threshold
         self.connection_method = connection_method
-        self.paf_nn = paf_nn
         self.paf_th = paf_th
 
         self.keypoints = keypoints

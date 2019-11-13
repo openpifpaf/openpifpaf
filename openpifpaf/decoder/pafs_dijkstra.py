@@ -22,8 +22,7 @@ class PafsDijkstra(object):
     def __init__(self, stride, *,
                  keypoints,
                  skeleton,
-                 pif_index=0, paf_index=1,
-                 pif_min_scale=0.0,
+                 paf_index=1,
                  paf_min_distance=0.0,
                  paf_max_distance=None,
                  seed_threshold=0.2,
@@ -32,24 +31,17 @@ class PafsDijkstra(object):
                  out_skeleton=None,
                  debug_visualizer=None):
         self.strides = stride
-        self.pif_indices = pif_index
         self.paf_indices = paf_index
-        self.pif_min_scales = pif_min_scale
         self.paf_min_distances = paf_min_distance
         self.paf_max_distances = paf_max_distance
         if not isinstance(self.strides, (list, tuple)):
             self.strides = [self.strides]
-            self.pif_indices = [self.pif_indices]
             self.paf_indices = [self.paf_indices]
-        if not isinstance(self.pif_min_scales, (list, tuple)):
-            self.pif_min_scales = [self.pif_min_scales for _ in self.strides]
         if not isinstance(self.paf_min_distances, (list, tuple)):
             self.paf_min_distances = [self.paf_min_distances for _ in self.strides]
         if not isinstance(self.paf_max_distances, (list, tuple)):
             self.paf_max_distances = [self.paf_max_distances for _ in self.strides]
-        assert len(self.strides) == len(self.pif_indices)
         assert len(self.strides) == len(self.paf_indices)
-        assert len(self.strides) == len(self.pif_min_scales)
         assert len(self.strides) == len(self.paf_min_distances)
         assert len(self.strides) == len(self.paf_max_distances)
 
@@ -61,17 +53,12 @@ class PafsDijkstra(object):
         self.seed_score_scale = seed_score_scale
         self.debug_visualizer = debug_visualizer
 
-        self.pif_nn = 16
-        self.paf_nn = 1 if self.connection_method == 'max' else 35
-
         self.confidence_scales = confidence_scales
 
     def __call__(self, fields, initial_annotations=None):
         start = time.perf_counter()
 
         if self.debug_visualizer:
-            for stride, pif_i in zip(self.strides, self.pif_indices):
-                self.debug_visualizer.pif_raw(fields[pif_i], stride)
             for stride, paf_i in zip(self.strides, self.paf_indices):
                 self.debug_visualizer.paf_raw(fields[paf_i], stride, reg_components=3)
 
@@ -101,7 +88,6 @@ class PafsDijkstra(object):
             seeds,
             seed_threshold=self.seed_threshold,
             connection_method=self.connection_method,
-            paf_nn=self.paf_nn,
             paf_th=self.paf_th,
             keypoints=self.keypoints,
             skeleton=self.skeleton,

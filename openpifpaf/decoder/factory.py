@@ -173,7 +173,6 @@ def factory_decode(model, *,
         if paf_seeds:
             return PafsDijkstra(
                 model.head_strides[-1],
-                pif_index=0,
                 paf_index=1,
                 keypoints=COCO_KEYPOINTS,
                 skeleton=skeleton,
