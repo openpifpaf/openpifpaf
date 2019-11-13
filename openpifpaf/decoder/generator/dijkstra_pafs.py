@@ -72,7 +72,9 @@ class DijkstraPafs(object):
                    if v > 0.0):
                 continue
 
-            ann = Annotation(self.keypoints, self.out_skeleton)
+            suppress_score_index = [i for i, v in enumerate(kps4[:, 3]) if v > 0.0][0]
+            ann = Annotation(self.keypoints, self.out_skeleton,
+                             suppress_score_index=suppress_score_index)
             ann.data[:, 0:2] = kps4[:, 0:2]
             ann.data[:, 2] = kps4[:, 3]
             ann.joint_scales = kps4[:, 2]

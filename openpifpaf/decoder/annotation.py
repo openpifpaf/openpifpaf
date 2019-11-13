@@ -5,9 +5,10 @@ from ..functional import scalar_value_clipped
 
 
 class Annotation(object):
-    def __init__(self, keypoints, skeleton):
+    def __init__(self, keypoints, skeleton, *, suppress_score_index=None):
         self.keypoints = keypoints
         self.skeleton = skeleton
+        self.suppress_score_index = suppress_score_index
 
         self.data = np.zeros((len(keypoints), 3), dtype=np.float32)
         self.joint_scales = None
@@ -17,6 +18,8 @@ class Annotation(object):
         self.skeleton_m1 = (np.asarray(skeleton) - 1).tolist()
 
         self.score_weights = np.ones((len(keypoints),))
+        if self.suppress_score_index:
+            self.score_weights[-1] = 0.0
         self.score_weights[:3] = 3.0
         self.score_weights /= np.sum(self.score_weights)
 
@@ -46,6 +49,9 @@ class Annotation(object):
             return self.fixed_score
 
         v = self.data[:, 2]
+        if self.suppress_score_index is not None:
+            v = np.copy(v)
+            v[self.suppress_score_index] = 0.0
         # return 0.1 * np.max(v) + 0.9 * np.mean(np.square(v))
         # return np.mean(np.square(v))
         # return np.sum(self.score_weights * np.sort(np.square(v))[::-1])
