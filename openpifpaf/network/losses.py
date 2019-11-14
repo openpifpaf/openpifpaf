@@ -3,14 +3,6 @@
 import logging
 import torch
 
-from ..data import (
-    COCO_PERSON_SIGMAS,
-    COCO_PERSON_SKELETON,
-    DENSER_COCO_PERSON_CONNECTIONS,
-    DENSER_COCO_PERSON_SKELETON,
-    KINEMATIC_TREE_SKELETON,
-)
-
 LOG = logging.getLogger(__name__)
 
 
@@ -205,27 +197,14 @@ class CompositeLoss(torch.nn.Module):
     independence_scale = 3.0
 
     def __init__(self, head_name, regression_loss, *,
-                 n_vectors, n_scales, sigmas=None, margin=False):
+                 n_vectors, n_scales, margin=False):
         super(CompositeLoss, self).__init__()
 
-        LOG.debug('%s: n_vectors = %d, n_scales = %d, len(sigmas) = %d, margin = %s',
-                  head_name, n_vectors, n_scales, len(sigmas) if sigmas is not None else 0, margin)
+        LOG.debug('%s: n_vectors = %d, n_scales = %d, margin = %s',
+                  head_name, n_vectors, n_scales, margin)
 
         self.n_vectors = n_vectors
         self.n_scales = n_scales
-        if self.n_scales:
-            assert len(sigmas) == n_scales
-        if sigmas is None:
-            sigmas = [[1.0] for _ in range(n_vectors)]
-        if sigmas is not None:
-            assert len(sigmas) == n_vectors
-            scales_to_kp = torch.tensor(sigmas)
-            scales_to_kp = torch.unsqueeze(scales_to_kp, 1)
-            scales_to_kp = torch.unsqueeze(scales_to_kp, -1)
-            scales_to_kp = torch.unsqueeze(scales_to_kp, -1)
-            self.register_buffer('scales_to_kp', scales_to_kp)
-        else:
-            self.scales_to_kp = None
 
         self.regression_loss = regression_loss or laplace_loss
         self.field_names = (
@@ -253,10 +232,10 @@ class CompositeLoss(torch.nn.Module):
         if self.n_scales:
             x_scales = x[1 + 2 * self.n_vectors:1 + 2 * self.n_vectors + self.n_scales]
 
-        assert len(t) == 1 + self.n_vectors + 1
+        assert len(t) == 1 + self.n_vectors + self.n_scales
         target_intensity = t[0]
         target_regs = t[1:1 + self.n_vectors]
-        target_scale = t[-1]
+        target_scales = t[1 + self.n_vectors:]
 
         bce_masks = (target_intensity[:, :-1] + target_intensity[:, -1:]) > 0.5
         if not torch.any(bce_masks):
@@ -302,7 +281,7 @@ class CompositeLoss(torch.nn.Module):
                 if hasattr(self.regression_loss, 'scale'):
                     assert self.scales_to_kp is not None
                     self.regression_loss.scale = torch.masked_select(
-                        torch.clamp(target_scale * self.scales_to_kp[i], 0.1, 1000.0),  # pylint: disable=unsubscriptable-object
+                        torch.clamp(target_scales[i], 0.1, 1000.0),  # pylint: disable=unsubscriptable-object
                         reg_masks,
                     )
 
@@ -321,10 +300,10 @@ class CompositeLoss(torch.nn.Module):
             scale_losses = [
                 torch.nn.functional.l1_loss(
                     torch.masked_select(x_scale, reg_masks),
-                    torch.masked_select(target_scale * scale_to_kp, reg_masks),
+                    torch.masked_select(target_scale, reg_masks),
                     reduction='sum',
                 ) / 1000.0 / batch_size
-                for x_scale, scale_to_kp in zip(x_scales, self.scales_to_kp)
+                for x_scale, target_scale in zip(x_scales, target_scales)
             ]
 
         margin_losses = [None for _ in target_regs] if self.margin else []
@@ -400,34 +379,9 @@ def loss_parameters(head_name):
     elif 'paf' in head_name:
         n_scales = 0
 
-    sigmas = None
-    if head_name == 'pif':
-        sigmas = [COCO_PERSON_SIGMAS]
-    elif head_name in ('paf', 'pafs', 'paf19', 'pafs19', 'wpaf'):
-        sigmas = [
-            [COCO_PERSON_SIGMAS[j1i - 1] for j1i, _ in COCO_PERSON_SKELETON],
-            [COCO_PERSON_SIGMAS[j2i - 1] for _, j2i in COCO_PERSON_SKELETON],
-        ]
-    elif head_name in ('paf16',):
-        sigmas = [
-            [COCO_PERSON_SIGMAS[j1i - 1] for j1i, _ in KINEMATIC_TREE_SKELETON],
-            [COCO_PERSON_SIGMAS[j2i - 1] for _, j2i in KINEMATIC_TREE_SKELETON],
-        ]
-    elif head_name in ('paf44',):
-        sigmas = [
-            [COCO_PERSON_SIGMAS[j1i - 1] for j1i, _ in DENSER_COCO_PERSON_SKELETON],
-            [COCO_PERSON_SIGMAS[j2i - 1] for _, j2i in DENSER_COCO_PERSON_SKELETON],
-        ]
-    elif head_name in ('paf25', 'pafs25'):
-        sigmas = [
-            [COCO_PERSON_SIGMAS[j1i - 1] for j1i, _ in DENSER_COCO_PERSON_CONNECTIONS],
-            [COCO_PERSON_SIGMAS[j2i - 1] for _, j2i in DENSER_COCO_PERSON_CONNECTIONS],
-        ]
-
     return {
         'n_vectors': n_vectors,
         'n_scales': n_scales,
-        'sigmas': sigmas,
     }
 
 

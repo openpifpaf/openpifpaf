@@ -5,7 +5,7 @@ from .paf import Paf
 from .pif import Pif
 from .skeleton import Skeleton
 
-from ..data import (COCO_PERSON_SKELETON, DENSER_COCO_PERSON_SKELETON,
+from ..data import (COCO_PERSON_SKELETON, COCO_PERSON_SIGMAS, DENSER_COCO_PERSON_SKELETON,
                     KINEMATIC_TREE_SKELETON, DENSER_COCO_PERSON_CONNECTIONS)
 
 LOG = logging.getLogger(__name__)
@@ -65,7 +65,7 @@ def factory_head(head_name, stride):
             n_keypoints = 17
 
         LOG.info('selected encoder Pif for %s with %d keypoints', head_name, n_keypoints)
-        return Pif(stride, n_keypoints=n_keypoints)
+        return Pif(stride, n_keypoints=n_keypoints, sigmas=COCO_PERSON_SIGMAS)
 
     if head_name in ('paf',
                      'pafs',
@@ -88,6 +88,6 @@ def factory_head(head_name, stride):
             raise Exception('unknown skeleton type of head')
 
         LOG.info('selected encoder Paf for %s', head_name)
-        return Paf(stride, n_keypoints=n_keypoints, skeleton=skeleton)
+        return Paf(stride, n_keypoints=n_keypoints, skeleton=skeleton, sigmas=COCO_PERSON_SIGMAS)
 
     raise Exception('unknown head to create an encoder: {}'.format(head_name))

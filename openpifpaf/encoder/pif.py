@@ -13,9 +13,10 @@ LOG = logging.getLogger(__name__)
 class Pif(object):
     side_length = 4
 
-    def __init__(self, stride, *, n_keypoints, v_threshold=0):
+    def __init__(self, stride, *, n_keypoints, sigmas, v_threshold=0):
         self.stride = stride
         self.n_keypoints = n_keypoints
+        self.sigmas = sigmas
         self.v_threshold = v_threshold
 
     def __call__(self, anns, width_height_original):
@@ -24,16 +25,17 @@ class Pif(object):
         LOG.debug('valid area: %s, pif side length = %d', valid_area, self.side_length)
 
         n_fields = keypoint_sets.shape[1]
-        f = PifGenerator(self.side_length, self.v_threshold)
+        f = PifGenerator(self.side_length, self.v_threshold, self.sigmas)
         f.init_fields(n_fields, bg_mask)
         f.fill(keypoint_sets)
         return f.fields(valid_area)
 
 
 class PifGenerator(object):
-    def __init__(self, side_length, v_threshold, padding=10):
+    def __init__(self, side_length, v_threshold, sigmas, padding=10):
         self.side_length = side_length
         self.v_threshold = v_threshold
+        self.sigmas = sigmas
         self.padding = padding
 
         self.intensities = None
@@ -129,7 +131,7 @@ class PifGenerator(object):
         self.fields_reg_l[f, miny:maxy, minx:maxx][mask] = sink_l[mask]
 
         # update scale
-        self.fields_scale[f, miny:maxy, minx:maxx][mask] = scale
+        self.fields_scale[f, miny:maxy, minx:maxx][mask] = scale * self.sigmas[f]
 
     def fields(self, valid_area):
         intensities = self.intensities[:, self.padding:-self.padding, self.padding:-self.padding]
