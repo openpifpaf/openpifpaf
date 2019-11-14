@@ -14,10 +14,11 @@ class Paf(object):
     fixed_size = False
     aspect_ratio = 0.0
 
-    def __init__(self, stride, *, n_keypoints, skeleton, v_threshold=0):
+    def __init__(self, stride, *, n_keypoints, skeleton, sigmas, v_threshold=0):
         self.stride = stride
         self.n_keypoints = n_keypoints
         self.skeleton = skeleton
+        self.sigmas = sigmas
         self.v_threshold = v_threshold
 
         if self.fixed_size:
@@ -30,7 +31,9 @@ class Paf(object):
 
         f = PafGenerator(self.min_size, self.skeleton,
                          v_threshold=self.v_threshold,
-                         fixed_size=self.fixed_size, aspect_ratio=self.aspect_ratio)
+                         fixed_size=self.fixed_size,
+                         aspect_ratio=self.aspect_ratio,
+                         sigmas=self.sigmas)
         f.init_fields(bg_mask)
         f.fill(keypoint_sets)
         return f.fields(valid_area)
@@ -38,18 +41,20 @@ class Paf(object):
 
 class PafGenerator(object):
     def __init__(self, min_size, skeleton, *,
-                 v_threshold, fixed_size, aspect_ratio, padding=10):
+                 v_threshold, fixed_size, aspect_ratio, sigmas, padding=10):
         self.min_size = min_size
         self.skeleton = skeleton
         self.v_threshold = v_threshold
         self.padding = padding
         self.fixed_size = fixed_size
         self.aspect_ratio = aspect_ratio
+        self.sigmas = sigmas
 
         self.intensities = None
         self.fields_reg1 = None
         self.fields_reg2 = None
-        self.fields_scale = None
+        self.fields_scale1 = None
+        self.fields_scale2 = None
         self.fields_reg_l = None
 
     def init_fields(self, bg_mask):
@@ -61,7 +66,8 @@ class PafGenerator(object):
         self.fields_reg2 = np.zeros((n_fields, 6, field_h, field_w), dtype=np.float32)
         self.fields_reg1[:, 2:] = np.inf
         self.fields_reg2[:, 2:] = np.inf
-        self.fields_scale = np.zeros((n_fields, field_h, field_w), dtype=np.float32)
+        self.fields_scale1 = np.zeros((n_fields, field_h, field_w), dtype=np.float32)
+        self.fields_scale2 = np.zeros((n_fields, field_h, field_w), dtype=np.float32)
         self.fields_reg_l = np.full((n_fields, field_h, field_w), np.inf, dtype=np.float32)
 
         # set background
@@ -127,15 +133,21 @@ class PafGenerator(object):
 
             max_r1 = np.expand_dims(max_r1, 1)
             max_r2 = np.expand_dims(max_r2, 1)
-            self.fill_association(i, joint1, joint2, scale, max_r1, max_r2)
+            if self.sigmas is None:
+                scale1, scale2 = scale, scale
+            else:
+                scale1 = scale * self.sigmas[joint1i - 1]
+                scale2 = scale * self.sigmas[joint2i - 1]
+            self.fill_association(i, joint1, joint2, scale1, scale2, max_r1, max_r2)
 
-    def fill_association(self, i, joint1, joint2, scale, max_r1, max_r2):
+    def fill_association(self, i, joint1, joint2, scale1, scale2, max_r1, max_r2):
         # offset between joints
         offset = joint2[:2] - joint1[:2]
         offset_d = np.linalg.norm(offset)
 
         # dynamically create s
         s = max(self.min_size, int(offset_d * self.aspect_ratio))
+        # s = max(s, min(int(scale1), int(scale2)))
         sink = create_sink(s)
         s_offset = (s - 1.0) / 2.0
 
@@ -182,13 +194,16 @@ class PafGenerator(object):
             self.fields_reg_l[i, fminy:fmaxy, fminx:fmaxx][mask] = sink_l[mask]
 
             # update scale
-            self.fields_scale[i, fminy:fmaxy, fminx:fmaxx][mask] = scale
+            self.fields_scale1[i, fminy:fmaxy, fminx:fmaxx][mask] = scale1
+            self.fields_scale2[i, fminy:fmaxy, fminx:fmaxx][mask] = scale2
 
     def fields(self, valid_area):
-        intensities = self.intensities[:, self.padding:-self.padding, self.padding:-self.padding]
-        fields_reg1 = self.fields_reg1[:, :, self.padding:-self.padding, self.padding:-self.padding]
-        fields_reg2 = self.fields_reg2[:, :, self.padding:-self.padding, self.padding:-self.padding]
-        fields_scale = self.fields_scale[:, self.padding:-self.padding, self.padding:-self.padding]
+        p = self.padding
+        intensities = self.intensities[:, p:-p, p:-p]
+        fields_reg1 = self.fields_reg1[:, :, p:-p, p:-p]
+        fields_reg2 = self.fields_reg2[:, :, p:-p, p:-p]
+        fields_scale1 = self.fields_scale1[:, p:-p, p:-p]
+        fields_scale2 = self.fields_scale2[:, p:-p, p:-p]
 
         mask_valid_area(intensities, valid_area)
 
@@ -196,5 +211,6 @@ class PafGenerator(object):
             torch.from_numpy(intensities),
             torch.from_numpy(fields_reg1),
             torch.from_numpy(fields_reg2),
-            torch.from_numpy(fields_scale),
+            torch.from_numpy(fields_scale1),
+            torch.from_numpy(fields_scale2),
         )
