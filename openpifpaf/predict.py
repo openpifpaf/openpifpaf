@@ -98,7 +98,9 @@ def main():
     args = cli()
 
     # load model
-    model_cpu, _ = nets.factory_from_args(args)
+    #model_cpu, _ = nets.factory_from_args(args)
+    model_cpu = torch.jit.load(os.path.join("./", "scripted.pt"))
+    # model_cpu = torch.load(os.path.join("./", "model.pt"))
     model = model_cpu.to(args.device)
     if not args.disable_cuda and torch.cuda.device_count() > 1:
         LOG.info('Using multiple GPUs: %d', torch.cuda.device_count())

@@ -14,9 +14,7 @@ class HeadStacks(torch.nn.Module):
         self.stacks_by_pos = {s[0]: s for s in stacks}
         self.ignore = {head_i for s in stacks for head_i in s[1:]}
 
-    def forward(self, *args):
-        heads = args
-
+    def forward(self, heads):
         stacked = []
         for head_i, head in enumerate(heads):
             if head_i in self.ignore:
@@ -46,7 +44,7 @@ class PifHFlip(torch.nn.Module):
         self.register_buffer('flip_indices', flip_indices)
 
 
-    def forward(self, *args):
+    def forward(self, args):
         out = []
         for field in args:
             field = torch.index_select(field, 1, self.flip_indices)
@@ -86,7 +84,7 @@ class PafHFlip(torch.nn.Module):
         self.register_buffer('flip_indices', torch.LongTensor(flip_indices))
         self.register_buffer('reverse_direction', torch.LongTensor(reverse_direction))
 
-    def forward(self, *args):
+    def forward(self, args):
         out = []
         for field in args:
             field = torch.index_select(field, 1, self.flip_indices)
@@ -163,18 +161,34 @@ class CompositeField(torch.nn.Module):
         x = self.dropout(x)
 
         # classification
-        classes_x = [class_conv(x) for class_conv in self.class_convs]
-        if not self.training:
-            classes_x = [torch.sigmoid(class_x) for class_x in classes_x]
+        # classes_x = [class_conv(x) for class_conv in self.class_convs]
+        classes_x = []
+        for layer in self.class_convs:
+            classes_x.append(layer(x))
+
+        #if not self.training:
+        classes_x = [torch.sigmoid(class_x) for class_x in classes_x]
 
         # regressions
-        regs_x = [reg_conv(x) * self.dilation for reg_conv in self.reg_convs]
-        regs_x_spread = [reg_spread(x) for reg_spread in self.reg_spreads]
+        # regs_x = [reg_conv(x) * self.dilation for reg_conv in self.reg_convs]
+        regs_x = []
+        for layer in self.reg_convs:
+            regs_x.append(layer(x) * self.dilation)
+
+        # regs_x_spread = [reg_spread(x) for reg_spread in self.reg_spreads]
+        regs_x_spread = []
+        for layer in self.reg_spreads:
+            regs_x_spread.append(layer(x))
+
         regs_x_spread = [torch.nn.functional.leaky_relu(x + 2.0) - 2.0
                          for x in regs_x_spread]
 
         # scale
-        scales_x = [scale_conv(x) for scale_conv in self.scale_convs]
+        # scales_x = [scale_conv(x) for scale_conv in self.scale_convs]
+        scales_x = []
+        for layer in self.scale_convs:
+            scales_x.append(layer(x))
+
         scales_x = [torch.nn.functional.relu(scale_x) for scale_x in scales_x]
 
         # upscale

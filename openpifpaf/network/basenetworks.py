@@ -19,8 +19,8 @@ class BaseNetwork(torch.nn.Module):
         LOG.info('stride = %d', self.input_output_scale)
         LOG.info('output features = %d', self.out_features)
 
-    def forward(self, *args):
-        return self.net(*args)
+    def forward(self, inputs):
+        return self.net(inputs)
 
 
 class ShuffleNetV2Factory(object):

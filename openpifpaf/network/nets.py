@@ -1,6 +1,9 @@
 import logging
 import torch
 import torchvision
+import typing
+from typing import List
+from . import resnet
 
 from . import basenetworks, heads
 from ..data import COCO_KEYPOINTS, COCO_PERSON_SKELETON, DENSER_COCO_PERSON_CONNECTIONS, HFLIP
@@ -25,9 +28,16 @@ SHUFFLENETV2X2_MODEL = ('https://github.com/vita-epfl/openpifpaf-torchhub/releas
 LOG = logging.getLogger(__name__)
 
 
+class EmptyModule(torch.nn.Module):
+
+    def forward(self, x: List[List[torch.Tensor]]):
+        return x
+
+
 class Shell(torch.nn.Module):
+
     def __init__(self, base_net, head_nets, *,
-                 head_names=None, head_strides=None, process_heads=None, cross_talk=0.0):
+                 head_names=None, head_strides=None, process_heads=EmptyModule(), cross_talk=0.0):
         super(Shell, self).__init__()
 
         self.base_net = base_net
@@ -42,7 +52,9 @@ class Shell(torch.nn.Module):
         self.process_heads = process_heads
         self.cross_talk = cross_talk
 
-    def forward(self, *args):
+
+    @torch.jit.ignore
+    def old_forward(self, *args):
         image_batch = args[0]
 
         if self.training and self.cross_talk:
@@ -52,8 +64,25 @@ class Shell(torch.nn.Module):
         x = self.base_net(image_batch)
         head_outputs = [hn(x) for hn in self.head_nets]
 
+        if self.process_heads:
+            head_outputs = self.process_heads(head_outputs)
+
+        return head_outputs
+
+    # @torch.jit.export
+    def forward(self, images):
+        print(images.size())
+        image_batch = images
+        x = self.base_net(image_batch)
+        
+        # head_outputs = [hn(x) for hn in self.head_nets]
+        head_outputs = [[torch.ones(1)]]
+        for head in self.head_nets:
+            head_outputs.append(head(x))
+        head_outputs.pop(0)
+
         if self.process_heads is not None:
-            head_outputs = self.process_heads(*head_outputs)
+            head_outputs = self.process_heads(head_outputs)
 
         return head_outputs
 
@@ -126,8 +155,9 @@ class Shell2Scale(torch.nn.Module):
 
 
 class ShellMultiScale(torch.nn.Module):
+
     def __init__(self, base_net, head_nets, *,
-                 head_strides=None, process_heads=None, include_hflip=True):
+                 head_strides=None, process_heads=EmptyModule(), include_hflip=True):
         super(ShellMultiScale, self).__init__()
 
         self.base_net = base_net
@@ -168,12 +198,12 @@ class ShellMultiScale(torch.nn.Module):
         if self.include_hflip:
             for mscale_i in range(5, 10):
                 head_i = mscale_i * 3
-                head_outputs[head_i] = self.pif_hflip(*head_outputs[head_i])
-                head_outputs[head_i + 1] = self.paf_hflip(*head_outputs[head_i + 1])
-                head_outputs[head_i + 2] = self.paf_hflip_dense(*head_outputs[head_i + 2])
+                head_outputs[head_i] = self.pif_hflip(head_outputs[head_i])
+                head_outputs[head_i + 1] = self.paf_hflip(head_outputs[head_i + 1])
+                head_outputs[head_i + 2] = self.paf_hflip_dense(head_outputs[head_i + 2])
 
         if self.process_heads is not None:
-            head_outputs = self.process_heads(*head_outputs)
+            head_outputs = self.process_heads(head_outputs)
 
         return head_outputs
 
@@ -182,7 +212,7 @@ def factory_from_args(args):
     # configure CompositeField
     heads.CompositeField.dropout_p = args.head_dropout
     heads.CompositeField.quad = args.head_quad
-
+    print(args)
     return factory(
         checkpoint=args.checkpoint,
         base_name=args.basenet,
@@ -267,8 +297,8 @@ def factory(
         two_scale=False,
         multi_scale=False,
         multi_scale_hflip=True):
-
     if not checkpoint and base_name:
+        print("Loading from scratch")
         net_cpu = factory_from_scratch(base_name, head_names, pretrained=pretrained)
         epoch = 0
     else:
@@ -325,7 +355,8 @@ def factory_from_scratch(basename, headnames, *, pretrained=True):
         base_vision = torchvision.models.resnet18(pretrained)
         return resnet_factory_from_scratch(basename, base_vision, 512, headnames)
     if 'resnet50' in basename:
-        base_vision = torchvision.models.resnet50(pretrained)
+        print("loading scriptable resnet")
+        base_vision = resnet.resnet50(pretrained)
         return resnet_factory_from_scratch(basename, base_vision, 2048, headnames)
     if 'resnet101' in basename:
         base_vision = torchvision.models.resnet101(pretrained)
