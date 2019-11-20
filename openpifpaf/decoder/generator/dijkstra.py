@@ -205,6 +205,42 @@ class Dijkstra(object):
 
         return (new_xyv[0], new_xyv[1], np.sqrt(new_xyv[2] * xyv[2]))  # geometric mean
 
+    def p2p_value(self, source_xyv, target_xyv, paf_i, forward):
+        j1i, j2i = self.skeleton_m1[paf_i]
+        if forward:
+            jsi, jti = j1i, j2i
+            directed_paf_field = self.paf_scored.forward[paf_i]
+        else:
+            jsi, jti = j2i, j1i
+            directed_paf_field = self.paf_scored.backward[paf_i]
+        xy_scale_s = max(
+            8.0,
+            scalar_value(self.pifhr.scales[jsi], source_xyv[0], source_xyv[1])
+        )
+
+        # source value
+        paf_field = paf_center(directed_paf_field, source_xyv[0], source_xyv[1],
+                               sigma=5.0 * xy_scale_s)
+        if paf_field.shape[1] == 0:
+            return 0.0
+
+        # distances
+        d_source = np.linalg.norm(((source_xyv[0],), (source_xyv[1],)) - paf_field[1:3], axis=0)
+        d_target = np.linalg.norm(((target_xyv[0],), (target_xyv[1],)) - paf_field[4:6], axis=0)
+
+        # combined value and source distance
+        xy_scale_t = max(
+            8.0,
+            scalar_value(self.pifhr.scales[jti], target_xyv[0], target_xyv[1])
+        )
+        v = paf_field[0]
+        scores = (  # two-tailed cumulative Laplace
+            np.exp(-1.0 * d_source / xy_scale_s) *
+            np.exp(-1.0 * d_target / xy_scale_t) *
+            v
+        )
+        return max(scores)
+
     def _grow(self, ann, th, reverse_match=True):
         frontier = PriorityQueue()
         evaluated_connections = set()
@@ -232,6 +268,29 @@ class Dijkstra(object):
                 frontier.put((-new_xyv[2], new_xyv, start_i, end_i))
                 evaluated_connections.add((start_i, end_i))
 
+        def confirm(jsi, jti, target_xyv, th=0.2):
+            if ann.data[jsi, 2] < th or target_xyv[2] < th:
+                return True
+
+            for paf_i, (j1, j2) in enumerate(self.skeleton_m1):
+                if (j1 == jsi and j2 == jti) or (j2 == jsi and j1 == jti):
+                    continue
+                if j2 == jti:
+                    source_xyv = ann.data[j1]
+                    forward = True
+                elif j1 == jti:
+                    source_xyv = ann.data[j2]
+                    forward = False
+                else:
+                    continue
+                if source_xyv[2] < th:
+                    continue
+                v = self.p2p_value(source_xyv, target_xyv, paf_i, forward)
+                if v < 0.03:
+                    return False
+
+            return True
+
         # seeding the frontier
         for joint_i, v in enumerate(ann.data[:, 2]):
             if v == 0.0:
@@ -241,6 +300,8 @@ class Dijkstra(object):
         while frontier.qsize():
             _, new_xyv, jsi, jti = frontier.get()
             if ann.data[jti, 2] > 0.0:
+                continue
+            if not confirm(jsi, jti, new_xyv):
                 continue
 
             ann.data[jti] = new_xyv
