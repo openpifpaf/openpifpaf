@@ -1,6 +1,8 @@
 # openpifpaf
 
-Continuously tested on Linux, MacOS and Windows: [![Build Status](https://travis-ci.org/vita-epfl/openpifpaf.svg?branch=master)](https://travis-ci.org/vita-epfl/openpifpaf)
+Continuously tested on Linux, MacOS and Windows: [![Build Status](https://travis-ci.org/vita-epfl/openpifpaf.svg?branch=master)](https://travis-ci.org/vita-epfl/openpifpaf)<br />
+[CVPR 2019 paper](http://openaccess.thecvf.com/content_CVPR_2019/html/Kreiss_PifPaf_Composite_Fields_for_Human_Pose_Estimation_CVPR_2019_paper.html),
+[arxiv.org/abs/1903.06593](https://arxiv.org/abs/1903.06593)
 
 > We propose a new bottom-up method for multi-person 2D human pose
 > estimation that is particularly well suited for urban mobility such as self-driving cars
@@ -16,20 +18,6 @@ Continuously tested on Linux, MacOS and Windows: [![Build Status](https://travis
 > state-of-the-art bottom-up method on the standard COCO keypoint task
 > and produce state-of-the-art results on a modified COCO keypoint task for
 > the transportation domain.
-
-
-```
-@InProceedings{kreiss2019pifpaf,
-  author = {Kreiss, Sven and Bertoni, Lorenzo and Alahi, Alexandre},
-  title = {PifPaf: Composite Fields for Human Pose Estimation},
-  booktitle = {The IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
-  month = {June},
-  year = {2019}
-}
-```
-
-[CVPR 2019 website](http://openaccess.thecvf.com/content_CVPR_2019/html/Kreiss_PifPaf_Composite_Fields_for_Human_Pose_Estimation_CVPR_2019_paper.html),
-[arxiv.org/abs/1903.06593](https://arxiv.org/abs/1903.06593)
 
 
 # Demo
@@ -224,6 +212,19 @@ In this process, ffmpeg scales the video to `641px` which can be adjusted.
 
 * [monoloco](https://github.com/vita-epfl/monoloco): "Monocular 3D Pedestrian Localization and Uncertainty Estimation" which uses OpenPifPaf for poses.
 * [openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo): web front-end.
+
+
+# Citation
+
+```
+@InProceedings{kreiss2019pifpaf,
+  author = {Kreiss, Sven and Bertoni, Lorenzo and Alahi, Alexandre},
+  title = {PifPaf: Composite Fields for Human Pose Estimation},
+  booktitle = {The IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
+  month = {June},
+  year = {2019}
+}
+```
 
 
 [CC-BY-2.0]: https://creativecommons.org/licenses/by/2.0/
