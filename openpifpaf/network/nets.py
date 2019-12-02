@@ -2,7 +2,7 @@ import logging
 import torch
 import torchvision
 
-from . import basenetworks, heads
+from . import basenetworks, heads, pyramid
 from ..data import COCO_KEYPOINTS, COCO_PERSON_SKELETON, DENSER_COCO_PERSON_CONNECTIONS, HFLIP
 
 # generate hash values with: shasum -a 256 filename.pkl
@@ -183,6 +183,10 @@ def factory_from_args(args):
     heads.CompositeField.dropout_p = args.head_dropout
     heads.CompositeField.quad = args.head_quad
 
+    # configure pyramid
+    pyramid.PumpAndDump.n_layers = args.pyramid_layers
+    pyramid.PumpAndDump.stack_size = args.pyramid_stack_size
+
     return factory(
         checkpoint=args.checkpoint,
         base_name=args.basenet,
@@ -347,7 +351,7 @@ def factory_from_scratch(basename, headnames, *, pretrained=True):
     if basename == 'shufflenetv2x1':
         base_vision = torchvision.models.shufflenet_v2_x1_0(pretrained)
         return shufflenet_factory_from_scratch(basename, base_vision, 1024, headnames)
-    if basename == 'shufflenetv2x2':
+    if basename.startswith('shufflenetv2x2'):
         base_vision = torchvision.models.shufflenet_v2_x2_0(pretrained)
         return shufflenet_factory_from_scratch(basename, base_vision, 2048, headnames)
     if 'shufflenetv2x2w' in basename:
@@ -361,13 +365,22 @@ def factory_from_scratch(basename, headnames, *, pretrained=True):
 
 def shufflenet_factory_from_scratch(basename, base_vision, out_features, headnames):
     blocks = basenetworks.ShuffleNetV2Factory(base_vision).blocks()
+    if 'pd' in basename:
+        blocks.insert(-1, pyramid.PumpAndDump(
+            blocks[-1][0].in_channels,
+            block_factory=pyramid.PumpAndDumpColumn.create_invertedresidual,
+        ))
+    LOG.debug(blocks)
+
     basenet = basenetworks.BaseNetwork(
         torch.nn.Sequential(*blocks),
         basename,
         input_output_scale=16,
         out_features=out_features,
     )
+
     headnets = [heads.factory(h, basenet.out_features) for h in headnames if h != 'skeleton']
+
     net_cpu = Shell(basenet, headnets)
     model_defaults(net_cpu)
     return net_cpu
@@ -403,6 +416,10 @@ def resnet_factory_from_scratch(basename, base_vision, out_features, headnames):
     if 'concat' in basename:
         for b in blocks[2:]:
             resnet_factory.replace_downsample(b)
+
+    # pump and dump extension
+    if 'pd' in basename:
+        blocks.append(pyramid.PumpAndDump(out_features))
 
     basenet = basenetworks.BaseNetwork(
         torch.nn.Sequential(*blocks),
@@ -443,3 +460,9 @@ def cli(parser):
                        help='[experimental] zeroing probability of feature in head input')
     group.add_argument('--head-quad', default=heads.CompositeField.quad, type=int,
                        help='number of times to apply quad (subpixel conv) to heads')
+
+    group = parser.add_argument_group('pyramid')
+    group.add_argument('--pyramid-layers', default=pyramid.PumpAndDump.n_layers, type=int,
+                       help='[experimental]')
+    group.add_argument('--pyramid-stack-size', default=pyramid.PumpAndDump.stack_size, type=int,
+                       help='[experimental]')
