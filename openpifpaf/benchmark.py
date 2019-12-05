@@ -31,6 +31,7 @@ def cli():
                         help='output file name')
     parser.add_argument('--backbones', default=DEFAULT_BACKBONES, nargs='+',
                         help='backbones to evaluate')
+    parser.add_argument('--iccv2019-ablation', default=False, action='store_true')
     group = parser.add_argument_group('logging')
     group.add_argument('--debug', default=False, action='store_true',
                        help='print debug messages')
@@ -41,6 +42,14 @@ def cli():
     # default eval_args
     if not eval_args:
         eval_args = ['--all-images', '--loader-workers=8']
+
+    if '--all-images' not in eval_args:
+        LOG.info('adding "--all-images" to the argument list')
+        eval_args.append('--all-images')
+
+    if not any(l.startswith('--loader-workers') for l in eval_args):
+        LOG.info('adding "--loader-workers=8" to the argument list')
+        eval_args.append('--loader-workers=8')
 
     # generate a default output filename
     if args.output is None:
@@ -54,6 +63,7 @@ def cli():
 def run_eval_coco(output_folder, backbone, eval_args, output_name=None):
     if output_name is None:
         output_name = backbone
+    output_name = output_name.replace('/', '-')
 
     out_file = os.path.join(output_folder, output_name)
     if os.path.exists(out_file + '.stats.json'):
@@ -72,7 +82,8 @@ def run_eval_coco(output_folder, backbone, eval_args, output_name=None):
 def main():
     args, eval_args = cli()
 
-    if len(args.backbones) == 1:
+    if args.iccv2019_ablation:
+        assert len(args.backbones) == 1
         multi_eval_args = [
             eval_args,
             eval_args + ['--connection-method=blend'],
@@ -97,7 +108,7 @@ def main():
         sc
         .wholeTextFiles(args.output + '*.stats.json')
         .mapValues(json.loads)
-        .map(lambda d: (d[0].replace('.stats.json', '').replace(args.output + '/', ''), d[1]))
+        .map(lambda d: (d[0].replace('.stats.json', '').replace(args.output, ''), d[1]))
         .collectAsMap()
     )
     LOG.debug('all data: %s', stats)

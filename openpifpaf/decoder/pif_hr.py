@@ -4,7 +4,7 @@ import time
 import numpy as np
 
 # pylint: disable=import-error
-from ..functional import cumulative_average, scalar_square_add_gauss
+from ..functional import cumulative_average, scalar_square_add_gauss_with_max
 
 LOG = logging.getLogger(__name__)
 
@@ -23,11 +23,7 @@ class PifHr(object):
 
     @property
     def targets(self):
-        if self._clipped is not None:
-            return self._clipped
-
-        self._clipped = np.minimum(1.0, self.target_accumulator)
-        return self._clipped
+        return self.target_accumulator
 
     def fill(self, pif, stride, min_scale=0.0):
         return self.fill_multiple([pif], stride, min_scale)
@@ -58,7 +54,7 @@ class PifHr(object):
                 y = y * stride
                 s = s * stride
 
-                scalar_square_add_gauss(t, x, y, s, v / self.pif_nn / len(pifs))
+                scalar_square_add_gauss_with_max(t, x, y, s, v / self.pif_nn / len(pifs))
                 cumulative_average(scale, n, x, y, s, s, v)
 
         if self.target_accumulator is None:
