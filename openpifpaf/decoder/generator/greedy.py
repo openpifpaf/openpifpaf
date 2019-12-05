@@ -176,7 +176,7 @@ class Greedy(object):
                 directed_paf_field_reverse = self.paf_scored.forward[i]
             xyv = ann.data[jsi]
             xy_scale_s = max(
-                8.0,
+                4.0,
                 scalar_value(self.pifhr.scales[jsi], xyv[0], xyv[1])
             )
 
@@ -184,7 +184,7 @@ class Greedy(object):
             if new_xyv[2] < th:
                 continue
             xy_scale_t = max(
-                8.0,
+                4.0,
                 scalar_value(self.pifhr.scales[jti], new_xyv[0], new_xyv[1])
             )
 
