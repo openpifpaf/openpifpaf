@@ -56,8 +56,10 @@ def cli(parser, *,
                        help='profile decoder')
 
     group = parser.add_argument_group('PifPaf decoders')
+    assert PifPaf.fixed_b == PifPafDijkstra.fixed_b
     group.add_argument('--fixed-b', default=PifPaf.fixed_b, type=float,
                        help='overwrite b with fixed value, e.g. 0.5')
+    assert PifPaf.pif_fixed_scale == PifPafDijkstra.pif_fixed_scale
     group.add_argument('--pif-fixed-scale', default=PifPaf.pif_fixed_scale, type=float,
                        help='overwrite pif scale with a fixed value')
     group.add_argument('--pif-th', default=PifHr.v_threshold, type=float,
@@ -66,6 +68,7 @@ def cli(parser, *,
     assert PifPaf.paf_th == PafsDijkstra.paf_th
     group.add_argument('--paf-th', default=PifPaf.paf_th, type=float,
                        help='paf threshold')
+    assert PifPaf.connection_method == PifPafDijkstra.connection_method
     group.add_argument('--connection-method',
                        default=PifPaf.connection_method,
                        choices=('median', 'max', 'blend'),
@@ -96,6 +99,9 @@ def factory_from_args(args, model, device=None):
     PafsDijkstra.paf_th = args.paf_th
     PafsDijkstra.connection_method = args.connection_method
     PafsDijkstra.force_complete = args.force_complete_pose
+
+    # configure PifHr
+    PifHr.v_threshold = args.pif_th
 
     debug_visualizer = None
     if args.debug_pif_indices or args.debug_paf_indices:
