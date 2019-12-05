@@ -62,6 +62,8 @@ def cli(parser, *,
                        help='overwrite pif scale with a fixed value')
     group.add_argument('--pif-th', default=PifHr.v_threshold, type=float,
                        help='pif threshold')
+    assert PifPaf.paf_th == PifPafDijkstra.paf_th
+    assert PifPaf.paf_th == PafsDijkstra.paf_th
     group.add_argument('--paf-th', default=PifPaf.paf_th, type=float,
                        help='paf threshold')
     group.add_argument('--connection-method',

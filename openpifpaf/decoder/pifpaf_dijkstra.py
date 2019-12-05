@@ -6,10 +6,10 @@ import time
 import numpy as np
 
 from . import generator
-from .paf_scored import PafScored
-from .pif_hr import PifHr
+from .paf_scored import Paf7Scored
+from .pif_hr import PifHrNoScales
 from .pif_seeds import PifSeeds
-from .utils import normalize_pif, normalize_paf
+from .utils import normalize_pif, normalize_paf7
 
 LOG = logging.getLogger(__name__)
 
@@ -32,6 +32,7 @@ class PifPafDijkstra(object):
                  seed_score_scale=1.0,
                  confidence_scales=None,
                  out_skeleton=None,
+                 confirm_connections=False,
                  debug_visualizer=None):
         self.strides = stride
         self.pif_indices = pif_index
@@ -58,6 +59,7 @@ class PifPafDijkstra(object):
         self.keypoints = keypoints
         self.skeleton = skeleton
         self.out_skeleton = out_skeleton
+        self.confirm_connections = confirm_connections
 
         self.seed_threshold = seed_threshold
         self.seed_score_scale = seed_score_scale
@@ -87,11 +89,11 @@ class PifPafDijkstra(object):
         # normalize
         normalized_pifs = [normalize_pif(*fields[pif_i], fixed_scale=self.pif_fixed_scale)
                            for pif_i in self.pif_indices]
-        normalized_pafs = [normalize_paf(*fields[paf_i][:5], fixed_b=self.fixed_b)
+        normalized_pafs = [normalize_paf7(*fields[paf_i], fixed_b=self.fixed_b)
                            for paf_i in self.paf_indices]
 
         # pif hr
-        pifhr = PifHr(self.pif_nn)
+        pifhr = PifHrNoScales(self.pif_nn)
         pifhr.fill_sequence(normalized_pifs, self.strides, self.pif_min_scales)
 
         # seeds
@@ -101,7 +103,7 @@ class PifPafDijkstra(object):
         seeds.fill_sequence(normalized_pifs, self.strides, self.pif_min_scales)
 
         # paf_scored
-        paf_scored = PafScored(pifhr.targets, self.skeleton, score_th=self.paf_th)
+        paf_scored = Paf7Scored(pifhr.targets, self.skeleton, score_th=self.paf_th)
         paf_scored.fill_sequence(
             normalized_pafs, self.strides, self.paf_min_distances, self.paf_max_distances)
 
@@ -114,12 +116,13 @@ class PifPafDijkstra(object):
             keypoints=self.keypoints,
             skeleton=self.skeleton,
             out_skeleton=self.out_skeleton,
+            confirm_connections=self.confirm_connections,
             debug_visualizer=self.debug_visualizer,
         )
 
         annotations = gen.annotations(initial_annotations=initial_annotations)
         if self.force_complete:
-            gen.paf_scored = PafScored(pifhr.targets, self.skeleton, score_th=0.0001)
+            gen.paf_scored = Paf7Scored(pifhr.targets, self.skeleton, score_th=0.0001)
             gen.paf_scored.fill_sequence(
                 normalized_pafs, self.strides, self.paf_min_distances, self.paf_max_distances)
             annotations = gen.complete_annotations(annotations)

@@ -133,7 +133,12 @@ class DijkstraPafs(object):
         """
         assert target_coordinates.shape[1] == len(scores)
         if len(scores) == 1:
-            return target_coordinates[0, 0], target_coordinates[1, 0], target_coordinates[2, 0], scores[0]
+            return (
+                target_coordinates[0, 0],
+                target_coordinates[1, 0],
+                target_coordinates[2, 0],
+                scores[0],
+            )
 
         sorted_i = np.argsort(scores)
         max_entry_1 = target_coordinates[:, sorted_i[-1]]
@@ -162,18 +167,12 @@ class DijkstraPafs(object):
             directed_paf_field = self.paf[paf_i, ::-1]
             directed_paf_field_reverse = self.paf[paf_i]
         xyv = ann.data[jsi]
-        xy_scale_s = max(
-            8.0,
-            ann.joint_scales[jsi]
-        )
+        xy_scale_s = max(4.0, ann.joint_scales[jsi])
 
         new_xysv = self._grow_connection(xyv[:2], xy_scale_s, directed_paf_field)
         if new_xysv[3] < th:
             return 0.0, 0.0, 0.0, 0.0
-        xy_scale_t = max(
-            8.0,
-            new_xysv[2]
-        )
+        xy_scale_t = max(4.0, new_xysv[2])
 
         # reverse match
         if reverse_match:
@@ -184,7 +183,8 @@ class DijkstraPafs(object):
             if abs(xyv[0] - reverse_xyv[0]) + abs(xyv[1] - reverse_xyv[1]) > xy_scale_s:
                 return 0.0, 0.0, 0.0, 0.0
 
-        return (new_xysv[0], new_xysv[1], new_xysv[2], np.sqrt(new_xysv[3] * xyv[2]))  # geometric mean
+        # geometric mean
+        return (new_xysv[0], new_xysv[1], new_xysv[2], np.sqrt(new_xysv[3] * xyv[2]))
 
     def _grow(self, ann, th, reverse_match=True):
         frontier = PriorityQueue()

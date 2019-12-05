@@ -9,7 +9,7 @@ from ..annotation import Annotation
 from ..utils import scalar_square_add_single
 
 # pylint: disable=import-error
-from ...functional import paf_center, scalar_value, scalar_nonzero, weiszfeld_nd
+from ...functional import paf_center_s, scalar_nonzero
 
 LOG = logging.getLogger(__name__)
 
@@ -23,6 +23,7 @@ class Dijkstra(object):
                  keypoints,
                  skeleton,
                  out_skeleton=None,
+                 confirm_connections=False,
                  debug_visualizer=None):
         self.pifhr = pifhr
         self.paf_scored = paf_scored
@@ -37,6 +38,7 @@ class Dijkstra(object):
         self.skeleton = skeleton
         self.skeleton_m1 = np.asarray(skeleton) - 1
         self.out_skeleton = out_skeleton or skeleton
+        self.confirm_connections = confirm_connections
 
         self.debug_visualizer = debug_visualizer
         self.timers = defaultdict(float)
@@ -51,7 +53,7 @@ class Dijkstra(object):
             initial_annotations = []
         LOG.debug('initial annotations = %d', len(initial_annotations))
 
-        occupied = np.zeros(self.pifhr.scales.shape, dtype=np.uint8)
+        occupied = np.zeros(self.pifhr.targets.shape, dtype=np.uint8)
         annotations = []
 
         def mark_occupied(ann):
@@ -67,20 +69,17 @@ class Dijkstra(object):
                                          1)
 
         for ann in initial_annotations:
-            if ann.joint_scales is None:
-                ann.fill_joint_scales(self.pifhr.scales)
             self._grow(ann, self.paf_th)
-            ann.fill_joint_scales(self.pifhr.scales)
             annotations.append(ann)
             mark_occupied(ann)
 
-        for v, f, x, y, _ in self.seeds.get():
+        for v, f, x, y, s in self.seeds.get():
             if scalar_nonzero(occupied[f], x, y):
                 continue
 
             ann = Annotation(self.keypoints, self.out_skeleton).add(f, (x, y, v))
+            ann.joint_scales[f] = s
             self._grow(ann, self.paf_th)
-            ann.fill_joint_scales(self.pifhr.scales)
             annotations.append(ann)
             mark_occupied(ann)
 
@@ -93,46 +92,28 @@ class Dijkstra(object):
 
     def _grow_connection(self, xy, xy_scale, paf_field):
         assert len(xy) == 2
-        assert paf_field.shape[0] == 7
+        assert paf_field.shape[0] == 2
+        assert paf_field.shape[1] == 5
+        paf_field = np.reshape(paf_field, (2, 5, -1))
+        paf_field = paf_field[:, [0, 1, 2, 4]]
 
         # source value
-        paf_field = paf_center(paf_field, xy[0], xy[1], sigma=5.0 * xy_scale)
-        if paf_field.shape[1] == 0:
-            return 0, 0, 0
+        paf_field = paf_center_s(paf_field, xy[0], xy[1], sigma=5.0 * xy_scale)
+        if paf_field.shape[2] == 0:
+            return 0, 0, 0, 0
 
         # source distance
-        d = np.linalg.norm(((xy[0],), (xy[1],)) - paf_field[1:3], axis=0)
+        d = np.linalg.norm(((xy[0],), (xy[1],)) - paf_field[0, 1:3], axis=0)
 
         # combined value and source distance
-        v = paf_field[0]
+        v = paf_field[0, 0]
         scores = np.exp(-1.0 * d / xy_scale) * v  # two-tailed cumulative Laplace
 
-        if self.connection_method == 'median':
-            return self._target_with_median(paf_field[4:6], scores, sigma=1.0)
         if self.connection_method == 'max':
-            return self._target_with_maxscore(paf_field[4:6], scores)
+            return self._target_with_maxscore(paf_field[1, 1:4], scores)
         if self.connection_method == 'blend':
-            return self._target_with_blend(paf_field[4:6], scores)
+            return self._target_with_blend(paf_field[1, 1:4], scores)
         raise Exception('connection method not known')
-
-    def _target_with_median(self, target_coordinates, scores, sigma, max_steps=20):
-        target_coordinates = np.moveaxis(target_coordinates, 0, -1)
-        assert target_coordinates.shape[0] == scores.shape[0]
-
-        if target_coordinates.shape[0] == 1:
-            return (target_coordinates[0][0],
-                    target_coordinates[0][1],
-                    np.tanh(scores[0] * 3.0 / self.paf_nn))
-
-        y = np.sum(target_coordinates * np.expand_dims(scores, -1), axis=0) / np.sum(scores)
-        if target_coordinates.shape[0] == 2:
-            return y[0], y[1], np.tanh(np.sum(scores) * 3.0 / self.paf_nn)
-        y, prev_d = weiszfeld_nd(target_coordinates, y, weights=scores, max_steps=max_steps)
-
-        closest = prev_d < sigma
-        close_scores = np.sort(scores[closest])[-self.paf_nn:]
-        score = np.tanh(np.sum(close_scores) * 3.0 / self.paf_nn)
-        return (y[0], y[1], score)
 
     @staticmethod
     def _target_with_maxscore(target_coordinates, scores):
@@ -142,7 +123,7 @@ class Dijkstra(object):
         max_entry = target_coordinates[:, max_i]
 
         score = scores[max_i]
-        return max_entry[0], max_entry[1], score
+        return max_entry[0], max_entry[1], max_entry[2], score
 
     @staticmethod
     def _target_with_blend(target_coordinates, scores):
@@ -153,7 +134,12 @@ class Dijkstra(object):
         """
         assert target_coordinates.shape[1] == len(scores)
         if len(scores) == 1:
-            return target_coordinates[0, 0], target_coordinates[1, 0], scores[0]
+            return (
+                target_coordinates[0, 0],
+                target_coordinates[1, 0],
+                target_coordinates[2, 0],
+                scores[0],
+            )
 
         sorted_i = np.argsort(scores)
         max_entry_1 = target_coordinates[:, sorted_i[-1]]
@@ -162,78 +148,67 @@ class Dijkstra(object):
         score_1 = scores[sorted_i[-1]]
         score_2 = scores[sorted_i[-2]]
         if score_2 < 0.01 or score_2 < 0.5 * score_1:
-            return max_entry_1[0], max_entry_1[1], score_1
+            return max_entry_1[0], max_entry_1[1], max_entry_1[2], score_1
 
         return (
             (score_1 * max_entry_1[0] + score_2 * max_entry_2[0]) / (score_1 + score_2),
             (score_1 * max_entry_1[1] + score_2 * max_entry_2[1]) / (score_1 + score_2),
+            (score_1 * max_entry_1[2] + score_2 * max_entry_2[2]) / (score_1 + score_2),
             0.5 * (score_1 + score_2),
         )
 
     def connection_value(self, ann, paf_i, forward, th, reverse_match=True):
         j1i, j2i = self.skeleton_m1[paf_i]
         if forward:
-            jsi, jti = j1i, j2i
+            jsi = j1i
             directed_paf_field = self.paf_scored.forward[paf_i]
             directed_paf_field_reverse = self.paf_scored.backward[paf_i]
         else:
-            jsi, jti = j2i, j1i
+            jsi = j2i
             directed_paf_field = self.paf_scored.backward[paf_i]
             directed_paf_field_reverse = self.paf_scored.forward[paf_i]
         xyv = ann.data[jsi]
-        xy_scale_s = max(
-            8.0,
-            scalar_value(self.pifhr.scales[jsi], xyv[0], xyv[1])
-        )
+        xy_scale_s = max(4.0, ann.joint_scales[jsi])
 
-        new_xyv = self._grow_connection(xyv[:2], xy_scale_s, directed_paf_field)
-        if new_xyv[2] < th:
-            return 0.0, 0.0, 0.0
-        xy_scale_t = max(
-            8.0,
-            scalar_value(self.pifhr.scales[jti], new_xyv[0], new_xyv[1])
-        )
+        new_xysv = self._grow_connection(xyv[:2], xy_scale_s, directed_paf_field)
+        if new_xysv[3] < th:
+            return 0.0, 0.0, 0.0, 0.0
+        xy_scale_t = max(4.0, new_xysv[2])
 
         # reverse match
         if reverse_match:
             reverse_xyv = self._grow_connection(
-                new_xyv[:2], xy_scale_t, directed_paf_field_reverse)
+                new_xysv[:2], xy_scale_t, directed_paf_field_reverse)
             if reverse_xyv[2] < th:
-                return 0.0, 0.0, 0.0
+                return 0.0, 0.0, 0.0, 0.0
             if abs(xyv[0] - reverse_xyv[0]) + abs(xyv[1] - reverse_xyv[1]) > xy_scale_s:
-                return 0.0, 0.0, 0.0
+                return 0.0, 0.0, 0.0, 0.0
 
-        return (new_xyv[0], new_xyv[1], np.sqrt(new_xyv[2] * xyv[2]))  # geometric mean
+        # geometric mean
+        return (new_xysv[0], new_xysv[1], new_xysv[2], np.sqrt(new_xysv[3] * xyv[2]))
 
-    def p2p_value(self, source_xyv, target_xyv, paf_i, forward):
-        j1i, j2i = self.skeleton_m1[paf_i]
+    def p2p_value(self, source_xyv, source_s, target_xysv, paf_i, forward):
         if forward:
-            jsi, jti = j1i, j2i
             directed_paf_field = self.paf_scored.forward[paf_i]
         else:
-            jsi, jti = j2i, j1i
             directed_paf_field = self.paf_scored.backward[paf_i]
-        xy_scale_s = max(
-            8.0,
-            scalar_value(self.pifhr.scales[jsi], source_xyv[0], source_xyv[1])
-        )
+        xy_scale_s = max(4.0, source_s)
 
         # source value
-        paf_field = paf_center(directed_paf_field, source_xyv[0], source_xyv[1],
-                               sigma=5.0 * xy_scale_s)
-        if paf_field.shape[1] == 0:
+        paf_field = paf_center_s(directed_paf_field, source_xyv[0], source_xyv[1],
+                                 sigma=5.0 * xy_scale_s)
+        if paf_field.shape[2] == 0:
             return 0.0
 
         # distances
-        d_source = np.linalg.norm(((source_xyv[0],), (source_xyv[1],)) - paf_field[1:3], axis=0)
-        d_target = np.linalg.norm(((target_xyv[0],), (target_xyv[1],)) - paf_field[4:6], axis=0)
+        d_source = np.linalg.norm(
+            ((source_xyv[0],), (source_xyv[1],)) - paf_field[0, 1:3], axis=0)
+        d_target = np.linalg.norm(
+            ((target_xysv[0],), (target_xysv[1],)) - paf_field[1, 1:3], axis=0)
 
         # combined value and source distance
-        xy_scale_t = max(
-            8.0,
-            scalar_value(self.pifhr.scales[jti], target_xyv[0], target_xyv[1])
-        )
-        v = paf_field[0]
+        xy_scale_t = max(4.0, target_xysv[2])
+        v = paf_field[0, 0]
         scores = (  # two-tailed cumulative Laplace
             np.exp(-1.0 * d_source / xy_scale_s) *
             np.exp(-1.0 * d_target / xy_scale_t) *
@@ -261,15 +236,15 @@ class Dijkstra(object):
                 if (start_i, end_i) in evaluated_connections:
                     continue
 
-                new_xyv = self.connection_value(
+                new_xysv = self.connection_value(
                     ann, paf_i, forward, th, reverse_match=reverse_match)
-                if new_xyv[2] == 0.0:
+                if new_xysv[3] == 0.0:
                     continue
-                frontier.put((-new_xyv[2], new_xyv, start_i, end_i))
+                frontier.put((-new_xysv[3], new_xysv, start_i, end_i))
                 evaluated_connections.add((start_i, end_i))
 
-        def confirm(jsi, jti, target_xyv, th=0.2):
-            if ann.data[jsi, 2] < th or target_xyv[2] < th:
+        def confirm(jsi, jti, target_xysv, th=0.2):
+            if ann.data[jsi, 2] < th or target_xysv[3] < th:
                 return True
 
             for paf_i, (j1, j2) in enumerate(self.skeleton_m1):
@@ -277,15 +252,17 @@ class Dijkstra(object):
                     continue
                 if j2 == jti:
                     source_xyv = ann.data[j1]
+                    source_s = ann.joint_scales[j1]
                     forward = True
                 elif j1 == jti:
                     source_xyv = ann.data[j2]
+                    source_s = ann.joint_scales[j2]
                     forward = False
                 else:
                     continue
                 if source_xyv[2] < th:
                     continue
-                v = self.p2p_value(source_xyv, target_xyv, paf_i, forward)
+                v = self.p2p_value(source_xyv, source_s, target_xysv, paf_i, forward)
                 if v < 0.03:
                     return False
 
@@ -298,13 +275,15 @@ class Dijkstra(object):
             add_to_frontier(joint_i)
 
         while frontier.qsize():
-            _, new_xyv, jsi, jti = frontier.get()
+            _, new_xysv, jsi, jti = frontier.get()
             if ann.data[jti, 2] > 0.0:
                 continue
-            if not confirm(jsi, jti, new_xyv):
+            if self.confirm_connections and not confirm(jsi, jti, new_xysv):
                 continue
 
-            ann.data[jti] = new_xyv
+            ann.data[jti, :2] = new_xysv[:2]
+            ann.data[jti, 2] = new_xysv[3]
+            ann.joint_scales[jti] = new_xysv[2]
             ann.decoding_order.append(
                 (jsi, jti, np.copy(ann.data[jsi]), np.copy(ann.data[jti])))
             add_to_frontier(jti)
@@ -331,7 +310,6 @@ class Dijkstra(object):
             now_filled_mask = ann.data[:, 2] > 0.0
             updated = np.logical_and(unfilled_mask, now_filled_mask)
             ann.data[updated, 2] = np.minimum(0.001, ann.data[updated, 2])
-            ann.fill_joint_scales(self.pifhr.scales)
 
             # some joints might still be unfilled
             if np.any(ann.data[:, 2] == 0.0):

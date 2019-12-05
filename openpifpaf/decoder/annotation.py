@@ -11,7 +11,7 @@ class Annotation(object):
         self.suppress_score_index = suppress_score_index
 
         self.data = np.zeros((len(keypoints), 3), dtype=np.float32)
-        self.joint_scales = None
+        self.joint_scales = np.zeros((len(keypoints),), dtype=np.float32)
         self.fixed_score = None
         self.decoding_order = []
 
