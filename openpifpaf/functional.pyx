@@ -1,6 +1,5 @@
 # cython: infer_types=True
 cimport cython
-from cython.parallel import prange  # TODO: verify speedup
 from libc.math cimport exp, fabs, sqrt, fmin, fmax
 import numpy as np
 
@@ -12,7 +11,7 @@ cpdef void scalar_square_add_constant(float[:, :] field, float[:] x, float[:] y,
     cdef Py_ssize_t i, xx, yy
     cdef float cx, cy, cv, cwidth
 
-    for i in prange(x.shape[0]):
+    for i in range(x.shape[0]):
         cx = x[i]
         cy = y[i]
         cv = v[i]
@@ -35,7 +34,7 @@ cpdef void cumulative_average(float[:, :] cuma, float[:, :] cumw, float[:] x, fl
     cdef float cv, cw, cx, cy, cwidth
     cdef Py_ssize_t i, xx, yy
 
-    for i in prange(x.shape[0]):
+    for i in range(x.shape[0]):
         cw = w[i]
         if cw <= 0.0:
             continue
@@ -78,7 +77,7 @@ cpdef void scalar_square_add_gauss(float[:, :] field, float[:] x, float[:] y, fl
     cdef float cv, cx, cy, csigma, csigma2
     cdef long minx, miny, maxx, maxy
 
-    for i in prange(x.shape[0]):
+    for i in range(x.shape[0]):
         csigma = sigma[i]
         csigma2 = csigma * csigma
         cx = x[i]
@@ -100,13 +99,13 @@ cpdef void scalar_square_add_gauss(float[:, :] field, float[:] x, float[:] y, fl
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.cdivision(True)
-cpdef void scalar_square_add_gauss_with_max(float[:, :] field, float[:] x, float[:] y, float[:] sigma, float[:] v, float truncate=2.0, float max=1.0) nogil:
+cpdef void scalar_square_add_gauss_with_max(float[:, :] field, float[:] x, float[:] y, float[:] sigma, float[:] v, float truncate=2.0, float max_value=1.0) nogil:
     cdef Py_ssize_t i, xx, yy
     cdef float vv, deltax2, deltay2
     cdef float cv, cx, cy, csigma, csigma2
     cdef long minx, miny, maxx, maxy
 
-    for i in prange(x.shape[0]):
+    for i in range(x.shape[0]):
         csigma = sigma[i]
         csigma2 = csigma * csigma
         cx = x[i]
@@ -123,8 +122,7 @@ cpdef void scalar_square_add_gauss_with_max(float[:, :] field, float[:] x, float
                 deltay2 = (yy - cy)**2
                 vv = cv * approx_exp(-0.5 * (deltax2 + deltay2) / csigma2)
                 field[yy, xx] += vv
-                if field[yy, xx] >= max:
-                    field[yy, xx] = max
+                field[yy, xx] = min(max_value, field[yy, xx])
 
 
 @cython.boundscheck(False)
@@ -136,7 +134,7 @@ cpdef void scalar_square_max_gauss(float[:, :] field, float[:] x, float[:] y, fl
     cdef float cv, cx, cy, csigma, csigma2
     cdef long minx, miny, maxx, maxy
 
-    for i in prange(x.shape[0]):
+    for i in range(x.shape[0]):
         csigma = sigma[i]
         csigma2 = csigma * csigma
         cx = x[i]

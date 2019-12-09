@@ -54,7 +54,8 @@ class PifHr(object):
                 y = y * stride
                 s = s * stride
 
-                scalar_square_add_gauss_with_max(t, x, y, s, v / self.pif_nn / len(pifs))
+                scalar_square_add_gauss_with_max(
+                    t, x, y, s, v / self.pif_nn / len(pifs), truncate=1.0)
                 cumulative_average(scale, n, x, y, s, s, v)
 
         if self.target_accumulator is None:
