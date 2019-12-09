@@ -80,14 +80,14 @@ Tools to work with models:
 
 # Pre-trained Models
 
-Performance metrics with version 0.10.0 on the COCO val set obtained with a GTX1080Ti:
+Performance metrics with version 0.10.1 on the COCO val set obtained with a GTX1080Ti:
 
 | Backbone               | AP       | APᴹ      | APᴸ      | t_{total} [ms]  | t_{dec} [ms] |
 |-----------------------:|:--------:|:--------:|:--------:|:---------------:|:------------:|
-| [shufflenetv2x2]       | __60.4__ | 55.3     | 68.1     | 80              | 56           |
-| [resnet50]             | __64.6__ | 61.1     | 70.2     | 100             | 55           |
+| [shufflenetv2x2]       | __60.4__ | 55.5     | 67.8     | 56              | 33           |
+| [resnet50]             | __64.4__ | 61.1     | 69.9     | 76              | 32           |
 | [(v0.8) resnext50]     | __63.8__ | 61.1     | 68.1     | 93              | 33           |
-| [resnet101]            | __67.9__ | 63.6     | 74.7     | 120             | 51           |
+| [resnet101]            | __67.8__ | 63.6     | 74.3     | 97              | 28           |
 | [(v0.8) resnet152]     | __67.8__ | 64.4     | 73.3     | 122             | 30           |
 
 [SHUFFLENETV2X1]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.1.0/shufflenetv2x1-pif-paf-edge401-190705-151607-d9a35d7e.pkl
