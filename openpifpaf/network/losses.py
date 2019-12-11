@@ -299,8 +299,8 @@ class CompositeLoss(torch.nn.Module):
             assert len(x_scales) == len(target_scales)
             scale_losses = [
                 torch.nn.functional.l1_loss(
-                    torch.masked_select(x_scale, reg_masks),
-                    torch.masked_select(target_scale, reg_masks),
+                    torch.masked_select(x_scale, torch.isnan(target_scale) == 0),
+                    torch.masked_select(target_scale, torch.isnan(target_scale) == 0),
                     reduction='sum',
                 ) / 1000.0 / batch_size
                 for x_scale, target_scale in zip(x_scales, target_scales)
