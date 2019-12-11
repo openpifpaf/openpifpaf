@@ -4,6 +4,7 @@ import scipy
 import torch
 
 from .annrescaler import AnnRescaler
+from .pif import scale_from_keypoints
 from ..utils import create_sink, mask_valid_area
 
 LOG = logging.getLogger(__name__)
@@ -66,8 +67,8 @@ class PafGenerator(object):
         self.fields_reg2 = np.zeros((n_fields, 6, field_h, field_w), dtype=np.float32)
         self.fields_reg1[:, 2:] = np.inf
         self.fields_reg2[:, 2:] = np.inf
-        self.fields_scale1 = np.zeros((n_fields, field_h, field_w), dtype=np.float32)
-        self.fields_scale2 = np.zeros((n_fields, field_h, field_w), dtype=np.float32)
+        self.fields_scale1 = np.full((n_fields, field_h, field_w), np.nan, dtype=np.float32)
+        self.fields_scale2 = np.full((n_fields, field_h, field_w), np.nan, dtype=np.float32)
         self.fields_reg_l = np.full((n_fields, field_h, field_w), np.inf, dtype=np.float32)
 
         # set background
@@ -95,12 +96,7 @@ class PafGenerator(object):
         visible = keypoints[:, 2] > 0
         if not np.any(visible):
             return
-
-        area = (
-            (np.max(keypoints[visible, 0]) - np.min(keypoints[visible, 0])) *
-            (np.max(keypoints[visible, 1]) - np.min(keypoints[visible, 1]))
-        )
-        scale = np.sqrt(area)
+        scale = scale_from_keypoints(keypoints)
 
         for i, (joint1i, joint2i) in enumerate(self.skeleton):
             joint1 = keypoints[joint1i - 1]

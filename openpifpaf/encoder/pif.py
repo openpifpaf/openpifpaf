@@ -10,6 +10,23 @@ from ..utils import create_sink, mask_valid_area
 LOG = logging.getLogger(__name__)
 
 
+def scale_from_keypoints(keypoints):
+    visible = keypoints[:, 2] > 0
+    if not np.any(visible):
+        return np.nan
+
+    area = (
+        (np.max(keypoints[visible, 0]) - np.min(keypoints[visible, 0])) *
+        (np.max(keypoints[visible, 1]) - np.min(keypoints[visible, 1]))
+    )
+    scale = np.sqrt(area)
+    if scale < 1.0:
+        scale = np.nan
+
+    LOG.debug('instance scale = %.3f', scale)
+    return scale
+
+
 class Pif(object):
     side_length = 4
 
@@ -52,7 +69,7 @@ class PifGenerator(object):
         self.intensities = np.zeros((n_fields + 1, field_h, field_w), dtype=np.float32)
         self.fields_reg = np.zeros((n_fields, 6, field_h, field_w), dtype=np.float32)
         self.fields_reg[:, 2:] = np.inf
-        self.fields_scale = np.zeros((n_fields, field_h, field_w), dtype=np.float32)
+        self.fields_scale = np.full((n_fields, field_h, field_w), np.nan, dtype=np.float32)
         self.fields_reg_l = np.full((n_fields, field_h, field_w), np.inf, dtype=np.float32)
 
         # bg_mask
@@ -80,13 +97,7 @@ class PifGenerator(object):
         visible = keypoints[:, 2] > 0
         if not np.any(visible):
             return
-
-        area = (
-            (np.max(keypoints[visible, 0]) - np.min(keypoints[visible, 0])) *
-            (np.max(keypoints[visible, 1]) - np.min(keypoints[visible, 1]))
-        )
-        scale = np.sqrt(area)
-        LOG.debug('instance scale = %.3f', scale)
+        scale = scale_from_keypoints(keypoints)
 
         for f, xyv in enumerate(keypoints):
             if xyv[2] <= self.v_threshold:
