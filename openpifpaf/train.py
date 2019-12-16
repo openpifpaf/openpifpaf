@@ -46,10 +46,6 @@ def cli():
                         help='apply and reset gradients every n batches')
     parser.add_argument('--epochs', default=75, type=int,
                         help='number of epochs to train')
-    parser.add_argument('--freeze-base', default=0, type=int,
-                        help='number of epochs to train with frozen base')
-    parser.add_argument('--pre-lr', type=float, default=1e-4,
-                        help='pre learning rate')
     parser.add_argument('--rescale-images', type=float, default=1.0,
                         help='overall image rescale factor')
     parser.add_argument('--orientation-invariant', default=False, action='store_true',
@@ -82,9 +78,6 @@ def cli():
 
     if args.debug and 'skeleton' not in args.headnets:
         raise Exception('add "skeleton" as last headnet to see debug output')
-
-    if args.freeze_base and args.checkpoint:
-        raise Exception('remove --freeze-base when running from a checkpoint')
 
     if args.debug_pif_indices or args.debug_paf_indices:
         args.debug = True
@@ -138,7 +131,7 @@ def main():
             transforms.EVAL_TRANSFORM,
         ]
     preprocess = transforms.Compose(preprocess_transformations)
-    train_loader, val_loader, pre_train_loader = datasets.train_factory(
+    train_loader, val_loader = datasets.train_factory(
         args, preprocess, target_transforms)
 
     optimizer = optimize.factory_optimizer(
@@ -149,37 +142,6 @@ def main():
         encoder_visualizer = encoder.Visualizer(
             args.headnets, net_cpu.head_strides,
             pif_indices=args.debug_pif_indices, paf_indices=args.debug_paf_indices)
-
-    if args.freeze_base:
-        # freeze base net parameters
-        frozen_params = set()
-        for n, p in net.named_parameters():
-            # Freeze only base_net parameters.
-            # Parameter names in DataParallel models start with 'module.'.
-            if not n.startswith('module.base_net.') and \
-               not n.startswith('base_net.'):
-                print('not freezing', n)
-                continue
-            print('freezing', n)
-            if p.requires_grad is False:
-                continue
-            p.requires_grad = False
-            frozen_params.add(p)
-        print('froze {} parameters'.format(len(frozen_params)))
-
-        # training
-        foptimizer = torch.optim.SGD(
-            (p for p in net.parameters() if p.requires_grad),
-            lr=args.pre_lr, momentum=0.9, weight_decay=0.0, nesterov=True)
-        ftrainer = Trainer(net, loss, foptimizer, args.output,
-                           device=args.device, fix_batch_norm=True,
-                           encoder_visualizer=encoder_visualizer)
-        for i in range(-args.freeze_base, 0):
-            ftrainer.train(pre_train_loader, i)
-
-        # unfreeze
-        for p in frozen_params:
-            p.requires_grad = True
 
     trainer = Trainer(
         net, loss, optimizer, args.output,

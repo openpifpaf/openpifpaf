@@ -182,14 +182,10 @@ def train_cli(parser):
     group.add_argument('--train-image-dir', default=IMAGE_DIR_TRAIN)
     group.add_argument('--val-annotations', default=ANNOTATIONS_VAL)
     group.add_argument('--val-image-dir', default=IMAGE_DIR_VAL)
-    group.add_argument('--pre-n-images', default=8000, type=int,
-                       help='number of images to sampe for pretraining')
     group.add_argument('--n-images', default=None, type=int,
                        help='number of images to sample')
     group.add_argument('--duplicate-data', default=None, type=int,
                        help='duplicate data')
-    group.add_argument('--pre-duplicate-data', default=None, type=int,
-                       help='duplicate pre data in preprocessing')
     group.add_argument('--loader-workers', default=None, type=int,
                        help='number of workers for data loading')
     group.add_argument('--batch-size', default=8, type=int,
@@ -230,19 +226,4 @@ def train_factory(args, preprocess, target_transforms):
         pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
         collate_fn=collate_images_targets_meta)
 
-    pre_train_data = CocoKeypoints(
-        root=args.train_image_dir,
-        annFile=args.train_annotations,
-        preprocess=preprocess,
-        target_transforms=target_transforms,
-        n_images=args.pre_n_images,
-    )
-    if args.pre_duplicate_data:
-        pre_train_data = torch.utils.data.ConcatDataset(
-            [pre_train_data for _ in range(args.pre_duplicate_data)])
-    pre_train_loader = torch.utils.data.DataLoader(
-        pre_train_data, batch_size=args.batch_size, shuffle=True,
-        pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
-        collate_fn=collate_images_targets_meta)
-
-    return train_loader, val_loader, pre_train_loader
+    return train_loader, val_loader
