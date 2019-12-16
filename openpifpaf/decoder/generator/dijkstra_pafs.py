@@ -94,7 +94,6 @@ class DijkstraPafs(object):
         assert paf_field.shape[0] == 2
         assert paf_field.shape[1] == 5
         paf_field = np.reshape(paf_field, (2, 5, -1))
-        paf_field = paf_field[:, [0, 1, 2, 4]]
 
         # source value
         paf_field = paf_center_s(paf_field, xy[0], xy[1], sigma=5.0 * xy_scale)
@@ -109,9 +108,9 @@ class DijkstraPafs(object):
         scores = np.exp(-1.0 * d / xy_scale) * v  # two-tailed cumulative Laplace
 
         if self.connection_method == 'max':
-            return self._target_with_maxscore(paf_field[1, 1:4], scores)
+            return self._target_with_maxscore(paf_field[1, 1:], scores)
         if self.connection_method == 'blend':
-            return self._target_with_blend(paf_field[1, 1:4], scores)
+            return self._target_with_blend(paf_field[1, 1:], scores)
         raise Exception('connection method not known')
 
     @staticmethod
@@ -122,7 +121,7 @@ class DijkstraPafs(object):
         max_entry = target_coordinates[:, max_i]
 
         score = scores[max_i]
-        return max_entry[0], max_entry[1], max_entry[2], score
+        return max_entry[0], max_entry[1], max_entry[3], score
 
     @staticmethod
     def _target_with_blend(target_coordinates, scores):
@@ -136,7 +135,7 @@ class DijkstraPafs(object):
             return (
                 target_coordinates[0, 0],
                 target_coordinates[1, 0],
-                target_coordinates[2, 0],
+                target_coordinates[3, 0],
                 scores[0],
             )
 
@@ -147,12 +146,12 @@ class DijkstraPafs(object):
         score_1 = scores[sorted_i[-1]]
         score_2 = scores[sorted_i[-2]]
         if score_2 < 0.01 or score_2 < 0.5 * score_1:
-            return max_entry_1[0], max_entry_1[1], max_entry_1[2], score_1
+            return max_entry_1[0], max_entry_1[1], max_entry_1[3], score_1
 
         return (
             (score_1 * max_entry_1[0] + score_2 * max_entry_2[0]) / (score_1 + score_2),
             (score_1 * max_entry_1[1] + score_2 * max_entry_2[1]) / (score_1 + score_2),
-            (score_1 * max_entry_1[2] + score_2 * max_entry_2[2]) / (score_1 + score_2),
+            (score_1 * max_entry_1[3] + score_2 * max_entry_2[3]) / (score_1 + score_2),
             0.5 * (score_1 + score_2),
         )
 
