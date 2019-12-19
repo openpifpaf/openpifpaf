@@ -366,10 +366,15 @@ def factory_from_scratch(basename, headnames, *, pretrained=True):
 def shufflenet_factory_from_scratch(basename, base_vision, out_features, headnames):
     blocks = basenetworks.ShuffleNetV2Factory(base_vision).blocks()
     if 'pd' in basename:
-        blocks.insert(-1, pyramid.PumpAndDump(
-            blocks[-1][0].in_channels,
-            block_factory=pyramid.PumpAndDumpColumn.create_invertedresidual,
-        ))
+        in_features = blocks[-1][0].in_channels
+        pyramid_features = 512
+        blocks[-1] = pyramid.PumpAndDump(
+            in_features, pyramid_features,
+            block_factory=pyramid.PumpAndDump.create_invertedresidual,
+            lateral_factory=pyramid.PumpAndDump.create_lateral_invertedresidual,
+        )
+        out_features = pyramid_features * (pyramid.PumpAndDump.n_layers + 1)
+        LOG.info('pyramid out features = %d', out_features)
     LOG.debug(blocks)
 
     basenet = basenetworks.BaseNetwork(
