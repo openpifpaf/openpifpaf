@@ -26,6 +26,8 @@ def cli(parser):
                          help='learning rate')
     group_s.add_argument('--lr-decay', default=[], nargs='+', type=int,
                          help='epochs at which to decay the learning rate')
+    group_s.add_argument('--lr-burn-in-start-epoch', default=0, type=int,
+                         help='starting epoch for burn-in')
     group_s.add_argument('--lr-burn-in-epochs', default=2, type=int,
                          help='number of epochs at the beginning with lower learning rate')
     group_s.add_argument('--lr-burn-in-factor', default=0.001, type=float,
@@ -35,19 +37,27 @@ def cli(parser):
 
 
 class LearningRateLambda(object):
-    def __init__(self, burn_in, decay_schedule, *,
+    def __init__(self, burn_in_duration, decay_schedule, *,
                  gamma=0.1,
+                 burn_in_start=0,
                  burn_in_factor=0.01):
-        self.burn_in = burn_in
+        self.burn_in_duration = burn_in_duration
         self.decay_schedule = decay_schedule
         self.gamma = gamma
+        self.burn_in_start = burn_in_start
         self.burn_in_factor = burn_in_factor
 
     def __call__(self, step_i):
-        if step_i < self.burn_in:
-            return self.burn_in_factor**(1.0 - step_i / self.burn_in)
-
         lambda_ = 1.0
+
+        if step_i <= self.burn_in_start:
+            lambda_ *= self.burn_in_factor
+
+        if self.burn_in_start < step_i < self.burn_in_start + self.burn_in_duration:
+            lambda_ *= self.burn_in_factor**(
+                1.0 - (step_i - self.burn_in_start) / self.burn_in_duration
+            )
+
         for d in self.decay_schedule:
             if step_i >= d:
                 lambda_ *= self.gamma
@@ -81,5 +91,6 @@ def factory_lrscheduler(args, optimizer, training_batches_per_epoch):
         [LearningRateLambda(args.lr_burn_in_epochs * training_batches_per_epoch,
                             [s * training_batches_per_epoch for s in args.lr_decay],
                             gamma=args.lr_gamma,
+                            burn_in_start=args.lr_burn_in_start_epoch * training_batches_per_epoch,
                             burn_in_factor=args.lr_burn_in_factor)],
     )
