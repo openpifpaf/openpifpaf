@@ -20,7 +20,7 @@ def reversed_czip(*args):
 
 class PumpAndDump(torch.nn.Module):
     n_layers = 2
-    stack_size = 1
+    stack_size = 2
 
     def __init__(self, in_features, pyramid_features, *, block_factory=None, lateral_factory=None):
         super().__init__()
@@ -67,9 +67,17 @@ class PumpAndDump(torch.nn.Module):
         )
 
     @staticmethod
-    def create_lateral(in_features):
+    def create_lateral(in_features, out_features):
+        if in_features != out_features:
+            return torch.nn.Sequential(
+                torch.nn.Conv2d(
+                    in_features, out_features,
+                    kernel_size=1, stride=1, padding=0, bias=False),
+                torch.nn.ReLU(),
+            )
+
         return torchvision.models.resnet.Bottleneck(
-            in_features, in_features // 4,
+            in_features, out_features // 4,
         )
 
     @staticmethod
@@ -80,7 +88,12 @@ class PumpAndDump(torch.nn.Module):
     @staticmethod
     def create_lateral_invertedresidual(in_features, out_features):
         if in_features != out_features:
-            return torch.nn.Conv2d(in_features, out_features, kernel_size=1, stride=1, padding=0, bias=False)
+            return torch.nn.Sequential(
+                torch.nn.Conv2d(
+                    in_features, out_features,
+                    kernel_size=1, stride=1, padding=0, bias=False),
+                torch.nn.ReLU(),
+            )
 
         return torchvision.models.shufflenetv2.InvertedResidual(
             in_features, out_features, stride=1)
@@ -122,8 +135,22 @@ class UpsampleWithClip(torch.nn.Module):
         return self.upsample(args[0])[:, :, :-1, :-1]
 
 
+class SubpixelConvWithClip(torch.nn.Module):
+    """Upsample with last row and column clip."""
+
+    def __init__(self):
+        super().__init__()
+        self.upsample = torch.nn.PixelShuffle(2)
+
+    def forward(self, *args):
+        x = self.upsample(args[0])[:, :, :-1, :-1]
+        x = torch.cat((x, x, x, x), dim=1)
+        return x
+
+
 class PumpAndDumpColumn(torch.nn.Module):
     epsilon = 0.1
+    upsample_type = 'subpixel'
 
     def __init__(self, in_features, pyramid_features, n_layers, *, block_factory, lateral_factory):
         super().__init__()
@@ -133,8 +160,13 @@ class PumpAndDumpColumn(torch.nn.Module):
             for _ in range(n_layers)
         ])
 
-        # self.dequad = torch.nn.PixelShuffle(2)
-        self.upsample = UpsampleWithClip(scale_factor=2, mode='nearest')
+        LOG.info('pyramid upsample: %s', self.upsample_type)
+        if self.upsample_type == 'nearest':
+            self.upsample = UpsampleWithClip(scale_factor=2, mode='nearest')
+        elif self.upsample_type == 'subpixel':
+            self.upsample = SubpixelConvWithClip()
+        else:
+            raise Exception('upsample type unknown: {}'.format(self.upsample_type))
 
         self.lateral1 = torch.nn.ModuleList([
             lateral_factory(in_features, pyramid_features)
@@ -206,7 +238,7 @@ class PumpAndDumpColumn(torch.nn.Module):
                 intermediate0[:-1], intermediate1[:-1], self.lateral2,
                 self.w_inputs2, self.w_dumpeds, self.w_skips):
 
-            if hasattr(self, 'dequad'):  # backwards compat
+            if hasattr(self, 'dequad'):  # backwards compat TODO remove
                 dumped = self.dequad(intermediate2[0])[:, :, :-1, :-1]
                 dumped = torch.cat((dumped, dumped, dumped, dumped), dim=1)
             else:

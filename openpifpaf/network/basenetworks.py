@@ -38,17 +38,6 @@ class ShuffleNetV2Factory(object):
         ]
 
 
-class DownsampleCat(torch.nn.Module):
-    def __init__(self):
-        super(DownsampleCat, self).__init__()
-        self.pad = torch.nn.ConstantPad2d((0, 1, 0, 1), 0.0)
-
-    def forward(self, x):  # pylint: disable=arguments-differ
-        p = self.pad(x)
-        o = torch.cat((p[:, :, :-1:2, :-1:2], p[:, :, 1::2, 1::2]), dim=1)
-        return o
-
-
 class ResnetBlocks(object):
     def __init__(self, resnet):
         self.modules = list(resnet.children())
@@ -67,39 +56,6 @@ class ResnetBlocks(object):
             modules[0].stride = torch.nn.modules.utils._pair(conv_stride)  # pylint: disable=protected-access
 
         return torch.nn.Sequential(*modules)
-
-    @staticmethod
-    def stride(block):
-        """Compute the output stride of a block.
-
-        Assume that convolutions are in serious with pools; only one
-        convolutions with non-unit stride.
-        """
-        if isinstance(block, list):
-            stride = 1
-            for b in block:
-                stride *= ResnetBlocks.stride(b)
-            return stride
-
-        conv_stride = max(m.stride[0]
-                          for m in block.modules()
-                          if isinstance(m, torch.nn.Conv2d))
-
-        pool_stride = 1
-        pools = [m for m in block.modules() if isinstance(m, torch.nn.MaxPool2d)]
-        if pools:
-            for p in pools:
-                pool_stride *= p.stride
-
-        return conv_stride * pool_stride
-
-    @staticmethod
-    def replace_downsample(block):
-        print('!!!!!!!!!!')
-        first_bottleneck = block[0]
-        print(first_bottleneck.downsample)
-        first_bottleneck.downsample = DownsampleCat()
-        print(first_bottleneck)
 
     def block2(self):
         return self.modules[4]

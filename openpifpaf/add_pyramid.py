@@ -1,0 +1,75 @@
+import argparse
+import datetime
+import logging
+import socket
+
+import torch
+
+from . import __version__ as VERSION
+from .network import heads
+from .network import nets
+
+LOG = logging.getLogger(__name__)
+
+
+def cli():
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    nets.cli(parser)
+    group = parser.add_argument_group('logging')
+    group.add_argument('--debug', default=False, action='store_true',
+                       help='print debug messages')
+    args = parser.parse_args()
+
+    level = logging.INFO if not args.debug else logging.DEBUG
+    logging.basicConfig(level=level)
+    LOG.setLevel(level)
+    return args
+
+
+def process_shufflenet(net_cpu):
+    LOG.debug('processing a shufflenet model')
+    nets.shufflenet_add_pyramid(net_cpu.base_net)
+
+    LOG.debug('recreating head nets')
+    head_nets = [heads.factory(h, net_cpu.base_net.out_features)
+                 for h in net_cpu.head_names if h != 'skeleton']
+
+    net_cpu = nets.Shell(net_cpu.base_net, head_nets)
+    return net_cpu
+
+
+def main():
+    args = cli()
+    net_cpu, epoch = nets.factory_from_args(args)
+
+    if net_cpu.base_net.shortname.startswith('shufflenet'):
+        with_pyramid = process_shufflenet(net_cpu)
+    else:
+        raise Exception('cannot transform base net {}'.format(net_cpu.base_net.shortname))
+
+    nets.model_defaults(net_cpu)
+
+    # write model
+    now = datetime.datetime.now().strftime('%y%m%d-%H%M%S')
+    basename = net_cpu.base_net.shortname
+    headnames = '-'.join(net_cpu.head_names)
+    filename = 'outputs/{}pd-{}-{}.pkl'.format(basename, headnames, now)
+    LOG.debug('about to write model %s', filename)
+    torch.save({
+        'model': with_pyramid,
+        'epoch': epoch,
+        'meta': {
+            'args': vars(args),
+            'version': VERSION,
+            'hostname': socket.gethostname(),
+        },
+    }, filename)
+    LOG.info('model written: %s', filename)
+
+
+
+if __name__ == '__main__':
+    main()

@@ -186,6 +186,7 @@ def factory_from_args(args):
     # configure pyramid
     pyramid.PumpAndDump.n_layers = args.pyramid_layers
     pyramid.PumpAndDump.stack_size = args.pyramid_stack_size
+    pyramid.PumpAndDumpColumn.upsample_type = args.pyramid_upsample
 
     return factory(
         checkpoint=args.checkpoint,
@@ -365,18 +366,6 @@ def factory_from_scratch(basename, headnames, *, pretrained=True):
 
 def shufflenet_factory_from_scratch(basename, base_vision, out_features, headnames):
     blocks = basenetworks.ShuffleNetV2Factory(base_vision).blocks()
-    if 'pd' in basename:
-        in_features = blocks[-1][0].in_channels
-        pyramid_features = 512
-        blocks[-1] = pyramid.PumpAndDump(
-            in_features, pyramid_features,
-            block_factory=pyramid.PumpAndDump.create_invertedresidual,
-            lateral_factory=pyramid.PumpAndDump.create_lateral_invertedresidual,
-        )
-        out_features = pyramid_features * (pyramid.PumpAndDump.n_layers + 1)
-        LOG.info('pyramid out features = %d', out_features)
-    LOG.debug(blocks)
-
     basenet = basenetworks.BaseNetwork(
         torch.nn.Sequential(*blocks),
         basename,
@@ -384,11 +373,30 @@ def shufflenet_factory_from_scratch(basename, base_vision, out_features, headnam
         out_features=out_features,
     )
 
+    if 'pd' in basename:
+        shufflenet_add_pyramid(basenet)
+
     headnets = [heads.factory(h, basenet.out_features) for h in headnames if h != 'skeleton']
 
     net_cpu = Shell(basenet, headnets)
     model_defaults(net_cpu)
+    LOG.debug(net_cpu)
     return net_cpu
+
+
+def shufflenet_add_pyramid(basenet):
+    blocks = list(basenet.net.children())
+
+    in_features = blocks[-1][0].in_channels
+    pyramid_features = 512
+    blocks[-1] = pyramid.PumpAndDump(
+        in_features, pyramid_features,
+        block_factory=pyramid.PumpAndDump.create_invertedresidual,
+        lateral_factory=pyramid.PumpAndDump.create_lateral_invertedresidual,
+    )
+    basenet.net = torch.nn.Sequential(*blocks)
+    basenet.out_features = pyramid_features * (pyramid.PumpAndDump.n_layers + 1)
+    LOG.info('pyramid out features = %d', basenet.out_features)
 
 
 def resnet_factory_from_scratch(basename, base_vision, out_features, headnames):
@@ -401,35 +409,37 @@ def resnet_factory_from_scratch(basename, base_vision, out_features, headnames):
         conv_stride = 4
     if 'is1' in basename:
         conv_stride = 1
+    output_stride = conv_stride
+
     pool_stride = 2
     if 'pool0s4' in basename:
         pool_stride = 4
+    output_stride *= pool_stride if use_pool else 1
 
     # all blocks
     blocks = [
         resnet_factory.input_block(use_pool, conv_stride, pool_stride),
-        resnet_factory.block2(),
+        resnet_factory.block2(),  # no stride
         resnet_factory.block3(),
         resnet_factory.block4(),
     ]
+    output_stride *= 4
     if 'block4' not in basename:
         blocks.append(resnet_factory.block5())
+        output_stride *= 2
     else:
         out_features //= 2
 
-    # downsample
-    if 'concat' in basename:
-        for b in blocks[2:]:
-            resnet_factory.replace_downsample(b)
-
     # pump and dump extension
     if 'pd' in basename:
-        blocks.append(pyramid.PumpAndDump(out_features))
+        pyramid_features = 512
+        blocks.append(pyramid.PumpAndDump(out_features, pyramid_features))
+        out_features = pyramid_features * (pyramid.PumpAndDump.n_layers + 1)
 
     basenet = basenetworks.BaseNetwork(
         torch.nn.Sequential(*blocks),
         basename,
-        input_output_scale=resnet_factory.stride(blocks),
+        input_output_scale=output_stride,
         out_features=out_features,
     )
     headnets = [heads.factory(h, basenet.out_features) for h in headnames if h != 'skeleton']
@@ -470,4 +480,6 @@ def cli(parser):
     group.add_argument('--pyramid-layers', default=pyramid.PumpAndDump.n_layers, type=int,
                        help='[experimental]')
     group.add_argument('--pyramid-stack-size', default=pyramid.PumpAndDump.stack_size, type=int,
+                       help='[experimental]')
+    group.add_argument('--pyramid-upsample', default=pyramid.PumpAndDumpColumn.upsample_type,
                        help='[experimental]')
