@@ -15,6 +15,7 @@ MODULE_NAMES = [
     'eval_coco',
     'export_onnx',
     'migrate',
+    'add_pyramid',
 ]
 
 

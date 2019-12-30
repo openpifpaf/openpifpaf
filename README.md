@@ -74,6 +74,7 @@ testing.
 
 Tools to work with models:
 
+* `python3 -m openpifpaf.add_pyramid --help`: [help screen](docs/cli-help-add_pyramid.txt)
 * `python3 -m openpifpaf.migrate --help`: [help screen](docs/cli-help-migrate.txt)
 * `python3 -m openpifpaf.export_onnx --help`: [help screen](docs/cli-help-export_onnx.txt)
 
