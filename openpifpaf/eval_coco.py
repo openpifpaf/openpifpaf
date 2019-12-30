@@ -123,7 +123,9 @@ class EvalCoco(object):
             v_mask = pred.data[:, 2] > 0.0
             pred.data[v_mask, 2] = np.maximum(0.01, pred.data[v_mask, 2])
 
-            keypoints = np.around(pred.data, 2)
+            # convert to float64 before rounding because otherwise extra digits
+            # will be added when converting to Python type
+            keypoints = np.around(pred.data.astype(np.float64), 2)
             keypoints[:, 2] = 2.0
             image_annotations.append({
                 'image_id': image_id,

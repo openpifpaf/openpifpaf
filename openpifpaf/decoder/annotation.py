@@ -117,6 +117,27 @@ class Annotation(object):
             np.max(self.data[m, 1]) - np.min(self.data[m, 1]),
         )
 
+    def json_data(self):
+        """Data ready for json dump."""
+
+        # convert to float64 before rounding because otherwise extra digits
+        # will be added when converting to Python type
+        return {
+            'keypoints': np.around(self.data.astype(np.float64), 2).reshape(-1).tolist(),
+            'bbox': np.around(self.bbox_from_keypoints(self.data.astype(np.float64)), 2).tolist(),
+            'score': round(self.score(), 3),
+        }
+
+    @staticmethod
+    def bbox_from_keypoints(kps):
+        m = kps[:, 2] > 0
+        if not np.any(m):
+            return [0, 0, 0, 0]
+
+        x, y = np.min(kps[:, 0][m]), np.min(kps[:, 1][m])
+        w, h = np.max(kps[:, 0][m]) - x, np.max(kps[:, 1][m]) - y
+        return [x, y, w, h]
+
 
 class AnnotationWithoutSkeleton(object):
     def __init__(self, j, xyv, n_joints):
