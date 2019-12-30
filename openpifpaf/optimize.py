@@ -24,11 +24,11 @@ def cli(parser):
     group_s = parser.add_argument_group('learning rate scheduler')
     group_s.add_argument('--lr', type=float, default=1e-3,
                          help='learning rate')
-    group_s.add_argument('--lr-decay', default=[], nargs='+', type=int,
+    group_s.add_argument('--lr-decay', default=[], nargs='+', type=float,
                          help='epochs at which to decay the learning rate')
-    group_s.add_argument('--lr-burn-in-start-epoch', default=0, type=int,
+    group_s.add_argument('--lr-burn-in-start-epoch', default=0, type=float,
                          help='starting epoch for burn-in')
-    group_s.add_argument('--lr-burn-in-epochs', default=2, type=int,
+    group_s.add_argument('--lr-burn-in-epochs', default=2, type=float,
                          help='number of epochs at the beginning with lower learning rate')
     group_s.add_argument('--lr-burn-in-factor', default=0.001, type=float,
                          help='learning pre-factor during burn-in')
