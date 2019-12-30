@@ -19,7 +19,7 @@ MODULE_NAMES = [
 
 
 if sys.platform != 'win32':
-    MODULE_NAMES.append('webcam')
+    MODULE_NAMES.append('video')
 
 
 @pytest.mark.parametrize('module_name', MODULE_NAMES)

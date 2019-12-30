@@ -31,7 +31,7 @@ Created with:
 More demos:
 * [openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo) project (best performance)
 * OpenPifPaf running in your browser: https://vita-epfl.github.io/openpifpafwebdemo/ (experimental)
-* the `openpifpaf.webcam` command (requires OpenCV)
+* the `openpifpaf.video` command (requires OpenCV)
 * [Google Colab demo](https://colab.research.google.com/drive/1H8T4ZE6wc0A9xJE4oGnhgHpUpAH5HL7W)
 
 <img src="docs/wave3.gif" height=250 alt="example image" />
@@ -49,7 +49,7 @@ pip3 install openpifpaf
 
 For a live demo, we recommend to try the
 [openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo) project.
-Alternatively, `openpifpaf.webcam` provides a live demo as well.
+Alternatively, `openpifpaf.video` provides a live demo as well.
 It requires OpenCV.
 
 For development of the openpifpaf source code itself, you need to clone this repository and then:
@@ -67,7 +67,7 @@ testing.
 # Interfaces
 
 * `python3 -m openpifpaf.predict --help`: [help screen](docs/cli-help-predict.txt)
-* `python3 -m openpifpaf.webcam --help`: [help screen](docs/cli-help-webcam.txt)
+* `python3 -m openpifpaf.video --help`: [help screen](docs/cli-help-video.txt)
 * `python3 -m openpifpaf.train --help`: [help screen](docs/cli-help-train.txt)
 * `python3 -m openpifpaf.eval_coco --help`: [help screen](docs/cli-help-eval_coco.txt)
 * `python3 -m openpifpaf.logs --help`: [help screen](docs/cli-help-logs.txt)

@@ -29,8 +29,8 @@ def test_predict(batch_size):
 
 
 @pytest.mark.skipif(sys.platform == 'win32', reason='does not run on windows')
-def test_webcam():
+def test_video():
     subprocess.run([
-        PYTHON, '-m', 'openpifpaf.webcam',
+        PYTHON, '-m', 'openpifpaf.video',
         '--source=docs/coco/000000081988.jpg',
     ], check=True)

@@ -1,14 +1,14 @@
-"""Webcam demo application.
+"""Video demo application.
 
 Example commands:
-    python3 -m pifpaf.webcam  # usbcam or webcam 0
-    python3 -m pifpaf.webcam --source=1  # usbcam or webcam 1
+    python3 -m pifpaf.video  # usbcam or webcam 0
+    python3 -m pifpaf.video --source=1  # usbcam or webcam 1
 
     # streaming source
-    python3 -m pifpaf.webcam --source=http://128.179.139.21:8080/video
+    python3 -m pifpaf.video --source=http://128.179.139.21:8080/video
 
     # file system source (any valid OpenCV source)
-    python3 -m pifpaf.webcam --source=docs/coco/000000081988.jpg
+    python3 -m pifpaf.video --source=docs/coco/000000081988.jpg
 
 Trouble shooting:
 * MacOSX: try to prefix the command with "MPLBACKEND=MACOSX".
@@ -16,6 +16,8 @@ Trouble shooting:
 
 
 import argparse
+import json
+import logging
 import time
 
 import PIL
@@ -29,13 +31,17 @@ try:
     import matplotlib.pyplot as plt
 except ImportError:
     plt = None
-    print('matplotlib is not installed')
+
+LOG = logging.getLogger(__name__)
 
 
 class Visualizer(object):
     def __init__(self, processor, args):
         self.processor = processor
         self.args = args
+
+        if plt is None:
+            LOG.error('matplotlib is not installed')
 
     def __call__(self, first_image, fig_width=4.0, **kwargs):
         if plt is None:
@@ -76,16 +82,36 @@ class Visualizer(object):
             mpl_im.set_data(image)
             viz.annotations(ax, annotations)
             fig.canvas.draw()
-            print('draw', time.time() - draw_start)
+            LOG.debug('draw %.3fs', time.time() - draw_start)
             plt.pause(0.01)
 
         plt.close(fig)
 
 
+class JsonOutput(object):
+    def __init__(self, processor, output):
+        self.processor = processor
+        self.output = output
+
+    def __call__(self, first_image, **kwargs):
+        while True:
+            _, all_fields = yield
+            pred = self.processor.annotations(all_fields)
+
+            with open(self.output, 'a+') as f:
+                json.dump([ann.json_data() for ann in pred], f)
+                f.write('\n')
+
+
+class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
+                      argparse.RawDescriptionHelpFormatter):
+    pass
+
+
 def cli():
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        formatter_class=CustomFormatter,
     )
     nets.cli(parser)
     decoder.cli(parser, force_complete_pose=False, instance_threshold=0.1, seed_threshold=0.5)
@@ -98,7 +124,25 @@ def cli():
                         help='OpenCV source url. Integer for webcams. Or ipwebcam streams.')
     parser.add_argument('--scale', default=0.1, type=float,
                         help='input image scale factor')
+    parser.add_argument('--start-frame', type=int, default=0)
+    parser.add_argument('--max-frames', type=int)
+    parser.add_argument('--json-output', help='store annotations in a json file')
+    group = parser.add_argument_group('logging')
+    group.add_argument('-q', '--quiet', default=False, action='store_true',
+                       help='only show warning messages or above')
+    group.add_argument('--debug', default=False, action='store_true',
+                       help='print debug messages')
     args = parser.parse_args()
+
+    # configure logging
+    log_level = logging.INFO
+    if args.quiet:
+        log_level = logging.WARNING
+    if args.debug:
+        log_level = logging.DEBUG
+    logging.basicConfig()
+    logging.getLogger('openpifpaf').setLevel(log_level)
+    LOG.setLevel(log_level)
 
     # check whether source should be an int
     if len(args.source) == 1:
@@ -124,32 +168,47 @@ def main():
     capture = cv2.VideoCapture(args.source)
 
     visualizer = None
+    frame_i = 0
     while True:
-        _, image_original = capture.read()
-        if image_original is None:
-            print('no more images captured')
+        frame_i += 1
+        _, image = capture.read()
+        if image is None:
+            LOG.info('no more images captured')
             break
 
-        image = cv2.resize(image_original, None, fx=args.scale, fy=args.scale)
-        print('resized image size: {}'.format(image.shape))
+        if frame_i < args.start_frame:
+            continue
+
+        if args.scale != 1.0:
+            image = cv2.resize(image, None, fx=args.scale, fy=args.scale)
+            LOG.debug('resized image size: %s', image.shape)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
         if visualizer is None:
-            visualizer = Visualizer(processor, args)(image)
-            visualizer.send(None)
+            if args.json_output:
+                visualizer = JsonOutput(processor, args.json_output)(image)
+                visualizer.send(None)
+            else:
+                visualizer = Visualizer(processor, args)(image)
+                visualizer.send(None)
 
         start = time.time()
         image_pil = PIL.Image.fromarray(image)
         processed_image_cpu, _, __ = transforms.EVAL_TRANSFORM(image_pil, [], None)
         processed_image = processed_image_cpu.contiguous().to(args.device, non_blocking=True)
-        print('preprocessing time', time.time() - start)
+        LOG.debug('preprocessing time %.3fs', time.time() - start)
 
         fields = processor.fields(torch.unsqueeze(processed_image, 0))[0]
         visualizer.send((image, fields))
 
-        print('loop time = {:.3}s, FPS = {:.3}'.format(
-            time.time() - last_loop, 1.0 / (time.time() - last_loop)))
+        LOG.info('frame %d, loop time = %.3fs, FPS = %.3f',
+                 frame_i,
+                 time.time() - last_loop,
+                 1.0 / (time.time() - last_loop))
         last_loop = time.time()
+
+        if args.max_frames and frame_i >= args.start_frame + args.max_frames:
+            break
 
 
 if __name__ == '__main__':
