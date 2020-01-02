@@ -8,6 +8,7 @@ import time
 import zipfile
 
 import numpy as np
+import thop
 import torch
 
 try:
@@ -53,7 +54,7 @@ class EvalCoco(object):
             image_ids = self.image_ids
 
         cat_ids = self.coco.getCatIds(catNms=['person'])
-        print('cat_ids', cat_ids)
+        LOG.info('cat_ids: %s', cat_ids)
 
         coco_eval = self.coco.loadRes(predictions)
 
@@ -67,6 +68,13 @@ class EvalCoco(object):
         self.eval.accumulate()
         self.eval.summarize()
         return self.eval.stats
+
+    def count_ops(self, height=641, width=641):
+        device = next(self.processor.model.parameters()).device
+        dummy_input = torch.randn(1, 3, height, width, device=device)
+        gmacs, params = thop.profile(self.processor.model, inputs=(dummy_input, ))
+        LOG.info('GMACs = {0:.2f}, million params = {1:.2f}'.format(gmacs / 1e9, params / 1e6))
+        return gmacs, params
 
     @staticmethod
     def view_keypoints(image_cpu, annotations, gt):
@@ -146,12 +154,13 @@ class EvalCoco(object):
         if debug:
             self.stats(image_annotations, [image_id])
             if verbose:
-                print('detected', image_annotations, len(image_annotations))
+                LOG.debug('detected %s %d', image_annotations, len(image_annotations))
                 oks = self.eval.computeOks(image_id, category_id)
                 oks[oks < 0.5] = 0.0
-                print('oks', oks)
-                print('evaluate', self.eval.evaluateImg(image_id, category_id, (0, 1e5 ** 2), 20))
-            print(meta)
+                LOG.debug('oks %s', oks)
+                LOG.debug('evaluate %s',
+                          self.eval.evaluateImg(image_id, category_id, (0, 1e5 ** 2), 20))
+            LOG.debug(meta)
 
         self.predictions += image_annotations
 
@@ -163,10 +172,10 @@ class EvalCoco(object):
         ]
         with open(filename + '.pred.json', 'w') as f:
             json.dump(predictions, f)
-        print('wrote {}'.format(filename + '.pred.json'))
+        LOG.info('wrote %s.pred.json', filename)
         with zipfile.ZipFile(filename + '.zip', 'w') as myzip:
             myzip.write(filename + '.pred.json', arcname='predictions.json')
-        print('wrote {}'.format(filename + '.zip'))
+        LOG.info('wrote %s.zip', filename)
 
 
 def default_output_name(args):
@@ -281,6 +290,7 @@ def write_evaluations(eval_coco, filename, args, total_time):
                 'decoder_time': eval_coco.decoder_time,
                 'total_time': total_time,
                 'checkpoint': args.checkpoint,
+                'count_ops': list(eval_coco.count_ops()),
             }, f)
     else:
         print('given dataset does not have ground truth, so no stats summary')

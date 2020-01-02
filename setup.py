@@ -76,6 +76,7 @@ setup(
             'pylint',
             'pytest',
             'opencv-python',
+            'thop',
         ],
         'train': [
             'matplotlib',

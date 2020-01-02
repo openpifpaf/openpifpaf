@@ -390,15 +390,11 @@ class EvalPlots(object):
         files = path.split(',')
         files = ','.join(
             [
-                '{}.epoch???.evalcoco-edge{}-samples{}-decoder{}.txt'
-                ''.format(f[:-4], self.edge, self.samples, self.decoder)
-                for f in files
-            ] + [
-                '{}.epoch???.evalcoco-edge{}-samples{}.txt'
+                '{}.epoch???.evalcoco-edge{}-samples{}.stats.json'
                 ''.format(f[:-4], self.edge, self.samples)
                 for f in files
             ] + ([
-                '{}.epoch???.evalcoco-edge{}.txt'
+                '{}.epoch???.evalcoco-edge{}.stats.json'
                 ''.format(f[:-4], self.edge)
                 for f in files
             ] if not self.samples else [])
@@ -412,65 +408,86 @@ class EvalPlots(object):
                 .wholeTextFiles(files)
                 .map(lambda k_c: (
                     epoch_from_filename(k_c[0]),
-                    [float(l) for l in k_c[1].splitlines()],
+                    json.loads(k_c[1]),
                 ))
-                .filter(lambda k_c: len(k_c[1]) == 10)
+                .filter(lambda k_c: len(k_c[1]['stats']) == 10)
                 .sortByKey()
                 .collect())
 
-    def frame(self, ax, entry):
+    def frame_stats(self, ax, entry):
         for data, label in zip(self.datas, self.labels):
             if not data:
                 continue
             if self.legend_last_ap:
-                last_ap = data[-1][1][0]
+                last_ap = data[-1][1]['stats'][0]
                 label = '{} (AP={:.1%})'.format(label, last_ap)
             x = np.array([e for e, _ in data])
-            y = np.array([d[entry] for _, d in data])
+            y = np.array([d['stats'][entry] for _, d in data])
             ax.plot(x, y, 'o-', label=label, markersize=2)
 
         ax.set_xlabel('epoch')
         ax.grid(linestyle='dotted')
         # ax.legend(loc='upper right')
 
+    def frame_ops(self, ax, entry):
+        assert entry in (0, 1)
+
+        s = 1e9 if entry == 0 else 1e6
+        for data, label in zip(self.datas, self.labels):
+            if not data:
+                continue
+            # if self.legend_last_ap:
+            #     last_ap = data[-1][1]['stats'][0]
+            #     label = '{} (AP={:.1%})'.format(label, last_ap)
+            x = np.array([d.get('count_ops', [0, 0])[entry] / s for _, d in data])[-1]
+            if x == 0.0:
+                continue
+            y = np.array([d['stats'][0] for _, d in data])[-1]
+            ax.plot([x], [y], 'o', label=label, markersize=10)
+
+        ax.set_xlabel('GMACs' if entry == 0 else 'million parameters')
+        ax.set_ylabel('AP')
+        ax.grid(linestyle='dotted')
+        ax.legend(loc='lower right')
+
     def ap(self, ax):
-        self.frame(ax, entry=0)
+        self.frame_stats(ax, entry=0)
         ax.set_ylabel('AP')
 
     def ap050(self, ax):
-        self.frame(ax, entry=1)
+        self.frame_stats(ax, entry=1)
         ax.set_ylabel('AP$^{0.50}$')
 
     def ap075(self, ax):
-        self.frame(ax, entry=2)
+        self.frame_stats(ax, entry=2)
         ax.set_ylabel('AP$^{0.75}$')
 
     def apm(self, ax):
-        self.frame(ax, entry=3)
+        self.frame_stats(ax, entry=3)
         ax.set_ylabel('AP$^{M}$')
 
     def apl(self, ax):
-        self.frame(ax, entry=4)
+        self.frame_stats(ax, entry=4)
         ax.set_ylabel('AP$^{L}$')
 
     def ar(self, ax):
-        self.frame(ax, entry=5)
+        self.frame_stats(ax, entry=5)
         ax.set_ylabel('AR')
 
     def ar050(self, ax):
-        self.frame(ax, entry=6)
+        self.frame_stats(ax, entry=6)
         ax.set_ylabel('AR$^{0.50}$')
 
     def ar075(self, ax):
-        self.frame(ax, entry=7)
+        self.frame_stats(ax, entry=7)
         ax.set_ylabel('AR$^{0.75}$')
 
     def arm(self, ax):
-        self.frame(ax, entry=8)
+        self.frame_stats(ax, entry=8)
         ax.set_ylabel('AR$^{M}$')
 
     def arl(self, ax):
-        self.frame(ax, entry=9)
+        self.frame_stats(ax, entry=9)
         ax.set_ylabel('AR$^{L}$')
 
     def fill_all(self, axs):
@@ -487,6 +504,11 @@ class EvalPlots(object):
                          sharex=True, sharey=share_y) as axs:
             self.fill_all(axs)
             axs[0, 4].legend(fontsize=5, loc='lower right')
+
+        with show.canvas(nrows=1, ncols=2, figsize=(10, 5),
+                         sharey=share_y) as axs:
+            self.frame_ops(axs[0], 0)
+            self.frame_ops(axs[1], 1)
 
 
 def main():
