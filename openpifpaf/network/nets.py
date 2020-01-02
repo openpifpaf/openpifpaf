@@ -255,9 +255,11 @@ def model_defaults(net_cpu):
             # Variances in pretrained models can be as low as 1e-17.
             # m.running_var.clamp_(min=1e-8)
             m.eps = 1e-4  # tf default is 0.001
+            # m.eps = 1e-5  # pytorch default
 
             # less momentum for variance and expectation
             m.momentum = 0.01  # tf default is 0.99
+            # m.momentum = 0.1  # pytorch default
 
 
 # pylint: disable=too-many-branches
@@ -278,7 +280,7 @@ def factory(
         epoch = 0
     else:
         if not checkpoint:
-            checkpoint = torch.hub.load_state_dict_from_url(RESNET50_MODEL)
+            checkpoint = torch.hub.load_state_dict_from_url(SHUFFLENETV2X2_MODEL)
         elif checkpoint == 'resnet18':
             checkpoint = torch.hub.load_state_dict_from_url(RESNET18_MODEL)
         elif checkpoint == 'resnet50':
