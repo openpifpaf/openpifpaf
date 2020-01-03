@@ -150,7 +150,7 @@ class SubpixelConvWithClip(torch.nn.Module):
 
 class PumpAndDumpColumn(torch.nn.Module):
     epsilon = 0.1
-    upsample_type = 'subpixel'
+    upsample_type = 'nearest'
 
     def __init__(self, in_features, pyramid_features, n_layers, *, block_factory, lateral_factory):
         super().__init__()
