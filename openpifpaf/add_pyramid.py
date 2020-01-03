@@ -29,15 +29,23 @@ def cli():
     return args
 
 
-def process_shufflenet(net_cpu):
-    LOG.debug('processing a shufflenet model')
-    nets.shufflenet_add_pyramid(net_cpu.base_net)
+def add_pyramid(net_cpu):
+    if net_cpu.base_net.shortname.startswith('shufflenet'):
+        LOG.debug('processing a shufflenet model')
+        nets.shufflenet_add_pyramid(net_cpu.base_net)
+    elif net_cpu.base_net.shortname.startswith('resnet'):
+        LOG.debug('processing a resnet model')
+        nets.resnet_add_pyramid(net_cpu.base_net)
+    else:
+        raise Exception('cannot transform base net {}'.format(net_cpu.base_net.shortname))
+    net_cpu.base_net.shortname += 'pd'
 
     LOG.debug('recreating head nets')
     head_nets = [heads.factory(h, net_cpu.base_net.out_features)
                  for h in net_cpu.head_names if h != 'skeleton']
 
     net_cpu = nets.Shell(net_cpu.base_net, head_nets)
+    nets.model_defaults(net_cpu)
     return net_cpu
 
 
@@ -45,21 +53,16 @@ def main():
     args = cli()
     net_cpu, epoch = nets.factory_from_args(args)
 
-    if net_cpu.base_net.shortname.startswith('shufflenet'):
-        with_pyramid = process_shufflenet(net_cpu)
-    else:
-        raise Exception('cannot transform base net {}'.format(net_cpu.base_net.shortname))
-
-    nets.model_defaults(net_cpu)
+    net_cpu = add_pyramid(net_cpu)
 
     # write model
     now = datetime.datetime.now().strftime('%y%m%d-%H%M%S')
     basename = net_cpu.base_net.shortname
     headnames = '-'.join(net_cpu.head_names)
-    filename = 'outputs/{}pd-{}-{}.pkl'.format(basename, headnames, now)
+    filename = 'outputs/{}-{}-{}.pkl'.format(basename, headnames, now)
     LOG.debug('about to write model %s', filename)
     torch.save({
-        'model': with_pyramid,
+        'model': net_cpu,
         'epoch': epoch,
         'meta': {
             'args': vars(args),

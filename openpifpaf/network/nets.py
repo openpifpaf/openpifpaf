@@ -186,6 +186,7 @@ def factory_from_args(args):
     # configure pyramid
     pyramid.PumpAndDump.n_layers = args.pyramid_layers
     pyramid.PumpAndDump.stack_size = args.pyramid_stack_size
+    pyramid.PumpAndDump.n_features = args.pyramid_features
     pyramid.PumpAndDumpColumn.upsample_type = args.pyramid_upsample
 
     return factory(
@@ -390,14 +391,13 @@ def shufflenet_add_pyramid(basenet):
     blocks = list(basenet.net.children())
 
     in_features = blocks[-1][0].in_channels
-    pyramid_features = 512
     blocks[-1] = pyramid.PumpAndDump(
-        in_features, pyramid_features,
+        in_features,
         block_factory=pyramid.PumpAndDump.create_invertedresidual,
         lateral_factory=pyramid.PumpAndDump.create_lateral_invertedresidual,
     )
     basenet.net = torch.nn.Sequential(*blocks)
-    basenet.out_features = pyramid_features * (pyramid.PumpAndDump.n_layers + 1)
+    basenet.out_features = pyramid.PumpAndDump.n_features * (pyramid.PumpAndDump.n_layers + 1)
     LOG.info('pyramid out features = %d', basenet.out_features)
 
 
@@ -432,22 +432,35 @@ def resnet_factory_from_scratch(basename, base_vision, out_features, headnames):
     else:
         out_features //= 2
 
-    # pump and dump extension
-    if 'pd' in basename:
-        pyramid_features = 512
-        blocks.append(pyramid.PumpAndDump(out_features, pyramid_features))
-        out_features = pyramid_features * (pyramid.PumpAndDump.n_layers + 1)
-
     basenet = basenetworks.BaseNetwork(
         torch.nn.Sequential(*blocks),
         basename,
         input_output_scale=output_stride,
         out_features=out_features,
     )
+
+    if 'pd' in basename:
+        resnet_add_pyramid(basenet)
+
     headnets = [heads.factory(h, basenet.out_features) for h in headnames if h != 'skeleton']
     net_cpu = Shell(basenet, headnets)
     model_defaults(net_cpu)
     return net_cpu
+
+
+def resnet_add_pyramid(basenet):
+    blocks = list(basenet.net.children())
+
+    blocks[-1] = pyramid.PumpAndDump(
+        basenet.out_features // 2,
+        block_factory=pyramid.PumpAndDump.create_bottleneck,
+        lateral_factory=pyramid.PumpAndDump.create_lateral,
+    )
+    basenet.net = torch.nn.Sequential(*blocks)
+    basenet.out_features = pyramid.PumpAndDump.n_features * (pyramid.PumpAndDump.n_layers + 1)
+    basenet.input_output_scale //= 2
+    LOG.debug('basenet.net: %s', basenet.net)
+    LOG.info('pyramid out features = %d', basenet.out_features)
 
 
 def cli(parser):
@@ -484,4 +497,7 @@ def cli(parser):
     group.add_argument('--pyramid-stack-size', default=pyramid.PumpAndDump.stack_size, type=int,
                        help='[experimental]')
     group.add_argument('--pyramid-upsample', default=pyramid.PumpAndDumpColumn.upsample_type,
+                       help='[experimental]')
+    group.add_argument('--pyramid-features', default=pyramid.PumpAndDump.n_features,
+                       type=int,
                        help='[experimental]')

@@ -21,27 +21,27 @@ def reversed_czip(*args):
 class PumpAndDump(torch.nn.Module):
     n_layers = 2
     stack_size = 2
+    n_features = 512
 
-    def __init__(self, in_features, pyramid_features, *, block_factory=None, lateral_factory=None):
+    def __init__(self, in_features, *, block_factory, lateral_factory):
         super().__init__()
         LOG.info('layers=%d, stack=%d', self.n_layers, self.stack_size)
-        block_factory = block_factory or self.create_bottleneck
-        lateral_factory = lateral_factory or self.create_lateral
 
         self.columns = torch.nn.ModuleList([
-            PumpAndDumpColumn(in_features if s == 0 else pyramid_features,
-                              pyramid_features,
+            PumpAndDumpColumn(in_features if s == 0 else self.n_features,
+                              self.n_features,
                               self.n_layers,
                               block_factory=block_factory,
                               lateral_factory=lateral_factory)
             for s in range(self.stack_size)
         ] + [
-            ConcatenateColumn(pyramid_features, self.n_layers, lateral_factory=lateral_factory)
+            ConcatenateColumn(self.n_features, self.n_layers,
+                              lateral_factory=lateral_factory)
         ])
 
         self.out_lateral = lateral_factory(
-            pyramid_features * (self.n_layers + 1),
-            pyramid_features * (self.n_layers + 1),
+            self.n_features * (self.n_layers + 1),
+            self.n_features * (self.n_layers + 1),
         )
 
     def forward(self, *args):
