@@ -436,19 +436,22 @@ class EvalPlots(object):
         for data, label in zip(self.datas, self.labels):
             if not data:
                 continue
-            # if self.legend_last_ap:
-            #     last_ap = data[-1][1]['stats'][0]
-            #     label = '{} (AP={:.1%})'.format(label, last_ap)
             x = np.array([d.get('count_ops', [0, 0])[entry] / s for _, d in data])[-1]
             if x == 0.0:
                 continue
             y = np.array([d['stats'][0] for _, d in data])[-1]
             ax.plot([x], [y], 'o', label=label, markersize=10)
+            ax.text(
+                x, y,
+                (label if len(label) < 20 else label.split('-')[0]) + '  ',
+                rotation=90,
+                horizontalalignment='center', verticalalignment='top',
+            )
 
         ax.set_xlabel('GMACs' if entry == 0 else 'million parameters')
         ax.set_ylabel('AP')
         ax.grid(linestyle='dotted')
-        ax.legend(loc='lower right')
+        # ax.legend(loc='lower right')
 
     def ap(self, ax):
         self.frame_stats(ax, entry=0)
