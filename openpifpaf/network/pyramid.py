@@ -212,22 +212,25 @@ class PumpAndDumpColumn(torch.nn.Module):
                                  self.w_dumpeds, self.w_pumpeds):
             w.data.clamp_(0, 1e3)
 
+        # input stage
         intermediate0 = [
             l(i)
             for i, l in czip(inputs, self.lateral1)
         ]
 
+        # pump path
         intermediate1 = [intermediate0[0]]
-        for input0, bottleneck, w_input1, w_pumped in czip(
+        for intermediate0i, bottleneck, w_input1, w_pumped in czip(
                 intermediate0[1:], self.bottlenecks,
                 self.w_inputs1, self.w_pumpeds):
             pumped = bottleneck(intermediate1[-1])
 
             intermediate1.append(
-                (w_input1 * input0 + w_pumped * pumped) / (
+                (w_input1 * intermediate0i + w_pumped * pumped) / (
                     self.epsilon + w_input1 + w_pumped)
             )
 
+        # dump path
         intermediate2 = [
             (
                 self.w_inputs2_0 * self.lateral2_0(intermediate1[-1]) +
@@ -236,15 +239,18 @@ class PumpAndDumpColumn(torch.nn.Module):
                 self.epsilon + self.w_inputs2_0 + self.w_skips_0
             )
         ]
-        for input1, input2, lateral2, w_input2, w_dumped, w_skip in reversed_czip(
+        for intermediate0i, intermediate1i, lateral2, w_input2, w_dumped, w_skip in reversed_czip(
                 intermediate0[:-1], intermediate1[:-1], self.lateral2,
                 self.w_inputs2, self.w_dumpeds, self.w_skips):
-
             dumped = self.upsample(intermediate2[0])
+
             intermediate2.insert(
                 0,
-                (w_input2 * lateral2(input2) + w_dumped * dumped + w_skip * input1) / (
-                    self.epsilon + w_input2 + w_dumped + w_skip)
+                (
+                    w_input2 * lateral2(intermediate1i) +
+                    w_dumped * dumped +
+                    w_skip * intermediate0i
+                ) / (self.epsilon + w_input2 + w_dumped + w_skip)
             )
 
         return intermediate2
