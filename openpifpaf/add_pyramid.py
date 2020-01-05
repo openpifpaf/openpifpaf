@@ -42,7 +42,7 @@ def add_pyramid(net_cpu):
 
     LOG.debug('recreating head nets')
     head_nets = [heads.factory(h, net_cpu.base_net.out_features)
-                 for h in net_cpu.head_names if h != 'skeleton']
+                 for h in net_cpu.head_names]
 
     net_cpu = nets.Shell(net_cpu.base_net, head_nets)
     nets.model_defaults(net_cpu)

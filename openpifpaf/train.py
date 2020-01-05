@@ -11,9 +11,12 @@ from .network import losses, nets, Trainer
 from . import __version__ as VERSION
 
 
-def default_output_file(args):
-    out = 'outputs/{}-{}'.format(args.basenet, '-'.join(args.headnets))
-    if args.square_edge != 321:
+def default_output_file(args, net_cpu):
+    base_name = net_cpu.base_net.shortname
+    head_names = net_cpu.head_names
+
+    out = 'outputs/{}-{}'.format(base_name, '-'.join(head_names))
+    if args.square_edge:
         out += '-edge{}'.format(args.square_edge)
     if args.regression_loss != 'laplace':
         out += '-{}'.format(args.regression_loss)
@@ -73,12 +76,6 @@ def cli():
 
     args = parser.parse_args()
 
-    if args.output is None:
-        args.output = default_output_file(args)
-
-    if args.debug and 'skeleton' not in args.headnets:
-        raise Exception('add "skeleton" as last headnet to see debug output')
-
     if args.debug_pif_indices or args.debug_paf_indices:
         args.debug = True
 
@@ -94,16 +91,18 @@ def cli():
 
 def main():
     args = cli()
-    logs.configure(args)
     net_cpu, start_epoch = nets.factory_from_args(args)
+    if args.output is None:
+        args.output = default_output_file(args, net_cpu)
+    logs.configure(args)
 
     net = net_cpu.to(device=args.device)
     if not args.disable_cuda and torch.cuda.device_count() > 1:
         print('Using multiple GPUs: {}'.format(torch.cuda.device_count()))
         net = torch.nn.DataParallel(net)
 
-    loss = losses.factory_from_args(args)
-    target_transforms = encoder.factory(args, net_cpu.head_strides)
+    loss = losses.factory_from_args(args, net_cpu.head_names)
+    target_transforms = encoder.factory(args, net_cpu.head_names, net_cpu.head_strides)
 
     if args.augmentation:
         preprocess_transformations = [
@@ -140,7 +139,7 @@ def main():
     encoder_visualizer = None
     if args.debug_pif_indices or args.debug_paf_indices:
         encoder_visualizer = encoder.Visualizer(
-            args.headnets, net_cpu.head_strides,
+            net_cpu.head_names, net_cpu.head_strides,
             pif_indices=args.debug_pif_indices, paf_indices=args.debug_paf_indices)
 
     trainer = Trainer(

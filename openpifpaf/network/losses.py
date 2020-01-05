@@ -347,14 +347,14 @@ def cli(parser):
                        help='[experimental]')
 
 
-def factory_from_args(args):
+def factory_from_args(args, head_names):
     # apply for CompositeLoss
     CompositeLoss.background_weight = args.background_weight
     CompositeLoss.fixed_size = args.paf_fixed_size
     CompositeLoss.aspect_ratio = args.paf_aspect_ratio
 
     return factory(
-        args.headnets,
+        head_names,
         args.lambdas,
         reg_loss_name=args.regression_loss,
         r_smooth=args.r_smooth,
@@ -395,8 +395,6 @@ def factory(head_names, lambdas, *,
                         device=device,
                         margin=margin)
                 for hn, lam in zip(head_names, lambdas)]
-
-    head_names = [h for h in head_names if h not in ('skeleton', 'tskeleton')]
 
     if reg_loss_name == 'smoothl1':
         reg_loss = SmoothL1Loss(r_smooth)

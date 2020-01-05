@@ -25,7 +25,7 @@ def cli(parser):
                        help='paf width relative to its length')
 
 
-def factory(args, strides):
+def factory(args, head_names, strides):
     # configure Pif
     Pif.side_length = args.pif_side_length
 
@@ -34,17 +34,17 @@ def factory(args, strides):
     Paf.fixed_size = args.paf_fixed_size
     Paf.aspect_ratio = args.paf_aspect_ratio
 
-    return factory_heads(args.headnets, strides)
+    return factory_heads(head_names, strides, skeleton=args.debug)
 
 
-def factory_heads(headnames, strides):
+def factory_heads(headnames, strides, skeleton=False):
     if isinstance(headnames[0], (list, tuple)):
         return [factory_heads(task_headnames, task_strides)
                 for task_headnames, task_strides in zip(headnames, strides)]
 
     encoders = [factory_head(head_name, stride)
                 for head_name, stride in zip(headnames, strides)]
-    if headnames[-1] == 'skeleton' and len(headnames) == len(strides) + 1:
+    if skeleton:
         encoders.append(Skeleton())
 
     return encoders

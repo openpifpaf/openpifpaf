@@ -268,7 +268,7 @@ def factory(
         *,
         checkpoint=None,
         base_name=None,
-        head_names=('pif', 'paf'),
+        head_names=None,
         pretrained=True,
         experimental=False,
         cross_talk=0.0,
@@ -276,10 +276,15 @@ def factory(
         multi_scale=False,
         multi_scale_hflip=True):
 
-    if not checkpoint and base_name:
+    if not checkpoint:
+        assert base_name
+        assert head_names
         net_cpu = factory_from_scratch(base_name, head_names, pretrained=pretrained)
         epoch = 0
     else:
+        assert base_name is None
+        assert head_names is None
+
         if not checkpoint:
             checkpoint = torch.hub.load_state_dict_from_url(SHUFFLENETV2X2_MODEL)
         elif checkpoint == 'resnet18':
@@ -302,6 +307,10 @@ def factory(
             checkpoint = torch.load(checkpoint)
         net_cpu = checkpoint['model']
         epoch = checkpoint['epoch']
+
+        base_name = net_cpu.base_net.shortname
+        head_names = net_cpu.head_names
+        LOG.debug('checkpoint base_name = %s, head_names = %s', base_name, head_names)
 
         # initialize for eval
         net_cpu.eval()
@@ -379,7 +388,7 @@ def shufflenet_factory_from_scratch(basename, base_vision, out_features, headnam
     if 'pd' in basename:
         shufflenet_add_pyramid(basenet)
 
-    headnets = [heads.factory(h, basenet.out_features) for h in headnames if h != 'skeleton']
+    headnets = [heads.factory(h, basenet.out_features) for h in headnames]
 
     net_cpu = Shell(basenet, headnets)
     model_defaults(net_cpu)
@@ -442,7 +451,7 @@ def resnet_factory_from_scratch(basename, base_vision, out_features, headnames):
     if 'pd' in basename:
         resnet_add_pyramid(basenet)
 
-    headnets = [heads.factory(h, basenet.out_features) for h in headnames if h != 'skeleton']
+    headnets = [heads.factory(h, basenet.out_features) for h in headnames]
     net_cpu = Shell(basenet, headnets)
     model_defaults(net_cpu)
     return net_cpu
@@ -470,7 +479,7 @@ def cli(parser):
                              'or "resnet152" for pretrained OpenPifPaf models.'))
     group.add_argument('--basenet', default=None,
                        help='base network, e.g. resnet50')
-    group.add_argument('--headnets', default=['pif', 'paf'], nargs='+',
+    group.add_argument('--headnets', default=None, nargs='+',
                        help='head networks')
     group.add_argument('--no-pretrain', dest='pretrained', default=True, action='store_false',
                        help='create model without ImageNet pretraining')

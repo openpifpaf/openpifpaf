@@ -20,10 +20,8 @@ class Visualizer(object):
         self.keypoint_painter = show.KeypointPainter()
 
     def single(self, image, targets):
-        keypoint_sets = None
-        if 'skeleton' in self.head_names:
-            i = self.head_names.index('skeleton')
-            keypoint_sets = targets[i][0]
+        assert len(targets) == len(self.head_names) + 1  # skeleton is last
+        keypoint_sets = targets[-1][0]
 
         with show.canvas() as ax:
             ax.imshow(image)
