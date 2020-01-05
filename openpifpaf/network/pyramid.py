@@ -63,6 +63,7 @@ class PumpAndDump(torch.nn.Module):
             downsample=torch.nn.Sequential(
                 torchvision.models.resnet.conv1x1(in_features, in_features, stride=2),
                 torch.nn.BatchNorm2d(in_features),
+                torch.nn.ReLU(),
             ),
         )
 
@@ -73,6 +74,7 @@ class PumpAndDump(torch.nn.Module):
                 torch.nn.Conv2d(
                     in_features, out_features,
                     kernel_size=1, stride=1, padding=0, bias=False),
+                torch.nn.BatchNorm2d(out_features),
                 torch.nn.ReLU(),
             )
 

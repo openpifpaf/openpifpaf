@@ -451,14 +451,13 @@ def resnet_factory_from_scratch(basename, base_vision, out_features, headnames):
 def resnet_add_pyramid(basenet):
     blocks = list(basenet.net.children())
 
-    blocks[-1] = pyramid.PumpAndDump(
-        basenet.out_features // 2,
+    blocks.append(pyramid.PumpAndDump(
+        basenet.out_features,
         block_factory=pyramid.PumpAndDump.create_bottleneck,
         lateral_factory=pyramid.PumpAndDump.create_lateral,
-    )
+    ))
     basenet.net = torch.nn.Sequential(*blocks)
     basenet.out_features = pyramid.PumpAndDump.n_features * (pyramid.PumpAndDump.n_layers + 1)
-    basenet.input_output_scale //= 2
     LOG.debug('basenet.net: %s', basenet.net)
     LOG.info('pyramid out features = %d', basenet.out_features)
 
