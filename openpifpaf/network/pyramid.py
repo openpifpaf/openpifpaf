@@ -240,17 +240,10 @@ class PumpAndDumpColumn(torch.nn.Module):
                 intermediate0[:-1], intermediate1[:-1], self.lateral2,
                 self.w_inputs2, self.w_dumpeds, self.w_skips):
 
-            if hasattr(self, 'dequad'):  # backwards compat TODO remove
-                dumped = self.dequad(intermediate2[0])[:, :, :-1, :-1]
-                dumped = torch.cat((dumped, dumped, dumped, dumped), dim=1)
-            else:
-                dumped = self.upsample(intermediate2[0])
-
-            input2_lateral = lateral2(input2)
-
+            dumped = self.upsample(intermediate2[0])
             intermediate2.insert(
                 0,
-                (w_input2 * input2_lateral + w_dumped * dumped + w_skip * input1) / (
+                (w_input2 * lateral2(input2) + w_dumped * dumped + w_skip * input1) / (
                     self.epsilon + w_input2 + w_dumped + w_skip)
             )
 
