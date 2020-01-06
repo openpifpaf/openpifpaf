@@ -28,8 +28,9 @@ class PumpAndDump(torch.nn.Module):
         LOG.info('layers=%d, stack=%d', self.n_layers, self.stack_size)
 
         self.columns = torch.nn.ModuleList([
-            PumpAndDumpColumn(in_features if s == 0 else self.n_features,
-                              self.n_features,
+            InputColumn(in_features, self.n_features, self.n_layers)
+        ] + [
+            PumpAndDumpColumn(self.n_features,
                               self.n_layers,
                               block_factory=block_factory,
                               lateral_factory=lateral_factory)
@@ -39,15 +40,12 @@ class PumpAndDump(torch.nn.Module):
                               lateral_factory=lateral_factory)
         ])
 
-        self.out_lateral = lateral_factory(
-            self.n_features * (self.n_layers + 1),
-            self.n_features * (self.n_layers + 1),
-        )
+        self.out_lateral = lateral_factory(self.n_features * (self.n_layers + 1))
 
     def forward(self, *args):
         x = [args[0]] + [
             args[0][:, :, 0::2**(l + 1), 0::2**(l + 1)]
-            for l, _ in enumerate(self.columns[0].bottlenecks)
+            for l, _ in enumerate(self.columns[1].bottlenecks)
         ]
 
         for column in self.columns:
@@ -56,59 +54,62 @@ class PumpAndDump(torch.nn.Module):
         return self.out_lateral(x[0])
 
     @staticmethod
-    def create_bottleneck(in_features):
+    def create_bottleneck(n_features):
         return torchvision.models.resnet.Bottleneck(
-            in_features, in_features // 4,
+            n_features, n_features // 4,
             stride=2,
             downsample=torch.nn.Sequential(
-                torchvision.models.resnet.conv1x1(in_features, in_features, stride=2),
-                torch.nn.BatchNorm2d(in_features),
+                torchvision.models.resnet.conv1x1(n_features, n_features, stride=2),
+                torch.nn.BatchNorm2d(n_features),
                 torch.nn.ReLU(),
             ),
         )
 
     @staticmethod
-    def create_lateral(in_features, out_features):
-        if in_features != out_features:
-            return torch.nn.Sequential(
+    def create_lateral(n_features):
+        return torchvision.models.resnet.Bottleneck(
+            n_features, n_features // 4,
+        )
+
+    @staticmethod
+    def create_invertedresidual(n_features):
+        return torchvision.models.shufflenetv2.InvertedResidual(
+            n_features, n_features, stride=2)
+
+    @staticmethod
+    def create_lateral_invertedresidual(n_features):
+        return torchvision.models.shufflenetv2.InvertedResidual(
+            n_features, n_features, stride=1)
+
+
+class InputColumn(torch.nn.Module):
+    def __init__(self, in_features, out_features, n_layers):
+        super().__init__()
+
+        self.lateral = torch.nn.ModuleList([
+            torch.nn.Sequential(
                 torch.nn.Conv2d(
                     in_features, out_features,
                     kernel_size=1, stride=1, padding=0, bias=False),
                 torch.nn.BatchNorm2d(out_features),
                 torch.nn.ReLU(),
             )
+            for _ in range(n_layers + 1)
+        ])
 
-        return torchvision.models.resnet.Bottleneck(
-            in_features, out_features // 4,
-        )
-
-    @staticmethod
-    def create_invertedresidual(in_features):
-        return torchvision.models.shufflenetv2.InvertedResidual(
-            in_features, in_features, stride=2)
-
-    @staticmethod
-    def create_lateral_invertedresidual(in_features, out_features):
-        if in_features != out_features:
-            return torch.nn.Sequential(
-                torch.nn.Conv2d(
-                    in_features, out_features,
-                    kernel_size=1, stride=1, padding=0, bias=False),
-                torch.nn.ReLU(),
-            )
-
-        return torchvision.models.shufflenetv2.InvertedResidual(
-            in_features, out_features, stride=1)
+    def forward(self, *args):
+        inputs = args[0]
+        return [l(i) for l, i in czip(self.lateral, inputs)]
 
 
 class ConcatenateColumn(torch.nn.Module):
-    def __init__(self, pyramid_features, n_layers, *, lateral_factory):
+    def __init__(self, n_features, n_layers, *, lateral_factory):
         super().__init__()
 
         self.upsample = UpsampleWithClip(scale_factor=2, mode='nearest')
 
         self.lateral = torch.nn.ModuleList([
-            lateral_factory(pyramid_features, pyramid_features)
+            lateral_factory(n_features)
             for _ in range(n_layers + 1)
         ])
 
@@ -154,11 +155,11 @@ class PumpAndDumpColumn(torch.nn.Module):
     epsilon = 0.1
     upsample_type = 'nearest'
 
-    def __init__(self, in_features, pyramid_features, n_layers, *, block_factory, lateral_factory):
+    def __init__(self, n_features, n_layers, *, block_factory, lateral_factory):
         super().__init__()
 
         self.bottlenecks = torch.nn.ModuleList([
-            block_factory(pyramid_features)
+            block_factory(n_features)
             for _ in range(n_layers)
         ])
 
@@ -171,35 +172,35 @@ class PumpAndDumpColumn(torch.nn.Module):
             raise Exception('upsample type unknown: {}'.format(self.upsample_type))
 
         self.lateral1 = torch.nn.ModuleList([
-            lateral_factory(in_features, pyramid_features)
+            lateral_factory(n_features)
             for _ in range(n_layers + 1)
         ])
-        self.lateral2_0 = lateral_factory(pyramid_features, pyramid_features)
+        self.lateral2_0 = lateral_factory(n_features)
         self.lateral2 = torch.nn.ModuleList([
-            lateral_factory(pyramid_features, pyramid_features)
+            lateral_factory(n_features)
             for _ in range(n_layers)
         ])
 
         self.w_inputs1 = torch.nn.ParameterList([
-            torch.nn.Parameter(torch.ones((1, pyramid_features, 1, 1)))
+            torch.nn.Parameter(torch.ones((1, n_features, 1, 1)))
             for _ in range(n_layers)
         ])
-        self.w_inputs2_0 = torch.nn.Parameter(torch.ones((1, pyramid_features, 1, 1)))
+        self.w_inputs2_0 = torch.nn.Parameter(torch.ones((1, n_features, 1, 1)))
         self.w_inputs2 = torch.nn.ParameterList([
-            torch.nn.Parameter(torch.ones((1, pyramid_features, 1, 1)))
+            torch.nn.Parameter(torch.ones((1, n_features, 1, 1)))
             for _ in range(n_layers)
         ])
-        self.w_skips_0 = torch.nn.Parameter(torch.ones((1, pyramid_features, 1, 1)))
+        self.w_skips_0 = torch.nn.Parameter(torch.ones((1, n_features, 1, 1)))
         self.w_skips = torch.nn.ParameterList([
-            torch.nn.Parameter(torch.ones((1, pyramid_features, 1, 1)))
+            torch.nn.Parameter(torch.ones((1, n_features, 1, 1)))
             for _ in range(n_layers)
         ])
         self.w_dumpeds = torch.nn.ParameterList([
-            torch.nn.Parameter(torch.ones((1, pyramid_features, 1, 1)))
+            torch.nn.Parameter(torch.ones((1, n_features, 1, 1)))
             for _ in range(n_layers)
         ])
         self.w_pumpeds = torch.nn.ParameterList([
-            torch.nn.Parameter(torch.ones((1, pyramid_features, 1, 1)))
+            torch.nn.Parameter(torch.ones((1, n_features, 1, 1)))
             for _ in range(n_layers)
         ])
 
@@ -234,13 +235,13 @@ class PumpAndDumpColumn(torch.nn.Module):
         intermediate2 = [
             (
                 self.w_inputs2_0 * self.lateral2_0(intermediate1[-1]) +
-                self.w_skips_0 * intermediate0[-1]
+                self.w_skips_0 * inputs[-1]
             ) / (
                 self.epsilon + self.w_inputs2_0 + self.w_skips_0
             )
         ]
-        for intermediate0i, intermediate1i, lateral2, w_input2, w_dumped, w_skip in reversed_czip(
-                intermediate0[:-1], intermediate1[:-1], self.lateral2,
+        for inputs_i, intermediate1i, lateral2, w_input2, w_dumped, w_skip in reversed_czip(
+                inputs[:-1], intermediate1[:-1], self.lateral2,
                 self.w_inputs2, self.w_dumpeds, self.w_skips):
             dumped = self.upsample(intermediate2[0])
 
@@ -249,7 +250,7 @@ class PumpAndDumpColumn(torch.nn.Module):
                 (
                     w_input2 * lateral2(intermediate1i) +
                     w_dumped * dumped +
-                    w_skip * intermediate0i
+                    w_skip * inputs_i
                 ) / (self.epsilon + w_input2 + w_dumped + w_skip)
             )
 
