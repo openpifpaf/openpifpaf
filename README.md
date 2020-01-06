@@ -142,20 +142,36 @@ ShuffleNet models are trained without ImageNet pretraining:
 
 ```sh
 time CUDA_VISIBLE_DEVICES=0,1 python3 -m openpifpaf.train \
-  --batch-size=64 \
-  --basenet=shufflenetv2x2 \
-  --head-quad=1 \
-  --epochs=150 \
+  --lr=0.05 \
   --momentum=0.9 \
-  --headnets pif paf paf25 \
-  --lambdas 30 2 2 50 3 3 50 3 3 \
-  --loader-workers=16 \
-  --lr=0.1 \
+  --epochs=150 \
   --lr-decay 120 140 \
-  --no-pretrain \
+  --batch-size=32 \
+  --square-edge=385 \
+  --lambdas 1 1 0.2   1 1 1 0.2 0.2    1 1 1 0.2 0.2 \
+  --auto-tune-mtl \
   --weight-decay=1e-5 \
   --update-batchnorm-runningstatistics \
-  --ema=0.03
+  --ema=0.03 \
+  --basenet=shufflenetv2x2 \
+  --headnets pif pafs pafs25 \
+  --head-quad=1
+
+time CUDA_VISIBLE_DEVICES=0,1 python3 -m openpifpaf.train \
+  --lr=0.05 \
+  --momentum=0.9 \
+  --epochs=250 \
+  --lr-decay 220 240 \
+  --lr-burn-in-start-epoch=150 \
+  --lr-burn-in-epochs=0.5 \
+  --batch-size=32 \
+  --square-edge=385 \
+  --lambdas 1 1 0.2   1 1 1 0.2 0.2    1 1 1 0.2 0.2 \
+  --auto-tune-mtl \
+  --weight-decay=1e-5 \
+  --update-batchnorm-runningstatistics \
+  --ema=0.03 \
+  --checkpoint outputs/shufflenetv2x2pd-pif-pafs-pafs25-200105-120106.pkl
 ```
 
 You can refine an existing model with the `--checkpoint` option.
