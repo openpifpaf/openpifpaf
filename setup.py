@@ -66,6 +66,7 @@ setup(
         'scipy',
         'torch>=1.1.0',
         'torchvision>=0.3',
+        'pillow<7',  # temporary compat requirement for torchvision
     ],
     extras_require={
         'onnx': [
