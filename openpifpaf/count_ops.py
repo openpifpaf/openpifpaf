@@ -27,7 +27,7 @@ def count(checkpoint):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--checkpoint', default='resnet50')
+    parser.add_argument('--checkpoint')
     args = parser.parse_args()
 
     gmacs, params = count(args.checkpoint)
