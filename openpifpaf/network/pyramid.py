@@ -19,8 +19,8 @@ def reversed_czip(*args):
 
 
 class PumpAndDump(torch.nn.Module):
-    n_layers = 2
-    stack_size = 2
+    n_layers = 3
+    stack_size = 1
     n_features = 512
 
     def __init__(self, in_features, *, block_factory, lateral_factory):
@@ -154,6 +154,7 @@ class SubpixelConvWithClip(torch.nn.Module):
 class PumpAndDumpColumn(torch.nn.Module):
     epsilon = 0.1
     upsample_type = 'nearest'
+    weighted = False
 
     def __init__(self, n_features, n_layers, *, block_factory, lateral_factory):
         super().__init__()
@@ -181,36 +182,48 @@ class PumpAndDumpColumn(torch.nn.Module):
             for _ in range(n_layers)
         ])
 
-        self.w_inputs1 = torch.nn.ParameterList([
-            torch.nn.Parameter(torch.ones((1, n_features, 1, 1)))
-            for _ in range(n_layers)
-        ])
-        self.w_inputs2_0 = torch.nn.Parameter(torch.ones((1, n_features, 1, 1)))
-        self.w_inputs2 = torch.nn.ParameterList([
-            torch.nn.Parameter(torch.ones((1, n_features, 1, 1)))
-            for _ in range(n_layers)
-        ])
-        self.w_skips_0 = torch.nn.Parameter(torch.ones((1, n_features, 1, 1)))
-        self.w_skips = torch.nn.ParameterList([
-            torch.nn.Parameter(torch.ones((1, n_features, 1, 1)))
-            for _ in range(n_layers)
-        ])
-        self.w_dumpeds = torch.nn.ParameterList([
-            torch.nn.Parameter(torch.ones((1, n_features, 1, 1)))
-            for _ in range(n_layers)
-        ])
-        self.w_pumpeds = torch.nn.ParameterList([
-            torch.nn.Parameter(torch.ones((1, n_features, 1, 1)))
-            for _ in range(n_layers)
-        ])
+        self.w_inputs1 = [1.0 for _ in range(n_layers)]
+        self.w_inputs2_0 = 1.0
+        self.w_inputs2 = [1.0 for _ in range(n_layers)]
+        self.w_skips_0 = 1.0
+        self.w_skips = [1.0 for _ in range(n_layers)]
+        self.w_dumpeds = [1.0 for _ in range(n_layers)]
+        self.w_pumpeds = [1.0 for _ in range(n_layers)]
+        if self.weighted:
+            self.w_inputs1 = torch.nn.ParameterList([
+                torch.nn.Parameter(torch.ones((1, n_features, 1, 1)))
+                for _ in range(n_layers)
+            ])
+            self.w_inputs2_0 = torch.nn.Parameter(torch.ones((1, n_features, 1, 1)))
+            self.w_inputs2 = torch.nn.ParameterList([
+                torch.nn.Parameter(torch.ones((1, n_features, 1, 1)))
+                for _ in range(n_layers)
+            ])
+            self.w_skips_0 = torch.nn.Parameter(torch.ones((1, n_features, 1, 1)))
+            self.w_skips = torch.nn.ParameterList([
+                torch.nn.Parameter(torch.ones((1, n_features, 1, 1)))
+                for _ in range(n_layers)
+            ])
+            self.w_dumpeds = torch.nn.ParameterList([
+                torch.nn.Parameter(torch.ones((1, n_features, 1, 1)))
+                for _ in range(n_layers)
+            ])
+            self.w_pumpeds = torch.nn.ParameterList([
+                torch.nn.Parameter(torch.ones((1, n_features, 1, 1)))
+                for _ in range(n_layers)
+            ])
 
     def forward(self, *args):
         inputs = args[0]
         # print([i.shape for i in inputs])
 
         # enforce positive weights
-        for w in itertools.chain(self.w_inputs1, self.w_inputs2, self.w_skips,
+        for w in itertools.chain(self.w_inputs1,
+                                 [self.w_inputs2_0], self.w_inputs2,
+                                 [self.w_skips_0], self.w_skips,
                                  self.w_dumpeds, self.w_pumpeds):
+            if isinstance(w, float):
+                continue
             w.data.clamp_(0, 1e3)
 
         # input stage
