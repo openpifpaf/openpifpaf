@@ -36,9 +36,9 @@ LOG = logging.getLogger(__name__)
 
 
 class Visualizer(object):
-    def __init__(self, processor, args):
+    def __init__(self, processor, keypoint_painter):
         self.processor = processor
-        self.args = args
+        self.keypoint_painter = keypoint_painter
 
         if plt is None:
             LOG.error('matplotlib is not installed')
@@ -65,13 +65,6 @@ class Visualizer(object):
         mpl_im = ax.imshow(first_image)
         fig.show()
 
-        # visualizer
-        if self.args.colored_connections:
-            viz = show.KeypointPainter(show_box=False, color_connections=True,
-                                       markersize=1, linewidth=6)
-        else:
-            viz = show.KeypointPainter(show_box=False)
-
         while True:
             image, all_fields = yield
             annotations = self.processor.annotations(all_fields)
@@ -80,7 +73,7 @@ class Visualizer(object):
             while ax.lines:
                 del ax.lines[0]
             mpl_im.set_data(image)
-            viz.annotations(ax, annotations)
+            self.keypoint_painter.annotations(ax, annotations)
             fig.canvas.draw()
             LOG.debug('draw %.3fs', time.time() - draw_start)
             plt.pause(0.01)
@@ -159,6 +152,15 @@ def cli():
 def main():
     args = cli()
 
+    # create keypoint painter
+    if not args.json_output:
+        if args.colored_connections:
+            keypoint_painter = show.KeypointPainter(
+                show_box=False, color_connections=True,
+                markersize=1, linewidth=6)
+        else:
+            keypoint_painter = show.KeypointPainter(show_box=False)
+
     # load model
     model, _ = nets.factory_from_args(args)
     model = model.to(args.device)
@@ -189,7 +191,7 @@ def main():
                 visualizer = JsonOutput(processor, args.json_output)(image)
                 visualizer.send(None)
             else:
-                visualizer = Visualizer(processor, args)(image)
+                visualizer = Visualizer(processor, keypoint_painter)(image)
                 visualizer.send(None)
 
         start = time.time()
