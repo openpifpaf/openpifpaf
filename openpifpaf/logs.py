@@ -195,7 +195,7 @@ class Plots(object):
                 ax.plot(x[m], y[m], 'x-', color=color, linestyle='dotted', markersize=2)
 
         ax.set_xlabel('epoch')
-        ax.set_ylabel('loss, {}'.format(field_name))
+        ax.set_ylabel(field_name)
         # ax.set_ylim(0.0, 1.0)
         # if min(y) > -0.1:
         #     ax.set_yscale('log', nonposy='clip')
@@ -276,7 +276,7 @@ class Plots(object):
                 optionally_shaded(ax, x[m], y[m], color=color, label=label)
 
         ax.set_xlabel('epoch')
-        ax.set_ylabel('training loss, {}'.format(field_name))
+        ax.set_ylabel(format(field_name))
         ax.set_ylim(3e-3, 3.0)
         if min(y) > -0.1:
             ax.set_yscale('log', nonposy='clip')
