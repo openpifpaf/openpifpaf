@@ -415,6 +415,21 @@ def shufflenet_add_pyramid(basenet):
     LOG.info('pyramid out features = %d', basenet.out_features)
 
 
+def shufflenet_add_simple_pyramid(basenet):
+    blocks = list(basenet.net.children())
+
+    in_features = blocks[-1][0].in_channels
+    blocks[-1] = pyramid.SimplePyramid(
+        in_features,
+        block_factory=pyramid.PumpAndDump.create_invertedresidual,
+        lateral_factory=pyramid.PumpAndDump.create_lateral_invertedresidual,
+    )
+    basenet.net = torch.nn.Sequential(*blocks)
+    basenet.out_features = \
+        pyramid.SimplePyramid.concat_features * (pyramid.SimplePyramid.n_layers + 1)
+    LOG.info('pyramid out features = %d', basenet.out_features)
+
+
 def resnet_factory_from_scratch(basename, base_vision, out_features, headnames):
     resnet_factory = basenetworks.ResnetBlocks(base_vision)
 

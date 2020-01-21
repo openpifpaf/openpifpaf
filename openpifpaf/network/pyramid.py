@@ -18,6 +18,58 @@ def reversed_czip(*args):
     return zip(*[reversed(a) for a in args])
 
 
+class SimplePyramid(torch.nn.Module):
+    n_layers = 3
+    concat_features = 512
+
+    def __init__(self, in_features, *, block_factory, lateral_factory):
+        super().__init__()
+
+        self.blocks = torch.nn.ModuleList([
+            block_factory(in_features)
+            for _ in range(self.n_layers)
+        ])
+
+        self.lateral1 = torch.nn.ModuleList([
+            torch.nn.Sequential(
+                torch.nn.Conv2d(
+                    in_features, self.concat_features,
+                    kernel_size=1, stride=1, padding=0, bias=False),
+                torch.nn.BatchNorm2d(self.concat_features),
+                torch.nn.ReLU(),
+            )
+            for _ in range(self.n_layers + 1)
+        ])
+
+        self.lateral2 = torch.nn.ModuleList([
+            lateral_factory(self.concat_features)
+            for _ in range(self.n_layers + 1)
+        ])
+
+        self.upsample = UpsampleWithClip(scale_factor=2, mode='nearest')
+        self.out_lateral = lateral_factory(self.concat_features * (self.n_layers + 1))
+
+    def forward(self, *args):
+        x = [args[0]]
+        for block in self.blocks:
+            x.append(block(x[-1]))
+
+        x = [
+            lateral1(xx) for lateral1, xx in czip(self.lateral1, x)
+        ]
+
+        x = [
+            lateral2(xx) for lateral2, xx in czip(self.lateral2, x)
+        ]
+
+        concatenated = x[-1]
+        for xx in reversed(x[:-1]):
+            upsampled = self.upsample(concatenated)
+            concatenated = torch.cat((upsampled, xx), dim=1)
+
+        return self.out_lateral(concatenated)
+
+
 class PumpAndDump(torch.nn.Module):
     n_layers = 3
     stack_size = 1
