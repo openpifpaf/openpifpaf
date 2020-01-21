@@ -372,6 +372,26 @@ def factory_from_scratch(basename, headnames, *, pretrained=True):
             [4, 8, 4], [24, 348, 696, 1392, 2048],
         )
         return shufflenet_factory_from_scratch(basename, base_vision, 2048, headnames)
+    if basename.startswith('shufflenetv2x4'):
+        base_vision = torchvision.models.ShuffleNetV2(
+            [5, 10, 5], [32, 512, 1024, 2048, 2048],
+        )
+        return shufflenet_factory_from_scratch(basename, base_vision, 2048, headnames)
+    if basename.startswith('shufflenetv2x5'):
+        base_vision = torchvision.models.ShuffleNetV2(
+            [8, 16, 6], [32, 512, 1024, 2048, 2048],
+        )
+        return shufflenet_factory_from_scratch(basename, base_vision, 2048, headnames)
+    if basename.startswith('shufflenetv2x6'):
+        base_vision = torchvision.models.ShuffleNetV2(
+            [12, 24, 8], [32, 512, 1024, 2048, 2048],
+        )
+        return shufflenet_factory_from_scratch(basename, base_vision, 2048, headnames)
+    if basename.startswith('shufflenetv2x7'):
+        base_vision = torchvision.models.ShuffleNetV2(
+            [16, 36, 10], [32, 512, 1024, 2048, 2048],
+        )
+        return shufflenet_factory_from_scratch(basename, base_vision, 2048, headnames)
     if 'shufflenetv2x2w' in basename:
         base_vision = torchvision.models.ShuffleNetV2(
             [4, 8, 4], [24, 244, 488, 976, 3072],
