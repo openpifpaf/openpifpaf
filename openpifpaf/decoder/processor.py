@@ -97,9 +97,8 @@ class Processor(object):
 
         annotations = sorted(annotations, key=lambda a: -a.score())
         for ann in annotations:
-            joint_scales = (np.maximum(4.0, ann.joint_scales)
-                            if ann.joint_scales is not None
-                            else np.ones((ann.data.shape[0]),) * 4.0)
+            assert ann.joint_scales is not None
+            joint_scales = np.maximum(4.0, ann.joint_scales)
 
             assert len(occupied) == len(ann.data)
             for xyv, occ, joint_s in zip(ann.data, occupied, joint_scales):
@@ -176,15 +175,17 @@ class Processor(object):
             for ann in annotations:
                 ann.fixed_score = self.instance_scorer.from_annotation(ann)
 
-        # nms
-        annotations = self.soft_nms(annotations)
-
-        # threshold
+        # keypoint threshold
         for ann in annotations:
             if meta is not None:
                 self.suppress_outside_valid(ann, meta['valid_area'])
             kps = ann.data
             kps[kps[:, 2] < self.keypoint_threshold] = 0.0
+
+        # nms
+        annotations = self.soft_nms(annotations)
+
+        # instance threshold
         annotations = [ann for ann in annotations
                        if ann.score() >= self.instance_threshold]
         annotations = sorted(annotations, key=lambda a: -a.score())
