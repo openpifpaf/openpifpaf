@@ -75,7 +75,7 @@ def cli(parser, *,
                        help='connection method to use, max is faster')
 
 
-def factory_from_args(args, model, device=None):
+def configure(args):
     # configure PifPaf
     PifPaf.fixed_b = args.fixed_b
     PifPaf.pif_fixed_scale = args.pif_fixed_scale
@@ -103,14 +103,6 @@ def factory_from_args(args, model, device=None):
     # configure PifHr
     PifHr.v_threshold = args.pif_th
 
-    debug_visualizer = None
-    if args.debug_pif_indices or args.debug_paf_indices:
-        debug_visualizer = Visualizer(
-            args.debug_pif_indices, args.debug_paf_indices,
-            file_prefix=args.debug_file_prefix,
-            skeleton=COCO_PERSON_SKELETON + DENSER_COCO_PERSON_CONNECTIONS,
-        )
-
     # default value for keypoint filter depends on whether complete pose is forced
     if args.keypoint_threshold is None:
         args.keypoint_threshold = 0.001 if not args.force_complete_pose else 0.0
@@ -118,8 +110,21 @@ def factory_from_args(args, model, device=None):
     # decoder workers
     if args.decoder_workers is None and \
        getattr(args, 'batch_size', 1) > 1 and \
-       debug_visualizer is None:
+       not args.debug_pif_indices and \
+       not args.debug_paf_indices:
         args.decoder_workers = args.batch_size
+
+
+def factory_from_args(args, model, device=None):
+    configure(args)
+
+    debug_visualizer = None
+    if args.debug_pif_indices or args.debug_paf_indices:
+        debug_visualizer = Visualizer(
+            args.debug_pif_indices, args.debug_paf_indices,
+            file_prefix=args.debug_file_prefix,
+            skeleton=COCO_PERSON_SKELETON + DENSER_COCO_PERSON_CONNECTIONS,
+        )
 
     decode = factory_decode(model,
                             experimental=args.experimental_decoder,
