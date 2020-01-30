@@ -2,6 +2,8 @@ import copy
 import logging
 import os
 import random
+
+import numpy as np
 import torch.utils.data
 from PIL import Image
 
@@ -126,6 +128,10 @@ class CocoKeypoints(torch.utils.data.Dataset):
         # log stats
         for ann in anns:
             if random.random() > 0.01:
+                continue
+            if getattr(ann, 'iscrowd', False):
+                continue
+            if not np.any(ann['keypoints'][:, 2] > 0.0):
                 continue
             STAT_LOG.debug({'bbox': [int(v) for v in ann['bbox']]})
 
