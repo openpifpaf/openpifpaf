@@ -2,6 +2,7 @@
 
 import argparse
 import datetime
+import logging
 import socket
 
 import torch
@@ -73,6 +74,8 @@ def cli():
                        help='indices of PAF fields to create debug plots for')
     group.add_argument('--profile', default=None,
                        help='enables profiling. specify path for chrome tracing file')
+    group.add_argument('--log-stats', default=False, action='store_true',
+                       help='enable stats logging')
 
     args = parser.parse_args()
 
@@ -95,6 +98,8 @@ def main():
     if args.output is None:
         args.output = default_output_file(args, net_cpu)
     logs.configure(args)
+    if args.log_stats:
+        logging.getLogger('openpifpaf.stats').setLevel(logging.DEBUG)
 
     net = net_cpu.to(device=args.device)
     if not args.disable_cuda and torch.cuda.device_count() > 1:

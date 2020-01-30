@@ -1,6 +1,7 @@
 import copy
 import logging
 import os
+import random
 import torch.utils.data
 from PIL import Image
 
@@ -13,6 +14,7 @@ IMAGE_DIR_TRAIN = 'data-mscoco/images/train2017/'
 IMAGE_DIR_VAL = 'data-mscoco/images/val2017/'
 
 LOG = logging.getLogger(__name__)
+STAT_LOG = logging.getLogger(__name__.replace('openpifpaf.', 'openpifpaf.stats.'))
 
 
 def collate_images_anns_meta(batch):
@@ -120,6 +122,12 @@ class CocoKeypoints(torch.utils.data.Dataset):
         utils.mask_valid_area(image, valid_area)
 
         LOG.debug(meta)
+
+        # log stats
+        for ann in anns:
+            if random.random() > 0.01:
+                continue
+            STAT_LOG.debug({'bbox': [int(v) for v in ann['bbox']]})
 
         # transform targets
         if self.target_transforms is not None:

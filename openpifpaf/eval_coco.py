@@ -4,6 +4,7 @@ import argparse
 import json
 import logging
 import os
+import sys
 import time
 import zipfile
 
@@ -233,12 +234,25 @@ def cli():
     group = parser.add_argument_group('logging')
     group.add_argument('--debug', default=False, action='store_true',
                        help='print debug messages')
+    group.add_argument('--log-stats', default=False, action='store_true',
+                       help='enable stats logging')
     args = parser.parse_args()
 
-    logging.basicConfig()
     log_level = logging.INFO if not args.debug else logging.DEBUG
-    logging.getLogger('openpifpaf').setLevel(log_level)
-    LOG.setLevel(log_level)
+    if args.log_stats:
+        # pylint: disable=import-outside-toplevel
+        from pythonjsonlogger import jsonlogger
+        stdout_handler = logging.StreamHandler(sys.stdout)
+        stdout_handler.setFormatter(
+            jsonlogger.JsonFormatter('(message) (levelname) (name)'))
+        logging.basicConfig(handlers=[stdout_handler])
+        logging.getLogger('openpifpaf').setLevel(log_level)
+        logging.getLogger('openpifpaf.stats').setLevel(logging.DEBUG)
+        LOG.setLevel(log_level)
+    else:
+        logging.basicConfig()
+        logging.getLogger('openpifpaf').setLevel(log_level)
+        LOG.setLevel(log_level)
 
     if args.loader_workers is None:
         args.loader_workers = args.batch_size
