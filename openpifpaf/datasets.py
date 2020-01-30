@@ -127,7 +127,7 @@ class CocoKeypoints(torch.utils.data.Dataset):
 
         # log stats
         for ann in anns:
-            if random.random() > 0.01:
+            if random.random() > 0.1:
                 continue
             if getattr(ann, 'iscrowd', False):
                 continue
