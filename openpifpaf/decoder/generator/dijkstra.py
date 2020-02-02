@@ -246,6 +246,8 @@ class Dijkstra(object):
             if ann.data[jsi, 2] < th or target_xysv[3] < th:
                 return True
 
+            # th = max(th, target_xysv[3] / 2.0)
+
             for paf_i, (j1, j2) in enumerate(self.skeleton_m1):
                 if (j1 == jsi and j2 == jti) or (j2 == jsi and j1 == jti):
                     continue
