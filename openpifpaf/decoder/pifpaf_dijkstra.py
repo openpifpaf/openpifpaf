@@ -79,13 +79,6 @@ class PifPafDijkstra(object):
             for stride, paf_i in zip(self.strides, self.paf_indices):
                 self.debug_visualizer.paf_raw(fields[paf_i][:5], stride, reg_components=3)
 
-        # confidence scales
-        if self.confidence_scales:
-            for paf_i in self.paf_indices:
-                paf = fields[paf_i]
-                cs = np.array(self.confidence_scales, dtype=np.float32).reshape((-1, 1, 1,))
-                paf[0] = cs * paf[0]
-
         # normalize
         normalized_pifs = [normalize_pif(*fields[pif_i], fixed_scale=self.pif_fixed_scale)
                            for pif_i in self.pif_indices]
@@ -117,6 +110,7 @@ class PifPafDijkstra(object):
             skeleton=self.skeleton,
             out_skeleton=self.out_skeleton,
             confirm_connections=self.confirm_connections,
+            confidence_scales=self.confidence_scales,
             debug_visualizer=self.debug_visualizer,
         )
 

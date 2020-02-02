@@ -24,6 +24,7 @@ class Dijkstra(object):
                  skeleton,
                  out_skeleton=None,
                  confirm_connections=False,
+                 confidence_scales=None,
                  debug_visualizer=None):
         self.pifhr = pifhr
         self.paf_scored = paf_scored
@@ -39,6 +40,7 @@ class Dijkstra(object):
         self.skeleton_m1 = np.asarray(skeleton) - 1
         self.out_skeleton = out_skeleton or skeleton
         self.confirm_connections = confirm_connections
+        self.confidence_scales = confidence_scales
 
         self.debug_visualizer = debug_visualizer
         self.timers = defaultdict(float)
@@ -239,7 +241,10 @@ class Dijkstra(object):
                     ann, paf_i, forward, th, reverse_match=reverse_match)
                 if new_xysv[3] == 0.0:
                     continue
-                frontier.put((-new_xysv[3], new_xysv, start_i, end_i))
+                score = -new_xysv[3]
+                if self.confidence_scales is not None:
+                    score *= self.confidence_scales[paf_i]
+                frontier.put((score, new_xysv, start_i, end_i))
                 evaluated_connections.add((start_i, end_i))
 
         def confirm(jsi, jti, target_xysv, th=0.2):

@@ -194,7 +194,7 @@ def factory_from_args(args):
         base_name=args.basenet,
         head_names=args.headnets,
         pretrained=args.pretrained,
-        experimental=getattr(args, 'experimental_decoder', False),
+        dense_connections=getattr(args, 'dense_connections', False),
         cross_talk=args.cross_talk,
         two_scale=args.two_scale,
         multi_scale=args.multi_scale,
@@ -270,7 +270,7 @@ def factory(
         base_name=None,
         head_names=None,
         pretrained=True,
-        experimental=False,
+        dense_connections=False,
         cross_talk=0.0,
         two_scale=False,
         multi_scale=False,
@@ -318,9 +318,9 @@ def factory(
         # normalize for backwards compatibility
         model_migration(net_cpu)
 
-    if experimental and not multi_scale:
+    if dense_connections and not multi_scale:
         net_cpu.process_heads = heads.HeadStacks([(1, 2)])
-    elif experimental and multi_scale:
+    elif dense_connections and multi_scale:
         net_cpu.process_heads = heads.HeadStacks(
             [(v * 3 + 1, v * 3 + 2) for v in range(10)])
     net_cpu.cross_talk = cross_talk

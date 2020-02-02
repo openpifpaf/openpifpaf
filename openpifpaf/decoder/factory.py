@@ -29,10 +29,10 @@ def cli(parser, *,
                        help='filter keypoints by score')
     group.add_argument('--decoder-workers', default=workers, type=int,
                        help='number of workers for pose decoding')
-    group.add_argument('--experimental-decoder', default=False, action='store_true',
-                       help='use an experimental decoder')
-    group.add_argument('--extra-coupling', default=0.0, type=float,
-                       help='extra coupling')
+    group.add_argument('--dense-connections', default=False, action='store_true',
+                       help='use dense connections')
+    group.add_argument('--dense-coupling', default=0.01, type=float,
+                       help='dense coupling')
     group.add_argument('--paf-seeds', default=False, action='store_true',
                        help='[experimental]')
 
@@ -127,10 +127,10 @@ def factory_from_args(args, model, device=None):
         )
 
     decode = factory_decode(model,
-                            experimental=args.experimental_decoder,
+                            dense_coupling=args.dense_coupling,
+                            dense_connections=args.dense_connections,
                             paf_seeds=args.paf_seeds,
                             seed_threshold=args.seed_threshold,
-                            extra_coupling=args.extra_coupling,
                             multi_scale=args.multi_scale,
                             multi_scale_hflip=args.multi_scale_hflip,
                             debug_visualizer=debug_visualizer)
@@ -145,8 +145,8 @@ def factory_from_args(args, model, device=None):
 
 
 def factory_decode(model, *,
-                   extra_coupling=0.0,
-                   experimental=False,
+                   dense_coupling=0.0,
+                   dense_connections=False,
                    paf_seeds=False,
                    multi_scale=False,
                    multi_scale_hflip=True,
@@ -173,10 +173,10 @@ def factory_decode(model, *,
                       **kwargs)
 
     if head_names in (('pif', 'pafs', 'pafs25'),):
-        if experimental:
+        if dense_connections:
             confidence_scales = (
                 [1.0 for _ in COCO_PERSON_SKELETON] +
-                [extra_coupling for _ in DENSER_COCO_PERSON_CONNECTIONS]
+                [dense_coupling for _ in DENSER_COCO_PERSON_CONNECTIONS]
             )
             skeleton = COCO_PERSON_SKELETON + DENSER_COCO_PERSON_CONNECTIONS
         else:
@@ -214,7 +214,7 @@ def factory_decode(model, *,
         if multi_scale and multi_scale_hflip:
             resolutions = [1, 1.5, 2, 3, 5] * 2
             stride = [model.head_strides[-1] * r for r in resolutions]
-            if not experimental:
+            if not dense_connections:
                 pif_index = [v * 3 for v in range(10)]
                 paf_index = [v * 3 + 1 for v in range(10)]
             else:
@@ -227,7 +227,7 @@ def factory_decode(model, *,
         elif multi_scale and not multi_scale_hflip:
             resolutions = [1, 1.5, 2, 3, 5]
             stride = [model.head_strides[-1] * r for r in resolutions]
-            if not experimental:
+            if not dense_connections:
                 pif_index = [v * 3 for v in range(5)]
                 paf_index = [v * 3 + 1 for v in range(5)]
             else:
@@ -238,11 +238,11 @@ def factory_decode(model, *,
             paf_max_distance = [160.0, 240.0, 320.0, 480.0, None]
             # paf_max_distance = [128.0, 192.0, 256.0, 384.0, None]
 
-        if experimental:
-            LOG.warning('using experimental decoder')
+        if dense_connections:
+            LOG.warning('using dense connections')
             confidence_scales = (
                 [1.0 for _ in COCO_PERSON_SKELETON] +
-                [extra_coupling for _ in DENSER_COCO_PERSON_CONNECTIONS]
+                [dense_coupling for _ in DENSER_COCO_PERSON_CONNECTIONS]
             )
             return PifPafDijkstra(
                 stride,
