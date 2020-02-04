@@ -14,6 +14,8 @@ LOG = logging.getLogger(__name__)
 
 
 class Greedy(object):
+    keypoint_threshold = 0.0
+
     def __init__(self, pifhr, paf_scored, seeds, *,
                  seed_threshold,
                  connection_method,
@@ -183,6 +185,9 @@ class Greedy(object):
             new_xyv = self._grow_connection(xyv[:2], xy_scale_s, directed_paf_field)
             if new_xyv[2] < th:
                 continue
+            new_xyv = (new_xyv[0], new_xyv[1], np.sqrt(new_xyv[2] * xyv[2]))  # geometric mean
+            if new_xyv[2] < self.keypoint_threshold:
+                continue
             xy_scale_t = max(
                 4.0,
                 scalar_value(self.pifhr.scales[jti], new_xyv[0], new_xyv[1])
@@ -197,7 +202,6 @@ class Greedy(object):
                 if abs(xyv[0] - reverse_xyv[0]) + abs(xyv[1] - reverse_xyv[1]) > xy_scale_s:
                     continue
 
-            new_xyv = (new_xyv[0], new_xyv[1], np.sqrt(new_xyv[2] * xyv[2]))  # geometric mean
             if new_xyv[2] > ann.data[jti, 2]:
                 ann.data[jti] = new_xyv
                 ann.decoding_order.append(

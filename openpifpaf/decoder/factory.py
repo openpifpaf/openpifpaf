@@ -1,6 +1,7 @@
 import logging
 
 from ..data import COCO_KEYPOINTS, COCO_PERSON_SKELETON, DENSER_COCO_PERSON_CONNECTIONS
+from . import generator
 from .pif import Pif
 from .pif_hr import PifHr
 from .pifpaf import PifPaf
@@ -106,6 +107,14 @@ def configure(args):
     # default value for keypoint filter depends on whether complete pose is forced
     if args.keypoint_threshold is None:
         args.keypoint_threshold = 0.001 if not args.force_complete_pose else 0.0
+
+    # check consistency
+    if args.force_complete_pose:
+        assert args.keypoint_threshold == 0.0
+
+    # configure decoder generator
+    generator.Greedy.keypoint_threshold = args.keypoint_threshold
+    generator.Dijkstra.keypoint_threshold = args.keypoint_threshold
 
     # decoder workers
     if args.decoder_workers is None and \

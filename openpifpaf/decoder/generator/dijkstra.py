@@ -15,6 +15,8 @@ LOG = logging.getLogger(__name__)
 
 
 class Dijkstra(object):
+    keypoint_threshold = 0.0
+
     def __init__(self, pifhr, paf_scored, seeds, *,
                  seed_threshold,
                  connection_method,
@@ -172,6 +174,9 @@ class Dijkstra(object):
         xy_scale_s = max(4.0, ann.joint_scales[jsi])
 
         new_xysv = self._grow_connection(xyv[:2], xy_scale_s, directed_paf_field)
+        keypoint_score = np.sqrt(new_xysv[3] * xyv[2])  # geometric mean
+        if keypoint_score < self.keypoint_threshold:
+            return 0.0, 0.0, 0.0, 0.0
         if new_xysv[3] < th:
             return 0.0, 0.0, 0.0, 0.0
         xy_scale_t = max(4.0, new_xysv[2])
@@ -185,8 +190,7 @@ class Dijkstra(object):
             if abs(xyv[0] - reverse_xyv[0]) + abs(xyv[1] - reverse_xyv[1]) > xy_scale_s:
                 return 0.0, 0.0, 0.0, 0.0
 
-        # geometric mean
-        return (new_xysv[0], new_xysv[1], new_xysv[2], np.sqrt(new_xysv[3] * xyv[2]))
+        return (new_xysv[0], new_xysv[1], new_xysv[2], keypoint_score)
 
     def p2p_value(self, source_xyv, source_s, target_xysv, paf_i, forward):
         if forward:
