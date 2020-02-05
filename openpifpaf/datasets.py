@@ -119,7 +119,7 @@ class CocoKeypoints(torch.utils.data.Dataset):
         image, anns, meta = self.preprocess(image, anns, None)
         meta.update(meta_init)
 
-        # mask valid
+        # mask valid TODO still necessary?
         valid_area = meta['valid_area']
         utils.mask_valid_area(image, valid_area)
 
