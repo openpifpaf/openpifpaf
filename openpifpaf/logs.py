@@ -174,6 +174,7 @@ class Plots(object):
 
     def epoch_head(self, ax, field_name):
         field_names = self.field_names()
+        last_five_y = []
         for color_i, (data, label) in enumerate(zip(self.datas, self.labels)):
             color = matplotlib.cm.get_cmap('tab10')((color_i % 10 + 0.05) / 10)
             if field_name not in field_names[label]:
@@ -186,6 +187,7 @@ class Plots(object):
                 y = np.array([row.get('head_losses')[field_i]
                               for row in data['val-epoch']], dtype=np.float)
                 ax.plot(x, y, 'o-', color=color, markersize=2, label=label)
+                last_five_y.append(y[-5:])
 
             if 'train-epoch' in data:
                 x = np.array([row.get('epoch') for row in data['train-epoch']])
@@ -193,9 +195,12 @@ class Plots(object):
                               for row in data['train-epoch']], dtype=np.float)
                 m = x > 0
                 ax.plot(x[m], y[m], 'x-', color=color, linestyle='dotted', markersize=2)
+                last_five_y.append(y[-5:])
 
         ax.set_xlabel('epoch')
         ax.set_ylabel(field_name)
+        last_five_y = np.concatenate(last_five_y)
+        ax.set_ylim(np.min(last_five_y), np.max(last_five_y))
         # ax.set_ylim(0.0, 1.0)
         # if min(y) > -0.1:
         #     ax.set_yscale('log', nonposy='clip')
@@ -300,7 +305,7 @@ class Plots(object):
                 optionally_shaded(ax, x[m], y[m], color=color, label=label)
 
         ax.set_xlabel('epoch')
-        ax.set_ylabel('MTL sigma, {}'.format(field_name))
+        ax.set_ylabel(field_name)
         ax.set_ylim(-0.1, 1.1)
         if min(y) > -0.1:
             ax.set_ylim(3e-3, 3.0)
@@ -441,13 +446,16 @@ class EvalPlots(object):
                 continue
             y = np.array([d['stats'][0] for _, d in data])[-1]
             ax.plot([x], [y], 'o', label=label, markersize=10)
-            ax.text(
-                x, y,
-                (label if len(label) < 20 else label.split('-')[0]) + '  ',
+            ax.annotate(
+                label if len(label) < 20 else label.split('-')[0],
+                (x, y),
+                xytext=(0.0, -5.0),
+                textcoords='offset points',
                 rotation=90,
                 horizontalalignment='center', verticalalignment='top',
             )
 
+        ax.set_ylim(bottom=0.56)
         ax.set_xlabel('GMACs' if entry == 0 else 'million parameters')
         ax.set_ylabel('AP')
         ax.grid(linestyle='dotted')
