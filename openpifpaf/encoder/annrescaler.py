@@ -14,7 +14,7 @@ class AnnRescaler(object):
         bg_mask = self.anns_to_bg_mask(width_height_original, anns)
         bg_mask = bg_mask[::self.input_output_scale, ::self.input_output_scale]
 
-        # valid area
+        # valid area TODO use from meta
         valid_area = None
         if anns and 'valid_area' in anns[0]:
             valid_area = anns[0]['valid_area']
