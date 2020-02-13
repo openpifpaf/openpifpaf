@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 import numpy as np
 
 try:
@@ -31,12 +32,13 @@ class Visualizer(object):
 
         self.image = None
         self.processed_image = None
+        self.debug_ax = None
 
     @staticmethod
     def process_indices(indices):
         return [[int(e) for e in i.split(',')] for i in indices]
 
-    def set_image(self, image, processed_image):
+    def set_image(self, image, processed_image, *, debug_ax):
         if image is None and processed_image is not None:
             # image not given, so recover an image of the correct shape
             image = np.moveaxis(np.asarray(processed_image), 0, -1)
@@ -44,6 +46,25 @@ class Visualizer(object):
 
         self.image = image
         self.processed_image = processed_image
+        self.debug_ax = debug_ax
+
+    @contextmanager
+    def image_canvas(self, *args, **kwargs):
+        if self.debug_ax is not None:
+            yield self.debug_ax
+            return
+
+        with show.image_canvas(*args, **kwargs) as ax:
+            yield ax
+
+    @contextmanager
+    def canvas(self, *args, **kwargs):
+        if self.debug_ax is not None:
+            yield self.debug_ax
+            return
+
+        with show.canvas(*args, **kwargs) as ax:
+            yield ax
 
     def resized_image(self, io_scale):
         resized_image = np.moveaxis(
@@ -54,7 +75,7 @@ class Visualizer(object):
         print('seeds')
         field_indices = {f for _, f, __, ___, ____ in seeds}
 
-        with show.image_canvas(self.image, fig_width=20.0) as ax:
+        with self.image_canvas(self.image, fig_width=20.0) as ax:
             show.white_screen(ax)
             for f in field_indices:
                 x = [xx * io_scale for _, ff, xx, __, ___ in seeds if ff == f]
@@ -65,17 +86,16 @@ class Visualizer(object):
                     for xx, yy, cc in zip(x, y, c):
                         ax.text(xx, yy, '{:.2f}'.format(cc))
 
-    @staticmethod
-    def occupied(occ):
+    def occupied(self, occ):
         occ = occ.copy()
         occ[occ > 0] = 1.0
-        with show.canvas() as ax:
+        with self.canvas() as ax:
             ax.imshow(occ)
 
     def paf_refined(self, original_paf, refined_paf, io_scale):
         print('refined paf')
         for g in self.paf_indices:
-            with show.canvas() as ax:
+            with self.canvas() as ax:
                 ax.imshow(self.image)
                 show.white_screen(ax)
 
@@ -111,7 +131,7 @@ class Visualizer(object):
                       self.keypoints[self.skeleton[f][0] - 1],
                       self.keypoints[self.skeleton[f][1] - 1])
                 fig_file = self.file_prefix + '.paf{}.c.png'.format(f) if self.file_prefix else None
-                with show.canvas(fig_file) as ax:
+                with self.canvas(fig_file) as ax:
                     ax.imshow(self.resized_image(io_scale))
                     im = ax.imshow(intensity_fields[f], alpha=0.9,
                                    vmin=0.0, vmax=1.0, cmap='Oranges')
@@ -128,7 +148,7 @@ class Visualizer(object):
                 self.file_prefix + '.paf{}.v.png'.format(''.join([str(f) for f in g]))
                 if self.file_prefix else None
             )
-            with show.canvas(fig_file) as ax:
+            with self.canvas(fig_file) as ax:
                 print('reg', reg_components)
                 ax.imshow(self.image)
                 show.white_screen(ax)
@@ -155,7 +175,7 @@ class Visualizer(object):
 
     def paf_connections(self, connections):
         for g in self.paf_indices:
-            with show.canvas() as ax:
+            with self.canvas() as ax:
                 ax.imshow(self.image)
                 show.white_screen(ax)
 
@@ -183,7 +203,7 @@ class Visualizer(object):
             for f in g:
                 print('pif field', self.keypoints[f])
                 fig_file = self.file_prefix + '.pif{}.c.png'.format(f) if self.file_prefix else None
-                with show.canvas(fig_file, figsize=(8, 5)) as ax:
+                with self.canvas(fig_file, figsize=(8, 5)) as ax:
                     ax.imshow(self.resized_image(io_scale))
                     im = ax.imshow(intensity_fields[f], alpha=0.9,
                                    vmin=0.0, vmax=1.0, cmap='Oranges')
@@ -199,7 +219,7 @@ class Visualizer(object):
             for f in g:
                 print('pif field', self.keypoints[f])
                 fig_file = self.file_prefix + '.pif{}.v.png'.format(f) if self.file_prefix else None
-                with show.canvas(fig_file) as ax:
+                with self.canvas(fig_file) as ax:
                     ax.imshow(self.image)
                     show.white_screen(ax, alpha=0.5)
                     show.quiver(ax, reg_fields[f], intensity_fields[f],
@@ -214,7 +234,7 @@ class Visualizer(object):
             for f in g:
                 print('pif field', self.keypoints[f])
                 fig_file = self.file_prefix + '.pif{}.s.png'.format(f) if self.file_prefix else None
-                with show.canvas(fig_file) as ax:
+                with self.canvas(fig_file) as ax:
                     ax.imshow(self.image)
                     show.white_screen(ax, alpha=0.5)
                     show.circles(ax, scale_fields[f], intensity_fields[f],
@@ -231,7 +251,7 @@ class Visualizer(object):
                     self.file_prefix + '.pif{}.hr.png'.format(f)
                     if self.file_prefix else None
                 )
-                with show.canvas(fig_file, figsize=(8, 5)) as ax:
+                with self.canvas(fig_file, figsize=(8, 5)) as ax:
                     ax.imshow(self.image)
                     o = ax.imshow(pifhr[f], alpha=0.9, vmin=0.0, vmax=1.0, cmap='Oranges')
 
