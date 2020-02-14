@@ -13,6 +13,9 @@ from .. import show
 
 
 class Visualizer(object):
+    occupied_indices = []
+    show_seeds = False
+
     def __init__(self, pif_indices, paf_indices, *,
                  file_prefix=None,
                  keypoints=None,
@@ -72,6 +75,9 @@ class Visualizer(object):
         return np.clip((resized_image + 2.0) / 4.0, 0.0, 1.0)
 
     def seeds(self, seeds, io_scale=1.0):
+        if not self.show_seeds:
+            return
+
         print('seeds')
         field_indices = {f for _, f, __, ___, ____ in seeds}
 
@@ -86,11 +92,12 @@ class Visualizer(object):
                     for xx, yy, cc in zip(x, y, c):
                         ax.text(xx, yy, '{:.2f}'.format(cc))
 
-    def occupied(self, occ):
-        occ = occ.copy()
-        occ[occ > 0] = 1.0
-        with self.canvas() as ax:
-            ax.imshow(occ)
+    def occupied(self, occupied):
+        for f in self.occupied_indices:
+            occ = occupied[f].copy()
+            occ[occ > 0] = 1.0
+            with self.canvas() as ax:
+                ax.imshow(occ)
 
     def paf_refined(self, original_paf, refined_paf, io_scale):
         print('refined paf')
@@ -158,11 +165,11 @@ class Visualizer(object):
                           self.keypoints[self.skeleton[f][0] - 1],
                           self.keypoints[self.skeleton[f][1] - 1])
                     q1 = show.quiver(ax, reg1_fields[f], intensity_fields[f],
-                                     reg_uncertainty=reg1_fields_b[f],
+                                    #  reg_uncertainty=reg1_fields_b[f],
                                      threshold=0.5, width=0.003, step=1,
                                      cmap='Blues', clim=(0.5, 1.0), xy_scale=io_scale)
                     show.quiver(ax, reg2_fields[f], intensity_fields[f],
-                                reg_uncertainty=reg2_fields_b[f],
+                                # reg_uncertainty=reg2_fields_b[f],
                                 threshold=0.5, width=0.003, step=1,
                                 cmap='Greens', clim=(0.5, 1.0), xy_scale=io_scale)
 

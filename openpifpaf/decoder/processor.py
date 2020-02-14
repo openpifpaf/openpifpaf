@@ -113,8 +113,7 @@ class Processor(object):
 
         if self.debug_visualizer is not None:
             LOG.debug('Occupied fields after NMS')
-            self.debug_visualizer.occupied(occupied[0])
-            self.debug_visualizer.occupied(occupied[4])
+            self.debug_visualizer.occupied(occupied)
 
         annotations = [ann for ann in annotations if np.any(ann.data[:, 2] > self.suppressed_v)]
         annotations = sorted(annotations, key=lambda a: -a.score())
