@@ -289,7 +289,8 @@ def factory(
         elif checkpoint == 'shufflenetv2x2':
             checkpoint = torch.hub.load_state_dict_from_url(SHUFFLENETV2X2_MODEL, check_hash=True)
         elif checkpoint.startswith('http'):
-            checkpoint = torch.hub.load_state_dict_from_url(checkpoint, check_hash=True)
+            checkpoint = torch.hub.load_state_dict_from_url(
+                checkpoint, check_hash=not checkpoint.startswith('https'))
         else:
             checkpoint = torch.load(checkpoint)
         net_cpu = checkpoint['model']
