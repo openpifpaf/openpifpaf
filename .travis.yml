@@ -58,4 +58,4 @@ install:
  - "pip3 install --editable .[test]"
 script:
  - pylint openpifpaf --disable=fixme
- - pytest -vv
+ - PYTHONHTTPSVERIFY=0 pytest -vv
