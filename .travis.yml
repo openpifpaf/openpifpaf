@@ -51,7 +51,7 @@ matrix:
         - choco install python --version 3.7.4
         - python --version
         - python -m pip install --upgrade pip
-        - pip3 install --upgrade pip setuptools certifi
+        - pip3 install --upgrade pip setuptools
         - pip3 install torch==1.2+cpu torchvision==0.4+cpu -f https://download.pytorch.org/whl/torch_stable.html
       env: PATH=/c/Python37:/c/Python37/Scripts:$PATH
 install:

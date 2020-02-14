@@ -7,19 +7,19 @@ from ..data import COCO_KEYPOINTS, COCO_PERSON_SKELETON, DENSER_COCO_PERSON_CONN
 
 # generate hash values with: shasum -a 256 filename.pkl
 
-RESNET18_MODEL = ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
+RESNET18_MODEL = ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
                   'v0.10.1/resnet18-pif-paf-paf25-edge401-191022-210137-84326f0f.pkl')
-RESNET50_MODEL = ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
+RESNET50_MODEL = ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
                   'v0.10.0/resnet50-pif-paf-paf25-edge401-191016-192503-d2b85396.pkl')
-RESNET101_MODEL = ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
+RESNET101_MODEL = ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
                    'v0.10.0/resnet101block5-pif-paf-paf25-edge401-191012-132602-a2bf7ecd.pkl')
-RESNET152_MODEL = ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
+RESNET152_MODEL = ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
                    'v0.1.0/resnet152block5-pif-paf-edge401-190625-185426-3e2f28ed.pkl')
-RESNEXT50_MODEL = ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
+RESNEXT50_MODEL = ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
                    'v0.1.0/resnext50block5-pif-paf-edge401-190629-151121-24491655.pkl')
-SHUFFLENETV2X1_MODEL = ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
+SHUFFLENETV2X1_MODEL = ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
                         'v0.1.0/shufflenetv2x1-pif-paf-edge401-190705-151607-d9a35d7e.pkl')
-SHUFFLENETV2X2_MODEL = ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
+SHUFFLENETV2X2_MODEL = ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
                         'v0.10.0/shufflenetv2x2-pif-paf-paf25-edge401-191010-172527-ef704f06.pkl')
 
 LOG = logging.getLogger(__name__)
@@ -273,23 +273,23 @@ def factory(
         epoch = 0
     else:
         if not checkpoint:
-            checkpoint = torch.hub.load_state_dict_from_url(RESNET50_MODEL)
+            checkpoint = torch.hub.load_state_dict_from_url(RESNET50_MODEL, check_hash=True)
         elif checkpoint == 'resnet18':
-            checkpoint = torch.hub.load_state_dict_from_url(RESNET18_MODEL)
+            checkpoint = torch.hub.load_state_dict_from_url(RESNET18_MODEL, check_hash=True)
         elif checkpoint == 'resnet50':
-            checkpoint = torch.hub.load_state_dict_from_url(RESNET50_MODEL)
+            checkpoint = torch.hub.load_state_dict_from_url(RESNET50_MODEL, check_hash=True)
         elif checkpoint == 'resnet101':
-            checkpoint = torch.hub.load_state_dict_from_url(RESNET101_MODEL)
+            checkpoint = torch.hub.load_state_dict_from_url(RESNET101_MODEL, check_hash=True)
         elif checkpoint == 'resnet152':
-            checkpoint = torch.hub.load_state_dict_from_url(RESNET152_MODEL)
+            checkpoint = torch.hub.load_state_dict_from_url(RESNET152_MODEL, check_hash=True)
         elif checkpoint == 'resnext50':
-            checkpoint = torch.hub.load_state_dict_from_url(RESNEXT50_MODEL)
+            checkpoint = torch.hub.load_state_dict_from_url(RESNEXT50_MODEL, check_hash=True)
         elif checkpoint == 'shufflenetv2x1':
-            checkpoint = torch.hub.load_state_dict_from_url(SHUFFLENETV2X1_MODEL)
+            checkpoint = torch.hub.load_state_dict_from_url(SHUFFLENETV2X1_MODEL, check_hash=True)
         elif checkpoint == 'shufflenetv2x2':
-            checkpoint = torch.hub.load_state_dict_from_url(SHUFFLENETV2X2_MODEL)
+            checkpoint = torch.hub.load_state_dict_from_url(SHUFFLENETV2X2_MODEL, check_hash=True)
         elif checkpoint.startswith('http'):
-            checkpoint = torch.hub.load_state_dict_from_url(checkpoint)
+            checkpoint = torch.hub.load_state_dict_from_url(checkpoint, check_hash=True)
         else:
             checkpoint = torch.load(checkpoint)
         net_cpu = checkpoint['model']
