@@ -12,6 +12,7 @@ def localize(x):
 
     model = openpifpaf.network.nets.factory_from_scratch(
         'resnet50block5', ['pif', 'paf'],
+        pretrained=False,
     )
     model.eval()
 
