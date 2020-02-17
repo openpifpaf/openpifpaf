@@ -241,17 +241,32 @@ class Dijkstra(object):
                 if (start_i, end_i) in evaluated_connections:
                     continue
 
+                max_possible_score = np.sqrt(ann.data[start_i, 2])
+                if self.confidence_scales is not None:
+                    max_possible_score *= self.confidence_scales[paf_i]
+                frontier.put((-max_possible_score, None, start_i, end_i, paf_i, forward))
+                evaluated_connections.add((start_i, end_i))
+
+        def frontier_get():
+            while frontier.qsize():
+                entry = frontier.get()
+                if entry[1] is not None:
+                    return entry
+
+                _, __, start_i, end_i, paf_i, forward = entry
                 new_xysv = self.connection_value(
                     ann, paf_i, forward, th, reverse_match=reverse_match)
                 if new_xysv[3] == 0.0:
                     continue
-                score = -new_xysv[3]
+                score = new_xysv[3]
                 if self.confidence_scales is not None:
                     score *= self.confidence_scales[paf_i]
-                frontier.put((score, new_xysv, start_i, end_i))
-                evaluated_connections.add((start_i, end_i))
+                frontier.put((-score, new_xysv, start_i, end_i))
 
         def confirm(jsi, jti, target_xysv, th=0.2):
+            pos = 0
+            neg = 0
+
             for paf_i, (j1, j2) in enumerate(self.skeleton_m1):
                 if (j1 == jsi and j2 == jti) or (j2 == jsi and j1 == jti):
                     continue
@@ -269,13 +284,15 @@ class Dijkstra(object):
                     continue
 
                 v_fixed = self.p2p_value(source_xyv, source_s, target_xysv, paf_i, forward)
-                if v_fixed > 0.03:
-                    continue
-                xysv_open = self.connection_value(ann, paf_i, forward, th)
-                if xysv_open[3] > th:
-                    return False
+                if v_fixed > 0.5 * th:
+                    pos += 1
+                else:
+                    neg += 1
+                # xysv_open = self.connection_value(ann, paf_i, forward, th)
+                # if xysv_open[3] > th:
+                #     return False
 
-            return True
+            return pos >= neg
 
         # seeding the frontier
         for joint_i, v in enumerate(ann.data[:, 2]):
@@ -283,8 +300,12 @@ class Dijkstra(object):
                 continue
             add_to_frontier(joint_i)
 
-        while frontier.qsize():
-            _, new_xysv, jsi, jti = frontier.get()
+        while True:
+            entry = frontier_get()
+            if entry is None:
+                break
+
+            _, new_xysv, jsi, jti = entry
             if ann.data[jti, 2] > 0.0:
                 continue
             if self.confirm_connections and not confirm(jsi, jti, new_xysv):
