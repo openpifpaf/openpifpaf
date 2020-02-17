@@ -81,6 +81,7 @@ class KeypointPainter(object):
     def __init__(self, *,
                  xy_scale=1.0, highlight=None, highlight_invisible=False,
                  show_box=False,
+                 show_joint_confidences=False,
                  show_joint_scale=False,
                  show_decoding_order=False,
                  linewidth=2, markersize=3,
@@ -90,6 +91,7 @@ class KeypointPainter(object):
         self.highlight = highlight
         self.highlight_invisible = highlight_invisible
         self.show_box = show_box
+        self.show_joint_confidences = show_joint_confidences
         self.show_joint_scale = show_joint_scale
         self.show_decoding_order = show_decoding_order
         self.linewidth = linewidth
@@ -157,8 +159,14 @@ class KeypointPainter(object):
             return
 
         coord_i = np.argmin(y[v > 0])
-        ax.text(x[v > 0][coord_i], y[v > 0][coord_i], text, fontsize=8,
-                color='white', bbox={'facecolor': color, 'alpha': 0.5, 'linewidth': 0})
+        ax.annotate(
+            text,
+            (x[v > 0][coord_i], y[v > 0][coord_i]),
+            fontsize=8,
+            xytext=(5.0, 5.0),
+            textcoords='offset points',
+            color='white', bbox={'facecolor': color, 'alpha': 0.5, 'linewidth': 0},
+        )
 
     @staticmethod
     def _draw_scales(ax, xs, ys, vs, color, scales):
@@ -168,6 +176,21 @@ class KeypointPainter(object):
             ax.add_patch(
                 matplotlib.patches.Rectangle(
                     (x - scale, y - scale), 2 * scale, 2 * scale, fill=False, color=color))
+
+    @staticmethod
+    def _draw_joint_confidences(ax, xs, ys, vs, color):
+        for x, y, v in zip(xs, ys, vs):
+            if v == 0.0:
+                continue
+            ax.annotate(
+                '{:.0%}'.format(v),
+                (x, y),
+                fontsize=6,
+                xytext=(0.0, 0.0),
+                textcoords='offset points',
+                verticalalignment='top',
+                color='white', bbox={'facecolor': color, 'alpha': 0.2, 'linewidth': 0, 'pad': 0.0},
+            )
 
     def keypoints(self, ax, keypoint_sets, *,
                   skeleton, scores=None, color=None, colors=None, texts=None):
@@ -231,6 +254,9 @@ class KeypointPainter(object):
 
         if self.show_joint_scale and ann.joint_scales is not None:
             self._draw_scales(ax, x, y, v, color, ann.joint_scales)
+
+        if self.show_joint_confidences:
+            self._draw_joint_confidences(ax, x, y, v, color)
 
         if self.show_box:
             self._draw_box(ax, x, y, v, color, ann.score())
