@@ -111,6 +111,7 @@ def configure(args):
     # check consistency
     if args.force_complete_pose:
         assert args.keypoint_threshold == 0.0
+    assert args.seed_threshold >= args.keypoint_threshold
 
     # configure decoder generator
     generator.Greedy.keypoint_threshold = args.keypoint_threshold
