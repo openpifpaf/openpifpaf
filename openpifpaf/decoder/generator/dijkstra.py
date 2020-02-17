@@ -264,7 +264,7 @@ class Dijkstra(object):
                 frontier.put((-score, new_xysv, start_i, end_i))
 
         def confirm(jsi, jti, target_xysv, th=0.2):
-            pos = 0
+            pos = 1  # the connection that is being confirmed counts
             neg = 0
 
             for paf_i, (j1, j2) in enumerate(self.skeleton_m1):
