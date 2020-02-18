@@ -288,9 +288,6 @@ class Dijkstra(object):
                     pos += 1
                 else:
                     neg += 1
-                # xysv_open = self.connection_value(ann, paf_i, forward, th)
-                # if xysv_open[3] > th:
-                #     return False
 
             return pos >= neg
 
