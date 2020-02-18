@@ -254,6 +254,9 @@ class Dijkstra(object):
                     return entry
 
                 _, __, start_i, end_i, paf_i, forward = entry
+                if ann.data[end_i, 2] > 0.0:
+                    continue
+
                 new_xysv = self.connection_value(
                     ann, paf_i, forward, th, reverse_match=reverse_match)
                 if new_xysv[3] == 0.0:
