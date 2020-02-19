@@ -47,6 +47,16 @@ class Dijkstra(object):
         self.debug_visualizer = debug_visualizer
         self.timers = defaultdict(float)
 
+        # init by_target and by_source
+        self.by_target = defaultdict(list)
+        for paf_i, (j1, j2) in enumerate(self.skeleton_m1):
+            self.by_target[j2].append((paf_i, True, j1))
+            self.by_target[j1].append((paf_i, False, j2))
+        self.by_source = defaultdict(list)
+        for paf_i, (j1, j2) in enumerate(self.skeleton_m1):
+            self.by_source[j1].append((paf_i, True, j2))
+            self.by_source[j2].append((paf_i, False, j1))
+
         # pif init
         if self.debug_visualizer:
             self.debug_visualizer.pifhr(self.pifhr.targets)
@@ -223,29 +233,20 @@ class Dijkstra(object):
 
     def _grow(self, ann, th, reverse_match=True):
         frontier = PriorityQueue()
-        evaluated_connections = set()
+        in_frontier = set()
 
         def add_to_frontier(start_i):
-            for paf_i, (j1, j2) in enumerate(self.skeleton_m1):
-                if j1 == start_i:
-                    end_i = j2
-                    forward = True
-                elif j2 == start_i:
-                    end_i = j1
-                    forward = False
-                else:
-                    continue
-
+            for paf_i, forward, end_i in self.by_source[start_i]:
                 if ann.data[end_i, 2] > 0.0:
                     continue
-                if (start_i, end_i) in evaluated_connections:
+                if (start_i, end_i) in in_frontier:
                     continue
 
                 max_possible_score = np.sqrt(ann.data[start_i, 2])
                 if self.confidence_scales is not None:
                     max_possible_score *= self.confidence_scales[paf_i]
                 frontier.put((-max_possible_score, None, start_i, end_i, paf_i, forward))
-                evaluated_connections.add((start_i, end_i))
+                in_frontier.add((start_i, end_i))
 
         def frontier_get():
             while frontier.qsize():
@@ -270,21 +271,14 @@ class Dijkstra(object):
             pos = 1  # the connection that is being confirmed counts
             neg = 0
 
-            for paf_i, (j1, j2) in enumerate(self.skeleton_m1):
-                if (j1 == jsi and j2 == jti) or (j2 == jsi and j1 == jti):
+            for paf_i, forward, source_i in self.by_target[jti]:
+                if source_i == jsi:
                     continue
-                if j2 == jti:
-                    source_xyv = ann.data[j1]
-                    source_s = ann.joint_scales[j1]
-                    forward = True
-                elif j1 == jti:
-                    source_xyv = ann.data[j2]
-                    source_s = ann.joint_scales[j2]
-                    forward = False
-                else:
-                    continue
+
+                source_xyv = ann.data[source_i]
                 if source_xyv[2] < th:
                     continue
+                source_s = ann.joint_scales[source_i]
 
                 v_fixed = self.p2p_value(source_xyv, source_s, target_xysv, paf_i, forward)
                 if v_fixed > 0.5 * th:
