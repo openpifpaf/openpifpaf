@@ -67,10 +67,10 @@ class Processor(object):
 
     def fields(self, image_batch):
         start = time.time()
-        if self.device is not None:
-            image_batch = image_batch.to(self.device, non_blocking=True)
-
         with torch.no_grad():
+            if self.device is not None:
+                image_batch = image_batch.to(self.device, non_blocking=True)
+
             heads = self.model(image_batch)
 
             # to numpy
