@@ -28,6 +28,7 @@ class PifPafDijkstra(object):
                  paf_max_distance=None,
                  seed_threshold=0.2,
                  seed_score_scale=1.0,
+                 seed_mask=None,
                  confidence_scales=None,
                  out_skeleton=None,
                  confirm_connections=False,
@@ -66,6 +67,7 @@ class PifPafDijkstra(object):
         self.pif_nn = 16
         self.paf_nn = 1 if self.connection_method == 'max' else 35
 
+        self.seed_mask = seed_mask
         self.confidence_scales = confidence_scales
 
     def __call__(self, fields, initial_annotations=None):
@@ -91,7 +93,10 @@ class PifPafDijkstra(object):
         seeds = PifSeeds(pifhr.target_accumulator, self.seed_threshold,
                          score_scale=self.seed_score_scale,
                          debug_visualizer=self.debug_visualizer)
-        seeds.fill_sequence(normalized_pifs, self.strides, self.pif_min_scales)
+        normalized_seed_pifs = normalized_pifs
+        if self.seed_mask is not None:
+            normalized_seed_pifs = [p[self.seed_mask] for p in normalized_seed_pifs]
+        seeds.fill_sequence(normalized_seed_pifs, self.strides, self.pif_min_scales)
 
         # paf_scored
         paf_scored = Paf7Scored(pifhr.targets, self.skeleton, score_th=self.paf_th)
