@@ -3,7 +3,7 @@ import logging
 from ..data import COCO_KEYPOINTS, COCO_PERSON_SKELETON, DENSER_COCO_PERSON_CONNECTIONS
 from . import generator
 from .pif import Pif
-from .pif_hr import PifHr
+from .pif_hr import PifHr, PifHrNoScales
 from .pifpaf import PifPaf
 from .pifpaf_dijkstra import PifPafDijkstra
 from .pafs_dijkstra import PafsDijkstra
@@ -63,6 +63,7 @@ def cli(parser, *,
     assert PifPaf.pif_fixed_scale == PifPafDijkstra.pif_fixed_scale
     group.add_argument('--pif-fixed-scale', default=PifPaf.pif_fixed_scale, type=float,
                        help='overwrite pif scale with a fixed value')
+    assert PifHr.v_threshold == PifHrNoScales.v_threshold
     group.add_argument('--pif-th', default=PifHr.v_threshold, type=float,
                        help='pif threshold')
     assert PifPaf.paf_th == PifPafDijkstra.paf_th
@@ -103,6 +104,7 @@ def configure(args):
 
     # configure PifHr
     PifHr.v_threshold = args.pif_th
+    PifHrNoScales.v_threshold = args.pif_th
 
     # default value for keypoint filter depends on whether complete pose is forced
     if args.keypoint_threshold is None:
