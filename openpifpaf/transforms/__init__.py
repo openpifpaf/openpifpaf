@@ -17,7 +17,7 @@ from .crop import Crop
 from .hflip import HFlip, HorizontalSwap
 from .image import Blur, ImageTransform, JpegCompression
 from .multi_scale import MultiScale
-from .pad import CenterPad, SquarePad
+from .pad import CenterPad, CenterPadTight, SquarePad
 from .preprocess import Preprocess
 from .random import RandomApply
 from .rotate import RotateBy90
