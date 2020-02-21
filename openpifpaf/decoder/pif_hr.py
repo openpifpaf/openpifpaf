@@ -110,9 +110,9 @@ class PifHrNoScales(object):
             for t, p in zip(ta, pif):
                 p = p[:, p[0] > self.v_threshold]
                 if min_scale:
-                    p = p[:, p[3] > min_scale / stride]
+                    p = p[:, p[4] > min_scale / stride]
 
-                v, x, y, s = p
+                v, x, y, _, s = p
                 x = x * stride
                 y = y * stride
                 s = s * stride

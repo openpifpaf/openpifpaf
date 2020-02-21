@@ -9,7 +9,7 @@ from ..annotation import Annotation
 from ..utils import scalar_square_add_single
 
 # pylint: disable=import-error
-from ...functional import paf_center_s, scalar_nonzero
+from ...functional import paf_center_s, scalar_nonzero_clipped
 
 LOG = logging.getLogger(__name__)
 
@@ -88,7 +88,7 @@ class Dijkstra(object):
             mark_occupied(ann)
 
         for v, f, x, y, s in self.seeds.get():
-            if scalar_nonzero(occupied[f], x, y):
+            if scalar_nonzero_clipped(occupied[f], x, y):
                 continue
 
             ann = Annotation(self.keypoints, self.out_skeleton).add(f, (x, y, v))
@@ -106,26 +106,24 @@ class Dijkstra(object):
 
     def _grow_connection(self, xy, xy_scale, paf_field):
         assert len(xy) == 2
-        assert paf_field.shape[0] == 2
-        assert paf_field.shape[1] == 5
-        paf_field = np.reshape(paf_field, (2, 5, -1))
+        assert paf_field.shape[0] == 9
 
         # source value
         paf_field = paf_center_s(paf_field, xy[0], xy[1], sigma=5.0 * xy_scale)
-        if paf_field.shape[2] == 0:
+        if paf_field.shape[1] == 0:
             return 0, 0, 0, 0
 
         # source distance
-        d = np.linalg.norm(((xy[0],), (xy[1],)) - paf_field[0, 1:3], axis=0)
+        d = np.linalg.norm(((xy[0],), (xy[1],)) - paf_field[1:3], axis=0)
 
         # combined value and source distance
-        v = paf_field[0, 0]
+        v = paf_field[0]
         scores = np.exp(-1.0 * d / xy_scale) * v  # two-tailed cumulative Laplace
 
         if self.connection_method == 'max':
-            return self._target_with_maxscore(paf_field[1, 1:], scores)
+            return self._target_with_maxscore(paf_field[5:], scores)
         if self.connection_method == 'blend':
-            return self._target_with_blend(paf_field[1, 1:], scores)
+            return self._target_with_blend(paf_field[5:], scores)
         raise Exception('connection method not known')
 
     @staticmethod
@@ -212,22 +210,21 @@ class Dijkstra(object):
         # source value
         paf_field = paf_center_s(directed_paf_field, source_xyv[0], source_xyv[1],
                                  sigma=5.0 * xy_scale_s)
-        if paf_field.shape[2] == 0:
+        if paf_field.shape[1] == 0:
             return 0.0
 
         # distances
         d_source = np.linalg.norm(
-            ((source_xyv[0],), (source_xyv[1],)) - paf_field[0, 1:3], axis=0)
+            ((source_xyv[0],), (source_xyv[1],)) - paf_field[1:3], axis=0)
         d_target = np.linalg.norm(
-            ((target_xysv[0],), (target_xysv[1],)) - paf_field[1, 1:3], axis=0)
+            ((target_xysv[0],), (target_xysv[1],)) - paf_field[5:7], axis=0)
 
         # combined value and source distance
         xy_scale_t = max(4.0, target_xysv[2])
-        v = paf_field[0, 0]
         scores = (  # two-tailed cumulative Laplace
             np.exp(-1.0 * d_source / xy_scale_s) *
             np.exp(-1.0 * d_target / xy_scale_t) *
-            v
+            paf_field[0]
         )
         return max(scores)
 

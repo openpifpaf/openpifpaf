@@ -4,10 +4,10 @@ import logging
 import time
 
 from . import generator
-from .paf_scored import Paf7Scored
+from .paf_scored import PafScored
 from .pif_hr import PifHrNoScales
 from .pif_seeds import PifSeeds
-from .utils import normalize_pif, normalize_paf7
+from .utils import normalize_pifpaf
 
 LOG = logging.getLogger(__name__)
 
@@ -77,13 +77,15 @@ class PifPafDijkstra(object):
             for stride, pif_i in zip(self.strides, self.pif_indices):
                 self.debug_visualizer.pif_raw(fields[pif_i], stride)
             for stride, paf_i in zip(self.strides, self.paf_indices):
-                self.debug_visualizer.paf_raw(fields[paf_i][:5], stride, reg_components=3)
+                self.debug_visualizer.paf_raw(fields[paf_i], stride)
 
-        # normalize
-        normalized_pifs = [normalize_pif(*fields[pif_i], fixed_scale=self.pif_fixed_scale)
-                           for pif_i in self.pif_indices]
-        normalized_pafs = [normalize_paf7(*fields[paf_i], fixed_b=self.fixed_b)
-                           for paf_i in self.paf_indices]
+        # normalize TODO removed fixed scale here so remove everywhere
+        normalized_pifs, normalized_pafs = [], []
+        for pif_i, paf_i in zip(self.pif_indices, self.paf_indices):
+            pif, paf = normalize_pifpaf(fields[pif_i], fields[paf_i])
+            normalized_pifs.append(pif)
+            normalized_pafs.append(paf)
+        LOG.debug('normalize time = %.3fs', time.perf_counter() - start)
 
         # pif hr
         pifhr = PifHrNoScales(self.pif_nn)
@@ -99,7 +101,7 @@ class PifPafDijkstra(object):
         seeds.fill_sequence(normalized_seed_pifs, self.strides, self.pif_min_scales)
 
         # paf_scored
-        paf_scored = Paf7Scored(pifhr.targets, self.skeleton, score_th=self.paf_th)
+        paf_scored = PafScored(pifhr.targets, self.skeleton, score_th=self.paf_th)
         paf_scored.fill_sequence(
             normalized_pafs, self.strides, self.paf_min_distances, self.paf_max_distances)
 
@@ -119,7 +121,7 @@ class PifPafDijkstra(object):
 
         annotations = gen.annotations(initial_annotations=initial_annotations)
         if self.force_complete:
-            gen.paf_scored = Paf7Scored(pifhr.targets, self.skeleton, score_th=0.0001)
+            gen.paf_scored = PafScored(pifhr.targets, self.skeleton, score_th=0.0001)
             gen.paf_scored.fill_sequence(
                 normalized_pafs, self.strides, self.paf_min_distances, self.paf_max_distances)
             annotations = gen.complete_annotations(annotations)

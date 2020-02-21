@@ -73,12 +73,24 @@ class Processor(object):
 
             heads = self.model(image_batch)
 
+            # concatenate fields
+            heads = [
+                torch.cat(
+                    [
+                        field if len(field.shape) == 5 else torch.unsqueeze(field, 2)
+                        for field in head
+                    ],
+                    dim=2,
+                )
+                for head in heads
+            ]
+
             # to numpy
-            fields = [[field.cpu().numpy() for field in head] for head in heads]
+            fields = [head.cpu().numpy() for head in heads]
 
             # index by batch entry
             fields = [
-                [[field[i] for field in head] for head in fields]
+                [head[i] for head in fields]
                 for i in range(image_batch.shape[0])
             ]
 

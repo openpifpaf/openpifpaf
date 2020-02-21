@@ -197,6 +197,7 @@ def main():
         start = time.time()
         image_pil = PIL.Image.fromarray(image)
         processed_image_cpu, _, __ = transforms.EVAL_TRANSFORM(image_pil, [], None)
+        processor.set_cpu_image(image_pil, processed_image_cpu)
         processed_image = processed_image_cpu.contiguous().to(args.device, non_blocking=True)
         LOG.debug('preprocessing time %.3fs', time.time() - start)
 

@@ -41,14 +41,14 @@ class Visualizer(object):
     def process_indices(indices):
         return [[int(e) for e in i.split(',')] for i in indices]
 
-    def set_image(self, image, processed_image, *, debug_ax):
+    def set_image(self, image, processed_image, *, debug_ax=None):
         if image is None and processed_image is not None:
             # image not given, so recover an image of the correct shape
             image = np.moveaxis(np.asarray(processed_image), 0, -1)
             image = np.clip((image + 2.0) / 4.0, 0.0, 1.0)
 
-        self.image = image
-        self.processed_image = processed_image
+        self.image = np.asarray(image)
+        self.processed_image = np.asarray(processed_image)
         self.debug_ax = debug_ax
 
     @contextmanager
@@ -71,7 +71,7 @@ class Visualizer(object):
 
     def resized_image(self, io_scale):
         resized_image = np.moveaxis(
-            np.asarray(self.processed_image)[:, ::int(io_scale), ::int(io_scale)], 0, -1)
+            self.processed_image[:, ::int(io_scale), ::int(io_scale)], 0, -1)
         return np.clip((resized_image + 2.0) / 4.0, 0.0, 1.0)
 
     def seeds(self, seeds, io_scale=1.0):
@@ -129,9 +129,8 @@ class Visualizer(object):
                     ax.get_xaxis().set_visible(False)
                     ax.get_yaxis().set_visible(False)
 
-    def paf_raw(self, paf, io_scale, reg_components=2):
+    def paf_raw(self, paf, io_scale):
         print('raw paf')
-        intensity_fields, reg1_fields, reg2_fields, reg1_fields_b, reg2_fields_b = paf
         for g in self.paf_indices:
             for f in g:
                 print('association field',
@@ -140,7 +139,7 @@ class Visualizer(object):
                 fig_file = self.file_prefix + '.paf{}.c.png'.format(f) if self.file_prefix else None
                 with self.canvas(fig_file) as ax:
                     ax.imshow(self.resized_image(io_scale))
-                    im = ax.imshow(intensity_fields[f], alpha=0.9,
+                    im = ax.imshow(paf[f, 0], alpha=0.9,
                                    vmin=0.0, vmax=1.0, cmap='Oranges')
 
                     divider = make_axes_locatable(ax)
@@ -156,7 +155,6 @@ class Visualizer(object):
                 if self.file_prefix else None
             )
             with self.canvas(fig_file) as ax:
-                print('reg', reg_components)
                 ax.imshow(self.image)
                 show.white_screen(ax)
 
@@ -164,11 +162,11 @@ class Visualizer(object):
                     print('association field',
                           self.keypoints[self.skeleton[f][0] - 1],
                           self.keypoints[self.skeleton[f][1] - 1])
-                    q1 = show.quiver(ax, reg1_fields[f], intensity_fields[f],
+                    q1 = show.quiver(ax, paf[f, 1:3], paf[f, 0],
                                     #  reg_uncertainty=reg1_fields_b[f],
                                      threshold=0.5, width=0.003, step=1,
                                      cmap='Blues', clim=(0.5, 1.0), xy_scale=io_scale)
-                    show.quiver(ax, reg2_fields[f], intensity_fields[f],
+                    show.quiver(ax, paf[f, 3:5], paf[f, 0],
                                 # reg_uncertainty=reg2_fields_b[f],
                                 threshold=0.5, width=0.003, step=1,
                                 cmap='Greens', clim=(0.5, 1.0), xy_scale=io_scale)
@@ -205,14 +203,13 @@ class Visualizer(object):
 
     def pif_raw(self, pif, io_scale):
         print('raw pif')
-        intensity_fields, reg_fields, reg_fields_b, scale_fields = pif
         for g in self.pif_indices:
             for f in g:
                 print('pif field', self.keypoints[f])
                 fig_file = self.file_prefix + '.pif{}.c.png'.format(f) if self.file_prefix else None
                 with self.canvas(fig_file, figsize=(8, 5)) as ax:
                     ax.imshow(self.resized_image(io_scale))
-                    im = ax.imshow(intensity_fields[f], alpha=0.9,
+                    im = ax.imshow(pif[f, 0], alpha=0.9,
                                    vmin=0.0, vmax=1.0, cmap='Oranges')
 
                     divider = make_axes_locatable(ax)
@@ -229,8 +226,8 @@ class Visualizer(object):
                 with self.canvas(fig_file) as ax:
                     ax.imshow(self.image)
                     show.white_screen(ax, alpha=0.5)
-                    show.quiver(ax, reg_fields[f], intensity_fields[f],
-                                reg_uncertainty=reg_fields_b[f],
+                    show.quiver(ax, pif[f, 1:3], pif[f, 0],
+                                reg_uncertainty=pif[f, 3],
                                 cmap='viridis_r', clim=(0.5, 1.0),
                                 threshold=0.5, xy_scale=io_scale)
 
@@ -244,7 +241,7 @@ class Visualizer(object):
                 with self.canvas(fig_file) as ax:
                     ax.imshow(self.image)
                     show.white_screen(ax, alpha=0.5)
-                    show.circles(ax, scale_fields[f], intensity_fields[f],
+                    show.circles(ax, pif[f, 4], pif[f, 0],
                                  xy_scale=io_scale, fill=False)
 
                     ax.get_xaxis().set_visible(False)

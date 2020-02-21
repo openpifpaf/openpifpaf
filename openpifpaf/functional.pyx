@@ -313,24 +313,23 @@ def paf_center(float[:, :] paf_field, float x, float y, float sigma):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def paf_center_s(float[:, :, :] paf_field, float x, float y, float sigma):
+def paf_center_s(float[:, :] paf_field, float x, float y, float sigma):
     result_np = np.empty_like(paf_field)
-    cdef float[:, :, :] result = result_np
+    cdef float[:, :] result = result_np
     cdef unsigned int result_i = 0
-    cdef bint take
     cdef Py_ssize_t i
 
-    for i in range(paf_field.shape[2]):
-        if paf_field[0, 1, i] < x - sigma:
+    for i in range(paf_field.shape[1]):
+        if paf_field[1, i] < x - sigma:
             continue
-        if paf_field[0, 1, i] > x + sigma:
+        if paf_field[1, i] > x + sigma:
             continue
-        if paf_field[0, 2, i] < y - sigma:
+        if paf_field[2, i] < y - sigma:
             continue
-        if paf_field[0, 2, i] > y + sigma:
+        if paf_field[2, i] > y + sigma:
             continue
 
-        result[:, :, result_i] = paf_field[:, :, i]
+        result[:, result_i] = paf_field[:, i]
         result_i += 1
 
-    return result_np[:, :, :result_i]
+    return result_np[:, :result_i]

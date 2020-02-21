@@ -24,8 +24,8 @@ class PifSeeds(object):
         for field_i, p in enumerate(pif):
             p = p[:, p[0] > self.seed_threshold / 2.0]
             if min_scale:
-                p = p[:, p[3] > min_scale / stride]
-            _, x, y, s = p
+                p = p[:, p[4] > min_scale / stride]
+            _, x, y, _, s = p
             v = scalar_values(self.pifhr[field_i], x * stride, y * stride)
             m = v > self.seed_threshold
             x, y, v, s = x[m] * stride, y[m] * stride, v[m], s[m] * stride
