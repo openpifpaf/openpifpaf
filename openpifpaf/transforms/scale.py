@@ -94,7 +94,12 @@ class RescaleAbsolute(Preprocess):
 
         this_long_edge = self.long_edge
         if isinstance(this_long_edge, (tuple, list)):
-            this_long_edge = int(torch.randint(this_long_edge[0], this_long_edge[1], (1,)).item())
+            this_long_edge = int(
+                torch.randint(
+                    int(this_long_edge[0]),
+                    int(this_long_edge[1]), (1,)
+                ).item()
+            )
 
         s = this_long_edge / max(h, w)
         if h > w:
