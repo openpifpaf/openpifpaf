@@ -3,11 +3,28 @@
 import functools
 import numpy as np
 
+import torch
+
 
 @functools.lru_cache(maxsize=16)
 def index_field(shape):
     yx = np.indices(shape, dtype=np.float32)
     xy = np.flip(yx, axis=0)
+    return xy
+
+
+@functools.lru_cache(maxsize=16)
+def index_field_torch(shape, *, device=None, n_unsqueeze=2):
+    yx = np.indices(shape, dtype=np.float32)
+    xy = np.flip(yx, axis=0)
+
+    xy = torch.from_numpy(xy.copy())
+    if device is not None:
+        xy = xy.to(device, non_blocking=True)
+
+    for _ in range(n_unsqueeze):
+        xy = torch.unsqueeze(xy, 0)
+
     return xy
 
 
@@ -149,14 +166,14 @@ def normalize_pifpaf(pif, paf):
     #    confidence, r1, r2, b1, b2, s1, s2
     # to
     #    confidence, r1, b1, s1, r2, b2, s2
-    paf = paf[:, (0, 1, 2, 5, 7, 3, 4, 6, 8)]
+    # paf = paf[:, (0, 1, 2, 5, 7, 3, 4, 6, 8)]
 
-    index_fields = index_field(pif.shape[-2:])
-    index_fields = np.expand_dims(index_fields, 0)
+    # index_fields = index_field(pif.shape[-2:])
+    # index_fields = np.expand_dims(index_fields, 0)
 
-    pif[:, (1, 2)] += index_fields
-    paf[:, (1, 2)] += index_fields
-    paf[:, (5, 6)] += index_fields
+    # pif[:, (1, 2)] += index_fields
+    # paf[:, (1, 2)] += index_fields
+    # paf[:, (5, 6)] += index_fields
 
     return pif, paf
 

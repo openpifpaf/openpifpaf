@@ -6,6 +6,7 @@ import time
 import numpy as np
 
 from ..annotation import Annotation
+from ..occupancy import Occupancy
 from ..utils import scalar_square_add_single
 
 # pylint: disable=import-error
@@ -67,7 +68,7 @@ class Dijkstra(object):
             initial_annotations = []
         LOG.debug('initial annotations = %d', len(initial_annotations))
 
-        occupied = np.zeros(self.pifhr.targets.shape, dtype=np.uint8)
+        occupied = Occupancy(self.pifhr.targets.shape, 2, min_scale=4)
         annotations = []
 
         def mark_occupied(ann):
@@ -76,11 +77,7 @@ class Dijkstra(object):
                     continue
 
                 width = ann.joint_scales[joint_i]
-                scalar_square_add_single(occupied[joint_i],
-                                         xyv[0],
-                                         xyv[1],
-                                         max(4.0, width),
-                                         1)
+                occupied.set(joint_i, xyv[0], xyv[1], width)
 
         for ann in initial_annotations:
             self._grow(ann, self.paf_th)
@@ -88,7 +85,7 @@ class Dijkstra(object):
             mark_occupied(ann)
 
         for v, f, x, y, s in self.seeds.get():
-            if scalar_nonzero_clipped(occupied[f], x, y):
+            if occupied.get(f, x, y):
                 continue
 
             ann = Annotation(self.keypoints, self.out_skeleton).add(f, (x, y, v))

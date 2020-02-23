@@ -10,10 +10,8 @@ import time
 import numpy as np
 import torch
 
-from .utils import scalar_square_add_single
-
-# pylint: disable=import-error
-from ..functional import scalar_nonzero_clipped
+from .occupancy import Occupancy
+from .utils import index_field_torch
 
 LOG = logging.getLogger(__name__)
 
@@ -73,6 +71,22 @@ class Processor(object):
 
             heads = self.model(image_batch)
 
+            # add index
+            for head_i, head in enumerate(heads):
+                if len(head) == 4:
+                    reg_field = head[1]
+                    index_field = index_field_torch(reg_field.shape[-2:], device=reg_field.device)
+                    reg_field += index_field
+                elif len(head) == 7:
+                    reg_field1 = head[1]
+                    reg_field2 = head[2]
+                    index_field = index_field_torch(reg_field1.shape[-2:], device=reg_field1.device)
+                    reg_field1 += index_field
+                    reg_field2 += index_field
+                    heads[head_i] = [head[field_i] for field_i in (0, 1, 3, 5, 2, 4, 6)]
+                else:
+                    raise NotImplementedError()
+
             # concatenate fields
             heads = [
                 torch.cat(
@@ -101,27 +115,25 @@ class Processor(object):
         if not annotations:
             return annotations
 
-        occupied = np.zeros((
+        occupied = Occupancy((
             len(annotations[0].data),
             int(max(np.max(ann.data[:, 1]) for ann in annotations) + 1),
             int(max(np.max(ann.data[:, 0]) for ann in annotations) + 1),
-        ), dtype=np.uint8)
+        ), 2, min_scale=4)
 
         annotations = sorted(annotations, key=lambda a: -a.score())
         for ann in annotations:
             assert ann.joint_scales is not None
-            joint_scales = np.maximum(4.0, ann.joint_scales)
-
             assert len(occupied) == len(ann.data)
-            for xyv, occ, joint_s in zip(ann.data, occupied, joint_scales):
+            for f, (xyv, joint_s) in enumerate(zip(ann.data, ann.joint_scales)):
                 v = xyv[2]
                 if v == 0.0:
                     continue
 
-                if scalar_nonzero_clipped(occ, xyv[0], xyv[1]):
+                if occupied.get(f, xyv[0], xyv[1]):
                     xyv[2] = self.suppressed_v
                 else:
-                    scalar_square_add_single(occ, xyv[0], xyv[1], joint_s, 1)
+                    occupied.set(f, xyv[0], xyv[1], joint_s)
 
         if self.debug_visualizer is not None:
             LOG.debug('Occupied fields after NMS')
