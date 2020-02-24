@@ -133,25 +133,19 @@ class KeypointPainter(object):
                     markerfacecolor=color, markeredgecolor=color)
 
     @staticmethod
-    def _draw_box(ax, x, y, v, color, score=None):
-        if not np.any(v > 0):
-            return
-
-        # keypoint bounding box
-        x1, x2 = np.min(x[v > 0]), np.max(x[v > 0])
-        y1, y2 = np.min(y[v > 0]), np.max(y[v > 0])
-        if x2 - x1 < 5.0:
-            x1 -= 2.0
-            x2 += 2.0
-        if y2 - y1 < 5.0:
-            y1 -= 2.0
-            y2 += 2.0
+    def _draw_box(ax, x, y, w, h, color, score=None):
+        if w < 5.0:
+            x -= 2.0
+            w += 4.0
+        if h < 5.0:
+            y -= 2.0
+            h += 4.0
         ax.add_patch(
             matplotlib.patches.Rectangle(
-                (x1, y1), x2 - x1, y2 - y1, fill=False, color=color))
+                (x, y), w, h, fill=False, color=color))
 
         if score:
-            ax.text(x1, y1, '{:.4f}'.format(score), fontsize=8, color=color)
+            ax.text(x, y, '{:.4f}'.format(score), fontsize=8, color=color)
 
     @staticmethod
     def _draw_text(ax, x, y, v, text, color):
@@ -259,7 +253,8 @@ class KeypointPainter(object):
             self._draw_joint_confidences(ax, x, y, v, color)
 
         if self.show_box:
-            self._draw_box(ax, x, y, v, color, ann.score())
+            x, y, w, h = ann.bbox()
+            self._draw_box(ax, x, y, w, h, color, ann.score())
 
         if text is not None:
             self._draw_text(ax, x, y, v, text, color)

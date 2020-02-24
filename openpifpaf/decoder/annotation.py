@@ -124,18 +124,23 @@ class Annotation(object):
         # will be added when converting to Python type
         return {
             'keypoints': np.around(self.data.astype(np.float64), 2).reshape(-1).tolist(),
-            'bbox': np.around(self.bbox_from_keypoints(self.data.astype(np.float64)), 2).tolist(),
+            'bbox': [round(c, 2) for c in self.bbox()],
             'score': round(self.score(), 3),
         }
 
+    def bbox(self):
+        return self.bbox_from_keypoints(self.data, self.joint_scales)
+
     @staticmethod
-    def bbox_from_keypoints(kps):
+    def bbox_from_keypoints(kps, joint_scales):
         m = kps[:, 2] > 0
         if not np.any(m):
             return [0, 0, 0, 0]
 
-        x, y = np.min(kps[:, 0][m]), np.min(kps[:, 1][m])
-        w, h = np.max(kps[:, 0][m]) - x, np.max(kps[:, 1][m]) - y
+        x = np.min(kps[:, 0][m] - joint_scales[m])
+        y = np.min(kps[:, 1][m] - joint_scales[m])
+        w = np.max(kps[:, 0][m] + joint_scales[m]) - x
+        h = np.max(kps[:, 1][m] + joint_scales[m]) - y
         return [x, y, w, h]
 
 
