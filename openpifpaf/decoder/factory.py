@@ -34,6 +34,8 @@ def cli(parser, *,
                        help='use dense connections')
     group.add_argument('--dense-coupling', default=0.01, type=float,
                        help='dense coupling')
+    group.add_argument('--no-graph-consistency',
+                       dest='graph_consistency', default=None, action='store_false')
     group.add_argument('--paf-seeds', default=False, action='store_true',
                        help='[experimental]')
 
@@ -115,6 +117,12 @@ def configure(args):
         assert args.keypoint_threshold == 0.0
     assert args.seed_threshold >= args.keypoint_threshold
 
+    # check setting for graph consistency
+    if args.graph_consistency is None:
+        args.graph_consistency = args.dense_connections
+    if not args.dense_connections:
+        assert not args.graph_consistency
+
     # configure decoder generator
     generator.Greedy.keypoint_threshold = args.keypoint_threshold
     generator.Dijkstra.keypoint_threshold = args.keypoint_threshold
@@ -145,6 +153,7 @@ def factory_from_args(args, model, device=None):
                             seed_threshold=args.seed_threshold,
                             multi_scale=args.multi_scale,
                             multi_scale_hflip=args.multi_scale_hflip,
+                            confirm_connections=args.graph_consistency,
                             debug_visualizer=debug_visualizer)
 
     return Processor(model, decode,
@@ -162,6 +171,7 @@ def factory_decode(model, *,
                    paf_seeds=False,
                    multi_scale=False,
                    multi_scale_hflip=True,
+                   confirm_connections=False,
                    **kwargs):
     """Instantiate a decoder."""
 
@@ -213,6 +223,7 @@ def factory_decode(model, *,
             skeleton=skeleton,
             out_skeleton=COCO_PERSON_SKELETON,
             confidence_scales=confidence_scales,
+            confirm_connections=confirm_connections,
             **kwargs
         )
 
