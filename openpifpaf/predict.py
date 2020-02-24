@@ -10,8 +10,8 @@ import numpy as np
 import PIL
 import torch
 
-from .network import nets
-from . import datasets, decoder, show, transforms
+from openpifpaf.network import nets
+from openpifpaf import datasets, decoder, show, transforms
 
 LOG = logging.getLogger(__name__)
 
