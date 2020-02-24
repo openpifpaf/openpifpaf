@@ -34,8 +34,8 @@ def cli(parser, *,
                        help='use dense connections')
     group.add_argument('--dense-coupling', default=0.01, type=float,
                        help='dense coupling')
-    group.add_argument('--no-graph-consistency',
-                       dest='graph_consistency', default=None, action='store_false')
+    group.add_argument('--graph-consistency',
+                       dest='graph_consistency', default=False, action='store_true')
     group.add_argument('--paf-seeds', default=False, action='store_true',
                        help='[experimental]')
 
@@ -118,8 +118,6 @@ def configure(args):
     assert args.seed_threshold >= args.keypoint_threshold
 
     # check setting for graph consistency
-    if args.graph_consistency is None:
-        args.graph_consistency = args.dense_connections
     if not args.dense_connections:
         assert not args.graph_consistency
 
