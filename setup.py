@@ -81,7 +81,7 @@ setup(
         ],
         'train': [
             'matplotlib',
-            'pycocotools',  # pre-install cython
+            'pycocotools',  # pre-install cython (currently incompatible with numpy 1.18 or above)
             'torch>=1.3.0',
             'torchvision>=0.4',
         ],
