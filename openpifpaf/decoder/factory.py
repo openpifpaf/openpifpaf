@@ -18,6 +18,7 @@ def cli(parser, *,
         seed_threshold=0.2,
         instance_threshold=0.0,
         keypoint_threshold=None,
+        graph_consistency=False,
         workers=None):
     group = parser.add_argument_group('decoder configuration')
     group.add_argument('--seed-threshold', default=seed_threshold, type=float,
@@ -34,8 +35,12 @@ def cli(parser, *,
                        help='use dense connections')
     group.add_argument('--dense-coupling', default=0.01, type=float,
                        help='dense coupling')
-    group.add_argument('--graph-consistency',
-                       dest='graph_consistency', default=False, action='store_true')
+    if graph_consistency:
+        group.add_argument('--no-graph-consistency',
+                           dest='graph_consistency', default=True, action='store_false')
+    else:
+        group.add_argument('--graph-consistency',
+                           dest='graph_consistency', default=False, action='store_true')
     group.add_argument('--paf-seeds', default=False, action='store_true',
                        help='[experimental]')
 
@@ -116,10 +121,6 @@ def configure(args):
     if args.force_complete_pose:
         assert args.keypoint_threshold == 0.0
     assert args.seed_threshold >= args.keypoint_threshold
-
-    # check setting for graph consistency
-    if not args.dense_connections:
-        assert not args.graph_consistency
 
     # configure decoder generator
     generator.Greedy.keypoint_threshold = args.keypoint_threshold
