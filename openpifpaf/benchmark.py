@@ -103,12 +103,14 @@ def main():
     elif args.dense_ablation:
         multi_eval_args = [
             eval_args,
+            eval_args + ['--dense-connections', '--dense-coupling=1.0'],
             eval_args + ['--dense-connections'],
         ]
         for backbone in args.backbones:
             names = [
                 backbone,
                 '{}, w/ dense'.format(backbone),
+                '{}, w/ dense, w/ hierarchy'.format(backbone),
             ]
             for eval_args_i, name_i in zip(multi_eval_args, names):
                 run_eval_coco(args.output, backbone, eval_args_i, output_name=name_i)
@@ -127,6 +129,14 @@ def main():
     LOG.debug('all data: %s', stats)
 
     # pretty printing
+    print(
+        '| Backbone                '
+        '| __AP__   '
+        '| APM   '
+        '| APL   '
+        '| t   '
+        '| tdec   |'
+    )
     for backbone, data in sorted(stats.items(), key=lambda b_d: b_d[1]['stats'][0]):
         print(
             '| {backbone: <25} '
