@@ -106,7 +106,7 @@ class Dijkstra(object):
         assert paf_field.shape[0] == 9
 
         # source value
-        paf_field = paf_center_s(paf_field, xy[0], xy[1], sigma=5.0 * xy_scale)
+        paf_field = paf_center_s(paf_field, xy[0], xy[1], sigma=2.0 * xy_scale)
         if paf_field.shape[1] == 0:
             return 0, 0, 0, 0
 
@@ -176,7 +176,7 @@ class Dijkstra(object):
             directed_paf_field = self.paf_scored.backward[paf_i]
             directed_paf_field_reverse = self.paf_scored.forward[paf_i]
         xyv = ann.data[jsi]
-        xy_scale_s = max(4.0, ann.joint_scales[jsi])
+        xy_scale_s = max(0.0, ann.joint_scales[jsi])
 
         new_xysv = self._grow_connection(xyv[:2], xy_scale_s, directed_paf_field)
         keypoint_score = np.sqrt(new_xysv[3] * xyv[2])  # geometric mean
@@ -184,7 +184,7 @@ class Dijkstra(object):
             return 0.0, 0.0, 0.0, 0.0
         if new_xysv[3] < th:
             return 0.0, 0.0, 0.0, 0.0
-        xy_scale_t = max(4.0, new_xysv[2])
+        xy_scale_t = max(0.0, new_xysv[2])
 
         # reverse match
         if reverse_match:
@@ -202,11 +202,11 @@ class Dijkstra(object):
             directed_paf_field = self.paf_scored.forward[paf_i]
         else:
             directed_paf_field = self.paf_scored.backward[paf_i]
-        xy_scale_s = max(4.0, source_s)
+        xy_scale_s = max(0.0, source_s)
 
         # source value
         paf_field = paf_center_s(directed_paf_field, source_xyv[0], source_xyv[1],
-                                 sigma=5.0 * xy_scale_s)
+                                 sigma=2.0 * xy_scale_s)
         if paf_field.shape[1] == 0:
             return 0.0
 
@@ -217,13 +217,13 @@ class Dijkstra(object):
             ((target_xysv[0],), (target_xysv[1],)) - paf_field[5:7], axis=0)
 
         # combined value and source distance
-        xy_scale_t = max(4.0, target_xysv[2])
+        xy_scale_t = max(0.0, target_xysv[2])
         scores = (  # two-tailed cumulative Laplace
             np.exp(-1.0 * d_source / xy_scale_s) *
             np.exp(-1.0 * d_target / xy_scale_t) *
             paf_field[0]
         )
-        return max(scores)
+        return np.sqrt(source_xyv[2] * max(scores))
 
     def _grow(self, ann, th, reverse_match=True):
         frontier = PriorityQueue()
@@ -275,7 +275,7 @@ class Dijkstra(object):
                 source_s = ann.joint_scales[source_i]
 
                 v_fixed = self.p2p_value(source_xyv, source_s, target_xysv, paf_i, forward)
-                if v_fixed > 0.5 * th:
+                if v_fixed > th:
                     pos += 1
                 else:
                     neg += 1
