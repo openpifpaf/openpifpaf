@@ -109,8 +109,8 @@ def main():
         for backbone in args.backbones:
             names = [
                 backbone,
-                '{}, w/ dense'.format(backbone),
-                '{}, w/ dense, w/ hierarchy'.format(backbone),
+                '{}.wdense'.format(backbone),
+                '{}.wdense.whierarchy'.format(backbone),
             ]
             for eval_args_i, name_i in zip(multi_eval_args, names):
                 run_eval_coco(args.output, backbone, eval_args_i, output_name=name_i)
