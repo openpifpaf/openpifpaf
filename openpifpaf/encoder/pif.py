@@ -116,7 +116,11 @@ class PifGenerator(object):
                     max_r[q] = np.min(np.linalg.norm(diffs[qs == q], axis=1)) / 2.0
 
             max_r = np.expand_dims(max_r, 1)
-            self.fill_coordinate(f, xyv, scale, max_r)
+            if self.sigmas is None:
+                joint_scale = scale
+            else:
+                joint_scale = scale * self.sigmas[f]
+            self.fill_coordinate(f, xyv, joint_scale, max_r)
 
     def fill_coordinate(self, f, xyv, scale, max_r):
         ij = np.round(xyv[:2] - self.s_offset).astype(np.int) + self.padding
@@ -142,7 +146,7 @@ class PifGenerator(object):
         self.fields_reg_l[f, miny:maxy, minx:maxx][mask] = sink_l[mask]
 
         # update scale
-        self.fields_scale[f, miny:maxy, minx:maxx][mask] = scale * self.sigmas[f]
+        self.fields_scale[f, miny:maxy, minx:maxx][mask] = scale
 
     def fields(self, valid_area):
         intensities = self.intensities[:, self.padding:-self.padding, self.padding:-self.padding]
