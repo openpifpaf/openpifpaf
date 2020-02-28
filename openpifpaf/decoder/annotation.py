@@ -124,7 +124,7 @@ class Annotation(object):
         # will be added when converting to Python type
         return {
             'keypoints': np.around(self.data.astype(np.float64), 2).reshape(-1).tolist(),
-            'bbox': [round(c, 2) for c in self.bbox()],
+            'bbox': [round(float(c), 2) for c in self.bbox()],
             'score': round(self.score(), 3),
         }
 
