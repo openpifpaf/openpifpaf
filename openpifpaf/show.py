@@ -84,6 +84,7 @@ class KeypointPainter(object):
                  show_joint_confidences=False,
                  show_joint_scale=False,
                  show_decoding_order=False,
+                 show_only_decoded_connections=False,
                  linewidth=2, markersize=3,
                  color_connections=False,
                  solid_threshold=0.5):
@@ -94,6 +95,7 @@ class KeypointPainter(object):
         self.show_joint_confidences = show_joint_confidences
         self.show_joint_scale = show_joint_scale
         self.show_decoding_order = show_decoding_order
+        self.show_only_decoded_connections = show_only_decoded_connections
         self.linewidth = linewidth
         self.markersize = markersize
         self.color_connections = color_connections
@@ -244,7 +246,16 @@ class KeypointPainter(object):
         y = kps[:, 1] * self.xy_scale
         v = kps[:, 2]
 
-        self._draw_skeleton(ax, x, y, v, color=color, skeleton=ann.skeleton)
+        skeleton = ann.skeleton
+        if self.show_only_decoded_connections:
+            decoded_connections = set((jsi, jti) for jsi, jti, _, __ in ann.decoding_order)
+            skeleton_mask = [
+                (s - 1, e - 1) in decoded_connections or (e - 1, s - 1) in decoded_connections
+                for s, e in skeleton
+            ]
+            skeleton = [se for se, m in zip(skeleton, skeleton_mask) if m]
+
+        self._draw_skeleton(ax, x, y, v, color=color, skeleton=skeleton)
 
         if self.show_joint_scale and ann.joint_scales is not None:
             self._draw_scales(ax, x, y, v, color, ann.joint_scales)
