@@ -14,6 +14,7 @@ class Annotation(object):
         self.joint_scales = np.zeros((len(keypoints),), dtype=np.float32)
         self.fixed_score = None
         self.decoding_order = []
+        self.frontier_order = []
 
         self.skeleton_m1 = (np.asarray(skeleton) - 1).tolist()
 

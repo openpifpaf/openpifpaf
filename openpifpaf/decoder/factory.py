@@ -58,6 +58,7 @@ def cli(parser, *,
     group.add_argument('--debug-paf-indices', default=[], nargs='+',
                        help=('indices of PAF fields to create debug plots for '
                              '(same grouping behavior as debug-pif-indices)'))
+    group.add_argument('--debug-seeds', default=False, action='store_true')
     group.add_argument('--debug-file-prefix', default=None,
                        help='save debug plots with this prefix')
     group.add_argument('--profile-decoder', default=None, action='store_true',
@@ -85,6 +86,10 @@ def cli(parser, *,
 
 
 def configure(args):
+    # process debug indices
+    args.debug_pif_indices = [[int(e) for e in i.split(',')] for i in args.debug_pif_indices]
+    args.debug_paf_indices = [[int(e) for e in i.split(',')] for i in args.debug_paf_indices]
+
     # configure PifPaf
     PifPaf.fixed_b = args.fixed_b
     PifPaf.pif_fixed_scale = args.pif_fixed_scale
@@ -112,6 +117,10 @@ def configure(args):
     # configure PifHr
     PifHr.v_threshold = args.pif_th
     PifHrNoScales.v_threshold = args.pif_th
+
+    # configure debug visualizer
+    Visualizer.occupied_indices = args.debug_pif_indices
+    Visualizer.show_seeds = args.debug_seeds
 
     # default value for keypoint filter depends on whether complete pose is forced
     if args.keypoint_threshold is None:

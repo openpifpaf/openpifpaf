@@ -84,6 +84,7 @@ class KeypointPainter(object):
                  show_joint_confidences=False,
                  show_joint_scale=False,
                  show_decoding_order=False,
+                 show_frontier_order=False,
                  show_only_decoded_connections=False,
                  linewidth=2, markersize=3,
                  color_connections=False,
@@ -95,13 +96,14 @@ class KeypointPainter(object):
         self.show_joint_confidences = show_joint_confidences
         self.show_joint_scale = show_joint_scale
         self.show_decoding_order = show_decoding_order
+        self.show_frontier_order = show_frontier_order
         self.show_only_decoded_connections = show_only_decoded_connections
         self.linewidth = linewidth
         self.markersize = markersize
         self.color_connections = color_connections
         self.solid_threshold = solid_threshold
 
-    def _draw_skeleton(self, ax, x, y, v, *, skeleton, color=None):
+    def _draw_skeleton(self, ax, x, y, v, *, skeleton, color=None, **kwargs):
         if not np.any(v > 0):
             return
 
@@ -111,11 +113,16 @@ class KeypointPainter(object):
                 c = matplotlib.cm.get_cmap('tab20')(ci / len(skeleton))
             if np.all(v[connection] > 0):
                 ax.plot(x[connection], y[connection],
-                        linewidth=self.linewidth, color=c,
-                        linestyle='dashed', dash_capstyle='round')
+                        linewidth=kwargs.get('linewidth', self.linewidth),
+                        linestyle=kwargs.get('linestyle', 'dashed'),
+                        color=c,
+                        dash_capstyle='round')
             if np.all(v[connection] > self.solid_threshold):
                 ax.plot(x[connection], y[connection],
-                        linewidth=self.linewidth, color=c, solid_capstyle='round')
+                        linewidth=kwargs.get('linewidth', self.linewidth),
+                        linestyle=kwargs.get('linestyle', 'solid'),
+                        color=c,
+                        solid_capstyle='round')
 
         # highlight invisible keypoints
         inv_color = 'k' if self.highlight_invisible else color
@@ -245,6 +252,16 @@ class KeypointPainter(object):
         x = kps[:, 0] * self.xy_scale
         y = kps[:, 1] * self.xy_scale
         v = kps[:, 2]
+
+        if self.show_frontier_order:
+            frontier = set((s, e) for s, e in ann.frontier_order)
+            frontier_skeleton_mask = [
+                (s - 1, e - 1) in frontier or (e - 1, s - 1) in frontier
+                for s, e in ann.skeleton
+            ]
+            frontier_skeleton = [se for se, m in zip(ann.skeleton, frontier_skeleton_mask) if m]
+            self._draw_skeleton(ax, x, y, v, color='black', skeleton=frontier_skeleton,
+                                linestyle='dotted', linewidth=1)
 
         skeleton = ann.skeleton
         if self.show_only_decoded_connections:

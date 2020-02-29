@@ -24,10 +24,10 @@ class Visualizer(object):
         self.keypoints = keypoints or COCO_KEYPOINTS
         self.skeleton = skeleton or COCO_PERSON_SKELETON
 
-        self.pif_indices = self.process_indices(pif_indices)
+        self.pif_indices = pif_indices
         if self.pif_indices and self.pif_indices[0][0] == -1:
             self.pif_indices = [[i] for i, _ in enumerate(self.keypoints)]
-        self.paf_indices = self.process_indices(paf_indices)
+        self.paf_indices = paf_indices
         if self.paf_indices and self.paf_indices[0][0] == -1:
             self.paf_indices = [[i] for i, _ in enumerate(self.skeleton)]
         self.file_prefix = file_prefix
@@ -36,10 +36,6 @@ class Visualizer(object):
         self.image = None
         self.processed_image = None
         self.debug_ax = None
-
-    @staticmethod
-    def process_indices(indices):
-        return [[int(e) for e in i.split(',')] for i in indices]
 
     def set_image(self, image, processed_image, *, debug_ax=None):
         if image is None and processed_image is not None:
@@ -93,11 +89,13 @@ class Visualizer(object):
                         ax.text(xx, yy, '{:.2f}'.format(cc))
 
     def occupied(self, occupied):
-        for f in self.occupied_indices:
-            occ = occupied[f].copy()
-            occ[occ > 0] = 1.0
-            with self.canvas() as ax:
-                ax.imshow(occ)
+        print('occupied field')
+        for g in self.occupied_indices:
+            for f in g:
+                occ = occupied.occupancy[f].copy()
+                occ[occ > 0] = 1.0
+                with self.canvas() as ax:
+                    ax.imshow(occ)
 
     def paf_refined(self, original_paf, refined_paf, io_scale):
         print('refined paf')

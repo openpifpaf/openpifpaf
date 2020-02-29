@@ -95,8 +95,7 @@ class Dijkstra(object):
             mark_occupied(ann)
 
         if self.debug_visualizer:
-            LOG.debug('occupied field 0')
-            self.debug_visualizer.occupied(occupied[0])
+            self.debug_visualizer.occupied(occupied)
 
         LOG.debug('keypoint sets %d, %.3fs', len(annotations), time.perf_counter() - start)
         return annotations
@@ -241,6 +240,7 @@ class Dijkstra(object):
                     max_possible_score *= self.confidence_scales[paf_i]
                 frontier.put((-max_possible_score, None, start_i, end_i, paf_i, forward))
                 in_frontier.add((start_i, end_i))
+                ann.frontier_order.append((start_i, end_i))
 
         def frontier_get():
             while frontier.qsize():
