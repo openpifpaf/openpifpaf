@@ -1,7 +1,10 @@
+import logging
 import numpy as np
 
 from .utils import scalar_square_add_single
 from ..functional import scalar_nonzero_clipped
+
+LOG = logging.getLogger(__name__)
 
 
 class Occupancy():
@@ -20,6 +23,7 @@ class Occupancy():
             int(shape[1] / reduction),
             int(shape[2] / reduction),
         ), dtype=np.uint8)
+        LOG.debug('shape = %s', self.occupancy.shape)
 
     def __len__(self):
         return len(self.occupancy)
