@@ -96,15 +96,17 @@ def main():
         model.head_strides = model_cpu.head_strides
     processor = decoder.factory_from_args(args, model, args.device)
 
-    # data
-    preprocess = None
+    # preprocess
+    preprocess = [transforms.NormalizeAnnotations()]
     if args.long_edge:
-        preprocess = transforms.Compose([
-            transforms.NormalizeAnnotations(),
-            transforms.RescaleAbsolute(args.long_edge),
-            transforms.CenterPad(args.long_edge),
-            transforms.EVAL_TRANSFORM,
-        ])
+        preprocess.append(transforms.RescaleAbsolute(args.long_edge))
+    if args.batch_size > 1:
+        preprocess.append(transforms.CenterPad(args.long_edge))
+    else:
+        preprocess.append(transforms.CenterPadTight(16))
+    preprocess = transforms.Compose(preprocess + [transforms.EVAL_TRANSFORM])
+
+    # data
     data = datasets.ImageList(args.images, preprocess=preprocess)
     data_loader = torch.utils.data.DataLoader(
         data, batch_size=args.batch_size, shuffle=False,
