@@ -307,15 +307,15 @@ def quiver(ax, vector_field, intensity_field=None, step=1, threshold=0.5,
         u -= x
         v -= y
 
-    for xx, yy, uu, vv, _, rr in zip(x, y, u, v, c, r):
+    for uu, vv, rr in zip(u, v, r):
         if not rr:
             continue
         circle = matplotlib.patches.Circle(
-            (xx + uu, yy + vv), rr / 2.0, zorder=11, linewidth=1, alpha=1.0,
+            (uu, vv), rr / 2.0, zorder=11, linewidth=1, alpha=1.0,
             fill=False, color='orange')
         ax.add_artist(circle)
 
-    return ax.quiver(x[s], y[s], u[s], v[s], c[s],
+    return ax.quiver(x[s], y[s], u[s] - x[s], v[s] - y[s], c[s],
                      angles='xy', scale_units='xy', scale=1, zOrder=10, **kwargs)
 
 
