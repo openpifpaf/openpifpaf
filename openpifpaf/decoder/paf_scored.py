@@ -49,7 +49,7 @@ class PafScored(object):
             scores = nine[0]
 
             j1i = self.skeleton[paf_i][0] - 1
-            if self.pif_floor < 1.0:
+            if self.pif_floor < 1.0 and j1i < len(self.pifhr):
                 pifhr_b = scalar_values(self.pifhr[j1i], nine[1], nine[2], default=0.0)
                 scores_b = scores * (self.pif_floor + (1.0 - self.pif_floor) * pifhr_b)
             else:
@@ -60,7 +60,7 @@ class PafScored(object):
             self.backward[paf_i] = np.concatenate((self.backward[paf_i], d9_b), axis=1)
 
             j2i = self.skeleton[paf_i][1] - 1
-            if self.pif_floor < 1.0:
+            if self.pif_floor < 1.0 and j2i < len(self.pifhr):
                 pifhr_f = scalar_values(self.pifhr[j2i], nine[5], nine[6], default=0.0)
                 scores_f = scores * (self.pif_floor + (1.0 - self.pif_floor) * pifhr_f)
             else:

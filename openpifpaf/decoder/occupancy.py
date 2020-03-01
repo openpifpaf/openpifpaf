@@ -30,6 +30,9 @@ class Occupancy():
 
     def set(self, f, x, y, s):
         """Setting needs to be centered at the rounded (x, y)."""
+        if f >= len(self.occupancy):
+            return
+
         xi = round(x / self.reduction)
         yi = round(y / self.reduction)
         si = round(max(self.min_scale_reduced, s / self.reduction))
@@ -37,6 +40,9 @@ class Occupancy():
 
     def get(self, f, x, y):
         """Getting needs to be done at the floor of (x, y)."""
+        if f >= len(self.occupancy):
+            return 1.0
+
         xi = x / self.reduction
         yi = y / self.reduction
 
