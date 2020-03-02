@@ -11,7 +11,6 @@ import numpy as np
 import torch
 
 from .occupancy import Occupancy
-from .utils import index_field_torch
 
 LOG = logging.getLogger(__name__)
 
@@ -69,47 +68,17 @@ class Processor(object):
             if self.device is not None:
                 image_batch = image_batch.to(self.device, non_blocking=True)
 
-            heads = self.model(image_batch)
-
-            # add index
-            for head_i, head in enumerate(heads):
-                if len(head) == 4:
-                    reg_field = head[1]
-                    index_field = index_field_torch(reg_field.shape[-2:], device=reg_field.device)
-                    reg_field += index_field
-                elif len(head) == 7:
-                    reg_field1 = head[1]
-                    reg_field2 = head[2]
-                    index_field = index_field_torch(reg_field1.shape[-2:], device=reg_field1.device)
-                    reg_field1 += index_field
-                    reg_field2 += index_field
-                    heads[head_i] = [head[field_i] for field_i in (0, 1, 3, 5, 2, 4, 6)]
-                else:
-                    raise NotImplementedError()
-
-            # concatenate fields
-            heads = [
-                torch.cat(
-                    [
-                        field if len(field.shape) == 5 else torch.unsqueeze(field, 2)
-                        for field in head
-                    ],
-                    dim=2,
-                )
-                for head in heads
-            ]
+            cif_head, caf_head = self.model(image_batch)
 
             # to numpy
-            fields = [head.cpu().numpy() for head in heads]
+            cif_head = cif_head.cpu().numpy()
+            caf_head = caf_head.cpu().numpy()
 
-            # index by batch entry
-            fields = [
-                [head[i] for head in fields]
-                for i in range(image_batch.shape[0])
-            ]
+        # index by frame (item in batch)
+        heads = list(zip(cif_head, caf_head))
 
         LOG.debug('nn processing time: %.3fs', time.time() - start)
-        return fields
+        return heads
 
     def soft_nms(self, annotations):
         if not annotations:

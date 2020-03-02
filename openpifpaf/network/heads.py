@@ -1,37 +1,86 @@
 """Head networks."""
 
+import functools
 import logging
 import re
 
+import numpy as np
 import torch
 
 LOG = logging.getLogger(__name__)
 
 
-class HeadStacks(torch.nn.Module):
-    def __init__(self, stacks):
-        super(HeadStacks, self).__init__()
-        self.stacks_by_pos = {s[0]: s for s in stacks}
-        self.ignore = {head_i for s in stacks for head_i in s[1:]}
+@functools.lru_cache(maxsize=16)
+def index_field_torch(shape, *, device=None, n_unsqueeze=2):
+    yx = np.indices(shape, dtype=np.float32)
+    xy = np.flip(yx, axis=0)
+
+    xy = torch.from_numpy(xy.copy())
+    if device is not None:
+        xy = xy.to(device, non_blocking=True)
+
+    for _ in range(n_unsqueeze):
+        xy = torch.unsqueeze(xy, 0)
+
+    return xy
+
+
+class CifCafCollector(torch.nn.Module):
+    def __init__(self, cif_indices, caf_indices):
+        super(CifCafCollector, self).__init__()
+        self.cif_indices = cif_indices
+        self.caf_indices = caf_indices
+
+    @staticmethod
+    def selector(inputs, index):
+        if not isinstance(index, (list, tuple)):
+            return inputs[index]
+
+        for ind in index:
+            inputs = inputs[ind]
+        return inputs
+
+    @staticmethod
+    def concat_fields(fields):
+        # LOG.debug('fields = %s', [f.shape for f in fields])
+        return torch.cat(
+            [
+                field if len(field.shape) == 5 else torch.unsqueeze(field, 2)
+                for field in fields
+            ],
+            dim=2,
+        )
+
+    @staticmethod
+    def concat_heads(heads):
+        if len(heads) == 1:
+            return heads[0]
+
+        # LOG.debug('heads = %s', [h.shape for h in heads])
+        return torch.cat(heads, dim=1)
 
     def forward(self, *args):
-        heads = args
+        heads = args[0]
 
-        stacked = []
-        for head_i, head in enumerate(heads):
-            if head_i in self.ignore:
-                continue
-            if head_i not in self.stacks_by_pos:
-                stacked.append(head)
-                continue
+        # concat fields
+        cif_heads = [self.concat_fields(self.selector(heads, head_index))
+                     for head_index in self.cif_indices]
+        caf_heads = [self.concat_fields(self.selector(heads, head_index))
+                     for head_index in self.caf_indices]
 
-            fields = [heads[si] for si in self.stacks_by_pos[head_i]]
-            stacked.append([
-                torch.cat(fields_by_type, dim=1)
-                for fields_by_type in zip(*fields)
-            ])
+        # concat heads
+        cif_head = self.concat_heads(cif_heads)
+        caf_head = self.concat_heads(caf_heads)
 
-        return stacked
+        # add index
+        index_field = index_field_torch(cif_head.shape[-2:], device=cif_head.device)
+        cif_head[:, :, 1:3] += index_field
+        caf_head[:, :, 1:3] += index_field
+        caf_head[:, :, 3:5] += index_field
+        # rearrange caf_fields
+        caf_head = caf_head[:, :, (0, 1, 2, 5, 7, 3, 4, 6, 8)]
+
+        return cif_head, caf_head
 
 
 class PifHFlip(torch.nn.Module):

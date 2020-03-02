@@ -3,28 +3,11 @@
 import functools
 import numpy as np
 
-import torch
-
 
 @functools.lru_cache(maxsize=16)
 def index_field(shape):
     yx = np.indices(shape, dtype=np.float32)
     xy = np.flip(yx, axis=0)
-    return xy
-
-
-@functools.lru_cache(maxsize=16)
-def index_field_torch(shape, *, device=None, n_unsqueeze=2):
-    yx = np.indices(shape, dtype=np.float32)
-    xy = np.flip(yx, axis=0)
-
-    xy = torch.from_numpy(xy.copy())
-    if device is not None:
-        xy = xy.to(device, non_blocking=True)
-
-    for _ in range(n_unsqueeze):
-        xy = torch.unsqueeze(xy, 0)
-
     return xy
 
 

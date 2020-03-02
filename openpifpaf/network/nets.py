@@ -53,7 +53,7 @@ class Shell(torch.nn.Module):
         head_outputs = [hn(x) for hn in self.head_nets]
 
         if self.process_heads is not None:
-            head_outputs = self.process_heads(*head_outputs)
+            head_outputs = self.process_heads(head_outputs)
 
         return head_outputs
 
@@ -319,11 +319,14 @@ def factory(
         # normalize for backwards compatibility
         model_migration(net_cpu)
 
+    cif_indices = [0]
+    caf_indices = [1]
     if dense_connections and not multi_scale:
-        net_cpu.process_heads = heads.HeadStacks([(1, 2)])
+        caf_indices = [1, 2]
     elif dense_connections and multi_scale:
-        net_cpu.process_heads = heads.HeadStacks(
-            [(v * 3 + 1, v * 3 + 2) for v in range(10)])
+        cif_indices = [v * 3 + 1 for v in range(10)]
+        caf_indices = [v * 3 + 2 for v in range(10)]
+    net_cpu.process_heads = heads.CifCafCollector(cif_indices, caf_indices)
     net_cpu.cross_talk = cross_talk
 
     if two_scale:
