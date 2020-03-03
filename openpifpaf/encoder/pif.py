@@ -120,6 +120,7 @@ class PifGenerator(object):
                 joint_scale = scale
             else:
                 joint_scale = scale * self.sigmas[f]
+            # joint_scale = min(joint_scale, np.min(max_r))
             self.fill_coordinate(f, xyv, joint_scale, max_r)
 
     def fill_coordinate(self, f, xyv, scale, max_r):

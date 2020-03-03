@@ -134,6 +134,8 @@ class PafGenerator(object):
             else:
                 scale1 = scale * self.sigmas[joint1i - 1]
                 scale2 = scale * self.sigmas[joint2i - 1]
+            # scale1 = min(scale1, np.min(max_r1))
+            # scale2 = min(scale2, np.min(max_r2))
             self.fill_association(i, joint1, joint2, scale1, scale2, max_r1, max_r2)
 
     def fill_association(self, i, joint1, joint2, scale1, scale2, max_r1, max_r2):
