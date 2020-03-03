@@ -30,6 +30,7 @@ class CifCafCollector(torch.nn.Module):
         super(CifCafCollector, self).__init__()
         self.cif_indices = cif_indices
         self.caf_indices = caf_indices
+        LOG.debug('cif = %s, caf = %s', cif_indices, caf_indices)
 
     @staticmethod
     def selector(inputs, index):
