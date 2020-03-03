@@ -95,6 +95,7 @@ def cli():
 def main():
     args = cli()
     net_cpu, start_epoch = nets.factory_from_args(args)
+    net_cpu.process_heads = None
     if args.output is None:
         args.output = default_output_file(args, net_cpu)
     logs.configure(args)
