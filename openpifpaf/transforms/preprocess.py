@@ -36,6 +36,7 @@ class Preprocess(metaclass=ABCMeta):
 
             ann.data[:, 0] = ann.data[:, 0] / meta['scale'][0]
             ann.data[:, 1] = ann.data[:, 1] / meta['scale'][1]
+            ann.joint_scales /= meta['scale'][0]
 
             if meta['hflip']:
                 w = meta['width_height'][0]
