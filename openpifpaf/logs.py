@@ -197,6 +197,8 @@ class Plots(object):
                 ax.plot(x[m], y[m], 'x-', color=color, linestyle='dotted', markersize=2)
                 last_five_y.append(y[-5:])
 
+        if not last_five_y:
+            return
         ax.set_xlabel('epoch')
         ax.set_ylabel(field_name)
         last_five_y = np.concatenate(last_five_y)
@@ -330,8 +332,8 @@ class Plots(object):
         n_rows = len(rows)
         n_cols = max(len(r) for r in rows.values())
         multi_figsize = (5 * n_cols, 2.5 * n_rows)
-        if multi_figsize[0] > 40.0:
-            multi_figsize = (40.0, multi_figsize[1] / multi_figsize[0] * 40.0)
+        # if multi_figsize[0] > 40.0:
+        #     multi_figsize = (40.0, multi_figsize[1] / multi_figsize[0] * 40.0)
 
         with show.canvas() as ax:
             self.time(ax)
@@ -343,6 +345,7 @@ class Plots(object):
             self.lr(ax)
 
         with show.canvas(nrows=n_rows, ncols=n_cols, squeeze=False,
+                         dpi=75,
                          figsize=multi_figsize,
                          sharey=share_y, sharex=True) as axs:
             for row_i, row in enumerate(rows.values()):
