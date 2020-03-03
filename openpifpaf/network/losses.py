@@ -36,6 +36,25 @@ def l1_loss(x1, x2, _, t1, t2, weight=None):
     return torch.sum(losses)
 
 
+def log1p_l1_loss(x, t, **kwargs):
+    """Swap in replacement for functional.l1_loss."""
+    negative = x < 0.0
+    positive = negative == 0
+    negative_loss = torch.nn.functional.l1_loss(
+        x[negative],
+        torch.zeros_like(x[negative]),
+        **kwargs
+    )
+    positive_loss = torch.nn.functional.l1_loss(
+        torch.log1p(x[positive]),
+        torch.log1p(t[positive]),
+        **kwargs
+    )
+
+    assert kwargs.get('reduction', None) == 'sum'
+    return negative_loss + positive_loss
+
+
 def margin_loss(x1, x2, t1, t2, max_r1, max_r2, max_r3, max_r4):
     x = torch.stack((x1, x2))
     t = torch.stack((t1, t2))
@@ -173,6 +192,8 @@ class MultiHeadLossAutoTune(torch.nn.Module):
 
     def forward(self, *args):
         head_fields, head_targets = args
+        LOG.debug('losses = %d, fields = %d, targets = %d',
+                  len(self.losses), len(head_fields), len(head_targets))
         assert len(self.losses) == len(head_fields)
         assert len(self.losses) <= len(head_targets)
         flat_head_losses = [ll
@@ -262,7 +283,7 @@ class CompositeLoss(torch.nn.Module):
             torch.masked_select(bce_x_intensity, bce_masks),
             bce_target,
             weight=bce_weight,
-        )
+        ) * 10.0
 
         reg_losses = [None for _ in target_regs]
         reg_masks = target_intensity[:, :-1] > 0.5
@@ -298,11 +319,11 @@ class CompositeLoss(torch.nn.Module):
         if x_scales:
             assert len(x_scales) == len(target_scales)
             scale_losses = [
-                torch.nn.functional.l1_loss(
+                log1p_l1_loss(
                     torch.masked_select(x_scale, torch.isnan(target_scale) == 0),
                     torch.masked_select(target_scale, torch.isnan(target_scale) == 0),
                     reduction='sum',
-                ) / 1000.0 / batch_size
+                ) / 100.0 / batch_size
                 for x_scale, target_scale in zip(x_scales, target_scales)
             ]
 
