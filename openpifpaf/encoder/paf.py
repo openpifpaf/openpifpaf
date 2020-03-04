@@ -15,11 +15,13 @@ class Paf(object):
     fixed_size = False
     aspect_ratio = 0.0
 
-    def __init__(self, stride, *, n_keypoints, skeleton, sigmas, v_threshold=0):
+    def __init__(self, stride, *, n_keypoints, skeleton, sigmas,
+                 only_in_field_of_view=False, v_threshold=0):
         self.stride = stride
         self.n_keypoints = n_keypoints
         self.skeleton = skeleton
         self.sigmas = sigmas
+        self.only_in_field_of_view = only_in_field_of_view
         self.v_threshold = v_threshold
 
         if self.fixed_size:
@@ -34,7 +36,8 @@ class Paf(object):
                          v_threshold=self.v_threshold,
                          fixed_size=self.fixed_size,
                          aspect_ratio=self.aspect_ratio,
-                         sigmas=self.sigmas)
+                         sigmas=self.sigmas,
+                         only_in_field_of_view=self.only_in_field_of_view)
         f.init_fields(bg_mask)
         f.fill(keypoint_sets)
         return f.fields(valid_area)
@@ -42,7 +45,9 @@ class Paf(object):
 
 class PafGenerator(object):
     def __init__(self, min_size, skeleton, *,
-                 v_threshold, fixed_size, aspect_ratio, sigmas, padding=10):
+                 v_threshold, fixed_size, aspect_ratio, sigmas,
+                 only_in_field_of_view,
+                 padding=10):
         self.min_size = min_size
         self.skeleton = skeleton
         self.v_threshold = v_threshold
@@ -50,6 +55,7 @@ class PafGenerator(object):
         self.fixed_size = fixed_size
         self.aspect_ratio = aspect_ratio
         self.sigmas = sigmas
+        self.only_in_field_of_view = only_in_field_of_view
 
         self.intensities = None
         self.fields_reg1 = None
@@ -103,6 +109,20 @@ class PafGenerator(object):
             joint2 = keypoints[joint2i - 1]
             if joint1[2] <= self.v_threshold or joint2[2] <= self.v_threshold:
                 continue
+
+            # if there is no continuous visual connection, endpoints outside
+            # the field of view cannot be inferred
+            if self.only_in_field_of_view:
+                if joint1[0] < -3 or \
+                   joint2[0] < -3 or \
+                   joint1[0] > self.intensities.shape[2] - 2 * self.padding + 3 or \
+                   joint2[0] > self.intensities.shape[2] - 2 * self.padding + 3:
+                    continue
+                if joint1[1] < -3 or \
+                   joint2[1] < -3 or \
+                   joint1[1] > self.intensities.shape[1] - 2 * self.padding + 3 or \
+                   joint2[1] > self.intensities.shape[1] - 2 * self.padding + 3:
+                    continue
 
             other_j1s = [other_kps[joint1i - 1] for other_kps in other_keypoints
                          if other_kps[joint1i - 1, 2] > self.v_threshold]
