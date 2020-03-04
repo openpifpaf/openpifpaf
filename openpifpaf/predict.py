@@ -23,6 +23,7 @@ def cli():
     )
     nets.cli(parser)
     decoder.cli(parser, force_complete_pose=False, instance_threshold=0.1, seed_threshold=0.5)
+    show.cli(parser)
     parser.add_argument('images', nargs='*',
                         help='input images')
     parser.add_argument('--glob',
@@ -63,6 +64,8 @@ def cli():
     logging.basicConfig()
     logging.getLogger('openpifpaf').setLevel(log_level)
     LOG.setLevel(log_level)
+
+    show.configure(args)
 
     if args.loader_workers is None:
         args.loader_workers = args.batch_size
@@ -114,16 +117,11 @@ def main():
         collate_fn=datasets.collate_images_anns_meta)
 
     # visualizers
-    keypoint_painter = show.KeypointPainter(
-        show_box=args.debug,
-        show_joint_scale=args.debug,
-    )
+    keypoint_painter = show.KeypointPainter()
     skeleton_painter = show.KeypointPainter(
         color_connections=True,
         markersize=args.line_width - 5,
         linewidth=args.line_width,
-        show_box=args.debug,
-        show_joint_scale=args.debug,
     )
 
     for batch_i, (image_tensors_batch, _, meta_batch) in enumerate(data_loader):

@@ -78,26 +78,21 @@ class CrowdPainter(object):
 
 
 class KeypointPainter(object):
+    show_box = False
+    show_joint_confidences = False
+    show_joint_scale = False
+    show_decoding_order = False
+    show_frontier_order = False
+    show_only_decoded_connections = False
+
     def __init__(self, *,
                  xy_scale=1.0, highlight=None, highlight_invisible=False,
-                 show_box=False,
-                 show_joint_confidences=False,
-                 show_joint_scale=False,
-                 show_decoding_order=False,
-                 show_frontier_order=False,
-                 show_only_decoded_connections=False,
                  linewidth=2, markersize=3,
                  color_connections=False,
                  solid_threshold=0.5):
         self.xy_scale = xy_scale
         self.highlight = highlight
         self.highlight_invisible = highlight_invisible
-        self.show_box = show_box
-        self.show_joint_confidences = show_joint_confidences
-        self.show_joint_scale = show_joint_scale
-        self.show_decoding_order = show_decoding_order
-        self.show_frontier_order = show_frontier_order
-        self.show_only_decoded_connections = show_only_decoded_connections
         self.linewidth = linewidth
         self.markersize = markersize
         self.color_connections = color_connections
@@ -142,7 +137,7 @@ class KeypointPainter(object):
                     markerfacecolor=color, markeredgecolor=color)
 
     @staticmethod
-    def _draw_box(ax, x, y, w, h, color, score=None):
+    def _draw_box(ax, x, y, w, h, color, score=None, linewidth=1):
         if w < 5.0:
             x -= 2.0
             w += 4.0
@@ -151,10 +146,10 @@ class KeypointPainter(object):
             h += 4.0
         ax.add_patch(
             matplotlib.patches.Rectangle(
-                (x, y), w, h, fill=False, color=color))
+                (x, y), w, h, fill=False, color=color, linewidth=linewidth))
 
         if score:
-            ax.text(x, y, '{:.4f}'.format(score), fontsize=8, color=color)
+            ax.text(x, y - linewidth, '{:.4f}'.format(score), fontsize=8, color=color)
 
     @staticmethod
     def _draw_text(ax, x, y, v, text, color):
@@ -281,8 +276,8 @@ class KeypointPainter(object):
             self._draw_joint_confidences(ax, x, y, v, color)
 
         if self.show_box:
-            x, y, w, h = ann.bbox()
-            self._draw_box(ax, x, y, w, h, color, ann.score())
+            x_, y_, w_, h_ = ann.bbox()
+            self._draw_box(ax, x_, y_, w_, h_, color, ann.score())
 
         if text is not None:
             self._draw_text(ax, x, y, v, text, color)
@@ -434,3 +429,27 @@ def white_screen(ax, alpha=0.9):
         plt.Rectangle((0, 0), 1, 1, transform=ax.transAxes, alpha=alpha,
                       facecolor='white')
     )
+
+
+def cli(parser):
+    group = parser.add_argument_group('show')
+    group.add_argument('--show-box', default=None, action='store_true')
+    group.add_argument('--show-joint-scale', default=None, action='store_true')
+    group.add_argument('--show-joint-confidences', default=False, action='store_true')
+    group.add_argument('--show-decoding-order', default=False, action='store_true')
+    group.add_argument('--show-frontier-order', default=False, action='store_true')
+    group.add_argument('--show-only-decoded-connections', default=False, action='store_true')
+
+
+def configure(args):
+    if args.show_box is None:
+        args.show_box = getattr(args, 'debug', False)
+    if args.show_joint_scale is None:
+        args.show_joint_scale = getattr(args, 'debug', False)
+
+    KeypointPainter.show_box = args.show_box
+    KeypointPainter.show_joint_scale = args.show_joint_scale
+    KeypointPainter.show_joint_confidences = args.show_joint_confidences
+    KeypointPainter.show_decoding_order = args.show_decoding_order
+    KeypointPainter.show_frontier_order = args.show_frontier_order
+    KeypointPainter.show_only_decoded_connections = args.show_only_decoded_connections
