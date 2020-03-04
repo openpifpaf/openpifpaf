@@ -262,7 +262,7 @@ class Dijkstra(object):
                 frontier.put((-score, new_xysv, start_i, end_i))
 
         def confirm(jsi, jti, target_xysv, th=0.2):
-            pos = 1  # the connection that is being confirmed counts
+            pos = 1 if target_xysv[3] > th else 0
             neg = 0
 
             for paf_i, forward, source_i in self.by_target[jti]:
