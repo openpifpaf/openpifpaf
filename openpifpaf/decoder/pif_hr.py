@@ -118,7 +118,7 @@ class PifHrNoScales(object):
                 s = s * stride
 
                 scalar_square_add_gauss_with_max(
-                    t, x, y, s, v / self.pif_nn / len(pifs), truncate=1.0)
+                    t, x, y, s / 1.5, v / self.pif_nn / len(pifs), truncate=1.5)
 
         if self.target_accumulator is None:
             self.target_accumulator = ta
