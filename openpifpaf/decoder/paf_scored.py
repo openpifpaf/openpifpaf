@@ -4,7 +4,7 @@ import time
 import numpy as np
 
 # pylint: disable=import-error
-from ..functional import scalar_values
+from openpifpaf.functional import scalar_values
 
 LOG = logging.getLogger(__name__)
 

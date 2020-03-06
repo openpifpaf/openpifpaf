@@ -13,6 +13,8 @@ import torch
 from openpifpaf.network import nets
 from openpifpaf import datasets, decoder, show, transforms
 
+from consts import MODELS_DIR, TRAINED_MODEL_PATH
+
 LOG = logging.getLogger(__name__)
 
 
@@ -96,7 +98,7 @@ def bbox_from_keypoints(kps):
 
 def main():
     args = cli()
-
+    args.checkpoint = TRAINED_MODEL_PATH
     # load model
     model_cpu, _ = nets.factory_from_args(args)
     model = model_cpu.to(args.device)
@@ -151,8 +153,8 @@ def main():
             # load the original image if necessary
             cpu_image = None
             if args.debug or \
-               'keypoints' in args.output_types or \
-               'skeleton' in args.output_types:
+                    'keypoints' in args.output_types or \
+                    'skeleton' in args.output_types:
                 with open(meta['file_name'], 'rb') as f:
                     cpu_image = PIL.Image.open(f).convert('RGB')
 

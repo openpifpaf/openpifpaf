@@ -5,11 +5,11 @@ import time
 
 import numpy as np
 
-from . import generator
-from .paf_scored import PafScored
-from .pif_hr import PifHr
-from .pif_seeds import PifSeeds
-from .utils import normalize_pif, normalize_paf
+from openpifpaf.decoder import generator
+from openpifpaf.decoder.paf_scored import PafScored
+from openpifpaf.decoder.pif_hr import PifHr
+from openpifpaf.decoder.pif_seeds import PifSeeds
+from openpifpaf.decoder.utils import normalize_pif, normalize_paf
 
 LOG = logging.getLogger(__name__)
 

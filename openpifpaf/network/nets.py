@@ -292,7 +292,10 @@ def factory(
             checkpoint = torch.hub.load_state_dict_from_url(
                 checkpoint, check_hash=not checkpoint.startswith('https'))
         else:
+            model = torch.hub.load_state_dict_from_url(RESNET50_MODEL, check_hash=True)
             checkpoint = torch.load(checkpoint)
+            model['model'].load_state_dict(checkpoint)
+            checkpoint = model
         net_cpu = checkpoint['model']
         epoch = checkpoint['epoch']
 

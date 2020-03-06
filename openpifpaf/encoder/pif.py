@@ -4,8 +4,8 @@ import numpy as np
 import scipy.ndimage
 import torch
 
-from .annrescaler import AnnRescaler
-from ..utils import create_sink, mask_valid_area
+from openpifpaf.encoder.annrescaler import AnnRescaler
+from openpifpaf.utils import create_sink, mask_valid_area
 
 LOG = logging.getLogger(__name__)
 

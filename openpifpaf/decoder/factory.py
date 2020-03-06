@@ -1,12 +1,12 @@
 import logging
 
-from ..data import COCO_KEYPOINTS, COCO_PERSON_SKELETON, DENSER_COCO_PERSON_CONNECTIONS
-from .pif import Pif
-from .pif_hr import PifHr
-from .pifpaf import PifPaf
-from .pifpaf_dijkstra import PifPafDijkstra
-from .processor import Processor
-from .visualizer import Visualizer
+from openpifpaf.data import COCO_KEYPOINTS, COCO_PERSON_SKELETON, DENSER_COCO_PERSON_CONNECTIONS
+from openpifpaf.decoder.pif import Pif
+from openpifpaf.decoder.pif_hr import PifHr
+from openpifpaf.decoder.pifpaf import PifPaf
+from openpifpaf.decoder.pifpaf_dijkstra import PifPafDijkstra
+from openpifpaf.decoder.processor import Processor
+from openpifpaf.decoder.visualizer import Visualizer
 
 LOG = logging.getLogger(__name__)
 

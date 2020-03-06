@@ -10,7 +10,7 @@ from .annotation import AnnotationWithoutSkeleton
 from .utils import index_field, scalar_square_add_single, normalize_pif
 
 # pylint: disable=import-error
-from ..functional import (scalar_square_add_constant, scalar_square_add_gauss)
+from openpifpaf.functional import (scalar_square_add_constant, scalar_square_add_gauss)
 
 LOG = logging.getLogger(__name__)
 
