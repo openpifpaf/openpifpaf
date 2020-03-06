@@ -6,9 +6,9 @@ import socket
 
 import torch
 
-from . import datasets, encoder, logs, optimize, transforms
-from .network import losses, nets, Trainer
-from . import __version__ as VERSION
+from openpifpaf import datasets, encoder, logs, optimize, transforms
+from openpifpaf.network import losses, nets, Trainer
+from openpifpaf import __version__ as VERSION
 
 
 def default_output_file(args):

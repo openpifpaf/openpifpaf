@@ -1,7 +1,8 @@
 import numpy as np
 
 # pylint: disable=import-error
-from ..functional import scalar_value_clipped
+import pyximport; pyximport.install()
+from openpifpaf.functional import scalar_value_clipped
 
 
 class Annotation(object):
