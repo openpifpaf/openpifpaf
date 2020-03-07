@@ -39,7 +39,7 @@ class Crop(Preprocess):
         return image, anns, meta
 
     @staticmethod
-    def area_of_interest(anns, valid_area):
+    def area_of_interest(anns, valid_area, edge_length):
         """area that contains annotations with keypoints"""
 
         anns_of_interest = [
@@ -58,25 +58,24 @@ class Crop(Preprocess):
         max_y = max(np.max(ann['keypoints'][ann['keypoints'][:, 2] > 0, 1])
                     for ann in anns_of_interest) + 50
 
-        topleft = (
-            max(valid_area[0], min_x),
-            max(valid_area[1], min_y),
-        )
-        bottomright = (
-            min(valid_area[0] + valid_area[2], max_x),
-            min(valid_area[1] + valid_area[3], max_y),
-        )
+        # Make sure to stay inside of valid area.
+        # Also make sure that the remaining window inside the valid area
+        # has at least an edge_length in size (for the case where there is
+        # only a small annotation in a corner).
+        valid_area_r = valid_area[0] + valid_area[2]
+        valid_area_b = valid_area[1] + valid_area[3]
+        range_x = max(0, valid_area[2] - edge_length)
+        range_y = max(0, valid_area[3] - edge_length)
+        left = np.clip(min_x, valid_area[0], valid_area[0] + range_x)
+        top = np.clip(min_y, valid_area[1], valid_area[1] + range_y)
+        right = np.clip(max_x, valid_area_r - range_x, valid_area_r)
+        bottom = np.clip(max_y, valid_area_b - range_y, valid_area_b)
 
-        return (
-            topleft[0],
-            topleft[1],
-            bottomright[0] - topleft[0],
-            bottomright[1] - topleft[1],
-        )
+        return (left, top, right - left, bottom - top)
 
     def crop(self, image, anns, valid_area):
         if self.use_area_of_interest:
-            area_of_interest = self.area_of_interest(anns, valid_area)
+            area_of_interest = self.area_of_interest(anns, valid_area, self.long_edge)
         else:
             area_of_interest = valid_area
 
