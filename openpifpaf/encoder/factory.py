@@ -72,6 +72,7 @@ def factory_head(head_name, stride):
                      'wpaf',
                      'pafb') or \
        re.match('paf[s]?([0-9]+)$', head_name) is not None:
+        only_in_field_of_view = False
         if head_name in ('paf', 'paf19', 'pafs', 'wpaf', 'pafb'):
             n_keypoints = 17
             skeleton = COCO_PERSON_SKELETON
@@ -84,10 +85,15 @@ def factory_head(head_name, stride):
         elif head_name in ('paf25', 'pafs25'):
             n_keypoints = 17
             skeleton = DENSER_COCO_PERSON_CONNECTIONS
+            only_in_field_of_view = True
         else:
             raise Exception('unknown skeleton type of head')
 
         LOG.info('selected encoder Paf for %s', head_name)
-        return Paf(stride, n_keypoints=n_keypoints, skeleton=skeleton, sigmas=COCO_PERSON_SIGMAS)
+        return Paf(stride,
+                   n_keypoints=n_keypoints,
+                   skeleton=skeleton,
+                   sigmas=COCO_PERSON_SIGMAS,
+                   only_in_field_of_view=only_in_field_of_view)
 
     raise Exception('unknown head to create an encoder: {}'.format(head_name))
