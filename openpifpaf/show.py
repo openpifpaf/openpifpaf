@@ -316,8 +316,8 @@ def quiver(ax, vector_field, intensity_field=None, step=1, threshold=0.5,
     r = np.array(r)
     s = np.argsort(c)
     if uv_is_offset:
-        u -= x
-        v -= y
+        u += x
+        v += y
 
     for uu, vv, rr in zip(u, v, r):
         if not rr:
