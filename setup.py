@@ -68,6 +68,7 @@ setup(
         'torchvision>=0.3',
         'pillow<7',  # temporary compat requirement for torchvision
         'cython',
+        'cv2',
     ],
     extras_require={
         'onnx': [
