@@ -68,7 +68,7 @@ setup(
         'torchvision>=0.3',
         'pillow<7',  # temporary compat requirement for torchvision
         'cython',
-        'cv2',
+        'opencv-python',
     ],
     extras_require={
         'onnx': [
