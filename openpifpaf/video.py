@@ -43,6 +43,15 @@ class Visualizer(object):
         if plt is None:
             LOG.error('matplotlib is not installed')
 
+    @staticmethod
+    def clean_axis(ax):
+        xlim = ax.get_xlim()
+        ylim = ax.get_ylim()
+        ax.cla()
+        ax.set_axis_off()
+        ax.set_xlim(*xlim)
+        ax.set_ylim(*ylim)
+
     def __call__(self, first_image, fig_width=4.0, **kwargs):
         if plt is None:
             while True:
@@ -62,7 +71,7 @@ class Visualizer(object):
                 fontsize=10, verticalalignment='top',
                 bbox=dict(facecolor='white', alpha=0.5, linewidth=0))
         fig.add_axes(ax)
-        mpl_im = ax.imshow(first_image)
+        ax.imshow(first_image)
         fig.show()
 
         while True:
@@ -70,9 +79,8 @@ class Visualizer(object):
             annotations = self.processor.annotations(all_fields)
 
             draw_start = time.time()
-            while ax.lines:
-                del ax.lines[0]
-            mpl_im.set_data(image)
+            self.clean_axis(ax)
+            ax.imshow(image)
             self.keypoint_painter.annotations(ax, annotations)
             fig.canvas.draw()
             LOG.debug('draw %.3fs', time.time() - draw_start)
@@ -108,6 +116,7 @@ def cli():
     )
     nets.cli(parser)
     decoder.cli(parser, force_complete_pose=False, instance_threshold=0.1, seed_threshold=0.5)
+    show.cli(parser)
     parser.add_argument('--no-colored-connections',
                         dest='colored_connections', default=True, action='store_false',
                         help='do not use colored connections to draw poses')
@@ -137,6 +146,8 @@ def cli():
     logging.getLogger('openpifpaf').setLevel(log_level)
     LOG.setLevel(log_level)
 
+    show.configure(args)
+
     # check whether source should be an int
     if len(args.source) == 1:
         args.source = int(args.source)
@@ -156,10 +167,9 @@ def main():
     if not args.json_output:
         if args.colored_connections:
             keypoint_painter = show.KeypointPainter(
-                show_box=False, color_connections=True,
-                markersize=1, linewidth=6)
+                color_connections=True, markersize=1, linewidth=6)
         else:
-            keypoint_painter = show.KeypointPainter(show_box=False)
+            keypoint_painter = show.KeypointPainter()
 
     # load model
     model, _ = nets.factory_from_args(args)

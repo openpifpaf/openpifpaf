@@ -80,7 +80,7 @@ class CrowdPainter(object):
 class KeypointPainter(object):
     show_box = False
     show_joint_confidences = False
-    show_joint_scale = False
+    show_joint_scales = False
     show_decoding_order = False
     show_frontier_order = False
     show_only_decoded_connections = False
@@ -269,7 +269,7 @@ class KeypointPainter(object):
 
         self._draw_skeleton(ax, x, y, v, color=color, skeleton=skeleton)
 
-        if self.show_joint_scale and ann.joint_scales is not None:
+        if self.show_joint_scales and ann.joint_scales is not None:
             self._draw_scales(ax, x, y, v, color, ann.joint_scales)
 
         if self.show_joint_confidences:
@@ -433,8 +433,8 @@ def white_screen(ax, alpha=0.9):
 
 def cli(parser):
     group = parser.add_argument_group('show')
-    group.add_argument('--show-box', default=None, action='store_true')
-    group.add_argument('--show-joint-scale', default=None, action='store_true')
+    group.add_argument('--show-box', default=False, action='store_true')
+    group.add_argument('--show-joint-scales', default=False, action='store_true')
     group.add_argument('--show-joint-confidences', default=False, action='store_true')
     group.add_argument('--show-decoding-order', default=False, action='store_true')
     group.add_argument('--show-frontier-order', default=False, action='store_true')
@@ -442,13 +442,8 @@ def cli(parser):
 
 
 def configure(args):
-    if args.show_box is None:
-        args.show_box = getattr(args, 'debug', False)
-    if args.show_joint_scale is None:
-        args.show_joint_scale = getattr(args, 'debug', False)
-
     KeypointPainter.show_box = args.show_box
-    KeypointPainter.show_joint_scale = args.show_joint_scale
+    KeypointPainter.show_joint_scales = args.show_joint_scales
     KeypointPainter.show_joint_confidences = args.show_joint_confidences
     KeypointPainter.show_decoding_order = args.show_decoding_order
     KeypointPainter.show_frontier_order = args.show_frontier_order
