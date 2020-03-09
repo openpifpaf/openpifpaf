@@ -34,7 +34,7 @@ class NormalizeAnnotations(Preprocess):
             meta = {
                 'offset': np.array((0.0, 0.0)),
                 'scale': np.array((1.0, 1.0)),
-                'valid_area': np.array((0.0, 0.0, w, h)),
+                'valid_area': np.array((0.0, 0.0, w - 1, h - 1)),
                 'hflip': False,
                 'width_height': np.array((w, h)),
             }
