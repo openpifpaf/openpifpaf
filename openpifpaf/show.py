@@ -130,7 +130,7 @@ class KeypointPainter(object):
                 (xx, yy), self.markersize / 2.0,
                 color='white' if self.color_connections else color,
                 edgecolor='k' if self.highlight_invisible else None,
-                zorder=10,
+                zorder=2,
             ))
 
         # highlight joints
@@ -142,8 +142,36 @@ class KeypointPainter(object):
                     (xx, yy), self.markersize,
                     color=color,
                     edgecolor=color,
-                    zorder=10,
+                    zorder=2,
                 ))
+
+    def keypoints(self, ax, keypoint_sets, *,
+                  skeleton, scores=None, color=None, colors=None, texts=None):
+        if keypoint_sets is None:
+            return
+
+        if color is None and colors is None:
+            colors = range(len(keypoint_sets))
+
+        for i, kps in enumerate(np.asarray(keypoint_sets)):
+            assert kps.shape[1] == 3
+            x = kps[:, 0] * self.xy_scale
+            y = kps[:, 1] * self.xy_scale
+            v = kps[:, 2]
+
+            if colors is not None:
+                color = colors[i]
+
+            if isinstance(color, (int, np.integer)):
+                color = matplotlib.cm.get_cmap('tab20')((color % 20 + 0.05) / 20)
+
+            self._draw_skeleton(ax, x, y, v, skeleton=skeleton, color=color)
+            if self.show_box:
+                score = scores[i] if scores is not None else None
+                self._draw_box(ax, x, y, v, color, score)
+
+            if texts is not None:
+                self._draw_text(ax, x, y, v, texts[i], color)
 
     @staticmethod
     def _draw_box(ax, x, y, w, h, color, score=None, linewidth=1):
