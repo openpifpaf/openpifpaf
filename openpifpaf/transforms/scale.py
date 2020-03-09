@@ -40,9 +40,6 @@ def _scale(image, anns, meta, target_w, target_h, resample):
     meta['valid_area'][2:] *= scale_factors
     LOG.debug('meta after: %s', meta)
 
-    for ann in anns:
-        ann['valid_area'] = meta['valid_area']
-
     return image, anns, meta
 
 
@@ -62,13 +59,8 @@ class RescaleRelative(Preprocess):
                     rnd_range[0] +
                     torch.rand(1).item() * (rnd_range[1] - rnd_range[0])
                 )
-                # mean = 0.5 * (rnd_range[0] + rnd_range[1])
-                # sigma = 0.5 * (rnd_range[1] - rnd_range[0])
-                # log2_scale_factor = mean + sigma * torch.randn(1).item()
 
                 scale_factor = 2 ** log2_scale_factor
-                # LOG.debug('mean = %f, sigma = %f, log2r = %f, scale = %f',
-                #           mean, sigma, log2_scale_factor, scale_factor)
                 LOG.debug('rnd range = %s, log2_scale_Factor = %f, scale factor = %f',
                           rnd_range, log2_scale_factor, scale_factor)
             else:

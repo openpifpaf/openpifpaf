@@ -77,9 +77,6 @@ class RotateBy90(Preprocess):
         meta['valid_area'][2:] = new_rb_corner - meta['valid_area'][:2]
         LOG.debug('meta after: %s', meta)
 
-        for ann in anns:
-            ann['valid_area'] = meta['valid_area']
-
         return image, anns, meta
 
     @staticmethod

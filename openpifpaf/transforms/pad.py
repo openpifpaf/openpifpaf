@@ -26,9 +26,6 @@ class CenterPad(Preprocess):
         meta['valid_area'][:2] += ltrb[:2]
         LOG.debug('valid area after pad: %s', meta['valid_area'])
 
-        for ann in anns:
-            ann['valid_area'] = meta['valid_area']
-
         return image, anns, meta
 
     def center_pad(self, image, anns):
@@ -77,9 +74,6 @@ class CenterPadTight(Preprocess):
         LOG.debug('valid area before pad with %s: %s', ltrb, meta['valid_area'])
         meta['valid_area'][:2] += ltrb[:2]
         LOG.debug('valid area after pad: %s', meta['valid_area'])
-
-        for ann in anns:
-            ann['valid_area'] = meta['valid_area']
 
         return image, anns, meta
 

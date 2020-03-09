@@ -33,9 +33,6 @@ class Crop(Preprocess):
         meta['valid_area'][2:] = new_rb_corner - meta['valid_area'][:2]
         LOG.debug('valid area after crop: %s', meta['valid_area'])
 
-        for ann in anns:
-            ann['valid_area'] = meta['valid_area']
-
         return image, anns, meta
 
     @staticmethod

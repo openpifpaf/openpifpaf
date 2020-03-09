@@ -51,7 +51,5 @@ class HFlip(Preprocess):
         meta['hflip'] = True
 
         meta['valid_area'][0] = -(meta['valid_area'][0] + meta['valid_area'][2]) + w
-        for ann in anns:
-            ann['valid_area'] = meta['valid_area']
 
         return image, anns, meta
