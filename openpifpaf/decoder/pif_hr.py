@@ -4,7 +4,7 @@ import time
 import numpy as np
 
 # pylint: disable=import-error
-from ..functional import cumulative_average, scalar_square_add_gauss_with_max
+from openpifpaf.functional import cumulative_average, scalar_square_add_gauss_with_max
 
 LOG = logging.getLogger(__name__)
 

@@ -5,8 +5,8 @@ from .paf import Paf
 from .pif import Pif
 from .skeleton import Skeleton
 
-from ..data import (COCO_PERSON_SKELETON, COCO_PERSON_SIGMAS, DENSER_COCO_PERSON_SKELETON,
-                    KINEMATIC_TREE_SKELETON, DENSER_COCO_PERSON_CONNECTIONS)
+from openpifpaf.data import (COCO_PERSON_SKELETON, COCO_PERSON_SIGMAS, DENSER_COCO_PERSON_SKELETON,
+                             KINEMATIC_TREE_SKELETON, DENSER_COCO_PERSON_CONNECTIONS)
 
 LOG = logging.getLogger(__name__)
 
@@ -55,7 +55,7 @@ def factory_head(head_name, stride):
                      'ppif',
                      'pifb',
                      'pifs') or \
-       re.match('pif([0-9]+)$', head_name) is not None:
+            re.match('pif([0-9]+)$', head_name) is not None:
 
         m = re.match('pif([0-9]+)$', head_name)
         if m is not None:
@@ -71,7 +71,7 @@ def factory_head(head_name, stride):
                      'pafs',
                      'wpaf',
                      'pafb') or \
-       re.match('paf[s]?([0-9]+)$', head_name) is not None:
+            re.match('paf[s]?([0-9]+)$', head_name) is not None:
         if head_name in ('paf', 'paf19', 'pafs', 'wpaf', 'pafb'):
             n_keypoints = 17
             skeleton = COCO_PERSON_SKELETON

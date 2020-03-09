@@ -13,7 +13,7 @@ import torch
 from .utils import scalar_square_add_single
 
 # pylint: disable=import-error
-from ..functional import scalar_nonzero_clipped
+from openpifpaf.functional import scalar_nonzero_clipped
 
 LOG = logging.getLogger(__name__)
 

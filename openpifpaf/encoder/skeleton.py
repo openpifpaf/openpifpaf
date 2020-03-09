@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 
-from .annrescaler import AnnRescaler
+from openpifpaf.encoder.annrescaler import AnnRescaler
 
 
 class Skeleton(object):

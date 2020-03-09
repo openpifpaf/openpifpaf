@@ -7,10 +7,7 @@ from PIL import Image
 from . import transforms, utils
 
 
-ANNOTATIONS_TRAIN = 'data-mscoco/annotations/person_keypoints_train2017.json'
-ANNOTATIONS_VAL = 'data-mscoco/annotations/person_keypoints_val2017.json'
-IMAGE_DIR_TRAIN = 'data-mscoco/images/train2017/'
-IMAGE_DIR_VAL = 'data-mscoco/images/val2017/'
+from openpifpaf.consts import ANNOTATIONS_TRAIN, ANNOTATIONS_VAL, IMAGE_DIR_TRAIN, IMAGE_DIR_VAL
 
 LOG = logging.getLogger(__name__)
 

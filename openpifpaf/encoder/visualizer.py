@@ -1,8 +1,8 @@
 import logging
 import numpy as np
 
-from ..data import COCO_KEYPOINTS, COCO_PERSON_SKELETON, DENSER_COCO_PERSON_CONNECTIONS
-from .. import show
+from openpifpaf.data import COCO_KEYPOINTS, COCO_PERSON_SKELETON, DENSER_COCO_PERSON_CONNECTIONS
+from openpifpaf import show
 
 LOG = logging.getLogger(__name__)
 

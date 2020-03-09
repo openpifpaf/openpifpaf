@@ -10,23 +10,22 @@ import zipfile
 import numpy as np
 import torch
 
+from openpifpaf.decoder import instance_scorer
+
 try:
     import pycocotools.coco
     from pycocotools.cocoeval import COCOeval
+
     # monkey patch for Python 3 compat
     pycocotools.coco.unicode = str
 except ImportError:
     pass
 
-from .data import COCO_PERSON_SKELETON
-from .network import nets
-from . import datasets, decoder, encoder, show, transforms
+from openpifpaf.data import COCO_PERSON_SKELETON
+from openpifpaf.network import nets
+from openpifpaf import datasets, decoder, encoder, show, transforms
 
-ANNOTATIONS_VAL = 'data-mscoco/annotations/person_keypoints_val2017.json'
-IMAGE_DIR_VAL = 'data-mscoco/images/val2017/'
-ANNOTATIONS_TESTDEV = 'data-mscoco/annotations/image_info_test-dev2017.json'
-ANNOTATIONS_TEST = 'data-mscoco/annotations/image_info_test2017.json'
-IMAGE_DIR_TEST = 'data-mscoco/images/test2017/'
+from openpifpaf.consts import ANNOTATIONS_TEST, ANNOTATIONS_TESTDEV, IMAGE_DIR_TEST, ANNOTATIONS_VAL, IMAGE_DIR_VAL
 
 LOG = logging.getLogger(__name__)
 
@@ -137,7 +136,7 @@ class EvalCoco(object):
             image_annotations.append({
                 'image_id': image_id,
                 'category_id': category_id,
-                'keypoints': np.zeros((17*3,)).tolist(),
+                'keypoints': np.zeros((17 * 3,)).tolist(),
                 'score': 0.01,
             })
 
@@ -341,7 +340,7 @@ def main():
         model.head_strides = model_cpu.head_strides
 
     processor = decoder.factory_from_args(args, model, args.device)
-    # processor.instance_scorer = decocder.instance_scorer.InstanceScoreRecorder()
+    # processor.instance_scorer = instance_scorer.InstanceScoreRecorder()
     # processor.instance_scorer = torch.load('instance_scorer.pkl')
 
     coco = pycocotools.coco.COCO(args.annotation_file)
