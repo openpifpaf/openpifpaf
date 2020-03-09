@@ -10,7 +10,7 @@ from openpifpaf import datasets, encoder, logs, optimize, transforms
 from openpifpaf.network import losses, nets, Trainer
 from openpifpaf import __version__ as VERSION
 
-from consts import MODELS_DIR
+from openpifpaf.consts import MODELS_DIR
 
 def default_output_file(args):
     out = 'outputs/{}-{}'.format(args.basenet, '-'.join(args.headnets))
