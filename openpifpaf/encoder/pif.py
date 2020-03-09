@@ -97,34 +97,35 @@ class PifGenerator(object):
         q[xys[:, 1] < 0.0] += 2
         return q
 
-    def fill_keypoints(self, keypoints, other_keypoints):
-        visible = keypoints[:, 2] > 0
-        if not np.any(visible):
-            return
-        scale = scale_from_keypoints(keypoints)
+    @classmethod
+    def max_r(cls, xyv, other_xyv):
+        out = np.array([np.inf, np.inf, np.inf, np.inf], dtype=np.float32)
+        if not other_xyv:
+            return out
 
+        other_xyv = np.asarray(other_xyv)
+        diffs = other_xyv[:, :2] - np.expand_dims(xyv[:2], 0)
+        qs = cls.quadrant(diffs)
+        for q in range(4):
+            if not np.any(qs == q):
+                continue
+            out[q] = np.min(np.linalg.norm(diffs[qs == q], axis=1))
+
+        return out
+
+    def fill_keypoints(self, keypoints, other_keypoints):
+        scale = scale_from_keypoints(keypoints)
         for f, xyv in enumerate(keypoints):
             if xyv[2] <= self.v_threshold:
                 continue
 
-            max_r = [np.inf, np.inf, np.inf, np.inf]
             other_xyv = [other_kps[f] for other_kps in other_keypoints
                          if other_kps[f, 2] > self.v_threshold]
-            if other_xyv:
-                other_xyv = np.asarray(other_xyv)
-                diffs = other_xyv[:, :2] - np.expand_dims(xyv[:2], 0)
-                qs = self.quadrant(diffs)
-                for q in range(4):
-                    if not np.any(qs == q):
-                        continue
-                    max_r[q] = np.min(np.linalg.norm(diffs[qs == q], axis=1)) / 2.0
+            max_r = self.max_r(xyv, other_xyv)
 
-            max_r = np.expand_dims(max_r, 1)
-            if self.sigmas is None:
-                joint_scale = scale
-            else:
-                joint_scale = scale * self.sigmas[f]
-            # joint_scale = min(joint_scale, np.min(max_r))
+            joint_scale = scale if self.sigmas is None else scale * self.sigmas[f]
+            joint_scale = min(joint_scale, np.min(max_r) * 0.25)
+
             self.fill_coordinate(f, xyv, joint_scale, max_r)
 
     def fill_coordinate(self, f, xyv, scale, max_r):
@@ -147,7 +148,7 @@ class PifGenerator(object):
         mask = sink_l < self.fields_reg_l[f, miny:maxy, minx:maxx]
         patch = self.fields_reg[f, :, miny:maxy, minx:maxx]
         patch[:2, mask] = sink_reg[:, mask]
-        patch[2:, mask] = max_r
+        patch[2:, mask] = np.expand_dims(max_r, 1) * 0.5
         self.fields_reg_l[f, miny:maxy, minx:maxx][mask] = sink_l[mask]
 
         # update scale
@@ -158,7 +159,10 @@ class PifGenerator(object):
         fields_reg = self.fields_reg[:, :, self.padding:-self.padding, self.padding:-self.padding]
         fields_scale = self.fields_scale[:, self.padding:-self.padding, self.padding:-self.padding]
 
-        mask_valid_area(intensities, valid_area)
+        mask_valid_area(intensities[:-1], valid_area)
+        mask_valid_area(fields_reg[:, 0], valid_area)
+        mask_valid_area(fields_reg[:, 1], valid_area)
+        mask_valid_area(fields_scale, valid_area, fill_value=np.nan)
 
         return (
             torch.from_numpy(intensities),

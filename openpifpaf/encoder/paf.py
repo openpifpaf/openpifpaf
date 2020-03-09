@@ -4,7 +4,7 @@ import scipy
 import torch
 
 from .annrescaler import AnnRescaler
-from .pif import scale_from_keypoints
+from .pif import scale_from_keypoints, PifGenerator
 from ..utils import create_sink, mask_valid_area
 
 LOG = logging.getLogger(__name__)
@@ -54,6 +54,7 @@ class PafGenerator(object):
                  padding=10):
         self.min_size = min_size
         self.skeleton = skeleton
+        self.skeleton_m1 = np.asarray(skeleton) - 1
         self.v_threshold = v_threshold
         self.padding = padding
         self.fixed_size = fixed_size
@@ -95,22 +96,11 @@ class PafGenerator(object):
                 [kps for i, kps in enumerate(keypoint_sets) if i != kps_i],
             )
 
-    @staticmethod
-    def quadrant(xys):
-        q = np.zeros((xys.shape[0],), dtype=np.int)
-        q[xys[:, 0] < 0.0] += 1
-        q[xys[:, 1] < 0.0] += 2
-        return q
-
     def fill_keypoints(self, keypoints, other_keypoints):
-        visible = keypoints[:, 2] > 0
-        if not np.any(visible):
-            return
         scale = scale_from_keypoints(keypoints)
-
-        for i, (joint1i, joint2i) in enumerate(self.skeleton):
-            joint1 = keypoints[joint1i - 1]
-            joint2 = keypoints[joint2i - 1]
+        for paf_i, (joint1i, joint2i) in enumerate(self.skeleton_m1):
+            joint1 = keypoints[joint1i]
+            joint2 = keypoints[joint2i]
             if joint1[2] <= self.v_threshold or joint2[2] <= self.v_threshold:
                 continue
 
@@ -128,41 +118,23 @@ class PafGenerator(object):
                    joint2[1] > self.intensities.shape[1] - 2 * self.padding + 3:
                     continue
 
-            other_j1s = [other_kps[joint1i - 1] for other_kps in other_keypoints
-                         if other_kps[joint1i - 1, 2] > self.v_threshold]
-            other_j2s = [other_kps[joint2i - 1] for other_kps in other_keypoints
-                         if other_kps[joint2i - 1, 2] > self.v_threshold]
-            max_r1 = [np.inf, np.inf, np.inf, np.inf]
-            max_r2 = [np.inf, np.inf, np.inf, np.inf]
-            if other_j1s:
-                other_j1s = np.asarray(other_j1s)
-                diffs1 = other_j1s[:, :2] - np.expand_dims(joint1[:2], 0)
-                qs1 = self.quadrant(diffs1)
-                for q1 in range(4):
-                    if not np.any(qs1 == q1):
-                        continue
-                    max_r1[q1] = np.min(np.linalg.norm(diffs1[qs1 == q1], axis=1)) / 2.0
-            if other_j2s:
-                other_j2s = np.asarray(other_j2s)
-                diffs2 = other_j2s[:, :2] - np.expand_dims(joint2[:2], 0)
-                qs2 = self.quadrant(diffs2)
-                for q2 in range(4):
-                    if not np.any(qs2 == q2):
-                        continue
-                    max_r2[q2] = np.min(np.linalg.norm(diffs2[qs2 == q2], axis=1)) / 2.0
+            other_j1s = [other_kps[joint1i] for other_kps in other_keypoints
+                         if other_kps[joint1i, 2] > self.v_threshold]
+            other_j2s = [other_kps[joint2i] for other_kps in other_keypoints
+                         if other_kps[joint2i, 2] > self.v_threshold]
+            max_r1 = PifGenerator.max_r(joint1, other_j1s)
+            max_r2 = PifGenerator.max_r(joint2, other_j2s)
 
-            max_r1 = np.expand_dims(max_r1, 1)
-            max_r2 = np.expand_dims(max_r2, 1)
             if self.sigmas is None:
                 scale1, scale2 = scale, scale
             else:
-                scale1 = scale * self.sigmas[joint1i - 1]
-                scale2 = scale * self.sigmas[joint2i - 1]
-            # scale1 = min(scale1, np.min(max_r1))
-            # scale2 = min(scale2, np.min(max_r2))
-            self.fill_association(i, joint1, joint2, scale1, scale2, max_r1, max_r2)
+                scale1 = scale * self.sigmas[joint1i]
+                scale2 = scale * self.sigmas[joint2i]
+            scale1 = min(scale1, np.min(max_r1) * 0.25)
+            scale2 = min(scale2, np.min(max_r2) * 0.25)
+            self.fill_association(paf_i, joint1, joint2, scale1, scale2, max_r1, max_r2)
 
-    def fill_association(self, i, joint1, joint2, scale1, scale2, max_r1, max_r2):
+    def fill_association(self, paf_i, joint1, joint2, scale1, scale2, max_r1, max_r2):
         # offset between joints
         offset = joint2[:2] - joint1[:2]
         offset_d = np.linalg.norm(offset)
@@ -199,25 +171,25 @@ class PafGenerator(object):
             joint2_offset = (joint2[:2] - fxy).reshape(2, 1, 1)
 
             # update intensity
-            self.intensities[i, fminy:fmaxy, fminx:fmaxx] = 1.0
+            self.intensities[paf_i, fminy:fmaxy, fminx:fmaxx] = 1.0
 
             # update regressions
             sink1 = sink + joint1_offset
             sink2 = sink + joint2_offset
             sink_l = np.minimum(np.linalg.norm(sink1, axis=0),
                                 np.linalg.norm(sink2, axis=0))
-            mask = sink_l < self.fields_reg_l[i, fminy:fmaxy, fminx:fmaxx]
-            patch1 = self.fields_reg1[i, :, fminy:fmaxy, fminx:fmaxx]
+            mask = sink_l < self.fields_reg_l[paf_i, fminy:fmaxy, fminx:fmaxx]
+            patch1 = self.fields_reg1[paf_i, :, fminy:fmaxy, fminx:fmaxx]
             patch1[:2, mask] = sink1[:, mask]
-            patch1[2:, mask] = max_r1
-            patch2 = self.fields_reg2[i, :, fminy:fmaxy, fminx:fmaxx]
+            patch1[2:, mask] = np.expand_dims(max_r1, 1) * 0.5
+            patch2 = self.fields_reg2[paf_i, :, fminy:fmaxy, fminx:fmaxx]
             patch2[:2, mask] = sink2[:, mask]
-            patch2[2:, mask] = max_r2
-            self.fields_reg_l[i, fminy:fmaxy, fminx:fmaxx][mask] = sink_l[mask]
+            patch2[2:, mask] = np.expand_dims(max_r2, 1) * 0.5
+            self.fields_reg_l[paf_i, fminy:fmaxy, fminx:fmaxx][mask] = sink_l[mask]
 
             # update scale
-            self.fields_scale1[i, fminy:fmaxy, fminx:fmaxx][mask] = scale1
-            self.fields_scale2[i, fminy:fmaxy, fminx:fmaxx][mask] = scale2
+            self.fields_scale1[paf_i, fminy:fmaxy, fminx:fmaxx][mask] = scale1
+            self.fields_scale2[paf_i, fminy:fmaxy, fminx:fmaxx][mask] = scale2
 
     def fields(self, valid_area):
         p = self.padding
@@ -227,7 +199,13 @@ class PafGenerator(object):
         fields_scale1 = self.fields_scale1[:, p:-p, p:-p]
         fields_scale2 = self.fields_scale2[:, p:-p, p:-p]
 
-        mask_valid_area(intensities, valid_area)
+        mask_valid_area(intensities[:-1], valid_area)
+        mask_valid_area(fields_reg1[:, 0], valid_area)
+        mask_valid_area(fields_reg1[:, 1], valid_area)
+        mask_valid_area(fields_reg2[:, 0], valid_area)
+        mask_valid_area(fields_reg2[:, 1], valid_area)
+        mask_valid_area(fields_scale1, valid_area, fill_value=np.nan)
+        mask_valid_area(fields_scale2, valid_area, fill_value=np.nan)
 
         return (
             torch.from_numpy(intensities),
