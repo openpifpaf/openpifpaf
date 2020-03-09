@@ -120,14 +120,18 @@ class KeypointPainter(object):
                         solid_capstyle='round')
 
         # highlight invisible keypoints
-        inv_color = 'k' if self.highlight_invisible else color
-
+        markerfacecolor = 'white' if self.color_connections else color
+        markerface_inv_color = 'k' if self.highlight_invisible else markerfacecolor
         ax.plot(x[v > 0], y[v > 0],
                 'o', markersize=self.markersize,
-                markerfacecolor=color, markeredgecolor=inv_color, markeredgewidth=2)
+                markerfacecolor=markerfacecolor,
+                markeredgecolor=markerface_inv_color,
+                markeredgewidth=2)
         ax.plot(x[v > self.solid_threshold], y[v > self.solid_threshold],
                 'o', markersize=self.markersize,
-                markerfacecolor=color, markeredgecolor=color, markeredgewidth=2)
+                markerfacecolor=markerfacecolor,
+                markeredgecolor=markerfacecolor,
+                markeredgewidth=2)
 
         if self.highlight is not None:
             v_highlight = v[self.highlight]
@@ -152,7 +156,7 @@ class KeypointPainter(object):
             ax.text(x, y - linewidth, '{:.4f}'.format(score), fontsize=8, color=color)
 
     @staticmethod
-    def _draw_text(ax, x, y, v, text, color):
+    def _draw_text(ax, x, y, v, text, color, *, subtext=None):
         if not np.any(v > 0):
             return
 
@@ -165,6 +169,15 @@ class KeypointPainter(object):
             textcoords='offset points',
             color='white', bbox={'facecolor': color, 'alpha': 0.5, 'linewidth': 0},
         )
+        if subtext is not None:
+            ax.annotate(
+                subtext,
+                (x[v > 0][coord_i], y[v > 0][coord_i]),
+                fontsize=5,
+                xytext=(5.0, 18.0 + 3.0),
+                textcoords='offset points',
+                color='white', bbox={'facecolor': color, 'alpha': 0.5, 'linewidth': 0},
+            )
 
     @staticmethod
     def _draw_scales(ax, xs, ys, vs, color, scales):
@@ -222,12 +235,10 @@ class KeypointPainter(object):
 
 
     def annotations(self, ax, annotations, *,
-                    color=None, colors=None, texts=None):
+                    color=None, colors=None, texts=None, subtexts=None):
         if annotations is None:
             return
 
-        if color is None and self.color_connections:
-            color = 'white'
         if color is None and colors is None:
             colors = range(len(annotations))
 
@@ -236,9 +247,10 @@ class KeypointPainter(object):
                 color = colors[i]
 
             text = texts[i] if texts is not None else None
-            self.annotation(ax, ann, color=color, text=text)
+            subtext = subtexts[i] if subtexts is not None else None
+            self.annotation(ax, ann, color=color, text=text, subtext=subtext)
 
-    def annotation(self, ax, ann, *, color, text=None):
+    def annotation(self, ax, ann, *, color, text=None, subtext=None):
         if isinstance(color, (int, np.integer)):
             color = matplotlib.cm.get_cmap('tab20')((color % 20 + 0.05) / 20)
 
@@ -280,7 +292,7 @@ class KeypointPainter(object):
             self._draw_box(ax, x_, y_, w_, h_, color, ann.score())
 
         if text is not None:
-            self._draw_text(ax, x, y, v, text, color)
+            self._draw_text(ax, x, y, v, text, color, subtext=subtext)
 
         if self.show_decoding_order and hasattr(ann, 'decoding_order'):
             self._draw_decoding_order(ax, ann.decoding_order)
