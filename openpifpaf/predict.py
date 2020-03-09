@@ -51,6 +51,8 @@ def cli():
                         help='figure width')
     parser.add_argument('--dpi-factor', default=1.0, type=float,
                         help='increase dpi of output image by this factor')
+    parser.add_argument('--our-new-model', default=0.0, type=float,
+                        help='uses our new model')
     group = parser.add_argument_group('logging')
     group.add_argument('-q', '--quiet', default=False, action='store_true',
                        help='only show warning messages or above')
@@ -98,7 +100,8 @@ def bbox_from_keypoints(kps):
 
 def main():
     args = cli()
-    args.checkpoint = TRAINED_MODEL_PATH
+    if args.our_new_model:
+        args.checkpoint = TRAINED_MODEL_PATH
     # load model
     model_cpu, _ = nets.factory_from_args(args)
     model = model_cpu.to(args.device)
