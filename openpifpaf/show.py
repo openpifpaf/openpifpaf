@@ -102,43 +102,48 @@ class KeypointPainter(object):
         if not np.any(v > 0):
             return
 
-        for ci, connection in enumerate(np.array(skeleton) - 1):
+        # connections
+        lines, line_colors, line_styles = [], [], []
+        for ci, (j1i, j2i) in enumerate(np.array(skeleton) - 1):
             c = color
             if self.color_connections:
                 c = matplotlib.cm.get_cmap('tab20')(ci / len(skeleton))
-            if np.all(v[connection] > 0):
-                ax.plot(x[connection], y[connection],
-                        linewidth=kwargs.get('linewidth', self.linewidth),
-                        linestyle=kwargs.get('linestyle', 'dashed'),
-                        color=c,
-                        dash_capstyle='round')
-            if np.all(v[connection] > self.solid_threshold):
-                ax.plot(x[connection], y[connection],
-                        linewidth=kwargs.get('linewidth', self.linewidth),
-                        linestyle=kwargs.get('linestyle', 'solid'),
-                        color=c,
-                        solid_capstyle='round')
+            if v[j1i] > 0 and v[j2i] > 0:
+                lines.append([(x[j1i], y[j1i]), (x[j2i], y[j2i])])
+                line_colors.append(c)
+                if v[j1i] > self.solid_threshold and v[j2i] > self.solid_threshold:
+                    line_styles.append('solid')
+                else:
+                    line_styles.append('dashed')
+        ax.add_collection(matplotlib.collections.LineCollection(
+            lines, colors=line_colors,
+            linewidths=kwargs.get('linewidth', self.linewidth),
+            linestyles=kwargs.get('linestyle', line_styles),
+            capstyle='round',
+        ))
 
-        # highlight invisible keypoints
-        markerfacecolor = 'white' if self.color_connections else color
-        markerface_inv_color = 'k' if self.highlight_invisible else markerfacecolor
-        ax.plot(x[v > 0], y[v > 0],
-                'o', markersize=self.markersize,
-                markerfacecolor=markerfacecolor,
-                markeredgecolor=markerface_inv_color,
-                markeredgewidth=2)
-        ax.plot(x[v > self.solid_threshold], y[v > self.solid_threshold],
-                'o', markersize=self.markersize,
-                markerfacecolor=markerfacecolor,
-                markeredgecolor=markerfacecolor,
-                markeredgewidth=2)
+        # joints
+        for xx, yy, vv in zip(x, y, v):
+            if vv == 0.0:
+                continue
+            ax.add_artist(matplotlib.patches.Circle(
+                (xx, yy), self.markersize / 2.0,
+                color='white' if self.color_connections else color,
+                edgecolor='k' if self.highlight_invisible else None,
+                zorder=10,
+            ))
 
+        # highlight joints
         if self.highlight is not None:
-            v_highlight = v[self.highlight]
-            ax.plot(x[self.highlight][v_highlight > 0],
-                    y[self.highlight][v_highlight > 0],
-                    'o', markersize=self.markersize*2, markeredgewidth=2,
-                    markerfacecolor=color, markeredgecolor=color)
+            for xx, yy, vv in zip(x[self.highlight], y[self.highlight], v[self.highlight]):
+                if vv == 0.0:
+                    continue
+                ax.add_artist(matplotlib.patches.Circle(
+                    (xx, yy), self.markersize,
+                    color=color,
+                    edgecolor=color,
+                    zorder=10,
+                ))
 
     @staticmethod
     def _draw_box(ax, x, y, w, h, color, score=None, linewidth=1):
@@ -202,37 +207,6 @@ class KeypointPainter(object):
                 verticalalignment='top',
                 color='white', bbox={'facecolor': color, 'alpha': 0.2, 'linewidth': 0, 'pad': 0.0},
             )
-
-    def keypoints(self, ax, keypoint_sets, *,
-                  skeleton, scores=None, color=None, colors=None, texts=None):
-        if keypoint_sets is None:
-            return
-
-        if color is None and self.color_connections:
-            color = 'white'
-        if color is None and colors is None:
-            colors = range(len(keypoint_sets))
-
-        for i, kps in enumerate(np.asarray(keypoint_sets)):
-            assert kps.shape[1] == 3
-            x = kps[:, 0] * self.xy_scale
-            y = kps[:, 1] * self.xy_scale
-            v = kps[:, 2]
-
-            if colors is not None:
-                color = colors[i]
-
-            if isinstance(color, (int, np.integer)):
-                color = matplotlib.cm.get_cmap('tab20')((color % 20 + 0.05) / 20)
-
-            self._draw_skeleton(ax, x, y, v, skeleton=skeleton, color=color)
-            if self.show_box:
-                score = scores[i] if scores is not None else None
-                self._draw_box(ax, x, y, v, color, score)
-
-            if texts is not None:
-                self._draw_text(ax, x, y, v, texts[i], color)
-
 
     def annotations(self, ax, annotations, *,
                     color=None, colors=None, texts=None, subtexts=None):
