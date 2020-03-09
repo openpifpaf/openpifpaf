@@ -25,7 +25,7 @@ from openpifpaf.data import COCO_PERSON_SKELETON
 from openpifpaf.network import nets
 from openpifpaf import datasets, decoder, encoder, show, transforms
 
-from consts import ANNOTATIONS_TEST, ANNOTATIONS_TESTDEV, IMAGE_DIR_TEST, ANNOTATIONS_VAL, IMAGE_DIR_VAL
+from ..consts import ANNOTATIONS_TEST, ANNOTATIONS_TESTDEV, IMAGE_DIR_TEST, ANNOTATIONS_VAL, IMAGE_DIR_VAL
 
 LOG = logging.getLogger(__name__)
 
