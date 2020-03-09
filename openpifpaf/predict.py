@@ -13,7 +13,7 @@ import torch
 from openpifpaf.network import nets
 from openpifpaf import datasets, decoder, show, transforms
 
-from consts import MODELS_DIR, TRAINED_MODEL_PATH
+from openpifpaf.consts import MODELS_DIR, TRAINED_MODEL_PATH
 
 LOG = logging.getLogger(__name__)
 
