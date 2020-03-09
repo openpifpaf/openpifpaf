@@ -6,35 +6,28 @@ class AnnRescaler(object):
         self.input_output_scale = input_output_scale
         self.n_keypoints = n_keypoints
 
-    def __call__(self, anns, width_height_original):
-        keypoint_sets = self.anns_to_keypoint_sets(anns)
-        keypoint_sets[:, :, :2] /= self.input_output_scale
+    def valid_area(self, meta):
+        if 'valid_area' not in meta:
+            return None
 
-        # background mask
-        bg_mask = self.anns_to_bg_mask(width_height_original, anns)
+        return (
+            meta['valid_area'][0] / self.input_output_scale,
+            meta['valid_area'][1] / self.input_output_scale,
+            meta['valid_area'][2] / self.input_output_scale,
+            meta['valid_area'][3] / self.input_output_scale,
+        )
 
-        # valid area TODO use from meta
-        valid_area = None
-        if anns and 'valid_area' in anns[0]:
-            valid_area = anns[0]['valid_area']
-            valid_area = (
-                valid_area[0] / self.input_output_scale,
-                valid_area[1] / self.input_output_scale,
-                valid_area[2] / self.input_output_scale,
-                valid_area[3] / self.input_output_scale,
-            )
-
-        return keypoint_sets, bg_mask, valid_area
-
-    def anns_to_keypoint_sets(self, anns):
+    def keypoint_sets(self, anns):
         """Ignore annotations of crowds."""
         keypoint_sets = [ann['keypoints'] for ann in anns if not ann['iscrowd']]
         if not keypoint_sets:
             return np.zeros((0, self.n_keypoints, 3))
 
-        return np.stack(keypoint_sets)
+        keypoint_sets = np.stack(keypoint_sets)
+        keypoint_sets[:, :, :2] /= self.input_output_scale
+        return keypoint_sets
 
-    def anns_to_bg_mask(self, width_height, anns, include_annotated=True):
+    def bg_mask(self, anns, width_height, *, include_annotated=True):
         """Create background mask taking crowded annotations into account."""
         mask = np.ones((
             (width_height[1] - 1) // self.input_output_scale + 1,

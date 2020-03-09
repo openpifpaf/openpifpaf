@@ -9,9 +9,9 @@ class Skeleton(object):
         self.max_instances = max_instances
         self.n_keypoints = n_keypoints
 
-    def __call__(self, anns, width_height_original, v_th=0):
+    def __call__(self, image, anns, meta, v_th=0):
         rescaler = AnnRescaler(1, self.n_keypoints)
-        keypoint_sets, __, ___ = rescaler(anns, width_height_original)
+        keypoint_sets = rescaler.keypoint_sets(anns)
 
         out = np.zeros((self.max_instances, self.n_keypoints, 3), dtype=np.float32)
         for i, keypoints in enumerate(keypoint_sets):

@@ -27,9 +27,13 @@ class Paf(object):
         if self.fixed_size:
             assert self.aspect_ratio == 0.0
 
-    def __call__(self, anns, width_height_original):
+    def __call__(self, image, anns, meta):
+        width_height_original = image.shape[2:0:-1]
+
         rescaler = AnnRescaler(self.stride, self.n_keypoints)
-        keypoint_sets, bg_mask, valid_area = rescaler(anns, width_height_original)
+        keypoint_sets = rescaler.keypoint_sets(anns)
+        bg_mask = rescaler.bg_mask(anns, width_height_original)
+        valid_area = rescaler.valid_area(meta)
         LOG.debug('valid area: %s, paf min size = %d', valid_area, self.min_size)
 
         f = PafGenerator(self.min_size, self.skeleton,

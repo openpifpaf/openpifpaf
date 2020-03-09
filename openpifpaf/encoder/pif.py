@@ -36,9 +36,13 @@ class Pif(object):
         self.sigmas = sigmas
         self.v_threshold = v_threshold
 
-    def __call__(self, anns, width_height_original):
+    def __call__(self, image, anns, meta):
+        width_height_original = image.shape[2:0:-1]
+
         rescaler = AnnRescaler(self.stride, self.n_keypoints)
-        keypoint_sets, bg_mask, valid_area = rescaler(anns, width_height_original)
+        keypoint_sets = rescaler.keypoint_sets(anns)
+        bg_mask = rescaler.bg_mask(anns, width_height_original)
+        valid_area = rescaler.valid_area(meta)
         LOG.debug('valid area: %s, pif side length = %d', valid_area, self.side_length)
 
         n_fields = keypoint_sets.shape[1]

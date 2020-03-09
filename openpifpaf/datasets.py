@@ -137,8 +137,7 @@ class CocoKeypoints(torch.utils.data.Dataset):
 
         # transform targets
         if self.target_transforms is not None:
-            width_height = image.shape[2:0:-1]
-            anns = [t(anns, width_height) for t in self.target_transforms]
+            anns = [t(image, anns, meta) for t in self.target_transforms]
 
         return image, anns, meta
 
