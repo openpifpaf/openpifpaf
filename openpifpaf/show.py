@@ -394,15 +394,20 @@ def arrows(ax, fourd, xy_scale=1.0, threshold=0.0, **kwargs):
                      angles='xy', scale_units='xy', scale=1, zOrder=10, **kwargs)
 
 
-def boxes(ax, scalar_field, intensity_field=None, xy_scale=1.0, step=1, threshold=0.5,
+def boxes(ax, scalar_field, *, intensity_field=None, regression_field=None,
+          xy_scale=1.0, step=1, threshold=0.5,
           cmap='viridis_r', clim=(0.5, 1.0), **kwargs):
     x, y, s, c = [], [], [], []
     for j in range(0, scalar_field.shape[0], step):
         for i in range(0, scalar_field.shape[1], step):
             if intensity_field is not None and intensity_field[j, i] < threshold:
                 continue
-            x.append(i * xy_scale)
-            y.append(j * xy_scale)
+            x_offset, y_offset = 0.0, 0.0
+            if regression_field is not None:
+                x_offset = regression_field[0, j, i]
+                y_offset = regression_field[1, j, i]
+            x.append((i + x_offset) * xy_scale)
+            y.append((j + y_offset) * xy_scale)
             s.append(scalar_field[j, i] * xy_scale)
             c.append(intensity_field[j, i] if intensity_field is not None else 1.0)
 
