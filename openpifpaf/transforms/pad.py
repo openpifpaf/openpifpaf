@@ -19,12 +19,11 @@ class CenterPad(Preprocess):
         meta = copy.deepcopy(meta)
         anns = copy.deepcopy(anns)
 
+        LOG.debug('valid area before pad: %s, image size = %s', meta['valid_area'], image.size)
         image, anns, ltrb = self.center_pad(image, anns)
         meta['offset'] -= ltrb[:2]
-
-        LOG.debug('valid area before pad with %s: %s', ltrb, meta['valid_area'])
         meta['valid_area'][:2] += ltrb[:2]
-        LOG.debug('valid area after pad: %s', meta['valid_area'])
+        LOG.debug('valid area after pad: %s, image size = %s', meta['valid_area'], image.size)
 
         return image, anns, meta
 
@@ -45,6 +44,7 @@ class CenterPad(Preprocess):
         if bottom < 0:
             bottom = 0
         ltrb = (left, top, right, bottom)
+        LOG.debug('pad with %s', ltrb)
 
         # pad image
         image = torchvision.transforms.functional.pad(
@@ -68,12 +68,11 @@ class CenterPadTight(Preprocess):
         meta = copy.deepcopy(meta)
         anns = copy.deepcopy(anns)
 
+        LOG.debug('valid area before pad: %s, image size = %s', meta['valid_area'], image.size)
         image, anns, ltrb = self.center_pad(image, anns)
         meta['offset'] -= ltrb[:2]
-
-        LOG.debug('valid area before pad with %s: %s', ltrb, meta['valid_area'])
         meta['valid_area'][:2] += ltrb[:2]
-        LOG.debug('valid area after pad: %s', meta['valid_area'])
+        LOG.debug('valid area after pad: %s, image size = %s', meta['valid_area'], image.size)
 
         return image, anns, meta
 
@@ -96,6 +95,7 @@ class CenterPadTight(Preprocess):
         if bottom < 0:
             bottom = 0
         ltrb = (left, top, right, bottom)
+        LOG.debug('pad with %s', ltrb)
 
         # pad image
         image = torchvision.transforms.functional.pad(
