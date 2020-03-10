@@ -193,10 +193,19 @@ class KeypointPainter(object):
         if not np.any(v > 0):
             return
 
-        coord_i = np.argmin(y[v > 0])
+        coord_i = np.argsort(y[v > 0])
+        if y[v > 0][coord_i[1]] < y[v > 0][coord_i[0]] + 10:
+            # second coordinate within 10 pixels
+            f0 = 0.5 + 0.5 * (y[v > 0][coord_i[1]] - y[v > 0][coord_i[0]]) / 10.0
+            coord_y = f0 * y[v > 0][coord_i[0]] + (1.0 - f0) * y[v > 0][coord_i[1]]
+            coord_x = f0 * x[v > 0][coord_i[0]] + (1.0 - f0) * x[v > 0][coord_i[1]]
+        else:
+            coord_y = y[v > 0][coord_i[0]]
+            coord_x = x[v > 0][coord_i[0]]
+
         ax.annotate(
             text,
-            (x[v > 0][coord_i], y[v > 0][coord_i]),
+            (coord_x, coord_y),
             fontsize=8,
             xytext=(5.0, 5.0),
             textcoords='offset points',
@@ -205,7 +214,7 @@ class KeypointPainter(object):
         if subtext is not None:
             ax.annotate(
                 subtext,
-                (x[v > 0][coord_i], y[v > 0][coord_i]),
+                (coord_x, coord_y),
                 fontsize=5,
                 xytext=(5.0, 18.0 + 3.0),
                 textcoords='offset points',
