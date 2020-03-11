@@ -99,3 +99,38 @@ class RescaleAbsolute(Preprocess):
         else:
             target_w, target_h = this_long_edge, int(h * s)
         return _scale(image, anns, meta, target_w, target_h, self.resample)
+
+
+class ScaleMix(Preprocess):
+    def __init__(self, scale_threshold, *,
+                 upscale_factor=2.0,
+                 downscale_factor=0.5,
+                 resample=PIL.Image.BICUBIC):
+        self.scale_threshold = scale_threshold
+        self.upscale_factor = upscale_factor
+        self.downscale_factor = downscale_factor
+        self.resample = resample
+
+    def __call__(self, image, anns, meta):
+        scales = np.array([
+            np.sqrt(ann['bbox'][2] * ann['bbox'][3])
+            for ann in anns if (not getattr(ann, 'iscrowd', False) and
+                                np.any(ann['keypoints'][:, 2] > 0.0))
+        ])
+        LOG.debug('scale threshold = %f, scales = %s', self.scale_threshold, scales)
+        if not scales.shape[0]:
+            return image, anns, meta
+
+        all_above_threshold = np.all(scales > self.scale_threshold)
+        all_below_threshold = np.all(scales < self.scale_threshold)
+        if not all_above_threshold and \
+           not all_below_threshold:
+            return image, anns, meta
+
+        w, h = image.size
+        if all_above_threshold:
+            target_w, target_h = int(w / 2), int(h / 2)
+        else:
+            target_w, target_h = int(w * 2), int(h * 2)
+        LOG.debug('scale mix from (%d, %d) to (%d, %d)', w, h, target_w, target_h)
+        return _scale(image, anns, meta, target_w, target_h, self.resample)

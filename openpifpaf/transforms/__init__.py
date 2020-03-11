@@ -21,7 +21,7 @@ from .pad import CenterPad, CenterPadTight, SquarePad
 from .preprocess import Preprocess
 from .random import RandomApply
 from .rotate import RotateBy90
-from .scale import RescaleAbsolute, RescaleRelative
+from .scale import RescaleAbsolute, RescaleRelative, ScaleMix
 
 
 EVAL_TRANSFORM = Compose([
