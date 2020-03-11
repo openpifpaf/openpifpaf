@@ -9,6 +9,8 @@ from .pifpaf_dijkstra import PifPafDijkstra
 from .pafs_dijkstra import PafsDijkstra
 from .processor import Processor
 from .visualizer import Visualizer
+from .visualizer import cli as visualizer_cli
+from .visualizer import configure as visualizer_configure
 
 LOG = logging.getLogger(__name__)
 
@@ -20,6 +22,8 @@ def cli(parser, *,
         keypoint_threshold=None,
         graph_consistency=False,
         workers=None):
+    visualizer_cli(parser)
+
     group = parser.add_argument_group('decoder configuration')
     group.add_argument('--seed-threshold', default=seed_threshold, type=float,
                        help='minimum threshold for seeds')
@@ -51,16 +55,6 @@ def cli(parser, *,
         group.add_argument('--force-complete-pose', dest='force_complete_pose',
                            default=False, action='store_true')
 
-    group.add_argument('--debug-pif-indices', default=[], nargs='+',
-                       help=('indices of PIF fields to create debug plots for '
-                             '(group with comma, e.g. "0,1 2" to create one plot '
-                             'with field 0 and 1 and another plot with field 2)'))
-    group.add_argument('--debug-paf-indices', default=[], nargs='+',
-                       help=('indices of PAF fields to create debug plots for '
-                             '(same grouping behavior as debug-pif-indices)'))
-    group.add_argument('--debug-seeds', default=False, action='store_true')
-    group.add_argument('--debug-file-prefix', default=None,
-                       help='save debug plots with this prefix')
     group.add_argument('--profile-decoder', default=None, action='store_true',
                        help='profile decoder')
 
@@ -86,10 +80,6 @@ def cli(parser, *,
 
 
 def configure(args):
-    # process debug indices
-    args.debug_pif_indices = [[int(e) for e in i.split(',')] for i in args.debug_pif_indices]
-    args.debug_paf_indices = [[int(e) for e in i.split(',')] for i in args.debug_paf_indices]
-
     # configure PifPaf
     PifPaf.fixed_b = args.fixed_b
     PifPaf.pif_fixed_scale = args.pif_fixed_scale
@@ -119,8 +109,7 @@ def configure(args):
     PifHrNoScales.v_threshold = args.pif_th
 
     # configure debug visualizer
-    Visualizer.occupied_indices = args.debug_pif_indices
-    Visualizer.show_seeds = args.debug_seeds
+    visualizer_configure(args)
 
     # default value for keypoint filter depends on whether complete pose is forced
     if args.keypoint_threshold is None:
@@ -138,8 +127,7 @@ def configure(args):
     # decoder workers
     if args.decoder_workers is None and \
        getattr(args, 'batch_size', 1) > 1 and \
-       not args.debug_pif_indices and \
-       not args.debug_paf_indices:
+       not args.debug:
         args.decoder_workers = args.batch_size
 
 
@@ -147,10 +135,9 @@ def factory_from_args(args, model, device=None):
     configure(args)
 
     debug_visualizer = None
-    if args.debug_pif_indices or args.debug_paf_indices:
+    if args.debug:
         debug_visualizer = Visualizer(
-            args.debug_pif_indices, args.debug_paf_indices,
-            file_prefix=args.debug_file_prefix,
+            keypoints=COCO_KEYPOINTS,
             skeleton=COCO_PERSON_SKELETON + DENSER_COCO_PERSON_CONNECTIONS,
         )
 

@@ -8,30 +8,34 @@ except ImportError:
     plt = None
     make_axes_locatable = None
 
-from ..data import COCO_KEYPOINTS, COCO_PERSON_SKELETON
 from .. import show
 
 
 class Visualizer(object):
+    pif_indices = [[]]
+    paf_indices = [[]]
     occupied_indices = []
+    file_prefix = None
+
+    show_occupied = False
     show_seeds = False
+    show_seed_confidences = False
+    show_pifhr = False
+    show_pif_c = False
+    show_pif_v = False
+    show_pif_s = False
+    show_paf_c = False
+    show_paf_v = False
+    show_paf_s = False
 
-    def __init__(self, pif_indices, paf_indices, *,
-                 file_prefix=None,
-                 keypoints=None,
-                 skeleton=None,
-                 show_seed_confidence=False):
-        self.keypoints = keypoints or COCO_KEYPOINTS
-        self.skeleton = skeleton or COCO_PERSON_SKELETON
+    def __init__(self, *, keypoints, skeleton):
+        self.keypoints = keypoints
+        self.skeleton = skeleton
 
-        self.pif_indices = pif_indices
         if self.pif_indices and self.pif_indices[0][0] == -1:
             self.pif_indices = [[i] for i, _ in enumerate(self.keypoints)]
-        self.paf_indices = paf_indices
         if self.paf_indices and self.paf_indices[0][0] == -1:
             self.paf_indices = [[i] for i, _ in enumerate(self.skeleton)]
-        self.file_prefix = file_prefix
-        self.show_seed_confidence = show_seed_confidence
 
         self.image = None
         self.processed_image = None
@@ -84,11 +88,14 @@ class Visualizer(object):
                 y = [yy * io_scale for _, ff, __, yy, ___ in seeds if ff == f]
                 c = [cc for cc, ff, _, __, ___ in seeds if ff == f]
                 ax.plot(x, y, 'o')
-                if self.show_seed_confidence:
+                if self.show_seed_confidences:
                     for xx, yy, cc in zip(x, y, c):
                         ax.text(xx, yy, '{:.2f}'.format(cc))
 
     def occupied(self, occupied):
+        if not self.show_occupied:
+            return
+
         print('occupied field')
         for g in self.occupied_indices:
             for f in g:
@@ -127,8 +134,10 @@ class Visualizer(object):
                     ax.get_xaxis().set_visible(False)
                     ax.get_yaxis().set_visible(False)
 
-    def paf_raw(self, paf, io_scale):
-        print('raw paf')
+    def paf_c(self, paf, io_scale):
+        if not self.show_paf_c:
+            return
+
         for g in self.paf_indices:
             for f in g:
                 print('association field',
@@ -147,6 +156,10 @@ class Visualizer(object):
                     ax.get_xaxis().set_visible(False)
                     ax.get_yaxis().set_visible(False)
 
+    def paf_v(self, paf, io_scale):
+        if not self.show_paf_v:
+            return
+
         for g in self.paf_indices:
             fig_file = (
                 self.file_prefix + '.paf{}.v.png'.format(''.join([str(f) for f in g]))
@@ -161,13 +174,28 @@ class Visualizer(object):
                           self.keypoints[self.skeleton[f][0] - 1],
                           self.keypoints[self.skeleton[f][1] - 1])
                     q1 = show.quiver(ax, paf[f, 1:3], paf[f, 0],
-                                    #  reg_uncertainty=reg1_fields_b[f],
+                                     # reg_uncertainty=reg1_fields_b[f],
                                      threshold=0.5, width=0.003, step=1,
-                                     cmap='Blues', clim=(0.5, 1.0), xy_scale=io_scale)
-                    show.quiver(ax, paf[f, 3:5], paf[f, 0],
+                                     cmap='Blues', clim=(0.0, 1.0), xy_scale=io_scale)
+                    show.quiver(ax, paf[f, 5:7], paf[f, 0],
                                 # reg_uncertainty=reg2_fields_b[f],
                                 threshold=0.5, width=0.003, step=1,
-                                cmap='Greens', clim=(0.5, 1.0), xy_scale=io_scale)
+                                cmap='Greens', clim=(0.0, 1.0), xy_scale=io_scale)
+
+                    show.boxes(ax, paf[f, 4],
+                               intensity_field=paf[f, 0],
+                               regression_field=paf[f, 1:3],
+                               cmap='Blues',
+                               threshold=0.5,
+                               clim=(0.0, 1.0),
+                               xy_scale=io_scale, fill=False)
+                    show.boxes(ax, paf[f, 8],
+                               intensity_field=paf[f, 0],
+                               regression_field=paf[f, 5:7],
+                               cmap='Greens',
+                               threshold=0.5,
+                               clim=(0.0, 1.0),
+                               xy_scale=io_scale, fill=False)
 
                     divider = make_axes_locatable(ax)
                     cax = divider.append_axes('right', size='3%', pad=0.05)
@@ -175,6 +203,38 @@ class Visualizer(object):
 
                     ax.get_xaxis().set_visible(False)
                     ax.get_yaxis().set_visible(False)
+
+    def paf_s(self, paf, io_scale):
+        if not self.show_paf_s:
+            return
+
+        for g in self.paf_indices:
+            for f in g:
+                if f >= len(paf):
+                    continue
+                print('association field',
+                      self.keypoints[self.skeleton[f][0] - 1],
+                      self.keypoints[self.skeleton[f][1] - 1])
+                fig_file = self.file_prefix + '.paf{}.s.png'.format(f) if self.file_prefix else None
+                with self.canvas(fig_file) as ax:
+                    ax.imshow(self.image)
+                    show.white_screen(ax, alpha=0.5)
+                    show.boxes(ax, paf[f, 4],
+                               intensity_field=paf[f, 0],
+                               regression_field=paf[f, 1:3],
+                               xy_scale=io_scale, fill=False)
+                    show.boxes(ax, paf[f, 8],
+                               intensity_field=paf[f, 0],
+                               regression_field=paf[f, 5:7],
+                               xy_scale=io_scale, fill=False)
+
+                    ax.get_xaxis().set_visible(False)
+                    ax.get_yaxis().set_visible(False)
+
+    def paf_raw(self, paf, io_scale):
+        self.paf_c(paf, io_scale)
+        self.paf_v(paf, io_scale)
+        self.paf_s(paf, io_scale)
 
     def paf_connections(self, connections):
         for g in self.paf_indices:
@@ -199,10 +259,15 @@ class Visualizer(object):
                         ax.get_xaxis().set_visible(False)
                         ax.get_yaxis().set_visible(False)
 
-    def pif_raw(self, pif, io_scale):
-        print('raw pif')
+    def pif_c(self, pif, io_scale):
+        if not self.show_pif_c:
+            return
+
+        print('pif c')
         for g in self.pif_indices:
             for f in g:
+                if f >= len(pif):
+                    continue
                 print('pif field', self.keypoints[f])
                 fig_file = self.file_prefix + '.pif{}.c.png'.format(f) if self.file_prefix else None
                 with self.canvas(fig_file, figsize=(8, 5)) as ax:
@@ -217,35 +282,67 @@ class Visualizer(object):
                     ax.get_xaxis().set_visible(False)
                     ax.get_yaxis().set_visible(False)
 
+    def pif_v(self, pif, io_scale):
+        if not self.show_pif_v:
+            return
+
         for g in self.pif_indices:
             for f in g:
+                if f >= len(pif):
+                    continue
                 print('pif field', self.keypoints[f])
                 fig_file = self.file_prefix + '.pif{}.v.png'.format(f) if self.file_prefix else None
                 with self.canvas(fig_file) as ax:
                     ax.imshow(self.image)
                     show.white_screen(ax, alpha=0.5)
-                    show.quiver(ax, pif[f, 1:3], pif[f, 0],
-                                reg_uncertainty=pif[f, 3],
-                                cmap='viridis_r', clim=(0.5, 1.0),
-                                threshold=0.5, xy_scale=io_scale)
+                    q = show.quiver(ax, pif[f, 1:3], pif[f, 0],
+                                    # reg_uncertainty=pif[f, 3],
+                                    cmap='viridis_r', clim=(0.5, 1.0),
+                                    threshold=0.5, xy_scale=io_scale)
+
+                    show.boxes(ax, pif[f, 4],
+                               intensity_field=pif[f, 0],
+                               regression_field=pif[f, 1:3],
+                               clim=(0.5, 1.0),
+                               xy_scale=io_scale, fill=False)
+
+                    divider = make_axes_locatable(ax)
+                    cax = divider.append_axes('right', size='3%', pad=0.05)
+                    plt.colorbar(q, cax=cax)
 
                     ax.get_xaxis().set_visible(False)
                     ax.get_yaxis().set_visible(False)
 
+    def pif_s(self, pif, io_scale):
+        if not self.show_pif_s:
+            return
+
         for g in self.pif_indices:
             for f in g:
+                if f >= len(pif):
+                    continue
                 print('pif field', self.keypoints[f])
                 fig_file = self.file_prefix + '.pif{}.s.png'.format(f) if self.file_prefix else None
                 with self.canvas(fig_file) as ax:
                     ax.imshow(self.image)
                     show.white_screen(ax, alpha=0.5)
-                    show.circles(ax, pif[f, 4], pif[f, 0],
-                                 xy_scale=io_scale, fill=False)
+                    show.boxes(ax, pif[f, 4],
+                               intensity_field=pif[f, 0],
+                               regression_field=pif[f, 1:3],
+                               xy_scale=io_scale, fill=False)
 
                     ax.get_xaxis().set_visible(False)
                     ax.get_yaxis().set_visible(False)
 
+    def pif_raw(self, pif, io_scale):
+        self.pif_c(pif, io_scale)
+        self.pif_v(pif, io_scale)
+        self.pif_s(pif, io_scale)
+
     def pifhr(self, pifhr):
+        if not self.show_pifhr:
+            return
+
         print('pifhr')
         for g in self.pif_indices:
             for f in g:
@@ -265,3 +362,45 @@ class Visualizer(object):
                     ax.get_yaxis().set_visible(False)
                     ax.set_xlim(0, self.image.shape[1])
                     ax.set_ylim(self.image.shape[0], 0)
+
+
+def cli(parser):
+    group = parser.add_argument_group('pose visualizer')
+    group.add_argument('--debug-seeds', default=False, action='store_true')
+    group.add_argument('--debug-pifhr', default=False, action='store_true')
+    group.add_argument('--debug-pif-c', default=False, action='store_true')
+    group.add_argument('--debug-pif-v', default=False, action='store_true')
+    group.add_argument('--debug-pif-s', default=False, action='store_true')
+    group.add_argument('--debug-paf-c', default=False, action='store_true')
+    group.add_argument('--debug-paf-v', default=False, action='store_true')
+    group.add_argument('--debug-paf-s', default=False, action='store_true')
+
+    group.add_argument('--debug-pif-indices', default=[], nargs='+',
+                       help=('indices of PIF fields to create debug plots for '
+                             '(group with comma, e.g. "0,1 2" to create one plot '
+                             'with field 0 and 1 and another plot with field 2)'))
+    group.add_argument('--debug-paf-indices', default=[], nargs='+',
+                       help=('indices of PAF fields to create debug plots for '
+                             '(same grouping behavior as debug-pif-indices)'))
+    group.add_argument('--debug-file-prefix', default=None,
+                       help='save debug plots with this prefix')
+
+
+def configure(args):
+    # process debug indices
+    args.debug_pif_indices = [[int(e) for e in i.split(',')] for i in args.debug_pif_indices]
+    args.debug_paf_indices = [[int(e) for e in i.split(',')] for i in args.debug_paf_indices]
+
+    Visualizer.pif_indices = args.debug_pif_indices
+    Visualizer.paf_indices = args.debug_paf_indices
+    Visualizer.occupied_indices = args.debug_pif_indices
+    Visualizer.file_prefix = args.debug_file_prefix
+
+    Visualizer.show_seeds = args.debug_seeds
+    Visualizer.show_pifhr = args.debug_pifhr
+    Visualizer.show_pif_c = args.debug_pif_c
+    Visualizer.show_pif_v = args.debug_pif_v
+    Visualizer.show_pif_s = args.debug_pif_s
+    Visualizer.show_paf_c = args.debug_paf_c
+    Visualizer.show_paf_v = args.debug_paf_v
+    Visualizer.show_paf_s = args.debug_paf_s
