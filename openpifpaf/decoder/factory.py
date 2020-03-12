@@ -20,7 +20,6 @@ def cli(parser, *,
         seed_threshold=0.2,
         instance_threshold=0.0,
         keypoint_threshold=None,
-        graph_consistency=False,
         workers=None):
     visualizer_cli(parser)
 
@@ -39,12 +38,6 @@ def cli(parser, *,
                        help='use dense connections')
     group.add_argument('--dense-coupling', default=0.01, type=float,
                        help='dense coupling')
-    if graph_consistency:
-        group.add_argument('--no-graph-consistency',
-                           dest='graph_consistency', default=True, action='store_false')
-    else:
-        group.add_argument('--graph-consistency',
-                           dest='graph_consistency', default=False, action='store_true')
     group.add_argument('--paf-seeds', default=False, action='store_true',
                        help='[experimental]')
 
@@ -148,7 +141,6 @@ def factory_from_args(args, model, device=None):
                             seed_threshold=args.seed_threshold,
                             multi_scale=args.multi_scale,
                             multi_scale_hflip=args.multi_scale_hflip,
-                            confirm_connections=args.graph_consistency,
                             debug_visualizer=debug_visualizer)
 
     return Processor(model, decode,
@@ -166,7 +158,6 @@ def factory_decode(model, *,
                    paf_seeds=False,
                    multi_scale=False,
                    multi_scale_hflip=True,
-                   confirm_connections=False,
                    **kwargs):
     """Instantiate a decoder."""
 
@@ -218,7 +209,6 @@ def factory_decode(model, *,
             skeleton=skeleton,
             out_skeleton=COCO_PERSON_SKELETON,
             confidence_scales=confidence_scales,
-            confirm_connections=confirm_connections,
             **kwargs
         )
 

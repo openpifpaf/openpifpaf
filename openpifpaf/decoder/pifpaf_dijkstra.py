@@ -31,7 +31,6 @@ class PifPafDijkstra(object):
                  seed_mask=None,
                  confidence_scales=None,
                  out_skeleton=None,
-                 confirm_connections=False,
                  debug_visualizer=None):
         self.strides = stride
         self.pif_indices = pif_index
@@ -58,7 +57,6 @@ class PifPafDijkstra(object):
         self.keypoints = keypoints
         self.skeleton = skeleton
         self.out_skeleton = out_skeleton
-        self.confirm_connections = confirm_connections
 
         self.seed_threshold = seed_threshold
         self.seed_score_scale = seed_score_scale
@@ -114,7 +112,6 @@ class PifPafDijkstra(object):
             keypoints=self.keypoints,
             skeleton=self.skeleton,
             out_skeleton=self.out_skeleton,
-            confirm_connections=self.confirm_connections,
             confidence_scales=self.confidence_scales,
             debug_visualizer=self.debug_visualizer,
         )

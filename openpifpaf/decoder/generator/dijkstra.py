@@ -7,10 +7,9 @@ import numpy as np
 
 from ..annotation import Annotation
 from ..occupancy import Occupancy
-from ..utils import scalar_square_add_single
 
 # pylint: disable=import-error
-from ...functional import paf_center_s, scalar_nonzero_clipped
+from ...functional import paf_center_s
 
 LOG = logging.getLogger(__name__)
 
@@ -26,7 +25,6 @@ class Dijkstra(object):
                  keypoints,
                  skeleton,
                  out_skeleton=None,
-                 confirm_connections=False,
                  confidence_scales=None,
                  debug_visualizer=None):
         self.pifhr = pifhr
@@ -42,7 +40,6 @@ class Dijkstra(object):
         self.skeleton = skeleton
         self.skeleton_m1 = np.asarray(skeleton) - 1
         self.out_skeleton = out_skeleton or skeleton
-        self.confirm_connections = confirm_connections
         self.confidence_scales = confidence_scales
 
         self.debug_visualizer = debug_visualizer
@@ -261,27 +258,6 @@ class Dijkstra(object):
                     score *= self.confidence_scales[paf_i]
                 frontier.put((-score, new_xysv, start_i, end_i))
 
-        def confirm(jsi, jti, target_xysv, th=0.2):
-            pos = 1 if target_xysv[3] > th else 0
-            neg = 0
-
-            for paf_i, forward, source_i in self.by_target[jti]:
-                if source_i == jsi:
-                    continue
-
-                source_xyv = ann.data[source_i]
-                if source_xyv[2] < th:
-                    continue
-                source_s = ann.joint_scales[source_i]
-
-                v_fixed = self.p2p_value(source_xyv, source_s, target_xysv, paf_i, forward)
-                if v_fixed > th:
-                    pos += 1
-                else:
-                    neg += 1
-
-            return pos >= neg
-
         # seeding the frontier
         for joint_i, v in enumerate(ann.data[:, 2]):
             if v == 0.0:
@@ -295,8 +271,6 @@ class Dijkstra(object):
 
             _, new_xysv, jsi, jti = entry
             if ann.data[jti, 2] > 0.0:
-                continue
-            if self.confirm_connections and not confirm(jsi, jti, new_xysv):
                 continue
 
             ann.data[jti, :2] = new_xysv[:2]
