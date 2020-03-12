@@ -16,20 +16,22 @@ def default_output_file(args, net_cpu):
     base_name = net_cpu.base_net.shortname
     head_names = net_cpu.head_names
 
-    out = 'outputs/{}-{}'.format(base_name, '-'.join(head_names))
-    if args.square_edge:
+    now = datetime.datetime.now().strftime('%y%m%d-%H%M%S')
+    out = 'outputs/{}-{}-{}'.format(base_name, now, '-'.join(head_names))
+    if args.square_edge != 385:
         out += '-edge{}'.format(args.square_edge)
     if args.regression_loss != 'laplace':
         out += '-{}'.format(args.regression_loss)
     if args.r_smooth != 0.0:
         out += '-rsmooth{}'.format(args.r_smooth)
-    if args.orientation_invariant:
-        out += '-orientationinvariant'
+    if args.orientation_invariant or args.extended_scale:
+        out += '-'
+        if args.orientation_invariant:
+            out += 'o'
+        if args.extended_scale:
+            out += 's'
 
-    now = datetime.datetime.now().strftime('%y%m%d-%H%M%S')
-    out += '-{}.pkl'.format(now)
-
-    return out
+    return out + '.pkl'
 
 
 def cli():
@@ -54,10 +56,12 @@ def cli():
                         help='overall image rescale factor')
     parser.add_argument('--orientation-invariant', default=False, action='store_true',
                         help='augment with random orientations')
+    parser.add_argument('--extended-scale', default=False, action='store_true',
+                        help='augment with an extended scale range')
     parser.add_argument('--update-batchnorm-runningstatistics',
                         default=False, action='store_true',
                         help='update batch norm running statistics')
-    parser.add_argument('--square-edge', default=401, type=int,
+    parser.add_argument('--square-edge', default=385, type=int,
                         help='square edge of input images')
     parser.add_argument('--ema', default=1e-3, type=float,
                         help='ema decay constant')
@@ -115,9 +119,20 @@ def main():
             transforms.NormalizeAnnotations(),
             transforms.AnnotationJitter(),
             transforms.RandomApply(transforms.HFlip(), 0.5),
-            transforms.RescaleRelative(scale_range=(0.4 * args.rescale_images,
-                                                    2.0 * args.rescale_images),
-                                       power_law=True),
+        ]
+        if args.extended_scale:
+            preprocess_transformations.append(
+                transforms.RescaleRelative(scale_range=(0.25 * args.rescale_images,
+                                                        2.0 * args.rescale_images),
+                                           power_law=True)
+            )
+        else:
+            preprocess_transformations.append(
+                transforms.RescaleRelative(scale_range=(0.4 * args.rescale_images,
+                                                        2.0 * args.rescale_images),
+                                           power_law=True)
+            )
+        preprocess_transformations += [
             transforms.Crop(args.square_edge),
             transforms.CenterPad(args.square_edge),
         ]
