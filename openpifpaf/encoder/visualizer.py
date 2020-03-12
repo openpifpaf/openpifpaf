@@ -57,7 +57,8 @@ class Visualizer(object):
                 self.keypoint_painter.keypoints(ax, keypoint_sets, skeleton=skeleton)
                 show.quiver(ax, target[1][f, :2], xy_scale=stride, uv_is_offset=True)
                 show.boxes(ax, target[2][f], regression_field=target[1][f, :2],
-                           xy_scale=stride, cmap='Oranges', fill=False)
+                           xy_scale=stride, cmap='Oranges', fill=False,
+                           regression_field_is_offset=True)
                 if self.show_margin:
                     show.margins(ax, target[1][f, :6], xy_scale=stride)
 
@@ -79,7 +80,8 @@ class Visualizer(object):
                 self.keypoint_painter.keypoints(ax, keypoint_sets, skeleton=skeleton)
                 show.quiver(ax, target[1][f, :2], xy_scale=stride, uv_is_offset=True)
                 show.boxes(ax, target[3][f], regression_field=target[1][f, :2],
-                           xy_scale=stride, cmap='Oranges', fill=False)
+                           xy_scale=stride, cmap='Oranges', fill=False,
+                           regression_field_is_offset=True)
                 if self.show_margin:
                     show.margins(ax, target[1][f, :6], xy_scale=stride)
 
@@ -89,7 +91,8 @@ class Visualizer(object):
                 self.keypoint_painter.keypoints(ax, keypoint_sets, skeleton=skeleton)
                 show.quiver(ax, target[2][f, :2], xy_scale=stride, uv_is_offset=True)
                 show.boxes(ax, target[4][f], regression_field=target[2][f, :2],
-                           xy_scale=stride, cmap='Oranges', fill=False)
+                           xy_scale=stride, cmap='Oranges', fill=False,
+                           regression_field_is_offset=True)
                 if self.show_margin:
                     show.margins(ax, target[2][f, :6], xy_scale=stride)
 
