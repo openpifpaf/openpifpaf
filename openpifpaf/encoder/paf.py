@@ -27,6 +27,9 @@ class Paf(object):
         if self.fixed_size:
             assert self.aspect_ratio == 0.0
 
+        LOG.debug('stride = %d, keypoints = %d, only_in_field_of_view = %s',
+                  stride, n_keypoints, only_in_field_of_view)
+
     def __call__(self, image, anns, meta):
         width_height_original = image.shape[2:0:-1]
 

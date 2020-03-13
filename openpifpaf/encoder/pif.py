@@ -36,6 +36,8 @@ class Pif(object):
         self.sigmas = sigmas
         self.v_threshold = v_threshold
 
+        LOG.debug('stride = %d, keypoints = %d', stride, n_keypoints)
+
     def __call__(self, image, anns, meta):
         width_height_original = image.shape[2:0:-1]
 
