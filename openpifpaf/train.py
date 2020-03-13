@@ -72,19 +72,12 @@ def cli():
                         help='do not apply data augmentation')
 
     group = parser.add_argument_group('debug')
-    group.add_argument('--debug-pif-indices', default=[], nargs='+', type=int,
-                       help='indices of PIF fields to create debug plots for')
-    group.add_argument('--debug-paf-indices', default=[], nargs='+', type=int,
-                       help='indices of PAF fields to create debug plots for')
     group.add_argument('--profile', default=None,
                        help='enables profiling. specify path for chrome tracing file')
     group.add_argument('--log-stats', default=False, action='store_true',
                        help='enable stats logging')
 
     args = parser.parse_args()
-
-    if args.debug_pif_indices or args.debug_paf_indices:
-        args.debug = True
 
     # add args.device
     args.device = torch.device('cpu')
@@ -158,10 +151,8 @@ def main():
         args, list(net.parameters()) + list(loss.parameters()))
     lr_scheduler = optimize.factory_lrscheduler(args, optimizer, len(train_loader))
     encoder_visualizer = None
-    if args.debug_pif_indices or args.debug_paf_indices:
-        encoder_visualizer = encoder.Visualizer(
-            net_cpu.head_names, net_cpu.head_strides,
-            pif_indices=args.debug_pif_indices, paf_indices=args.debug_paf_indices)
+    if args.debug:
+        encoder_visualizer = encoder.Visualizer(net_cpu.head_names, net_cpu.head_strides)
 
     trainer = Trainer(
         net, loss, optimizer, args.output,

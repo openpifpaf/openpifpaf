@@ -8,16 +8,19 @@ LOG = logging.getLogger(__name__)
 
 
 class Visualizer(object):
+    pif_indices = []
+    paf_indices = []
+    dpaf_indices = []
+
     def __init__(self, head_names, strides, *,
-                 pif_indices=None, paf_indices=None,
                  show_margin=False):
         self.head_names = head_names
         self.strides = strides
-        self.pif_indices = pif_indices or []
-        self.paf_indices = paf_indices or []
         self.show_margin = show_margin
 
         self.keypoint_painter = show.KeypointPainter()
+        LOG.debug('pif = %s, paf = %s, dpaf = %s',
+                  self.pif_indices, self.paf_indices, self.dpaf_indices)
 
     def single(self, image, targets):
         assert len(targets) == len(self.head_names) + 1  # skeleton is last
@@ -30,21 +33,24 @@ class Visualizer(object):
             LOG.debug('%s with %d components', headname, len(target))
             if headname in ('paf', 'paf19', 'pafs', 'wpaf'):
                 self.paf(image, target, stride, keypoint_sets,
+                         indices=self.paf_indices,
                          keypoints=COCO_KEYPOINTS, skeleton=COCO_PERSON_SKELETON)
             elif headname in ('pif', 'pif17', 'pifs'):
                 self.pif(image, target, stride, keypoint_sets,
+                         indices=self.pif_indices,
                          keypoints=COCO_KEYPOINTS, skeleton=COCO_PERSON_SKELETON)
-            elif headname in ('paf25',):
+            elif headname in ('paf25', 'pafs25'):
                 self.paf(image, target, stride, keypoint_sets,
+                         indices=self.dpaf_indices,
                          keypoints=COCO_KEYPOINTS, skeleton=DENSER_COCO_PERSON_CONNECTIONS)
             else:
                 LOG.warning('unknown head: %s', headname)
 
-    def pif(self, image, target, stride, keypoint_sets, *, keypoints, skeleton):
+    def pif(self, image, target, stride, keypoint_sets, *, indices, keypoints, skeleton):
         resized_image = image[::stride, ::stride]
         bce_targets = target[0]
         bce_masks = (bce_targets[:-1] + bce_targets[-1:]) > 0.5
-        for f in self.pif_indices:
+        for f in indices:
             LOG.debug('intensity field %s', keypoints[f])
 
             with show.canvas() as ax:
@@ -62,11 +68,11 @@ class Visualizer(object):
                 if self.show_margin:
                     show.margins(ax, target[1][f, :6], xy_scale=stride)
 
-    def paf(self, image, target, stride, keypoint_sets, *, keypoints, skeleton):
+    def paf(self, image, target, stride, keypoint_sets, *, indices, keypoints, skeleton):
         resized_image = image[::stride, ::stride]
         bce_targets = target[0]
         bce_masks = (bce_targets[:-1] + bce_targets[-1:]) > 0.5
-        for f in self.paf_indices:
+        for f in indices:
             LOG.debug('association field %s,%s',
                       keypoints[skeleton[f][0] - 1],
                       keypoints[skeleton[f][1] - 1])
