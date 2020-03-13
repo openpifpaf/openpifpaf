@@ -79,6 +79,8 @@ def cli():
 
     args = parser.parse_args()
 
+    encoder.configure(args)
+
     # add args.device
     args.device = torch.device('cpu')
     args.pin_memory = False
@@ -105,7 +107,8 @@ def main():
         net = torch.nn.DataParallel(net)
 
     loss = losses.factory_from_args(args, net_cpu.head_names)
-    target_transforms = encoder.factory(args, net_cpu.head_names, net_cpu.head_strides)
+    target_transforms = encoder.factory(
+        net_cpu.head_names, net_cpu.head_strides, skeleton=args.debug)
 
     if args.augmentation:
         preprocess_transformations = [

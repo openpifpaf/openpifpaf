@@ -34,7 +34,7 @@ def cli(parser):
                        help='indices of dense PAF fields to create debug plots for')
 
 
-def factory(args, head_names, strides):
+def configure(args):
     # configure Pif
     Pif.side_length = args.pif_side_length
 
@@ -50,12 +50,10 @@ def factory(args, head_names, strides):
     if args.debug_pif_indices or args.debug_paf_indices or args.debug_dpaf_indices:
         args.debug = True
 
-    return factory_heads(head_names, strides, skeleton=args.debug)
 
-
-def factory_heads(headnames, strides, skeleton=False):
+def factory(headnames, strides, skeleton=False):
     if isinstance(headnames[0], (list, tuple)):
-        return [factory_heads(task_headnames, task_strides)
+        return [factory(task_headnames, task_strides)
                 for task_headnames, task_strides in zip(headnames, strides)]
 
     encoders = [factory_head(head_name, stride)
