@@ -129,6 +129,7 @@ def main():
                                            power_law=True)
             )
         preprocess_transformations += [
+            # transforms.RandomApply(transforms.ScaleMix(args.square_edge / 2.0), 0.5),
             transforms.Crop(args.square_edge),
             transforms.CenterPad(args.square_edge),
         ]

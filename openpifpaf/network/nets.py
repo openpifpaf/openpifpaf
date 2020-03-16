@@ -21,6 +21,13 @@ SHUFFLENETV2X1_MODEL = ('http://github.com/vita-epfl/openpifpaf-torchhub/release
                         'v0.1.0/shufflenetv2x1-pif-paf-edge401-190705-151607-d9a35d7e.pkl')
 SHUFFLENETV2X2_MODEL = ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
                         'v0.10.0/shufflenetv2x2-pif-paf-paf25-edge401-191010-172527-ef704f06.pkl')
+# new models:
+#  resnet101-pif-pafs-pafs25-edge513-191216-085758.pkl.log
+#  resnet152-pif-pafs-pafs25-edge385-191223-093852.pkl.log
+#  shufflenetv2x5-pif-pafs-pafs25-edge385-200117-151012.pkl.log
+#    alternative: shufflenetv2k30-pif-pafs-pafs25-edge385-200302-072558.pkl.log
+#  shufflenetv2x6-pif-pafs-pafs25-edge385-200121-223227.pkl.log
+#
 
 LOG = logging.getLogger(__name__)
 
