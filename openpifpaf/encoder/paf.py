@@ -138,15 +138,16 @@ class PafGenerator(object):
             # if there is no continuous visual connection, endpoints outside
             # the field of view cannot be inferred
             if self.only_in_field_of_view:
-                if joint1[0] < -3 or \
-                   joint2[0] < -3 or \
-                   joint1[0] > self.intensities.shape[2] - 2 * self.padding + 3 or \
-                   joint2[0] > self.intensities.shape[2] - 2 * self.padding + 3:
+                # LOG.debug('fov check: j1 = %s, j2 = %s', joint1, joint2)
+                if joint1[0] < 0 or \
+                   joint2[0] < 0 or \
+                   joint1[0] > self.intensities.shape[2] - 1 - 2 * self.padding or \
+                   joint2[0] > self.intensities.shape[2] - 1 - 2 * self.padding:
                     continue
-                if joint1[1] < -3 or \
-                   joint2[1] < -3 or \
-                   joint1[1] > self.intensities.shape[1] - 2 * self.padding + 3 or \
-                   joint2[1] > self.intensities.shape[1] - 2 * self.padding + 3:
+                if joint1[1] < 0 or \
+                   joint2[1] < 0 or \
+                   joint1[1] > self.intensities.shape[1] - 1 - 2 * self.padding or \
+                   joint2[1] > self.intensities.shape[1] - 1 - 2 * self.padding:
                     continue
 
             other_j1s = [other_kps[joint1i] for other_kps in other_keypoints
