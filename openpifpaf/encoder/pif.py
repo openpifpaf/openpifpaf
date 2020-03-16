@@ -126,7 +126,7 @@ class PifGenerator(object):
             max_r = self.max_r(xyv, other_xyv)
 
             joint_scale = scale if self.sigmas is None else scale * self.sigmas[f]
-            joint_scale = min(joint_scale, np.min(max_r) * 0.25)
+            joint_scale = np.min([joint_scale, np.min(max_r) * 0.25])
 
             self.fill_coordinate(f, xyv, joint_scale, max_r)
 
