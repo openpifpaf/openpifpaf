@@ -232,6 +232,8 @@ class CompositeLoss(torch.nn.Module):
         if self.n_scales:
             x_scales = x[1 + 2 * self.n_vectors:1 + 2 * self.n_vectors + self.n_scales]
 
+        if self.n_scales == 0:
+            t = t[:-self.n_vectors]  # assume there are as many scales as vectors and remove them
         assert len(t) == 1 + self.n_vectors + self.n_scales
         target_intensity = t[0]
         target_regs = t[1:1 + self.n_vectors]
