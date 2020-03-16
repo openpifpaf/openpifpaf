@@ -9,6 +9,15 @@ matrix:
       before_install:
         - pip3 install --upgrade pip setuptools
         - pip3 install torch==1.4.0+cpu torchvision==0.5.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
+    - name: "Python 3.7 on Linux with training"
+      python: 3.7
+      env:
+        - PIFPAFTRAINING=1
+      before_install:
+        - pip3 install --upgrade pip setuptools
+        - pip3 install torch==1.4.0+cpu torchvision==0.5.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
+        - pip3 install Cython numpy
+        - "pip3 install --editable .[train]"
     - name: "Python 3.6 on Linux"
       if: branch = master
       python: 3.6

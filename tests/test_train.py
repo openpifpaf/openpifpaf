@@ -1,5 +1,6 @@
 import os
 import subprocess
+import pytest
 
 
 TRAIN_COMMAND = [
@@ -27,6 +28,7 @@ PREDICT_COMMAND = [
 ]
 
 
+@pytest.importorskip('pycocotools')
 def test_train(tmp_path):
     # train a model
     train_cmd = TRAIN_COMMAND + ['--out={}'.format(os.path.join(tmp_path, 'train_test.pkl'))]
