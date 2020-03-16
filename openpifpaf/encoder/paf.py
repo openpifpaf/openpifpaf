@@ -16,11 +16,14 @@ class Paf(object):
     aspect_ratio = 0.0
 
     def __init__(self, stride, *, n_keypoints, skeleton, sigmas,
-                 only_in_field_of_view=False, v_threshold=0):
+                 sparse_skeleton=None,
+                 only_in_field_of_view=False,
+                 v_threshold=0):
         self.stride = stride
         self.n_keypoints = n_keypoints
         self.skeleton = skeleton
         self.sigmas = sigmas
+        self.sparse_skeleton = sparse_skeleton
         self.only_in_field_of_view = only_in_field_of_view
         self.v_threshold = v_threshold
 
@@ -44,6 +47,7 @@ class Paf(object):
                          fixed_size=self.fixed_size,
                          aspect_ratio=self.aspect_ratio,
                          sigmas=self.sigmas,
+                         sparse_skeleton=self.sparse_skeleton,
                          only_in_field_of_view=self.only_in_field_of_view)
         f.init_fields(bg_mask)
         f.fill(keypoint_sets)
@@ -53,16 +57,17 @@ class Paf(object):
 class PafGenerator(object):
     def __init__(self, min_size, skeleton, *,
                  v_threshold, fixed_size, aspect_ratio, sigmas,
+                 sparse_skeleton,
                  only_in_field_of_view,
                  padding=10):
         self.min_size = min_size
-        self.skeleton = skeleton
         self.skeleton_m1 = np.asarray(skeleton) - 1
         self.v_threshold = v_threshold
         self.padding = padding
         self.fixed_size = fixed_size
         self.aspect_ratio = aspect_ratio
         self.sigmas = sigmas
+        self.sparse_skeleton_m1 = np.asarray(sparse_skeleton) - 1 if sparse_skeleton else None
         self.only_in_field_of_view = only_in_field_of_view
 
         self.intensities = None
@@ -73,7 +78,7 @@ class PafGenerator(object):
         self.fields_reg_l = None
 
     def init_fields(self, bg_mask):
-        n_fields = len(self.skeleton)
+        n_fields = len(self.skeleton_m1)
         field_w = bg_mask.shape[1] + 2 * self.padding
         field_h = bg_mask.shape[0] + 2 * self.padding
         self.intensities = np.zeros((n_fields + 1, field_h, field_w), dtype=np.float32)
@@ -99,6 +104,22 @@ class PafGenerator(object):
                 [kps for i, kps in enumerate(keypoint_sets) if i != kps_i],
             )
 
+    def shortest_sparse(self, joint_i, keypoints):
+        shortest = np.inf
+        for joint1i, joint2i in self.sparse_skeleton_m1:
+            if joint_i not in (joint1i, joint2i):
+                continue
+
+            joint1 = keypoints[joint1i]
+            joint2 = keypoints[joint2i]
+            if joint1[2] <= self.v_threshold or joint2[2] <= self.v_threshold:
+                continue
+
+            d = np.linalg.norm(joint1[:2] - joint2[:2])
+            shortest = min(d, shortest)
+
+        return shortest
+
     def fill_keypoints(self, keypoints, other_keypoints):
         scale = scale_from_keypoints(keypoints)
         for paf_i, (joint1i, joint2i) in enumerate(self.skeleton_m1):
@@ -106,6 +127,13 @@ class PafGenerator(object):
             joint2 = keypoints[joint2i]
             if joint1[2] <= self.v_threshold or joint2[2] <= self.v_threshold:
                 continue
+
+            # check if there are shorter connections in the sparse skeleton
+            if self.sparse_skeleton_m1 is not None:
+                d = np.linalg.norm(joint1[:2] - joint2[:2])
+                if self.shortest_sparse(joint1i, keypoints) < d \
+                   and self.shortest_sparse(joint2i, keypoints) < d:
+                    continue
 
             # if there is no continuous visual connection, endpoints outside
             # the field of view cannot be inferred
