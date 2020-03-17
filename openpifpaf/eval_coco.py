@@ -206,7 +206,6 @@ def cli():
     )
     nets.cli(parser)
     decoder.cli(parser, force_complete_pose=True)
-    encoder.cli(parser)
     parser.add_argument('--output', default=None,
                         help='output filename without file extension')
     parser.add_argument('-n', default=0, type=int,
