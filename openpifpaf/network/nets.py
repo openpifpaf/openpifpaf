@@ -413,7 +413,14 @@ def factory_from_scratch(basename, headnames, *, pretrained=True):
 
 
 def shufflenet_factory_from_scratch(basename, base_vision, out_features, headnames):
-    blocks = basenetworks.ShuffleNetV2Factory(base_vision).blocks()
+    blocks = [
+        base_vision.conv1,
+        # base_vision.maxpool,
+        base_vision.stage2,
+        base_vision.stage3,
+        base_vision.stage4,
+        base_vision.conv5,
+    ]
     basenet = basenetworks.BaseNetwork(
         torch.nn.Sequential(*blocks),
         basename,
