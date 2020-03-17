@@ -57,7 +57,7 @@ def _scale(image, anns, meta, target_w, target_h, resample):
 
 class RescaleRelative(Preprocess):
     def __init__(self, scale_range=(0.5, 1.0), *,
-                 resample=PIL.Image.BICUBIC,
+                 resample=PIL.Image.BILINEAR,
                  power_law=False):
         self.scale_range = scale_range
         self.resample = resample
@@ -89,7 +89,7 @@ class RescaleRelative(Preprocess):
 
 
 class RescaleAbsolute(Preprocess):
-    def __init__(self, long_edge, *, resample=PIL.Image.BICUBIC):
+    def __init__(self, long_edge, *, resample=PIL.Image.BILINEAR):
         self.long_edge = long_edge
         self.resample = resample
 
@@ -115,7 +115,7 @@ class ScaleMix(Preprocess):
     def __init__(self, scale_threshold, *,
                  upscale_factor=2.0,
                  downscale_factor=0.5,
-                 resample=PIL.Image.BICUBIC):
+                 resample=PIL.Image.BILINEAR):
         self.scale_threshold = scale_threshold
         self.upscale_factor = upscale_factor
         self.downscale_factor = downscale_factor
