@@ -17,6 +17,7 @@ class Paf(object):
 
     def __init__(self, stride, *, n_keypoints, skeleton, sigmas,
                  sparse_skeleton=None,
+                 dense_to_sparse_radius=2.0,
                  only_in_field_of_view=False,
                  v_threshold=0):
         self.stride = stride
@@ -24,6 +25,7 @@ class Paf(object):
         self.skeleton = skeleton
         self.sigmas = sigmas
         self.sparse_skeleton = sparse_skeleton
+        self.dense_to_sparse_radius = dense_to_sparse_radius
         self.only_in_field_of_view = only_in_field_of_view
         self.v_threshold = v_threshold
 
@@ -48,6 +50,7 @@ class Paf(object):
                          aspect_ratio=self.aspect_ratio,
                          sigmas=self.sigmas,
                          sparse_skeleton=self.sparse_skeleton,
+                         dense_to_sparse_radius=self.dense_to_sparse_radius,
                          only_in_field_of_view=self.only_in_field_of_view)
         f.init_fields(bg_mask)
         f.fill(keypoint_sets)
@@ -58,6 +61,7 @@ class PafGenerator(object):
     def __init__(self, min_size, skeleton, *,
                  v_threshold, fixed_size, aspect_ratio, sigmas,
                  sparse_skeleton,
+                 dense_to_sparse_radius,
                  only_in_field_of_view,
                  padding=10):
         self.min_size = min_size
@@ -68,6 +72,7 @@ class PafGenerator(object):
         self.aspect_ratio = aspect_ratio
         self.sigmas = sigmas
         self.sparse_skeleton_m1 = np.asarray(sparse_skeleton) - 1 if sparse_skeleton else None
+        self.dense_to_sparse_radius = dense_to_sparse_radius
         self.only_in_field_of_view = only_in_field_of_view
 
         self.intensities = None
@@ -131,8 +136,8 @@ class PafGenerator(object):
             # check if there are shorter connections in the sparse skeleton
             if self.sparse_skeleton_m1 is not None:
                 d = np.linalg.norm(joint1[:2] - joint2[:2])
-                if self.shortest_sparse(joint1i, keypoints) < d \
-                   and self.shortest_sparse(joint2i, keypoints) < d:
+                if self.shortest_sparse(joint1i, keypoints) * self.dense_to_sparse_radius < d \
+                   and self.shortest_sparse(joint2i, keypoints) * self.dense_to_sparse_radius < d:
                     continue
 
             # if there is no continuous visual connection, endpoints outside
