@@ -3,6 +3,7 @@ import logging
 
 import numpy as np
 import PIL
+import scipy
 import torch
 
 from .preprocess import Preprocess
@@ -15,9 +16,20 @@ def _scale(image, anns, meta, target_w, target_h, resample):
     meta = copy.deepcopy(meta)
     anns = copy.deepcopy(anns)
 
+    if isinstance(resample, int):
+        order = resample
+    elif resample == PIL.Image.BILINEAR:
+        order = 2
+    elif resample == PIL.Image.BICUBIC:
+        order = 3
+    else:
+        raise Exception('cannot convert PIL resample to scipy spline order')
+
     # scale image
     w, h = image.size
-    image = image.resize((target_w, target_h), resample)
+    im_np = np.asarray(image)
+    im_np = scipy.ndimage.zoom(im_np, (target_h / h, target_w / w, 1), order=order)
+    image = PIL.Image.fromarray(im_np)
     LOG.debug('before resize = (%f, %f), after = %s', w, h, image.size)
 
     # rescale keypoints
