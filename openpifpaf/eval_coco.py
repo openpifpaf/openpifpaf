@@ -254,7 +254,7 @@ def cli():
         LOG.setLevel(log_level)
 
     if args.loader_workers is None:
-        args.loader_workers = args.batch_size
+        args.loader_workers = max(2, args.batch_size)
 
     if args.dataset == 'val':
         args.image_dir = IMAGE_DIR_VAL
