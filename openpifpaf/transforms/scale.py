@@ -1,5 +1,6 @@
 import copy
 import logging
+import warnings
 
 import numpy as np
 import PIL
@@ -28,7 +29,9 @@ def _scale(image, anns, meta, target_w, target_h, resample):
     # scale image
     w, h = image.size
     im_np = np.asarray(image)
-    im_np = scipy.ndimage.zoom(im_np, (target_h / h, target_w / w, 1), order=order)
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore')
+        im_np = scipy.ndimage.zoom(im_np, (target_h / h, target_w / w, 1), order=order)
     image = PIL.Image.fromarray(im_np)
     LOG.debug('before resize = (%f, %f), after = %s', w, h, image.size)
 
