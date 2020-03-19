@@ -142,7 +142,7 @@ class Dijkstra(object):
                 target_coordinates[0, 0],
                 target_coordinates[1, 0],
                 target_coordinates[3, 0],
-                scores[0],
+                scores[0] * 0.5,
             )
 
         sorted_i = np.argsort(scores)
@@ -152,7 +152,12 @@ class Dijkstra(object):
         score_1 = scores[sorted_i[-1]]
         score_2 = scores[sorted_i[-2]]
         if score_2 < 0.01 or score_2 < 0.5 * score_1:
-            return max_entry_1[0], max_entry_1[1], max_entry_1[3], score_1
+            return max_entry_1[0], max_entry_1[1], max_entry_1[3], score_1 * 0.5
+
+        # TODO: verify the following three lines have negligible speed impact
+        d = np.linalg.norm(max_entry_1[:2] - max_entry_2[:2])
+        if d > max_entry_1[3]:
+            return max_entry_1[0], max_entry_1[1], max_entry_1[3], score_1 * 0.5
 
         return (
             (score_1 * max_entry_1[0] + score_2 * max_entry_2[0]) / (score_1 + score_2),
