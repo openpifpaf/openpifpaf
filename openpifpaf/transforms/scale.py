@@ -4,7 +4,7 @@ import warnings
 
 import numpy as np
 import PIL
-import scipy
+import scipy.ndimage
 import torch
 
 from .preprocess import Preprocess
