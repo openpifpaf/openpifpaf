@@ -323,15 +323,15 @@ def factory(
         net_cpu = checkpoint['model']
         epoch = checkpoint['epoch']
 
+        # normalize for backwards compatibility
+        model_migration(net_cpu)
+
         base_name = net_cpu.base_net.shortname
         head_names = net_cpu.head_names
         LOG.debug('checkpoint base_name = %s, head_names = %s', base_name, head_names)
 
         # initialize for eval
         net_cpu.eval()
-
-        # normalize for backwards compatibility
-        model_migration(net_cpu)
 
     cif_indices = [0]
     caf_indices = [1]
