@@ -389,15 +389,15 @@ def factory_from_args(args, head_names):
 
 def loss_parameters(head_name):
     n_vectors = None
-    if 'pif' in head_name:
+    if 'pif' in head_name or 'cif' in head_name:
         n_vectors = 1
-    elif 'paf' in head_name:
+    elif 'paf' in head_name or 'caf' in head_name:
         n_vectors = 2
 
     n_scales = None
-    if 'pif' in head_name:
+    if 'pif' in head_name or 'cif' in head_name:
         n_scales = 1
-    elif 'pafs' in head_name:
+    elif 'caf' in head_name:
         n_scales = 2
     elif 'paf' in head_name:
         n_scales = 0

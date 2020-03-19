@@ -233,6 +233,13 @@ def model_migration(net_cpu):
             h.shortname for h in net_cpu.head_nets
         ]
 
+    net_cpu.head_names = [
+        h.replace('pif', 'cif').replace('pafs', 'caf')
+        for h in net_cpu.head_names
+    ]
+    for head in net_cpu.head_nets:
+        head.shortname = head.shortname.replace('pif', 'cif').replace('pafs', 'caf')
+
     for head in net_cpu.head_nets:
         if not hasattr(head, 'dropout') or head.dropout is None:
             head.dropout = torch.nn.Dropout2d(p=0.0)

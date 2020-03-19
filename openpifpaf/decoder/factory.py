@@ -161,26 +161,21 @@ def factory_decode(model, *,
                    **kwargs):
     """Instantiate a decoder."""
 
-    head_names = (
-        tuple(model.head_names)
-        if hasattr(model, 'head_names')
-        else tuple(h.shortname for h in model.head_nets)
-    )
+    head_names = tuple(model.head_names)
     LOG.debug('head names = %s', head_names)
 
-    if head_names in (('pif',),):
+    if head_names in (('cif',),):
         return Pif(model.head_strides[-1], head_index=0, **kwargs)
 
-    if head_names in (('pif', 'paf'),
-                      ('pif', 'paf44'),
-                      ('pif', 'paf16'),
-                      ('pif', 'wpaf')):
+    if head_names in (('cif', 'paf'),
+                      ('cif', 'paf44'),
+                      ('cif', 'paf16')):
         return PifPaf(model.head_strides[-1],
                       keypoints=COCO_KEYPOINTS,
                       skeleton=COCO_PERSON_SKELETON,
                       **kwargs)
 
-    if head_names in (('pif', 'pafs', 'pafs25'),):
+    if head_names in (('cif', 'caf', 'caf25'),):
         if dense_connections:
             confidence_scales = (
                 [1.0 for _ in COCO_PERSON_SKELETON] +
@@ -212,7 +207,7 @@ def factory_decode(model, *,
             **kwargs
         )
 
-    if head_names in (('pif', 'paf', 'paf25'),):
+    if head_names in (('cif', 'paf', 'paf25'),):
         stride = model.head_strides[-1]
         pif_index = 0
         paf_index = 1

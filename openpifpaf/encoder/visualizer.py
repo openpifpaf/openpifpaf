@@ -31,15 +31,15 @@ class Visualizer(object):
 
         for target, headname, stride in zip(targets, self.head_names, self.strides):
             LOG.debug('%s with %d components', headname, len(target))
-            if headname in ('paf', 'paf19', 'pafs', 'wpaf'):
+            if headname in ('caf', 'paf', 'paf19', 'wpaf'):
                 self.paf(image, target, stride, keypoint_sets,
                          indices=self.paf_indices,
                          keypoints=COCO_KEYPOINTS, skeleton=COCO_PERSON_SKELETON)
-            elif headname in ('pif', 'pif17', 'pifs'):
+            elif headname in ('cif', 'pif', 'pif17', 'pifs'):
                 self.pif(image, target, stride, keypoint_sets,
                          indices=self.pif_indices,
                          keypoints=COCO_KEYPOINTS, skeleton=COCO_PERSON_SKELETON)
-            elif headname in ('paf25', 'pafs25'):
+            elif headname in ('caf25', 'paf25'):
                 self.paf(image, target, stride, keypoint_sets,
                          indices=self.dpaf_indices,
                          keypoints=COCO_KEYPOINTS, skeleton=DENSER_COCO_PERSON_CONNECTIONS)

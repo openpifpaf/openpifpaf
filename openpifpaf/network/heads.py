@@ -252,11 +252,12 @@ class CompositeField(torch.nn.Module):
 
 
 def determine_nfields(head_name):
-    m = re.match('p[ia]f[s]?([0-9]+)$', head_name)
+    m = re.match('[cp][ia]f[s]?([0-9]+)$', head_name)
     if m is not None:
         return int(m.group(1))
 
     return {
+        'caf': 19,
         'paf': 19,
         'pafs': 19,
         'pafb': 19,
@@ -266,40 +267,35 @@ def determine_nfields(head_name):
 
 
 def determine_nvectors(head_name):
-    if 'pif' in head_name:
+    if 'pif' in head_name or 'cif' in head_name:
         return 1
-    if 'paf' in head_name:
+    if 'paf' in head_name or 'caf' in head_name:
         return 2
-    return 0
+    raise NotImplementedError
 
 
 def determine_nscales(head_name):
-    if 'pif' in head_name:
+    if 'pif' in head_name or 'cif' in head_name:
         return 1
-    if 'pafs' in head_name:
+    if 'caf' in head_name:
         return 2
     if 'paf' in head_name:
         return 0
-    return 0
+    raise NotImplementedError
 
 
 def factory(name, n_features):
-    if name in ('pif',
-                'paf',
-                'pafs',
-                'wpaf',
-                'pafb',
-                'pafsb') or \
-       re.match('p[ia]f[s]?([0-9]+)$', name) is not None:
-        n_fields = determine_nfields(name)
-        n_vectors = determine_nvectors(name)
-        n_scales = determine_nscales(name)
+    if re.match('[cp][ia]f([0-9]*)$', name) is None:
+        raise Exception('unknown head to create a head network: {}'.format(name))
 
-        LOG.info('selected head CompositeField for %s', name)
-        return CompositeField(name, n_features,
-                              n_fields=n_fields,
-                              n_confidences=1,
-                              n_vectors=n_vectors,
-                              n_scales=n_scales)
+    n_fields = determine_nfields(name)
+    n_vectors = determine_nvectors(name)
+    n_scales = determine_nscales(name)
 
-    raise Exception('unknown head to create a head network: {}'.format(name))
+    LOG.info('selected head CompositeField for %s with %d fields, %d vectors and %d scales',
+             name, n_fields, n_vectors, n_scales)
+    return CompositeField(name, n_features,
+                          n_fields=n_fields,
+                          n_confidences=1,
+                          n_vectors=n_vectors,
+                          n_scales=n_scales)

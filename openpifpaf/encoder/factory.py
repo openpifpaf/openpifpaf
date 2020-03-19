@@ -65,40 +65,28 @@ def factory(headnames, strides, skeleton=False):
 
 
 def factory_head(head_name, stride):
-    if head_name in ('pif',
-                     'ppif',
-                     'pifb',
-                     'pifs') or \
-       re.match('pif([0-9]+)$', head_name) is not None:
-
-        m = re.match('pif([0-9]+)$', head_name)
-        if m is not None:
-            n_keypoints = int(m.group(1))
-            LOG.debug('using %d keypoints for pif', n_keypoints)
-        else:
-            n_keypoints = 17
+    cif_m = re.match('[cp]if([0-9]*)$', head_name)
+    if cif_m is not None:
+        n_keypoints = int(cif_m.group(1)) if cif_m.group(1) else 17
+        LOG.debug('using %d keypoints for pif', n_keypoints)
 
         LOG.info('selected encoder Pif for %s with %d keypoints', head_name, n_keypoints)
         return Pif(stride, n_keypoints=n_keypoints, sigmas=COCO_PERSON_SIGMAS)
 
-    if head_name in ('paf',
-                     'pafs',
-                     'wpaf',
-                     'pafb') or \
-       re.match('paf[s]?([0-9]+)$', head_name) is not None:
+    if head_name in ('paf', 'paf19', 'caf', 'wpaf', 'pafb',
+                     'paf16',
+                     'paf44',
+                     'paf25', 'caf25'):
+        n_keypoints = 17
         sparse_skeleton = None
         only_in_field_of_view = False
-        if head_name in ('paf', 'paf19', 'pafs', 'wpaf', 'pafb'):
-            n_keypoints = 17
+        if head_name in ('paf', 'paf19', 'caf', 'wpaf', 'pafb'):
             skeleton = COCO_PERSON_SKELETON
         elif head_name in ('paf16',):
-            n_keypoints = 17
             skeleton = KINEMATIC_TREE_SKELETON
         elif head_name in ('paf44',):
-            n_keypoints = 17
             skeleton = DENSER_COCO_PERSON_SKELETON
-        elif head_name in ('paf25', 'pafs25'):
-            n_keypoints = 17
+        elif head_name in ('paf25', 'caf25'):
             skeleton = DENSER_COCO_PERSON_CONNECTIONS
             sparse_skeleton = COCO_PERSON_SKELETON
             only_in_field_of_view = True
