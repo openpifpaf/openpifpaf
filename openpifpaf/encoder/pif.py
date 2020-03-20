@@ -1,3 +1,4 @@
+import dataclasses
 import logging
 
 import numpy as np
@@ -27,51 +28,50 @@ def scale_from_keypoints(keypoints):
     return scale
 
 
-class Pif(object):
-    side_length = 4
+@dataclasses.dataclass
+class Cif:
+    stride: int
+    n_keypoints: int
+    sigmas: list
+    v_threshold: int = 0
 
-    def __init__(self, stride, *, n_keypoints, sigmas, v_threshold=0):
-        self.stride = stride
-        self.n_keypoints = n_keypoints
-        self.sigmas = sigmas
-        self.v_threshold = v_threshold
-
-        LOG.debug('stride = %d, keypoints = %d', stride, n_keypoints)
+    side_length: int = 4
+    padding: int = 10
 
     def __call__(self, image, anns, meta):
-        width_height_original = image.shape[2:0:-1]
+        return CifGenerator(self)(image, anns, meta)
 
-        rescaler = AnnRescaler(self.stride, self.n_keypoints)
-        keypoint_sets = rescaler.keypoint_sets(anns)
-        bg_mask = rescaler.bg_mask(anns, width_height_original)
-        valid_area = rescaler.valid_area(meta)
-        LOG.debug('valid area: %s, pif side length = %d', valid_area, self.side_length)
-
-        n_fields = keypoint_sets.shape[1]
-        f = PifGenerator(self.side_length, self.v_threshold, self.sigmas)
-        f.init_fields(n_fields, bg_mask)
-        f.fill(keypoint_sets)
-        return f.fields(valid_area)
-
-
-class PifGenerator(object):
-    def __init__(self, side_length, v_threshold, sigmas, padding=10):
-        self.side_length = side_length
-        self.v_threshold = v_threshold
-        self.sigmas = sigmas
-        self.padding = padding
+class CifGenerator(object):
+    def __init__(self, config: Cif):
+        self.config = config
 
         self.intensities = None
         self.fields_reg = None
         self.fields_scale = None
         self.fields_reg_l = None
 
-        self.sink = create_sink(side_length)
-        self.s_offset = (side_length - 1.0) / 2.0
+        self.sink = create_sink(config.side_length)
+        self.s_offset = (config.side_length - 1.0) / 2.0
+
+        LOG.debug('stride = %d, keypoints = %d', config.stride, config.n_keypoints)
+
+    def __call__(self, image, anns, meta):
+        width_height_original = image.shape[2:0:-1]
+
+        rescaler = AnnRescaler(self.config.stride, self.config.n_keypoints)
+        keypoint_sets = rescaler.keypoint_sets(anns)
+        bg_mask = rescaler.bg_mask(anns, width_height_original)
+        valid_area = rescaler.valid_area(meta)
+        LOG.debug('valid area: %s, pif side length = %d', valid_area, self.config.side_length)
+
+        n_fields = keypoint_sets.shape[1]
+        self.init_fields(n_fields, bg_mask)
+        self.fill(keypoint_sets)
+        return self.fields(valid_area)
 
     def init_fields(self, n_fields, bg_mask):
-        field_w = bg_mask.shape[1] + 2 * self.padding
-        field_h = bg_mask.shape[0] + 2 * self.padding
+        field_w = bg_mask.shape[1] + 2 * self.config.padding
+        field_h = bg_mask.shape[0] + 2 * self.config.padding
         self.intensities = np.zeros((n_fields + 1, field_h, field_w), dtype=np.float32)
         self.fields_reg = np.zeros((n_fields, 6, field_h, field_w), dtype=np.float32)
         self.fields_reg[:, 2:] = np.inf
@@ -79,8 +79,9 @@ class PifGenerator(object):
         self.fields_reg_l = np.full((n_fields, field_h, field_w), np.inf, dtype=np.float32)
 
         # bg_mask
+        p = self.config.padding
         self.intensities[-1] = 1.0
-        self.intensities[-1, self.padding:-self.padding, self.padding:-self.padding] = bg_mask
+        self.intensities[-1, p:-p, p:-p] = bg_mask
         self.intensities[-1] = scipy.ndimage.binary_erosion(self.intensities[-1],
                                                             iterations=int(self.s_offset) + 1,
                                                             border_value=1)
@@ -118,27 +119,27 @@ class PifGenerator(object):
     def fill_keypoints(self, keypoints, other_keypoints):
         scale = scale_from_keypoints(keypoints)
         for f, xyv in enumerate(keypoints):
-            if xyv[2] <= self.v_threshold:
+            if xyv[2] <= self.config.v_threshold:
                 continue
 
             other_xyv = [other_kps[f] for other_kps in other_keypoints
-                         if other_kps[f, 2] > self.v_threshold]
+                         if other_kps[f, 2] > self.config.v_threshold]
             max_r = self.max_r(xyv, other_xyv)
 
-            joint_scale = scale if self.sigmas is None else scale * self.sigmas[f]
+            joint_scale = scale if self.config.sigmas is None else scale * self.config.sigmas[f]
             joint_scale = np.min([joint_scale, np.min(max_r) * 0.25])
 
             self.fill_coordinate(f, xyv, joint_scale, max_r)
 
     def fill_coordinate(self, f, xyv, scale, max_r):
-        ij = np.round(xyv[:2] - self.s_offset).astype(np.int) + self.padding
+        ij = np.round(xyv[:2] - self.s_offset).astype(np.int) + self.config.padding
         minx, miny = int(ij[0]), int(ij[1])
-        maxx, maxy = minx + self.side_length, miny + self.side_length
+        maxx, maxy = minx + self.config.side_length, miny + self.config.side_length
         if minx < 0 or maxx > self.intensities.shape[2] or \
            miny < 0 or maxy > self.intensities.shape[1]:
             return
 
-        offset = xyv[:2] - (ij + self.s_offset - self.padding)
+        offset = xyv[:2] - (ij + self.s_offset - self.config.padding)
         offset = offset.reshape(2, 1, 1)
 
         # update intensity
@@ -157,9 +158,10 @@ class PifGenerator(object):
         self.fields_scale[f, miny:maxy, minx:maxx][mask] = scale
 
     def fields(self, valid_area):
-        intensities = self.intensities[:, self.padding:-self.padding, self.padding:-self.padding]
-        fields_reg = self.fields_reg[:, :, self.padding:-self.padding, self.padding:-self.padding]
-        fields_scale = self.fields_scale[:, self.padding:-self.padding, self.padding:-self.padding]
+        p = self.config.padding
+        intensities = self.intensities[:, p:-p, p:-p]
+        fields_reg = self.fields_reg[:, :, p:-p, p:-p]
+        fields_scale = self.fields_scale[:, p:-p, p:-p]
 
         mask_valid_area(intensities[:-1], valid_area)
         mask_valid_area(fields_reg[:, 0], valid_area)

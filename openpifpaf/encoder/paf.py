@@ -5,7 +5,7 @@ import scipy
 import torch
 
 from .annrescaler import AnnRescaler
-from .pif import scale_from_keypoints, PifGenerator
+from .pif import scale_from_keypoints, CifGenerator
 from ..utils import create_sink, mask_valid_area
 
 LOG = logging.getLogger(__name__)
@@ -145,8 +145,8 @@ class CafGenerator:
                          if other_kps[joint1i, 2] > self.config.v_threshold]
             other_j2s = [other_kps[joint2i] for other_kps in other_keypoints
                          if other_kps[joint2i, 2] > self.config.v_threshold]
-            max_r1 = PifGenerator.max_r(joint1, other_j1s)
-            max_r2 = PifGenerator.max_r(joint2, other_j2s)
+            max_r1 = CifGenerator.max_r(joint1, other_j1s)
+            max_r2 = CifGenerator.max_r(joint2, other_j2s)
 
             if self.config.sigmas is None:
                 scale1, scale2 = scale, scale
