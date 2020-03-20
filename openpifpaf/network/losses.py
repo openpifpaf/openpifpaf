@@ -373,8 +373,6 @@ def cli(parser):
 def factory_from_args(args, head_names):
     # apply for CompositeLoss
     CompositeLoss.background_weight = args.background_weight
-    CompositeLoss.fixed_size = args.paf_fixed_size
-    CompositeLoss.aspect_ratio = args.paf_aspect_ratio
 
     return factory(
         head_names,
