@@ -1,7 +1,7 @@
 import logging
 import re
 
-from .paf import Paf
+from .paf import Caf
 from .pif import Pif
 from .skeleton import Skeleton
 from .visualizer import Visualizer
@@ -13,41 +13,41 @@ LOG = logging.getLogger(__name__)
 
 
 def cli(parser):
-    group = parser.add_argument_group('pif encoder')
-    group.add_argument('--pif-side-length', default=Pif.side_length, type=int,
-                       help='side length of the PIF field')
+    group = parser.add_argument_group('CIF encoder')
+    group.add_argument('--cif-side-length', default=Pif.side_length, type=int,
+                       help='side length of the CIF field')
 
-    group = parser.add_argument_group('paf encoder')
-    group.add_argument('--paf-min-size', default=Paf.min_size, type=int,
-                       help='min side length of the PAF field')
-    group.add_argument('--paf-fixed-size', default=Paf.fixed_size, action='store_true',
-                       help='fixed paf size')
-    group.add_argument('--paf-aspect-ratio', default=Paf.aspect_ratio, type=float,
-                       help='paf width relative to its length')
+    group = parser.add_argument_group('CAF encoder')
+    group.add_argument('--caf-min-size', default=Caf.min_size, type=int,
+                       help='min side length of the CAF field')
+    group.add_argument('--caf-fixed-size', default=Caf.fixed_size, action='store_true',
+                       help='fixed caf size')
+    group.add_argument('--caf-aspect-ratio', default=Caf.aspect_ratio, type=float,
+                       help='CAF width relative to its length')
 
     group = parser.add_argument_group('debug')
-    group.add_argument('--debug-pif-indices', default=[], nargs='+', type=int,
-                       help='indices of PIF fields to create debug plots for')
-    group.add_argument('--debug-paf-indices', default=[], nargs='+', type=int,
-                       help='indices of PAF fields to create debug plots for')
-    group.add_argument('--debug-dpaf-indices', default=[], nargs='+', type=int,
-                       help='indices of dense PAF fields to create debug plots for')
+    group.add_argument('--debug-cif-indices', default=[], nargs='+', type=int,
+                       help='indices of CIF fields to create debug plots for')
+    group.add_argument('--debug-caf-indices', default=[], nargs='+', type=int,
+                       help='indices of CAF fields to create debug plots for')
+    group.add_argument('--debug-dcaf-indices', default=[], nargs='+', type=int,
+                       help='indices of dense CAF fields to create debug plots for')
 
 
 def configure(args):
     # configure Pif
-    Pif.side_length = args.pif_side_length
+    Pif.side_length = args.cif_side_length
 
-    # configure Paf
-    Paf.min_size = args.paf_min_size
-    Paf.fixed_size = args.paf_fixed_size
-    Paf.aspect_ratio = args.paf_aspect_ratio
+    # configure Caf
+    Caf.min_size = args.caf_min_size
+    Caf.fixed_size = args.caf_fixed_size
+    Caf.aspect_ratio = args.caf_aspect_ratio
 
     # configure visualizer
-    Visualizer.pif_indices = args.debug_pif_indices
-    Visualizer.paf_indices = args.debug_paf_indices
-    Visualizer.dpaf_indices = args.debug_dpaf_indices
-    if args.debug_pif_indices or args.debug_paf_indices or args.debug_dpaf_indices:
+    Visualizer.pif_indices = args.debug_cif_indices
+    Visualizer.paf_indices = args.debug_caf_indices
+    Visualizer.dpaf_indices = args.debug_dcaf_indices
+    if args.debug_cif_indices or args.debug_caf_indices or args.debug_dcaf_indices:
         args.debug = True
 
 
@@ -93,8 +93,8 @@ def factory_head(head_name, stride):
         else:
             raise Exception('unknown skeleton type of head')
 
-        LOG.info('selected encoder Paf for %s', head_name)
-        return Paf(stride,
+        LOG.info('selected encoder CAF for %s', head_name)
+        return Caf(stride,
                    n_keypoints=n_keypoints,
                    skeleton=skeleton,
                    sigmas=COCO_PERSON_SIGMAS,
