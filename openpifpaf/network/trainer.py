@@ -18,7 +18,6 @@ class Trainer(object):
                  fix_batch_norm=False,
                  stride_apply=1,
                  ema_decay=None,
-                 encoder_visualizer=None,
                  train_profile=None,
                  model_meta_data=None):
         self.model = model
@@ -36,7 +35,6 @@ class Trainer(object):
         self.ema = None
         self.ema_restore_params = None
 
-        self.encoder_visualizer = encoder_visualizer
         self.model_meta_data = model_meta_data
 
         if train_profile:
@@ -102,9 +100,6 @@ class Trainer(object):
             self.val(val_scenes, epoch + 1)
 
     def train_batch(self, data, targets, meta, apply_gradients=True):  # pylint: disable=method-hidden
-        if self.encoder_visualizer:
-            self.encoder_visualizer(data, targets, meta)
-
         if self.device:
             data = data.to(self.device, non_blocking=True)
             targets = [[t.to(self.device, non_blocking=True) for t in head] for head in targets]

@@ -6,6 +6,7 @@ import scipy.ndimage
 import torch
 
 from .annrescaler import AnnRescaler
+from .visualizer import CifVisualizer
 from ..utils import create_sink, mask_valid_area
 
 LOG = logging.getLogger(__name__)
@@ -37,6 +38,7 @@ class Cif:
 
     side_length: int = 4
     padding: int = 10
+    visualizer: CifVisualizer = None
 
     def __call__(self, image, anns, meta):
         return CifGenerator(self)(image, anns, meta)
@@ -68,7 +70,10 @@ class CifGenerator(object):
         n_fields = keypoint_sets.shape[1]
         self.init_fields(n_fields, bg_mask)
         self.fill(keypoint_sets)
-        return self.fields(valid_area)
+        fields = self.fields(valid_area)
+
+        self.config.visualizer(image, fields, meta, keypoint_sets=keypoint_sets)
+        return fields
 
     def init_fields(self, n_fields, bg_mask):
         field_w = bg_mask.shape[1] + 2 * self.config.padding

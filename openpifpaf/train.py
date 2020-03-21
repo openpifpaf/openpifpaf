@@ -107,8 +107,7 @@ def main():
         net = torch.nn.DataParallel(net)
 
     loss = losses.factory_from_args(args, net_cpu.head_names)
-    target_transforms = encoder.factory(
-        net_cpu.head_names, net_cpu.head_strides, skeleton=args.debug)
+    target_transforms = encoder.factory(net_cpu.head_names, net_cpu.head_strides, args.debug_indices)
 
     if args.augmentation:
         preprocess_transformations = [
@@ -154,10 +153,6 @@ def main():
     optimizer = optimize.factory_optimizer(
         args, list(net.parameters()) + list(loss.parameters()))
     lr_scheduler = optimize.factory_lrscheduler(args, optimizer, len(train_loader))
-    encoder_visualizer = None
-    if args.debug:
-        encoder_visualizer = encoder.Visualizer(net_cpu.head_names, net_cpu.head_strides)
-
     trainer = Trainer(
         net, loss, optimizer, args.output,
         lr_scheduler=lr_scheduler,
@@ -165,7 +160,6 @@ def main():
         fix_batch_norm=not args.update_batchnorm_runningstatistics,
         stride_apply=args.stride_apply,
         ema_decay=args.ema,
-        encoder_visualizer=encoder_visualizer,
         train_profile=args.profile,
         model_meta_data={
             'args': vars(args),
