@@ -1,8 +1,8 @@
 import logging
 import re
 
-from .paf import Caf
-from .pif import Cif
+from .caf import Caf
+from .cif import Cif
 from .skeleton import Skeleton
 from .visualizer import Visualizer
 

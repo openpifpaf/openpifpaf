@@ -41,6 +41,7 @@ class Cif:
     def __call__(self, image, anns, meta):
         return CifGenerator(self)(image, anns, meta)
 
+
 class CifGenerator(object):
     def __init__(self, config: Cif):
         self.config = config

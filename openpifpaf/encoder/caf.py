@@ -5,7 +5,7 @@ import scipy
 import torch
 
 from .annrescaler import AnnRescaler
-from .pif import scale_from_keypoints, CifGenerator
+from .cif import scale_from_keypoints, CifGenerator
 from ..utils import create_sink, mask_valid_area
 
 LOG = logging.getLogger(__name__)
