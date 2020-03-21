@@ -61,9 +61,11 @@ def _scale(image, anns, meta, target_w, target_h, resample):
 class RescaleRelative(Preprocess):
     def __init__(self, scale_range=(0.5, 1.0), *,
                  resample=PIL.Image.BILINEAR,
+                 absolute_reference=None,
                  power_law=False):
         self.scale_range = scale_range
         self.resample = resample
+        self.absolute_reference = absolute_reference
         self.power_law = power_law
 
     def __call__(self, image, anns, meta):
@@ -87,6 +89,13 @@ class RescaleRelative(Preprocess):
             scale_factor = self.scale_range
 
         w, h = image.size
+        if self.absolute_reference is not None:
+            if w > h:
+                h *= self.absolute_reference / w
+                w = self.absolute_reference
+            else:
+                w *= self.absolute_reference / h
+                h = self.absolute_reference
         target_w, target_h = int(w * scale_factor), int(h * scale_factor)
         return _scale(image, anns, meta, target_w, target_h, self.resample)
 
