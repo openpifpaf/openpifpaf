@@ -12,28 +12,33 @@ from .preprocess import Preprocess
 LOG = logging.getLogger(__name__)
 
 
-def _scale(image, anns, meta, target_w, target_h, resample):
-    """target_w and target_h as integers"""
+def _scale(image, anns, meta, target_w, target_h, resample, *, fast=False):
+    """target_w and target_h as integers
+
+    Internally, resample in Pillow are aliases:
+    PIL.Image.BILINEAR = 2
+    PIL.Image.BICUBIC = 3
+    which maps already to the correct "order" in scipy.
+    """
     meta = copy.deepcopy(meta)
     anns = copy.deepcopy(anns)
-
-    if isinstance(resample, int):
-        order = resample
-    elif resample == PIL.Image.BILINEAR:
-        order = 2
-    elif resample == PIL.Image.BICUBIC:
-        order = 3
-    else:
-        raise Exception('cannot convert PIL resample to scipy spline order')
-
-    # scale image
     w, h = image.size
-    im_np = np.asarray(image)
-    with warnings.catch_warnings():
-        warnings.simplefilter('ignore')
-        im_np = scipy.ndimage.zoom(im_np, (target_h / h, target_w / w, 1), order=order)
-    image = PIL.Image.fromarray(im_np)
+
+    if fast:
+        image = image.resize((target_w, target_h), resample)
+    else:
+        assert resample in (2, 3)
+
+        # scale image
+        im_np = np.asarray(image)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            im_np = scipy.ndimage.zoom(im_np, (target_h / h, target_w / w, 1), order=resample)
+        image = PIL.Image.fromarray(im_np)
+
     LOG.debug('before resize = (%f, %f), after = %s', w, h, image.size)
+    assert image.size[0] == target_w
+    assert image.size[1] == target_h
 
     # rescale keypoints
     x_scale = (image.size[0] - 1) / (w - 1)
@@ -62,10 +67,12 @@ class RescaleRelative(Preprocess):
     def __init__(self, scale_range=(0.5, 1.0), *,
                  resample=PIL.Image.BILINEAR,
                  absolute_reference=None,
+                 fast=False,
                  power_law=False):
         self.scale_range = scale_range
         self.resample = resample
         self.absolute_reference = absolute_reference
+        self.fast = fast
         self.power_law = power_law
 
     def __call__(self, image, anns, meta):
@@ -97,12 +104,13 @@ class RescaleRelative(Preprocess):
                 w *= self.absolute_reference / h
                 h = self.absolute_reference
         target_w, target_h = int(w * scale_factor), int(h * scale_factor)
-        return _scale(image, anns, meta, target_w, target_h, self.resample)
+        return _scale(image, anns, meta, target_w, target_h, self.resample, fast=self.fast)
 
 
 class RescaleAbsolute(Preprocess):
-    def __init__(self, long_edge, *, resample=PIL.Image.BILINEAR):
+    def __init__(self, long_edge, *, fast=False, resample=PIL.Image.BILINEAR):
         self.long_edge = long_edge
+        self.fast = fast
         self.resample = resample
 
     def __call__(self, image, anns, meta):
@@ -120,7 +128,7 @@ class RescaleAbsolute(Preprocess):
             target_w, target_h = int(w * s), int(this_long_edge)
         else:
             target_w, target_h = int(this_long_edge), int(h * s)
-        return _scale(image, anns, meta, target_w, target_h, self.resample)
+        return _scale(image, anns, meta, target_w, target_h, self.resample, fast=self.fast)
 
 
 class ScaleMix(Preprocess):
