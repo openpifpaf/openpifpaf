@@ -22,7 +22,7 @@ except ImportError:
 
 from .data import COCO_PERSON_SKELETON
 from .network import nets
-from . import datasets, decoder, encoder, show, transforms
+from . import datasets, decoder, show, transforms
 
 ANNOTATIONS_VAL = 'data-mscoco/annotations/person_keypoints_val2017.json'
 IMAGE_DIR_VAL = 'data-mscoco/images/val2017/'
@@ -34,11 +34,10 @@ LOG = logging.getLogger(__name__)
 
 
 class EvalCoco(object):
-    def __init__(self, coco, processor, annotations_inverse, *,
+    def __init__(self, coco, processor, *,
                  max_per_image=20, small_threshold=0.0):
         self.coco = coco
         self.processor = processor
-        self.annotations_inverse = annotations_inverse
         self.max_per_image = max_per_image
         self.small_threshold = small_threshold
 
@@ -81,7 +80,7 @@ class EvalCoco(object):
     def view_keypoints(image_cpu, annotations, gt):
         highlight = [5, 7, 9, 11, 13, 15]
         keypoint_painter = show.KeypointPainter(highlight=highlight)
-        skeleton_painter = show.KeypointPainter(show_box=False, color_connections=True,
+        skeleton_painter = show.KeypointPainter(color_connections=True,
                                                 markersize=1, linewidth=6)
 
         with show.canvas() as ax:
@@ -120,7 +119,7 @@ class EvalCoco(object):
         if debug:
             self.view_keypoints(image_cpu, predictions, gt)
 
-        predictions = self.annotations_inverse(predictions, meta)
+        predictions = transforms.Preprocess.annotations_inverse(predictions, meta)
         if self.small_threshold:
             predictions = [pred for pred in predictions
                            if pred.scale(v_th=0.01) >= self.small_threshold]
@@ -222,6 +221,7 @@ def cli():
                         help='long edge of input images')
     parser.add_argument('--loader-workers', default=None, type=int,
                         help='number of workers for data loading')
+    parser.add_argument('--extended-scale', default=False, action='store_true')
     parser.add_argument('--skip-existing', default=False, action='store_true',
                         help='skip if output eval file exists already')
     parser.add_argument('--disable-cuda', action='store_true',
@@ -315,23 +315,41 @@ def write_evaluations(eval_coco, filename, args, total_time):
           ''.format(total_time, 1000 * total_time / n_images))
 
 
-def preprocess_factory_from_args(args):
-    collate_fn = datasets.collate_images_anns_meta
+def dataloader_from_args(args):
+    preprocess = [
+        transforms.NormalizeAnnotations(),
+        transforms.RescaleAbsolute(args.long_edge),
+        transforms.CenterPad(args.long_edge),
+        transforms.EVAL_TRANSFORM,
+    ]
     if args.batch_size == 1 and not args.multi_scale:
-        preprocess = transforms.Compose([
-            transforms.NormalizeAnnotations(),
-            transforms.RescaleAbsolute(args.long_edge),
-            transforms.EVAL_TRANSFORM,
-        ])
-    else:
-        preprocess = transforms.Compose([
-            transforms.NormalizeAnnotations(),
-            transforms.RescaleAbsolute(args.long_edge),
-            transforms.CenterPad(args.long_edge),
-            transforms.EVAL_TRANSFORM,
-        ])
+        preprocess[2] = transforms.CenterPadTight(16)
 
-    return preprocess, collate_fn
+    data = datasets.CocoKeypoints(
+        root=args.image_dir,
+        annFile=args.annotation_file,
+        preprocess=transforms.Compose(preprocess),
+        all_persons=True,
+        all_images=args.all_images,
+    )
+    if args.extended_scale:
+        preprocess_small = list(preprocess)
+        preprocess_small[1] = transforms.RescaleAbsolute(args.long_edge // 2)
+        data_small = datasets.CocoKeypoints(
+            root=args.image_dir,
+            annFile=args.annotation_file,
+            preprocess=transforms.Compose(preprocess_small),
+            all_persons=True,
+            all_images=args.all_images,
+        )
+        data = torch.utils.data.ConcatDataset([data_small, data])
+
+    data_loader = torch.utils.data.DataLoader(
+        data, batch_size=args.batch_size, pin_memory=args.pin_memory,
+        num_workers=args.loader_workers,
+        collate_fn=datasets.collate_images_anns_meta)
+
+    return data_loader
 
 
 def main():
@@ -345,18 +363,7 @@ def main():
             return
         print('Processing: {}'.format(args.checkpoint))
 
-    preprocess, collate_fn = preprocess_factory_from_args(args)
-    data = datasets.CocoKeypoints(
-        root=args.image_dir,
-        annFile=args.annotation_file,
-        preprocess=preprocess,
-        all_persons=True,
-        all_images=args.all_images,
-    )
-    data_loader = torch.utils.data.DataLoader(
-        data, batch_size=args.batch_size, pin_memory=args.pin_memory,
-        num_workers=args.loader_workers, collate_fn=collate_fn)
-
+    data_loader = dataloader_from_args(args)
     model_cpu, _ = nets.factory_from_args(args)
     model = model_cpu.to(args.device)
     if not args.disable_cuda and torch.cuda.device_count() > 1:
@@ -370,7 +377,7 @@ def main():
     # processor.instance_scorer = torch.load('instance_scorer.pkl')
 
     coco = pycocotools.coco.COCO(args.annotation_file)
-    eval_coco = EvalCoco(coco, processor, preprocess.annotations_inverse)
+    eval_coco = EvalCoco(coco, processor)
     total_start = time.time()
     loop_start = time.time()
     for batch_i, (image_tensors_cpu, anns_batch, meta_batch) in enumerate(data_loader):
