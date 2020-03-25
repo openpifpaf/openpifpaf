@@ -214,6 +214,10 @@ class CompositeField(torch.nn.Module):
 
         # classification
         classes_x = [class_conv(x) for class_conv in self.class_convs]
+        if self.training:
+            # detach the gradients where background is almost certain
+            # detach the gradients where joint is almost certain
+            classes_x = [class_x.clamp(-5.0, 5.0) for class_x in classes_x]
         if not self.training:
             classes_x = [torch.sigmoid(class_x) for class_x in classes_x]
 
