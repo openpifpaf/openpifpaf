@@ -141,26 +141,6 @@ def normalize_paf_nob(intensity_fields, j1_fields, j2_fields,
     )
 
 
-def normalize_pifpaf(pif, paf):
-    assert pif.shape[1] == 5
-    assert paf.shape[1] == 9
-
-    # re order b and scale components from
-    #    confidence, r1, r2, b1, b2, s1, s2
-    # to
-    #    confidence, r1, b1, s1, r2, b2, s2
-    # paf = paf[:, (0, 1, 2, 5, 7, 3, 4, 6, 8)]
-
-    # index_fields = index_field(pif.shape[-2:])
-    # index_fields = np.expand_dims(index_fields, 0)
-
-    # pif[:, (1, 2)] += index_fields
-    # paf[:, (1, 2)] += index_fields
-    # paf[:, (5, 6)] += index_fields
-
-    return pif, paf
-
-
 def normalize_pif(joint_intensity_fields, joint_fields, _, scale_fields, *,
                   fixed_scale=None):
     joint_intensity_fields = np.expand_dims(joint_intensity_fields.copy(), 1)

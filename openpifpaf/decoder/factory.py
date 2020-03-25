@@ -2,10 +2,10 @@ import logging
 
 from ..data import COCO_KEYPOINTS, COCO_PERSON_SKELETON, DENSER_COCO_PERSON_CONNECTIONS
 from . import generator
+from .cifcaf_frontier import CifCafFrontier
 from .pif import Pif
 from .pif_hr import PifHr, PifHrNoScales
 from .pifpaf import PifPaf
-from .pifpaf_dijkstra import PifPafDijkstra
 from .pafs_dijkstra import PafsDijkstra
 from .processor import Processor
 from .visualizer import Visualizer
@@ -52,20 +52,20 @@ def cli(parser, *,
                        help='profile decoder')
 
     group = parser.add_argument_group('PifPaf decoders')
-    assert PifPaf.fixed_b == PifPafDijkstra.fixed_b
+    assert PifPaf.fixed_b == CifCafFrontier.fixed_b
     group.add_argument('--fixed-b', default=PifPaf.fixed_b, type=float,
                        help='overwrite b with fixed value, e.g. 0.5')
-    assert PifPaf.pif_fixed_scale == PifPafDijkstra.pif_fixed_scale
+    assert PifPaf.pif_fixed_scale == CifCafFrontier.pif_fixed_scale
     group.add_argument('--pif-fixed-scale', default=PifPaf.pif_fixed_scale, type=float,
                        help='overwrite pif scale with a fixed value')
     assert PifHr.v_threshold == PifHrNoScales.v_threshold
     group.add_argument('--pif-th', default=PifHr.v_threshold, type=float,
                        help='pif threshold')
-    assert PifPaf.paf_th == PifPafDijkstra.paf_th
+    assert PifPaf.paf_th == CifCafFrontier.paf_th
     assert PifPaf.paf_th == PafsDijkstra.paf_th
     group.add_argument('--paf-th', default=PifPaf.paf_th, type=float,
                        help='paf threshold')
-    assert PifPaf.connection_method == PifPafDijkstra.connection_method
+    assert PifPaf.connection_method == CifCafFrontier.connection_method
     group.add_argument('--connection-method',
                        default=PifPaf.connection_method,
                        choices=('median', 'max', 'blend'),
@@ -80,12 +80,12 @@ def configure(args):
     PifPaf.connection_method = args.connection_method
     PifPaf.force_complete = args.force_complete_pose
 
-    # configure PifPafDijkstra
-    PifPafDijkstra.fixed_b = args.fixed_b
-    PifPafDijkstra.pif_fixed_scale = args.pif_fixed_scale
-    PifPafDijkstra.paf_th = args.paf_th
-    PifPafDijkstra.connection_method = args.connection_method
-    PifPafDijkstra.force_complete = args.force_complete_pose
+    # configure CifCafFrontier
+    CifCafFrontier.fixed_b = args.fixed_b
+    CifCafFrontier.pif_fixed_scale = args.pif_fixed_scale
+    CifCafFrontier.paf_th = args.paf_th
+    CifCafFrontier.connection_method = args.connection_method
+    CifCafFrontier.force_complete = args.force_complete_pose
 
     # configure Pif
     Pif.pif_fixed_scale = args.pif_fixed_scale
@@ -114,8 +114,8 @@ def configure(args):
     assert args.seed_threshold >= args.keypoint_threshold
 
     # configure decoder generator
+    generator.Frontier.keypoint_threshold = args.keypoint_threshold
     generator.Greedy.keypoint_threshold = args.keypoint_threshold
-    generator.Dijkstra.keypoint_threshold = args.keypoint_threshold
 
     # decoder workers
     if args.decoder_workers is None and \
@@ -196,7 +196,7 @@ def factory_decode(model, *,
                 confidence_scales=confidence_scales,
                 **kwargs
             )
-        return PifPafDijkstra(
+        return CifCafFrontier(
             model.head_strides[-1],
             pif_index=0,
             paf_index=1,
@@ -247,7 +247,7 @@ def factory_decode(model, *,
                 [1.0 for _ in COCO_PERSON_SKELETON] +
                 [dense_coupling for _ in DENSER_COCO_PERSON_CONNECTIONS]
             )
-            return PifPafDijkstra(
+            return CifCafFrontier(
                 stride,
                 pif_index=pif_index,
                 paf_index=paf_index,

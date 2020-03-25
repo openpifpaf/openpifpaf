@@ -14,7 +14,7 @@ from ...functional import paf_center_s
 LOG = logging.getLogger(__name__)
 
 
-class Dijkstra(object):
+class Frontier(object):
     keypoint_threshold = 0.0
 
     def __init__(self, pifhr, paf_scored, seeds, *,

@@ -7,12 +7,11 @@ from . import generator
 from .paf_scored import PafScored
 from .pif_hr import PifHrNoScales
 from .pif_seeds import PifSeeds
-from .utils import normalize_pifpaf
 
 LOG = logging.getLogger(__name__)
 
 
-class PifPafDijkstra(object):
+class CifCafFrontier(object):
     force_complete = True
     connection_method = 'blend'
     fixed_b = None
@@ -80,7 +79,10 @@ class PifPafDijkstra(object):
         # normalize TODO removed fixed scale here so remove everywhere
         normalized_pifs, normalized_pafs = [], []
         for pif_i, paf_i in zip(self.pif_indices, self.paf_indices):
-            pif, paf = normalize_pifpaf(fields[pif_i], fields[paf_i])
+            pif, paf = fields[pif_i], fields[paf_i]
+            assert pif.shape[1] == 5
+            assert paf.shape[1] == 9
+
             normalized_pifs.append(pif)
             normalized_pafs.append(paf)
         LOG.debug('normalize time = %.3fs', time.perf_counter() - start)
@@ -103,7 +105,7 @@ class PifPafDijkstra(object):
         paf_scored.fill_sequence(
             normalized_pafs, self.strides, self.paf_min_distances, self.paf_max_distances)
 
-        gen = generator.Dijkstra(
+        gen = generator.Frontier(
             pifhr, paf_scored, seeds,
             seed_threshold=self.seed_threshold,
             connection_method=self.connection_method,
