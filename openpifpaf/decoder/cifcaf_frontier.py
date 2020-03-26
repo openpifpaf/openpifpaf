@@ -14,8 +14,6 @@ LOG = logging.getLogger(__name__)
 class CifCafFrontier(object):
     force_complete = True
     connection_method = 'blend'
-    fixed_b = None
-    pif_fixed_scale = None
     paf_th = 0.1
 
     def __init__(self, stride, *,

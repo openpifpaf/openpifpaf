@@ -15,7 +15,6 @@ LOG = logging.getLogger(__name__)
 class PifPaf(object):
     force_complete = True
     connection_method = 'blend'
-    fixed_b = None
     pif_fixed_scale = None
     paf_th = 0.1
 
@@ -66,7 +65,7 @@ class PifPaf(object):
             for stride, pif_i in zip(self.strides, self.pif_indices):
                 self.debug_visualizer.pif_raw(fields[pif_i], stride)
             for stride, paf_i in zip(self.strides, self.paf_indices):
-                self.debug_visualizer.paf_raw(fields[paf_i], stride, reg_components=3)
+                self.debug_visualizer.paf_raw(fields[paf_i], stride)
 
         # normalize
         normalized_pifs = [normalize_pif(*fields[pif_i], fixed_scale=self.pif_fixed_scale)

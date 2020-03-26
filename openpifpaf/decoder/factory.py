@@ -52,12 +52,6 @@ def cli(parser, *,
                        help='profile decoder')
 
     group = parser.add_argument_group('PifPaf decoders')
-    assert PifPaf.fixed_b == CifCafFrontier.fixed_b
-    group.add_argument('--fixed-b', default=PifPaf.fixed_b, type=float,
-                       help='overwrite b with fixed value, e.g. 0.5')
-    assert PifPaf.pif_fixed_scale == CifCafFrontier.pif_fixed_scale
-    group.add_argument('--pif-fixed-scale', default=PifPaf.pif_fixed_scale, type=float,
-                       help='overwrite pif scale with a fixed value')
     assert PifHr.v_threshold == PifHrNoScales.v_threshold
     group.add_argument('--pif-th', default=PifHr.v_threshold, type=float,
                        help='pif threshold')
@@ -74,25 +68,16 @@ def cli(parser, *,
 
 def configure(args):
     # configure PifPaf
-    PifPaf.fixed_b = args.fixed_b
-    PifPaf.pif_fixed_scale = args.pif_fixed_scale
     PifPaf.paf_th = args.paf_th
     PifPaf.connection_method = args.connection_method
     PifPaf.force_complete = args.force_complete_pose
 
     # configure CifCafFrontier
-    CifCafFrontier.fixed_b = args.fixed_b
-    CifCafFrontier.pif_fixed_scale = args.pif_fixed_scale
     CifCafFrontier.paf_th = args.paf_th
     CifCafFrontier.connection_method = args.connection_method
     CifCafFrontier.force_complete = args.force_complete_pose
 
-    # configure Pif
-    Pif.pif_fixed_scale = args.pif_fixed_scale
-
     # configure PafsDijkstra
-    PafsDijkstra.fixed_b = args.fixed_b
-    PafsDijkstra.pif_fixed_scale = args.pif_fixed_scale
     PafsDijkstra.paf_th = args.paf_th
     PafsDijkstra.connection_method = args.connection_method
     PafsDijkstra.force_complete = args.force_complete_pose
