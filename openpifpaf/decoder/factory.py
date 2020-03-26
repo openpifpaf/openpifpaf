@@ -5,6 +5,7 @@ from . import generator
 from .cifcaf import CifCaf
 from .pif import Pif
 from .pif_hr import PifHr
+from .pif_seeds import PifSeeds
 from .pafs_dijkstra import PafsDijkstra
 from .processor import Processor
 from .visualizer import Visualizer
@@ -77,8 +78,19 @@ def configure(args):
     # configure PifHr
     PifHr.v_threshold = args.pif_th
 
+    # configure PifSeeds
+    PifSeeds.threshold = args.seed_threshold
+
     # configure debug visualizer
     visualizer_configure(args)
+    debug_visualizer = None
+    if args.debug:
+        debug_visualizer = Visualizer(
+            keypoints=COCO_KEYPOINTS,
+            skeleton=COCO_PERSON_SKELETON + DENSER_COCO_PERSON_CONNECTIONS,
+        )
+    PifSeeds.debug_visualizer = debug_visualizer
+    Processor.debug_visualizer = debug_visualizer
 
     # default value for keypoint filter depends on whether complete pose is forced
     if args.keypoint_threshold is None:
@@ -103,26 +115,16 @@ def configure(args):
 def factory_from_args(args, model, device=None):
     configure(args)
 
-    debug_visualizer = None
-    if args.debug:
-        debug_visualizer = Visualizer(
-            keypoints=COCO_KEYPOINTS,
-            skeleton=COCO_PERSON_SKELETON + DENSER_COCO_PERSON_CONNECTIONS,
-        )
-
     decode = factory_decode(model,
                             dense_coupling=args.dense_coupling,
                             dense_connections=args.dense_connections,
                             paf_seeds=args.paf_seeds,
-                            seed_threshold=args.seed_threshold,
                             multi_scale=args.multi_scale,
-                            multi_scale_hflip=args.multi_scale_hflip,
-                            debug_visualizer=debug_visualizer)
+                            multi_scale_hflip=args.multi_scale_hflip)
 
     return Processor(model, decode,
                      instance_threshold=args.instance_threshold,
                      keypoint_threshold=args.keypoint_threshold,
-                     debug_visualizer=debug_visualizer,
                      profile=args.profile_decoder,
                      worker_pool=args.decoder_workers,
                      device=device)

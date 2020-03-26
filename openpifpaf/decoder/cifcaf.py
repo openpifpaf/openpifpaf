@@ -23,8 +23,6 @@ class CifCaf(object):
                  pif_min_scale=0.0,
                  paf_min_distance=0.0,
                  paf_max_distance=None,
-                 seed_threshold=0.2,
-                 seed_score_scale=1.0,
                  seed_mask=None,
                  confidence_scales=None,
                  out_skeleton=None,
@@ -55,8 +53,6 @@ class CifCaf(object):
         self.skeleton = skeleton
         self.out_skeleton = out_skeleton
 
-        self.seed_threshold = seed_threshold
-        self.seed_score_scale = seed_score_scale
         self.debug_visualizer = debug_visualizer
 
         self.seed_mask = seed_mask
@@ -79,9 +75,7 @@ class CifCaf(object):
         pifhr.fill_sequence(normalized_pifs, self.strides, self.pif_min_scales)
 
         # seeds
-        seeds = PifSeeds(pifhr.accumulated, self.seed_threshold,
-                         score_scale=self.seed_score_scale,
-                         debug_visualizer=self.debug_visualizer)
+        seeds = PifSeeds(pifhr.accumulated)
         normalized_seed_pifs = normalized_pifs
         if self.seed_mask is not None:
             normalized_seed_pifs = [p[self.seed_mask] for p in normalized_seed_pifs]

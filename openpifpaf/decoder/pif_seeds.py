@@ -7,27 +7,25 @@ from ..functional import scalar_values
 LOG = logging.getLogger(__name__)
 
 
-class PifSeeds(object):
-    def __init__(self, pifhr, seed_threshold, *,
-                 score_scale=1.0,
-                 debug_visualizer=None):
-        self.pifhr = pifhr
-        self.seed_threshold = seed_threshold
-        self.score_scale = score_scale
-        self.debug_visualizer = debug_visualizer
+class PifSeeds:
+    threshold = None
+    score_scale = 1.0
+    debug_visualizer = None
 
+    def __init__(self, pifhr):
+        self.pifhr = pifhr
         self.seeds = []
 
     def fill(self, pif, stride, min_scale=0.0):
         start = time.perf_counter()
 
         for field_i, p in enumerate(pif):
-            p = p[:, p[0] > self.seed_threshold / 2.0]
+            p = p[:, p[0] > self.threshold / 2.0]
             if min_scale:
                 p = p[:, p[4] > min_scale / stride]
             _, x, y, _, s = p
             v = scalar_values(self.pifhr[field_i], x * stride, y * stride)
-            m = v > self.seed_threshold
+            m = v > self.threshold
             x, y, v, s = x[m] * stride, y[m] * stride, v[m], s[m] * stride
 
             for vv, xx, yy, ss in zip(v, x, y, s):

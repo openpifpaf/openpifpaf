@@ -22,10 +22,11 @@ class DummyPool():
 
 
 class Processor(object):
+    debug_visualizer = None
+
     def __init__(self, model, decode, *,
                  output_stride=None,
                  keypoint_threshold=0.0, instance_threshold=0.0,
-                 debug_visualizer=None,
                  profile=None,
                  device=None,
                  worker_pool=None,
@@ -45,7 +46,6 @@ class Processor(object):
         self.output_stride = output_stride or model.head_strides[-1]
         self.keypoint_threshold = keypoint_threshold
         self.instance_threshold = instance_threshold
-        self.debug_visualizer = debug_visualizer
         self.profile = profile
         self.device = device
         self.worker_pool = worker_pool
