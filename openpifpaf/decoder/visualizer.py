@@ -298,7 +298,7 @@ class Visualizer(object):
                     q = show.quiver(ax, pif[f, 1:3], pif[f, 0],
                                     # reg_uncertainty=pif[f, 3],
                                     cmap='viridis_r', clim=(0.5, 1.0),
-                                    threshold=0.5, xy_scale=io_scale)
+                                    threshold=0.5, xy_scale=io_scale, width=0.001)
 
                     show.boxes(ax, pif[f, 4],
                                intensity_field=pif[f, 0],
