@@ -58,57 +58,6 @@ class Annotation(object):
         # return np.sum(self.score_weights * np.sort(np.square(v))[::-1])
         return np.sum(self.score_weights * np.sort(v)[::-1])
 
-    def frontier(self):
-        """Frontier to complete annotation.
-
-        Format: (
-            confidence of origin,
-            connection index,
-            forward?,
-            joint index 1,  (not corrected for forward)
-            joint index 2,  (not corrected for forward)
-        )
-        """
-        return sorted([
-            (self.data[j1i, 2], connection_i, True, j1i, j2i)
-            for connection_i, (j1i, j2i) in enumerate(self.skeleton_m1)
-            if self.data[j1i, 2] > 0.0 and self.data[j2i, 2] == 0.0
-        ] + [
-            (self.data[j2i, 2], connection_i, False, j1i, j2i)
-            for connection_i, (j1i, j2i) in enumerate(self.skeleton_m1)
-            if self.data[j2i, 2] > 0.0 and self.data[j1i, 2] == 0.0
-        ], reverse=True)
-
-    def frontier_iter(self):
-        frontier = list(self.frontier())
-        while frontier:
-            next_item = frontier.pop(0)
-            forward = next_item[2]
-            i_target = next_item[4] if forward else next_item[3]
-            xyv_target = self.data[i_target]
-
-            if xyv_target[2] != 0.0:
-                # another frontier connection has filled this joint
-                continue
-
-            yield next_item
-
-            if xyv_target[2] == 0.0:
-                # No connection created. Done.
-                continue
-
-            # Need to add connections starting from the new joint to the frontier.
-            frontier += [
-                (self.data[j1i, 2], connection_i, True, j1i, j2i)
-                for connection_i, (j1i, j2i) in enumerate(self.skeleton_m1)
-                if j1i == i_target and self.data[j2i, 2] == 0.0
-            ] + [
-                (self.data[j2i, 2], connection_i, False, j1i, j2i)
-                for connection_i, (j1i, j2i) in enumerate(self.skeleton_m1)
-                if j2i == i_target and self.data[j1i, 2] == 0.0
-            ]
-            frontier = list(sorted(frontier, reverse=True))
-
     def scale(self, v_th=0.5):
         m = self.data[:, 2] > v_th
         if not np.any(m):

@@ -14,7 +14,7 @@ LOG = logging.getLogger(__name__)
 
 def scale_from_keypoints(keypoints):
     visible = keypoints[:, 2] > 0
-    if not np.any(visible):
+    if np.sum(visible) < 3:
         return np.nan
 
     area = (

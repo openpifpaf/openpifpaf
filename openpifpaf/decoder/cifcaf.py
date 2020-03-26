@@ -7,15 +7,13 @@ from . import generator
 from .paf_scored import PafScored
 from .pif_hr import PifHr
 from .pif_seeds import PifSeeds
-from .utils import normalize_pif, normalize_paf
 
 LOG = logging.getLogger(__name__)
 
 
-class PifPaf(object):
+class CifCaf(object):
     force_complete = True
     connection_method = 'blend'
-    pif_fixed_scale = None
     paf_th = 0.1
 
     def __init__(self, stride, *,
@@ -26,6 +24,10 @@ class PifPaf(object):
                  paf_min_distance=0.0,
                  paf_max_distance=None,
                  seed_threshold=0.2,
+                 seed_score_scale=1.0,
+                 seed_mask=None,
+                 confidence_scales=None,
+                 out_skeleton=None,
                  debug_visualizer=None):
         self.strides = stride
         self.pif_indices = pif_index
@@ -51,12 +53,14 @@ class PifPaf(object):
 
         self.keypoints = keypoints
         self.skeleton = skeleton
+        self.out_skeleton = out_skeleton
 
         self.seed_threshold = seed_threshold
+        self.seed_score_scale = seed_score_scale
         self.debug_visualizer = debug_visualizer
 
-        self.pif_nn = 16
-        self.paf_nn = 1 if self.connection_method == 'max' else 35
+        self.seed_mask = seed_mask
+        self.confidence_scales = confidence_scales
 
     def __call__(self, fields, initial_annotations=None):
         start = time.perf_counter()
@@ -67,40 +71,40 @@ class PifPaf(object):
             for stride, paf_i in zip(self.strides, self.paf_indices):
                 self.debug_visualizer.paf_raw(fields[paf_i], stride)
 
-        # normalize
-        normalized_pifs = [normalize_pif(*fields[pif_i], fixed_scale=self.pif_fixed_scale)
-                           for pif_i in self.pif_indices]
-        normalized_pafs = [normalize_paf(*fields[paf_i], fixed_b=self.fixed_b)
-                           for paf_i in self.paf_indices]
+        normalized_pifs = [fields[pif_i] for pif_i in self.pif_indices]
+        normalized_pafs = [fields[paf_i] for paf_i in self.paf_indices]
 
         # pif hr
-        pifhr = PifHr(self.pif_nn)
+        pifhr = PifHr()
         pifhr.fill_sequence(normalized_pifs, self.strides, self.pif_min_scales)
 
         # seeds
-        seeds = PifSeeds(pifhr.target_accumulator, self.seed_threshold,
+        seeds = PifSeeds(pifhr.accumulated, self.seed_threshold,
+                         score_scale=self.seed_score_scale,
                          debug_visualizer=self.debug_visualizer)
-        seeds.fill_sequence(normalized_pifs, self.strides, self.pif_min_scales)
+        normalized_seed_pifs = normalized_pifs
+        if self.seed_mask is not None:
+            normalized_seed_pifs = [p[self.seed_mask] for p in normalized_seed_pifs]
+        seeds.fill_sequence(normalized_seed_pifs, self.strides, self.pif_min_scales)
 
         # paf_scored
-        paf_scored = PafScored(pifhr.targets, self.skeleton, score_th=self.paf_th)
+        paf_scored = PafScored(pifhr.accumulated, self.skeleton, score_th=self.paf_th)
         paf_scored.fill_sequence(
             normalized_pafs, self.strides, self.paf_min_distances, self.paf_max_distances)
 
-        gen = generator.Greedy(
+        gen = generator.Frontier(
             pifhr, paf_scored, seeds,
-            seed_threshold=self.seed_threshold,
             connection_method=self.connection_method,
-            paf_nn=self.paf_nn,
-            paf_th=self.paf_th,
             keypoints=self.keypoints,
             skeleton=self.skeleton,
+            out_skeleton=self.out_skeleton,
+            confidence_scales=self.confidence_scales,
             debug_visualizer=self.debug_visualizer,
         )
 
         annotations = gen.annotations(initial_annotations=initial_annotations)
         if self.force_complete:
-            gen.paf_scored = PafScored(pifhr.targets, self.skeleton, score_th=0.0001)
+            gen.paf_scored = PafScored(pifhr.accumulated, self.skeleton, score_th=0.0001)
             gen.paf_scored.fill_sequence(
                 normalized_pafs, self.strides, self.paf_min_distances, self.paf_max_distances)
             annotations = gen.complete_annotations(annotations)

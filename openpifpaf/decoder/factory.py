@@ -2,10 +2,9 @@ import logging
 
 from ..data import COCO_KEYPOINTS, COCO_PERSON_SKELETON, DENSER_COCO_PERSON_CONNECTIONS
 from . import generator
-from .cifcaf_frontier import CifCafFrontier
+from .cifcaf import CifCaf
 from .pif import Pif
-from .pif_hr import PifHr, PifHrNoScales
-from .pifpaf import PifPaf
+from .pif_hr import PifHr
 from .pafs_dijkstra import PafsDijkstra
 from .processor import Processor
 from .visualizer import Visualizer
@@ -52,30 +51,23 @@ def cli(parser, *,
                        help='profile decoder')
 
     group = parser.add_argument_group('PifPaf decoders')
-    assert PifHr.v_threshold == PifHrNoScales.v_threshold
     group.add_argument('--pif-th', default=PifHr.v_threshold, type=float,
                        help='pif threshold')
-    assert PifPaf.paf_th == CifCafFrontier.paf_th
-    assert PifPaf.paf_th == PafsDijkstra.paf_th
-    group.add_argument('--paf-th', default=PifPaf.paf_th, type=float,
+    group.add_argument('--paf-th', default=CifCaf.paf_th, type=float,
                        help='paf threshold')
-    assert PifPaf.connection_method == CifCafFrontier.connection_method
     group.add_argument('--connection-method',
-                       default=PifPaf.connection_method,
+                       default=CifCaf.connection_method,
                        choices=('median', 'max', 'blend'),
                        help='connection method to use, max is faster')
+    group.add_argument('--greedy', default=False, action='store_true',
+                       help='greedy decoding')
 
 
 def configure(args):
-    # configure PifPaf
-    PifPaf.paf_th = args.paf_th
-    PifPaf.connection_method = args.connection_method
-    PifPaf.force_complete = args.force_complete_pose
-
-    # configure CifCafFrontier
-    CifCafFrontier.paf_th = args.paf_th
-    CifCafFrontier.connection_method = args.connection_method
-    CifCafFrontier.force_complete = args.force_complete_pose
+    # configure CifCaf
+    CifCaf.paf_th = args.paf_th
+    CifCaf.connection_method = args.connection_method
+    CifCaf.force_complete = args.force_complete_pose
 
     # configure PafsDijkstra
     PafsDijkstra.paf_th = args.paf_th
@@ -84,7 +76,6 @@ def configure(args):
 
     # configure PifHr
     PifHr.v_threshold = args.pif_th
-    PifHrNoScales.v_threshold = args.pif_th
 
     # configure debug visualizer
     visualizer_configure(args)
@@ -100,7 +91,7 @@ def configure(args):
 
     # configure decoder generator
     generator.Frontier.keypoint_threshold = args.keypoint_threshold
-    generator.Greedy.keypoint_threshold = args.keypoint_threshold
+    generator.Frontier.greedy = args.greedy
 
     # decoder workers
     if args.decoder_workers is None and \
@@ -152,14 +143,6 @@ def factory_decode(model, *,
     if head_names in (('cif',),):
         return Pif(model.head_strides[-1], head_index=0, **kwargs)
 
-    if head_names in (('cif', 'paf'),
-                      ('cif', 'paf44'),
-                      ('cif', 'paf16')):
-        return PifPaf(model.head_strides[-1],
-                      keypoints=COCO_KEYPOINTS,
-                      skeleton=COCO_PERSON_SKELETON,
-                      **kwargs)
-
     if head_names in (('cif', 'caf', 'caf25'),):
         if dense_connections:
             confidence_scales = (
@@ -181,7 +164,7 @@ def factory_decode(model, *,
                 confidence_scales=confidence_scales,
                 **kwargs
             )
-        return CifCafFrontier(
+        return CifCaf(
             model.head_strides[-1],
             pif_index=0,
             paf_index=1,
@@ -232,7 +215,7 @@ def factory_decode(model, *,
                 [1.0 for _ in COCO_PERSON_SKELETON] +
                 [dense_coupling for _ in DENSER_COCO_PERSON_CONNECTIONS]
             )
-            return CifCafFrontier(
+            return CifCaf(
                 stride,
                 pif_index=pif_index,
                 paf_index=paf_index,
@@ -245,7 +228,7 @@ def factory_decode(model, *,
                 **kwargs
             )
 
-        return PifPaf(
+        return CifCaf(
             stride,
             pif_index=pif_index,
             paf_index=paf_index,

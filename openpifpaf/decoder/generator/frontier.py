@@ -6,6 +6,9 @@ import time
 import numpy as np
 
 from ..annotation import Annotation
+from ..pif_hr import PifHr
+from ..pif_seeds import PifSeeds
+from ..paf_scored import PafScored
 from ..occupancy import Occupancy
 
 # pylint: disable=import-error
@@ -15,13 +18,11 @@ LOG = logging.getLogger(__name__)
 
 
 class Frontier(object):
+    greedy = False
     keypoint_threshold = 0.0
 
-    def __init__(self, pifhr, paf_scored, seeds, *,
-                 seed_threshold,
+    def __init__(self, pifhr: PifHr, paf_scored: PafScored, seeds: PifSeeds, *,
                  connection_method,
-                 paf_nn,
-                 paf_th,
                  keypoints,
                  skeleton,
                  out_skeleton=None,
@@ -30,11 +31,7 @@ class Frontier(object):
         self.pifhr = pifhr
         self.paf_scored = paf_scored
         self.seeds = seeds
-
-        self.seed_threshold = seed_threshold
         self.connection_method = connection_method
-        self.paf_nn = paf_nn
-        self.paf_th = paf_th
 
         self.keypoints = keypoints
         self.skeleton = skeleton
@@ -57,7 +54,7 @@ class Frontier(object):
 
         # pif init
         if self.debug_visualizer:
-            self.debug_visualizer.pifhr(self.pifhr.targets)
+            self.debug_visualizer.pifhr(self.pifhr.accumulated)
 
     def annotations(self, initial_annotations=None):
         start = time.perf_counter()
@@ -65,7 +62,7 @@ class Frontier(object):
             initial_annotations = []
         LOG.debug('initial annotations = %d', len(initial_annotations))
 
-        occupied = Occupancy(self.pifhr.targets.shape, 2, min_scale=4)
+        occupied = Occupancy(self.pifhr.accumulated.shape, 2, min_scale=4)
         annotations = []
 
         def mark_occupied(ann):
@@ -77,7 +74,7 @@ class Frontier(object):
                 occupied.set(joint_i, xyv[0], xyv[1], width)
 
         for ann in initial_annotations:
-            self._grow(ann, self.paf_th)
+            self._grow(ann)
             annotations.append(ann)
             mark_occupied(ann)
 
@@ -87,7 +84,7 @@ class Frontier(object):
 
             ann = Annotation(self.keypoints, self.out_skeleton).add(f, (x, y, v))
             ann.joint_scales[f] = s
-            self._grow(ann, self.paf_th)
+            self._grow(ann)
             annotations.append(ann)
             mark_occupied(ann)
 
@@ -166,7 +163,7 @@ class Frontier(object):
             0.5 * (score_1 + score_2),
         )
 
-    def connection_value(self, ann, paf_i, forward, th, reverse_match=True):
+    def connection_value(self, ann, paf_i, forward, *, reverse_match=True):
         j1i, j2i = self.skeleton_m1[paf_i]
         if forward:
             jsi = j1i
@@ -183,7 +180,7 @@ class Frontier(object):
         keypoint_score = np.sqrt(new_xysv[3] * xyv[2])  # geometric mean
         if keypoint_score < self.keypoint_threshold:
             return 0.0, 0.0, 0.0, 0.0
-        if new_xysv[3] < th:
+        if new_xysv[3] == 0.0:
             return 0.0, 0.0, 0.0, 0.0
         xy_scale_t = max(0.0, new_xysv[2])
 
@@ -191,7 +188,7 @@ class Frontier(object):
         if reverse_match:
             reverse_xyv = self._grow_connection(
                 new_xysv[:2], xy_scale_t, directed_paf_field_reverse)
-            if reverse_xyv[2] < th:
+            if reverse_xyv[2] == 0.0:
                 return 0.0, 0.0, 0.0, 0.0
             if abs(xyv[0] - reverse_xyv[0]) + abs(xyv[1] - reverse_xyv[1]) > xy_scale_s:
                 return 0.0, 0.0, 0.0, 0.0
@@ -226,7 +223,7 @@ class Frontier(object):
         )
         return np.sqrt(source_xyv[2] * max(scores))
 
-    def _grow(self, ann, th, reverse_match=True):
+    def _grow(self, ann, *, reverse_match=True):
         frontier = PriorityQueue()
         in_frontier = set()
 
@@ -255,10 +252,12 @@ class Frontier(object):
                     continue
 
                 new_xysv = self.connection_value(
-                    ann, paf_i, forward, th, reverse_match=reverse_match)
+                    ann, paf_i, forward, reverse_match=reverse_match)
                 if new_xysv[3] == 0.0:
                     continue
                 score = new_xysv[3]
+                if self.greedy:
+                    return (-score, new_xysv, start_i, end_i)
                 if self.confidence_scales is not None:
                     score *= self.confidence_scales[paf_i]
                 frontier.put((-score, new_xysv, start_i, end_i))
@@ -285,25 +284,35 @@ class Frontier(object):
                 (jsi, jti, np.copy(ann.data[jsi]), np.copy(ann.data[jti])))
             add_to_frontier(jti)
 
-    @staticmethod
-    def _flood_fill(ann):
-        for _, _, forward, j1i, j2i in ann.frontier_iter():
-            if forward:
-                xyv_s = ann.data[j1i]
-                xyv_t = ann.data[j2i]
-            else:
-                xyv_s = ann.data[j2i]
-                xyv_t = ann.data[j1i]
+    def _flood_fill(self, ann):
+        frontier = PriorityQueue()
 
-            xyv_t[:2] = xyv_s[:2]
-            xyv_t[2] = 0.00001
+        def add_to_frontier(start_i):
+            for _, __, end_i in self.by_source[start_i]:
+                if ann.data[end_i, 2] > 0.0:
+                    continue
+                frontier.put((-xyv[2], end_i, ann.data[start_i].tolist(), ann.joint_scales[start_i]))
+
+        for start_i, xyv in enumerate(ann.data):
+            if xyv[2] == 0.0:
+                continue
+            add_to_frontier(start_i)
+
+        while frontier.qsize():
+            _, end_i, xyv, s = frontier.get()
+            if ann.data[end_i, 2] > 0.0:
+                continue
+            ann.data[end_i, :2] = xyv[:2]
+            ann.data[end_i, 2] = 0.00001
+            ann.joint_scales[end_i] = s
+            add_to_frontier(end_i)
 
     def complete_annotations(self, annotations):
         start = time.perf_counter()
 
         for ann in annotations:
             unfilled_mask = ann.data[:, 2] == 0.0
-            self._grow(ann, th=1e-8, reverse_match=False)
+            self._grow(ann, reverse_match=False)
             now_filled_mask = ann.data[:, 2] > 0.0
             updated = np.logical_and(unfilled_mask, now_filled_mask)
             ann.data[updated, 2] = np.minimum(0.001, ann.data[updated, 2])
