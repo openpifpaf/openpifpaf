@@ -11,11 +11,13 @@ LOG = logging.getLogger(__name__)
 
 
 class PafScored(object):
-    def __init__(self, pifhr, config: FieldConfig, skeleton, *, score_th, pif_floor=0.1):
+    default_score_th = 0.1
+
+    def __init__(self, pifhr, config: FieldConfig, skeleton, *, score_th=None, pif_floor=0.1):
         self.pifhr = pifhr
         self.config = config
         self.skeleton = skeleton
-        self.score_th = score_th
+        self.score_th = score_th or self.default_score_th
         self.pif_floor = pif_floor
 
         self.forward = None

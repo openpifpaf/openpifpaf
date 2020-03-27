@@ -2,12 +2,10 @@ import logging
 
 from ..data import COCO_KEYPOINTS, COCO_PERSON_SKELETON, DENSER_COCO_PERSON_CONNECTIONS
 from . import generator
-from .cifcaf import CifCaf
 from .field_config import FieldConfig
-from .pif import Pif
+from .paf_scored import PafScored
 from .pif_hr import PifHr
 from .pif_seeds import PifSeeds
-from .pafs_dijkstra import PafsDijkstra
 from .processor import Processor
 from .visualizer import Visualizer
 from .visualizer import cli as visualizer_cli
@@ -55,32 +53,25 @@ def cli(parser, *,
     group = parser.add_argument_group('PifPaf decoders')
     group.add_argument('--pif-th', default=PifHr.v_threshold, type=float,
                        help='pif threshold')
-    group.add_argument('--paf-th', default=CifCaf.paf_th, type=float,
+    group.add_argument('--paf-th', default=PafScored.default_score_th, type=float,
                        help='paf threshold')
     group.add_argument('--connection-method',
-                       default=CifCaf.connection_method,
-                       choices=('median', 'max', 'blend'),
+                       default=generator.CifCaf.connection_method,
+                       choices=('max', 'blend'),
                        help='connection method to use, max is faster')
     group.add_argument('--greedy', default=False, action='store_true',
                        help='greedy decoding')
 
 
 def configure(args):
-    # configure CifCaf
-    CifCaf.paf_th = args.paf_th
-    CifCaf.connection_method = args.connection_method
-    CifCaf.force_complete = args.force_complete_pose
-
-    # configure PafsDijkstra
-    PafsDijkstra.paf_th = args.paf_th
-    PafsDijkstra.connection_method = args.connection_method
-    PafsDijkstra.force_complete = args.force_complete_pose
-
     # configure PifHr
     PifHr.v_threshold = args.pif_th
 
     # configure PifSeeds
     PifSeeds.threshold = args.seed_threshold
+
+    # configure PafScored
+    PafScored.default_score_th = args.paf_th
 
     # configure debug visualizer
     visualizer_configure(args)
@@ -92,6 +83,7 @@ def configure(args):
         )
     PifSeeds.debug_visualizer = debug_visualizer
     Processor.debug_visualizer = debug_visualizer
+    generator.CifCaf.debug_visualizer = debug_visualizer
 
     # default value for keypoint filter depends on whether complete pose is forced
     if args.keypoint_threshold is None:
@@ -103,8 +95,10 @@ def configure(args):
     assert args.seed_threshold >= args.keypoint_threshold
 
     # configure decoder generator
-    generator.Frontier.keypoint_threshold = args.keypoint_threshold
-    generator.Frontier.greedy = args.greedy
+    generator.CifCaf.force_complete = args.force_complete_pose
+    generator.CifCaf.keypoint_threshold = args.keypoint_threshold
+    generator.CifCaf.greedy = args.greedy
+    generator.CifCaf.connection_method = args.connection_method
 
     # decoder workers
     if args.decoder_workers is None and \
@@ -144,8 +138,8 @@ def factory_decode(model, *,
     head_names = tuple(model.head_names)
     LOG.debug('head names = %s', head_names)
 
-    if head_names in (('cif',),):
-        return Pif(model.head_strides[0], head_index=0, **kwargs)
+    if head_names in (('cifdet',),):
+        return CifDet(model.head_strides[0], head_index=0, **kwargs)
 
     if head_names in (('cif', 'caf', 'caf25'),):
         field_config = FieldConfig()
@@ -184,7 +178,7 @@ def factory_decode(model, *,
         else:
             skeleton = COCO_PERSON_SKELETON
 
-        return CifCaf(
+        return generator.CifCaf(
             field_config,
             keypoints=COCO_KEYPOINTS,
             skeleton=skeleton,

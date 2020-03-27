@@ -6,6 +6,7 @@ import time
 import numpy as np
 
 from ..annotation import Annotation
+from ..field_config import FieldConfig
 from ..pif_hr import PifHr
 from ..pif_seeds import PifSeeds
 from ..paf_scored import PafScored
@@ -17,21 +18,19 @@ from ...functional import paf_center_s
 LOG = logging.getLogger(__name__)
 
 
-class Frontier(object):
+class CifCaf(object):
+    connection_method = 'blend'
+    debug_visualizer = None
+    force_complete = False
     greedy = False
     keypoint_threshold = 0.0
 
-    def __init__(self, pifhr: PifHr, paf_scored: PafScored, seeds: PifSeeds, *,
-                 connection_method,
+    def __init__(self, field_config: FieldConfig, *,
                  keypoints,
                  skeleton,
                  out_skeleton=None,
-                 confidence_scales=None,
-                 debug_visualizer=None):
-        self.pifhr = pifhr
-        self.paf_scored = paf_scored
-        self.seeds = seeds
-        self.connection_method = connection_method
+                 confidence_scales=None):
+        self.field_config = field_config
 
         self.keypoints = keypoints
         self.skeleton = skeleton
@@ -39,7 +38,6 @@ class Frontier(object):
         self.out_skeleton = out_skeleton or skeleton
         self.confidence_scales = confidence_scales
 
-        self.debug_visualizer = debug_visualizer
         self.timers = defaultdict(float)
 
         # init by_target and by_source
@@ -52,17 +50,27 @@ class Frontier(object):
             self.by_source[j1].append((paf_i, True, j2))
             self.by_source[j2].append((paf_i, False, j1))
 
-        # pif init
-        if self.debug_visualizer:
-            self.debug_visualizer.pifhr(self.pifhr.accumulated)
-
-    def annotations(self, initial_annotations=None):
+    def __call__(self, fields, initial_annotations=None):
         start = time.perf_counter()
         if not initial_annotations:
             initial_annotations = []
         LOG.debug('initial annotations = %d', len(initial_annotations))
 
-        occupied = Occupancy(self.pifhr.accumulated.shape, 2, min_scale=4)
+        if self.debug_visualizer:
+            for stride, pif_i in zip(self.field_config.cif_strides, self.field_config.cif_indices):
+                self.debug_visualizer.pif_raw(fields[pif_i], stride)
+            for stride, paf_i in zip(self.field_config.caf_strides, self.field_config.caf_indices):
+                self.debug_visualizer.paf_raw(fields[paf_i], stride)
+
+        pifhr = PifHr(self.field_config).fill(fields)
+        seeds = PifSeeds(pifhr.accumulated, self.field_config).fill(fields)
+        # TODO make paf_scored not part of self?
+        self.paf_scored = PafScored(pifhr.accumulated, self.field_config, self.skeleton).fill(fields)
+        # pif init
+        if self.debug_visualizer:
+            self.debug_visualizer.pifhr(pifhr.accumulated)
+
+        occupied = Occupancy(pifhr.accumulated.shape, 2, min_scale=4)
         annotations = []
 
         def mark_occupied(ann):
@@ -78,7 +86,7 @@ class Frontier(object):
             annotations.append(ann)
             mark_occupied(ann)
 
-        for v, f, x, y, s in self.seeds.get():
+        for v, f, x, y, s in seeds.get():
             if occupied.get(f, x, y):
                 continue
 
@@ -91,7 +99,11 @@ class Frontier(object):
         if self.debug_visualizer:
             self.debug_visualizer.occupied(occupied)
 
-        LOG.debug('keypoint sets %d, %.3fs', len(annotations), time.perf_counter() - start)
+        LOG.debug('annotations %d, %.3fs', len(annotations), time.perf_counter() - start)
+
+        if self.force_complete:
+            annotations = self.complete_annotations(pifhr, fields, annotations)
+
         return annotations
 
     def _grow_connection(self, xy, xy_scale, paf_field):
@@ -307,8 +319,11 @@ class Frontier(object):
             ann.joint_scales[end_i] = s
             add_to_frontier(end_i)
 
-    def complete_annotations(self, annotations):
+    def complete_annotations(self, pifhr, fields, annotations):
         start = time.perf_counter()
+
+        self.paf_scored = PafScored(pifhr.accumulated, self.field_config, self.skeleton,
+                                    score_th=0.0001).fill(fields)
 
         for ann in annotations:
             unfilled_mask = ann.data[:, 2] == 0.0
