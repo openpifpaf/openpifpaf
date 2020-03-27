@@ -3,6 +3,8 @@ import time
 
 # pylint: disable=import-error
 from ..functional import scalar_values
+from .field_config import FieldConfig
+from .pif_hr import PifHr
 
 LOG = logging.getLogger(__name__)
 
@@ -12,14 +14,17 @@ class PifSeeds:
     score_scale = 1.0
     debug_visualizer = None
 
-    def __init__(self, pifhr):
+    def __init__(self, pifhr: PifHr, config: FieldConfig):
         self.pifhr = pifhr
+        self.config = config
         self.seeds = []
 
-    def fill(self, pif, stride, min_scale=0.0):
+    def fill_cif(self, cif, stride, *, min_scale=0.0, seed_mask=None):
         start = time.perf_counter()
 
-        for field_i, p in enumerate(pif):
+        for field_i, p in enumerate(cif):
+            if seed_mask is not None and not seed_mask[field_i]:
+                continue
             p = p[:, p[0] > self.threshold / 2.0]
             if min_scale:
                 p = p[:, p[4] > min_scale / stride]
@@ -45,8 +50,12 @@ class PifSeeds:
 
         return sorted(self.seeds, reverse=True)
 
-    def fill_sequence(self, pifs, strides, min_scales):
-        for pif, stride, min_scale in zip(pifs, strides, min_scales):
-            self.fill(pif, stride, min_scale=min_scale)
+    def fill(self, fields):
+        for cif_i, stride, min_scale in zip(self.config.cif_indices,
+                                            self.config.cif_strides,
+                                            self.config.cif_min_scales):
+            self.fill_cif(fields[cif_i], stride,
+                          min_scale=min_scale,
+                          seed_mask=self.config.seed_mask)
 
         return self

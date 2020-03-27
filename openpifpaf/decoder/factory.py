@@ -3,6 +3,7 @@ import logging
 from ..data import COCO_KEYPOINTS, COCO_PERSON_SKELETON, DENSER_COCO_PERSON_CONNECTIONS
 from . import generator
 from .cifcaf import CifCaf
+from .field_config import FieldConfig
 from .pif import Pif
 from .pif_hr import PifHr
 from .pif_seeds import PifSeeds
@@ -138,107 +139,56 @@ def factory_decode(model, *,
                    multi_scale_hflip=True,
                    **kwargs):
     """Instantiate a decoder."""
+    assert not paf_seeds, 'not implemented'
 
     head_names = tuple(model.head_names)
     LOG.debug('head names = %s', head_names)
 
     if head_names in (('cif',),):
-        return Pif(model.head_strides[-1], head_index=0, **kwargs)
+        return Pif(model.head_strides[0], head_index=0, **kwargs)
 
     if head_names in (('cif', 'caf', 'caf25'),):
+        field_config = FieldConfig()
+
+        if multi_scale:
+            if not dense_connections:
+                field_config.cif_indices = [v * 3 for v in range(5)]
+                field_config.caf_indices = [v * 3 + 1 for v in range(5)]
+            else:
+                field_config.cif_indices = [v * 2 for v in range(5)]
+                field_config.caf_indices = [v * 2 + 1 for v in range(5)]
+            field_config.cif_strides = [model.head_strides[i] for i in field_config.cif_indices]
+            field_config.caf_strides = [model.head_strides[i] for i in field_config.caf_indices]
+            field_config.cif_min_scales = [0.0, 12.0, 16.0, 24.0, 40.0]
+            field_config.caf_min_distances = [v * 3.0 for v in field_config.cif_min_scales]
+            field_config.caf_max_distances = [160.0, 240.0, 320.0, 480.0, None]
+        if multi_scale and multi_scale_hflip:
+            if not dense_connections:
+                field_config.cif_indices = [v * 3 for v in range(10)]
+                field_config.caf_indices = [v * 3 + 1 for v in range(10)]
+            else:
+                field_config.cif_indices = [v * 2 for v in range(10)]
+                field_config.caf_indices = [v * 2 + 1 for v in range(10)]
+            field_config.cif_strides = [model.head_strides[i] for i in field_config.cif_indices]
+            field_config.caf_strides = [model.head_strides[i] for i in field_config.caf_indices]
+            field_config.cif_min_scales *= 2
+            field_config.caf_min_distances *= 2
+            field_config.caf_max_distances *= 2
+
         if dense_connections:
-            confidence_scales = (
+            field_config.confidence_scales = (
                 [1.0 for _ in COCO_PERSON_SKELETON] +
                 [dense_coupling for _ in DENSER_COCO_PERSON_CONNECTIONS]
             )
             skeleton = COCO_PERSON_SKELETON + DENSER_COCO_PERSON_CONNECTIONS
         else:
-            confidence_scales = None
             skeleton = COCO_PERSON_SKELETON
 
-        if paf_seeds:
-            return PafsDijkstra(
-                model.head_strides[-1],
-                paf_index=1,
-                keypoints=COCO_KEYPOINTS,
-                skeleton=skeleton,
-                out_skeleton=COCO_PERSON_SKELETON,
-                confidence_scales=confidence_scales,
-                **kwargs
-            )
         return CifCaf(
-            model.head_strides[-1],
-            pif_index=0,
-            paf_index=1,
+            field_config,
             keypoints=COCO_KEYPOINTS,
             skeleton=skeleton,
             out_skeleton=COCO_PERSON_SKELETON,
-            confidence_scales=confidence_scales,
-            **kwargs
-        )
-
-    if head_names in (('cif', 'paf', 'paf25'),):
-        stride = model.head_strides[-1]
-        pif_index = 0
-        paf_index = 1
-        pif_min_scale = 0.0
-        paf_min_distance = 0.0
-        paf_max_distance = None
-        if multi_scale and multi_scale_hflip:
-            resolutions = [1, 1.5, 2, 3, 5] * 2
-            stride = [model.head_strides[-1] * r for r in resolutions]
-            if not dense_connections:
-                pif_index = [v * 3 for v in range(10)]
-                paf_index = [v * 3 + 1 for v in range(10)]
-            else:
-                pif_index = [v * 2 for v in range(10)]
-                paf_index = [v * 2 + 1 for v in range(10)]
-            pif_min_scale = [0.0, 12.0, 16.0, 24.0, 40.0] * 2
-            paf_min_distance = [v * 3.0 for v in pif_min_scale]
-            paf_max_distance = [160.0, 240.0, 320.0, 480.0, None] * 2
-            # paf_max_distance = [128.0, 192.0, 256.0, 384.0, None] * 2
-        elif multi_scale and not multi_scale_hflip:
-            resolutions = [1, 1.5, 2, 3, 5]
-            stride = [model.head_strides[-1] * r for r in resolutions]
-            if not dense_connections:
-                pif_index = [v * 3 for v in range(5)]
-                paf_index = [v * 3 + 1 for v in range(5)]
-            else:
-                pif_index = [v * 2 for v in range(5)]
-                paf_index = [v * 2 + 1 for v in range(5)]
-            pif_min_scale = [0.0, 12.0, 16.0, 24.0, 40.0]
-            paf_min_distance = [v * 3.0 for v in pif_min_scale]
-            paf_max_distance = [160.0, 240.0, 320.0, 480.0, None]
-            # paf_max_distance = [128.0, 192.0, 256.0, 384.0, None]
-
-        if dense_connections:
-            LOG.warning('using dense connections')
-            confidence_scales = (
-                [1.0 for _ in COCO_PERSON_SKELETON] +
-                [dense_coupling for _ in DENSER_COCO_PERSON_CONNECTIONS]
-            )
-            return CifCaf(
-                stride,
-                pif_index=pif_index,
-                paf_index=paf_index,
-                pif_min_scale=pif_min_scale,
-                paf_min_distance=paf_min_distance,
-                paf_max_distance=paf_max_distance,
-                keypoints=COCO_KEYPOINTS,
-                skeleton=COCO_PERSON_SKELETON + DENSER_COCO_PERSON_CONNECTIONS,
-                confidence_scales=confidence_scales,
-                **kwargs
-            )
-
-        return CifCaf(
-            stride,
-            pif_index=pif_index,
-            paf_index=paf_index,
-            pif_min_scale=pif_min_scale,
-            paf_min_distance=paf_min_distance,
-            paf_max_distance=paf_max_distance,
-            keypoints=COCO_KEYPOINTS,
-            skeleton=COCO_PERSON_SKELETON,
             **kwargs
         )
 

@@ -5,6 +5,7 @@ import numpy as np
 
 # pylint: disable=import-error
 from ..functional import scalar_square_add_gauss_with_max
+from .field_config import FieldConfig
 
 LOG = logging.getLogger(__name__)
 
@@ -13,11 +14,12 @@ class PifHr(object):
     neighbors = 16
     v_threshold = 0.1
 
-    def __init__(self):
+    def __init__(self, config: FieldConfig):
+        self.config = config
         self.accumulated = None
 
-    def fill(self, pif, stride, min_scale=0.0):
-        return self.fill_multiple([pif], stride, min_scale)
+    def fill_cif(self, cif, stride, min_scale=0.0):
+        return self.fill_multiple([cif], stride, min_scale)
 
     def fill_multiple(self, pifs, stride, min_scale=0.0):
         start = time.perf_counter()
@@ -54,12 +56,17 @@ class PifHr(object):
         LOG.debug('target_intensities %.3fs', time.perf_counter() - start)
         return self
 
-    def fill_sequence(self, pifs, strides, min_scales):
-        if len(pifs) == 10:
-            for pif1, pif2, stride, min_scale in zip(pifs[:5], pifs[5:], strides, min_scales):
-                self.fill_multiple([pif1, pif2], stride, min_scale=min_scale)
+    def fill(self, fields):
+        if len(self.config.cif_indices) == 10:
+            for cif_i1, cif_i2, stride, min_scale in zip(self.config.cif_indices[:5],
+                                                         self.config.cif_indices[5:],
+                                                         self.config.cif_strides[:5],
+                                                         self.config.cif_min_scales[:5]):
+                self.fill_multiple([fields[cif_i1], fields[cif_i2]], stride, min_scale=min_scale)
         else:
-            for pif, stride, min_scale in zip(pifs, strides, min_scales):
-                self.fill(pif, stride, min_scale=min_scale)
+            for cif_i, stride, min_scale in zip(self.config.cif_indices,
+                                                self.config.cif_strides,
+                                                self.config.cif_min_scales):
+                self.fill_cif(fields[cif_i], stride, min_scale=min_scale)
 
         return self

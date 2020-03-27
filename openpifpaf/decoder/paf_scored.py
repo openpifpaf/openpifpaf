@@ -5,13 +5,15 @@ import numpy as np
 
 # pylint: disable=import-error
 from ..functional import scalar_values
+from .field_config import FieldConfig
 
 LOG = logging.getLogger(__name__)
 
 
 class PafScored(object):
-    def __init__(self, pifhr, skeleton, *, score_th, pif_floor=0.1):
+    def __init__(self, pifhr, config: FieldConfig, skeleton, *, score_th, pif_floor=0.1):
         self.pifhr = pifhr
+        self.config = config
         self.skeleton = skeleton
         self.score_th = score_th
         self.pif_floor = pif_floor
@@ -19,7 +21,7 @@ class PafScored(object):
         self.forward = None
         self.backward = None
 
-    def fill(self, paf, stride, min_distance=0.0, max_distance=None):
+    def fill_caf(self, paf, stride, min_distance=0.0, max_distance=None):
         start = time.perf_counter()
 
         if self.forward is None:
@@ -76,9 +78,13 @@ class PafScored(object):
                   time.perf_counter() - start)
         return self
 
-    def fill_sequence(self, pafs, strides, min_distances, max_distances):
-        for paf, stride, min_distance, max_distance in zip(
-                pafs, strides, min_distances, max_distances):
-            self.fill(paf, stride, min_distance=min_distance, max_distance=max_distance)
+    def fill(self, fields):
+        for caf_i, stride, min_distance, max_distance in zip(
+                self.config.caf_indices,
+                self.config.caf_strides,
+                self.config.caf_min_distances,
+                self.config.caf_max_distances):
+            self.fill_caf(fields[caf_i], stride,
+                          min_distance=min_distance, max_distance=max_distance)
 
         return self
