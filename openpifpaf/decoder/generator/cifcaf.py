@@ -21,7 +21,7 @@ LOG = logging.getLogger(__name__)
 class CifCaf(object):
     connection_method = 'blend'
     debug_visualizer = None
-    force_complete = False
+    force_complete = None
     greedy = False
     keypoint_threshold = 0.0
 
@@ -30,6 +30,8 @@ class CifCaf(object):
                  skeleton,
                  out_skeleton=None,
                  confidence_scales=None):
+        assert self.force_complete is not None, 'must configure generator.CifCaf'
+
         self.field_config = field_config
 
         self.keypoints = keypoints
