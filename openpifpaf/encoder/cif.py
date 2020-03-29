@@ -6,7 +6,7 @@ import scipy.ndimage
 import torch
 
 from .annrescaler import AnnRescaler
-from .visualizer import CifVisualizer
+from ..visualizer import Cif as CifVisualizer
 from ..utils import create_sink, mask_valid_area
 
 LOG = logging.getLogger(__name__)
@@ -22,7 +22,7 @@ def scale_from_keypoints(keypoints):
         (np.max(keypoints[visible, 1]) - np.min(keypoints[visible, 1]))
     )
     scale = np.sqrt(area)
-    if scale < 1.0:
+    if scale < 0.1:
         scale = np.nan
 
     LOG.debug('instance scale = %.3f', scale)
@@ -72,7 +72,9 @@ class CifGenerator(object):
         self.fill(keypoint_sets)
         fields = self.fields(valid_area)
 
-        self.config.visualizer(image, fields, meta, keypoint_sets=keypoint_sets)
+        self.config.visualizer.processed_image(image)
+        self.config.visualizer.targets(fields, meta=meta, keypoint_sets=keypoint_sets)
+
         return fields
 
     def init_fields(self, n_fields, bg_mask):

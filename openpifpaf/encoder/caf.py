@@ -6,7 +6,7 @@ import torch
 
 from .annrescaler import AnnRescaler
 from .cif import scale_from_keypoints, CifGenerator
-from .visualizer import CafVisualizer
+from ..visualizer import Caf as CafVisualizer
 from ..utils import create_sink, mask_valid_area
 
 LOG = logging.getLogger(__name__)
@@ -68,7 +68,9 @@ class CafGenerator:
         self.fill(keypoint_sets)
         fields = self.fields(valid_area)
 
-        self.config.visualizer(image, fields, meta, keypoint_sets=keypoint_sets)
+        self.config.visualizer.processed_image(image)
+        self.config.visualizer.targets(fields, meta=meta, keypoint_sets=keypoint_sets)
+
         return fields
 
     def init_fields(self, bg_mask):

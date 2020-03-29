@@ -48,6 +48,7 @@ setup(
         'openpifpaf.encoder',
         'openpifpaf.network',
         'openpifpaf.transforms',
+        'openpifpaf.visualizer',
     ],
     license='GNU AGPLv3',
     description='PifPaf: Composite Fields for Human Pose Estimation',

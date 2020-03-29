@@ -3,7 +3,7 @@ import re
 
 from .caf import Caf
 from .cif import Cif
-from .visualizer import CifVisualizer, CafVisualizer
+from .. import visualizer
 
 from ..data import (COCO_KEYPOINTS, COCO_PERSON_SKELETON, COCO_PERSON_SIGMAS,
                     DENSER_COCO_PERSON_SKELETON,
@@ -40,10 +40,15 @@ def configure(args):
     Caf.aspect_ratio = args.caf_aspect_ratio
 
     # configure visualizer
-    if args.debug_indices:
-        args.debug = True
     args.debug_indices = [di.partition(':') for di in args.debug_indices]
     args.debug_indices = [(di[0], int(di[2])) for di in args.debug_indices]
+    if args.debug_indices:
+        visualizer.Cif.show_background = True
+        visualizer.Cif.show_confidences = True
+        visualizer.Cif.show_regressions = True
+        visualizer.Caf.show_background = True
+        visualizer.Caf.show_confidences = True
+        visualizer.Caf.show_regressions = True
 
 
 def factory(headnames, strides, debug_indices):
@@ -68,12 +73,13 @@ def factory_head(head_name, stride, debug_indices):
         LOG.debug('using %d keypoints for CIF', n_keypoints)
 
         LOG.info('selected encoder CIF for %s with %d keypoints', head_name, n_keypoints)
-        visualizer = CifVisualizer(head_name, stride, debug_indices,
-                                   keypoints=COCO_KEYPOINTS, skeleton=COCO_PERSON_SKELETON)
+        vis = visualizer.Cif(head_name, debug_indices,
+                             stride=stride,
+                             keypoints=COCO_KEYPOINTS, skeleton=COCO_PERSON_SKELETON)
         return Cif(stride,
                    n_keypoints=n_keypoints,
                    sigmas=COCO_PERSON_SIGMAS,
-                   visualizer=visualizer)
+                   visualizer=vis)
 
     if head_name in ('paf', 'paf19', 'caf', 'wpaf', 'pafb',
                      'paf16',
@@ -96,14 +102,15 @@ def factory_head(head_name, stride, debug_indices):
             raise Exception('unknown skeleton type of head')
 
         LOG.info('selected encoder CAF for %s', head_name)
-        visualizer = CafVisualizer(head_name, stride, debug_indices,
-                                   keypoints=COCO_KEYPOINTS, skeleton=skeleton)
+        vis = visualizer.Caf(head_name, debug_indices,
+                             stride=stride,
+                             keypoints=COCO_KEYPOINTS, skeleton=skeleton)
         return Caf(stride,
                    n_keypoints=n_keypoints,
                    skeleton=skeleton,
                    sigmas=COCO_PERSON_SIGMAS,
                    sparse_skeleton=sparse_skeleton,
                    only_in_field_of_view=only_in_field_of_view,
-                   visualizer=visualizer)
+                   visualizer=vis)
 
     raise Exception('unknown head to create an encoder: {}'.format(head_name))

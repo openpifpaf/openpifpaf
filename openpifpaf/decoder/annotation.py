@@ -28,6 +28,12 @@ class Annotation(object):
         self.data[joint_i] = xyv
         return self
 
+    def set(self, data, joint_scales=None):
+        self.data = data
+        if joint_scales is not None:
+            self.joint_scales = joint_scales
+        return self
+
     def rescale(self, scale_factor):
         self.data[:, 0:2] *= scale_factor
         if self.joint_scales is not None:
