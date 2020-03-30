@@ -39,7 +39,10 @@ More demos:
 
 # Install
 
-Python 3 is required. Python 2 is not supported.
+Python 3 is required. Python 2 is not supported. 
+
+**NOTE**: If you use a conda environment, be sure to be using the pip3 used by your environment (you can check it with `which pip3`). If it is not the case, use `pip` instead of `pip3` in the following instructions.
+
 Do not clone this repository
 and make sure there is no folder named `openpifpaf` in your current directory.
 
