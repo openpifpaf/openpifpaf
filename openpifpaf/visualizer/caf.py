@@ -15,18 +15,14 @@ class Caf(BaseVisualizer):
     show_confidences = False
     show_regressions = False
 
-    def __init__(self, head_name, indices, *, stride=1, keypoints=None, skeleton=None):
-        super().__init__()
-
-        self.head_name = head_name
-        self.indices = indices
+    def __init__(self, head_name, *, stride=1, keypoints=None, skeleton=None):
+        super().__init__(head_name)
 
         self.stride = stride
         self.keypoints = keypoints
         self.skeleton = skeleton
 
         self.keypoint_painter = show.KeypointPainter(xy_scale=self.stride)
-        LOG.debug('%s: indices = %s', head_name, self.indices)
 
     def targets(self, field, keypoint_sets):
         assert self.keypoints is not None
@@ -45,9 +41,9 @@ class Caf(BaseVisualizer):
         self._regressions(field[1], field[2], field[3], field[4], annotations)
 
     def predicted(self, field, *, annotations=None):
-        self._confidences(field[0])
-        self._regressions(field[1], field[3], field[4], field[6], annotations,
-                          confidence_fields=field[0], uv_is_offset=False)
+        self._confidences(field[:, 0])
+        self._regressions(field[:, 1:3], field[:, 5:7], field[:, 4], field[:, 8], annotations,
+                          confidence_fields=field[:, 0], uv_is_offset=False)
 
     def _background(self, field):
         if not self.show_background or not self.indices:
@@ -67,7 +63,7 @@ class Caf(BaseVisualizer):
 
             with self.image_canvas(self._processed_image) as ax:
                 im = ax.imshow(self.scale_scalar(confidences[f], self.stride),
-                               alpha=0.9, vmin=0.0, vmax=1.0, cmap='Oranges')
+                               alpha=0.9, vmin=0.0, vmax=1.0, cmap='Blues')
                 self.colorbar(ax, im)
 
     def _regressions(self, regression_fields1, regression_fields2,
@@ -81,24 +77,29 @@ class Caf(BaseVisualizer):
             LOG.debug('%s,%s',
                       self.keypoints[self.skeleton[f][0] - 1],
                       self.keypoints[self.skeleton[f][1] - 1])
+            confidence_field = confidence_fields[f] if confidence_fields is not None else None
 
             with self.image_canvas(self._processed_image) as ax:
                 show.white_screen(ax, alpha=0.5)
                 self.keypoint_painter.annotations(ax, annotations)
                 q1 = show.quiver(ax,
                                  regression_fields1[f, :2],
-                                 confidence_fields[f] if confidence_fields else None,
+                                 confidence_field=confidence_field,
                                  xy_scale=self.stride, uv_is_offset=uv_is_offset,
                                  cmap='Blues', clim=(0.5, 1.0), width=0.001)
                 show.quiver(ax,
                             regression_fields2[f, :2],
-                            confidence_fields[f] if confidence_fields else None,
+                            confidence_field=confidence_field,
                             xy_scale=self.stride, uv_is_offset=uv_is_offset,
                             cmap='Greens', clim=(0.5, 1.0), width=0.001)
-                show.boxes(ax, scale_fields1[f], regression_field=regression_fields1[f, :2],
+                show.boxes(ax, scale_fields1[f],
+                           confidence_field=confidence_field,
+                           regression_field=regression_fields1[f, :2],
                            xy_scale=self.stride, cmap='Blues', fill=False,
                            regression_field_is_offset=uv_is_offset)
-                show.boxes(ax, scale_fields2[f], regression_field=regression_fields2[f, :2],
+                show.boxes(ax, scale_fields2[f],
+                           confidence_field=confidence_field,
+                           regression_field=regression_fields2[f, :2],
                            xy_scale=self.stride, cmap='Greens', fill=False,
                            regression_field_is_offset=uv_is_offset)
                 if self.show_margin:

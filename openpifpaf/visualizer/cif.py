@@ -15,18 +15,14 @@ class Cif(BaseVisualizer):
     show_regressions = False
     show_background = False
 
-    def __init__(self, head_name, indices, *, stride=1, keypoints=None, skeleton=None):
-        super().__init__()
-
-        self.head_name = head_name
-        self.indices = indices
+    def __init__(self, head_name, *, stride=1, keypoints=None, skeleton=None):
+        super().__init__(head_name)
 
         self.stride = stride
         self.keypoints = keypoints
         self.skeleton = skeleton
 
         self.keypoint_painter = show.KeypointPainter(xy_scale=self.stride)
-        LOG.debug('%s: indices = %s', head_name, self.indices)
 
     def targets(self, field, keypoint_sets):
         assert self.keypoints is not None
@@ -45,9 +41,9 @@ class Cif(BaseVisualizer):
         self._regressions(field[1], field[2], annotations)
 
     def predicted(self, field, *, annotations=None):
-        self._confidences(field[0])
-        self._regressions(field[1], field[3], annotations,
-                          confidence_fields=field[0], uv_is_offset=False)
+        self._confidences(field[:, 0])
+        self._regressions(field[:, 1:3], field[:, 4], annotations,
+                          confidence_fields=field[:, 0], uv_is_offset=False)
 
     def _background(self, field):
         if not self.show_background or not self.indices:
@@ -75,16 +71,19 @@ class Cif(BaseVisualizer):
 
         for f in self.indices:
             LOG.debug('%s', self.keypoints[f])
+            confidence_field = confidence_fields[f] if confidence_fields is not None else None
 
             with self.image_canvas(self._processed_image) as ax:
                 show.white_screen(ax, alpha=0.5)
                 self.keypoint_painter.annotations(ax, annotations)
                 q = show.quiver(ax,
                                 regression_fields[f, :2],
-                                confidence_fields[f] if confidence_fields else None,
+                                confidence_field=confidence_field,
                                 xy_scale=self.stride, uv_is_offset=uv_is_offset,
-                                cmap='viridis_r', clim=(0.5, 1.0), width=0.001)
-                show.boxes(ax, scale_fields[f], regression_field=regression_fields[f, :2],
+                                cmap='Oranges', clim=(0.5, 1.0), width=0.001)
+                show.boxes(ax, scale_fields[f],
+                           confidence_field=confidence_field,
+                           regression_field=regression_fields[f, :2],
                            xy_scale=self.stride, cmap='Oranges', fill=False,
                            regression_field_is_offset=uv_is_offset)
                 if self.show_margin:

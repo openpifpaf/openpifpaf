@@ -10,6 +10,8 @@ try:
     from mpl_toolkits.axes_grid1 import make_axes_locatable
 
     matplotlib.cm.get_cmap('Oranges').set_bad('white', alpha=0.5)
+    matplotlib.cm.get_cmap('Blues').set_bad('white', alpha=0.5)
+    matplotlib.cm.get_cmap('Greens').set_bad('white', alpha=0.5)
 except ImportError:
     plt = None
     make_axes_locatable = None
@@ -18,27 +20,43 @@ LOG = logging.getLogger(__name__)
 
 
 class BaseVisualizer:
+    all_indices = []
     common_ax = None
     _image = None
     _processed_image = None
 
-    def __init__(self):
+    def __init__(self, head_name):
+        self.head_name = head_name
         self._ax = self.common_ax
 
-    def image(self, image):
-        self._image = np.asarray(image)
-        return self
+        LOG.debug('%s: indices = %s', head_name, self.indices)
 
-    def processed_image(self, image):
+    @staticmethod
+    def image(image):
+        if image is None:
+            BaseVisualizer._image = None
+            return
+
+        BaseVisualizer._image = np.asarray(image)
+
+    @staticmethod
+    def processed_image(image):
+        if image is None:
+            BaseVisualizer._processed_image = None
+            return
+
         image = np.moveaxis(np.asarray(image), 0, -1)
         image = np.clip(image * 0.25 + 0.5, 0.0, 1.0)
-        self._processed_image = image
-        return self
+        BaseVisualizer._processed_image = image
 
-    def reset(self):
-        self._image = None
-        self._processed_image = None
-        return self
+    @staticmethod
+    def reset():
+        BaseVisualizer._image = None
+        BaseVisualizer._processed_image = None
+
+    @property
+    def indices(self):
+        return [f for hn, f in self.all_indices if hn == self.head_name]
 
     @staticmethod
     def colorbar(ax, colored_element, size='3%', pad=0.05):

@@ -13,6 +13,8 @@ class FieldConfig:
     caf_max_distances: List[float] = dataclasses.field(default_factory=lambda: [None])
     seed_mask: List[int] = None
     confidence_scales: List[float] = None
+    cif_visualizers: list = None
+    caf_visualizers: list = None
 
     def verify(self):
         assert len(self.cif_strides) == len(self.cif_indices)

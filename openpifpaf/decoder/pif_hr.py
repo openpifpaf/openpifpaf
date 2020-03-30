@@ -13,6 +13,7 @@ LOG = logging.getLogger(__name__)
 class PifHr(object):
     neighbors = 16
     v_threshold = 0.1
+    debug_visualizer = None
 
     def __init__(self, config: FieldConfig):
         self.config = config
@@ -69,4 +70,6 @@ class PifHr(object):
                                                 self.config.cif_min_scales):
                 self.fill_cif(fields[cif_i], stride, min_scale=min_scale)
 
+        if self.debug_visualizer is not None:
+            self.debug_visualizer.predicted(self.accumulated)
         return self

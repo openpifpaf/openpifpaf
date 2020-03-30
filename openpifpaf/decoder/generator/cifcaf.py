@@ -56,19 +56,17 @@ class CifCaf(object):
             initial_annotations = []
         LOG.debug('initial annotations = %d', len(initial_annotations))
 
-        if self.debug_visualizer:
-            for stride, pif_i in zip(self.field_config.cif_strides, self.field_config.cif_indices):
-                self.debug_visualizer.pif_raw(fields[pif_i], stride)
-            for stride, paf_i in zip(self.field_config.caf_strides, self.field_config.caf_indices):
-                self.debug_visualizer.paf_raw(fields[paf_i], stride)
+        if self.field_config.cif_visualizers:
+            for vis, cif_i in zip(self.field_config.cif_visualizers, self.field_config.cif_indices):
+                vis.predicted(fields[cif_i])
+        if self.field_config.caf_visualizers:
+            for vis, caf_i in zip(self.field_config.caf_visualizers, self.field_config.caf_indices):
+                vis.predicted(fields[caf_i])
 
         pifhr = PifHr(self.field_config).fill(fields)
         seeds = PifSeeds(pifhr.accumulated, self.field_config).fill(fields)
         # TODO make paf_scored not part of self?
         self.paf_scored = PafScored(pifhr.accumulated, self.field_config, self.skeleton).fill(fields)
-        # pif init
-        if self.debug_visualizer:
-            self.debug_visualizer.pifhr(pifhr.accumulated)
 
         occupied = Occupancy(pifhr.accumulated.shape, 2, min_scale=4)
         annotations = []
@@ -97,7 +95,7 @@ class CifCaf(object):
             mark_occupied(ann)
 
         if self.debug_visualizer:
-            self.debug_visualizer.occupied(occupied)
+            self.debug_visualizer.predicted(occupied)
 
         LOG.debug('annotations %d, %.3fs', len(annotations), time.perf_counter() - start)
 
@@ -303,7 +301,8 @@ class CifCaf(object):
             for _, __, end_i in self.by_source[start_i]:
                 if ann.data[end_i, 2] > 0.0:
                     continue
-                frontier.put((-xyv[2], end_i, ann.data[start_i].tolist(), ann.joint_scales[start_i]))
+                start_xyv = ann.data[start_i].tolist()
+                frontier.put((-xyv[2], end_i, start_xyv, ann.joint_scales[start_i]))
 
         for start_i, xyv in enumerate(ann.data):
             if xyv[2] == 0.0:

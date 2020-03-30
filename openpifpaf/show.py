@@ -317,19 +317,20 @@ class KeypointPainter(object):
                     color='white', bbox={'facecolor': 'black', 'alpha': 0.5, 'linewidth': 0})
 
 
-def quiver(ax, vector_field, intensity_field=None, step=1, threshold=0.5,
+def quiver(ax, vector_field, *,
+           confidence_field=None, step=1, threshold=0.5,
            xy_scale=1.0, uv_is_offset=False,
            reg_uncertainty=None, **kwargs):
     x, y, u, v, c, r = [], [], [], [], [], []
     for j in range(0, vector_field.shape[1], step):
         for i in range(0, vector_field.shape[2], step):
-            if intensity_field is not None and intensity_field[j, i] < threshold:
+            if confidence_field is not None and confidence_field[j, i] < threshold:
                 continue
             x.append(i * xy_scale)
             y.append(j * xy_scale)
             u.append(vector_field[0, j, i] * xy_scale)
             v.append(vector_field[1, j, i] * xy_scale)
-            c.append(intensity_field[j, i] if intensity_field is not None else 1.0)
+            c.append(confidence_field[j, i] if confidence_field is not None else 1.0)
             r.append(reg_uncertainty[j, i] * xy_scale if reg_uncertainty is not None else None)
     x = np.array(x)
     y = np.array(y)
@@ -354,12 +355,13 @@ def quiver(ax, vector_field, intensity_field=None, step=1, threshold=0.5,
                      angles='xy', scale_units='xy', scale=1, zOrder=10, **kwargs)
 
 
-def margins(ax, vector_field, intensity_field=None, step=1, threshold=0.5,
+def margins(ax, vector_field, *,
+            confidence_field=None, step=1, threshold=0.5,
             xy_scale=1.0, uv_is_offset=False, **kwargs):
     x, y, u, v, r = [], [], [], [], []
     for j in range(0, vector_field.shape[1], step):
         for i in range(0, vector_field.shape[2], step):
-            if intensity_field is not None and intensity_field[j, i] < threshold:
+            if confidence_field is not None and confidence_field[j, i] < threshold:
                 continue
             x.append(i * xy_scale)
             y.append(j * xy_scale)
@@ -403,14 +405,14 @@ def arrows(ax, fourd, xy_scale=1.0, threshold=0.0, **kwargs):
                      angles='xy', scale_units='xy', scale=1, zOrder=10, **kwargs)
 
 
-def boxes(ax, scalar_field, *, intensity_field=None, regression_field=None,
+def boxes(ax, scalar_field, *, confidence_field=None, regression_field=None,
           xy_scale=1.0, step=1, threshold=0.5,
           regression_field_is_offset=False,
           cmap='viridis_r', clim=(0.5, 1.0), **kwargs):
     x, y, s, c = [], [], [], []
     for j in range(0, scalar_field.shape[0], step):
         for i in range(0, scalar_field.shape[1], step):
-            if intensity_field is not None and intensity_field[j, i] < threshold:
+            if confidence_field is not None and confidence_field[j, i] < threshold:
                 continue
             x_offset, y_offset = 0.0, 0.0
             if regression_field is not None:
@@ -422,7 +424,7 @@ def boxes(ax, scalar_field, *, intensity_field=None, regression_field=None,
             x.append((i + x_offset) * xy_scale)
             y.append((j + y_offset) * xy_scale)
             s.append(scalar_field[j, i] * xy_scale)
-            c.append(intensity_field[j, i] if intensity_field is not None else 1.0)
+            c.append(confidence_field[j, i] if confidence_field is not None else 1.0)
 
     cmap = matplotlib.cm.get_cmap(cmap)
     cnorm = matplotlib.colors.Normalize(vmin=clim[0], vmax=clim[1])
@@ -434,14 +436,14 @@ def boxes(ax, scalar_field, *, intensity_field=None, regression_field=None,
         ax.add_artist(rectangle)
 
 
-def circles(ax, scalar_field, *, intensity_field=None, regression_field=None,
+def circles(ax, scalar_field, *, confidence_field=None, regression_field=None,
             xy_scale=1.0, step=1, threshold=0.5,
             regression_field_is_offset=False,
             cmap='viridis_r', clim=(0.5, 1.0), **kwargs):
     x, y, s, c = [], [], [], []
     for j in range(0, scalar_field.shape[0], step):
         for i in range(0, scalar_field.shape[1], step):
-            if intensity_field is not None and intensity_field[j, i] < threshold:
+            if confidence_field is not None and confidence_field[j, i] < threshold:
                 continue
             x_offset, y_offset = 0.0, 0.0
             if regression_field is not None:
@@ -453,7 +455,7 @@ def circles(ax, scalar_field, *, intensity_field=None, regression_field=None,
             x.append((i + x_offset) * xy_scale)
             y.append((j + y_offset) * xy_scale)
             s.append(scalar_field[j, i] * xy_scale)
-            c.append(intensity_field[j, i] if intensity_field is not None else 1.0)
+            c.append(confidence_field[j, i] if confidence_field is not None else 1.0)
 
     cmap = matplotlib.cm.get_cmap(cmap)
     cnorm = matplotlib.colors.Normalize(vmin=clim[0], vmax=clim[1])

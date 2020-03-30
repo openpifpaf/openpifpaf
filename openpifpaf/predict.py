@@ -10,7 +10,7 @@ import PIL
 import torch
 
 from .network import nets
-from . import datasets, decoder, show, transforms
+from . import datasets, decoder, show, transforms, visualizer
 
 LOG = logging.getLogger(__name__)
 
@@ -145,7 +145,7 @@ def main():
                 with open(meta['file_name'], 'rb') as f:
                     cpu_image = PIL.Image.open(f).convert('RGB')
 
-            processor.set_cpu_image(cpu_image, None)
+            visualizer.BaseVisualizer.image(cpu_image)
             if preprocess is not None:
                 pred = preprocess.annotations_inverse(pred, meta)
 

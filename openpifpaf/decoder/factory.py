@@ -7,9 +7,7 @@ from .paf_scored import PafScored
 from .pif_hr import PifHr
 from .pif_seeds import PifSeeds
 from .processor import Processor
-from .visualizer import Visualizer
-from .visualizer import cli as visualizer_cli
-from .visualizer import configure as visualizer_configure
+from .. import visualizer
 
 LOG = logging.getLogger(__name__)
 
@@ -20,7 +18,7 @@ def cli(parser, *,
         instance_threshold=0.0,
         keypoint_threshold=None,
         workers=None):
-    visualizer_cli(parser)
+    visualizer.cli(parser)
 
     group = parser.add_argument_group('decoder configuration')
     group.add_argument('--seed-threshold', default=seed_threshold, type=float,
@@ -74,16 +72,11 @@ def configure(args):
     PafScored.default_score_th = args.paf_th
 
     # configure debug visualizer
-    visualizer_configure(args)
-    debug_visualizer = None
-    if args.debug:
-        debug_visualizer = Visualizer(
-            keypoints=COCO_KEYPOINTS,
-            skeleton=COCO_PERSON_SKELETON + DENSER_COCO_PERSON_CONNECTIONS,
-        )
-    PifSeeds.debug_visualizer = debug_visualizer
-    Processor.debug_visualizer = debug_visualizer
-    generator.CifCaf.debug_visualizer = debug_visualizer
+    visualizer.configure(args)
+    PifSeeds.debug_visualizer = visualizer.Seeds()
+    PifHr.debug_visualizer = visualizer.CifHr(keypoints=COCO_KEYPOINTS)
+    Processor.debug_visualizer = visualizer.Occupancy(keypoints=COCO_KEYPOINTS)
+    generator.CifCaf.debug_visualizer = visualizer.Occupancy(keypoints=COCO_KEYPOINTS)
 
     # default value for keypoint filter depends on whether complete pose is forced
     if args.keypoint_threshold is None:
@@ -177,6 +170,19 @@ def factory_decode(model, *,
             skeleton = COCO_PERSON_SKELETON + DENSER_COCO_PERSON_CONNECTIONS
         else:
             skeleton = COCO_PERSON_SKELETON
+
+        field_config.cif_visualizers = [
+            visualizer.Cif(model.head_names[i],
+                           stride=field_config.cif_strides[i],
+                           keypoints=COCO_KEYPOINTS, skeleton=skeleton)
+            for i, stride in zip(field_config.cif_indices, field_config.cif_strides)
+        ]
+        field_config.caf_visualizers = [
+            visualizer.Caf(model.head_names[i],
+                           stride=stride,
+                           keypoints=COCO_KEYPOINTS, skeleton=skeleton)
+            for i, stride in zip(field_config.caf_indices, field_config.caf_strides)
+        ]
 
         return generator.CifCaf(
             field_config,

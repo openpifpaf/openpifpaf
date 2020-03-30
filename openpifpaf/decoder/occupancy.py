@@ -23,7 +23,7 @@ class Occupancy():
             int(shape[1] / reduction),
             int(shape[2] / reduction),
         ), dtype=np.uint8)
-        LOG.debug('shape = %s', self.occupancy.shape)
+        LOG.debug('shape = %s, min_scale = %d', self.occupancy.shape, self.min_scale_reduced)
 
     def __len__(self):
         return len(self.occupancy)

@@ -13,6 +13,8 @@ LOG = logging.getLogger(__name__)
 
 
 def cli(parser):
+    visualizer.cli(parser)
+
     group = parser.add_argument_group('CIF encoder')
     group.add_argument('--cif-side-length', default=Cif.side_length, type=int,
                        help='side length of the CIF field')
@@ -25,12 +27,10 @@ def cli(parser):
     group.add_argument('--caf-aspect-ratio', default=Caf.aspect_ratio, type=float,
                        help='CAF width relative to its length')
 
-    group = parser.add_argument_group('debug')
-    group.add_argument('--debug-indices', default=[], nargs='+',
-                       help='indices of fields to create debug plots for of the form cif:5')
-
 
 def configure(args):
+    visualizer.configure(args)
+
     # configure CIF
     Cif.side_length = args.cif_side_length
 
@@ -38,17 +38,6 @@ def configure(args):
     Caf.min_size = args.caf_min_size
     Caf.fixed_size = args.caf_fixed_size
     Caf.aspect_ratio = args.caf_aspect_ratio
-
-    # configure visualizer
-    args.debug_indices = [di.partition(':') for di in args.debug_indices]
-    args.debug_indices = [(di[0], int(di[2])) for di in args.debug_indices]
-    if args.debug_indices:
-        visualizer.Cif.show_background = True
-        visualizer.Cif.show_confidences = True
-        visualizer.Cif.show_regressions = True
-        visualizer.Caf.show_background = True
-        visualizer.Caf.show_confidences = True
-        visualizer.Caf.show_regressions = True
 
 
 def factory(headnames, strides, debug_indices):

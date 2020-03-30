@@ -11,6 +11,7 @@ import numpy as np
 import torch
 
 from .occupancy import Occupancy
+from .. import visualizer
 
 LOG = logging.getLogger(__name__)
 
@@ -58,10 +59,6 @@ class Processor(object):
             if k not in ('model', 'worker_pool', 'device')
         }
 
-    def set_cpu_image(self, cpu_image, processed_image):
-        if self.debug_visualizer is not None:
-            self.debug_visualizer.set_image(cpu_image, processed_image)
-
     def fields(self, image_batch):
         start = time.time()
         with torch.no_grad():
@@ -106,7 +103,7 @@ class Processor(object):
 
         if self.debug_visualizer is not None:
             LOG.debug('Occupied fields after NMS')
-            self.debug_visualizer.occupied(occupied)
+            self.debug_visualizer.predicted(occupied)
 
         annotations = [ann for ann in annotations if np.any(ann.data[:, 2] > self.suppressed_v)]
         annotations = sorted(annotations, key=lambda a: -a.score())
@@ -158,7 +155,7 @@ class Processor(object):
             self.profile.enable()
 
         if debug_image is not None:
-            self.set_cpu_image(None, debug_image)
+            visualizer.BaseVisualizer.processed_image(debug_image)
 
         annotations = self.decode(fields, initial_annotations=initial_annotations)
 

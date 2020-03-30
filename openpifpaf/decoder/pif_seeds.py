@@ -30,6 +30,8 @@ class PifSeeds:
                 p = p[:, p[4] > min_scale / stride]
             _, x, y, _, s = p
             v = scalar_values(self.pifhr[field_i], x * stride, y * stride)
+            if self.score_scale != 1.0:
+                v = v * self.score_scale
             m = v > self.threshold
             x, y, v, s = x[m] * stride, y[m] * stride, v[m], s[m] * stride
 
@@ -41,12 +43,7 @@ class PifSeeds:
 
     def get(self):
         if self.debug_visualizer:
-            self.debug_visualizer.seeds(self.seeds)
-
-        seeds = self.seeds
-        if self.score_scale != 1.0:
-            seeds = [(self.score_scale * vv, ff, xx, yy, ss)
-                     for vv, ff, xx, yy, ss in seeds]
+            self.debug_visualizer.predicted(self.seeds)
 
         return sorted(self.seeds, reverse=True)
 
