@@ -69,7 +69,7 @@ class CafGenerator:
         fields = self.fields(valid_area)
 
         self.config.visualizer.processed_image(image)
-        self.config.visualizer.targets(fields, meta=meta, keypoint_sets=keypoint_sets)
+        self.config.visualizer.targets(fields, keypoint_sets=keypoint_sets)
 
         return fields
 

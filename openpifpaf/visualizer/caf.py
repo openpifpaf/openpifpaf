@@ -28,7 +28,7 @@ class Caf(BaseVisualizer):
         self.keypoint_painter = show.KeypointPainter(xy_scale=self.stride)
         LOG.debug('%s: indices = %s', head_name, self.indices)
 
-    def targets(self, field, keypoint_sets, *, meta=None):
+    def targets(self, field, keypoint_sets):
         assert self.keypoints is not None
         assert self.skeleton is not None
 
