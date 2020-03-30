@@ -13,8 +13,6 @@ LOG = logging.getLogger(__name__)
 
 
 def cli(parser):
-    visualizer.cli(parser)
-
     group = parser.add_argument_group('CIF encoder')
     group.add_argument('--cif-side-length', default=Cif.side_length, type=int,
                        help='side length of the CIF field')
@@ -29,8 +27,6 @@ def cli(parser):
 
 
 def configure(args):
-    visualizer.configure(args)
-
     # configure CIF
     Cif.side_length = args.cif_side_length
 
@@ -40,29 +36,24 @@ def configure(args):
     Caf.aspect_ratio = args.caf_aspect_ratio
 
 
-def factory(headnames, strides, debug_indices):
+def factory(headnames, strides):
     if isinstance(headnames[0], (list, tuple)):
-        return [factory(task_headnames, task_strides, debug_indices)
+        return [factory(task_headnames, task_strides)
                 for task_headnames, task_strides in zip(headnames, strides)]
 
-    debug_indices = [
-        [f for dhi, f in debug_indices if dhi == head_name]
-        for head_name in headnames
-    ]
-
-    encoders = [factory_head(head_name, stride, di)
-                for head_name, stride, di in zip(headnames, strides, debug_indices)]
+    encoders = [factory_head(head_name, stride)
+                for head_name, stride in zip(headnames, strides)]
     return encoders
 
 
-def factory_head(head_name, stride, debug_indices):
+def factory_head(head_name, stride):
     cif_m = re.match('[cp]if([0-9]*)$', head_name)
     if cif_m is not None:
         n_keypoints = int(cif_m.group(1)) if cif_m.group(1) else 17
         LOG.debug('using %d keypoints for CIF', n_keypoints)
 
         LOG.info('selected encoder CIF for %s with %d keypoints', head_name, n_keypoints)
-        vis = visualizer.Cif(head_name, debug_indices,
+        vis = visualizer.Cif(head_name,
                              stride=stride,
                              keypoints=COCO_KEYPOINTS, skeleton=COCO_PERSON_SKELETON)
         return Cif(stride,
@@ -91,7 +82,7 @@ def factory_head(head_name, stride, debug_indices):
             raise Exception('unknown skeleton type of head')
 
         LOG.info('selected encoder CAF for %s', head_name)
-        vis = visualizer.Caf(head_name, debug_indices,
+        vis = visualizer.Caf(head_name,
                              stride=stride,
                              keypoints=COCO_KEYPOINTS, skeleton=skeleton)
         return Caf(stride,

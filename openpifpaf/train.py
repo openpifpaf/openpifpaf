@@ -7,7 +7,7 @@ import socket
 
 import torch
 
-from . import datasets, encoder, logs, optimize, transforms
+from . import datasets, encoder, logs, optimize, transforms, visualizer
 from .network import losses, nets, Trainer
 from . import __version__ as VERSION
 
@@ -45,6 +45,7 @@ def cli():
     encoder.cli(parser)
     optimize.cli(parser)
     datasets.train_cli(parser)
+    visualizer.cli(parser)
 
     parser.add_argument('-o', '--output', default=None,
                         help='output file')
@@ -80,6 +81,7 @@ def cli():
     args = parser.parse_args()
 
     encoder.configure(args)
+    visualizer.configure(args)
 
     # add args.device
     args.device = torch.device('cpu')
@@ -107,7 +109,7 @@ def main():
         net = torch.nn.DataParallel(net)
 
     loss = losses.factory_from_args(args, net_cpu.head_names)
-    target_transforms = encoder.factory(net_cpu.head_names, net_cpu.head_strides, args.debug_indices)
+    target_transforms = encoder.factory(net_cpu.head_names, net_cpu.head_strides)
 
     if args.augmentation:
         preprocess_transformations = [
