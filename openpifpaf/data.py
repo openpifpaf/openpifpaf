@@ -107,40 +107,59 @@ COCO_PERSON_SIGMAS = [
 
 def draw_skeletons():
     from . import show  # pylint: disable=import-outside-toplevel
-    coordinates = np.array([[
-        [0.0, 9.3, 2.0],  # 'nose',            # 1
-        [-0.5, 9.7, 2.0],  # 'left_eye',        # 2
-        [0.5, 9.7, 2.0],  # 'right_eye',       # 3
-        [-1.0, 9.5, 2.0],  # 'left_ear',        # 4
-        [1.0, 9.5, 2.0],  # 'right_ear',       # 5
-        [-2.0, 8.0, 2.0],  # 'left_shoulder',   # 6
-        [2.0, 8.0, 2.0],  # 'right_shoulder',  # 7
-        [-2.5, 6.0, 2.0],  # 'left_elbow',      # 8
-        [2.5, 6.2, 2.0],  # 'right_elbow',     # 9
-        [-2.5, 4.0, 2.0],  # 'left_wrist',      # 10
-        [2.5, 4.2, 2.0],  # 'right_wrist',     # 11
-        [-1.8, 4.0, 2.0],  # 'left_hip',        # 12
-        [1.8, 4.0, 2.0],  # 'right_hip',       # 13
-        [-2.0, 2.0, 2.0],  # 'left_knee',       # 14
-        [2.0, 2.1, 2.0],  # 'right_knee',      # 15
-        [-2.0, 0.0, 2.0],  # 'left_ankle',      # 16
-        [2.0, 0.1, 2.0],  # 'right_ankle',     # 17
-    ]])
+    from .decoder import Annotation  # pylint: disable=import-outside-toplevel
 
-    keypoint_painter = show.KeypointPainter(show_box=False, color_connections=True,
+    show.KeypointPainter.show_joint_scales = True
+
+    coordinates = np.array([
+        [0.0, 9.3, 2.0],  # 'nose',            # 1
+        [-0.35, 9.7, 2.0],  # 'left_eye',        # 2
+        [0.35, 9.7, 2.0],  # 'right_eye',       # 3
+        [-0.7, 9.5, 2.0],  # 'left_ear',        # 4
+        [0.7, 9.5, 2.0],  # 'right_ear',       # 5
+        [-1.4, 8.0, 2.0],  # 'left_shoulder',   # 6
+        [1.4, 8.0, 2.0],  # 'right_shoulder',  # 7
+        [-1.75, 6.0, 2.0],  # 'left_elbow',      # 8
+        [1.75, 6.2, 2.0],  # 'right_elbow',     # 9
+        [-1.75, 4.0, 2.0],  # 'left_wrist',      # 10
+        [1.75, 4.2, 2.0],  # 'right_wrist',     # 11
+        [-1.26, 4.0, 2.0],  # 'left_hip',        # 12
+        [1.26, 4.0, 2.0],  # 'right_hip',       # 13
+        [-1.4, 2.0, 2.0],  # 'left_knee',       # 14
+        [1.4, 2.1, 2.0],  # 'right_knee',      # 15
+        [-1.4, 0.0, 2.0],  # 'left_ankle',      # 16
+        [1.4, 0.1, 2.0],  # 'right_ankle',     # 17
+    ])
+    scale = np.sqrt(
+        (np.max(coordinates[:, 0]) - np.min(coordinates[:, 0]))
+        * (np.max(coordinates[:, 1]) - np.min(coordinates[:, 1]))
+    )
+    keypoint_painter = show.KeypointPainter(color_connections=True,
                                             markersize=1, linewidth=6)
 
-    with show.canvas('docs/skeleton_coco.png', figsize=(2, 5)) as ax:
+    with show.canvas('docs/skeleton_coco.png', figsize=(2.7, 5)) as ax:
         ax.set_axis_off()
-        keypoint_painter.keypoints(ax, coordinates, skeleton=COCO_PERSON_SKELETON)
+        ax.set_xlim(-3.0, 3.0)
+        ax.set_ylim(-0.8, 10.0)
+        ann = Annotation(keypoints=COCO_KEYPOINTS, skeleton=COCO_PERSON_SKELETON)
+        ann.set(coordinates, np.array(COCO_PERSON_SIGMAS) * scale)
+        keypoint_painter.annotation(ax, ann)
 
-    with show.canvas('docs/skeleton_kinematic_tree.png', figsize=(2, 5)) as ax:
+    with show.canvas('docs/skeleton_kinematic_tree.png', figsize=(2.7, 5)) as ax:
         ax.set_axis_off()
-        keypoint_painter.keypoints(ax, coordinates, skeleton=KINEMATIC_TREE_SKELETON)
+        ax.set_xlim(-3.0, 3.0)
+        ax.set_ylim(-0.8, 10.0)
+        ann = Annotation(keypoints=COCO_KEYPOINTS, skeleton=KINEMATIC_TREE_SKELETON)
+        ann.set(coordinates, np.array(COCO_PERSON_SIGMAS) * scale)
+        keypoint_painter.annotation(ax, ann)
 
-    with show.canvas('docs/skeleton_dense.png', figsize=(2, 5)) as ax:
+    with show.canvas('docs/skeleton_dense.png', figsize=(2.7, 5)) as ax:
         ax.set_axis_off()
-        keypoint_painter.keypoints(ax, coordinates, skeleton=DENSER_COCO_PERSON_SKELETON)
+        ax.set_xlim(-3.0, 3.0)
+        ax.set_ylim(-0.8, 10.0)
+        ann = Annotation(keypoints=COCO_KEYPOINTS, skeleton=DENSER_COCO_PERSON_SKELETON)
+        ann.set(coordinates, np.array(COCO_PERSON_SIGMAS) * scale)
+        keypoint_painter.annotation(ax, ann)
 
 
 def print_associations():
