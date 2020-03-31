@@ -265,7 +265,9 @@ class KeypointPainter(object):
             subtext = subtexts[i] if subtexts is not None else None
             self.annotation(ax, ann, color=color, text=text, subtext=subtext)
 
-    def annotation(self, ax, ann, *, color, text=None, subtext=None):
+    def annotation(self, ax, ann, *, color=None, text=None, subtext=None):
+        if color is None:
+            color = 0
         if isinstance(color, (int, np.integer)):
             color = matplotlib.cm.get_cmap('tab20')((color % 20 + 0.05) / 20)
 
