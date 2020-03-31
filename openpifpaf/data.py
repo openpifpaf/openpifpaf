@@ -190,4 +190,9 @@ def print_associations():
 
 if __name__ == '__main__':
     print_associations()
+
+    # c, s = np.cos(np.radians(45)), np.sin(np.radians(45))
+    # rotate = np.array(((c, -s), (s, c)))
+    # rotated_pose = np.copy(COCO_DAVINCI_POSE)
+    # rotated_pose[:, :2] = np.einsum('ij,kj->ki', rotate, rotated_pose[:, :2])
     draw_skeletons(COCO_UPRIGHT_POSE)
