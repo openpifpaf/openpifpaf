@@ -123,11 +123,15 @@ class KeypointPainter(object):
         ))
 
         # joints
+        markersize_data = (
+            ax.transData.inverted().transform((self.markersize, 0.0))
+            - ax.transData.inverted().transform((0.0, 0.0))
+        )[0]
         for xx, yy, vv in zip(x, y, v):
             if vv == 0.0:
                 continue
             ax.add_artist(matplotlib.patches.Circle(
-                (xx, yy), self.markersize / 2.0,
+                (xx, yy), markersize_data,
                 color='white' if self.color_connections else color,
                 edgecolor='k' if self.highlight_invisible else None,
                 zorder=2,
