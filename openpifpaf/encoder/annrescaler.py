@@ -92,8 +92,14 @@ class AnnRescaler(object):
             (np.max(self.davinci_pose_45[visible, 0]) - np.min(self.davinci_pose_45[visible, 0])) *
             (np.max(self.davinci_pose_45[visible, 1]) - np.min(self.davinci_pose_45[visible, 1]))
         )
-        factor = np.sqrt(min(self.davinci_total_area / area_davinci,
-                             self.davinci_45_total_area / area_davinci_45))
+
+        factor = np.sqrt(min(
+            self.davinci_total_area / area_davinci if area_davinci > 0.1 else np.inf,
+            self.davinci_45_total_area / area_davinci_45 if area_davinci_45 > 0.1 else np.inf,
+        ))
+        if np.isinf(factor):
+            return np.nan
+
         factor_clipped = min(5.0, factor)
         scale = np.sqrt(area) * factor_clipped
         if scale < 0.1:
