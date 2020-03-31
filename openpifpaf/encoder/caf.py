@@ -5,7 +5,7 @@ import scipy
 import torch
 
 from .annrescaler import AnnRescaler
-from .cif import scale_from_keypoints, CifGenerator
+from .cif import CifGenerator
 from ..visualizer import Caf as CafVisualizer
 from ..utils import create_sink, mask_valid_area
 
@@ -14,8 +14,7 @@ LOG = logging.getLogger(__name__)
 
 @dataclasses.dataclass
 class Caf:
-    stride: int
-    n_keypoints: int
+    rescaler: AnnRescaler
     skeleton: list
     sigmas: list
     sparse_skeleton: list = None
@@ -44,8 +43,8 @@ class CafGenerator:
         if self.config.fixed_size:
             assert self.config.aspect_ratio == 0.0
 
-        LOG.debug('stride = %d, keypoints = %d, only_in_field_of_view = %s, paf min size = %d',
-                  config.stride, config.n_keypoints, config.only_in_field_of_view,
+        LOG.debug('only_in_field_of_view = %s, paf min size = %d',
+                  config.only_in_field_of_view,
                   self.config.min_size)
 
         self.intensities = None
@@ -58,10 +57,9 @@ class CafGenerator:
     def __call__(self, image, anns, meta):
         width_height_original = image.shape[2:0:-1]
 
-        rescaler = AnnRescaler(self.config.stride, self.config.n_keypoints)
-        keypoint_sets = rescaler.keypoint_sets(anns)
-        bg_mask = rescaler.bg_mask(anns, width_height_original)
-        valid_area = rescaler.valid_area(meta)
+        keypoint_sets = self.config.rescaler.keypoint_sets(anns)
+        bg_mask = self.config.rescaler.bg_mask(anns, width_height_original)
+        valid_area = self.config.rescaler.valid_area(meta)
         LOG.debug('valid area: %s', valid_area)
 
         self.init_fields(bg_mask)
@@ -119,7 +117,7 @@ class CafGenerator:
         return shortest
 
     def fill_keypoints(self, keypoints, other_keypoints):
-        scale = scale_from_keypoints(keypoints)
+        scale = self.config.rescaler.scale(keypoints)
         for paf_i, (joint1i, joint2i) in enumerate(self.skeleton_m1):
             joint1 = keypoints[joint1i]
             joint2 = keypoints[joint2i]

@@ -1,11 +1,12 @@
 import logging
 import re
 
+from .annrescaler import AnnRescaler
 from .caf import Caf
 from .cif import Cif
 from .. import visualizer
 
-from ..data import (COCO_KEYPOINTS, COCO_PERSON_SKELETON, COCO_PERSON_SIGMAS,
+from ..data import (COCO_KEYPOINTS, COCO_PERSON_SKELETON, COCO_PERSON_SIGMAS, COCO_UPRIGHT_POSE,
                     DENSER_COCO_PERSON_SKELETON,
                     KINEMATIC_TREE_SKELETON, DENSER_COCO_PERSON_CONNECTIONS)
 
@@ -56,8 +57,7 @@ def factory_head(head_name, stride):
         vis = visualizer.Cif(head_name,
                              stride=stride,
                              keypoints=COCO_KEYPOINTS, skeleton=COCO_PERSON_SKELETON)
-        return Cif(stride,
-                   n_keypoints=n_keypoints,
+        return Cif(AnnRescaler(stride, n_keypoints, COCO_UPRIGHT_POSE),
                    sigmas=COCO_PERSON_SIGMAS,
                    visualizer=vis)
 
@@ -85,8 +85,7 @@ def factory_head(head_name, stride):
         vis = visualizer.Caf(head_name,
                              stride=stride,
                              keypoints=COCO_KEYPOINTS, skeleton=skeleton)
-        return Caf(stride,
-                   n_keypoints=n_keypoints,
+        return Caf(AnnRescaler(stride, n_keypoints, COCO_UPRIGHT_POSE),
                    skeleton=skeleton,
                    sigmas=COCO_PERSON_SIGMAS,
                    sparse_skeleton=sparse_skeleton,

@@ -12,27 +12,9 @@ from ..utils import create_sink, mask_valid_area
 LOG = logging.getLogger(__name__)
 
 
-def scale_from_keypoints(keypoints):
-    visible = keypoints[:, 2] > 0
-    if np.sum(visible) < 3:
-        return np.nan
-
-    area = (
-        (np.max(keypoints[visible, 0]) - np.min(keypoints[visible, 0])) *
-        (np.max(keypoints[visible, 1]) - np.min(keypoints[visible, 1]))
-    )
-    scale = np.sqrt(area)
-    if scale < 0.1:
-        scale = np.nan
-
-    LOG.debug('instance scale = %.3f', scale)
-    return scale
-
-
 @dataclasses.dataclass
 class Cif:
-    stride: int
-    n_keypoints: int
+    rescaler: AnnRescaler
     sigmas: list
     v_threshold: int = 0
 
@@ -56,15 +38,12 @@ class CifGenerator(object):
         self.sink = create_sink(config.side_length)
         self.s_offset = (config.side_length - 1.0) / 2.0
 
-        LOG.debug('stride = %d, keypoints = %d', config.stride, config.n_keypoints)
-
     def __call__(self, image, anns, meta):
         width_height_original = image.shape[2:0:-1]
 
-        rescaler = AnnRescaler(self.config.stride, self.config.n_keypoints)
-        keypoint_sets = rescaler.keypoint_sets(anns)
-        bg_mask = rescaler.bg_mask(anns, width_height_original)
-        valid_area = rescaler.valid_area(meta)
+        keypoint_sets = self.config.rescaler.keypoint_sets(anns)
+        bg_mask = self.config.rescaler.bg_mask(anns, width_height_original)
+        valid_area = self.config.rescaler.valid_area(meta)
         LOG.debug('valid area: %s, pif side length = %d', valid_area, self.config.side_length)
 
         n_fields = keypoint_sets.shape[1]
@@ -125,7 +104,7 @@ class CifGenerator(object):
         return out
 
     def fill_keypoints(self, keypoints, other_keypoints):
-        scale = scale_from_keypoints(keypoints)
+        scale = self.config.rescaler.scale(keypoints)
         for f, xyv in enumerate(keypoints):
             if xyv[2] <= self.config.v_threshold:
                 continue
