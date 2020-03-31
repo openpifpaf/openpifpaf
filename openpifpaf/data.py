@@ -62,6 +62,27 @@ COCO_UPRIGHT_POSE = np.array([
 ])
 
 
+COCO_DAVINCI_POSE = np.array([
+    [0.0, 9.3, 2.0],  # 'nose',            # 1
+    [-0.35, 9.7, 2.0],  # 'left_eye',        # 2
+    [0.35, 9.7, 2.0],  # 'right_eye',       # 3
+    [-0.7, 9.5, 2.0],  # 'left_ear',        # 4
+    [0.7, 9.5, 2.0],  # 'right_ear',       # 5
+    [-1.4, 8.0, 2.0],  # 'left_shoulder',   # 6
+    [1.4, 8.0, 2.0],  # 'right_shoulder',  # 7
+    [-3.3, 9.0, 2.0],  # 'left_elbow',      # 8
+    [3.3, 9.2, 2.0],  # 'right_elbow',     # 9
+    [-4.5, 10.5, 2.0],  # 'left_wrist',      # 10
+    [4.5, 10.7, 2.0],  # 'right_wrist',     # 11
+    [-1.26, 4.0, 2.0],  # 'left_hip',        # 12
+    [1.26, 4.0, 2.0],  # 'right_hip',       # 13
+    [-2.0, 2.0, 2.0],  # 'left_knee',       # 14
+    [2.0, 2.1, 2.0],  # 'right_knee',      # 15
+    [-2.4, 0.0, 2.0],  # 'left_ankle',      # 16
+    [2.4, 0.1, 2.0],  # 'right_ankle',     # 17
+])
+
+
 HFLIP = {
     'left_eye': 'right_eye',
     'right_eye': 'left_eye',
@@ -126,42 +147,40 @@ COCO_PERSON_SIGMAS = [
 ]
 
 
-def draw_skeletons():
+def draw_skeletons(pose, margin=0.5):
     from . import show  # pylint: disable=import-outside-toplevel
     from .decoder import Annotation  # pylint: disable=import-outside-toplevel
 
     show.KeypointPainter.show_joint_scales = True
 
     scale = np.sqrt(
-        (np.max(COCO_UPRIGHT_POSE[:, 0]) - np.min(COCO_UPRIGHT_POSE[:, 0]))
-        * (np.max(COCO_UPRIGHT_POSE[:, 1]) - np.min(COCO_UPRIGHT_POSE[:, 1]))
+        (np.max(pose[:, 0]) - np.min(pose[:, 0]))
+        * (np.max(pose[:, 1]) - np.min(pose[:, 1]))
     )
     keypoint_painter = show.KeypointPainter(color_connections=True,
-                                            markersize=1, linewidth=6)
+                                            markersize=3, linewidth=6)
 
-    with show.canvas('docs/skeleton_coco.png', figsize=(2.7, 5)) as ax:
-        ax.set_axis_off()
-        ax.set_xlim(-3.0, 3.0)
-        ax.set_ylim(-0.8, 10.0)
-        ann = Annotation(keypoints=COCO_KEYPOINTS, skeleton=COCO_PERSON_SKELETON)
-        ann.set(COCO_UPRIGHT_POSE, np.array(COCO_PERSON_SIGMAS) * scale)
-        keypoint_painter.annotation(ax, ann)
+    def draw_ann(filename, ann):
+        xlim = ann.bbox()[0] - margin, ann.bbox()[0] + ann.bbox()[2] + margin
+        ylim = ann.bbox()[1] - margin, ann.bbox()[1] + ann.bbox()[3] + margin
+        fig_w = 5.0 / (ylim[1] - ylim[0]) * (xlim[1] - xlim[0])
+        with show.canvas(filename, figsize=(fig_w, 5), nomargin=True) as ax:
+            ax.set_axis_off()
+            ax.set_xlim(*xlim)
+            ax.set_ylim(*ylim)
+            keypoint_painter.annotation(ax, ann)
 
-    with show.canvas('docs/skeleton_kinematic_tree.png', figsize=(2.7, 5)) as ax:
-        ax.set_axis_off()
-        ax.set_xlim(-3.0, 3.0)
-        ax.set_ylim(-0.8, 10.0)
-        ann = Annotation(keypoints=COCO_KEYPOINTS, skeleton=KINEMATIC_TREE_SKELETON)
-        ann.set(COCO_UPRIGHT_POSE, np.array(COCO_PERSON_SIGMAS) * scale)
-        keypoint_painter.annotation(ax, ann)
+    ann = Annotation(keypoints=COCO_KEYPOINTS, skeleton=COCO_PERSON_SKELETON)
+    ann.set(pose, np.array(COCO_PERSON_SIGMAS) * scale)
+    draw_ann('docs/skeleton_coco.png', ann)
 
-    with show.canvas('docs/skeleton_dense.png', figsize=(2.7, 5)) as ax:
-        ax.set_axis_off()
-        ax.set_xlim(-3.0, 3.0)
-        ax.set_ylim(-0.8, 10.0)
-        ann = Annotation(keypoints=COCO_KEYPOINTS, skeleton=DENSER_COCO_PERSON_SKELETON)
-        ann.set(COCO_UPRIGHT_POSE, np.array(COCO_PERSON_SIGMAS) * scale)
-        keypoint_painter.annotation(ax, ann)
+    ann = Annotation(keypoints=COCO_KEYPOINTS, skeleton=KINEMATIC_TREE_SKELETON)
+    ann.set(pose, np.array(COCO_PERSON_SIGMAS) * scale)
+    draw_ann('docs/skeleton_kinematic_tree.png', ann)
+
+    ann = Annotation(keypoints=COCO_KEYPOINTS, skeleton=DENSER_COCO_PERSON_SKELETON)
+    ann.set(pose, np.array(COCO_PERSON_SIGMAS) * scale)
+    draw_ann('docs/skeleton_dense.png', ann)
 
 
 def print_associations():
@@ -171,4 +190,4 @@ def print_associations():
 
 if __name__ == '__main__':
     print_associations()
-    draw_skeletons()
+    draw_skeletons(COCO_UPRIGHT_POSE)

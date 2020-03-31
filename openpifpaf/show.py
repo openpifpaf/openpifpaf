@@ -14,11 +14,17 @@ except ImportError:
 
 
 @contextmanager
-def canvas(fig_file=None, show=True, dpi=200, **kwargs):
+def canvas(fig_file=None, show=True, dpi=200, nomargin=False, **kwargs):
     if 'figsize' not in kwargs:
         # kwargs['figsize'] = (15, 8)
         kwargs['figsize'] = (10, 6)
-    fig, ax = plt.subplots(**kwargs)
+
+    if nomargin:
+        fig = plt.figure(**kwargs)
+        ax = plt.Axes(fig, [0.0, 0.0, 1.0, 1.0])
+        fig.add_axes(ax)
+    else:
+        fig, ax = plt.subplots(**kwargs)
 
     yield ax
 
@@ -131,7 +137,7 @@ class KeypointPainter(object):
             if vv == 0.0:
                 continue
             ax.add_artist(matplotlib.patches.Circle(
-                (xx, yy), markersize_data,
+                (xx, yy), markersize_data / 2.0,
                 color='white' if self.color_connections else color,
                 edgecolor='k' if self.highlight_invisible else None,
                 zorder=2,
@@ -143,7 +149,7 @@ class KeypointPainter(object):
                 if vv == 0.0:
                     continue
                 ax.add_artist(matplotlib.patches.Circle(
-                    (xx, yy), self.markersize,
+                    (xx, yy), markersize_data,
                     color=color,
                     edgecolor=color,
                     zorder=2,
