@@ -4,18 +4,18 @@ import time
 # pylint: disable=import-error
 from ..functional import scalar_values
 from .field_config import FieldConfig
-from .pif_hr import PifHr
+from .cif_hr import CifHr
 
 LOG = logging.getLogger(__name__)
 
 
-class PifSeeds:
+class CifSeeds:
     threshold = None
     score_scale = 1.0
     debug_visualizer = None
 
-    def __init__(self, pifhr: PifHr, config: FieldConfig):
-        self.pifhr = pifhr
+    def __init__(self, cifhr: CifHr, config: FieldConfig):
+        self.cifhr = cifhr
         self.config = config
         self.seeds = []
 
@@ -29,7 +29,7 @@ class PifSeeds:
             if min_scale:
                 p = p[:, p[4] > min_scale / stride]
             _, x, y, _, s = p
-            v = scalar_values(self.pifhr[field_i], x * stride, y * stride)
+            v = scalar_values(self.cifhr[field_i], x * stride, y * stride)
             if self.score_scale != 1.0:
                 v = v * self.score_scale
             m = v > self.threshold

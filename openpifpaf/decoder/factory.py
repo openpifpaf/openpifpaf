@@ -3,9 +3,9 @@ import logging
 from ..data import COCO_KEYPOINTS, COCO_PERSON_SKELETON, DENSER_COCO_PERSON_CONNECTIONS
 from . import generator
 from .field_config import FieldConfig
-from .paf_scored import PafScored
-from .pif_hr import PifHr
-from .pif_seeds import PifSeeds
+from .caf_scored import CafScored
+from .cif_hr import CifHr
+from .cif_seeds import CifSeeds
 from .processor import Processor
 from .. import visualizer
 
@@ -33,7 +33,7 @@ def cli(parser, *,
                        help='use dense connections')
     group.add_argument('--dense-coupling', default=0.01, type=float,
                        help='dense coupling')
-    group.add_argument('--paf-seeds', default=False, action='store_true',
+    group.add_argument('--caf-seeds', default=False, action='store_true',
                        help='[experimental]')
 
     if force_complete_pose:
@@ -46,11 +46,11 @@ def cli(parser, *,
     group.add_argument('--profile-decoder', default=None, action='store_true',
                        help='profile decoder')
 
-    group = parser.add_argument_group('PifPaf decoders')
-    group.add_argument('--pif-th', default=PifHr.v_threshold, type=float,
-                       help='pif threshold')
-    group.add_argument('--paf-th', default=PafScored.default_score_th, type=float,
-                       help='paf threshold')
+    group = parser.add_argument_group('CifCaf decoders')
+    group.add_argument('--cif-th', default=CifHr.v_threshold, type=float,
+                       help='cif threshold')
+    group.add_argument('--caf-th', default=CafScored.default_score_th, type=float,
+                       help='caf threshold')
     group.add_argument('--connection-method',
                        default=generator.CifCaf.connection_method,
                        choices=('max', 'blend'),
@@ -60,18 +60,18 @@ def cli(parser, *,
 
 
 def configure(args):
-    # configure PifHr
-    PifHr.v_threshold = args.pif_th
+    # configure CifHr
+    CifHr.v_threshold = args.cif_th
 
-    # configure PifSeeds
-    PifSeeds.threshold = args.seed_threshold
+    # configure CifSeeds
+    CifSeeds.threshold = args.seed_threshold
 
-    # configure PafScored
-    PafScored.default_score_th = args.paf_th
+    # configure CafScored
+    CafScored.default_score_th = args.caf_th
 
     # configure debug visualizer
-    PifSeeds.debug_visualizer = visualizer.Seeds()
-    PifHr.debug_visualizer = visualizer.CifHr(keypoints=COCO_KEYPOINTS)
+    CifSeeds.debug_visualizer = visualizer.Seeds()
+    CifHr.debug_visualizer = visualizer.CifHr(keypoints=COCO_KEYPOINTS)
     Processor.debug_visualizer = visualizer.Occupancy(keypoints=COCO_KEYPOINTS)
     generator.CifCaf.debug_visualizer = visualizer.Occupancy(keypoints=COCO_KEYPOINTS)
 
@@ -103,7 +103,7 @@ def factory_from_args(args, model, device=None):
     decode = factory_decode(model,
                             dense_coupling=args.dense_coupling,
                             dense_connections=args.dense_connections,
-                            paf_seeds=args.paf_seeds,
+                            caf_seeds=args.caf_seeds,
                             multi_scale=args.multi_scale,
                             multi_scale_hflip=args.multi_scale_hflip)
 
@@ -118,12 +118,12 @@ def factory_from_args(args, model, device=None):
 def factory_decode(model, *,
                    dense_coupling=0.0,
                    dense_connections=False,
-                   paf_seeds=False,
+                   caf_seeds=False,
                    multi_scale=False,
                    multi_scale_hflip=True,
                    **kwargs):
     """Instantiate a decoder."""
-    assert not paf_seeds, 'not implemented'
+    assert not caf_seeds, 'not implemented'
 
     head_names = tuple(model.head_names)
     LOG.debug('head names = %s', head_names)

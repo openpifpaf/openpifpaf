@@ -6,7 +6,7 @@ import numpy as np
 LOG = logging.getLogger(__name__)
 
 
-class PafSeeds(object):
+class CafSeeds:
     def __init__(self, seed_threshold, *, keypoints, skeleton,
                  score_scale=1.0,
                  debug_visualizer=None):
@@ -21,10 +21,10 @@ class PafSeeds(object):
         self.seeds = []
         self.seed_values = []
 
-    def fill(self, paf, stride=1.0):
+    def fill(self, caf, stride=1.0):
         start = time.perf_counter()
 
-        for field_i, p in enumerate(paf):
+        for field_i, p in enumerate(caf):
             p = p[:, :, p[0][0] > self.seed_threshold]
             (v1, x1, y1, _, s1), (__, x2, y2, ___, s2) = p
 
@@ -49,10 +49,10 @@ class PafSeeds(object):
         order = np.argsort(self.seed_values)[::-1]
         return np.concatenate(self.seeds, axis=0)[order]
 
-    def fill_sequence(self, pafs, strides=None):
+    def fill_sequence(self, cafs, strides=None):
         if strides is None:
-            strides = [1.0 for _ in pafs]
-        for paf, stride in zip(pafs, strides):
-            self.fill(paf, stride)
+            strides = [1.0 for _ in cafs]
+        for caf, stride in zip(cafs, strides):
+            self.fill(caf, stride)
 
         return self

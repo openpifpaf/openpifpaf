@@ -8,11 +8,11 @@ from .seeds import Seeds
 
 def cli(parser):
     group = parser.add_argument_group('pose visualizer')
-    group.add_argument('--debug-pifhr', default=False, action='store_true')
-    group.add_argument('--debug-pif-c', default=False, action='store_true')
-    group.add_argument('--debug-pif-v', default=False, action='store_true')
-    group.add_argument('--debug-paf-c', default=False, action='store_true')
-    group.add_argument('--debug-paf-v', default=False, action='store_true')
+    group.add_argument('--debug-cifhr', default=False, action='store_true')
+    group.add_argument('--debug-cif-c', default=False, action='store_true')
+    group.add_argument('--debug-cif-v', default=False, action='store_true')
+    group.add_argument('--debug-caf-c', default=False, action='store_true')
+    group.add_argument('--debug-caf-v', default=False, action='store_true')
 
     group.add_argument('--debug-indices', default=[], nargs='+',
                        help=('indices of fields to create debug plots for '
@@ -25,11 +25,11 @@ def configure(args):
     args.debug_indices = [(di[0], int(di[2])) for di in args.debug_indices]
     BaseVisualizer.all_indices = args.debug_indices
 
-    Caf.show_confidences = args.debug_paf_c
-    Caf.show_regressions = args.debug_paf_v
-    Cif.show_confidences = args.debug_pif_c
-    Cif.show_regressions = args.debug_pif_v
-    CifHr.show = args.debug_pifhr
+    Caf.show_confidences = args.debug_caf_c
+    Caf.show_regressions = args.debug_caf_v
+    Cif.show_confidences = args.debug_cif_c
+    Cif.show_regressions = args.debug_cif_v
+    CifHr.show = args.debug_cifhr
 
     if args.debug:
         Cif.show_background = True
