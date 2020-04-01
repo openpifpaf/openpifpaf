@@ -24,6 +24,7 @@ def cli():
     nets.cli(parser)
     decoder.cli(parser, force_complete_pose=False, instance_threshold=0.1, seed_threshold=0.5)
     show.cli(parser)
+    visualizer.cli(parser)
     parser.add_argument('images', nargs='*',
                         help='input images')
     parser.add_argument('--glob',
@@ -66,6 +67,7 @@ def cli():
     LOG.setLevel(log_level)
 
     show.configure(args)
+    visualizer.configure(args)
 
     if args.loader_workers is None:
         args.loader_workers = args.batch_size

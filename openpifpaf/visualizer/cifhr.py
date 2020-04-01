@@ -20,6 +20,6 @@ class CifHr(BaseVisualizer):
 
         for f in self.indices:
             LOG.debug('%s', self.keypoints[f])
-            with self.image_canvas(self.image) as ax:
+            with self.image_canvas(self._processed_image) as ax:
                 o = ax.imshow(fields[f], alpha=0.9, vmin=0.0, vmax=1.0, cmap='Oranges')
                 self.colorbar(ax, o)

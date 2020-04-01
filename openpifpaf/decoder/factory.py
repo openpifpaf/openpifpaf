@@ -18,8 +18,6 @@ def cli(parser, *,
         instance_threshold=0.0,
         keypoint_threshold=None,
         workers=None):
-    visualizer.cli(parser)
-
     group = parser.add_argument_group('decoder configuration')
     group.add_argument('--seed-threshold', default=seed_threshold, type=float,
                        help='minimum threshold for seeds')
@@ -72,7 +70,6 @@ def configure(args):
     PafScored.default_score_th = args.paf_th
 
     # configure debug visualizer
-    visualizer.configure(args)
     PifSeeds.debug_visualizer = visualizer.Seeds()
     PifHr.debug_visualizer = visualizer.CifHr(keypoints=COCO_KEYPOINTS)
     Processor.debug_visualizer = visualizer.Occupancy(keypoints=COCO_KEYPOINTS)

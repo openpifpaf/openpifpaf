@@ -22,7 +22,7 @@ except ImportError:
 
 from .data import COCO_PERSON_SKELETON
 from .network import nets
-from . import datasets, decoder, show, transforms
+from . import datasets, decoder, show, transforms, visualizer
 
 ANNOTATIONS_VAL = 'data-mscoco/annotations/person_keypoints_val2017.json'
 IMAGE_DIR_VAL = 'data-mscoco/images/val2017/'
@@ -80,8 +80,7 @@ class EvalCoco(object):
     def view_keypoints(image_cpu, annotations, gt):
         highlight = [5, 7, 9, 11, 13, 15]
         keypoint_painter = show.KeypointPainter(highlight=highlight)
-        skeleton_painter = show.KeypointPainter(color_connections=True,
-                                                markersize=1, linewidth=6)
+        skeleton_painter = show.KeypointPainter(color_connections=True, linewidth=6)
 
         with show.canvas() as ax:
             ax.imshow((np.moveaxis(image_cpu.numpy(), 0, -1) + 2.0) / 4.0)
@@ -205,6 +204,8 @@ def cli():
     )
     nets.cli(parser)
     decoder.cli(parser, force_complete_pose=True)
+    show.cli(parser)
+    visualizer.cli(parser)
     parser.add_argument('--output', default=None,
                         help='output filename without file extension')
     parser.add_argument('-n', default=0, type=int,
@@ -252,6 +253,9 @@ def cli():
         logging.basicConfig()
         logging.getLogger('openpifpaf').setLevel(log_level)
         LOG.setLevel(log_level)
+
+    show.configure(args)
+    visualizer.configure(args)
 
     if args.loader_workers is None:
         args.loader_workers = max(2, args.batch_size)

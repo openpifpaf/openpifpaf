@@ -25,7 +25,7 @@ import torch
 
 import cv2  # pylint: disable=import-error
 from .network import nets
-from . import decoder, show, transforms
+from . import decoder, show, transforms, visualizer
 
 try:
     import matplotlib.pyplot as plt
@@ -35,7 +35,7 @@ except ImportError:
 LOG = logging.getLogger(__name__)
 
 
-class Visualizer(object):
+class Animation(object):
     def __init__(self, processor, keypoint_painter):
         self.processor = processor
         self.keypoint_painter = keypoint_painter
@@ -166,8 +166,7 @@ def main():
     # create keypoint painter
     if not args.json_output:
         if args.colored_connections:
-            keypoint_painter = show.KeypointPainter(
-                color_connections=True, markersize=1, linewidth=6)
+            keypoint_painter = show.KeypointPainter(color_connections=True, linewidth=6)
         else:
             keypoint_painter = show.KeypointPainter()
 
@@ -179,7 +178,7 @@ def main():
     last_loop = time.time()
     capture = cv2.VideoCapture(args.source)
 
-    visualizer = None
+    animation = None
     frame_i = 0
     while True:
         frame_i += 1
@@ -196,23 +195,24 @@ def main():
             LOG.debug('resized image size: %s', image.shape)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-        if visualizer is None:
+        if animation is None:
             if args.json_output:
-                visualizer = JsonOutput(processor, args.json_output)(image)
-                visualizer.send(None)
+                animation = JsonOutput(processor, args.json_output)(image)
+                animation.send(None)
             else:
-                visualizer = Visualizer(processor, keypoint_painter)(image)
-                visualizer.send(None)
+                animation = Animation(processor, keypoint_painter)(image)
+                animation.send(None)
 
         start = time.time()
         image_pil = PIL.Image.fromarray(image)
         processed_image_cpu, _, __ = transforms.EVAL_TRANSFORM(image_pil, [], None)
-        processor.set_cpu_image(image_pil, processed_image_cpu)
+        visualizer.BaseVisualizer.image(image_pil)
+        visualizer.BaseVisualizer.processed_image(processed_image_cpu)
         processed_image = processed_image_cpu.contiguous().to(args.device, non_blocking=True)
         LOG.debug('preprocessing time %.3fs', time.time() - start)
 
         fields = processor.fields(torch.unsqueeze(processed_image, 0))[0]
-        visualizer.send((image, fields))
+        animation.send((image, fields))
 
         LOG.info('frame %d, loop time = %.3fs, FPS = %.3f',
                  frame_i,

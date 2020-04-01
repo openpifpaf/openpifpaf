@@ -129,31 +129,25 @@ class KeypointPainter(object):
         ))
 
         # joints
-        markersize_data = (
-            ax.transData.inverted().transform((self.markersize, 0.0))
-            - ax.transData.inverted().transform((0.0, 0.0))
-        )[0]
-        for xx, yy, vv in zip(x, y, v):
-            if vv == 0.0:
-                continue
-            ax.add_artist(matplotlib.patches.Circle(
-                (xx, yy), markersize_data / 2.0,
-                color='white' if self.color_connections else color,
-                edgecolor='k' if self.highlight_invisible else None,
-                zorder=2,
-            ))
+        ax.scatter(
+            x[v > 0.0], y[v > 0.0], s=self.markersize**2, marker='.',
+            color='white' if self.color_connections else color,
+            edgecolor='k' if self.highlight_invisible else None,
+            zorder=2,
+        )
 
         # highlight joints
         if self.highlight is not None:
-            for xx, yy, vv in zip(x[self.highlight], y[self.highlight], v[self.highlight]):
-                if vv == 0.0:
-                    continue
-                ax.add_artist(matplotlib.patches.Circle(
-                    (xx, yy), markersize_data,
-                    color=color,
-                    edgecolor=color,
-                    zorder=2,
-                ))
+            highlight_v = np.zeros_like(v)
+            highlight_v[self.highlight] = 1
+            highlight_v = np.logical_and(v, highlight_v)
+
+            ax.scatter(
+                x[highlight_v], y[highlight_v], s=self.markersize**2, marker='.',
+                color='white' if self.color_connections else color,
+                edgecolor='k' if self.highlight_invisible else None,
+                zorder=2,
+            )
 
     def keypoints(self, ax, keypoint_sets, *,
                   skeleton, scores=None, color=None, colors=None, texts=None):

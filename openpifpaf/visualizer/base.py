@@ -27,7 +27,7 @@ class BaseVisualizer:
 
     def __init__(self, head_name):
         self.head_name = head_name
-        self._ax = self.common_ax
+        self._ax = None
 
         LOG.debug('%s: indices = %s', head_name, self.indices)
 
@@ -66,10 +66,11 @@ class BaseVisualizer:
 
     @contextmanager
     def image_canvas(self, image, *args, **kwargs):
-        if self._ax is not None:
-            self._ax.set_axis_off()
-            self._ax.imshow(np.asarray(image))
-            yield self._ax
+        ax = self._ax or self.common_ax
+        if ax is not None:
+            ax.set_axis_off()
+            ax.imshow(np.asarray(image))
+            yield ax
             return
 
         with show.image_canvas(image, *args, **kwargs) as ax:
@@ -77,8 +78,9 @@ class BaseVisualizer:
 
     @contextmanager
     def canvas(self, *args, **kwargs):
-        if self._ax is not None:
-            yield self._ax
+        ax = self._ax or self.common_ax
+        if ax is not None:
+            yield ax
             return
 
         with show.canvas(*args, **kwargs) as ax:
