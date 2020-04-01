@@ -92,7 +92,13 @@ cpdef void scalar_square_add_gauss(float[:, :] field, float[:] x, float[:] y, fl
             deltax2 = (xx - cx)**2
             for yy in range(miny, maxy):
                 deltay2 = (yy - cy)**2
-                vv = cv * approx_exp(-0.5 * (deltax2 + deltay2) / csigma2)
+
+                if deltax2 < 0.25 and deltay2 < 0.25:
+                    # this is the closest pixel
+                    vv = cv
+                else:
+                    vv = cv * approx_exp(-0.5 * (deltax2 + deltay2) / csigma2)
+
                 field[yy, xx] += vv
 
 
@@ -120,7 +126,13 @@ cpdef void scalar_square_add_gauss_with_max(float[:, :] field, float[:] x, float
             deltax2 = (xx - cx)**2
             for yy in range(miny, maxy):
                 deltay2 = (yy - cy)**2
-                vv = cv * approx_exp(-0.5 * (deltax2 + deltay2) / csigma2)
+
+                if deltax2 < 0.25 and deltay2 < 0.25:
+                    # this is the closest pixel
+                    vv = cv
+                else:
+                    vv = cv * approx_exp(-0.5 * (deltax2 + deltay2) / csigma2)
+
                 field[yy, xx] += vv
                 field[yy, xx] = min(max_value, field[yy, xx])
 
