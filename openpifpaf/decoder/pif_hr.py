@@ -41,13 +41,13 @@ class PifHr(object):
                 if min_scale:
                     p = p[:, p[4] > min_scale / stride]
 
-                v, x, y, _, s = p
+                v, x, y, _, scale = p
                 x = x * stride
                 y = y * stride
-                s = s * stride
+                sigma = np.maximum(1.0, 0.5 * scale * stride)
 
                 scalar_square_add_gauss_with_max(
-                    t, x, y, s / 1.5, v / self.neighbors / len(pifs), truncate=1.5)
+                    t, x, y, sigma, v / self.neighbors / len(pifs), truncate=2.0)
 
         if self.accumulated is None:
             self.accumulated = ta

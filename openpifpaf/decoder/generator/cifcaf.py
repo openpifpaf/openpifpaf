@@ -118,7 +118,8 @@ class CifCaf(object):
 
         # combined value and source distance
         v = paf_field[0]
-        scores = np.exp(-1.0 * d / xy_scale) * v  # two-tailed cumulative Laplace
+        sigma = 0.5 * xy_scale
+        scores = np.exp(-0.5 * d**2 / sigma**2) * v
 
         if self.connection_method == 'max':
             return self._target_with_maxscore(paf_field[5:], scores)
@@ -226,9 +227,11 @@ class CifCaf(object):
 
         # combined value and source distance
         xy_scale_t = max(0.0, target_xysv[2])
-        scores = (  # two-tailed cumulative Laplace
-            np.exp(-1.0 * d_source / xy_scale_s) *
-            np.exp(-1.0 * d_target / xy_scale_t) *
+        sigma_s = 0.5 * xy_scale_s
+        sigma_t = 0.5 * xy_scale_t
+        scores = (
+            np.exp(-0.5 * d_source**2 / sigma_s**2) *
+            np.exp(-0.5 * d_target**2 / sigma_t**2) *
             paf_field[0]
         )
         return np.sqrt(source_xyv[2] * max(scores))
