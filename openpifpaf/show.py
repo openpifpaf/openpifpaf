@@ -232,7 +232,7 @@ class KeypointPainter(object):
                 continue
             ax.add_patch(
                 matplotlib.patches.Rectangle(
-                    (x - scale, y - scale), 2 * scale, 2 * scale, fill=False, color=color))
+                    (x - scale / 2, y - scale / 2), scale, scale, fill=False, color=color))
 
     @staticmethod
     def _draw_joint_confidences(ax, xs, ys, vs, color):
@@ -411,13 +411,13 @@ def arrows(ax, fourd, xy_scale=1.0, threshold=0.0, **kwargs):
                      angles='xy', scale_units='xy', scale=1, zOrder=10, **kwargs)
 
 
-def boxes(ax, scalar_field, *, confidence_field=None, regression_field=None,
+def boxes(ax, sigma_field, *, confidence_field=None, regression_field=None,
           xy_scale=1.0, step=1, threshold=0.5,
           regression_field_is_offset=False,
           cmap='viridis_r', clim=(0.5, 1.0), **kwargs):
     x, y, s, c = [], [], [], []
-    for j in range(0, scalar_field.shape[0], step):
-        for i in range(0, scalar_field.shape[1], step):
+    for j in range(0, sigma_field.shape[0], step):
+        for i in range(0, sigma_field.shape[1], step):
             if confidence_field is not None and confidence_field[j, i] < threshold:
                 continue
             x_offset, y_offset = 0.0, 0.0
@@ -429,7 +429,7 @@ def boxes(ax, scalar_field, *, confidence_field=None, regression_field=None,
                     y_offset -= j
             x.append((i + x_offset) * xy_scale)
             y.append((j + y_offset) * xy_scale)
-            s.append(scalar_field[j, i] * xy_scale)
+            s.append(sigma_field[j, i] * xy_scale)
             c.append(confidence_field[j, i] if confidence_field is not None else 1.0)
 
     cmap = matplotlib.cm.get_cmap(cmap)
@@ -442,13 +442,13 @@ def boxes(ax, scalar_field, *, confidence_field=None, regression_field=None,
         ax.add_artist(rectangle)
 
 
-def circles(ax, scalar_field, *, confidence_field=None, regression_field=None,
+def circles(ax, radius_field, *, confidence_field=None, regression_field=None,
             xy_scale=1.0, step=1, threshold=0.5,
             regression_field_is_offset=False,
             cmap='viridis_r', clim=(0.5, 1.0), **kwargs):
     x, y, s, c = [], [], [], []
-    for j in range(0, scalar_field.shape[0], step):
-        for i in range(0, scalar_field.shape[1], step):
+    for j in range(0, radius_field.shape[0], step):
+        for i in range(0, radius_field.shape[1], step):
             if confidence_field is not None and confidence_field[j, i] < threshold:
                 continue
             x_offset, y_offset = 0.0, 0.0
@@ -460,7 +460,7 @@ def circles(ax, scalar_field, *, confidence_field=None, regression_field=None,
                     y_offset -= j
             x.append((i + x_offset) * xy_scale)
             y.append((j + y_offset) * xy_scale)
-            s.append(scalar_field[j, i] * xy_scale)
+            s.append(radius_field[j, i] * xy_scale)
             c.append(confidence_field[j, i] if confidence_field is not None else 1.0)
 
     cmap = matplotlib.cm.get_cmap(cmap)

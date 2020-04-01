@@ -92,12 +92,12 @@ class Caf(BaseVisualizer):
                             confidence_field=confidence_field,
                             xy_scale=self.stride, uv_is_offset=uv_is_offset,
                             cmap='Greens', clim=(0.5, 1.0), width=0.001)
-                show.boxes(ax, scale_fields1[f],
+                show.boxes(ax, scale_fields1[f] / 2.0,
                            confidence_field=confidence_field,
                            regression_field=regression_fields1[f, :2],
                            xy_scale=self.stride, cmap='Blues', fill=False,
                            regression_field_is_offset=uv_is_offset)
-                show.boxes(ax, scale_fields2[f],
+                show.boxes(ax, scale_fields2[f] / 2.0,
                            confidence_field=confidence_field,
                            regression_field=regression_fields2[f, :2],
                            xy_scale=self.stride, cmap='Greens', fill=False,
