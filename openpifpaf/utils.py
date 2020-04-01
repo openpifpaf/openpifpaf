@@ -31,7 +31,7 @@ def mask_valid_area(intensities, valid_area, *, fill_value=0):
 
     max_i = int(math.ceil(valid_area[1] + valid_area[3])) + 1
     max_j = int(math.ceil(valid_area[0] + valid_area[2])) + 1
-    if max_i > 0 and max_i < intensities.shape[1]:
+    if 0 < max_i < intensities.shape[1]:
         intensities[:, max_i:, :] = fill_value
-    if max_j > 0 and max_j < intensities.shape[2]:
+    if 0 < max_j < intensities.shape[2]:
         intensities[:, :, max_j:] = fill_value
