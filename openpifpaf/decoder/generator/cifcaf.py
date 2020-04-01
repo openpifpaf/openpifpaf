@@ -164,7 +164,7 @@ class CifCaf(object):
 
         # TODO: verify the following three lines have negligible speed impact
         d = np.linalg.norm(max_entry_1[:2] - max_entry_2[:2])
-        if d > max_entry_1[3]:
+        if d > max_entry_1[3] / 2.0:
             return max_entry_1[0], max_entry_1[1], max_entry_1[3], score_1 * 0.5
 
         return (
