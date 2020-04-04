@@ -55,7 +55,7 @@ def cli():
                         help='number of epochs to train')
     parser.add_argument('--rescale-images', type=float, default=1.0,
                         help='overall image rescale factor')
-    parser.add_argument('--orientation-invariant', default=False, action='store_true',
+    parser.add_argument('--orientation-invariant', default=0.0, type=float,
                         help='augment with random orientations')
     parser.add_argument('--extended-scale', default=False, action='store_true',
                         help='augment with an extended scale range')
@@ -136,7 +136,7 @@ def main():
         ]
         if args.orientation_invariant:
             preprocess_transformations += [
-                transforms.RotateBy90(),
+                transforms.RandomApply(transforms.RotateBy90(), args.orientation_invariant),
             ]
         preprocess_transformations += [
             transforms.TRAIN_TRANSFORM,
