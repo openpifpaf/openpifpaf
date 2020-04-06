@@ -67,7 +67,7 @@ def cli():
     LOG.setLevel(log_level)
 
     show.configure(args)
-    visualizer.configure(args)
+    visualizer.configure(args, enable_all_plots_on_debug=True)
 
     if args.loader_workers is None:
         args.loader_workers = args.batch_size

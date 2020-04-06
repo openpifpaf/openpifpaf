@@ -81,7 +81,7 @@ def cli():
     args = parser.parse_args()
 
     encoder.configure(args)
-    visualizer.configure(args)
+    visualizer.configure(args, enable_all_plots_on_debug=True)
 
     # add args.device
     args.device = torch.device('cpu')

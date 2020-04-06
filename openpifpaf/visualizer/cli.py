@@ -19,7 +19,7 @@ def cli(parser):
                              'of the form headname:fieldindex, e.g. cif:5'))
 
 
-def configure(args):
+def configure(args, *, enable_all_plots_on_debug=False):
     # configure visualizer
     args.debug_indices = [di.partition(':') for di in args.debug_indices]
     args.debug_indices = [(di[0], int(di[2])) for di in args.debug_indices]
@@ -31,7 +31,7 @@ def configure(args):
     Cif.show_regressions = args.debug_cif_v
     CifHr.show = args.debug_cifhr
 
-    if args.debug:
+    if enable_all_plots_on_debug and args.debug:
         Cif.show_background = True
         Cif.show_confidences = True
         Cif.show_regressions = True
