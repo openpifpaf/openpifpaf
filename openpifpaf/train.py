@@ -10,8 +10,6 @@ from openpifpaf import datasets, encoder, logs, optimize, transforms
 from openpifpaf.network import losses, nets, Trainer
 from openpifpaf import __version__ as VERSION
 
-from openpifpaf.consts import MODELS_DIR
-
 def default_output_file(args):
     out = 'outputs/{}-{}'.format(args.basenet, '-'.join(args.headnets))
     if args.square_edge != 321:
@@ -198,8 +196,6 @@ def main():
         },
     )
     trainer.loop(train_loader, val_loader, args.epochs, start_epoch=start_epoch)
-    torch.save(trainer.model.state_dict(), f'{MODELS_DIR}/trained_model')
-
 
 if __name__ == '__main__':
     main()
