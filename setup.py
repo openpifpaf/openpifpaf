@@ -60,7 +60,7 @@ setup(
     zip_safe=False,
 
     install_requires=[
-        'numpy>=1.16',
+        'numpy==1.17.5',
         'pysparkling',  # for log analysis
         'python-json-logger',
         'scipy',
