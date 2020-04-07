@@ -18,6 +18,7 @@ Trouble shooting:
 import argparse
 import json
 import logging
+import os
 import time
 
 import PIL
@@ -27,81 +28,7 @@ import cv2  # pylint: disable=import-error
 from .network import nets
 from . import decoder, show, transforms, visualizer
 
-try:
-    import matplotlib.pyplot as plt
-except ImportError:
-    plt = None
-
 LOG = logging.getLogger(__name__)
-
-
-class Animation(object):
-    def __init__(self, processor, keypoint_painter):
-        self.processor = processor
-        self.keypoint_painter = keypoint_painter
-
-        if plt is None:
-            LOG.error('matplotlib is not installed')
-
-    @staticmethod
-    def clean_axis(ax):
-        xlim = ax.get_xlim()
-        ylim = ax.get_ylim()
-        ax.cla()
-        ax.set_axis_off()
-        ax.set_xlim(*xlim)
-        ax.set_ylim(*ylim)
-
-    def __call__(self, first_image, fig_width=4.0, **kwargs):
-        if plt is None:
-            while True:
-                image, all_fields = yield
-            return
-
-        if 'figsize' not in kwargs:
-            kwargs['figsize'] = (fig_width, fig_width * first_image.shape[0] / first_image.shape[1])
-
-        fig = plt.figure(**kwargs)
-        ax = plt.Axes(fig, [0.0, 0.0, 1.0, 1.0])
-        ax.set_axis_off()
-        ax.set_xlim(0, first_image.shape[1])
-        ax.set_ylim(first_image.shape[0], 0)
-        text = 'OpenPifPaf'
-        ax.text(1, 1, text,
-                fontsize=10, verticalalignment='top',
-                bbox=dict(facecolor='white', alpha=0.5, linewidth=0))
-        fig.add_axes(ax)
-        ax.imshow(first_image)
-        fig.show()
-
-        while True:
-            image, all_fields = yield
-            annotations = self.processor.annotations(all_fields)
-
-            draw_start = time.time()
-            self.clean_axis(ax)
-            ax.imshow(image)
-            self.keypoint_painter.annotations(ax, annotations)
-            fig.canvas.draw()
-            LOG.debug('draw %.3fs', time.time() - draw_start)
-            plt.pause(0.01)
-
-        plt.close(fig)
-
-
-class JsonOutput(object):
-    def __init__(self, processor, output):
-        self.processor = processor
-        self.output = output
-
-    def __call__(self, first_image, **kwargs):
-        while True:
-            _, all_fields = yield
-            pred = self.processor.annotations(all_fields)
-
-            with open(self.output, 'a+') as f:
-                json.dump([ann.json_data() for ann in pred], f)
-                f.write('\n')
 
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
@@ -117,6 +44,11 @@ def cli():
     nets.cli(parser)
     decoder.cli(parser, force_complete_pose=False, instance_threshold=0.1, seed_threshold=0.5)
     show.cli(parser)
+    visualizer.cli(parser)
+
+    parser.add_argument('--video-output', default=None, nargs='*', help='video output file')
+    parser.add_argument('--video-fps', default=show.AnimationFrame.video_fps, type=float)
+    parser.add_argument('--show', default=False, action='store_true')
     parser.add_argument('--no-colored-connections',
                         dest='colored_connections', default=True, action='store_false',
                         help='do not use colored connections to draw poses')
@@ -147,6 +79,12 @@ def cli():
     LOG.setLevel(log_level)
 
     show.configure(args)
+    visualizer.configure(args)
+    show.AnimationFrame.video_fps = args.video_fps
+
+    # make sure json output does not exist already
+    if args.json_output:
+        assert not os.path.exists(args.json_output)
 
     # check whether source should be an int
     if len(args.source) == 1:
@@ -178,10 +116,12 @@ def main():
     last_loop = time.time()
     capture = cv2.VideoCapture(args.source)
 
-    animation = None
-    frame_i = 0
-    while True:
-        frame_i += 1
+    animation = show.AnimationFrame(
+        show=args.show,
+        video_output=args.video_output,
+        second_visual=args.debug or args.debug_indices,
+    )
+    for frame_i, (ax, ax_second) in enumerate(animation.iter()):
         _, image = capture.read()
         if image is None:
             LOG.info('no more images captured')
@@ -195,24 +135,28 @@ def main():
             LOG.debug('resized image size: %s', image.shape)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-        if animation is None:
-            if args.json_output:
-                animation = JsonOutput(processor, args.json_output)(image)
-                animation.send(None)
-            else:
-                animation = Animation(processor, keypoint_painter)(image)
-                animation.send(None)
+        if ax is None:
+            ax, ax_second = animation.frame_init(image)
+        visualizer.BaseVisualizer.image(image)
+        visualizer.BaseVisualizer.common_ax = ax_second
 
         start = time.time()
         image_pil = PIL.Image.fromarray(image)
         processed_image_cpu, _, __ = transforms.EVAL_TRANSFORM(image_pil, [], None)
-        visualizer.BaseVisualizer.image(image_pil)
         visualizer.BaseVisualizer.processed_image(processed_image_cpu)
         processed_image = processed_image_cpu.contiguous().to(args.device, non_blocking=True)
         LOG.debug('preprocessing time %.3fs', time.time() - start)
 
         fields = processor.fields(torch.unsqueeze(processed_image, 0))[0]
-        animation.send((image, fields))
+        preds = processor.annotations(fields)
+
+        if args.json_output:
+            with open(args.json_output, 'a+') as f:
+                json.dump([ann.json_data() for ann in preds], f)
+                f.write('\n')
+        else:
+            ax.imshow(image)
+            keypoint_painter.annotations(ax, preds)
 
         LOG.info('frame %d, loop time = %.3fs, FPS = %.3f',
                  frame_i,
