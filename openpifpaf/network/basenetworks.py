@@ -122,7 +122,7 @@ class InvertedResidualK(torch.nn.Module):
 
 
 class ShuffleNetV2K(torch.nn.Module):
-    """Exactly the same as torchvision.models.ShuffleNetV2 but where
+    """Based on torchvision.models.ShuffleNetV2 where
     the kernel size in stages 2,3,4 is 5 instead of 3."""
     def __init__(self, stages_repeats, stages_out_channels, num_classes=1000):
         super(ShuffleNetV2K, self).__init__()
