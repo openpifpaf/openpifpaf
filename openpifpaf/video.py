@@ -36,7 +36,7 @@ class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
     pass
 
 
-def cli():
+def cli():  # pylint: disable=too-many-statements,too-many-branches
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=CustomFormatter,
@@ -122,19 +122,22 @@ def cli():
     return args
 
 
+def processor_factory(args):
+    model, _ = nets.factory_from_args(args)
+    model = model.to(args.device)
+    processor = decoder.factory_from_args(args, model)
+    return processor
+
+
 def main():
     args = cli()
+    processor = processor_factory(args)
 
     # create keypoint painter
     if args.colored_connections:
         keypoint_painter = show.KeypointPainter(color_connections=True, linewidth=6)
     else:
         keypoint_painter = show.KeypointPainter()
-
-    # load model
-    model, _ = nets.factory_from_args(args)
-    model = model.to(args.device)
-    processor = decoder.factory_from_args(args, model)
 
     last_loop = time.time()
     capture = cv2.VideoCapture(args.source)
