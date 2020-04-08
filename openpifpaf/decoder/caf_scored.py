@@ -23,6 +23,12 @@ class CafScored:
         self.forward = None
         self.backward = None
 
+    def directed(self, caf_i, forward):
+        if forward:
+            return self.forward[caf_i], self.backward[caf_i]
+
+        return self.backward[caf_i], self.forward[caf_i]
+
     def fill_caf(self, caf, stride, min_distance=0.0, max_distance=None):
         start = time.perf_counter()
 
