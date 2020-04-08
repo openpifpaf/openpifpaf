@@ -385,27 +385,32 @@ def factory_from_scratch(basename, headnames, *, pretrained=True):
     if basename.startswith('shufflenetv2x2'):
         base_vision = torchvision.models.shufflenet_v2_x2_0(pretrained)
         return shufflenet_factory_from_scratch(basename, base_vision, 2048, headnames)
-    if basename.startswith('shufflenetv2k16'):  # was x3
+    if basename.startswith('shufflenetv2k16'):
         base_vision = torchvision.models.ShuffleNetV2(
             [4, 8, 4], [24, 348, 696, 1392, 2048],
         )
         return shufflenet_factory_from_scratch(basename, base_vision, 2048, headnames)
-    if basename.startswith('shufflenetv2k20'):  # was x4
+    if basename.startswith('shufflenetv2k20'):
         base_vision = torchvision.models.ShuffleNetV2(
             [5, 10, 5], [32, 512, 1024, 2048, 2048],
         )
         return shufflenet_factory_from_scratch(basename, base_vision, 2048, headnames)
-    if basename.startswith('shufflenetv2k30'):  # was x5
+    if basename.startswith('shufflenetv2k30w'):
+        base_vision = basenetworks.ShuffleNetV2K(
+            [8, 16, 6], [32, 512, 1024, 2048, 2048],
+        )
+        return generic_factory_from_scratch(basename, base_vision, 2048, headnames)
+    if basename.startswith('shufflenetv2k30'):
         base_vision = torchvision.models.ShuffleNetV2(
             [8, 16, 6], [32, 512, 1024, 2048, 2048],
         )
         return shufflenet_factory_from_scratch(basename, base_vision, 2048, headnames)
-    if basename.startswith('shufflenetv2k44'):  # was x6
+    if basename.startswith('shufflenetv2k44'):
         base_vision = torchvision.models.ShuffleNetV2(
             [12, 24, 8], [32, 512, 1024, 2048, 2048],
         )
         return shufflenet_factory_from_scratch(basename, base_vision, 2048, headnames)
-    if basename.startswith('shufflenetv2k62'):  # was x7
+    if basename.startswith('shufflenetv2k62'):
         base_vision = torchvision.models.ShuffleNetV2(
             [16, 36, 10], [32, 512, 1024, 2048, 2048],
         )
@@ -417,6 +422,25 @@ def factory_from_scratch(basename, headnames, *, pretrained=True):
         return shufflenet_factory_from_scratch(basename, base_vision, 3072, headnames)
 
     raise Exception('unknown base network in {}'.format(basename))
+
+
+def generic_factory_from_scratch(basename, base_vision, out_features, headnames):
+    basenet = basenetworks.BaseNetwork(
+        base_vision,
+        basename,
+        input_output_scale=16,
+        out_features=out_features,
+    )
+
+    if 'pd' in basename:
+        shufflenet_add_pyramid(basenet)
+
+    headnets = [heads.factory(h, basenet.out_features) for h in headnames]
+
+    net_cpu = Shell(basenet, headnets)
+    model_defaults(net_cpu)
+    LOG.debug(net_cpu)
+    return net_cpu
 
 
 def shufflenet_factory_from_scratch(basename, base_vision, out_features, headnames):
