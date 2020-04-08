@@ -198,7 +198,8 @@ class CifCaf(object):
 
         return (new_xysv[0], new_xysv[1], new_xysv[2], keypoint_score)
 
-    def p2p_value(self, source_xyv, caf_scored, source_s, target_xysv, caf_i, forward):
+    @staticmethod
+    def p2p_value(source_xyv, caf_scored, source_s, target_xysv, caf_i, forward):
         caf_f, _ = caf_scored.directed(caf_i, forward)
         xy_scale_s = max(0.0, source_s)
 
