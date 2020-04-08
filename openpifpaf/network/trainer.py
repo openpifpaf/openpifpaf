@@ -99,7 +99,7 @@ class Trainer(object):
             self.write_model(epoch + 1, epoch == epochs - 1)
             self.val(val_scenes, epoch + 1)
 
-    def train_batch(self, data, targets, meta, apply_gradients=True):  # pylint: disable=method-hidden
+    def train_batch(self, data, targets, apply_gradients=True):  # pylint: disable=method-hidden
         if self.device:
             data = data.to(self.device, non_blocking=True)
             targets = [[t.to(self.device, non_blocking=True) for t in head] for head in targets]
@@ -160,12 +160,12 @@ class Trainer(object):
         head_epoch_counts = None
         last_batch_end = time.time()
         self.optimizer.zero_grad()
-        for batch_idx, (data, target, meta) in enumerate(scenes):
+        for batch_idx, (data, target, _) in enumerate(scenes):
             preprocess_time = time.time() - last_batch_end
 
             batch_start = time.time()
             apply_gradients = batch_idx % self.stride_apply == 0
-            loss, head_losses = self.train_batch(data, target, meta, apply_gradients)
+            loss, head_losses = self.train_batch(data, target, apply_gradients)
 
             # update epoch accumulates
             if loss is not None:
