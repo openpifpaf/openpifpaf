@@ -88,9 +88,7 @@ def cli():
     return args
 
 
-def main():
-    args = cli()
-
+def processor_factory(args):
     # load model
     model_cpu, _ = nets.factory_from_args(args)
     model = model_cpu.to(args.device)
@@ -100,8 +98,10 @@ def main():
         model.head_names = model_cpu.head_names
         model.head_strides = model_cpu.head_strides
     processor = decoder.factory_from_args(args, model, args.device)
+    return processor
 
-    # preprocess
+
+def preprocess_factory(args):
     preprocess = [transforms.NormalizeAnnotations()]
     if args.long_edge:
         preprocess.append(transforms.RescaleAbsolute(args.long_edge))
@@ -109,7 +109,14 @@ def main():
         preprocess.append(transforms.CenterPad(args.long_edge))
     else:
         preprocess.append(transforms.CenterPadTight(16))
-    preprocess = transforms.Compose(preprocess + [transforms.EVAL_TRANSFORM])
+    return transforms.Compose(preprocess + [transforms.EVAL_TRANSFORM])
+
+
+def main():
+    args = cli()
+
+    processor = processor_factory(args)
+    preprocess = preprocess_factory(args)
 
     # data
     data = datasets.ImageList(args.images, preprocess=preprocess)
