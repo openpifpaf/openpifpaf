@@ -197,7 +197,7 @@ def default_output_name(args):
     return output
 
 
-def cli():
+def cli():  # pylint: disable=too-many-statements
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
