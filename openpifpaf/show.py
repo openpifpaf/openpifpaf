@@ -6,6 +6,7 @@ from PIL import Image
 
 try:
     import matplotlib
+    import matplotlib.animation
     import matplotlib.collections
     import matplotlib.pyplot as plt
     import matplotlib.patches
@@ -255,18 +256,21 @@ class KeypointPainter(object):
 
     def annotations(self, ax, annotations, *,
                     color=None, colors=None, texts=None, subtexts=None):
-        if annotations is None:
-            return
-
-        if color is None and colors is None:
-            colors = range(len(annotations))
-
         for i, ann in enumerate(annotations):
+            color = i
             if colors is not None:
                 color = colors[i]
+            elif hasattr(ann, 'id_'):
+                color = ann.id_
 
-            text = texts[i] if texts is not None else None
+            text = None
+            if texts is not None:
+                text = texts[i]
+            elif hasattr(ann, 'id_'):
+                text = '{}'.format(ann.id_)
+
             subtext = subtexts[i] if subtexts is not None else None
+
             self.annotation(ax, ann, color=color, text=text, subtext=subtext)
 
     def annotation(self, ax, ann, *, color=None, text=None, subtext=None):
@@ -531,6 +535,7 @@ class AnimationFrame:
         self.fig = None
         self.ax = None
         self.ax_second = None
+        self._skip_frame = False
 
         LOG.info('video output = %s', video_output)
 
@@ -543,13 +548,24 @@ class AnimationFrame:
         ax.set_xlim(*xlim)
         ax.set_ylim(*ylim)
 
-    def iter(self):
-        try:
-            if self.video_writer:
-                self.video_writer.setup(self.fig, self.video_output, self.video_dpi)
+    def skip_frame(self):
+        self._skip_frame = True
 
+    def iter(self):
+        video_writer_is_setup = False
+        try:
             while True:
                 yield (self.ax, self.ax_second)
+
+                if self._skip_frame:
+                    self._skip_frame = False
+                    continue
+
+                # Lazy setup of video writer (needs to be after first yield
+                # because only that might setup `self.fig`).
+                if self.video_writer and not video_writer_is_setup:
+                    self.video_writer.setup(self.fig, self.video_output, self.video_dpi)
+                    video_writer_is_setup = True
 
                 if self.show:
                     plt.pause(0.01)

@@ -78,11 +78,17 @@ class Annotation(object):
 
         # convert to float64 before rounding because otherwise extra digits
         # will be added when converting to Python type
-        return {
+        data = {
             'keypoints': np.around(self.data.astype(np.float64), 2).reshape(-1).tolist(),
             'bbox': [round(float(c), 2) for c in self.bbox()],
             'score': round(self.score(), 3),
         }
+
+        id_ = getattr(self, 'id_', None)
+        if id_:
+            data['id_'] = id_
+
+        return data
 
     def bbox(self):
         return self.bbox_from_keypoints(self.data, self.joint_scales)

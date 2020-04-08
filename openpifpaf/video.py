@@ -49,6 +49,7 @@ def cli():
     parser.add_argument('--video-output', default=None, nargs='*', help='video output file')
     parser.add_argument('--video-fps', default=show.AnimationFrame.video_fps, type=float)
     parser.add_argument('--show', default=False, action='store_true')
+    parser.add_argument('--horizontal-flip', default=False, action='store_true')
     parser.add_argument('--no-colored-connections',
                         dest='colored_connections', default=True, action='store_false',
                         help='do not use colored connections to draw poses')
@@ -59,8 +60,9 @@ def cli():
     parser.add_argument('--scale', default=0.1, type=float,
                         help='input image scale factor')
     parser.add_argument('--start-frame', type=int, default=0)
+    parser.add_argument('--skip-frames', type=int, default=1)
     parser.add_argument('--max-frames', type=int)
-    parser.add_argument('--json-output', help='store annotations in a json file')
+    parser.add_argument('--json-output', default=None, nargs='*', help='json output file')
     group = parser.add_argument_group('logging')
     group.add_argument('-q', '--quiet', default=False, action='store_true',
                        help='only show warning messages or above')
@@ -95,6 +97,28 @@ def cli():
     if not args.disable_cuda and torch.cuda.is_available():
         args.device = torch.device('cuda')
 
+    # standard filenames
+    if args.video_output is not None:
+        if not args.video_output:
+            args.video_output = '{}.trackandfield.mp4'.format(args.source)
+            if os.path.exists(args.video_output):
+                os.remove(args.video_output)
+        elif len(args.video_output) == 1:
+            args.video_output = args.video_output[0]
+        else:
+            raise Exception('give zero or one --video-output arguments')
+        assert not os.path.exists(args.video_output)
+    if args.json_output is not None:
+        if not args.json_output:
+            args.json_output = '{}.trackandfield.json'.format(args.source)
+            if os.path.exists(args.json_output):
+                os.remove(args.json_output)
+        elif len(args.json_output) == 1:
+            args.json_output = args.json_output[0]
+        else:
+            raise Exception('give zero or one --json-output arguments')
+        assert not os.path.exists(args.json_output)
+
     return args
 
 
@@ -102,11 +126,10 @@ def main():
     args = cli()
 
     # create keypoint painter
-    if not args.json_output:
-        if args.colored_connections:
-            keypoint_painter = show.KeypointPainter(color_connections=True, linewidth=6)
-        else:
-            keypoint_painter = show.KeypointPainter()
+    if args.colored_connections:
+        keypoint_painter = show.KeypointPainter(color_connections=True, linewidth=6)
+    else:
+        keypoint_painter = show.KeypointPainter()
 
     # load model
     model, _ = nets.factory_from_args(args)
@@ -128,12 +151,19 @@ def main():
             break
 
         if frame_i < args.start_frame:
+            animation.skip_frame()
+            continue
+
+        if frame_i % args.skip_frames != 0:
+            animation.skip_frame()
             continue
 
         if args.scale != 1.0:
             image = cv2.resize(image, None, fx=args.scale, fy=args.scale)
             LOG.debug('resized image size: %s', image.shape)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        if args.horizontal_flip:
+            image = image[:, ::-1]
 
         if ax is None:
             ax, ax_second = animation.frame_init(image)
@@ -152,9 +182,12 @@ def main():
 
         if args.json_output:
             with open(args.json_output, 'a+') as f:
-                json.dump([ann.json_data() for ann in preds], f)
+                json.dump({
+                    'frame': frame_i,
+                    'predictions': [ann.json_data() for ann in preds]
+                }, f, separators=(',', ':'))
                 f.write('\n')
-        else:
+        if not args.json_output or args.video_output:
             ax.imshow(image)
             keypoint_painter.annotations(ax, preds)
 
