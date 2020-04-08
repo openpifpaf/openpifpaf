@@ -41,14 +41,14 @@ class CifCaf(object):
         self.timers = defaultdict(float)
 
         # init by_target and by_source
-        self.by_target = defaultdict(list)
+        self.by_target = defaultdict(dict)
         for caf_i, (j1, j2) in enumerate(self.skeleton_m1):
-            self.by_target[j2].append((caf_i, True, j1))
-            self.by_target[j1].append((caf_i, False, j2))
-        self.by_source = defaultdict(list)
+            self.by_target[j2][j1] = (caf_i, True)
+            self.by_target[j1][j2] = (caf_i, False)
+        self.by_source = defaultdict(dict)
         for caf_i, (j1, j2) in enumerate(self.skeleton_m1):
-            self.by_source[j1].append((caf_i, True, j2))
-            self.by_source[j2].append((caf_i, False, j1))
+            self.by_source[j1][j2] = (caf_i, True)
+            self.by_source[j2][j1] = (caf_i, False)
 
     def __call__(self, fields, initial_annotations=None):
         start = time.perf_counter()
@@ -65,8 +65,7 @@ class CifCaf(object):
 
         cifhr = CifHr(self.field_config).fill(fields)
         seeds = CifSeeds(cifhr.accumulated, self.field_config).fill(fields)
-        # TODO make caf_scored not part of self?
-        self.caf_scored = CafScored(cifhr.accumulated, self.field_config, self.skeleton).fill(fields)
+        caf_scored = CafScored(cifhr.accumulated, self.field_config, self.skeleton).fill(fields)
 
         occupied = Occupancy(cifhr.accumulated.shape, 2, min_scale=4)
         annotations = []
@@ -80,7 +79,7 @@ class CifCaf(object):
                 occupied.set(joint_i, xyv[0], xyv[1], width)
 
         for ann in initial_annotations:
-            self._grow(ann)
+            self._grow(ann, caf_scored)
             annotations.append(ann)
             mark_occupied(ann)
 
@@ -90,7 +89,7 @@ class CifCaf(object):
 
             ann = Annotation(self.keypoints, self.out_skeleton).add(f, (x, y, v))
             ann.joint_scales[f] = s
-            self._grow(ann)
+            self._grow(ann, caf_scored)
             annotations.append(ann)
             mark_occupied(ann)
 
@@ -174,20 +173,13 @@ class CifCaf(object):
             0.5 * (score_1 + score_2),
         )
 
-    def connection_value(self, ann, caf_i, forward, *, reverse_match=True):
-        j1i, j2i = self.skeleton_m1[caf_i]
-        if forward:
-            jsi = j1i
-            directed_caf_field = self.caf_scored.forward[caf_i]
-            directed_caf_field_reverse = self.caf_scored.backward[caf_i]
-        else:
-            jsi = j2i
-            directed_caf_field = self.caf_scored.backward[caf_i]
-            directed_caf_field_reverse = self.caf_scored.forward[caf_i]
-        xyv = ann.data[jsi]
-        xy_scale_s = max(0.0, ann.joint_scales[jsi])
+    def connection_value(self, ann, caf_scored, start_i, end_i, *, reverse_match=True):
+        caf_i, forward = self.by_source[start_i][end_i]
+        caf_f, caf_b = caf_scored.directed(caf_i, forward)
+        xyv = ann.data[start_i]
+        xy_scale_s = max(0.0, ann.joint_scales[start_i])
 
-        new_xysv = self._grow_connection(xyv[:2], xy_scale_s, directed_caf_field)
+        new_xysv = self._grow_connection(xyv[:2], xy_scale_s, caf_f)
         keypoint_score = np.sqrt(new_xysv[3] * xyv[2])  # geometric mean
         if keypoint_score < self.keypoint_threshold:
             return 0.0, 0.0, 0.0, 0.0
@@ -198,7 +190,7 @@ class CifCaf(object):
         # reverse match
         if reverse_match:
             reverse_xyv = self._grow_connection(
-                new_xysv[:2], xy_scale_t, directed_caf_field_reverse)
+                new_xysv[:2], xy_scale_t, caf_b)
             if reverse_xyv[2] == 0.0:
                 return 0.0, 0.0, 0.0, 0.0
             if abs(xyv[0] - reverse_xyv[0]) + abs(xyv[1] - reverse_xyv[1]) > xy_scale_s:
@@ -206,15 +198,12 @@ class CifCaf(object):
 
         return (new_xysv[0], new_xysv[1], new_xysv[2], keypoint_score)
 
-    def p2p_value(self, source_xyv, source_s, target_xysv, caf_i, forward):
-        if forward:
-            directed_caf_field = self.caf_scored.forward[caf_i]
-        else:
-            directed_caf_field = self.caf_scored.backward[caf_i]
+    def p2p_value(self, source_xyv, caf_scored, source_s, target_xysv, caf_i, forward):
+        caf_f, _ = caf_scored.directed(caf_i, forward)
         xy_scale_s = max(0.0, source_s)
 
         # source value
-        caf_field = caf_center_s(directed_caf_field, source_xyv[0], source_xyv[1],
+        caf_field = caf_center_s(caf_f, source_xyv[0], source_xyv[1],
                                  sigma=2.0 * xy_scale_s)
         if caf_field.shape[1] == 0:
             return 0.0
@@ -236,12 +225,12 @@ class CifCaf(object):
         )
         return np.sqrt(source_xyv[2] * max(scores))
 
-    def _grow(self, ann, *, reverse_match=True):
+    def _grow(self, ann, caf_scored, *, reverse_match=True):
         frontier = PriorityQueue()
         in_frontier = set()
 
         def add_to_frontier(start_i):
-            for caf_i, forward, end_i in self.by_source[start_i]:
+            for end_i, (caf_i, _) in self.by_source[start_i].items():
                 if ann.data[end_i, 2] > 0.0:
                     continue
                 if (start_i, end_i) in in_frontier:
@@ -250,7 +239,7 @@ class CifCaf(object):
                 max_possible_score = np.sqrt(ann.data[start_i, 2])
                 if self.confidence_scales is not None:
                     max_possible_score *= self.confidence_scales[caf_i]
-                frontier.put((-max_possible_score, None, start_i, end_i, caf_i, forward))
+                frontier.put((-max_possible_score, None, start_i, end_i))
                 in_frontier.add((start_i, end_i))
                 ann.frontier_order.append((start_i, end_i))
 
@@ -260,18 +249,19 @@ class CifCaf(object):
                 if entry[1] is not None:
                     return entry
 
-                _, __, start_i, end_i, caf_i, forward = entry
+                _, __, start_i, end_i = entry
                 if ann.data[end_i, 2] > 0.0:
                     continue
 
                 new_xysv = self.connection_value(
-                    ann, caf_i, forward, reverse_match=reverse_match)
+                    ann, caf_scored, start_i, end_i, reverse_match=reverse_match)
                 if new_xysv[3] == 0.0:
                     continue
                 score = new_xysv[3]
                 if self.greedy:
                     return (-score, new_xysv, start_i, end_i)
                 if self.confidence_scales is not None:
+                    caf_i, _ = self.by_source[start_i][end_i]
                     score *= self.confidence_scales[caf_i]
                 frontier.put((-score, new_xysv, start_i, end_i))
 
@@ -301,7 +291,7 @@ class CifCaf(object):
         frontier = PriorityQueue()
 
         def add_to_frontier(start_i):
-            for _, __, end_i in self.by_source[start_i]:
+            for end_i in self.by_source[start_i].keys():
                 if ann.data[end_i, 2] > 0.0:
                     continue
                 start_xyv = ann.data[start_i].tolist()
@@ -324,12 +314,12 @@ class CifCaf(object):
     def complete_annotations(self, cifhr, fields, annotations):
         start = time.perf_counter()
 
-        self.caf_scored = CafScored(cifhr.accumulated, self.field_config, self.skeleton,
-                                    score_th=0.0001).fill(fields)
+        caf_scored = CafScored(cifhr.accumulated, self.field_config, self.skeleton,
+                               score_th=0.0001).fill(fields)
 
         for ann in annotations:
             unfilled_mask = ann.data[:, 2] == 0.0
-            self._grow(ann, reverse_match=False)
+            self._grow(ann, caf_scored, reverse_match=False)
             now_filled_mask = ann.data[:, 2] > 0.0
             updated = np.logical_and(unfilled_mask, now_filled_mask)
             ann.data[updated, 2] = np.minimum(0.001, ann.data[updated, 2])
