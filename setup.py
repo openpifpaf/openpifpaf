@@ -47,6 +47,7 @@ setup(
         'openpifpaf.decoder.generator',
         'openpifpaf.encoder',
         'openpifpaf.network',
+        'openpifpaf.show',
         'openpifpaf.transforms',
         'openpifpaf.visualizer',
     ],
