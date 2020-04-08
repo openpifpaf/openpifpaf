@@ -2,7 +2,7 @@ import logging
 import torch
 import torchvision
 
-from . import basenetworks, heads, pyramid
+from . import basenetworks, heads
 from ..data import COCO_KEYPOINTS, COCO_PERSON_SKELETON, DENSER_COCO_PERSON_CONNECTIONS, HFLIP
 
 # generate hash values with: shasum -a 256 filename.pkl
@@ -189,12 +189,6 @@ def factory_from_args(args):
     # configure CompositeField
     heads.CompositeField.dropout_p = args.head_dropout
     heads.CompositeField.quad = args.head_quad
-
-    # configure pyramid
-    pyramid.PumpAndDump.n_layers = args.pyramid_layers
-    pyramid.PumpAndDump.stack_size = args.pyramid_stack_size
-    pyramid.PumpAndDump.n_features = args.pyramid_features
-    pyramid.PumpAndDumpColumn.upsample_type = args.pyramid_upsample
 
     return factory(
         checkpoint=args.checkpoint,
@@ -432,9 +426,6 @@ def generic_factory_from_scratch(basename, base_vision, out_features, headnames)
         out_features=out_features,
     )
 
-    if 'pd' in basename:
-        shufflenet_add_pyramid(basenet)
-
     headnets = [heads.factory(h, basenet.out_features) for h in headnames]
 
     net_cpu = Shell(basenet, headnets)
@@ -459,44 +450,12 @@ def shufflenet_factory_from_scratch(basename, base_vision, out_features, headnam
         out_features=out_features,
     )
 
-    if 'pd' in basename:
-        shufflenet_add_pyramid(basenet)
-
     headnets = [heads.factory(h, basenet.out_features) for h in headnames]
 
     net_cpu = Shell(basenet, headnets)
     model_defaults(net_cpu)
     LOG.debug(net_cpu)
     return net_cpu
-
-
-def shufflenet_add_pyramid(basenet):
-    blocks = list(basenet.net.children())
-
-    in_features = blocks[-1][0].in_channels
-    blocks[-1] = pyramid.PumpAndDump(
-        in_features,
-        block_factory=pyramid.PumpAndDump.create_invertedresidual,
-        lateral_factory=pyramid.PumpAndDump.create_lateral_invertedresidual,
-    )
-    basenet.net = torch.nn.Sequential(*blocks)
-    basenet.out_features = pyramid.PumpAndDump.n_features * (pyramid.PumpAndDump.n_layers + 1)
-    LOG.info('pyramid out features = %d', basenet.out_features)
-
-
-def shufflenet_add_simple_pyramid(basenet):
-    blocks = list(basenet.net.children())
-
-    in_features = blocks[-1][0].in_channels
-    blocks[-1] = pyramid.SimplePyramid(
-        in_features,
-        block_factory=pyramid.PumpAndDump.create_invertedresidual,
-        lateral_factory=pyramid.PumpAndDump.create_lateral_invertedresidual,
-    )
-    basenet.net = torch.nn.Sequential(*blocks)
-    basenet.out_features = \
-        pyramid.SimplePyramid.concat_features * (pyramid.SimplePyramid.n_layers + 1)
-    LOG.info('pyramid out features = %d', basenet.out_features)
 
 
 def resnet_factory_from_scratch(basename, base_vision, out_features, headnames):
@@ -537,27 +496,10 @@ def resnet_factory_from_scratch(basename, base_vision, out_features, headnames):
         out_features=out_features,
     )
 
-    if 'pd' in basename:
-        resnet_add_pyramid(basenet)
-
     headnets = [heads.factory(h, basenet.out_features) for h in headnames]
     net_cpu = Shell(basenet, headnets)
     model_defaults(net_cpu)
     return net_cpu
-
-
-def resnet_add_pyramid(basenet):
-    blocks = list(basenet.net.children())
-
-    blocks.append(pyramid.PumpAndDump(
-        basenet.out_features,
-        block_factory=pyramid.PumpAndDump.create_bottleneck,
-        lateral_factory=pyramid.PumpAndDump.create_lateral,
-    ))
-    basenet.net = torch.nn.Sequential(*blocks)
-    basenet.out_features = pyramid.PumpAndDump.n_features * (pyramid.PumpAndDump.n_layers + 1)
-    LOG.debug('basenet.net: %s', basenet.net)
-    LOG.info('pyramid out features = %d', basenet.out_features)
 
 
 def cli(parser):
@@ -587,14 +529,3 @@ def cli(parser):
                        help='[experimental] zeroing probability of feature in head input')
     group.add_argument('--head-quad', default=heads.CompositeField.quad, type=int,
                        help='number of times to apply quad (subpixel conv) to heads')
-
-    group = parser.add_argument_group('pyramid')
-    group.add_argument('--pyramid-layers', default=pyramid.PumpAndDump.n_layers, type=int,
-                       help='[experimental]')
-    group.add_argument('--pyramid-stack-size', default=pyramid.PumpAndDump.stack_size, type=int,
-                       help='[experimental]')
-    group.add_argument('--pyramid-upsample', default=pyramid.PumpAndDumpColumn.upsample_type,
-                       help='[experimental]')
-    group.add_argument('--pyramid-features', default=pyramid.PumpAndDump.n_features,
-                       type=int,
-                       help='[experimental]')
