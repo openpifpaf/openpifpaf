@@ -223,9 +223,9 @@ class CompositeField(torch.nn.Module):
 
         # regressions
         regs_x = [reg_conv(x) * self.dilation for reg_conv in self.reg_convs]
-        regs_x_spread = [reg_spread(x) for reg_spread in self.reg_spreads]
-        regs_x_spread = [torch.nn.functional.leaky_relu(x + 2.0) - 2.0
-                         for x in regs_x_spread]
+        regs_logb = [reg_spread(x) for reg_spread in self.reg_spreads]
+        regs_logb = [torch.nn.functional.leaky_relu(x + 2.0) - 2.0
+                     for x in regs_logb]
 
         # scale
         scales_x = [scale_conv(x) for scale_conv in self.scale_convs]
@@ -237,8 +237,8 @@ class CompositeField(torch.nn.Module):
                          for class_x in classes_x]
             regs_x = [self.dequad_op(reg_x)[:, :, :-1, :-1]
                       for reg_x in regs_x]
-            regs_x_spread = [self.dequad_op(reg_x_spread)[:, :, :-1, :-1]
-                             for reg_x_spread in regs_x_spread]
+            regs_logb = [self.dequad_op(reg_x_spread)[:, :, :-1, :-1]
+                         for reg_x_spread in regs_logb]
             scales_x = [self.dequad_op(scale_x)[:, :, :-1, :-1]
                         for scale_x in scales_x]
 
@@ -252,7 +252,7 @@ class CompositeField(torch.nn.Module):
             for reg_x in regs_x
         ]
 
-        return classes_x + regs_x + regs_x_spread + scales_x
+        return classes_x + regs_x + regs_logb + scales_x
 
 
 def determine_nfields(head_name):
