@@ -329,22 +329,20 @@ def dataloader_from_args(args):
     if args.batch_size == 1 and not args.multi_scale:
         preprocess[2] = transforms.CenterPadTight(16)
 
-    data = datasets.CocoKeypoints(
+    data = datasets.Coco(
         root=args.image_dir,
         annFile=args.annotation_file,
         preprocess=transforms.Compose(preprocess),
-        all_persons=True,
-        all_images=args.all_images,
+        image_filter='all' if args.all_images else 'annotated',
     )
     if args.extended_scale:
         preprocess_small = list(preprocess)
         preprocess_small[1] = transforms.RescaleAbsolute(args.long_edge // 2)
-        data_small = datasets.CocoKeypoints(
+        data_small = datasets.Coco(
             root=args.image_dir,
             annFile=args.annotation_file,
             preprocess=transforms.Compose(preprocess_small),
-            all_persons=True,
-            all_images=args.all_images,
+            image_filter='all' if args.all_images else 'annotated',
         )
         data = torch.utils.data.ConcatDataset([data_small, data])
 

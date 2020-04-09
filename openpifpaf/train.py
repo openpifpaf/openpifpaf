@@ -7,7 +7,7 @@ import socket
 
 import torch
 
-from . import datasets, encoder, logs, optimize, transforms, visualizer
+from . import datasets, encoder, logs, optimize, visualizer
 from .network import losses, nets, Trainer
 from . import __version__ as VERSION
 
@@ -55,22 +55,13 @@ def cli():
                         help='number of epochs to train')
     parser.add_argument('--rescale-images', type=float, default=1.0,
                         help='overall image rescale factor')
-    parser.add_argument('--orientation-invariant', default=0.0, type=float,
-                        help='augment with random orientations')
-    parser.add_argument('--extended-scale', default=False, action='store_true',
-                        help='augment with an extended scale range')
     parser.add_argument('--update-batchnorm-runningstatistics',
                         default=False, action='store_true',
                         help='update batch norm running statistics')
-    parser.add_argument('--square-edge', default=385, type=int,
-                        help='square edge of input images')
     parser.add_argument('--ema', default=1e-3, type=float,
                         help='ema decay constant')
     parser.add_argument('--disable-cuda', action='store_true',
                         help='disable CUDA')
-    parser.add_argument('--no-augmentation', dest='augmentation',
-                        default=True, action='store_false',
-                        help='do not apply data augmentation')
 
     group = parser.add_argument_group('debug')
     group.add_argument('--profile', default=None,
@@ -81,6 +72,7 @@ def cli():
     args = parser.parse_args()
 
     encoder.configure(args)
+    datasets.train_configure(args)
     visualizer.configure(args, enable_all_plots_on_debug=True)
 
     # add args.device
@@ -110,47 +102,7 @@ def main():
 
     loss = losses.factory_from_args(args, net_cpu.head_names)
     target_transforms = encoder.factory(net_cpu.head_names, net_cpu.head_strides)
-
-    if args.augmentation:
-        preprocess_transformations = [
-            transforms.NormalizeAnnotations(),
-            transforms.AnnotationJitter(),
-            transforms.RandomApply(transforms.HFlip(), 0.5),
-        ]
-        if args.extended_scale:
-            preprocess_transformations.append(
-                transforms.RescaleRelative(scale_range=(0.25 * args.rescale_images,
-                                                        2.0 * args.rescale_images),
-                                           power_law=True)
-            )
-        else:
-            preprocess_transformations.append(
-                transforms.RescaleRelative(scale_range=(0.4 * args.rescale_images,
-                                                        2.0 * args.rescale_images),
-                                           power_law=True)
-            )
-        preprocess_transformations += [
-            # transforms.RandomApply(transforms.ScaleMix(args.square_edge / 2.0), 0.5),
-            transforms.Crop(args.square_edge),
-            transforms.CenterPad(args.square_edge),
-        ]
-        if args.orientation_invariant:
-            preprocess_transformations += [
-                transforms.RandomApply(transforms.RotateBy90(), args.orientation_invariant),
-            ]
-        preprocess_transformations += [
-            transforms.TRAIN_TRANSFORM,
-        ]
-    else:
-        preprocess_transformations = [
-            transforms.NormalizeAnnotations(),
-            transforms.RescaleAbsolute(args.square_edge),
-            transforms.CenterPad(args.square_edge),
-            transforms.EVAL_TRANSFORM,
-        ]
-    preprocess = transforms.Compose(preprocess_transformations)
-    train_loader, val_loader = datasets.train_factory(
-        args, preprocess, target_transforms)
+    train_loader, val_loader = datasets.train_factory(args, target_transforms)
 
     optimizer = optimize.factory_optimizer(
         args, list(net.parameters()) + list(loss.parameters()))

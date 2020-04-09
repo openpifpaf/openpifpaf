@@ -12,6 +12,8 @@ from . import transforms, utils
 
 ANNOTATIONS_TRAIN = 'data-mscoco/annotations/person_keypoints_train2017.json'
 ANNOTATIONS_VAL = 'data-mscoco/annotations/person_keypoints_val2017.json'
+DET_ANNOTATIONS_TRAIN = 'data-mscoco/annotations/instances_train2017.json'
+DET_ANNOTATIONS_VAL = 'data-mscoco/annotations/instances_val2017.json'
 IMAGE_DIR_TRAIN = 'data-mscoco/images/train2017/'
 IMAGE_DIR_VAL = 'data-mscoco/images/val2017/'
 
@@ -33,39 +35,37 @@ def collate_images_targets_meta(batch):
     return images, targets, metas
 
 
-class CocoKeypoints(torch.utils.data.Dataset):
+class Coco(torch.utils.data.Dataset):
     """`MS Coco Detection <http://mscoco.org/dataset/#detections-challenge2016>`_ Dataset.
-
-    Based on `torchvision.dataset.CocoDetection`.
-
-    Caches preprocessing.
 
     Args:
         root (string): Root directory where images are downloaded to.
         annFile (string): Path to json annotation file.
-        transform (callable, optional): A function/transform that  takes in an PIL image
-            and returns a transformed version. E.g, ``transforms.ToTensor``
-        target_transform (callable, optional): A function/transform that takes in the
-            target and transforms it.
     """
 
     def __init__(self, root, annFile, *, target_transforms=None,
-                 n_images=None, preprocess=None, all_images=False, all_persons=False):
+                 n_images=None, preprocess=None,
+                 category_ids=[1],
+                 image_filter='keypoint-annotations'):
         from pycocotools.coco import COCO
         self.root = root
         self.coco = COCO(annFile)
 
-        self.cat_ids = self.coco.getCatIds(catNms=['person'])
-        if all_images:
+        self.category_ids = category_ids
+
+        if image_filter == 'all':
             self.ids = self.coco.getImgIds()
-        elif all_persons:
-            self.ids = self.coco.getImgIds(catIds=self.cat_ids)
-        else:
-            self.ids = self.coco.getImgIds(catIds=self.cat_ids)
+        elif image_filter == 'annotated':
+            self.ids = self.coco.getImgIds(catIds=self.category_ids)
+        elif image_filter == 'keypoint-annotations':
+            self.ids = self.coco.getImgIds(catIds=self.category_ids)
             self.filter_for_keypoint_annotations()
+        else:
+            raise Exception('unknown value for image_filter: {}'.format(image_filter))
+
         if n_images:
             self.ids = self.ids[:n_images]
-        print('Images: {}'.format(len(self.ids)))
+        LOG.info('Images: %d', len(self.ids))
 
         self.preprocess = preprocess or transforms.EVAL_TRANSFORM
         self.target_transforms = target_transforms
@@ -73,7 +73,7 @@ class CocoKeypoints(torch.utils.data.Dataset):
     def filter_for_keypoint_annotations(self):
         print('filter for keypoint annotations ...')
         def has_keypoint_annotation(image_id):
-            ann_ids = self.coco.getAnnIds(imgIds=image_id, catIds=self.cat_ids)
+            ann_ids = self.coco.getAnnIds(imgIds=image_id, catIds=self.category_ids)
             anns = self.coco.loadAnns(ann_ids)
             for ann in anns:
                 if 'keypoints' not in ann:
@@ -87,15 +87,8 @@ class CocoKeypoints(torch.utils.data.Dataset):
         print('... done.')
 
     def __getitem__(self, index):
-        """
-        Args:
-            index (int): Index
-
-        Returns:
-            tuple: Tuple (image, target). target is the object returned by ``coco.loadAnns``.
-        """
         image_id = self.ids[index]
-        ann_ids = self.coco.getAnnIds(imgIds=image_id, catIds=self.cat_ids)
+        ann_ids = self.coco.getAnnIds(imgIds=image_id, catIds=self.category_ids)
         anns = self.coco.loadAnns(ann_ids)
         anns = copy.deepcopy(anns)
 
@@ -191,10 +184,11 @@ class PilImageList(torch.utils.data.Dataset):
 
 def train_cli(parser):
     group = parser.add_argument_group('dataset and loader')
-    group.add_argument('--train-annotations', default=ANNOTATIONS_TRAIN)
+    group.add_argument('--train-annotations', default=None)
     group.add_argument('--train-image-dir', default=IMAGE_DIR_TRAIN)
-    group.add_argument('--val-annotations', default=ANNOTATIONS_VAL)
+    group.add_argument('--val-annotations', default=None)
     group.add_argument('--val-image-dir', default=IMAGE_DIR_VAL)
+    group.add_argument('--detection-annotations', default=False, action='store_true')
     group.add_argument('--n-images', default=None, type=int,
                        help='number of images to sample')
     group.add_argument('--duplicate-data', default=None, type=int,
@@ -204,17 +198,85 @@ def train_cli(parser):
     group.add_argument('--batch-size', default=8, type=int,
                        help='batch size')
 
+    group_aug = parser.add_argument_group('augmentations')
+    group_aug.add_argument('--square-edge', default=385, type=int,
+                           help='square edge of input images')
+    group_aug.add_argument('--extended-scale', default=False, action='store_true',
+                           help='augment with an extended scale range')
+    group_aug.add_argument('--orientation-invariant', default=0.0, type=float,
+                           help='augment with random orientations')
+    group_aug.add_argument('--no-augmentation', dest='augmentation',
+                           default=True, action='store_false',
+                           help='do not apply data augmentation')
 
-def train_factory(args, preprocess, target_transforms):
+
+def train_configure(args):
+    if args.train_annotations is None:
+        args.train_annotations = ANNOTATIONS_TRAIN
+        if args.detection_annotations:
+            args.train_annotations = DET_ANNOTATIONS_TRAIN
+    if args.val_annotations is None:
+        args.val_annotations = ANNOTATIONS_VAL
+        if args.detection_annotations:
+            args.val_annotations = DET_ANNOTATIONS_VAL
+
+
+def train_preprocess_factory(args):
+    if not args.augmentation:
+        return transforms.Compose([
+            transforms.NormalizeAnnotations(),
+            transforms.RescaleAbsolute(args.square_edge),
+            transforms.CenterPad(args.square_edge),
+            transforms.EVAL_TRANSFORM,
+        ])
+
+    preprocess_transformations = [
+        transforms.NormalizeAnnotations(),
+        transforms.AnnotationJitter(),
+        transforms.RandomApply(transforms.HFlip(), 0.5),
+    ]
+    if args.extended_scale:
+        preprocess_transformations.append(
+            transforms.RescaleRelative(scale_range=(0.25 * args.rescale_images,
+                                                    2.0 * args.rescale_images),
+                                       power_law=True)
+        )
+    else:
+        preprocess_transformations.append(
+            transforms.RescaleRelative(scale_range=(0.4 * args.rescale_images,
+                                                    2.0 * args.rescale_images),
+                                       power_law=True)
+        )
+    preprocess_transformations += [
+        # transforms.RandomApply(transforms.ScaleMix(args.square_edge / 2.0), 0.5),
+        transforms.Crop(args.square_edge),
+        transforms.CenterPad(args.square_edge),
+    ]
+    if args.orientation_invariant:
+        preprocess_transformations += [
+            transforms.RandomApply(transforms.RotateBy90(), args.orientation_invariant),
+        ]
+    preprocess_transformations += [
+        transforms.TRAIN_TRANSFORM,
+    ]
+
+    return transforms.Compose(preprocess_transformations)
+
+
+def train_factory(args, target_transforms):
+    preprocess = train_preprocess_factory(args)
+
     if args.loader_workers is None:
         args.loader_workers = args.batch_size
 
-    train_data = CocoKeypoints(
+    train_data = Coco(
         root=args.train_image_dir,
         annFile=args.train_annotations,
         preprocess=preprocess,
         target_transforms=target_transforms,
         n_images=args.n_images,
+        image_filter='annotated' if args.detection_annotations else 'keypoint-annotations',
+        category_ids=[] if args.detection_annotations else [1],
     )
     if args.duplicate_data:
         train_data = torch.utils.data.ConcatDataset(
@@ -224,12 +286,14 @@ def train_factory(args, preprocess, target_transforms):
         pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
         collate_fn=collate_images_targets_meta)
 
-    val_data = CocoKeypoints(
+    val_data = Coco(
         root=args.val_image_dir,
         annFile=args.val_annotations,
         preprocess=preprocess,
         target_transforms=target_transforms,
         n_images=args.n_images,
+        image_filter='annotated' if args.detection_annotations else 'keypoint-annotations',
+        category_ids=[] if args.detection_annotations else [1],
     )
     if args.duplicate_data:
         val_data = torch.utils.data.ConcatDataset(
