@@ -102,13 +102,17 @@ def arrows(ax, fourd, xy_scale=1.0, threshold=0.0, **kwargs):
                      angles='xy', scale_units='xy', scale=1, zOrder=10, **kwargs)
 
 
-def boxes(ax, sigma_field, *, confidence_field=None, regression_field=None,
-          xy_scale=1.0, step=1, threshold=0.5,
-          regression_field_is_offset=False,
-          cmap='viridis_r', clim=(0.5, 1.0), **kwargs):
-    x, y, s, c = [], [], [], []
-    for j in range(0, sigma_field.shape[0], step):
-        for i in range(0, sigma_field.shape[1], step):
+def boxes(ax, sigma_field, **kwargs):
+    boxes_wh(ax, sigma_field * 2.0, sigma_field * 2.0, **kwargs)
+
+
+def boxes_wh(ax, w_field, h_field, *, confidence_field=None, regression_field=None,
+             xy_scale=1.0, step=1, threshold=0.5,
+             regression_field_is_offset=False,
+             cmap='viridis_r', clim=(0.5, 1.0), **kwargs):
+    x, y, w, h, c = [], [], [], [], []
+    for j in range(0, w_field.shape[0], step):
+        for i in range(0, w_field.shape[1], step):
             if confidence_field is not None and confidence_field[j, i] < threshold:
                 continue
             x_offset, y_offset = 0.0, 0.0
@@ -120,15 +124,16 @@ def boxes(ax, sigma_field, *, confidence_field=None, regression_field=None,
                     y_offset -= j
             x.append((i + x_offset) * xy_scale)
             y.append((j + y_offset) * xy_scale)
-            s.append(sigma_field[j, i] * xy_scale)
+            w.append(w_field[j, i] * xy_scale)
+            h.append(h_field[j, i] * xy_scale)
             c.append(confidence_field[j, i] if confidence_field is not None else 1.0)
 
     cmap = matplotlib.cm.get_cmap(cmap)
     cnorm = matplotlib.colors.Normalize(vmin=clim[0], vmax=clim[1])
-    for xx, yy, ss, cc in zip(x, y, s, c):
+    for xx, yy, ww, hh, cc in zip(x, y, w, h, c):
         color = cmap(cnorm(cc))
         rectangle = matplotlib.patches.Rectangle(
-            (xx - ss, yy - ss), ss * 2.0, ss * 2.0,
+            (xx - ww / 2.0, yy - hh / 2.0), ww, hh,
             color=color, zorder=10, linewidth=1, **kwargs)
         ax.add_artist(rectangle)
 

@@ -75,7 +75,7 @@ class CafGenerator:
         n_fields = len(self.skeleton_m1)
         field_w = bg_mask.shape[1] + 2 * self.config.padding
         field_h = bg_mask.shape[0] + 2 * self.config.padding
-        self.intensities = np.zeros((n_fields + 1, field_h, field_w), dtype=np.float32)
+        self.intensities = np.zeros((n_fields, field_h, field_w), dtype=np.float32)
         self.fields_reg1 = np.zeros((n_fields, 6, field_h, field_w), dtype=np.float32)
         self.fields_reg2 = np.zeros((n_fields, 6, field_h, field_w), dtype=np.float32)
         self.fields_reg1[:, 2:] = np.inf
@@ -84,14 +84,13 @@ class CafGenerator:
         self.fields_scale2 = np.full((n_fields, field_h, field_w), np.nan, dtype=np.float32)
         self.fields_reg_l = np.full((n_fields, field_h, field_w), np.inf, dtype=np.float32)
 
-        # set background
-        p = self.config.padding
-        self.intensities[-1] = 1.0
-        self.intensities[-1, p:-p, p:-p] = bg_mask
-        self.intensities[-1] = scipy.ndimage.binary_erosion(
-            self.intensities[-1],
+        # bg_mask
+        bg_mask = scipy.ndimage.binary_erosion(
+            bg_mask,
             iterations=int(self.config.min_size / 2.0) + 1,
             border_value=1)
+        p = self.config.padding
+        self.intensities[:, p:-p, p:-p][:, bg_mask == 0] = np.nan
 
     def fill(self, keypoint_sets):
         for kps_i, keypoints in enumerate(keypoint_sets):

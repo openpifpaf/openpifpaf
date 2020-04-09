@@ -260,35 +260,33 @@ class CompositeLoss(torch.nn.Module):
         target_regs = t[1:1 + self.n_vectors]
         target_scales = t[1 + self.n_vectors:]
 
-        bce_masks = (target_intensity[:, :-1] + target_intensity[:, -1:]) > 0.5
+        bce_masks = target_intensity > 0.5
         if not torch.any(bce_masks):
             return None, None, None
 
         batch_size = x_intensity.shape[0]
         LOG.debug('batch size = %d', batch_size)
 
-        bce_x_intensity = x_intensity
-        bce_target_intensity = target_intensity[:, :-1]
         if self.bce_blackout:
-            bce_x_intensity = bce_x_intensity[:, self.bce_blackout]
+            x_intensity = x_intensity[:, self.bce_blackout]
             bce_masks = bce_masks[:, self.bce_blackout]
-            bce_target_intensity = bce_target_intensity[:, self.bce_blackout]
+            target_intensity = target_intensity[:, self.bce_blackout]
 
         LOG.debug('BCE: x = %s, target = %s, mask = %s',
-                  x_intensity.shape, bce_target_intensity.shape, bce_masks.shape)
-        bce_target = torch.masked_select(bce_target_intensity, bce_masks)
+                  x_intensity.shape, target_intensity.shape, bce_masks.shape)
+        bce_target = torch.masked_select(target_intensity, bce_masks)
         bce_weight = None
         if self.background_weight != 1.0:
             bce_weight = torch.ones_like(bce_target)
             bce_weight[bce_target == 0] = self.background_weight
         ce_loss = torch.nn.functional.binary_cross_entropy_with_logits(
-            torch.masked_select(bce_x_intensity, bce_masks),
+            torch.masked_select(x_intensity, bce_masks),
             bce_target,
             weight=bce_weight,
         ) * 10.0
 
         reg_losses = [None for _ in target_regs]
-        reg_masks = target_intensity[:, :-1] > 0.5
+        reg_masks = target_intensity > 0.5
         if torch.any(reg_masks):
             weight = None
             if self.multiplicity_correction:
@@ -393,7 +391,9 @@ def loss_parameters(head_name):
         n_vectors = 2
 
     n_scales = None
-    if 'pif' in head_name or 'cif' in head_name:
+    if 'cifdet' in head_name:
+        n_scales = 2
+    elif 'pif' in head_name or 'cif' in head_name:
         n_scales = 1
     elif 'caf' in head_name:
         n_scales = 2

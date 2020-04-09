@@ -267,6 +267,7 @@ def determine_nfields(head_name):
         'pafb': 19,
         'pafsb': 19,
         'wpaf': 19,
+        'cifdet': 91,
     }.get(head_name, 17)
 
 
@@ -279,6 +280,8 @@ def determine_nvectors(head_name):
 
 
 def determine_nscales(head_name):
+    if 'cifdet' in head_name:
+        return 2
     if 'pif' in head_name or 'cif' in head_name:
         return 1
     if 'caf' in head_name:
@@ -289,7 +292,8 @@ def determine_nscales(head_name):
 
 
 def factory(name, n_features):
-    if re.match('[cp][ia]f([0-9]*)$', name) is None:
+    if re.match('[cp][ia]f([0-9]*)$', name) is None \
+       and re.match('cifdet([0-9]*)$', name) is None:
         raise Exception('unknown head to create a head network: {}'.format(name))
 
     n_fields = determine_nfields(name)

@@ -28,16 +28,13 @@ class Caf(BaseVisualizer):
         assert self.keypoints is not None
         assert self.skeleton is not None
 
-        confidences = np.copy(field[0][:-1])
-        confidences[confidences + np.asarray(field[0][-1:]) == 0] = np.nan  # add background
-
         annotations = [
             Annotation(keypoints=self.keypoints, skeleton=self.skeleton).set(kps)
             for kps in keypoint_sets
         ]
 
-        self._background(field[0][-1])
-        self._confidences(confidences)
+        self._background(field[0])
+        self._confidences(field[0])
         self._regressions(field[1], field[2], field[3], field[4], annotations)
 
     def predicted(self, field, *, annotations=None):
@@ -49,8 +46,9 @@ class Caf(BaseVisualizer):
         if not self.show_background or not self.indices:
             return
 
-        with self.image_canvas(self._processed_image[::self.stride, ::self.stride]) as ax:
-            ax.imshow(field, alpha=0.9, vmin=0.0, vmax=1.0, cmap='Blues')
+        for f in self.indices:
+            with self.image_canvas(self._processed_image[::self.stride, ::self.stride]) as ax:
+                ax.imshow(np.isnan(field[f]), alpha=0.9, vmin=0.0, vmax=1.0, cmap='Blues')
 
     def _confidences(self, confidences):
         if not self.show_confidences:

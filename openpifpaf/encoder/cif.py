@@ -59,19 +59,18 @@ class CifGenerator(object):
     def init_fields(self, n_fields, bg_mask):
         field_w = bg_mask.shape[1] + 2 * self.config.padding
         field_h = bg_mask.shape[0] + 2 * self.config.padding
-        self.intensities = np.zeros((n_fields + 1, field_h, field_w), dtype=np.float32)
+        self.intensities = np.zeros((n_fields, field_h, field_w), dtype=np.float32)
         self.fields_reg = np.zeros((n_fields, 6, field_h, field_w), dtype=np.float32)
         self.fields_reg[:, 2:] = np.inf
         self.fields_scale = np.full((n_fields, field_h, field_w), np.nan, dtype=np.float32)
         self.fields_reg_l = np.full((n_fields, field_h, field_w), np.inf, dtype=np.float32)
 
         # bg_mask
+        bg_mask = scipy.ndimage.binary_erosion(bg_mask,
+                                               iterations=int(self.s_offset) + 1,
+                                               border_value=1)
         p = self.config.padding
-        self.intensities[-1] = 1.0
-        self.intensities[-1, p:-p, p:-p] = bg_mask
-        self.intensities[-1] = scipy.ndimage.binary_erosion(self.intensities[-1],
-                                                            iterations=int(self.s_offset) + 1,
-                                                            border_value=1)
+        self.intensities[:, p:-p, p:-p][:, bg_mask == 0] = np.nan
 
     def fill(self, keypoint_sets):
         for kps_i, keypoints in enumerate(keypoint_sets):

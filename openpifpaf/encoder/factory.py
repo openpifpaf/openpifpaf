@@ -1,14 +1,16 @@
 import logging
 import re
 
-from .annrescaler import AnnRescaler
+from .annrescaler import AnnRescaler, AnnRescalerDet
 from .caf import Caf
 from .cif import Cif
+from .cifdet import CifDet
 from .. import visualizer
 
 from ..data import (COCO_KEYPOINTS, COCO_PERSON_SKELETON, COCO_PERSON_SIGMAS, COCO_UPRIGHT_POSE,
                     DENSER_COCO_PERSON_SKELETON,
-                    KINEMATIC_TREE_SKELETON, DENSER_COCO_PERSON_CONNECTIONS)
+                    KINEMATIC_TREE_SKELETON, DENSER_COCO_PERSON_CONNECTIONS,
+                    COCO_CATEGORIES)
 
 LOG = logging.getLogger(__name__)
 
@@ -60,6 +62,19 @@ def factory_head(head_name, stride):
         return Cif(AnnRescaler(stride, n_keypoints, COCO_UPRIGHT_POSE),
                    sigmas=COCO_PERSON_SIGMAS,
                    visualizer=vis)
+
+    cifdet_m = re.match('[cp]ifdet([0-9]*)$', head_name)
+    if cifdet_m is not None:
+        n_categories = int(cifdet_m.group(1)) if cifdet_m.group(1) else 91
+        LOG.debug('using %d categories for CIFDET', n_categories)
+
+        LOG.info('selected encoder CIFDET for %s with %d categories', head_name, n_categories)
+        vis = visualizer.CifDet(head_name,
+                                stride=stride,
+                                categories=COCO_CATEGORIES)
+        return CifDet(n_categories,
+                      AnnRescalerDet(stride, n_categories),
+                      visualizer=vis)
 
     if head_name in ('paf', 'paf19', 'caf', 'wpaf', 'pafb',
                      'paf16',
