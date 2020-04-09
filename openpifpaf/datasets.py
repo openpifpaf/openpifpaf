@@ -71,7 +71,7 @@ class Coco(torch.utils.data.Dataset):
         self.target_transforms = target_transforms
 
     def filter_for_keypoint_annotations(self):
-        print('filter for keypoint annotations ...')
+        LOG.info('filter for keypoint annotations ...')
         def has_keypoint_annotation(image_id):
             ann_ids = self.coco.getAnnIds(imgIds=image_id, catIds=self.category_ids)
             anns = self.coco.loadAnns(ann_ids)
@@ -84,7 +84,7 @@ class Coco(torch.utils.data.Dataset):
 
         self.ids = [image_id for image_id in self.ids
                     if has_keypoint_annotation(image_id)]
-        print('... done.')
+        LOG.info('... done.')
 
     def __getitem__(self, index):
         image_id = self.ids[index]
