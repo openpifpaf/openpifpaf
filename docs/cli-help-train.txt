@@ -8,30 +8,33 @@ usage: train.py [-h] [--debug] [--checkpoint CHECKPOINT] [--basenet BASENET]
                 [--background-weight BACKGROUND_WEIGHT]
                 [--paf-multiplicity-correction]
                 [--paf-independence-scale PAF_INDEPENDENCE_SCALE]
-                [--margin-loss] [--pif-side-length PIF_SIDE_LENGTH]
-                [--paf-min-size PAF_MIN_SIZE] [--paf-fixed-size]
-                [--paf-aspect-ratio PAF_ASPECT_RATIO] [--momentum MOMENTUM]
+                [--margin-loss] [--auto-tune-mtl]
+                [--cif-side-length CIF_SIDE_LENGTH]
+                [--caf-min-size CAF_MIN_SIZE] [--caf-fixed-size]
+                [--caf-aspect-ratio CAF_ASPECT_RATIO] [--momentum MOMENTUM]
                 [--beta2 BETA2] [--adam-eps ADAM_EPS] [--no-nesterov]
                 [--weight-decay WEIGHT_DECAY] [--adam] [--amsgrad] [--lr LR]
                 [--lr-decay LR_DECAY [LR_DECAY ...]]
-                [--lr-burn-in-epochs LR_BURN_IN_EPOCHS]
-                [--lr-burn-in-factor LR_BURN_IN_FACTOR] [--lr-gamma LR_GAMMA]
+                [--lr-decay-factor LR_DECAY_FACTOR]
+                [--lr-decay-epochs LR_DECAY_EPOCHS]
+                [--lr-warm-up-start-epoch LR_WARM_UP_START_EPOCH]
+                [--lr-warm-up-epochs LR_WARM_UP_EPOCHS]
+                [--lr-warm-up-factor LR_WARM_UP_FACTOR]
                 [--train-annotations TRAIN_ANNOTATIONS]
                 [--train-image-dir TRAIN_IMAGE_DIR]
                 [--val-annotations VAL_ANNOTATIONS]
-                [--val-image-dir VAL_IMAGE_DIR] [--pre-n-images PRE_N_IMAGES]
-                [--n-images N_IMAGES] [--duplicate-data DUPLICATE_DATA]
-                [--pre-duplicate-data PRE_DUPLICATE_DATA]
+                [--val-image-dir VAL_IMAGE_DIR] [--n-images N_IMAGES]
+                [--duplicate-data DUPLICATE_DATA]
                 [--loader-workers LOADER_WORKERS] [--batch-size BATCH_SIZE]
+                [--debug-cifhr] [--debug-cif-c] [--debug-cif-v]
+                [--debug-caf-c] [--debug-caf-v]
+                [--debug-indices DEBUG_INDICES [DEBUG_INDICES ...]]
                 [-o OUTPUT] [--stride-apply STRIDE_APPLY] [--epochs EPOCHS]
-                [--freeze-base FREEZE_BASE] [--pre-lr PRE_LR]
-                [--rescale-images RESCALE_IMAGES] [--orientation-invariant]
-                [--update-batchnorm-runningstatistics]
+                [--rescale-images RESCALE_IMAGES]
+                [--orientation-invariant ORIENTATION_INVARIANT]
+                [--extended-scale] [--update-batchnorm-runningstatistics]
                 [--square-edge SQUARE_EDGE] [--ema EMA] [--disable-cuda]
-                [--no-augmentation]
-                [--debug-pif-indices DEBUG_PIF_INDICES [DEBUG_PIF_INDICES ...]]
-                [--debug-paf-indices DEBUG_PAF_INDICES [DEBUG_PAF_INDICES ...]]
-                [--profile PROFILE]
+                [--no-augmentation] [--profile PROFILE] [--log-stats]
 
 Train a pifpaf network.
 
@@ -42,18 +45,15 @@ optional arguments:
   --stride-apply STRIDE_APPLY
                         apply and reset gradients every n batches (default: 1)
   --epochs EPOCHS       number of epochs to train (default: 75)
-  --freeze-base FREEZE_BASE
-                        number of epochs to train with frozen base (default:
-                        0)
-  --pre-lr PRE_LR       pre learning rate (default: 0.0001)
   --rescale-images RESCALE_IMAGES
                         overall image rescale factor (default: 1.0)
-  --orientation-invariant
-                        augment with random orientations (default: False)
+  --orientation-invariant ORIENTATION_INVARIANT
+                        augment with random orientations (default: 0.0)
+  --extended-scale      augment with an extended scale range (default: False)
   --update-batchnorm-runningstatistics
                         update batch norm running statistics (default: False)
   --square-edge SQUARE_EDGE
-                        square edge of input images (default: 401)
+                        square edge of input images (default: 385)
   --ema EMA             ema decay constant (default: 0.001)
   --disable-cuda        disable CUDA (default: False)
   --no-augmentation     do not apply data augmentation (default: True)
@@ -68,7 +68,7 @@ network configuration:
                         models. (default: None)
   --basenet BASENET     base network, e.g. resnet50 (default: None)
   --headnets HEADNETS [HEADNETS ...]
-                        head networks (default: ['pif', 'paf'])
+                        head networks (default: None)
   --no-pretrain         create model without ImageNet pretraining (default:
                         True)
   --two-scale           [experimental] (default: False)
@@ -102,17 +102,18 @@ losses:
                         [experimental] linear length scale of independence for
                         PAF regression (default: 3.0)
   --margin-loss         [experimental] (default: False)
+  --auto-tune-mtl       [experimental] (default: False)
 
-pif encoder:
-  --pif-side-length PIF_SIDE_LENGTH
-                        side length of the PIF field (default: 4)
+CIF encoder:
+  --cif-side-length CIF_SIDE_LENGTH
+                        side length of the CIF field (default: 4)
 
-paf encoder:
-  --paf-min-size PAF_MIN_SIZE
-                        min side length of the PAF field (default: 3)
-  --paf-fixed-size      fixed paf size (default: False)
-  --paf-aspect-ratio PAF_ASPECT_RATIO
-                        paf width relative to its length (default: 0.0)
+CAF encoder:
+  --caf-min-size CAF_MIN_SIZE
+                        min side length of the CAF field (default: 3)
+  --caf-fixed-size      fixed caf size (default: False)
+  --caf-aspect-ratio CAF_ASPECT_RATIO
+                        CAF width relative to its length (default: 0.0)
 
 optimizer:
   --momentum MOMENTUM   SGD momentum, beta1 in Adam (default: 0.9)
@@ -131,37 +132,42 @@ learning rate scheduler:
   --lr-decay LR_DECAY [LR_DECAY ...]
                         epochs at which to decay the learning rate (default:
                         [])
-  --lr-burn-in-epochs LR_BURN_IN_EPOCHS
+  --lr-decay-factor LR_DECAY_FACTOR
+                        learning rate decay factor (default: 0.1)
+  --lr-decay-epochs LR_DECAY_EPOCHS
+                        learning rate decay duration in epochs (default: 1.0)
+  --lr-warm-up-start-epoch LR_WARM_UP_START_EPOCH
+                        starting epoch for warm-up (default: 0)
+  --lr-warm-up-epochs LR_WARM_UP_EPOCHS
                         number of epochs at the beginning with lower learning
-                        rate (default: 3)
-  --lr-burn-in-factor LR_BURN_IN_FACTOR
-                        learning pre-factor during burn-in (default: 0.01)
-  --lr-gamma LR_GAMMA   learning rate decay factor (default: 0.1)
+                        rate (default: 2)
+  --lr-warm-up-factor LR_WARM_UP_FACTOR
+                        learning pre-factor during warm-up (default: 0.001)
 
 dataset and loader:
   --train-annotations TRAIN_ANNOTATIONS
   --train-image-dir TRAIN_IMAGE_DIR
   --val-annotations VAL_ANNOTATIONS
   --val-image-dir VAL_IMAGE_DIR
-  --pre-n-images PRE_N_IMAGES
-                        number of images to sampe for pretraining (default:
-                        8000)
   --n-images N_IMAGES   number of images to sample (default: None)
   --duplicate-data DUPLICATE_DATA
                         duplicate data (default: None)
-  --pre-duplicate-data PRE_DUPLICATE_DATA
-                        duplicate pre data in preprocessing (default: None)
   --loader-workers LOADER_WORKERS
                         number of workers for data loading (default: None)
   --batch-size BATCH_SIZE
                         batch size (default: 8)
 
+pose visualizer:
+  --debug-cifhr
+  --debug-cif-c
+  --debug-cif-v
+  --debug-caf-c
+  --debug-caf-v
+  --debug-indices DEBUG_INDICES [DEBUG_INDICES ...]
+                        indices of fields to create debug plots for of the
+                        form headname:fieldindex, e.g. cif:5 (default: [])
+
 debug:
-  --debug-pif-indices DEBUG_PIF_INDICES [DEBUG_PIF_INDICES ...]
-                        indices of PIF fields to create debug plots for
-                        (default: [])
-  --debug-paf-indices DEBUG_PAF_INDICES [DEBUG_PAF_INDICES ...]
-                        indices of PAF fields to create debug plots for
-                        (default: [])
   --profile PROFILE     enables profiling. specify path for chrome tracing
                         file (default: None)
+  --log-stats           enable stats logging (default: False)

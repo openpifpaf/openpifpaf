@@ -18,7 +18,7 @@ network configuration:
                         models. (default: None)
   --basenet BASENET     base network, e.g. resnet50 (default: None)
   --headnets HEADNETS [HEADNETS ...]
-                        head networks (default: ['pif', 'paf'])
+                        head networks (default: None)
   --no-pretrain         create model without ImageNet pretraining (default:
                         True)
   --two-scale           [experimental] (default: False)

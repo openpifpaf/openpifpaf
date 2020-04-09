@@ -1,5 +1,6 @@
 usage: logs.py [-h] [--label LABEL [LABEL ...]] [--eval-edge EVAL_EDGE]
                [--eval-samples EVAL_SAMPLES] [--no-share-y] [-o OUTPUT]
+               [--show-mtl-sigmas]
                log_file [log_file ...]
 
 Configuring and visualizing log files.
@@ -19,3 +20,4 @@ optional arguments:
   -o OUTPUT, --output OUTPUT
                         output prefix (default is log_file + .) (default:
                         None)
+  --show-mtl-sigmas

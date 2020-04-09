@@ -5,23 +5,23 @@ usage: eval_coco.py [-h] [--checkpoint CHECKPOINT] [--basenet BASENET]
                     [--head-quad HEAD_QUAD] [--seed-threshold SEED_THRESHOLD]
                     [--instance-threshold INSTANCE_THRESHOLD]
                     [--keypoint-threshold KEYPOINT_THRESHOLD]
-                    [--decoder-workers DECODER_WORKERS]
-                    [--experimental-decoder] [--extra-coupling EXTRA_COUPLING]
-                    [--no-force-complete-pose]
-                    [--debug-pif-indices DEBUG_PIF_INDICES [DEBUG_PIF_INDICES ...]]
-                    [--debug-paf-indices DEBUG_PAF_INDICES [DEBUG_PAF_INDICES ...]]
-                    [--debug-file-prefix DEBUG_FILE_PREFIX]
-                    [--profile-decoder] [--fixed-b FIXED_B]
-                    [--pif-fixed-scale PIF_FIXED_SCALE] [--pif-th PIF_TH]
-                    [--paf-th PAF_TH] [--connection-method {median,max,blend}]
-                    [--pif-side-length PIF_SIDE_LENGTH]
-                    [--paf-min-size PAF_MIN_SIZE] [--paf-fixed-size]
-                    [--paf-aspect-ratio PAF_ASPECT_RATIO] [--output OUTPUT]
-                    [-n N] [--skip-n SKIP_N] [--dataset {val,test,test-dev}]
-                    [--min-ann MIN_ANN] [--batch-size BATCH_SIZE]
-                    [--long-edge LONG_EDGE] [--loader-workers LOADER_WORKERS]
+                    [--decoder-workers DECODER_WORKERS] [--dense-connections]
+                    [--dense-coupling DENSE_COUPLING] [--caf-seeds]
+                    [--no-force-complete-pose] [--profile-decoder]
+                    [--cif-th CIF_TH] [--caf-th CAF_TH]
+                    [--connection-method {max,blend}] [--greedy] [--show-box]
+                    [--show-joint-scales] [--show-joint-confidences]
+                    [--show-decoding-order] [--show-frontier-order]
+                    [--show-only-decoded-connections] [--debug-cifhr]
+                    [--debug-cif-c] [--debug-cif-v] [--debug-caf-c]
+                    [--debug-caf-v]
+                    [--debug-indices DEBUG_INDICES [DEBUG_INDICES ...]]
+                    [--output OUTPUT] [-n N] [--skip-n SKIP_N]
+                    [--dataset {val,test,test-dev}] [--min-ann MIN_ANN]
+                    [--batch-size BATCH_SIZE] [--long-edge LONG_EDGE]
+                    [--loader-workers LOADER_WORKERS] [--extended-scale]
                     [--skip-existing] [--disable-cuda] [--write-predictions]
-                    [--all-images] [--debug]
+                    [--all-images] [--debug] [--log-stats]
 
 Evaluation on COCO data.
 
@@ -39,6 +39,7 @@ optional arguments:
                         long edge of input images (default: 641)
   --loader-workers LOADER_WORKERS
                         number of workers for data loading (default: None)
+  --extended-scale
   --skip-existing       skip if output eval file exists already (default:
                         False)
   --disable-cuda        disable CUDA (default: False)
@@ -54,7 +55,7 @@ network configuration:
                         models. (default: None)
   --basenet BASENET     base network, e.g. resnet50 (default: None)
   --headnets HEADNETS [HEADNETS ...]
-                        head networks (default: ['pif', 'paf'])
+                        head networks (default: None)
   --no-pretrain         create model without ImageNet pretraining (default:
                         True)
   --two-scale           [experimental] (default: False)
@@ -81,42 +82,39 @@ decoder configuration:
                         filter keypoints by score (default: None)
   --decoder-workers DECODER_WORKERS
                         number of workers for pose decoding (default: None)
-  --experimental-decoder
-                        use an experimental decoder (default: False)
-  --extra-coupling EXTRA_COUPLING
-                        extra coupling (default: 0.0)
+  --dense-connections   use dense connections (default: False)
+  --dense-coupling DENSE_COUPLING
+                        dense coupling (default: 0.01)
+  --caf-seeds           [experimental] (default: False)
   --no-force-complete-pose
-  --debug-pif-indices DEBUG_PIF_INDICES [DEBUG_PIF_INDICES ...]
-                        indices of PIF fields to create debug plots for (group
-                        with comma, e.g. "0,1 2" to create one plot with field
-                        0 and 1 and another plot with field 2) (default: [])
-  --debug-paf-indices DEBUG_PAF_INDICES [DEBUG_PAF_INDICES ...]
-                        indices of PAF fields to create debug plots for (same
-                        grouping behavior as debug-pif-indices) (default: [])
-  --debug-file-prefix DEBUG_FILE_PREFIX
-                        save debug plots with this prefix (default: None)
   --profile-decoder     profile decoder (default: None)
 
-PifPaf decoders:
-  --fixed-b FIXED_B     overwrite b with fixed value, e.g. 0.5 (default: None)
-  --pif-fixed-scale PIF_FIXED_SCALE
-                        overwrite pif scale with a fixed value (default: None)
-  --pif-th PIF_TH       pif threshold (default: 0.1)
-  --paf-th PAF_TH       paf threshold (default: 0.1)
-  --connection-method {median,max,blend}
+CifCaf decoders:
+  --cif-th CIF_TH       cif threshold (default: 0.1)
+  --caf-th CAF_TH       caf threshold (default: 0.1)
+  --connection-method {max,blend}
                         connection method to use, max is faster (default:
                         blend)
+  --greedy              greedy decoding (default: False)
 
-pif encoder:
-  --pif-side-length PIF_SIDE_LENGTH
-                        side length of the PIF field (default: 4)
+show:
+  --show-box
+  --show-joint-scales
+  --show-joint-confidences
+  --show-decoding-order
+  --show-frontier-order
+  --show-only-decoded-connections
 
-paf encoder:
-  --paf-min-size PAF_MIN_SIZE
-                        min side length of the PAF field (default: 3)
-  --paf-fixed-size      fixed paf size (default: False)
-  --paf-aspect-ratio PAF_ASPECT_RATIO
-                        paf width relative to its length (default: 0.0)
+pose visualizer:
+  --debug-cifhr
+  --debug-cif-c
+  --debug-cif-v
+  --debug-caf-c
+  --debug-caf-v
+  --debug-indices DEBUG_INDICES [DEBUG_INDICES ...]
+                        indices of fields to create debug plots for of the
+                        form headname:fieldindex, e.g. cif:5 (default: [])
 
 logging:
   --debug               print debug messages (default: False)
+  --log-stats           enable stats logging (default: False)
