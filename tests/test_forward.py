@@ -6,11 +6,39 @@ import openpifpaf
 def test_forward():
     model, _ = openpifpaf.network.factory(
         base_name='resnet18',
-        head_names=['pif', 'paf'],
+        head_names=['cif', 'caf', 'caf25'],
         pretrained=False,
     )
 
-    dummy_image_batch = torch.zeros((1, 3, 240, 320))
-    pif, paf = model(dummy_image_batch)
-    assert pif[0].shape == (1, 17, 15, 20)
-    assert paf[0].shape == (1, 19, 15, 20)
+    dummy_image_batch = torch.zeros((1, 3, 241, 321))
+    cif, caf = model(dummy_image_batch)
+    assert cif.shape == (1, 17, 5, 16, 21)
+    assert caf.shape == (1, 19, 9, 16, 21)
+
+
+def test_forward_dense():
+    model, _ = openpifpaf.network.factory(
+        base_name='resnet18',
+        head_names=['cif', 'caf', 'caf25'],
+        dense_connections=True,
+        pretrained=False,
+    )
+
+    dummy_image_batch = torch.zeros((1, 3, 241, 321))
+    cif, caf = model(dummy_image_batch)
+    assert cif.shape == (1, 17, 5, 16, 21)
+    assert caf.shape == (1, 19 + 25, 9, 16, 21)
+
+
+def test_forward_headquad():
+    openpifpaf.network.heads.CompositeField.quad = 1
+    model, _ = openpifpaf.network.factory(
+        base_name='resnet18',
+        head_names=['cif', 'caf', 'caf25'],
+        pretrained=False,
+    )
+
+    dummy_image_batch = torch.zeros((1, 3, 241, 321))
+    cif, caf = model(dummy_image_batch)
+    assert cif.shape == (1, 17, 5, 31, 41)
+    assert caf.shape == (1, 19, 9, 31, 41)
