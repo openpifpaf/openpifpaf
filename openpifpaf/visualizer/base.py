@@ -56,7 +56,10 @@ class BaseVisualizer:
 
     @property
     def indices(self):
-        return [f for hn, f in self.all_indices if hn == self.head_name]
+        head_names = self.head_name
+        if not isinstance(head_names, (tuple, list)):
+            head_names = (head_names,)
+        return [f for hn, f in self.all_indices if hn in self.head_name]
 
     @staticmethod
     def colorbar(ax, colored_element, size='3%', pad=0.05):
