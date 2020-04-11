@@ -235,10 +235,17 @@ def train_preprocess_factory(args):
         transforms.AnnotationJitter(),
         transforms.RandomApply(transforms.HFlip(), 0.5),
     ]
+
     if args.extended_scale:
         preprocess_transformations.append(
             transforms.RescaleRelative(scale_range=(0.25 * args.rescale_images,
                                                     2.0 * args.rescale_images),
+                                       power_law=True)
+        )
+    elif args.detection_annotations:
+        preprocess_transformations.append(
+            transforms.RescaleRelative(scale_range=(0.5 * args.rescale_images,
+                                                    1.0 * args.rescale_images),
                                        power_law=True)
         )
     else:
@@ -247,15 +254,18 @@ def train_preprocess_factory(args):
                                                     2.0 * args.rescale_images),
                                        power_law=True)
         )
+
     preprocess_transformations += [
         # transforms.RandomApply(transforms.ScaleMix(args.square_edge / 2.0), 0.5),
         transforms.Crop(args.square_edge),
         transforms.CenterPad(args.square_edge),
     ]
+
     if args.orientation_invariant:
         preprocess_transformations += [
             transforms.RandomApply(transforms.RotateBy90(), args.orientation_invariant),
         ]
+
     preprocess_transformations += [
         transforms.TRAIN_TRANSFORM,
     ]
