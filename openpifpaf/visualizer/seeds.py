@@ -15,18 +15,19 @@ class Seeds(BaseVisualizer):
         self.stride = stride
 
     def predicted(self, seeds):
+        """Seeds are: confidence, field_index, x, y, ..."""
         if not self.show:
             return
 
-        field_indices = {f for _, f, __, ___, ____ in seeds}
+        field_indices = {s[1] for s in seeds}
 
         with self.image_canvas(self._processed_image) as ax:
             show.white_screen(ax)
             for f in field_indices:
-                x = [xx * self.stride for _, ff, xx, __, ___ in seeds if ff == f]
-                y = [yy * self.stride for _, ff, __, yy, ___ in seeds if ff == f]
-                c = [cc for cc, ff, _, __, ___ in seeds if ff == f]
+                x = [s[2] * self.stride for s in seeds if s[1] == f]
+                y = [s[3] * self.stride for s in seeds if s[1] == f]
                 ax.plot(x, y, 'o')
                 if self.show_confidences:
+                    c = [s[0] for s in seeds if s[1] == f]
                     for xx, yy, cc in zip(x, y, c):
                         ax.text(xx, yy, '{:.2f}'.format(cc))
