@@ -28,10 +28,21 @@ class Crop(Preprocess):
         meta['valid_area'][:2] = np.maximum(0.0, original_valid_area[:2] - ltrb[:2])
         # process cropps from right and bottom
         new_rb_corner = original_valid_area[:2] + original_valid_area[2:] - ltrb[:2]
-        new_rb_corner = np.maximum(0.0, new_rb_corner)
+        new_rb_corner = np.maximum(meta['valid_area'][:2], new_rb_corner)
         new_rb_corner = np.minimum(new_wh, new_rb_corner)
         meta['valid_area'][2:] = new_rb_corner - meta['valid_area'][:2]
         LOG.debug('valid area after crop: %s', meta['valid_area'])
+
+        # clip bounding boxes
+        for ann in anns:
+            unclipped_bbox = ann['bbox'].copy()
+            ann['bbox'][:2] = np.maximum(meta['valid_area'][:2], ann['bbox'][:2])
+            new_rb = unclipped_bbox[:2] + unclipped_bbox[2:]
+            new_rb = np.maximum(ann['bbox'][:2], new_rb)
+            new_rb = np.minimum(meta['valid_area'][:2] + meta['valid_area'][2:], new_rb)
+            ann['bbox'][2:] = new_rb - ann['bbox'][:2]
+            LOG.debug('clipped bbox from %s to %s', unclipped_bbox, ann['bbox'])
+        anns = [ann for ann in anns if ann['bbox'][2] > 0.0 and ann['bbox'][3] > 0.0]
 
         return image, anns, meta
 
