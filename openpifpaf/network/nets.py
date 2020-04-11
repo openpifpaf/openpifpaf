@@ -329,6 +329,8 @@ def factory(
 
     cif_indices = [0]
     caf_indices = [1]
+    if not any('caf' in h for h in head_names):
+        caf_indices = []
     if dense_connections and not multi_scale:
         caf_indices = [1, 2]
     elif dense_connections and multi_scale:
