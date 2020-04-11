@@ -46,5 +46,6 @@ def configure(args, *, enable_all_plots_on_debug=False):
         CifDet.show_background = True
         CifDet.show_confidences = True
         CifDet.show_regressions = True
+        CifHr.show = True
         Occupancy.show = True
         Seeds.show = True
