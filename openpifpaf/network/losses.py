@@ -260,9 +260,20 @@ class CompositeLoss(torch.nn.Module):
         target_regs = t[1:1 + self.n_vectors]
         target_scales = t[1 + self.n_vectors:]
 
-        bce_masks = target_intensity > 0.5
+        bce_masks = torch.isnan(target_intensity) == 0
+
+        # for numerical stability, filter out certain predictions
+        bce_masks = (
+            bce_masks
+            & ((x_intensity > -5.0) | ((x_intensity < -5.0) & (target_intensity == 1)))
+            & ((x_intensity < 5.0) | ((x_intensity > 5.0) & (target_intensity == 0)))
+        )
+
         if not torch.any(bce_masks):
-            return None, None, None
+            n_losses = 1 + self.n_vectors + self.n_scales
+            if self.margin:
+                n_losses += self.n_vectors
+            return [None for _ in range(n_losses)]
 
         batch_size = x_intensity.shape[0]
         LOG.debug('batch size = %d', batch_size)
@@ -283,7 +294,8 @@ class CompositeLoss(torch.nn.Module):
             torch.masked_select(x_intensity, bce_masks),
             bce_target,
             weight=bce_weight,
-        ) * 10.0
+            reduction='sum',
+        ) / 1000.0 / batch_size
 
         reg_losses = [None for _ in target_regs]
         reg_masks = target_intensity > 0.5
