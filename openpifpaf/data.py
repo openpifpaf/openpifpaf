@@ -252,8 +252,7 @@ def draw_skeletons(pose, margin=0.5):
         (np.max(pose[:, 0]) - np.min(pose[:, 0]))
         * (np.max(pose[:, 1]) - np.min(pose[:, 1]))
     )
-    keypoint_painter = show.KeypointPainter(color_connections=True,
-                                            markersize=3, linewidth=6)
+    keypoint_painter = show.KeypointPainter(color_connections=True, linewidth=6)
 
     def draw_ann(filename, ann):
         xlim = ann.bbox()[0] - margin, ann.bbox()[0] + ann.bbox()[2] + margin

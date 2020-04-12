@@ -41,7 +41,7 @@ class KeypointPainter(object):
 
     def __init__(self, *,
                  xy_scale=1.0, highlight=None, highlight_invisible=False,
-                 linewidth=2, markersize=3,
+                 linewidth=2, markersize=None,
                  color_connections=False,
                  solid_threshold=0.5):
         self.xy_scale = xy_scale
@@ -49,8 +49,16 @@ class KeypointPainter(object):
         self.highlight_invisible = highlight_invisible
         self.linewidth = linewidth
         self.markersize = markersize
+        if self.markersize is None:
+            if color_connections:
+                self.markersize = max(1, int(linewidth * 0.5))
+            else:
+                self.markersize = max(linewidth + 1, int(linewidth * 3.0))
         self.color_connections = color_connections
         self.solid_threshold = solid_threshold
+
+        LOG.debug('color connections = %s, lw = %d, marker = %d',
+                  self.color_connections, self.linewidth, self.markersize)
 
     def _draw_skeleton(self, ax, x, y, v, *, skeleton, color=None, **kwargs):
         if not np.any(v > 0):
