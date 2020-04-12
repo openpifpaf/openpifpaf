@@ -134,10 +134,8 @@ def main():
     processor = processor_factory(args)
 
     # create keypoint painter
-    if args.colored_connections:
-        keypoint_painter = show.KeypointPainter(color_connections=True, linewidth=6)
-    else:
-        keypoint_painter = show.KeypointPainter()
+    keypoint_painter = show.KeypointPainter(color_connections=args.colored_connections, linewidth=6)
+    annotation_painter = show.AnnotationPainter(keypoint_painter=keypoint_painter)
 
     last_loop = time.time()
     capture = cv2.VideoCapture(args.source)
@@ -192,7 +190,7 @@ def main():
                 f.write('\n')
         if not args.json_output or args.video_output:
             ax.imshow(image)
-            keypoint_painter.annotations(ax, preds)
+            annotation_painter.annotations(ax, preds)
 
         LOG.info('frame %d, loop time = %.3fs, FPS = %.3f',
                  frame_i,
