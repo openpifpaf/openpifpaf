@@ -271,7 +271,7 @@ def model_defaults(net_cpu):
             # m.momentum = 0.1  # pytorch default
 
 
-# pylint: disable=too-many-branches
+# pylint: disable=too-many-branches,too-many-statements
 def factory(
         *,
         checkpoint=None,

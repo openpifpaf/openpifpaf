@@ -286,7 +286,7 @@ class ProcessorDet(object):
 
         return self.annotations(fields, meta=meta)
 
-    def annotations(self, fields, *, meta=None):
+    def annotations(self, fields, *, meta=None):  # pylint: disable=unused-argument
         start = time.time()
         if self.profile is not None:
             self.profile.enable()
