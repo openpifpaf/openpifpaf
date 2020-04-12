@@ -241,15 +241,15 @@ class ProcessorDet(object):
         return [cif_head]
 
     @staticmethod
-    def bbox_iou(boxA, boxB):
-        xA = max(boxA[0], boxB[0])
-        yA = max(boxA[1], boxB[1])
-        xB = min(boxA[0] + boxA[2], boxB[0] + boxB[2])
-        yB = min(boxA[1] + boxA[3], boxB[1] + boxB[3])
-        inter_area = max(0.0, xB - xA) * max(0.0, yB - yA)
-        boxA_area = boxA[2] * boxA[3]
-        boxB_area = boxB[2] * boxB[3]
-        return inter_area / (boxA_area + boxB_area - inter_area + 1e-5)
+    def bbox_iou(box1, box2):
+        x1 = max(box1[0], box2[0])
+        y1 = max(box1[1], box2[1])
+        x2 = min(box1[0] + box1[2], box2[0] + box2[2])
+        y2 = min(box1[1] + box1[3], box2[1] + box2[3])
+        inter_area = max(0.0, x2 - x1) * max(0.0, y2 - y1)
+        box1_area = box1[2] * box1[3]
+        box2_area = box2[2] * box2[3]
+        return inter_area / (box1_area + box2_area - inter_area + 1e-5)
 
     def soft_nms(self, annotations, iou_th=0.7):
         if not annotations:
