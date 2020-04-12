@@ -5,7 +5,7 @@ import time
 
 import numpy as np
 
-from ..annotation import Annotation
+from ...annotation import Annotation
 from ..field_config import FieldConfig
 from ..cif_hr import CifHr
 from ..cif_seeds import CifSeeds

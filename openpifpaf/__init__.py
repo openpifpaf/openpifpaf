@@ -2,6 +2,7 @@
 
 __version__ = '0.10.1'
 
+from .annotation import Annotation, AnnotationDet
 from . import datasets
 from . import decoder
 from . import network

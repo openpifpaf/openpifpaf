@@ -3,7 +3,7 @@ import logging
 import numpy as np
 
 from .base import BaseVisualizer
-from ..decoder import Annotation
+from ..annotation import AnnotationDet
 from .. import show
 
 LOG = logging.getLogger(__name__)

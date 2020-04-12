@@ -1,6 +1,6 @@
 import logging
 
-from .keypoint_painter import KeypointPainter
+from .painters import KeypointPainter
 
 LOG = logging.getLogger(__name__)
 

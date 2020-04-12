@@ -1,19 +1,12 @@
 from collections import defaultdict
 import logging
-from queue import PriorityQueue
 import time
 
-import numpy as np
-
-from ..annotation import AnnotationDet
+from ...annotation import AnnotationDet
 from ..field_config import FieldConfig
 from ..cif_hr import CifDetHr
 from ..cif_seeds import CifDetSeeds
-from ..caf_scored import CafScored
 from ..occupancy import Occupancy
-
-# pylint: disable=import-error
-from ...functional import caf_center_s
 
 LOG = logging.getLogger(__name__)
 

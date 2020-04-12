@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 import copy
 
-from ..decoder.annotation import AnnotationDet
+from ..annotation import AnnotationDet
 
 
 class Preprocess(metaclass=ABCMeta):
