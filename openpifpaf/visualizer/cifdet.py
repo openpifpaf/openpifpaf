@@ -21,22 +21,19 @@ class CifDet(BaseVisualizer):
         self.stride = stride
         self.categories = categories
 
+        self.detection_painter = show.DetectionPainter(xy_scale=stride)
+
     def targets(self, field, detections):
         assert self.categories is not None
 
         annotations = [
-            None  # TODO
+            AnnotationDet(self.categories).set(det[0] - 1, 1.0, det[1])
             for det in detections
         ]
 
         self._background(field[0])
         self._confidences(field[0])
         self._regressions(field[1], field[2], field[3], annotations)
-
-    def predicted(self, field, *, annotations=None):
-        self._confidences(field[:, 0])
-        self._regressions(field[:, 1:3], field[:, 4], annotations,
-                          confidence_fields=field[:, 0], uv_is_offset=False)
 
     def _background(self, field):
         if not self.show_background or not self.indices:
@@ -69,7 +66,7 @@ class CifDet(BaseVisualizer):
 
             with self.image_canvas(self._processed_image) as ax:
                 show.white_screen(ax, alpha=0.5)
-                # self.keypoint_painter.annotations(ax, annotations)
+                self.detection_painter.annotations(ax, annotations, color='gray')
                 q = show.quiver(ax,
                                 regression_fields[f, :2],
                                 confidence_field=confidence_field,

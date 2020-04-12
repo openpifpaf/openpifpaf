@@ -310,7 +310,7 @@ class CompositeLoss(torch.nn.Module):
             return []
 
         assert len(x_scales) == len(target_scales)
-        batch_size = x_scales.shape[0]
+        batch_size = x_scales[0].shape[0]
         return [
             log1p_l1_loss(
                 torch.masked_select(x_scale, torch.isnan(target_scale) == 0),
