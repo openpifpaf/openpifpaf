@@ -240,40 +240,18 @@ class CompositeLoss(torch.nn.Module):
 
         self.bce_blackout = None
 
-    def forward(self, *args):  # pylint: disable=too-many-statements
-        LOG.debug('loss for %s', self.field_names)
-
-        x, t = args
-
-        assert len(x) == 1 + 2 * self.n_vectors + self.n_scales
-        x_intensity = x[0]
-        x_regs = x[1:1 + self.n_vectors]
-        x_spreads = x[1 + self.n_vectors:1 + 2 * self.n_vectors]
-        x_scales = []
-        if self.n_scales:
-            x_scales = x[1 + 2 * self.n_vectors:1 + 2 * self.n_vectors + self.n_scales]
-
-        if self.n_scales == 0:
-            t = t[:-self.n_vectors]  # assume there are as many scales as vectors and remove them
-        assert len(t) == 1 + self.n_vectors + self.n_scales
-        target_intensity = t[0]
-        target_regs = t[1:1 + self.n_vectors]
-        target_scales = t[1 + self.n_vectors:]
-
+    def _confidence_loss(self, x_intensity, target_intensity):
         bce_masks = torch.isnan(target_intensity) == 0
 
-        # for numerical stability, filter out certain predictions
+        # for numerical stability, filter out predictions that are certain
         bce_masks = (
             bce_masks
-            & ((x_intensity > -5.0) | ((x_intensity < -5.0) & (target_intensity == 1)))
-            & ((x_intensity < 5.0) | ((x_intensity > 5.0) & (target_intensity == 0)))
+            & ((x_intensity > -4.0) | ((x_intensity < -4.0) & (target_intensity == 1)))
+            & ((x_intensity < 4.0) | ((x_intensity > 4.0) & (target_intensity == 0)))
         )
 
         if not torch.any(bce_masks):
-            n_losses = 1 + self.n_vectors + self.n_scales
-            if self.margin:
-                n_losses += self.n_vectors
-            return [None for _ in range(n_losses)]
+            return None
 
         batch_size = x_intensity.shape[0]
         LOG.debug('batch size = %d', batch_size)
@@ -297,6 +275,10 @@ class CompositeLoss(torch.nn.Module):
             reduction='sum',
         ) / 1000.0 / batch_size
 
+        return ce_loss
+
+    def _localization_loss(self, x_regs, x_spreads, target_regs, *, target_intensity):
+        batch_size = target_intensity.shape[0]
         reg_losses = [None for _ in target_regs]
         reg_masks = target_intensity > 0.5
         if torch.any(reg_masks):
@@ -310,14 +292,7 @@ class CompositeLoss(torch.nn.Module):
                 weight = 1.0 / multiplicity
 
             reg_losses = []
-            for i, (x_reg, x_spread, target_reg) in enumerate(zip(x_regs, x_spreads, target_regs)):
-                if hasattr(self.regression_loss, 'scale'):
-                    assert self.scales_to_kp is not None
-                    self.regression_loss.scale = torch.masked_select(
-                        torch.clamp(target_scales[i], 0.1, 1000.0),  # pylint: disable=unsubscriptable-object
-                        reg_masks,
-                    )
-
+            for x_reg, x_spread, target_reg in zip(x_regs, x_spreads, target_regs):
                 reg_losses.append(self.regression_loss(
                     torch.masked_select(x_reg[:, :, 0], reg_masks),
                     torch.masked_select(x_reg[:, :, 1], reg_masks),
@@ -327,32 +302,79 @@ class CompositeLoss(torch.nn.Module):
                     weight=(weight if weight is not None else 1.0) * 0.1,
                 ) / 100.0 / batch_size)
 
-        scale_losses = []
-        if x_scales:
-            assert len(x_scales) == len(target_scales)
-            scale_losses = [
-                log1p_l1_loss(
-                    torch.masked_select(x_scale, torch.isnan(target_scale) == 0),
-                    torch.masked_select(target_scale, torch.isnan(target_scale) == 0),
-                    reduction='sum',
-                ) / 100.0 / batch_size
-                for x_scale, target_scale in zip(x_scales, target_scales)
-            ]
+        return reg_losses
 
-        margin_losses = [None for _ in target_regs] if self.margin else []
-        if self.margin and torch.any(reg_masks):
-            margin_losses = []
-            for i, (x_reg, target_reg) in enumerate(zip(x_regs, target_regs)):
-                margin_losses.append(quadrant_margin_loss(
-                    torch.masked_select(x_reg[:, :, 0], reg_masks),
-                    torch.masked_select(x_reg[:, :, 1], reg_masks),
-                    torch.masked_select(target_reg[:, :, 0], reg_masks),
-                    torch.masked_select(target_reg[:, :, 1], reg_masks),
-                    torch.masked_select(target_reg[:, :, 2], reg_masks),
-                    torch.masked_select(target_reg[:, :, 3], reg_masks),
-                    torch.masked_select(target_reg[:, :, 4], reg_masks),
-                    torch.masked_select(target_reg[:, :, 5], reg_masks),
-                ) / 100.0 / batch_size)
+    @staticmethod
+    def _scale_losses(x_scales, target_scales):
+        if not x_scales:
+            return []
+
+        assert len(x_scales) == len(target_scales)
+        batch_size = x_scales.shape[0]
+        return [
+            log1p_l1_loss(
+                torch.masked_select(x_scale, torch.isnan(target_scale) == 0),
+                torch.masked_select(target_scale, torch.isnan(target_scale) == 0),
+                reduction='sum',
+            ) / 100.0 / batch_size
+            for x_scale, target_scale in zip(x_scales, target_scales)
+        ]
+
+    def _margin_losses(self, x_regs, target_regs, *, target_intensity):
+        if not self.margin:
+            return []
+
+        reg_masks = target_intensity > 0.5
+        if not torch.any(reg_masks):
+            return [None for _ in target_regs]
+
+        batch_size = reg_masks.shape[0]
+        margin_losses = []
+        for x_reg, target_reg in zip(x_regs, target_regs):
+            margin_losses.append(quadrant_margin_loss(
+                torch.masked_select(x_reg[:, :, 0], reg_masks),
+                torch.masked_select(x_reg[:, :, 1], reg_masks),
+                torch.masked_select(target_reg[:, :, 0], reg_masks),
+                torch.masked_select(target_reg[:, :, 1], reg_masks),
+                torch.masked_select(target_reg[:, :, 2], reg_masks),
+                torch.masked_select(target_reg[:, :, 3], reg_masks),
+                torch.masked_select(target_reg[:, :, 4], reg_masks),
+                torch.masked_select(target_reg[:, :, 5], reg_masks),
+            ) / 100.0 / batch_size)
+        return margin_losses
+
+    def forward(self, *args):  # pylint: disable=too-many-statements
+        LOG.debug('loss for %s', self.field_names)
+
+        x, t = args
+
+        assert len(x) == 1 + 2 * self.n_vectors + self.n_scales
+        x_intensity = x[0]
+        x_regs = x[1:1 + self.n_vectors]
+        x_spreads = x[1 + self.n_vectors:1 + 2 * self.n_vectors]
+        x_scales = []
+        if self.n_scales:
+            x_scales = x[1 + 2 * self.n_vectors:1 + 2 * self.n_vectors + self.n_scales]
+
+        if self.n_scales == 0:
+            t = t[:-self.n_vectors]  # assume there are as many scales as vectors and remove them
+        assert len(t) == 1 + self.n_vectors + self.n_scales
+        target_intensity = t[0]
+        target_regs = t[1:1 + self.n_vectors]
+        target_scales = t[1 + self.n_vectors:]
+
+        ce_loss = self._confidence_loss(x_intensity, target_intensity)
+        if ce_loss is None:
+            n_losses = 1 + self.n_vectors + self.n_scales
+            if self.margin:
+                n_losses += self.n_vectors
+            return [None for _ in range(n_losses)]
+
+        reg_losses = self._localization_loss(x_regs, x_spreads, target_regs,
+                                             target_intensity=target_intensity)
+        scale_losses = self._scale_losses(x_scales, target_scales)
+        margin_losses = self._margin_losses(x_regs, target_regs,
+                                            target_intensity=target_intensity)
 
         return [ce_loss] + reg_losses + scale_losses + margin_losses
 
