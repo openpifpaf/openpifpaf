@@ -56,3 +56,28 @@ class CifSeeds:
                           seed_mask=self.config.seed_mask)
 
         return self
+
+
+class CifDetSeeds(CifSeeds):
+    def fill_cif(self, cif, stride, *, min_scale=0.0, seed_mask=None):
+        start = time.perf_counter()
+
+        for field_i, p in enumerate(cif):
+            if seed_mask is not None and not seed_mask[field_i]:
+                continue
+            p = p[:, p[0] > self.threshold / 2.0]
+            if min_scale:
+                p = p[:, p[4] > min_scale / stride]
+                p = p[:, p[5] > min_scale / stride]
+            _, x, y, _, w, h = p
+            v = scalar_values(self.cifhr[field_i], x * stride, y * stride)
+            if self.score_scale != 1.0:
+                v = v * self.score_scale
+            m = v > self.threshold
+            x, y, v, w, h = x[m] * stride, y[m] * stride, v[m], w[m] * stride, h[m] * stride
+
+            for vv, xx, yy, ww, hh in zip(v, x, y, w, h):
+                self.seeds.append((vv, field_i, xx, yy, ww, hh))
+
+        LOG.debug('seeds %d, %.3fs', len(self.seeds), time.perf_counter() - start)
+        return self

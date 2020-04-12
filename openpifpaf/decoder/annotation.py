@@ -4,7 +4,7 @@ import numpy as np
 from ..functional import scalar_value_clipped
 
 
-class Annotation(object):
+class Annotation:
     def __init__(self, keypoints, skeleton, *, suppress_score_index=None):
         self.keypoints = keypoints
         self.skeleton = skeleton
@@ -106,32 +106,27 @@ class Annotation(object):
         return [x, y, w, h]
 
 
-class AnnotationWithoutSkeleton(object):
-    def __init__(self, j, xyv, n_joints):
-        self.data = np.zeros((n_joints, 3))
-        self.joint_scales = None
-        self.data[j] = xyv
+class AnnotationDet:
+    def __init__(self, categories):
+        self.categories = categories
+        self.field_i = None
+        self.score = None
+        self.bbox = None
 
-    def fill_joint_scales(self, scales, hr_scale):
-        self.joint_scales = np.zeros((self.data.shape[0],))
-        for xyv_i, xyv in enumerate(self.data):
-            if xyv[2] == 0.0:
-                continue
-            scale_field = scales[xyv_i]
-            i = max(0, min(scale_field.shape[1] - 1, int(round(xyv[0] * hr_scale))))
-            j = max(0, min(scale_field.shape[0] - 1, int(round(xyv[1] * hr_scale))))
-            self.joint_scales[xyv_i] = scale_field[j, i] / hr_scale
+    def set(self, field_i, score, bbox):
+        self.field_i = field_i
+        self.score = score
+        self.bbox = np.asarray(bbox)
+        return self
 
-    def score(self):
-        v = self.data[:, 2]
-        return 0.1 * np.max(v) + 0.9 * np.mean(np.square(v))
-        # return np.mean(np.square(v))
+    @property
+    def category(self):
+        return self.categories[self.field_i]
 
-    def scale(self):
-        m = self.data[:, 2] > 0.5
-        if not np.any(m):
-            return 0.0
-        return max(
-            np.max(self.data[m, 0]) - np.min(self.data[m, 0]),
-            np.max(self.data[m, 1]) - np.min(self.data[m, 1]),
-        )
+    def json_data(self):
+        return {
+            'field_i': self.field_i,
+            'category': self.category,
+            'score': float(self.score, 3),
+            'bbox': [round(float(c), 2) for c in self.bbox],
+        }

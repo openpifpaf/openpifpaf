@@ -1,3 +1,4 @@
+from collections import defaultdict
 import logging
 
 import numpy as np
@@ -14,7 +15,101 @@ except ImportError:
 LOG = logging.getLogger(__name__)
 
 
-class CrowdPainter(object):
+class AnnotationPainter:
+    def __init__(self, *,
+                 xy_scale=1.0,
+                 keypoint_painter=None,
+                 crowd_painer=None,
+                 detection_painter=None):
+        self.painters = {
+            'Annotation': keypoint_painter or KeypointPainter(xy_scale=xy_scale),
+            'AnnotationCrowd': crowd_painer or CrowdPainter(),  # TODO update
+            'AnnotationDet': detection_painter or DetectionPainter(xy_scale=xy_scale),
+        }
+
+    def annotations(self, ax, annotations, *,
+                    color=None, colors=None, texts=None, subtexts=None):
+        by_classname = defaultdict(list)
+        for ann_i, ann in enumerate(annotations):
+            by_classname[ann.__class__.__name__].append((ann_i, ann))
+
+        for classname, i_anns in by_classname.items():
+            anns = [ann for _, ann in i_anns]
+            this_colors = [colors[i] for i, _ in i_anns] if colors else None
+            this_texts = [texts[i] for i, _ in i_anns] if texts else None
+            this_subtexts = [subtexts[i] for i, _ in i_anns] if subtexts else None
+            self.painters[classname].annotations(
+                ax, anns,
+                color=color, colors=this_colors, texts=this_texts, subtexts=this_subtexts)
+
+
+class DetectionPainter:
+    def __init__(self, *, xy_scale=1.0):
+        self.xy_scale = xy_scale
+
+    def annotations(self, ax, annotations, *,
+                    color=None, colors=None, texts=None, subtexts=None):
+        for i, ann in enumerate(annotations):
+            color = ann.field_i
+            if colors is not None:
+                color = colors[i]
+            elif hasattr(ann, 'id_'):
+                color = ann.id_
+
+            text = ann.category
+            if texts is not None:
+                text = texts[i]
+            elif hasattr(ann, 'id_'):
+                text = '{}'.format(ann.id_)
+
+            subtext = None
+            if subtexts is not None:
+                subtext = subtexts[i]
+            else:
+                subtext = '{:.0%}'.format(ann.score)
+
+            self.annotation(ax, ann, color=color, text=text, subtext=subtext)
+
+    def annotation(self, ax, ann, *, color=None, text=None, subtext=None):
+        if color is None:
+            color = 0
+        if isinstance(color, (int, np.integer)):
+            color = matplotlib.cm.get_cmap('tab20')((color % 20 + 0.05) / 20)
+
+        x, y, w, h = ann.bbox * self.xy_scale
+        if w < 5.0:
+            x -= 2.0
+            w += 4.0
+        if h < 5.0:
+            y -= 2.0
+            h += 4.0
+
+        # draw box
+        ax.add_patch(
+            matplotlib.patches.Rectangle(
+                (x, y), w, h, fill=False, color=color, linewidth=1.0))
+
+        # draw text
+        ax.annotate(
+            text,
+            (x, y),
+            fontsize=8,
+            xytext=(5.0, 5.0),
+            textcoords='offset points',
+            color='white', bbox={'facecolor': color, 'alpha': 0.5, 'linewidth': 0},
+        )
+        if subtext is not None:
+            ax.annotate(
+                subtext,
+                (x, y),
+                fontsize=5,
+                xytext=(5.0, 18.0 + 3.0),
+                textcoords='offset points',
+                color='white', bbox={'facecolor': color, 'alpha': 0.5, 'linewidth': 0},
+            )
+
+
+class CrowdPainter:
     def __init__(self, *, alpha=0.5, color='orange'):
         self.alpha = alpha
         self.color = color
@@ -31,7 +126,7 @@ class CrowdPainter(object):
         ax.add_collection(matplotlib.collections.PatchCollection(patches, match_original=True))
 
 
-class KeypointPainter(object):
+class KeypointPainter:
     show_box = False
     show_joint_confidences = False
     show_joint_scales = False

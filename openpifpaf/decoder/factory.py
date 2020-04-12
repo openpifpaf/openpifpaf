@@ -1,12 +1,13 @@
 import logging
 
-from ..data import COCO_KEYPOINTS, COCO_PERSON_SKELETON, DENSER_COCO_PERSON_CONNECTIONS
+from ..data import (COCO_KEYPOINTS, COCO_PERSON_SKELETON,
+                    DENSER_COCO_PERSON_CONNECTIONS, COCO_CATEGORIES)
 from . import generator
 from .field_config import FieldConfig
 from .caf_scored import CafScored
 from .cif_hr import CifHr
 from .cif_seeds import CifSeeds
-from .processor import Processor
+from .processor import Processor, ProcessorDet
 from .. import visualizer
 
 LOG = logging.getLogger(__name__)
@@ -71,9 +72,10 @@ def configure(args):
 
     # configure debug visualizer
     CifSeeds.debug_visualizer = visualizer.Seeds()
-    CifHr.debug_visualizer = visualizer.CifHr(keypoints=COCO_KEYPOINTS)
-    Processor.debug_visualizer = visualizer.Occupancy(keypoints=COCO_KEYPOINTS)
-    generator.CifCaf.debug_visualizer = visualizer.Occupancy(keypoints=COCO_KEYPOINTS)
+    CifHr.debug_visualizer = visualizer.CifHr()
+    Processor.debug_visualizer = visualizer.Occupancy()
+    ProcessorDet.debug_visualizer = visualizer.Occupancy()
+    generator.CifCaf.debug_visualizer = visualizer.Occupancy()
 
     # default value for keypoint filter depends on whether complete pose is forced
     if args.keypoint_threshold is None:
@@ -106,6 +108,11 @@ def factory_from_args(args, model, device=None):
                             caf_seeds=args.caf_seeds,
                             multi_scale=args.multi_scale,
                             multi_scale_hflip=args.multi_scale_hflip)
+    if isinstance(decode, generator.CifDet):
+        return ProcessorDet(model, decode,
+                            instance_threshold=args.instance_threshold,
+                            profile=args.profile_decoder,
+                            worker_pool=args.decoder_workers)
 
     return Processor(model, decode,
                      instance_threshold=args.instance_threshold,
@@ -129,7 +136,8 @@ def factory_decode(model, *,
     LOG.debug('head names = %s', head_names)
 
     if head_names in (('cifdet',),):
-        return CifDet(model.head_strides[0], head_index=0, **kwargs)
+        field_config = FieldConfig()
+        return generator.CifDet(field_config, COCO_CATEGORIES, **kwargs)
 
     if head_names in (('cif', 'caf', 'caf25'),):
         field_config = FieldConfig()

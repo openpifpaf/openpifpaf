@@ -1,6 +1,8 @@
 from abc import ABCMeta, abstractmethod
 import copy
 
+from ..decoder.annotation import AnnotationDet
+
 
 class Preprocess(metaclass=ABCMeta):
     @abstractmethod
@@ -31,6 +33,10 @@ class Preprocess(metaclass=ABCMeta):
         annotations = copy.deepcopy(annotations)
 
         for ann in annotations:
+            if isinstance(ann, AnnotationDet):
+                Preprocess.anndet_inverse(ann, meta)
+                continue
+
             ann.data[:, 0] += meta['offset'][0]
             ann.data[:, 1] += meta['offset'][1]
 
@@ -44,7 +50,6 @@ class Preprocess(metaclass=ABCMeta):
                 if meta.get('horizontal_swap'):
                     ann.data[:] = meta['horizontal_swap'](ann.data)
 
-        for ann in annotations:
             for _, __, c1, c2 in ann.decoding_order:
                 c1[:2] += meta['offset']
                 c2[:2] += meta['offset']
@@ -53,3 +58,9 @@ class Preprocess(metaclass=ABCMeta):
                 c2[:2] /= meta['scale']
 
         return annotations
+
+    @staticmethod
+    def anndet_inverse(ann, meta):
+        ann.bbox[:2] += meta['offset']
+        ann.bbox[:2] /= meta['scale']
+        ann.bbox[2:] /= meta['scale']

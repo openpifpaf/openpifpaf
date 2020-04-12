@@ -22,6 +22,19 @@ class CifHr:
     def fill_cif(self, cif, stride, min_scale=0.0):
         return self.fill_multiple([cif], stride, min_scale)
 
+    def accumulate(self, len_cifs, t, p, stride, min_scale):
+        p = p[:, p[0] > self.v_threshold]
+        if min_scale:
+            p = p[:, p[4] > min_scale / stride]
+
+        v, x, y, _, scale = p
+        x = x * stride
+        y = y * stride
+        sigma = np.maximum(1.0, 0.5 * scale * stride)
+
+        scalar_square_add_gauss_with_max(
+            t, x, y, sigma, v / self.neighbors / len_cifs, truncate=2.0)
+
     def fill_multiple(self, cifs, stride, min_scale=0.0):
         start = time.perf_counter()
 
@@ -37,17 +50,7 @@ class CifHr:
 
         for cif in cifs:
             for t, p in zip(ta, cif):
-                p = p[:, p[0] > self.v_threshold]
-                if min_scale:
-                    p = p[:, p[4] > min_scale / stride]
-
-                v, x, y, _, scale = p
-                x = x * stride
-                y = y * stride
-                sigma = np.maximum(1.0, 0.5 * scale * stride)
-
-                scalar_square_add_gauss_with_max(
-                    t, x, y, sigma, v / self.neighbors / len(cifs), truncate=2.0)
+                self.accumulate(len(cifs), t, p, stride, min_scale)
 
         if self.accumulated is None:
             self.accumulated = ta
@@ -73,3 +76,19 @@ class CifHr:
         if self.debug_visualizer is not None:
             self.debug_visualizer.predicted(self.accumulated)
         return self
+
+
+class CifDetHr(CifHr):
+    def accumulate(self, len_cifs, t, p, stride, min_scale):
+        p = p[:, p[0] > self.v_threshold]
+        if min_scale:
+            p = p[:, p[4] > min_scale / stride]
+            p = p[:, p[5] > min_scale / stride]
+
+        v, x, y, _, w, h = p
+        x = x * stride
+        y = y * stride
+        sigma = np.maximum(1.0, 0.1 * np.minimum(w, h) * stride)
+
+        scalar_square_add_gauss_with_max(
+            t, x, y, sigma, v / self.neighbors / len_cifs, truncate=2.0)

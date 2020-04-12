@@ -138,7 +138,10 @@ class Processor(object):
             self._mappable_annotations, zip(fields_batch, meta_batch, debug_images))
 
     def _mappable_annotations(self, fields, meta, debug_image):
-        return self.annotations(fields, meta=meta, debug_image=debug_image)
+        if debug_image is not None:
+            visualizer.BaseVisualizer.processed_image(debug_image)
+
+        return self.annotations(fields, meta=meta)
 
     def suppress_outside_valid(self, ann, valid_area):
         m = np.logical_or(
@@ -149,13 +152,10 @@ class Processor(object):
         )
         ann.data[m, 2] = np.maximum(ann.data[m, 2], self.suppressed_v)
 
-    def annotations(self, fields, *, initial_annotations=None, meta=None, debug_image=None):
+    def annotations(self, fields, *, initial_annotations=None, meta=None):
         start = time.time()
         if self.profile is not None:
             self.profile.enable()
-
-        if debug_image is not None:
-            visualizer.BaseVisualizer.processed_image(debug_image)
 
         annotations = self.decode(fields, initial_annotations=initial_annotations)
 
@@ -190,5 +190,119 @@ class Processor(object):
 
         LOG.info('%d annotations: %s', len(annotations),
                  [np.sum(ann.data[:, 2] > 0.1) for ann in annotations])
+        LOG.debug('total processing time: %.3fs', time.time() - start)
+        return annotations
+
+
+class ProcessorDet(object):
+    debug_visualizer = None
+
+    def __init__(self, model, decode, *,
+                 output_stride=None,
+                 instance_threshold=0.0,
+                 profile=None,
+                 device=None,
+                 worker_pool=None):
+        if profile is True:
+            profile = cProfile.Profile()
+
+        if worker_pool is None or worker_pool == 0:
+            worker_pool = DummyPool
+        if isinstance(worker_pool, int):
+            LOG.info('creating decoder worker pool with %d workers', worker_pool)
+            worker_pool = multiprocessing.Pool(worker_pool)
+
+        self.model = model
+        self.decode = decode
+        self.output_stride = output_stride or model.head_strides[-1]
+        self.instance_threshold = instance_threshold
+        self.profile = profile
+        self.device = device
+        self.worker_pool = worker_pool
+
+    def __getstate__(self):
+        return {
+            k: v for k, v in self.__dict__.items()
+            if k not in ('model', 'worker_pool', 'device')
+        }
+
+    def fields(self, image_batch):
+        start = time.time()
+        with torch.no_grad():
+            if self.device is not None:
+                image_batch = image_batch.to(self.device, non_blocking=True)
+
+            cif_head, _ = self.model(image_batch)
+
+            # to numpy
+            cif_head = cif_head.cpu().numpy()
+
+        LOG.debug('nn processing time: %.3fs', time.time() - start)
+        return [cif_head]
+
+    @staticmethod
+    def bbox_iou(boxA, boxB):
+        xA = max(boxA[0], boxB[0])
+        yA = max(boxA[1], boxB[1])
+        xB = min(boxA[0] + boxA[2], boxB[0] + boxB[2])
+        yB = min(boxA[1] + boxA[3], boxB[1] + boxB[3])
+        inter_area = max(0.0, xB - xA) * max(0.0, yB - yA)
+        boxA_area = boxA[2] * boxA[3]
+        boxB_area = boxB[2] * boxB[3]
+        return inter_area / (boxA_area + boxB_area - inter_area + 1e-5)
+
+    def soft_nms(self, annotations, iou_th=0.7):
+        if not annotations:
+            return annotations
+
+        annotations = [ann for ann in annotations if ann.score >= self.instance_threshold]
+        annotations = sorted(annotations, key=lambda a: -a.score)
+        for ann_i, ann in enumerate(annotations):
+            for prev_ann in annotations[:ann_i]:
+                iou = self.bbox_iou(ann.bbox, prev_ann.bbox)
+                if iou < iou_th:
+                    continue
+                ann.score *= 0.1
+
+        annotations = [ann for ann in annotations if ann.score >= self.instance_threshold]
+        annotations = sorted(annotations, key=lambda a: -a.score)
+        return annotations
+
+    def annotations_batch(self, fields_batch, *, meta_batch=None, debug_images=None):
+        if debug_images is None or self.debug_visualizer is None:
+            # remove debug_images if there is no visualizer to save
+            # time during pickle
+            debug_images = [None for _ in fields_batch]
+        if meta_batch is None:
+            meta_batch = [None for _ in fields_batch]
+
+        LOG.debug('parallel execution with worker %s', self.worker_pool)
+        return self.worker_pool.starmap(
+            self._mappable_annotations, zip(fields_batch, meta_batch, debug_images))
+
+    def _mappable_annotations(self, fields, meta, debug_image):
+        if debug_image is not None:
+            visualizer.BaseVisualizer.processed_image(debug_image)
+
+        return self.annotations(fields, meta=meta)
+
+    def annotations(self, fields, *, meta=None):
+        start = time.time()
+        if self.profile is not None:
+            self.profile.enable()
+
+        annotations = self.decode(fields)
+        annotations = self.soft_nms(annotations)
+
+        if self.profile is not None:
+            self.profile.disable()
+            iostream = io.StringIO()
+            ps = pstats.Stats(self.profile, stream=iostream)
+            ps = ps.sort_stats('tottime')
+            ps.print_stats()
+            ps.dump_stats('decoder.prof')
+            print(iostream.getvalue())
+
+        LOG.info('%d annotations', len(annotations))
         LOG.debug('total processing time: %.3fs', time.time() - start)
         return annotations

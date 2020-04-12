@@ -34,8 +34,8 @@ def cli():
                               'sure input images have distinct file names.'))
     parser.add_argument('--show', default=False, action='store_true',
                         help='show image of output overlay')
-    parser.add_argument('--output-types', nargs='+', default=['skeleton', 'json'],
-                        help='what to output: skeleton, keypoints, json')
+    parser.add_argument('--output-types', nargs='+', default=['image', 'json'],
+                        help='what to output: image, json')
     parser.add_argument('--batch-size', default=1, type=int,
                         help='processing batch size')
     parser.add_argument('--long-edge', default=None, type=int,
@@ -46,6 +46,7 @@ def cli():
                         help='disable CUDA')
     parser.add_argument('--line-width', default=6, type=int,
                         help='line width for skeleton')
+    parser.add_argument('--monocolor-connections', default=False, action='store_true')
     parser.add_argument('--figure-width', default=10.0, type=float,
                         help='figure width')
     parser.add_argument('--dpi-factor', default=1.0, type=float,
@@ -126,12 +127,11 @@ def main():
         collate_fn=datasets.collate_images_anns_meta)
 
     # visualizers
-    keypoint_painter = show.KeypointPainter()
-    skeleton_painter = show.KeypointPainter(
-        color_connections=True,
-        markersize=args.line_width - 5,
+    keypoint_painter = show.KeypointPainter(
+        color_connections=not args.monocolor_connections,
         linewidth=args.line_width,
     )
+    annotation_painter = show.AnnotationPainter(keypoint_painter=keypoint_painter)
 
     for batch_i, (image_tensors_batch, _, meta_batch) in enumerate(data_loader):
         fields_batch = processor.fields(image_tensors_batch)
@@ -148,9 +148,7 @@ def main():
 
             # load the original image if necessary
             cpu_image = None
-            if args.debug or \
-               'keypoints' in args.output_types or \
-               'skeleton' in args.output_types:
+            if args.debug or 'image' in args.output_types:
                 with open(meta['file_name'], 'rb') as f:
                     cpu_image = PIL.Image.open(f).convert('RGB')
 
@@ -159,24 +157,16 @@ def main():
                 pred = preprocess.annotations_inverse(pred, meta)
 
             if 'json' in args.output_types:
-                with open(output_path + '.pifpaf.json', 'w') as f:
+                with open(output_path + '.predictions.json', 'w') as f:
                     json.dump([ann.json_data() for ann in pred], f)
 
-            if 'keypoints' in args.output_types:
+            if 'image' in args.output_types:
                 with show.image_canvas(cpu_image,
-                                       output_path + '.keypoints.png',
+                                       output_path + '.predictions.png',
                                        show=args.show,
                                        fig_width=args.figure_width,
                                        dpi_factor=args.dpi_factor) as ax:
-                    keypoint_painter.annotations(ax, pred)
-
-            if 'skeleton' in args.output_types:
-                with show.image_canvas(cpu_image,
-                                       output_path + '.skeleton.png',
-                                       show=args.show,
-                                       fig_width=args.figure_width,
-                                       dpi_factor=args.dpi_factor) as ax:
-                    skeleton_painter.annotations(ax, pred)
+                    annotation_painter.annotations(ax, pred)
 
 
 if __name__ == '__main__':
