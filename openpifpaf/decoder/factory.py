@@ -112,7 +112,8 @@ def factory_from_args(args, model, device=None):
         return ProcessorDet(model, decode,
                             instance_threshold=args.instance_threshold,
                             profile=args.profile_decoder,
-                            worker_pool=args.decoder_workers)
+                            worker_pool=args.decoder_workers,
+                            device=device)
 
     return Processor(model, decode,
                      instance_threshold=args.instance_threshold,
