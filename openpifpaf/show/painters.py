@@ -49,12 +49,14 @@ class DetectionPainter:
 
     def annotations(self, ax, annotations, *,
                     color=None, colors=None, texts=None, subtexts=None):
-        for i, ann in enumerate(annotations):
-            color = ann.field_i
+        for i, ann in reversed(list(enumerate(annotations))):
+            this_color = ann.field_i
             if colors is not None:
-                color = colors[i]
+                this_color = colors[i]
+            elif color is not None:
+                this_color = color
             elif hasattr(ann, 'id_'):
-                color = ann.id_
+                this_color = ann.id_
 
             text = ann.category
             if texts is not None:
@@ -68,7 +70,7 @@ class DetectionPainter:
             else:
                 subtext = '{:.0%}'.format(ann.score)
 
-            self.annotation(ax, ann, color=color, text=text, subtext=subtext)
+            self.annotation(ax, ann, color=this_color, text=text, subtext=subtext)
 
     def annotation(self, ax, ann, *, color=None, text=None, subtext=None):
         if color is None:
