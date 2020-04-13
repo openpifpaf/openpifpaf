@@ -162,7 +162,7 @@ class PafHFlip(torch.nn.Module):
 
 class CompositeField(torch.nn.Module):
     dropout_p = 0.0
-    quad = 0
+    quad = 1
 
     def __init__(self, head_name, in_features, *,
                  n_fields,
