@@ -5,9 +5,10 @@ from .functional import scalar_value_clipped
 
 
 class Annotation:
-    def __init__(self, keypoints, skeleton, *, suppress_score_index=None):
+    def __init__(self, keypoints, skeleton, *, category_id=1, suppress_score_index=None):
         self.keypoints = keypoints
         self.skeleton = skeleton
+        self.category_id = category_id
         self.suppress_score_index = suppress_score_index
 
         self.data = np.zeros((len(keypoints), 3), dtype=np.float32)
@@ -76,12 +77,19 @@ class Annotation:
     def json_data(self):
         """Data ready for json dump."""
 
+        # avoid visible keypoints becoming invisible due to rounding
+        v_mask = self.data[:, 2] > 0.0
+        keypoints = np.copy(self.data)
+        keypoints[v_mask, 2] = np.maximum(0.01, keypoints[v_mask, 2])
+        keypoints = np.around(keypoints.astype(np.float64), 2)
+
         # convert to float64 before rounding because otherwise extra digits
         # will be added when converting to Python type
         data = {
-            'keypoints': np.around(self.data.astype(np.float64), 2).reshape(-1).tolist(),
+            'keypoints': keypoints.reshape(-1).tolist(),
             'bbox': [round(float(c), 2) for c in self.bbox()],
-            'score': round(self.score(), 3),
+            'score': max(0.001, round(self.score(), 3)),
+            'category_id': self.category_id,
         }
 
         id_ = getattr(self, 'id_', None)
@@ -125,8 +133,8 @@ class AnnotationDet:
 
     def json_data(self):
         return {
-            'field_i': self.field_i,
+            'category_id': self.field_i + 1,
             'category': self.category,
-            'score': float(self.score, 3),
+            'score': max(0.001, round(float(self.score), 3)),
             'bbox': [round(float(c), 2) for c in self.bbox],
         }
