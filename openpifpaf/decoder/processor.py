@@ -259,10 +259,15 @@ class ProcessorDet(object):
         annotations = sorted(annotations, key=lambda a: -a.score)
         for ann_i, ann in enumerate(annotations):
             for prev_ann in annotations[:ann_i]:
+                if prev_ann.score < self.instance_threshold:
+                    continue
+
                 iou = self.bbox_iou(ann.bbox, prev_ann.bbox)
                 if iou < iou_th:
                     continue
+
                 ann.score *= 0.1
+                break
 
         annotations = [ann for ann in annotations if ann.score >= self.instance_threshold]
         annotations = sorted(annotations, key=lambda a: -a.score)
