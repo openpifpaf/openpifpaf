@@ -97,7 +97,7 @@ class Coco(torch.utils.data.Dataset):
         with open(os.path.join(self.root, image_info['file_name']), 'rb') as f:
             image = Image.open(f).convert('RGB')
 
-        meta_init = {
+        meta = {
             'dataset_index': index,
             'image_id': image_id,
             'file_name': image_info['file_name'],
@@ -106,11 +106,10 @@ class Coco(torch.utils.data.Dataset):
         if 'flickr_url' in image_info:
             _, flickr_file_name = image_info['flickr_url'].rsplit('/', maxsplit=1)
             flickr_id, _ = flickr_file_name.split('_', maxsplit=1)
-            meta_init['flickr_full_page'] = 'http://flickr.com/photo.gne?id={}'.format(flickr_id)
+            meta['flickr_full_page'] = 'http://flickr.com/photo.gne?id={}'.format(flickr_id)
 
         # preprocess image and annotations
-        image, anns, meta = self.preprocess(image, anns, None)
-        meta.update(meta_init)
+        image, anns, meta = self.preprocess(image, anns, meta)
 
         # mask valid TODO still necessary?
         valid_area = meta['valid_area']

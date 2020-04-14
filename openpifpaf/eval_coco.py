@@ -176,6 +176,8 @@ def default_output_name(args):
         output += '-samples{}'.format(args.n)
     if not args.force_complete_pose:
         output += '-noforcecompletepose'
+    if args.extended_scale:
+        output += '-es'
     if args.two_scale:
         output += '-twoscale'
     if args.multi_scale:
@@ -316,14 +318,24 @@ def write_evaluations(eval_coco, filename, args, total_time):
 
 
 def dataloader_from_args(args):
-    preprocess = [
-        transforms.NormalizeAnnotations(),
-        transforms.RescaleAbsolute(args.long_edge),
-        transforms.CenterPad(args.long_edge),
-        transforms.EVAL_TRANSFORM,
-    ]
+    preprocess = [transforms.NormalizeAnnotations()]
+
+    if args.extended_scale:
+        preprocess += [
+            transforms.DeterministicEqualChoice([
+                transforms.RescaleAbsolute(args.long_edge),
+                transforms.RescaleAbsolute((args.long_edge - 1) // 2 + 1),
+            ])
+        ]
+    else:
+        preprocess += [transforms.RescaleAbsolute(args.long_edge)]
+
     if args.batch_size == 1 and not args.multi_scale:
-        preprocess[2] = transforms.CenterPadTight(16)
+        preprocess += [transforms.CenterPadTight(16)]
+    else:
+        preprocess += [transforms.CenterPad(args.long_edge)]
+
+    preprocess += [transforms.EVAL_TRANSFORM]
 
     data = datasets.Coco(
         root=args.image_dir,

@@ -19,7 +19,7 @@ from .image import Blur, ImageTransform, JpegCompression
 from .multi_scale import MultiScale
 from .pad import CenterPad, CenterPadTight, SquarePad
 from .preprocess import Preprocess
-from .random import RandomApply
+from .random import DeterministicEqualChoice, RandomApply
 from .rotate import RotateBy90
 from .scale import RescaleAbsolute, RescaleRelative, ScaleMix
 

@@ -29,14 +29,20 @@ class NormalizeAnnotations(Preprocess):
         anns = self.normalize_annotations(anns)
 
         if meta is None:
-            w, h = image.size
-            meta = {
-                'offset': np.array((0.0, 0.0)),
-                'scale': np.array((1.0, 1.0)),
-                'valid_area': np.array((0.0, 0.0, w - 1, h - 1)),
-                'hflip': False,
-                'width_height': np.array((w, h)),
-            }
+            meta = {}
+
+        # fill meta with defaults if not already present
+        w, h = image.size
+        meta_from_image = {
+            'offset': np.array((0.0, 0.0)),
+            'scale': np.array((1.0, 1.0)),
+            'valid_area': np.array((0.0, 0.0, w - 1, h - 1)),
+            'hflip': False,
+            'width_height': np.array((w, h)),
+        }
+        for k, v in meta_from_image.items():
+            if k not in meta:
+                meta[k] = v
 
         return image, anns, meta
 
