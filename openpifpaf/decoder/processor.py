@@ -241,15 +241,16 @@ class ProcessorDet(object):
         return [cif_head]
 
     @staticmethod
-    def bbox_iou(box1, box2):
-        x1 = max(box1[0], box2[0])
-        y1 = max(box1[1], box2[1])
-        x2 = min(box1[0] + box1[2], box2[0] + box2[2])
-        y2 = min(box1[1] + box1[3], box2[1] + box2[3])
-        inter_area = max(0.0, x2 - x1) * max(0.0, y2 - y1)
-        box1_area = box1[2] * box1[3]
-        box2_area = box2[2] * box2[3]
-        return inter_area / (box1_area + box2_area - inter_area + 1e-5)
+    def bbox_iou(box, other_boxes):
+        box = np.expand_dims(box, 0)
+        x1 = np.maximum(box[:, 0], other_boxes[:, 0])
+        y1 = np.maximum(box[:, 1], other_boxes[:, 1])
+        x2 = np.minimum(box[:, 0] + box[:, 2], other_boxes[:, 0] + other_boxes[:, 2])
+        y2 = np.minimum(box[:, 1] + box[:, 3], other_boxes[:, 1] + other_boxes[:, 3])
+        inter_area = np.maximum(0.0, x2 - x1) * np.maximum(0.0, y2 - y1)
+        box_area = box[:, 2] * box[:, 3]
+        other_areas = other_boxes[:, 2] * other_boxes[:, 3]
+        return inter_area / (box_area + other_areas - inter_area + 1e-5)
 
     def soft_nms(self, annotations, iou_th=0.7):
         if not annotations:
@@ -257,17 +258,15 @@ class ProcessorDet(object):
 
         annotations = [ann for ann in annotations if ann.score >= self.instance_threshold]
         annotations = sorted(annotations, key=lambda a: -a.score)
-        for ann_i, ann in enumerate(annotations):
-            for prev_ann in annotations[:ann_i]:
-                if prev_ann.score < self.instance_threshold:
-                    continue
 
-                iou = self.bbox_iou(ann.bbox, prev_ann.bbox)
-                if iou < iou_th:
-                    continue
+        all_boxes = np.stack(ann.bbox for ann in annotations)
+        for ann_i, ann in enumerate(annotations[1:], start=1):
+            mask = [ann.score >= self.instance_threshold for ann in annotations[:ann_i]]
+            ious = self.bbox_iou(ann.bbox, all_boxes[:ann_i][mask])
+            if np.max(ious) < iou_th:
+                continue
 
-                ann.score *= 0.1
-                break
+            ann.score *= 0.1
 
         annotations = [ann for ann in annotations if ann.score >= self.instance_threshold]
         annotations = sorted(annotations, key=lambda a: -a.score)
