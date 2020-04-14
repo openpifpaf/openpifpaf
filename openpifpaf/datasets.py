@@ -236,6 +236,7 @@ def train_preprocess_factory(args):
         transforms.RandomApply(transforms.HFlip(), 0.5),
     ]
 
+    assert not (args.extended_scale and args.detection_annotations)
     if args.extended_scale:
         preprocess_transformations.append(
             transforms.RescaleRelative(scale_range=(0.25 * args.rescale_images,

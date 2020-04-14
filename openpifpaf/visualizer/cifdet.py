@@ -27,7 +27,7 @@ class CifDet(BaseVisualizer):
         assert self.categories is not None
 
         annotations = [
-            AnnotationDet(self.categories).set(det[0] - 1, 1.0, det[1])
+            AnnotationDet(self.categories).set(det[0] - 1, None, det[1])
             for det in detections
         ]
 

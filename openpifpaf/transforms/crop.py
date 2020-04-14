@@ -41,7 +41,6 @@ class Crop(Preprocess):
             new_rb = np.maximum(ann['bbox'][:2], new_rb)
             new_rb = np.minimum(meta['valid_area'][:2] + meta['valid_area'][2:], new_rb)
             ann['bbox'][2:] = new_rb - ann['bbox'][:2]
-            LOG.debug('clipped bbox from %s to %s', unclipped_bbox, ann['bbox'])
         anns = [ann for ann in anns if ann['bbox'][2] > 0.0 and ann['bbox'][3] > 0.0]
 
         return image, anns, meta

@@ -122,6 +122,7 @@ class AnnotationDet:
         self.bbox = None
 
     def set(self, field_i, score, bbox):
+        """Set score to None for a ground truth annotation."""
         self.field_i = field_i
         self.score = score
         self.bbox = np.asarray(bbox)

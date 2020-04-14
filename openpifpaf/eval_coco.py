@@ -98,7 +98,7 @@ class EvalCoco(object):
         if gt:
             with show.image_canvas(cpu_image) as ax:
                 show.white_screen(ax)
-                annotation_painter.annotations(ax, gt, color='lightgrey')
+                annotation_painter.annotations(ax, gt, color='grey')
                 annotation_painter.annotations(ax, annotations)
 
     def from_predictions(self, predictions, meta, debug=False, gt=None):
@@ -117,7 +117,7 @@ class EvalCoco(object):
             for g in gt:
                 if 'bbox' in g:
                     gt_anns.append(
-                        AnnotationDet(COCO_CATEGORIES).set(g['category_id'] - 1, 1.0, g['bbox'])
+                        AnnotationDet(COCO_CATEGORIES).set(g['category_id'] - 1, None, g['bbox'])
                     )
                 if 'keypoints' in g:
                     gt_anns.append(
