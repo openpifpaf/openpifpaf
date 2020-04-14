@@ -180,7 +180,7 @@ class MultiHeadLossAutoTune(torch.nn.Module):
         self.losses = torch.nn.ModuleList(losses)
         self.lambdas = lambdas
         self.log_sigmas = torch.nn.Parameter(
-            torch.zeros((len(lambdas),), dtype=torch.float32),
+            torch.zeros((len(lambdas),), dtype=torch.float64),
             requires_grad=True,
         )
 
@@ -264,16 +264,15 @@ class CompositeLoss(torch.nn.Module):
         LOG.debug('BCE: x = %s, target = %s, mask = %s',
                   x_intensity.shape, target_intensity.shape, bce_masks.shape)
         bce_target = torch.masked_select(target_intensity, bce_masks)
-        bce_weight = None
+        bce_weight = torch.full_like(bce_target, 0.1, requires_grad=False)
         if self.background_weight != 1.0:
-            bce_weight = torch.ones_like(bce_target)
-            bce_weight[bce_target == 0] = self.background_weight
+            bce_weight[bce_target == 0] *= self.background_weight
         ce_loss = torch.nn.functional.binary_cross_entropy_with_logits(
             torch.masked_select(x_intensity, bce_masks),
             bce_target,
             weight=bce_weight,
             reduction='sum',
-        ) / 1000.0 / batch_size
+        ) / 100.0 / batch_size
 
         return ce_loss
 
@@ -347,6 +346,9 @@ class CompositeLoss(torch.nn.Module):
         LOG.debug('loss for %s', self.field_names)
 
         x, t = args
+
+        x = [xx.double() for xx in x]
+        t = [tt.double() for tt in t]
 
         assert len(x) == 1 + 2 * self.n_vectors + self.n_scales
         x_intensity = x[0]
