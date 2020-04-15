@@ -215,7 +215,9 @@ class CafGenerator:
             self.fields_reg_l[paf_i, fminy:fmaxy, fminx:fmaxx][mask] = sink_l[mask]
 
             # update scale
+            assert scale1 > 0.0
             self.fields_scale1[paf_i, fminy:fmaxy, fminx:fmaxx][mask] = scale1
+            assert scale2 > 0.0
             self.fields_scale2[paf_i, fminy:fmaxy, fminx:fmaxx][mask] = scale2
 
     def fields(self, valid_area):

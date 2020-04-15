@@ -101,7 +101,9 @@ class CifDetGenerator(object):
         self.fields_reg_l[f, miny:maxy, minx:maxx][mask] = sink_l[mask]
 
         # update wh
+        assert wh[0] > 0.0
         self.fields_w[f, miny:maxy, minx:maxx][mask] = wh[0]
+        assert wh[1] > 0.0
         self.fields_h[f, miny:maxy, minx:maxx][mask] = wh[1]
 
     def fields(self, valid_area):

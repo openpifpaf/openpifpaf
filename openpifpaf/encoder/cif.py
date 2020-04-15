@@ -141,6 +141,7 @@ class CifGenerator(object):
         self.fields_reg_l[f, miny:maxy, minx:maxx][mask] = sink_l[mask]
 
         # update scale
+        assert scale > 0.0
         self.fields_scale[f, miny:maxy, minx:maxx][mask] = scale
 
     def fields(self, valid_area):
