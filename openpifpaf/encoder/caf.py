@@ -1,7 +1,6 @@
 import dataclasses
 import logging
 import numpy as np
-import scipy
 import torch
 
 from .annrescaler import AnnRescaler
@@ -85,11 +84,8 @@ class CafGenerator:
         self.fields_reg_l = np.full((n_fields, field_h, field_w), np.inf, dtype=np.float32)
 
         # bg_mask
-        bg_mask = scipy.ndimage.binary_erosion(
-            bg_mask,
-            iterations=int(self.config.min_size / 2.0) + 1,
-            border_value=1)
         p = self.config.padding
+        self.fields_reg_l[:, p:-p, p:-p][:, bg_mask == 0] = 1.0
         self.intensities[:, p:-p, p:-p][:, bg_mask == 0] = np.nan
 
     def fill(self, keypoint_sets):
@@ -172,11 +168,6 @@ class CafGenerator:
         sink = create_sink(s)
         s_offset = (s - 1.0) / 2.0
 
-        # pixel coordinates of top-left joint pixel
-        joint1ij = np.round(joint1[:2] - s_offset)
-        joint2ij = np.round(joint2[:2] - s_offset)
-        offsetij = joint2ij - joint1ij
-
         # set fields
         num = max(2, int(np.ceil(offset_d)))
         fmargin = min(0.4, (s_offset + 1) / (offset_d + np.spacing(1)))
@@ -185,34 +176,42 @@ class CafGenerator:
         if self.config.fixed_size:
             frange = [0.5]
         for f in frange:
-            fij = np.round(joint1ij + f * offsetij) + self.config.padding
+            fij = np.round(joint1[:2] + f * offset - s_offset) + self.config.padding
             fminx, fminy = int(fij[0]), int(fij[1])
             fmaxx, fmaxy = fminx + s, fminy + s
             if fminx < 0 or fmaxx > self.intensities.shape[2] or \
                fminy < 0 or fmaxy > self.intensities.shape[1]:
                 continue
-            fxy = (fij - self.config.padding) + s_offset
+            fxy = fij - self.config.padding + s_offset
 
             # precise floating point offset of sinks
             joint1_offset = (joint1[:2] - fxy).reshape(2, 1, 1)
             joint2_offset = (joint2[:2] - fxy).reshape(2, 1, 1)
-
-            # update intensity
-            self.intensities[paf_i, fminy:fmaxy, fminx:fmaxx] = 1.0
-
-            # update regressions
             sink1 = sink + joint1_offset
             sink2 = sink + joint2_offset
-            sink_l = np.minimum(np.linalg.norm(sink1, axis=0),
-                                np.linalg.norm(sink2, axis=0))
+
+            # mask
+            # perpendicular distance computation:
+            # https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
+            # Coordinate systems for this computation is such that
+            # joint1 is at (0, 0).
+            sink_l = np.fabs(
+                offset[1] * sink1[0]
+                - offset[0] * sink1[1]
+            ) / (offset_d + 0.01)
             mask = sink_l < self.fields_reg_l[paf_i, fminy:fmaxy, fminx:fmaxx]
+            self.fields_reg_l[paf_i, fminy:fmaxy, fminx:fmaxx][mask] = sink_l[mask]
+
+            # update intensity
+            self.intensities[paf_i, fminy:fmaxy, fminx:fmaxx][mask] = 1.0
+
+            # update regressions
             patch1 = self.fields_reg1[paf_i, :, fminy:fmaxy, fminx:fmaxx]
             patch1[:2, mask] = sink1[:, mask]
             patch1[2:, mask] = np.expand_dims(max_r1, 1) * 0.5
             patch2 = self.fields_reg2[paf_i, :, fminy:fmaxy, fminx:fmaxx]
             patch2[:2, mask] = sink2[:, mask]
             patch2[2:, mask] = np.expand_dims(max_r2, 1) * 0.5
-            self.fields_reg_l[paf_i, fminy:fmaxy, fminx:fmaxx][mask] = sink_l[mask]
 
             # update scale
             assert np.isnan(scale1) or scale1 > 0.0

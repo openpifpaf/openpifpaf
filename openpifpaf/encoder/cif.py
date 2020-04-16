@@ -2,7 +2,6 @@ import dataclasses
 import logging
 
 import numpy as np
-import scipy.ndimage
 import torch
 
 from .annrescaler import AnnRescaler
@@ -66,10 +65,8 @@ class CifGenerator(object):
         self.fields_reg_l = np.full((n_fields, field_h, field_w), np.inf, dtype=np.float32)
 
         # bg_mask
-        bg_mask = scipy.ndimage.binary_erosion(bg_mask,
-                                               iterations=int(self.s_offset) + 1,
-                                               border_value=1)
         p = self.config.padding
+        self.fields_reg_l[:, p:-p, p:-p][:, bg_mask == 0] = 1.0
         self.intensities[:, p:-p, p:-p][:, bg_mask == 0] = np.nan
 
     def fill(self, keypoint_sets):
@@ -128,17 +125,19 @@ class CifGenerator(object):
         offset = xyv[:2] - (ij + self.s_offset - self.config.padding)
         offset = offset.reshape(2, 1, 1)
 
-        # update intensity
-        self.intensities[f, miny:maxy, minx:maxx] = 1.0
-
-        # update regression
+        # mask
         sink_reg = self.sink + offset
         sink_l = np.linalg.norm(sink_reg, axis=0)
         mask = sink_l < self.fields_reg_l[f, miny:maxy, minx:maxx]
+        self.fields_reg_l[f, miny:maxy, minx:maxx][mask] = sink_l[mask]
+
+        # update intensity
+        self.intensities[f, miny:maxy, minx:maxx][mask] = 1.0
+
+        # update regression
         patch = self.fields_reg[f, :, miny:maxy, minx:maxx]
         patch[:2, mask] = sink_reg[:, mask]
         patch[2:, mask] = np.expand_dims(max_r, 1) * 0.5
-        self.fields_reg_l[f, miny:maxy, minx:maxx][mask] = sink_l[mask]
 
         # update scale
         assert np.isnan(scale) or scale > 0.0
