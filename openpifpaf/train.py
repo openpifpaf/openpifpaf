@@ -100,7 +100,7 @@ def main():
         print('Using multiple GPUs: {}'.format(torch.cuda.device_count()))
         net = torch.nn.DataParallel(net)
 
-    loss = losses.factory_from_args(args, net_cpu.head_names)
+    loss = losses.factory_from_args(args, net_cpu.head_nets)
     target_transforms = encoder.factory(net_cpu.head_names, net_cpu.head_strides)
     train_loader, val_loader = datasets.train_factory(args, target_transforms)
 

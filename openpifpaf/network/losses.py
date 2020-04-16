@@ -3,6 +3,8 @@
 import logging
 import torch
 
+from . import heads
+
 LOG = logging.getLogger(__name__)
 
 
@@ -217,25 +219,24 @@ class CompositeLoss(torch.nn.Module):
     multiplicity_correction = False
     independence_scale = 3.0
 
-    def __init__(self, head_name, regression_loss, *,
-                 n_vectors, n_scales, margin=False):
+    def __init__(self, head_net: heads.CompositeField, regression_loss, *,
+                 margin=False):
         super(CompositeLoss, self).__init__()
+        self.n_vectors = len(head_net.reg_convs)
+        self.n_scales = len(head_net.scale_convs)
 
         LOG.debug('%s: n_vectors = %d, n_scales = %d, margin = %s',
-                  head_name, n_vectors, n_scales, margin)
-
-        self.n_vectors = n_vectors
-        self.n_scales = n_scales
+                  head_net.shortname, self.n_vectors, self.n_scales, margin)
 
         self.regression_loss = regression_loss or laplace_loss
         self.field_names = (
-            ['{}.c'.format(head_name)] +
-            ['{}.vec{}'.format(head_name, i + 1) for i in range(self.n_vectors)] +
-            ['{}.scales{}'.format(head_name, i + 1) for i in range(self.n_scales)]
+            ['{}.c'.format(head_net.shortname)] +
+            ['{}.vec{}'.format(head_net.shortname, i + 1) for i in range(self.n_vectors)] +
+            ['{}.scales{}'.format(head_net.shortname, i + 1) for i in range(self.n_scales)]
         )
         self.margin = margin
         if self.margin:
-            self.field_names += ['{}.margin{}'.format(head_name, i + 1)
+            self.field_names += ['{}.margin{}'.format(head_net.shortname, i + 1)
                                  for i in range(self.n_vectors)]
 
         self.bce_blackout = None
@@ -404,12 +405,12 @@ def cli(parser):
                        help='[experimental]')
 
 
-def factory_from_args(args, head_names):
+def factory_from_args(args, head_nets):
     # apply for CompositeLoss
     CompositeLoss.background_weight = args.background_weight
 
     return factory(
-        head_names,
+        head_nets,
         args.lambdas,
         reg_loss_name=args.regression_loss,
         r_smooth=args.r_smooth,
@@ -419,39 +420,16 @@ def factory_from_args(args, head_names):
     )
 
 
-def loss_parameters(head_name):
-    n_vectors = None
-    if 'pif' in head_name or 'cif' in head_name:
-        n_vectors = 1
-    elif 'paf' in head_name or 'caf' in head_name:
-        n_vectors = 2
-
-    n_scales = None
-    if 'cifdet' in head_name:
-        n_scales = 2
-    elif 'pif' in head_name or 'cif' in head_name:
-        n_scales = 1
-    elif 'caf' in head_name:
-        n_scales = 2
-    elif 'paf' in head_name:
-        n_scales = 0
-
-    return {
-        'n_vectors': n_vectors,
-        'n_scales': n_scales,
-    }
-
-
-def factory(head_names, lambdas, *,
+def factory(head_nets, lambdas, *,
             reg_loss_name=None, r_smooth=None, device=None, margin=False,
             auto_tune_mtl=False):
-    if isinstance(head_names[0], (list, tuple)):
+    if isinstance(head_nets[0], (list, tuple)):
         return [factory(hn, lam,
                         reg_loss_name=reg_loss_name,
                         r_smooth=r_smooth,
                         device=device,
                         margin=margin)
-                for hn, lam in zip(head_names, lambdas)]
+                for hn, lam in zip(head_nets, lambdas)]
 
     if reg_loss_name == 'smoothl1':
         reg_loss = SmoothL1Loss(r_smooth)
@@ -464,9 +442,8 @@ def factory(head_names, lambdas, *,
     else:
         raise Exception('unknown regression loss type {}'.format(reg_loss_name))
 
-    losses = [CompositeLoss(head_name, reg_loss,
-                            margin=margin, **loss_parameters(head_name))
-              for head_name in head_names]
+    losses = [CompositeLoss(head_net, reg_loss, margin=margin)
+              for head_net in head_nets]
     if auto_tune_mtl:
         loss = MultiHeadLossAutoTune(losses, lambdas)
     else:
