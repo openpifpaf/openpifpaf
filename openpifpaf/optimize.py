@@ -32,7 +32,7 @@ def cli(parser):
                          help='learning rate decay duration in epochs')
     group_s.add_argument('--lr-warm-up-start-epoch', default=0, type=float,
                          help='starting epoch for warm-up')
-    group_s.add_argument('--lr-warm-up-epochs', default=2, type=float,
+    group_s.add_argument('--lr-warm-up-epochs', default=1, type=float,
                          help='number of epochs at the beginning with lower learning rate')
     group_s.add_argument('--lr-warm-up-factor', default=0.001, type=float,
                          help='learning pre-factor during warm-up')
