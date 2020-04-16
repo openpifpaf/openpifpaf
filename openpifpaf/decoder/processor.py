@@ -26,7 +26,6 @@ class Processor(object):
     debug_visualizer = None
 
     def __init__(self, model, decode, *,
-                 output_stride=None,
                  keypoint_threshold=0.0, instance_threshold=0.0,
                  profile=None,
                  device=None,
@@ -44,7 +43,6 @@ class Processor(object):
 
         self.model = model
         self.decode = decode
-        self.output_stride = output_stride or model.head_strides[-1]
         self.keypoint_threshold = keypoint_threshold
         self.instance_threshold = instance_threshold
         self.profile = profile
@@ -198,7 +196,6 @@ class ProcessorDet(object):
     debug_visualizer = None
 
     def __init__(self, model, decode, *,
-                 output_stride=None,
                  instance_threshold=0.0,
                  profile=None,
                  device=None,
@@ -214,7 +211,6 @@ class ProcessorDet(object):
 
         self.model = model
         self.decode = decode
-        self.output_stride = output_stride or model.head_strides[-1]
         self.instance_threshold = instance_threshold
         self.profile = profile
         self.device = device
