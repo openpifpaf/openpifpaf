@@ -238,7 +238,7 @@ class ProcessorDet(object):
             cif_head = cif_head.cpu().numpy()
 
         LOG.debug('nn processing time: %.3fs', time.time() - start)
-        return [cif_head]
+        return [(ch,) for ch in cif_head]
 
     @staticmethod
     def bbox_iou(box, other_boxes):
@@ -259,7 +259,7 @@ class ProcessorDet(object):
         annotations = [ann for ann in annotations if ann.score >= self.instance_threshold]
         annotations = sorted(annotations, key=lambda a: -a.score)
 
-        all_boxes = np.stack(ann.bbox for ann in annotations)
+        all_boxes = np.stack([ann.bbox for ann in annotations])
         for ann_i, ann in enumerate(annotations[1:], start=1):
             mask = [ann.score >= self.instance_threshold for ann in annotations[:ann_i]]
             ious = self.bbox_iou(ann.bbox, all_boxes[:ann_i][mask])
