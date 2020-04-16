@@ -32,12 +32,14 @@ class Cif(BaseVisualizer):
         ]
 
         self._confidences(field[0])
-        self._regressions(field[1], field[2], annotations)
+        self._regressions(field[1], field[2], annotations=annotations)
 
     def predicted(self, field, *, annotations=None):
         self._confidences(field[:, 0])
-        self._regressions(field[:, 1:3], field[:, 4], annotations,
-                          confidence_fields=field[:, 0], uv_is_offset=False)
+        self._regressions(field[:, 1:3], field[:, 4],
+                          annotations=annotations,
+                          confidence_fields=field[:, 0],
+                          uv_is_offset=False)
 
     def _confidences(self, confidences):
         if not self.show_confidences:
@@ -51,8 +53,8 @@ class Cif(BaseVisualizer):
                                alpha=0.9, vmin=0.0, vmax=1.0, cmap='Oranges')
                 self.colorbar(ax, im)
 
-    def _regressions(self, regression_fields, scale_fields, annotations, *,
-                     confidence_fields=None, uv_is_offset=True):
+    def _regressions(self, regression_fields, scale_fields, *,
+                     annotations=None, confidence_fields=None, uv_is_offset=True):
         if not self.show_regressions:
             return
 
@@ -62,7 +64,8 @@ class Cif(BaseVisualizer):
 
             with self.image_canvas(self._processed_image) as ax:
                 show.white_screen(ax, alpha=0.5)
-                self.keypoint_painter.annotations(ax, annotations)
+                if annotations:
+                    self.keypoint_painter.annotations(ax, annotations)
                 q = show.quiver(ax,
                                 regression_fields[f, :2],
                                 confidence_field=confidence_field,
