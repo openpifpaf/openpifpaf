@@ -1,7 +1,5 @@
 import logging
 
-import numpy as np
-
 from .base import BaseVisualizer
 from ..annotation import Annotation
 from .. import show
@@ -33,7 +31,6 @@ class Cif(BaseVisualizer):
             for kps in keypoint_sets
         ]
 
-        self._background(field[0])
         self._confidences(field[0])
         self._regressions(field[1], field[2], annotations)
 
@@ -41,14 +38,6 @@ class Cif(BaseVisualizer):
         self._confidences(field[:, 0])
         self._regressions(field[:, 1:3], field[:, 4], annotations,
                           confidence_fields=field[:, 0], uv_is_offset=False)
-
-    def _background(self, field):
-        if not self.show_background or not self.indices:
-            return
-
-        for f in self.indices:
-            with self.image_canvas(self._processed_image[::self.stride, ::self.stride]) as ax:
-                ax.imshow(np.isnan(field[f]), alpha=0.9, vmin=0.0, vmax=1.0, cmap='Blues')
 
     def _confidences(self, confidences):
         if not self.show_confidences:
