@@ -38,23 +38,10 @@ def l1_loss(x1, x2, _, t1, t2, weight=None):
     return torch.sum(losses)
 
 
-def log1p_l1_loss(x, t, **kwargs):
+def logl1_loss(logx, t, **kwargs):
     """Swap in replacement for functional.l1_loss."""
-    negative = x < 0.0
-    positive = negative == 0
-    negative_loss = torch.nn.functional.l1_loss(
-        x[negative],
-        torch.zeros_like(x[negative]),
-        **kwargs
-    )
-    positive_loss = torch.nn.functional.l1_loss(
-        torch.log1p(x[positive]),
-        torch.log1p(t[positive]),
-        **kwargs
-    )
-
-    assert kwargs.get('reduction', None) == 'sum'
-    return negative_loss + positive_loss
+    return torch.nn.functional.l1_loss(
+        logx, torch.log(t), **kwargs)
 
 
 def margin_loss(x1, x2, t1, t2, max_r1, max_r2, max_r3, max_r4):
@@ -312,7 +299,7 @@ class CompositeLoss(torch.nn.Module):
         assert len(x_scales) == len(target_scales)
         batch_size = x_scales[0].shape[0]
         return [
-            log1p_l1_loss(
+            logl1_loss(
                 torch.masked_select(x_scale, torch.isnan(target_scale) == 0),
                 torch.masked_select(target_scale, torch.isnan(target_scale) == 0),
                 reduction='sum',

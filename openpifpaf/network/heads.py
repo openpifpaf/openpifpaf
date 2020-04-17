@@ -222,14 +222,15 @@ class CompositeField(torch.nn.Module):
             classes_x = [torch.sigmoid(class_x) for class_x in classes_x]
 
         # regressions
-        regs_x = [reg_conv(x) * self.dilation for reg_conv in self.reg_convs]
+        regs_x = [reg_conv(x) for reg_conv in self.reg_convs]
         regs_logb = [reg_spread(x) for reg_spread in self.reg_spreads]
-        regs_logb = [torch.nn.functional.leaky_relu(x + 2.0) - 2.0
-                     for x in regs_logb]
+        if self.training:
+            regs_logb = [3.0 * torch.tanh(reg_logb / 3.0) for reg_logb in regs_logb]
 
         # scale
         scales_x = [scale_conv(x) for scale_conv in self.scale_convs]
-        scales_x = [torch.nn.functional.relu(scale_x) for scale_x in scales_x]
+        if not self.training:
+            scales_x = [torch.exp(scale_x) for scale_x in scales_x]
 
         # upscale
         for _ in range(self._quad):
