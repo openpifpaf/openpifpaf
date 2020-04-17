@@ -20,7 +20,8 @@ openpifpaf/functional.html
 
 # data
 docs/*
-data*/
+data-*/
+data_*/
 data-mscoco
 *debug.png
 *.pl

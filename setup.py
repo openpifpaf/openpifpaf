@@ -43,6 +43,7 @@ setup(
     version=VERSION,
     packages=[
         'openpifpaf',
+        'openpifpaf.datasets',
         'openpifpaf.decoder',
         'openpifpaf.decoder.generator',
         'openpifpaf.encoder',
