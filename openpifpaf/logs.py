@@ -381,11 +381,12 @@ class Plots(object):
 
 class EvalPlots(object):
     def __init__(self, log_files, labels=None, output_prefix=None,
-                 edge=321, samples=200, decoder=0, legend_last_ap=True):
+                 edge=321, decoder=0, legend_last_ap=True,
+                 modifiers=''):
         self.edge = edge
-        self.samples = samples
         self.decoder = decoder
         self.legend_last_ap = legend_last_ap
+        self.modifiers = modifiers
 
         self.datas = [self.read_log(f) for f in log_files]
         self.labels = labels or [lf.replace('outputs/', '') for lf in log_files]
@@ -398,14 +399,10 @@ class EvalPlots(object):
         files = path.split(',')
         files = ','.join(
             [
-                '{}.epoch???.evalcoco-edge{}-samples{}.stats.json'
-                ''.format(f[:-4], self.edge, self.samples)
+                '{}.epoch???.evalcoco-edge{}{}.stats.json'
+                ''.format(f[:-4], self.edge, self.modifiers)
                 for f in files
-            ] + ([
-                '{}.epoch???.evalcoco-edge{}.stats.json'
-                ''.format(f[:-4], self.edge)
-                for f in files
-            ] if not self.samples else [])
+            ]
         )
 
         def epoch_from_filename(filename):
@@ -536,8 +533,6 @@ def main():
                         help='labels in the same order as files')
     parser.add_argument('--eval-edge', default=593, type=int,
                         help='side length during eval')
-    parser.add_argument('--eval-samples', default=200, type=int,
-                        help='number of samples during eval')
     parser.add_argument('--no-share-y', dest='share_y',
                         default=True, action='store_false',
                         help='dont share y access')
@@ -550,8 +545,9 @@ def main():
         args.output = args.log_file[-1] + '.'
 
     EvalPlots(args.log_file, args.label, args.output,
-              edge=args.eval_edge,
-              samples=args.eval_samples).show_all(share_y=args.share_y)
+              edge=args.eval_edge).show_all(share_y=args.share_y)
+    EvalPlots(args.log_file, args.label, args.output,
+              edge=args.eval_edge, modifiers='-os').show_all(share_y=args.share_y)
     Plots(args.log_file, args.label, args.output).show_all(
         share_y=args.share_y, show_mtl_sigmas=args.show_mtl_sigmas)
 

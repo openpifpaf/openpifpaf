@@ -1,6 +1,9 @@
+import logging
 import torch
 
 from .preprocess import Preprocess
+
+LOG = logging.getLogger(__name__)
 
 
 class RandomApply(Preprocess):
@@ -15,15 +18,15 @@ class RandomApply(Preprocess):
 
 
 class DeterministicEqualChoice(Preprocess):
-    def __init__(self, transforms, exponent=1):
-        """Use a modular exponent hash to choose the transformation
-        for a given image id.
-        Use different exponents when using multiple choices.
-        """
+    def __init__(self, transforms, salt=0):
         self.transforms = transforms
-        self.exponent = exponent
+        self.salt = salt
 
     def __call__(self, image, anns, meta):
-        choice = pow(meta['image_id'], self.exponent, len(self.transforms))
+        assert meta['image_id'] > 0
+        LOG.debug('image id = %d', meta['image_id'])
+        choice = hash(meta['image_id'] + self.salt) % len(self.transforms)
         t = self.transforms[choice]
+        if t is None:
+            return image, anns, meta
         return t(image, anns, meta)

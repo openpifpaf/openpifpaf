@@ -87,19 +87,19 @@ class EvalCoco(object):
         return gmacs, params
 
     @staticmethod
-    def view_annotations(meta, annotations, gt):
+    def view_annotations(meta, predictions, ground_truth):
         annotation_painter = show.AnnotationPainter()
         with open(os.path.join(IMAGE_DIR_VAL, meta['file_name']), 'rb') as f:
             cpu_image = PIL.Image.open(f).convert('RGB')
 
         with show.image_canvas(cpu_image) as ax:
-            annotation_painter.annotations(ax, annotations)
+            annotation_painter.annotations(ax, predictions)
 
-        if gt:
+        if ground_truth:
             with show.image_canvas(cpu_image) as ax:
                 show.white_screen(ax)
-                annotation_painter.annotations(ax, gt, color='grey')
-                annotation_painter.annotations(ax, annotations)
+                annotation_painter.annotations(ax, ground_truth, color='grey')
+                annotation_painter.annotations(ax, predictions)
 
     def from_predictions(self, predictions, meta, debug=False, gt=None):
         image_id = int(meta['image_id'])
@@ -176,8 +176,12 @@ def default_output_name(args):
         output += '-samples{}'.format(args.n)
     if not args.force_complete_pose:
         output += '-noforcecompletepose'
-    if args.extended_scale:
-        output += '-es'
+    if args.orientation_invariant or args.extended_scale:
+        output += '-'
+        if args.orientation_invariant:
+            output += 'o'
+        if args.extended_scale:
+            output += 's'
     if args.two_scale:
         output += '-twoscale'
     if args.multi_scale:
@@ -215,6 +219,7 @@ def cli():  # pylint: disable=too-many-statements
                         help='long edge of input images')
     parser.add_argument('--loader-workers', default=None, type=int,
                         help='number of workers for data loading')
+    parser.add_argument('--orientation-invariant', default=False, action='store_true')
     parser.add_argument('--extended-scale', default=False, action='store_true')
     parser.add_argument('--skip-existing', default=False, action='store_true',
                         help='skip if output eval file exists already')
@@ -325,7 +330,7 @@ def dataloader_from_args(args):
             transforms.DeterministicEqualChoice([
                 transforms.RescaleAbsolute(args.long_edge),
                 transforms.RescaleAbsolute((args.long_edge - 1) // 2 + 1),
-            ])
+            ], salt=1)
         ]
     else:
         preprocess += [transforms.RescaleAbsolute(args.long_edge)]
@@ -334,6 +339,16 @@ def dataloader_from_args(args):
         preprocess += [transforms.CenterPadTight(16)]
     else:
         preprocess += [transforms.CenterPad(args.long_edge)]
+
+    if args.orientation_invariant:
+        preprocess += [
+            transforms.DeterministicEqualChoice([
+                None,
+                transforms.RotateBy90(fixed_angle=90),
+                transforms.RotateBy90(fixed_angle=180),
+                transforms.RotateBy90(fixed_angle=270),
+            ], salt=3)
+        ]
 
     preprocess += [transforms.EVAL_TRANSFORM]
 
