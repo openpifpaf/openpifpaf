@@ -1,11 +1,23 @@
 """Head networks."""
 
+from dataclasses import dataclass
 import functools
 import logging
 import re
+from typing import Any, List, Tuple, Union
 
 import numpy as np
 import torch
+
+from ..data import (
+    COCO_CATEGORIES,
+    COCO_KEYPOINTS,
+    COCO_PERSON_SKELETON,
+    COCO_PERSON_SIGMAS,
+    COCO_UPRIGHT_POSE,
+    DENSER_COCO_PERSON_CONNECTIONS,
+    KINEMATIC_TREE_SKELETON,
+)
 
 LOG = logging.getLogger(__name__)
 
@@ -160,11 +172,39 @@ class PafHFlip(torch.nn.Module):
         return out
 
 
+@dataclass
+class IntensityMeta:
+    name: str
+    keypoints: List[str]
+    sigmas: List[float]
+    pose: Any
+    draw_skeleton: List[Tuple[int, int]] = None
+
+
+@dataclass
+class AssociationMeta:
+    name: str
+    keypoints: List[str]
+    sigmas: List[float]
+    pose: Any
+    skeleton: List[Tuple[int, int]]
+    sparse_skeleton: List[Tuple[int, int]] = None
+    only_in_field_of_view: bool = False
+
+
+@dataclass
+class DetectionMeta:
+    name: str
+    categories: List[str]
+
+
 class CompositeField(torch.nn.Module):
     dropout_p = 0.0
     quad = 1
 
-    def __init__(self, head_name, in_features, *,
+    def __init__(self,
+                 meta: Union[IntensityMeta, AssociationMeta, DetectionMeta],
+                 in_features, *,
                  n_fields,
                  n_confidences,
                  n_vectors,
@@ -174,12 +214,10 @@ class CompositeField(torch.nn.Module):
 
         LOG.debug('%s config: fields = %d, confidences = %d, vectors = %d, scales = %d '
                   'kernel = %d, padding = %d, dilation = %d',
-                  head_name, n_fields, n_confidences, n_vectors, n_scales,
+                  meta.name, n_fields, n_confidences, n_vectors, n_scales,
                   kernel_size, padding, dilation)
 
-        self.shortname = head_name
-        self.dilation = dilation
-
+        self.meta = meta
         self.dropout = torch.nn.Dropout2d(p=self.dropout_p)
         self._quad = self.quad
 
@@ -212,6 +250,9 @@ class CompositeField(torch.nn.Module):
 
         # dequad
         self.dequad_op = torch.nn.PixelShuffle(2)
+
+    def stride(self, basenet_stride):
+        return basenet_stride // (2 ** self._quad)
 
     def forward(self, x):  # pylint: disable=arguments-differ
         x = self.dropout(x)
@@ -292,6 +333,38 @@ def determine_nscales(head_name):
     raise NotImplementedError
 
 
+def determine_meta(head_name):
+    if 'cifdet' in head_name:
+        return DetectionMeta(head_name, COCO_CATEGORIES)
+    if 'pif' in head_name or 'cif' in head_name:
+        return IntensityMeta(head_name,
+                             COCO_KEYPOINTS,
+                             COCO_PERSON_SIGMAS,
+                             COCO_UPRIGHT_POSE,
+                             COCO_PERSON_SKELETON)
+    if 'caf25' in head_name:
+        return AssociationMeta(head_name,
+                               COCO_KEYPOINTS,
+                               COCO_PERSON_SIGMAS,
+                               COCO_UPRIGHT_POSE,
+                               DENSER_COCO_PERSON_CONNECTIONS,
+                               sparse_skeleton=COCO_PERSON_SKELETON,
+                               only_in_field_of_view=True)
+    if 'caf16' in head_name:
+        return AssociationMeta(head_name,
+                               COCO_KEYPOINTS,
+                               COCO_PERSON_SIGMAS,
+                               COCO_UPRIGHT_POSE,
+                               KINEMATIC_TREE_SKELETON)
+    if head_name == 'caf':
+        return AssociationMeta(head_name,
+                               COCO_KEYPOINTS,
+                               COCO_PERSON_SIGMAS,
+                               COCO_UPRIGHT_POSE,
+                               COCO_PERSON_SKELETON)
+    raise NotImplementedError
+
+
 def factory(name, n_features):
     if re.match('[cp][ia]f([0-9]*)$', name) is None \
        and re.match('cifdet([0-9]*)$', name) is None:
@@ -300,10 +373,11 @@ def factory(name, n_features):
     n_fields = determine_nfields(name)
     n_vectors = determine_nvectors(name)
     n_scales = determine_nscales(name)
+    meta = determine_meta(name)
 
     LOG.info('selected head CompositeField for %s with %d fields, %d vectors and %d scales',
-             name, n_fields, n_vectors, n_scales)
-    return CompositeField(name, n_features,
+             meta.name, n_fields, n_vectors, n_scales)
+    return CompositeField(meta, n_features,
                           n_fields=n_fields,
                           n_confidences=1,
                           n_vectors=n_vectors,

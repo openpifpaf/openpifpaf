@@ -8,16 +8,16 @@ LOG = logging.getLogger(__name__)
 class BaseNetwork(torch.nn.Module):
     """Common base network."""
 
-    def __init__(self, net, shortname, input_output_scale, out_features):
+    def __init__(self, net, shortname, stride, out_features):
         super(BaseNetwork, self).__init__()
 
         self.net = net
         self.shortname = shortname
-        self.input_output_scale = input_output_scale
+        self.stride = stride
         self.out_features = out_features
 
         # print(list(net.children()))
-        LOG.info('stride = %d', self.input_output_scale)
+        LOG.info('stride = %d', self.stride)
         LOG.info('output features = %d', self.out_features)
 
     def forward(self, *args):

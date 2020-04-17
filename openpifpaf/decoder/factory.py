@@ -1,14 +1,12 @@
 import logging
 
-from ..data import (COCO_KEYPOINTS, COCO_PERSON_SKELETON,
-                    DENSER_COCO_PERSON_CONNECTIONS, COCO_CATEGORIES)
 from . import generator
 from .field_config import FieldConfig
 from .caf_scored import CafScored
 from .cif_hr import CifHr
 from .cif_seeds import CifSeeds
 from .processor import Processor, ProcessorDet
-from .. import visualizer
+from .. import network, visualizer
 
 LOG = logging.getLogger(__name__)
 
@@ -133,14 +131,15 @@ def factory_decode(model, *,
     """Instantiate a decoder."""
     assert not caf_seeds, 'not implemented'
 
-    head_names = tuple(model.head_names)
+    head_names = tuple(hn.meta.name for hn in model.head_nets)
     LOG.debug('head names = %s', head_names)
 
-    if head_names in (('cifdet',),):
+    if isinstance(model.head_nets[0].meta, network.heads.DetectionMeta):
         field_config = FieldConfig()
-        return generator.CifDet(field_config, COCO_CATEGORIES, **kwargs)
+        return generator.CifDet(field_config, model.head_nets[0].meta.categories, **kwargs)
 
-    if head_names in (('cif', 'caf', 'caf25'),):
+    if isinstance(model.head_nets[0].meta, network.heads.IntensityMeta) \
+       and isinstance(model.head_nets[1].meta, network.heads.AssociationMeta):
         field_config = FieldConfig()
 
         if multi_scale:
@@ -168,33 +167,34 @@ def factory_decode(model, *,
             field_config.caf_min_distances *= 2
             field_config.caf_max_distances *= 2
 
+        skeleton = model.head_nets[1].meta.skeleton
         if dense_connections:
             field_config.confidence_scales = (
-                [1.0 for _ in COCO_PERSON_SKELETON] +
-                [dense_coupling for _ in DENSER_COCO_PERSON_CONNECTIONS]
+                [1.0 for _ in skeleton] +
+                [dense_coupling for _ in model.head_nets[2].meta.skeleton]
             )
-            skeleton = COCO_PERSON_SKELETON + DENSER_COCO_PERSON_CONNECTIONS
-        else:
-            skeleton = COCO_PERSON_SKELETON
+            skeleton += model.head_nets[2].meta.skeleton
 
         field_config.cif_visualizers = [
-            visualizer.Cif(model.head_names[i],
-                           stride=field_config.cif_strides[i],
-                           keypoints=COCO_KEYPOINTS, skeleton=skeleton)
-            for i, stride in zip(field_config.cif_indices, field_config.cif_strides)
+            visualizer.Cif(model.head_nets[i].meta.name,
+                           stride=model.head_nets[i].stride(model.base_net.stride),
+                           keypoints=model.head_nets[0].meta.keypoints,
+                           skeleton=model.head_nets[0].meta.draw_skeleton)
+            for i in field_config.cif_indices
         ]
         field_config.caf_visualizers = [
-            visualizer.Caf(model.head_names[i],
-                           stride=stride,
-                           keypoints=COCO_KEYPOINTS, skeleton=skeleton)
-            for i, stride in zip(field_config.caf_indices, field_config.caf_strides)
+            visualizer.Caf(model.head_nets[i].meta.name,
+                           stride=model.head_nets[i].stride(model.base_net.stride),
+                           keypoints=model.head_nets[1].meta.keypoints,
+                           skeleton=skeleton)
+            for i in field_config.caf_indices
         ]
 
         return generator.CifCaf(
             field_config,
-            keypoints=COCO_KEYPOINTS,
+            keypoints=model.head_nets[0].meta.keypoints,
             skeleton=skeleton,
-            out_skeleton=COCO_PERSON_SKELETON,
+            out_skeleton=model.head_nets[1].meta.skeleton,
             **kwargs
         )
 

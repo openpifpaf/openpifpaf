@@ -34,18 +34,11 @@ LOG = logging.getLogger(__name__)
 
 class Shell(torch.nn.Module):
     def __init__(self, base_net, head_nets, *,
-                 head_names=None, head_strides=None, process_heads=None, cross_talk=0.0):
+                 process_heads=None, cross_talk=0.0):
         super(Shell, self).__init__()
 
         self.base_net = base_net
         self.head_nets = torch.nn.ModuleList(head_nets)
-        self.head_names = head_names or [
-            h.shortname for h in head_nets
-        ]
-        self.head_strides = head_strides or [
-            base_net.input_output_scale // (2 ** getattr(h, '_quad', 0))
-            for h in head_nets
-        ]
         self.process_heads = process_heads
         self.cross_talk = cross_talk
 
@@ -66,19 +59,11 @@ class Shell(torch.nn.Module):
 
 
 class Shell2Scale(torch.nn.Module):
-    def __init__(self, base_net, head_nets, *,
-                 head_names=None, head_strides=None, reduced_stride=3):
+    def __init__(self, base_net, head_nets, *, reduced_stride=3):
         super(Shell2Scale, self).__init__()
 
         self.base_net = base_net
         self.head_nets = torch.nn.ModuleList(head_nets)
-        self.head_names = head_names or [
-            h.shortname for h in head_nets
-        ]
-        self.head_strides = head_strides or [
-            base_net.input_output_scale // (2 ** getattr(h, '_quad', 0))
-            for h in head_nets
-        ]
         self.reduced_stride = reduced_stride
 
     @staticmethod
@@ -134,15 +119,11 @@ class Shell2Scale(torch.nn.Module):
 
 class ShellMultiScale(torch.nn.Module):
     def __init__(self, base_net, head_nets, *,
-                 head_strides=None, process_heads=None, include_hflip=True):
+                 process_heads=None, include_hflip=True):
         super(ShellMultiScale, self).__init__()
 
         self.base_net = base_net
         self.head_nets = torch.nn.ModuleList(head_nets)
-        self.head_strides = head_strides or [
-            base_net.input_output_scale // (2 ** getattr(h, '_quad', 0))
-            for h in head_nets
-        ]
         self.pif_hflip = heads.PifHFlip(COCO_KEYPOINTS, HFLIP)
         self.paf_hflip = heads.PafHFlip(COCO_KEYPOINTS, COCO_PERSON_SKELETON, HFLIP)
         self.paf_hflip_dense = heads.PafHFlip(
@@ -207,53 +188,8 @@ def factory_from_args(args):
 def model_migration(net_cpu):
     model_defaults(net_cpu)
 
-    for m in net_cpu.modules():
-        if not isinstance(m, torch.nn.Conv2d):
-            continue
-        if not hasattr(m, 'padding_mode'):  # introduced in PyTorch 1.1.0
-            m.padding_mode = 'zeros'
-
     if not hasattr(net_cpu, 'process_heads'):
         net_cpu.process_heads = None
-
-    if not hasattr(net_cpu, 'head_strides'):
-        net_cpu.head_strides = [
-            net_cpu.base_net.input_output_scale // (2 ** getattr(h, '_quad', 0))
-            for h in net_cpu.head_nets
-        ]
-
-    if not hasattr(net_cpu, 'head_names'):
-        net_cpu.head_names = [
-            h.shortname for h in net_cpu.head_nets
-        ]
-
-    net_cpu.head_names = [
-        h.replace('pif', 'cif').replace('pafs', 'caf')
-        for h in net_cpu.head_names
-    ]
-    for head in net_cpu.head_nets:
-        head.shortname = head.shortname.replace('pif', 'cif').replace('pafs', 'caf')
-
-    for head in net_cpu.head_nets:
-        if not hasattr(head, 'dropout') or head.dropout is None:
-            head.dropout = torch.nn.Dropout2d(p=0.0)
-        if not hasattr(head, '_quad'):
-            if hasattr(head, 'quad'):
-                head._quad = head.quad  # pylint: disable=protected-access
-            else:
-                head._quad = 0  # pylint: disable=protected-access
-        if not hasattr(head, 'scale_conv'):
-            head.scale_conv = None
-        if not hasattr(head, 'reg1_spread'):
-            head.reg1_spread = None
-        if not hasattr(head, 'reg2_spread'):
-            head.reg2_spread = None
-        if head.shortname == 'pif17' and getattr(head, 'scale_conv') is not None:
-            head.shortname = 'pifs17'
-        if head._quad == 1 and not hasattr(head, 'dequad_op'):  # pylint: disable=protected-access
-            head.dequad_op = torch.nn.PixelShuffle(2)
-        if not hasattr(head, 'class_convs') and hasattr(head, 'class_conv'):
-            head.class_convs = torch.nn.ModuleList([head.class_conv])
 
 
 def model_defaults(net_cpu):
@@ -321,7 +257,7 @@ def factory(
         model_migration(net_cpu)
 
         base_name = net_cpu.base_net.shortname
-        head_names = net_cpu.head_names
+        head_names = [hn.meta.name for hn in net_cpu.head_nets]
         LOG.debug('checkpoint base_name = %s, head_names = %s', base_name, head_names)
 
         # initialize for eval
@@ -434,7 +370,7 @@ def generic_factory_from_scratch(basename, base_vision, out_features, headnames)
     basenet = basenetworks.BaseNetwork(
         base_vision,
         basename,
-        input_output_scale=16,
+        stride=16,
         out_features=out_features,
     )
 
@@ -458,7 +394,7 @@ def shufflenet_factory_from_scratch(basename, base_vision, out_features, headnam
     basenet = basenetworks.BaseNetwork(
         torch.nn.Sequential(*blocks),
         basename,
-        input_output_scale=16,
+        stride=16,
         out_features=out_features,
     )
 
@@ -504,7 +440,7 @@ def resnet_factory_from_scratch(basename, base_vision, out_features, headnames):
     basenet = basenetworks.BaseNetwork(
         torch.nn.Sequential(*blocks),
         basename,
-        input_output_scale=output_stride,
+        stride=output_stride,
         out_features=out_features,
     )
 

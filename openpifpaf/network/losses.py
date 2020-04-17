@@ -213,17 +213,17 @@ class CompositeLoss(torch.nn.Module):
         self.n_scales = len(head_net.scale_convs)
 
         LOG.debug('%s: n_vectors = %d, n_scales = %d, margin = %s',
-                  head_net.shortname, self.n_vectors, self.n_scales, margin)
+                  head_net.meta.name, self.n_vectors, self.n_scales, margin)
 
         self.regression_loss = regression_loss or laplace_loss
         self.field_names = (
-            ['{}.c'.format(head_net.shortname)] +
-            ['{}.vec{}'.format(head_net.shortname, i + 1) for i in range(self.n_vectors)] +
-            ['{}.scales{}'.format(head_net.shortname, i + 1) for i in range(self.n_scales)]
+            ['{}.c'.format(head_net.meta.name)] +
+            ['{}.vec{}'.format(head_net.meta.name, i + 1) for i in range(self.n_vectors)] +
+            ['{}.scales{}'.format(head_net.meta.name, i + 1) for i in range(self.n_scales)]
         )
         self.margin = margin
         if self.margin:
-            self.field_names += ['{}.margin{}'.format(head_net.shortname, i + 1)
+            self.field_names += ['{}.margin{}'.format(head_net.meta.name, i + 1)
                                  for i in range(self.n_vectors)]
 
         self.bce_blackout = None

@@ -14,7 +14,7 @@ from . import __version__ as VERSION
 
 def default_output_file(args, net_cpu):
     base_name = net_cpu.base_net.shortname
-    head_names = net_cpu.head_names
+    head_names = [hn.meta.name for hn in net_cpu.head_nets]
 
     now = datetime.datetime.now().strftime('%y%m%d-%H%M%S')
     out = 'outputs/{}-{}-{}'.format(base_name, now, '-'.join(head_names))
@@ -101,7 +101,7 @@ def main():
         net = torch.nn.DataParallel(net)
 
     loss = losses.factory_from_args(args, net_cpu.head_nets)
-    target_transforms = encoder.factory(net_cpu.head_names, net_cpu.head_strides)
+    target_transforms = encoder.factory(net_cpu.head_nets, net_cpu.base_net.stride)
     train_loader, val_loader = datasets.train_factory(args, target_transforms)
 
     optimizer = optimize.factory_optimizer(
