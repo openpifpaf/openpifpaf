@@ -9,8 +9,7 @@ import os
 import PIL
 import torch
 
-from .network import nets
-from . import datasets, decoder, show, transforms, visualizer
+from . import datasets, decoder, network, show, transforms, visualizer
 
 LOG = logging.getLogger(__name__)
 
@@ -21,7 +20,7 @@ def cli():
         description=__doc__,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    nets.cli(parser)
+    network.cli(parser)
     decoder.cli(parser, force_complete_pose=False, instance_threshold=0.1, seed_threshold=0.5)
     show.cli(parser)
     visualizer.cli(parser)
@@ -67,6 +66,7 @@ def cli():
     logging.getLogger('openpifpaf').setLevel(log_level)
     LOG.setLevel(log_level)
 
+    network.configure(args)
     show.configure(args)
     visualizer.configure(args, enable_all_plots_on_debug=True)
 
@@ -91,7 +91,7 @@ def cli():
 
 def processor_factory(args):
     # load model
-    model_cpu, _ = nets.factory_from_args(args)
+    model_cpu, _ = network.factory_from_args(args)
     model = model_cpu.to(args.device)
     if not args.disable_cuda and torch.cuda.device_count() > 1:
         LOG.info('Using multiple GPUs: %d', torch.cuda.device_count())

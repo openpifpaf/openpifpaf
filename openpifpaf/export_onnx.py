@@ -41,7 +41,7 @@ class MonkeyPatches:
             self.original_compositehead_patched_forward
 
     @staticmethod
-    def compositehead_patched_forward(self_, x):
+    def compositehead_patched_forward(self_, x):  # TODO: outdated, still necessary?
         x = self_.dropout(x)
 
         # classification
@@ -101,7 +101,7 @@ def apply(checkpoint, outfile, verbose=True):
 
     # dummy_input = torch.randn(1, 3, 193, 257)
     dummy_input = torch.randn(1, 3, 97, 129)
-    model, _ = openpifpaf.network.nets.factory(checkpoint=checkpoint)
+    model, _ = openpifpaf.network.factory(checkpoint=checkpoint)
     # model = torch.nn.Sequential(model, GetPifC())
 
     # Providing input and output names sets the display names for values

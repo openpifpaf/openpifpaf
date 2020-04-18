@@ -25,8 +25,7 @@ import PIL
 import torch
 
 import cv2  # pylint: disable=import-error
-from .network import nets
-from . import decoder, show, transforms, visualizer
+from . import decoder, network, show, transforms, visualizer
 
 LOG = logging.getLogger(__name__)
 
@@ -41,7 +40,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
         description=__doc__,
         formatter_class=CustomFormatter,
     )
-    nets.cli(parser)
+    network.cli(parser)
     decoder.cli(parser, force_complete_pose=False, instance_threshold=0.1, seed_threshold=0.5)
     show.cli(parser)
     visualizer.cli(parser)
@@ -80,6 +79,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     logging.getLogger('openpifpaf').setLevel(log_level)
     LOG.setLevel(log_level)
 
+    network.configure(args)
     show.configure(args)
     visualizer.configure(args)
     show.AnimationFrame.video_fps = args.video_fps
@@ -123,7 +123,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
 
 
 def processor_factory(args):
-    model, _ = nets.factory_from_args(args)
+    model, _ = network.factory_from_args(args)
     model = model.to(args.device)
     processor = decoder.factory_from_args(args, model)
     return processor

@@ -23,8 +23,7 @@ except ImportError:
 
 from .annotation import Annotation, AnnotationDet
 from .datasets.constants import COCO_KEYPOINTS, COCO_PERSON_SKELETON, COCO_CATEGORIES
-from .network import nets
-from . import datasets, decoder, show, transforms, visualizer
+from . import datasets, decoder, network, show, transforms, visualizer
 
 ANNOTATIONS_VAL = 'data-mscoco/annotations/person_keypoints_val2017.json'
 DET_ANNOTATIONS_VAL = 'data-mscoco/annotations/instances_val2017.json'
@@ -197,7 +196,7 @@ def cli():  # pylint: disable=too-many-statements
         description=__doc__,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    nets.cli(parser)
+    network.cli(parser)
     decoder.cli(parser, force_complete_pose=True)
     show.cli(parser)
     visualizer.cli(parser)
@@ -254,6 +253,7 @@ def cli():  # pylint: disable=too-many-statements
         logging.getLogger('openpifpaf').setLevel(log_level)
         LOG.setLevel(log_level)
 
+    network.configure(args)
     show.configure(args)
     visualizer.configure(args, enable_all_plots_on_debug=True)
 
@@ -379,7 +379,7 @@ def main():
         print('Processing: {}'.format(args.checkpoint))
 
     data_loader = dataloader_from_args(args)
-    model_cpu, _ = nets.factory_from_args(args)
+    model_cpu, _ = network.factory_from_args(args)
     model = model_cpu.to(args.device)
     if not args.disable_cuda and torch.cuda.device_count() > 1:
         LOG.info('Using multiple GPUs: %d', torch.cuda.device_count())

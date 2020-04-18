@@ -7,8 +7,7 @@ import socket
 
 import torch
 
-from . import datasets, encoder, logs, optimize, visualizer
-from .network import losses, nets, Trainer
+from . import datasets, encoder, logs, network, optimize, visualizer
 from . import __version__ as VERSION
 
 
@@ -40,8 +39,8 @@ def cli():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     logs.cli(parser)
-    nets.cli(parser)
-    losses.cli(parser)
+    network.cli(parser)
+    network.losses.cli(parser)
     encoder.cli(parser)
     optimize.cli(parser)
     datasets.train_cli(parser)
@@ -71,6 +70,7 @@ def cli():
 
     args = parser.parse_args()
 
+    network.configure(args)
     encoder.configure(args)
     datasets.train_configure(args)
     visualizer.configure(args, enable_all_plots_on_debug=True)
@@ -87,7 +87,7 @@ def cli():
 
 def main():
     args = cli()
-    net_cpu, start_epoch = nets.factory_from_args(args)
+    net_cpu, start_epoch = network.factory_from_args(args)
     net_cpu.process_heads = None
     if args.output is None:
         args.output = default_output_file(args, net_cpu)
@@ -100,14 +100,14 @@ def main():
         print('Using multiple GPUs: {}'.format(torch.cuda.device_count()))
         net = torch.nn.DataParallel(net)
 
-    loss = losses.factory_from_args(args, net_cpu.head_nets)
+    loss = network.losses.factory_from_args(args, net_cpu.head_nets)
     target_transforms = encoder.factory(net_cpu.head_nets, net_cpu.base_net.stride)
     train_loader, val_loader = datasets.train_factory(args, target_transforms)
 
     optimizer = optimize.factory_optimizer(
         args, list(net.parameters()) + list(loss.parameters()))
     lr_scheduler = optimize.factory_lrscheduler(args, optimizer, len(train_loader))
-    trainer = Trainer(
+    trainer = network.Trainer(
         net, loss, optimizer, args.output,
         lr_scheduler=lr_scheduler,
         device=args.device,
