@@ -28,14 +28,14 @@ class Occupancy():
     def __len__(self):
         return len(self.occupancy)
 
-    def set(self, f, x, y, s):
+    def set(self, f, x, y, sigma):
         """Setting needs to be centered at the rounded (x, y)."""
         if f >= len(self.occupancy):
             return
 
         xi = round(x / self.reduction)
         yi = round(y / self.reduction)
-        si = round(max(self.min_scale_reduced, s / self.reduction))
+        si = round(max(self.min_scale_reduced, sigma / self.reduction))
         scalar_square_add_single(self.occupancy[f], xi, yi, si, 1)
 
     def get(self, f, x, y):

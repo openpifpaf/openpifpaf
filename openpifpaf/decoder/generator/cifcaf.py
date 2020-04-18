@@ -76,7 +76,7 @@ class CifCaf(object):
                     continue
 
                 width = ann.joint_scales[joint_i]
-                occupied.set(joint_i, xyv[0], xyv[1], width)
+                occupied.set(joint_i, xyv[0], xyv[1], width)  # width = 2 * sigma
 
         for ann in initial_annotations:
             self._grow(ann, caf_scored)
