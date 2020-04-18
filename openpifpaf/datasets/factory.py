@@ -2,6 +2,7 @@ import torch
 
 from .coco import Coco
 from .collate import collate_images_targets_meta
+from .constants import COCO_KEYPOINTS, HFLIP
 from .. import transforms
 
 ANNOTATIONS_TRAIN = 'data-mscoco/annotations/person_keypoints_train2017.json'
@@ -70,7 +71,7 @@ def train_preprocess_factory(args):
     preprocess_transformations = [
         transforms.NormalizeAnnotations(),
         transforms.AnnotationJitter(),
-        transforms.RandomApply(transforms.HFlip(), 0.5),
+        transforms.RandomApply(transforms.HFlip(COCO_KEYPOINTS, HFLIP), 0.5),
     ]
 
     assert not (args.extended_scale and args.dataset == 'cocodet')

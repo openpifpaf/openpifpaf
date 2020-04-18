@@ -3,7 +3,7 @@ import torch
 import torchvision
 
 from . import basenetworks, heads
-from ..data import HFLIP
+from .. import datasets
 
 # generate hash values with: shasum -a 256 filename.pkl
 
@@ -125,11 +125,11 @@ class ShellMultiScale(torch.nn.Module):
         self.base_net = base_net
         self.head_nets = torch.nn.ModuleList(head_nets)
         self.pif_hflip = heads.PifHFlip(
-            head_nets[0].meta.keypoints, HFLIP)
+            head_nets[0].meta.keypoints, datasets.constants.HFLIP)
         self.paf_hflip = heads.PafHFlip(
-            head_nets[1].meta.keypoints, head_nets[1].meta.skeleton, HFLIP)
+            head_nets[1].meta.keypoints, head_nets[1].meta.skeleton, datasets.constants.HFLIP)
         self.paf_hflip_dense = heads.PafHFlip(
-            head_nets[2].meta.keypoints, head_nets[2].meta.skeleton, HFLIP)
+            head_nets[2].meta.keypoints, head_nets[2].meta.skeleton, datasets.constants.HFLIP)
         self.process_heads = process_heads
         self.include_hflip = include_hflip
 
@@ -289,86 +289,88 @@ def factory(
 
 
 # pylint: disable=too-many-return-statements
-def factory_from_scratch(basename, headnames, *, pretrained=True):
+def factory_from_scratch(basename, head_names, *, pretrained=True):
+    head_metas = datasets.headmeta_factory(head_names)
+
     if 'resnet18' in basename:
         base_vision = torchvision.models.resnet18(pretrained)
-        return resnet_factory_from_scratch(basename, base_vision, 512, headnames)
+        return resnet_factory_from_scratch(basename, base_vision, 512, head_metas)
     if 'resnet50' in basename:
         base_vision = torchvision.models.resnet50(pretrained)
-        return resnet_factory_from_scratch(basename, base_vision, 2048, headnames)
+        return resnet_factory_from_scratch(basename, base_vision, 2048, head_metas)
     if 'resnet101' in basename:
         base_vision = torchvision.models.resnet101(pretrained)
-        return resnet_factory_from_scratch(basename, base_vision, 2048, headnames)
+        return resnet_factory_from_scratch(basename, base_vision, 2048, head_metas)
     if 'resnet152' in basename:
         base_vision = torchvision.models.resnet152(pretrained)
-        return resnet_factory_from_scratch(basename, base_vision, 2048, headnames)
+        return resnet_factory_from_scratch(basename, base_vision, 2048, head_metas)
     if 'resnet260' in basename:
         assert pretrained is False
         base_vision = torchvision.models.ResNet(
             torchvision.models.resnet.Bottleneck, [3, 8, 72, 3])
-        return resnet_factory_from_scratch(basename, base_vision, 2048, headnames)
+        return resnet_factory_from_scratch(basename, base_vision, 2048, head_metas)
     if 'resnext50' in basename:
         base_vision = torchvision.models.resnext50_32x4d(pretrained)
-        return resnet_factory_from_scratch(basename, base_vision, 2048, headnames)
+        return resnet_factory_from_scratch(basename, base_vision, 2048, head_metas)
     if 'resnext101' in basename:
         base_vision = torchvision.models.resnext101_32x8d(pretrained)
-        return resnet_factory_from_scratch(basename, base_vision, 2048, headnames)
+        return resnet_factory_from_scratch(basename, base_vision, 2048, head_metas)
     if basename == 'shufflenetv2x1':
         base_vision = torchvision.models.shufflenet_v2_x1_0(pretrained)
-        return shufflenet_factory_from_scratch(basename, base_vision, 1024, headnames)
+        return shufflenet_factory_from_scratch(basename, base_vision, 1024, head_metas)
     if basename.startswith('shufflenetv2x2'):
         base_vision = torchvision.models.shufflenet_v2_x2_0(pretrained)
-        return shufflenet_factory_from_scratch(basename, base_vision, 2048, headnames)
+        return shufflenet_factory_from_scratch(basename, base_vision, 2048, head_metas)
     if basename.startswith('shufflenetv2k16w'):
         base_vision = basenetworks.ShuffleNetV2K(
             [4, 8, 4], [24, 348, 696, 1392, 2048],
         )
-        return generic_factory_from_scratch(basename, base_vision, 2048, headnames)
+        return generic_factory_from_scratch(basename, base_vision, 2048, head_metas)
     if basename.startswith('shufflenetv2k16'):
         base_vision = torchvision.models.ShuffleNetV2(
             [4, 8, 4], [24, 348, 696, 1392, 2048],
         )
-        return shufflenet_factory_from_scratch(basename, base_vision, 2048, headnames)
+        return shufflenet_factory_from_scratch(basename, base_vision, 2048, head_metas)
     if basename.startswith('shufflenetv2k20w'):
         base_vision = basenetworks.ShuffleNetV2K(
             [5, 10, 5], [32, 512, 1024, 2048, 2048],
         )
-        return generic_factory_from_scratch(basename, base_vision, 2048, headnames)
+        return generic_factory_from_scratch(basename, base_vision, 2048, head_metas)
     if basename.startswith('shufflenetv2k20'):
         base_vision = torchvision.models.ShuffleNetV2(
             [5, 10, 5], [32, 512, 1024, 2048, 2048],
         )
-        return shufflenet_factory_from_scratch(basename, base_vision, 2048, headnames)
+        return shufflenet_factory_from_scratch(basename, base_vision, 2048, head_metas)
     if basename.startswith('shufflenetv2k30w'):
         base_vision = basenetworks.ShuffleNetV2K(
             [8, 16, 6], [32, 512, 1024, 2048, 2048],
         )
-        return generic_factory_from_scratch(basename, base_vision, 2048, headnames)
+        return generic_factory_from_scratch(basename, base_vision, 2048, head_metas)
     if basename.startswith('shufflenetv2k30'):
         base_vision = torchvision.models.ShuffleNetV2(
             [8, 16, 6], [32, 512, 1024, 2048, 2048],
         )
-        return shufflenet_factory_from_scratch(basename, base_vision, 2048, headnames)
+        return shufflenet_factory_from_scratch(basename, base_vision, 2048, head_metas)
     if basename.startswith('shufflenetv2k44'):
         base_vision = torchvision.models.ShuffleNetV2(
             [12, 24, 8], [32, 512, 1024, 2048, 2048],
         )
-        return shufflenet_factory_from_scratch(basename, base_vision, 2048, headnames)
+        return shufflenet_factory_from_scratch(basename, base_vision, 2048, head_metas)
     if basename.startswith('shufflenetv2k62'):
         base_vision = torchvision.models.ShuffleNetV2(
             [16, 36, 10], [32, 512, 1024, 2048, 2048],
         )
-        return shufflenet_factory_from_scratch(basename, base_vision, 2048, headnames)
+        return shufflenet_factory_from_scratch(basename, base_vision, 2048, head_metas)
     if 'shufflenetv2x2w' in basename:
         base_vision = torchvision.models.ShuffleNetV2(
             [4, 8, 4], [24, 244, 488, 976, 3072],
         )
-        return shufflenet_factory_from_scratch(basename, base_vision, 3072, headnames)
+        return shufflenet_factory_from_scratch(basename, base_vision, 3072, head_metas)
 
     raise Exception('unknown base network in {}'.format(basename))
 
 
-def generic_factory_from_scratch(basename, base_vision, out_features, headnames):
+def generic_factory_from_scratch(basename, base_vision, out_features, head_metas):
     basenet = basenetworks.BaseNetwork(
         base_vision,
         basename,
@@ -376,7 +378,7 @@ def generic_factory_from_scratch(basename, base_vision, out_features, headnames)
         out_features=out_features,
     )
 
-    headnets = [heads.factory(h, basenet.out_features) for h in headnames]
+    headnets = [heads.CompositeField(h, basenet.out_features) for h in head_metas]
 
     net_cpu = Shell(basenet, headnets)
     model_defaults(net_cpu)
@@ -384,7 +386,7 @@ def generic_factory_from_scratch(basename, base_vision, out_features, headnames)
     return net_cpu
 
 
-def shufflenet_factory_from_scratch(basename, base_vision, out_features, headnames):
+def shufflenet_factory_from_scratch(basename, base_vision, out_features, head_metas):
     blocks = [
         base_vision.conv1,
         # base_vision.maxpool,
@@ -400,7 +402,7 @@ def shufflenet_factory_from_scratch(basename, base_vision, out_features, headnam
         out_features=out_features,
     )
 
-    headnets = [heads.factory(h, basenet.out_features) for h in headnames]
+    headnets = [heads.CompositeField(h, basenet.out_features) for h in head_metas]
 
     net_cpu = Shell(basenet, headnets)
     model_defaults(net_cpu)
@@ -408,7 +410,7 @@ def shufflenet_factory_from_scratch(basename, base_vision, out_features, headnam
     return net_cpu
 
 
-def resnet_factory_from_scratch(basename, base_vision, out_features, headnames):
+def resnet_factory_from_scratch(basename, base_vision, out_features, head_metas):
     resnet_factory = basenetworks.ResnetBlocks(base_vision)
 
     # input block
@@ -446,7 +448,7 @@ def resnet_factory_from_scratch(basename, base_vision, out_features, headnames):
         out_features=out_features,
     )
 
-    headnets = [heads.factory(h, basenet.out_features) for h in headnames]
+    headnets = [heads.CompositeField(h, basenet.out_features) for h in head_metas]
     net_cpu = Shell(basenet, headnets)
     model_defaults(net_cpu)
     return net_cpu

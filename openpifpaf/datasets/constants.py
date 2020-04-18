@@ -243,8 +243,8 @@ COCO_CATEGORIES = [
 
 
 def draw_skeletons(pose, margin=0.5):
-    from . import show  # pylint: disable=import-outside-toplevel
-    from .annotation import Annotation  # pylint: disable=import-outside-toplevel
+    from .. import show  # pylint: disable=import-outside-toplevel
+    from ..annotation import Annotation  # pylint: disable=import-outside-toplevel
 
     show.KeypointPainter.show_joint_scales = True
 

@@ -22,7 +22,7 @@ except ImportError:
     pass
 
 from .annotation import Annotation, AnnotationDet
-from .data import COCO_KEYPOINTS, COCO_PERSON_SKELETON, COCO_CATEGORIES
+from .datasets.constants import COCO_KEYPOINTS, COCO_PERSON_SKELETON, COCO_CATEGORIES
 from .network import nets
 from . import datasets, decoder, show, transforms, visualizer
 
