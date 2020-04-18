@@ -18,7 +18,7 @@ def train_cli(parser):
     group.add_argument('--train-image-dir', default=IMAGE_DIR_TRAIN)
     group.add_argument('--val-annotations', default=None)
     group.add_argument('--val-image-dir', default=IMAGE_DIR_VAL)
-    group.add_argument('--detection-annotations', default=False, action='store_true')
+    group.add_argument('--dataset', default='cocokp', choices=('cocokp', 'cocodet'))
     group.add_argument('--n-images', default=None, type=int,
                        help='number of images to sample')
     group.add_argument('--duplicate-data', default=None, type=int,
@@ -42,13 +42,20 @@ def train_cli(parser):
 
 def train_configure(args):
     if args.train_annotations is None:
-        args.train_annotations = ANNOTATIONS_TRAIN
-        if args.detection_annotations:
+        if args.dataset == 'cocokp':
+            args.train_annotations = ANNOTATIONS_TRAIN
+        elif args.dataset == 'cocodet':
             args.train_annotations = DET_ANNOTATIONS_TRAIN
+        else:
+            raise NotImplementedError
+
     if args.val_annotations is None:
-        args.val_annotations = ANNOTATIONS_VAL
-        if args.detection_annotations:
+        if args.dataset == 'cocokp':
+            args.val_annotations = ANNOTATIONS_VAL
+        elif args.dataset == 'cocodet':
             args.val_annotations = DET_ANNOTATIONS_VAL
+        else:
+            raise NotImplementedError
 
 
 def train_preprocess_factory(args):
@@ -66,14 +73,14 @@ def train_preprocess_factory(args):
         transforms.RandomApply(transforms.HFlip(), 0.5),
     ]
 
-    assert not (args.extended_scale and args.detection_annotations)
+    assert not (args.extended_scale and args.dataset == 'cocodet')
     if args.extended_scale:
         preprocess_transformations.append(
             transforms.RescaleRelative(scale_range=(0.25 * args.rescale_images,
                                                     2.0 * args.rescale_images),
                                        power_law=True)
         )
-    elif args.detection_annotations:
+    elif args.dataset == 'cocodet':
         preprocess_transformations.append(
             transforms.RescaleRelative(scale_range=(0.5 * args.rescale_images,
                                                     1.0 * args.rescale_images),
@@ -116,8 +123,8 @@ def train_factory(args, target_transforms):
         preprocess=preprocess,
         target_transforms=target_transforms,
         n_images=args.n_images,
-        image_filter='annotated' if args.detection_annotations else 'keypoint-annotations',
-        category_ids=[] if args.detection_annotations else [1],
+        image_filter='keypoint-annotations' if args.dataset == 'cocokp' else 'annotated',
+        category_ids=[1] if args.dataset == 'cocokp' else [],
     )
     if args.duplicate_data:
         train_data = torch.utils.data.ConcatDataset(
@@ -133,8 +140,8 @@ def train_factory(args, target_transforms):
         preprocess=preprocess,
         target_transforms=target_transforms,
         n_images=args.n_images,
-        image_filter='annotated' if args.detection_annotations else 'keypoint-annotations',
-        category_ids=[] if args.detection_annotations else [1],
+        image_filter='keypoint-annotations' if args.dataset == 'cocokp' else 'annotated',
+        category_ids=[1] if args.dataset == 'cocokp' else [],
     )
     if args.duplicate_data:
         val_data = torch.utils.data.ConcatDataset(
