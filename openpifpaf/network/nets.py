@@ -3,7 +3,7 @@ import torch
 import torchvision
 
 from . import basenetworks, heads
-from ..data import COCO_KEYPOINTS, COCO_PERSON_SKELETON, DENSER_COCO_PERSON_CONNECTIONS, HFLIP
+from ..data import HFLIP
 
 # generate hash values with: shasum -a 256 filename.pkl
 
@@ -124,10 +124,12 @@ class ShellMultiScale(torch.nn.Module):
 
         self.base_net = base_net
         self.head_nets = torch.nn.ModuleList(head_nets)
-        self.pif_hflip = heads.PifHFlip(COCO_KEYPOINTS, HFLIP)
-        self.paf_hflip = heads.PafHFlip(COCO_KEYPOINTS, COCO_PERSON_SKELETON, HFLIP)
+        self.pif_hflip = heads.PifHFlip(
+            head_nets[0].meta.keypoints, HFLIP)
+        self.paf_hflip = heads.PafHFlip(
+            head_nets[1].meta.keypoints, head_nets[1].meta.skeleton, HFLIP)
         self.paf_hflip_dense = heads.PafHFlip(
-            COCO_KEYPOINTS, DENSER_COCO_PERSON_CONNECTIONS, HFLIP)
+            head_nets[2].meta.keypoints, head_nets[2].meta.skeleton, HFLIP)
         self.process_heads = process_heads
         self.include_hflip = include_hflip
 
