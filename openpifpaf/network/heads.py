@@ -201,11 +201,11 @@ class AssociationMeta:
 
     n_confidences: int = 1
     n_vectors: int = 2
-    n_scales: int = 1
+    n_scales: int = 2
 
     @property
     def n_fields(self):
-        return len(self.keypoints)
+        return len(self.skeleton)
 
 
 @dataclass
