@@ -180,6 +180,14 @@ class IntensityMeta:
     pose: Any
     draw_skeleton: List[Tuple[int, int]] = None
 
+    n_confidences: int = 1
+    n_vectors: int = 1
+    n_scales: int = 1
+
+    @property
+    def n_fields(self):
+        return len(self.keypoints)
+
 
 @dataclass
 class AssociationMeta:
@@ -191,11 +199,27 @@ class AssociationMeta:
     sparse_skeleton: List[Tuple[int, int]] = None
     only_in_field_of_view: bool = False
 
+    n_confidences: int = 1
+    n_vectors: int = 2
+    n_scales: int = 1
+
+    @property
+    def n_fields(self):
+        return len(self.keypoints)
+
 
 @dataclass
 class DetectionMeta:
     name: str
     categories: List[str]
+
+    n_confidences: int = 1
+    n_vectors: int = 1
+    n_scales: int = 2
+
+    @property
+    def n_fields(self):
+        return len(self.categories)
 
 
 class CompositeField(torch.nn.Module):
@@ -205,16 +229,12 @@ class CompositeField(torch.nn.Module):
     def __init__(self,
                  meta: Union[IntensityMeta, AssociationMeta, DetectionMeta],
                  in_features, *,
-                 n_fields,
-                 n_confidences,
-                 n_vectors,
-                 n_scales,
                  kernel_size=1, padding=0, dilation=1):
         super(CompositeField, self).__init__()
 
         LOG.debug('%s config: fields = %d, confidences = %d, vectors = %d, scales = %d '
                   'kernel = %d, padding = %d, dilation = %d',
-                  meta.name, n_fields, n_confidences, n_vectors, n_scales,
+                  meta.name, meta.n_fields, meta.n_confidences, meta.n_vectors, meta.n_scales,
                   kernel_size, padding, dilation)
 
         self.meta = meta
@@ -222,18 +242,18 @@ class CompositeField(torch.nn.Module):
         self._quad = self.quad
 
         # classification
-        out_features = n_fields * (4 ** self._quad)
+        out_features = meta.n_fields * (4 ** self._quad)
         self.class_convs = torch.nn.ModuleList([
             torch.nn.Conv2d(in_features, out_features,
                             kernel_size, padding=padding, dilation=dilation)
-            for _ in range(n_confidences)
+            for _ in range(meta.n_confidences)
         ])
 
         # regression
         self.reg_convs = torch.nn.ModuleList([
             torch.nn.Conv2d(in_features, 2 * out_features,
                             kernel_size, padding=padding, dilation=dilation)
-            for _ in range(n_vectors)
+            for _ in range(meta.n_vectors)
         ])
         self.reg_spreads = torch.nn.ModuleList([
             torch.nn.Conv2d(in_features, out_features,
@@ -245,7 +265,7 @@ class CompositeField(torch.nn.Module):
         self.scale_convs = torch.nn.ModuleList([
             torch.nn.Conv2d(in_features, out_features,
                             kernel_size, padding=padding, dilation=dilation)
-            for _ in range(n_scales)
+            for _ in range(meta.n_scales)
         ])
 
         # dequad
@@ -297,42 +317,6 @@ class CompositeField(torch.nn.Module):
         return classes_x + regs_x + regs_logb + scales_x
 
 
-def determine_nfields(head_name):
-    m = re.match('[cp][ia]f[s]?([0-9]+)$', head_name)
-    if m is not None:
-        return int(m.group(1))
-
-    return {
-        'caf': 19,
-        'paf': 19,
-        'pafs': 19,
-        'pafb': 19,
-        'pafsb': 19,
-        'wpaf': 19,
-        'cifdet': 91,
-    }.get(head_name, 17)
-
-
-def determine_nvectors(head_name):
-    if 'pif' in head_name or 'cif' in head_name:
-        return 1
-    if 'paf' in head_name or 'caf' in head_name:
-        return 2
-    raise NotImplementedError
-
-
-def determine_nscales(head_name):
-    if 'cifdet' in head_name:
-        return 2
-    if 'pif' in head_name or 'cif' in head_name:
-        return 1
-    if 'caf' in head_name:
-        return 2
-    if 'paf' in head_name:
-        return 0
-    raise NotImplementedError
-
-
 def determine_meta(head_name):
     if 'cifdet' in head_name:
         return DetectionMeta(head_name, COCO_CATEGORIES)
@@ -370,15 +354,5 @@ def factory(name, n_features):
        and re.match('cifdet([0-9]*)$', name) is None:
         raise Exception('unknown head to create a head network: {}'.format(name))
 
-    n_fields = determine_nfields(name)
-    n_vectors = determine_nvectors(name)
-    n_scales = determine_nscales(name)
     meta = determine_meta(name)
-
-    LOG.info('selected head CompositeField for %s with %d fields, %d vectors and %d scales',
-             meta.name, n_fields, n_vectors, n_scales)
-    return CompositeField(meta, n_features,
-                          n_fields=n_fields,
-                          n_confidences=1,
-                          n_vectors=n_vectors,
-                          n_scales=n_scales)
+    return CompositeField(meta, n_features)
