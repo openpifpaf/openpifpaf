@@ -95,9 +95,9 @@ class Processor(object):
                     continue
 
                 if occupied.get(f, xyv[0], xyv[1]):
-                    xyv[2] = self.suppressed_v
+                    xyv[2] *= self.suppressed_v
                 else:
-                    occupied.set(f, xyv[0], xyv[1], joint_s)
+                    occupied.set(f, xyv[0], xyv[1], joint_s)  # joint_s = 2 * sigma
 
         if self.debug_visualizer is not None:
             LOG.debug('Occupied fields after NMS')
