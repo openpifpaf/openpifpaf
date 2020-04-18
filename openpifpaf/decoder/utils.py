@@ -58,9 +58,9 @@ class Sparse2DGaussianField(object):
         return np.stack([self.value(xy, sigma) for xy, sigma in zip(xys, sigmas)])
 
 
-def scalar_square_add_single(field, x, y, width, value):
-    minx = max(0, int(x - width))
-    miny = max(0, int(y - width))
-    maxx = max(minx + 1, min(field.shape[1], int(x + width) + 1))
-    maxy = max(miny + 1, min(field.shape[0], int(y + width) + 1))
+def scalar_square_add_single(field, x, y, sigma, value):
+    minx = max(0, int(x - sigma))
+    miny = max(0, int(y - sigma))
+    maxx = max(minx + 1, min(field.shape[1], int(x + sigma) + 1))
+    maxy = max(miny + 1, min(field.shape[0], int(y + sigma) + 1))
     field[miny:maxy, minx:maxx] += value
