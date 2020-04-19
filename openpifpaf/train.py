@@ -71,6 +71,7 @@ def cli():
     args = parser.parse_args()
 
     network.configure(args)
+    network.losses.configure(args)
     encoder.configure(args)
     datasets.train_configure(args)
     visualizer.configure(args, enable_all_plots_on_debug=True)

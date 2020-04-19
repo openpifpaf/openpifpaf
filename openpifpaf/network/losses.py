@@ -94,8 +94,9 @@ def quadrant_margin_loss(x1, x2, t1, t2, max_r1, max_r2, max_r3, max_r4):
 
 
 class SmoothL1Loss(object):
-    def __init__(self, r_smooth, scale_required=True):
-        self.r_smooth = r_smooth
+    r_smooth = 0.0
+
+    def __init__(self, *, scale_required=True):
         self.scale = None
         self.scale_required = scale_required
 
@@ -203,17 +204,17 @@ class MultiHeadLossAutoTune(torch.nn.Module):
 
 class CompositeLoss(torch.nn.Module):
     background_weight = 1.0
+    margin = False
     multiplicity_correction = False
     independence_scale = 3.0
 
-    def __init__(self, head_net: heads.CompositeField, regression_loss, *,
-                 margin=False):
+    def __init__(self, head_net: heads.CompositeField, regression_loss):
         super(CompositeLoss, self).__init__()
         self.n_vectors = len(head_net.reg_convs)
         self.n_scales = len(head_net.scale_convs)
 
         LOG.debug('%s: n_vectors = %d, n_scales = %d, margin = %s',
-                  head_net.meta.name, self.n_vectors, self.n_scales, margin)
+                  head_net.meta.name, self.n_vectors, self.n_scales, self.margin)
 
         self.regression_loss = regression_loss or laplace_loss
         self.field_names = (
@@ -221,7 +222,6 @@ class CompositeLoss(torch.nn.Module):
             ['{}.vec{}'.format(head_net.meta.name, i + 1) for i in range(self.n_vectors)] +
             ['{}.scales{}'.format(head_net.meta.name, i + 1) for i in range(self.n_scales)]
         )
-        self.margin = margin
         if self.margin:
             self.field_names += ['{}.margin{}'.format(head_net.meta.name, i + 1)
                                  for i in range(self.n_vectors)]
@@ -374,7 +374,7 @@ def cli(parser):
     group.add_argument('--lambdas', default=[30.0, 2.0, 2.0, 50.0, 3.0, 3.0],
                        type=float, nargs='+',
                        help='prefactor for head losses')
-    group.add_argument('--r-smooth', type=float, default=0.0,
+    group.add_argument('--r-smooth', type=float, default=SmoothL1Loss.r_smooth,
                        help='r_{smooth} for SmoothL1 regressions')
     group.add_argument('--regression-loss', default='laplace',
                        choices=['smoothl1', 'smootherl1', 'l1', 'laplace'],
@@ -392,34 +392,34 @@ def cli(parser):
                        help='[experimental]')
 
 
-def factory_from_args(args, head_nets):
+def configure(args):
     # apply for CompositeLoss
     CompositeLoss.background_weight = args.background_weight
+    CompositeLoss.margin = args.margin_loss
+    SmoothL1Loss.r_smooth = args.r_smooth
 
+
+def factory_from_args(args, head_nets):
     return factory(
         head_nets,
         args.lambdas,
         reg_loss_name=args.regression_loss,
-        r_smooth=args.r_smooth,
         device=args.device,
-        margin=args.margin_loss,
         auto_tune_mtl=args.auto_tune_mtl,
     )
 
 
 def factory(head_nets, lambdas, *,
-            reg_loss_name=None, r_smooth=None, device=None, margin=False,
+            reg_loss_name=None, device=None,
             auto_tune_mtl=False):
     if isinstance(head_nets[0], (list, tuple)):
         return [factory(hn, lam,
                         reg_loss_name=reg_loss_name,
-                        r_smooth=r_smooth,
-                        device=device,
-                        margin=margin)
+                        device=device)
                 for hn, lam in zip(head_nets, lambdas)]
 
     if reg_loss_name == 'smoothl1':
-        reg_loss = SmoothL1Loss(r_smooth)
+        reg_loss = SmoothL1Loss()
     elif reg_loss_name == 'l1':
         reg_loss = l1_loss
     elif reg_loss_name == 'laplace':
@@ -429,8 +429,7 @@ def factory(head_nets, lambdas, *,
     else:
         raise Exception('unknown regression loss type {}'.format(reg_loss_name))
 
-    losses = [CompositeLoss(head_net, reg_loss, margin=margin)
-              for head_net in head_nets]
+    losses = [CompositeLoss(head_net, reg_loss) for head_net in head_nets]
     if auto_tune_mtl:
         loss = MultiHeadLossAutoTune(losses, lambdas)
     else:
