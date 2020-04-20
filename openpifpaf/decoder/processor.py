@@ -148,7 +148,7 @@ class Processor(object):
             np.logical_or(ann.data[:, 1] < valid_area[1],
                           ann.data[:, 1] > valid_area[1] + valid_area[3]),
         )
-        ann.data[m, 2] = np.maximum(ann.data[m, 2], self.suppressed_v)
+        ann.data[m, 2] *= self.suppressed_v
 
     def annotations(self, fields, *, initial_annotations=None, meta=None):
         start = time.time()
