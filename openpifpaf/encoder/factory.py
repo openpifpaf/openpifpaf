@@ -34,13 +34,7 @@ def configure(args):
 
 
 def factory(headnets, basenet_stride):
-    if isinstance(headnets[0], (list, tuple)):
-        return [factory(task_headnets, basenet_stride)
-                for task_headnets in headnets]
-
-    encoders = [factory_head(head_net, basenet_stride)
-                for head_net in headnets]
-    return encoders
+    return [factory_head(head_net, basenet_stride) for head_net in headnets]
 
 
 def factory_head(head_net: network.heads.CompositeField, basenet_stride):

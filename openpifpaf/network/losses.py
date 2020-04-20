@@ -130,6 +130,10 @@ class MultiHeadLoss(torch.nn.Module):
     def __init__(self, losses, lambdas):
         super(MultiHeadLoss, self).__init__()
 
+        if not lambdas:
+            lambdas = [1.0 for l in losses for _ in l.field_names]
+        assert all(lam >= 0.0 for lam in lambdas)
+
         self.losses = torch.nn.ModuleList(losses)
         self.lambdas = lambdas
 
@@ -165,7 +169,11 @@ class MultiHeadLossAutoTune(torch.nn.Module):
         lambda value between zero and one.
         """
         super().__init__()
-        assert all(l >= 0.0 for l in lambdas)
+
+        print(lambdas)
+        if not lambdas:
+            lambdas = [1.0 for l in losses for _ in l.field_names]
+        assert all(lam >= 0.0 for lam in lambdas)
 
         self.losses = torch.nn.ModuleList(losses)
         self.lambdas = lambdas
@@ -176,6 +184,8 @@ class MultiHeadLossAutoTune(torch.nn.Module):
 
         self.field_names = [n for l in self.losses for n in l.field_names]
         LOG.info('multihead loss with autotune: %s', self.field_names)
+        assert len(self.field_names) == len(self.lambdas)
+        assert len(self.field_names) == len(self.log_sigmas)
 
     def batch_meta(self):
         return {'mtl_sigmas': [round(float(s), 3) for s in self.log_sigmas.exp()]}
@@ -190,6 +200,7 @@ class MultiHeadLossAutoTune(torch.nn.Module):
                             for l, f, t in zip(self.losses, head_fields, head_targets)
                             for ll in l(f, t)]
 
+        assert len(self.lambdas) == len(flat_head_losses)
         assert len(self.log_sigmas) == len(flat_head_losses)
         loss_values = [lam * l / (2.0 * (log_sigma.exp() ** 2))
                        for lam, log_sigma, l in zip(self.lambdas, self.log_sigmas, flat_head_losses)
@@ -210,8 +221,8 @@ class CompositeLoss(torch.nn.Module):
 
     def __init__(self, head_net: heads.CompositeField, regression_loss):
         super(CompositeLoss, self).__init__()
-        self.n_vectors = len(head_net.reg_convs)
-        self.n_scales = len(head_net.scale_convs)
+        self.n_vectors = head_net.meta.n_vectors
+        self.n_scales = head_net.meta.n_scales
 
         LOG.debug('%s: n_vectors = %d, n_scales = %d, margin = %s',
                   head_net.meta.name, self.n_vectors, self.n_scales, self.margin)
@@ -371,8 +382,7 @@ class CompositeLoss(torch.nn.Module):
 
 def cli(parser):
     group = parser.add_argument_group('losses')
-    group.add_argument('--lambdas', default=[30.0, 2.0, 2.0, 50.0, 3.0, 3.0],
-                       type=float, nargs='+',
+    group.add_argument('--lambdas', default=None, type=float, nargs='+',
                        help='prefactor for head losses')
     group.add_argument('--r-smooth', type=float, default=SmoothL1Loss.r_smooth,
                        help='r_{smooth} for SmoothL1 regressions')
