@@ -128,7 +128,7 @@ def factory(
 
 # pylint: disable=too-many-return-statements
 def factory_from_scratch(basename, head_names, *, pretrained=True):
-    head_metas = datasets.headmeta_factory(head_names)
+    head_metas = datasets.headmeta.factory(head_names)
 
     if 'resnet18' in basename:
         base_vision = torchvision.models.resnet18(pretrained)
