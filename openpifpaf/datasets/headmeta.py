@@ -10,13 +10,13 @@ from .constants import (
 )
 
 
-def headmeta_factory(head_names):
+def factory(head_names):
     if head_names is None:
         return None
-    return [headmeta_single(hn) for hn in head_names]
+    return [factory_single(hn) for hn in head_names]
 
 
-def headmeta_single(head_name):
+def factory_single(head_name):
     if 'cifdet' in head_name:
         return DetectionMeta(head_name, COCO_CATEGORIES)
     if 'pif' in head_name or 'cif' in head_name:
