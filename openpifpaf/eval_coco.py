@@ -79,6 +79,9 @@ class EvalCoco(object):
         return self.eval.stats
 
     def count_ops(self, height=641, width=641):
+        if isinstance(self.processor.model, torch.nn.DataParallel):
+            return None, None
+
         device = next(self.processor.model.parameters()).device
         dummy_input = torch.randn(1, 3, height, width, device=device)
         gmacs, params = thop.profile(self.processor.model, inputs=(dummy_input, ))
@@ -322,25 +325,31 @@ def write_evaluations(eval_coco, filename, args, total_time):
           ''.format(total_time, 1000 * total_time / n_images))
 
 
-def dataloader_from_args(args):
+def preprocess_factory(
+        long_edge,
+        *,
+        tight_padding=False,
+        extended_scale=False,
+        orientation_invariant=False,
+):
     preprocess = [transforms.NormalizeAnnotations()]
 
-    if args.extended_scale:
+    if extended_scale:
         preprocess += [
             transforms.DeterministicEqualChoice([
-                transforms.RescaleAbsolute(args.long_edge),
-                transforms.RescaleAbsolute((args.long_edge - 1) // 2 + 1),
+                transforms.RescaleAbsolute(long_edge),
+                transforms.RescaleAbsolute((long_edge - 1) // 2 + 1),
             ], salt=1)
         ]
     else:
-        preprocess += [transforms.RescaleAbsolute(args.long_edge)]
+        preprocess += [transforms.RescaleAbsolute(long_edge)]
 
-    if args.batch_size == 1 and not args.multi_scale:
+    if tight_padding:
         preprocess += [transforms.CenterPadTight(16)]
     else:
-        preprocess += [transforms.CenterPad(args.long_edge)]
+        preprocess += [transforms.CenterPad(long_edge)]
 
-    if args.orientation_invariant:
+    if orientation_invariant:
         preprocess += [
             transforms.DeterministicEqualChoice([
                 None,
@@ -351,11 +360,20 @@ def dataloader_from_args(args):
         ]
 
     preprocess += [transforms.EVAL_TRANSFORM]
+    return transforms.Compose(preprocess)
 
+
+def dataloader_from_args(args):
+    preprocess = preprocess_factory(
+        args.long_edge,
+        tight_padding=args.batch_size == 1 and not args.multi_scale,
+        extended_scale=args.extended_scale,
+        orientation_invariant=args.orientation_invariant,
+    )
     data = datasets.Coco(
-        root=args.image_dir,
-        annFile=args.annotation_file,
-        preprocess=transforms.Compose(preprocess),
+        image_dir=args.image_dir,
+        ann_file=args.annotation_file,
+        preprocess=preprocess,
         image_filter='all' if args.all_images else 'annotated',
         category_ids=[] if args.detection_annotations else [1],
     )
@@ -384,8 +402,8 @@ def main():
     if not args.disable_cuda and torch.cuda.device_count() > 1:
         LOG.info('Using multiple GPUs: %d', torch.cuda.device_count())
         model = torch.nn.DataParallel(model)
-        model.head_names = model_cpu.head_names
-        model.head_strides = model_cpu.head_strides
+        model.base_net = model_cpu.base_net
+        model.head_nets = model_cpu.head_nets
 
     processor = decoder.factory_from_args(args, model, args.device)
     # processor.instance_scorer = decocder.instance_scorer.InstanceScoreRecorder()

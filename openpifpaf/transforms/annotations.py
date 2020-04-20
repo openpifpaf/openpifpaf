@@ -36,6 +36,7 @@ class NormalizeAnnotations(Preprocess):
         meta_from_image = {
             'offset': np.array((0.0, 0.0)),
             'scale': np.array((1.0, 1.0)),
+            'rotation': {'angle': 0.0, 'width': None, 'height': None},
             'valid_area': np.array((0.0, 0.0, w - 1, h - 1)),
             'hflip': False,
             'width_height': np.array((w, h)),

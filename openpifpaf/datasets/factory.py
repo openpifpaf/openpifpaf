@@ -59,12 +59,20 @@ def train_configure(args):
             raise NotImplementedError
 
 
-def train_preprocess_factory(args):
-    if not args.augmentation:
+def train_preprocess_factory(
+        dataset,
+        *,
+        square_edge,
+        augmentation=True,
+        extended_scale=False,
+        orientation_invariant=0.0,
+        rescale_images=1.0,
+):
+    if not augmentation:
         return transforms.Compose([
             transforms.NormalizeAnnotations(),
-            transforms.RescaleAbsolute(args.square_edge),
-            transforms.CenterPad(args.square_edge),
+            transforms.RescaleAbsolute(square_edge),
+            transforms.CenterPad(square_edge),
             transforms.EVAL_TRANSFORM,
         ])
 
@@ -74,35 +82,34 @@ def train_preprocess_factory(args):
         transforms.RandomApply(transforms.HFlip(COCO_KEYPOINTS, HFLIP), 0.5),
     ]
 
-    assert not (args.extended_scale and args.dataset == 'cocodet')
-    if args.extended_scale:
+    assert not (extended_scale and dataset == 'cocodet')
+    if extended_scale:
         preprocess_transformations.append(
-            transforms.RescaleRelative(scale_range=(0.25 * args.rescale_images,
-                                                    2.0 * args.rescale_images),
+            transforms.RescaleRelative(scale_range=(0.25 * rescale_images,
+                                                    2.0 * rescale_images),
                                        power_law=True)
         )
-    elif args.dataset == 'cocodet':
+    elif dataset == 'cocodet':
         preprocess_transformations.append(
-            transforms.RescaleRelative(scale_range=(0.5 * args.rescale_images,
-                                                    1.0 * args.rescale_images),
+            transforms.RescaleRelative(scale_range=(0.5 * rescale_images,
+                                                    1.0 * rescale_images),
                                        power_law=True)
         )
     else:
         preprocess_transformations.append(
-            transforms.RescaleRelative(scale_range=(0.4 * args.rescale_images,
-                                                    2.0 * args.rescale_images),
+            transforms.RescaleRelative(scale_range=(0.4 * rescale_images,
+                                                    2.0 * rescale_images),
                                        power_law=True)
         )
 
     preprocess_transformations += [
-        # transforms.RandomApply(transforms.ScaleMix(args.square_edge / 2.0), 0.5),
-        transforms.Crop(args.square_edge),
-        transforms.CenterPad(args.square_edge),
+        transforms.Crop(square_edge),
+        transforms.CenterPad(square_edge),
     ]
 
-    if args.orientation_invariant:
+    if orientation_invariant:
         preprocess_transformations += [
-            transforms.RandomApply(transforms.RotateBy90(), args.orientation_invariant),
+            transforms.RandomApply(transforms.RotateBy90(), orientation_invariant),
         ]
 
     preprocess_transformations += [
@@ -113,14 +120,20 @@ def train_preprocess_factory(args):
 
 
 def train_factory(args, target_transforms):
-    preprocess = train_preprocess_factory(args)
+    preprocess = train_preprocess_factory(
+        args.dataset,
+        square_edge=args.square_edge,
+        augmentation=args.augmentation,
+        extended_scale=args.extended_scale,
+        orientation_invariant=args.orientation_invariant,
+        rescale_images=args.rescale_images)
 
     if args.loader_workers is None:
         args.loader_workers = args.batch_size
 
     train_data = Coco(
-        root=args.train_image_dir,
-        annFile=args.train_annotations,
+        image_dir=args.train_image_dir,
+        ann_file=args.train_annotations,
         preprocess=preprocess,
         target_transforms=target_transforms,
         n_images=args.n_images,
@@ -136,8 +149,8 @@ def train_factory(args, target_transforms):
         collate_fn=collate_images_targets_meta)
 
     val_data = Coco(
-        root=args.val_image_dir,
-        annFile=args.val_annotations,
+        image_dir=args.val_image_dir,
+        ann_file=args.val_annotations,
         preprocess=preprocess,
         target_transforms=target_transforms,
         n_images=args.n_images,

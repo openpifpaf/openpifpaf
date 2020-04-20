@@ -1,7 +1,6 @@
 import copy
 import logging
 import os
-import random
 
 import numpy as np
 import torch.utils.data
@@ -18,17 +17,17 @@ class Coco(torch.utils.data.Dataset):
     """`MS Coco Detection <http://mscoco.org/dataset/#detections-challenge2016>`_ Dataset.
 
     Args:
-        root (string): Root directory where images are downloaded to.
-        annFile (string): Path to json annotation file.
+        image_dir (string): Root directory where images are downloaded to.
+        ann_file (string): Path to json annotation file.
     """
 
-    def __init__(self, root, annFile, *, target_transforms=None,
+    def __init__(self, image_dir, ann_file, *, target_transforms=None,
                  n_images=None, preprocess=None,
                  category_ids=[1],
                  image_filter='keypoint-annotations'):
         from pycocotools.coco import COCO
-        self.root = root
-        self.coco = COCO(annFile)
+        self.image_dir = image_dir
+        self.coco = COCO(ann_file)
 
         self.category_ids = category_ids
 
@@ -73,7 +72,7 @@ class Coco(torch.utils.data.Dataset):
 
         image_info = self.coco.loadImgs(image_id)[0]
         LOG.debug(image_info)
-        with open(os.path.join(self.root, image_info['file_name']), 'rb') as f:
+        with open(os.path.join(self.image_dir, image_info['file_name']), 'rb') as f:
             image = Image.open(f).convert('RGB')
 
         meta = {
@@ -98,8 +97,6 @@ class Coco(torch.utils.data.Dataset):
 
         # log stats
         for ann in anns:
-            if random.random() > 0.1:
-                continue
             if getattr(ann, 'iscrowd', False):
                 continue
             if not np.any(ann['keypoints'][:, 2] > 0.0):
