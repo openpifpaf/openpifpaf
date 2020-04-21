@@ -170,7 +170,6 @@ class MultiHeadLossAutoTune(torch.nn.Module):
         """
         super().__init__()
 
-        print(lambdas)
         if not lambdas:
             lambdas = [1.0 for l in losses for _ in l.field_names]
         assert all(lam >= 0.0 for lam in lambdas)
