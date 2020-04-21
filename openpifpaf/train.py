@@ -26,7 +26,7 @@ def default_output_file(args, net_cpu):
     if args.orientation_invariant or args.extended_scale:
         out += '-'
         if args.orientation_invariant:
-            out += 'o'
+            out += 'o{:02.0f}'.format(args.orientation_invariant * 100.0)
         if args.extended_scale:
             out += 's'
 
