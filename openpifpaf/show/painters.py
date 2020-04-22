@@ -251,7 +251,7 @@ class KeypointPainter:
             return
 
         coord_i = np.argsort(y[v > 0])
-        if y[v > 0][coord_i[1]] < y[v > 0][coord_i[0]] + 10:
+        if np.sum(v) >= 2 and y[v > 0][coord_i[1]] < y[v > 0][coord_i[0]] + 10:
             # second coordinate within 10 pixels
             f0 = 0.5 + 0.5 * (y[v > 0][coord_i[1]] - y[v > 0][coord_i[0]]) / 10.0
             coord_y = f0 * y[v > 0][coord_i[0]] + (1.0 - f0) * y[v > 0][coord_i[1]]
