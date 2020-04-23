@@ -366,12 +366,6 @@ class CompositeLoss(torch.nn.Module):
         target_scales = t[1 + self.n_vectors:]
 
         ce_loss = self._confidence_loss(x_intensity, target_intensity)
-        if ce_loss is None:
-            n_losses = 1 + self.n_vectors + self.n_scales
-            if self.margin:
-                n_losses += self.n_vectors
-            return [None for _ in range(n_losses)]
-
         reg_losses = self._localization_loss(x_regs, x_spreads, target_regs,
                                              target_intensity=target_intensity)
         scale_losses = self._scale_losses(x_scales, target_scales)
