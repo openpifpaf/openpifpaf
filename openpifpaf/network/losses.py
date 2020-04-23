@@ -276,28 +276,30 @@ class CompositeLoss(torch.nn.Module):
 
     def _localization_loss(self, x_regs, x_spreads, target_regs, *, target_intensity):
         batch_size = target_intensity.shape[0]
-        reg_losses = [None for _ in target_regs]
-        reg_masks = target_intensity > 0.5
-        if torch.any(reg_masks):
-            weight = None
-            if self.multiplicity_correction:
-                assert len(target_regs) == 2
-                lengths = torch.norm(target_regs[0] - target_regs[1], dim=2)
-                multiplicity = (lengths - 3.0) / self.independence_scale
-                multiplicity = torch.clamp(multiplicity, min=1.0)
-                multiplicity = torch.masked_select(multiplicity, reg_masks)
-                weight = 1.0 / multiplicity
 
-            reg_losses = []
-            for x_reg, x_spread, target_reg in zip(x_regs, x_spreads, target_regs):
-                reg_losses.append(self.regression_loss(
-                    torch.masked_select(x_reg[:, :, 0], reg_masks),
-                    torch.masked_select(x_reg[:, :, 1], reg_masks),
-                    torch.masked_select(x_spread, reg_masks),
-                    torch.masked_select(target_reg[:, :, 0], reg_masks),
-                    torch.masked_select(target_reg[:, :, 1], reg_masks),
-                    weight=(weight if weight is not None else 1.0) * 0.1,
-                ) / 100.0 / batch_size)
+        reg_masks = target_intensity > 0.5
+        if not torch.any(reg_masks):
+            return [None for _ in target_regs]
+
+        weight = None
+        if self.multiplicity_correction:
+            assert len(target_regs) == 2
+            lengths = torch.norm(target_regs[0] - target_regs[1], dim=2)
+            multiplicity = (lengths - 3.0) / self.independence_scale
+            multiplicity = torch.clamp(multiplicity, min=1.0)
+            multiplicity = torch.masked_select(multiplicity, reg_masks)
+            weight = 1.0 / multiplicity
+
+        reg_losses = []
+        for x_reg, x_spread, target_reg in zip(x_regs, x_spreads, target_regs):
+            reg_losses.append(self.regression_loss(
+                torch.masked_select(x_reg[:, :, 0], reg_masks),
+                torch.masked_select(x_reg[:, :, 1], reg_masks),
+                torch.masked_select(x_spread, reg_masks),
+                torch.masked_select(target_reg[:, :, 0], reg_masks),
+                torch.masked_select(target_reg[:, :, 1], reg_masks),
+                weight=(weight if weight is not None else 1.0) * 0.1,
+            ) / 100.0 / batch_size)
 
         return reg_losses
 
