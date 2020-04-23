@@ -270,11 +270,11 @@ class CompositeLoss(torch.nn.Module):
             bce_target,
             weight=bce_weight,
             reduction='sum',
-        ) / 100.0 / batch_size
+        ) / (100.0 * batch_size)
 
         return ce_loss
 
-    def _localization_loss(self, x_regs, x_spreads, target_regs, *, target_intensity):
+    def _localization_loss(self, x_regs, x_logbs, target_regs, *, target_intensity):
         batch_size = target_intensity.shape[0]
 
         reg_masks = target_intensity > 0.5
@@ -291,15 +291,15 @@ class CompositeLoss(torch.nn.Module):
             weight = 1.0 / multiplicity
 
         reg_losses = []
-        for x_reg, x_spread, target_reg in zip(x_regs, x_spreads, target_regs):
+        for x_reg, x_logb, target_reg in zip(x_regs, x_logbs, target_regs):
             reg_losses.append(self.regression_loss(
                 torch.masked_select(x_reg[:, :, 0], reg_masks),
                 torch.masked_select(x_reg[:, :, 1], reg_masks),
-                torch.masked_select(x_spread, reg_masks),
+                torch.masked_select(x_logb, reg_masks),
                 torch.masked_select(target_reg[:, :, 0], reg_masks),
                 torch.masked_select(target_reg[:, :, 1], reg_masks),
                 weight=(weight if weight is not None else 1.0) * 0.1,
-            ) / 100.0 / batch_size)
+            ) / (100.0 * batch_size))
 
         return reg_losses
 
@@ -315,7 +315,7 @@ class CompositeLoss(torch.nn.Module):
                 torch.masked_select(x_scale, torch.isnan(target_scale) == 0),
                 torch.masked_select(target_scale, torch.isnan(target_scale) == 0),
                 reduction='sum',
-            ) / 100.0 / batch_size
+            ) / (100.0 * batch_size)
             for x_scale, target_scale in zip(x_scales, target_scales)
         ]
 
@@ -339,7 +339,7 @@ class CompositeLoss(torch.nn.Module):
                 torch.masked_select(target_reg[:, :, 3], reg_masks),
                 torch.masked_select(target_reg[:, :, 4], reg_masks),
                 torch.masked_select(target_reg[:, :, 5], reg_masks),
-            ) / 100.0 / batch_size)
+            ) / (100.0 * batch_size))
         return margin_losses
 
     def forward(self, *args):
@@ -357,8 +357,6 @@ class CompositeLoss(torch.nn.Module):
         x_spreads = [next(running_x) for _ in range(self.n_vectors)]
         x_scales = [next(running_x) for _ in range(self.n_scales)]
 
-        if self.n_scales == 0:
-            t = t[:-self.n_vectors]  # assume there are as many scales as vectors and remove them
         assert len(t) == 1 + self.n_vectors + self.n_scales
         running_t = iter(t)
         target_intensity = next(running_t)
