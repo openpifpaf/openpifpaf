@@ -351,19 +351,19 @@ class CompositeLoss(torch.nn.Module):
         t = [tt.double() for tt in t]
 
         assert len(x) == 1 + 2 * self.n_vectors + self.n_scales
-        x_intensity = x[0]
-        x_regs = x[1:1 + self.n_vectors]
-        x_spreads = x[1 + self.n_vectors:1 + 2 * self.n_vectors]
-        x_scales = []
-        if self.n_scales:
-            x_scales = x[1 + 2 * self.n_vectors:1 + 2 * self.n_vectors + self.n_scales]
+        running_x = iter(x)
+        x_intensity = next(running_x)
+        x_regs = [next(running_x) for _ in range(self.n_vectors)]
+        x_spreads = [next(running_x) for _ in range(self.n_vectors)]
+        x_scales = [next(running_x) for _ in range(self.n_scales)]
 
         if self.n_scales == 0:
             t = t[:-self.n_vectors]  # assume there are as many scales as vectors and remove them
         assert len(t) == 1 + self.n_vectors + self.n_scales
-        target_intensity = t[0]
-        target_regs = t[1:1 + self.n_vectors]
-        target_scales = t[1 + self.n_vectors:]
+        running_t = iter(t)
+        target_intensity = next(running_t)
+        target_regs = [next(running_t) for _ in range(self.n_vectors)]
+        target_scales = [next(running_t) for _ in range(self.n_scales)]
 
         ce_loss = self._confidence_loss(x_intensity, target_intensity)
         reg_losses = self._localization_loss(x_regs, x_spreads, target_regs,
