@@ -342,7 +342,7 @@ class CompositeLoss(torch.nn.Module):
             ) / 100.0 / batch_size)
         return margin_losses
 
-    def forward(self, *args):  # pylint: disable=too-many-statements
+    def forward(self, *args):
         LOG.debug('loss for %s', self.field_names)
 
         x, t = args
