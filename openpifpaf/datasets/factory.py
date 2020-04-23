@@ -19,7 +19,7 @@ def train_cli(parser):
     group.add_argument('--train-image-dir', default=IMAGE_DIR_TRAIN)
     group.add_argument('--val-annotations', default=None)
     group.add_argument('--val-image-dir', default=IMAGE_DIR_VAL)
-    group.add_argument('--dataset', default='cocokp', choices=('cocokp', 'cocodet'))
+    group.add_argument('--dataset', default='cocokp')
     group.add_argument('--n-images', default=None, type=int,
                        help='number of images to sample')
     group.add_argument('--duplicate-data', default=None, type=int,
@@ -59,7 +59,7 @@ def train_configure(args):
             raise NotImplementedError
 
 
-def train_preprocess_factory(
+def train_coco_preprocess_factory(
         dataset,
         *,
         square_edge,
@@ -119,8 +119,8 @@ def train_preprocess_factory(
     return transforms.Compose(preprocess_transformations)
 
 
-def train_factory(args, target_transforms):
-    preprocess = train_preprocess_factory(
+def train_coco_factory(args, target_transforms):
+    preprocess = train_coco_preprocess_factory(
         args.dataset,
         square_edge=args.square_edge,
         augmentation=args.augmentation,
@@ -166,3 +166,10 @@ def train_factory(args, target_transforms):
         collate_fn=collate_images_targets_meta)
 
     return train_loader, val_loader
+
+
+def train_factory(args, target_transforms):
+    if args.dataset in ('cocokp', 'cocodet'):
+        return train_coco_factory(args, target_transforms)
+
+    raise Exception('unknown dataset: {}'.format(args.dataset))
