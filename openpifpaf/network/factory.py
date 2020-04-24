@@ -169,6 +169,11 @@ def factory_from_scratch(basename, head_names, *, pretrained=True):
             [4, 8, 4], [24, 348, 696, 1392, 2048],
         )
         return shufflenet_factory_from_scratch(basename, base_vision, 2048, head_metas)
+    if basename.startswith('shufflenetv2k18w'):
+        base_vision = basenetworks.ShuffleNetV2K(
+            [4, 8, 6], [24, 348, 696, 1392],
+        )
+        return generic_factory_from_scratch(basename, base_vision, 1392, head_metas)
     if basename.startswith('shufflenetv2k20w'):
         base_vision = basenetworks.ShuffleNetV2K(
             [5, 10, 5], [32, 512, 1024, 2048, 2048],
@@ -189,6 +194,11 @@ def factory_from_scratch(basename, head_names, *, pretrained=True):
             [8, 16, 6], [32, 512, 1024, 2048, 2048],
         )
         return shufflenet_factory_from_scratch(basename, base_vision, 2048, head_metas)
+    if basename.startswith('shufflenetv2k32w'):
+        base_vision = basenetworks.ShuffleNetV2K(
+            [8, 16, 8], [32, 512, 1024, 2048],
+        )
+        return generic_factory_from_scratch(basename, base_vision, 2048, head_metas)
     if basename.startswith('shufflenetv2k44'):
         base_vision = torchvision.models.ShuffleNetV2(
             [12, 24, 8], [32, 512, 1024, 2048, 2048],
@@ -216,7 +226,7 @@ def generic_factory_from_scratch(basename, base_vision, out_features, head_metas
         out_features=out_features,
     )
 
-    headnets = [heads.CompositeField(h, basenet.out_features) for h in head_metas]
+    headnets = [heads.CompositeFieldFused(h, basenet.out_features) for h in head_metas]
 
     net_cpu = nets.Shell(basenet, headnets)
     nets.model_defaults(net_cpu)
@@ -240,7 +250,7 @@ def shufflenet_factory_from_scratch(basename, base_vision, out_features, head_me
         out_features=out_features,
     )
 
-    headnets = [heads.CompositeField(h, basenet.out_features) for h in head_metas]
+    headnets = [heads.CompositeFieldFused(h, basenet.out_features) for h in head_metas]
 
     net_cpu = nets.Shell(basenet, headnets)
     nets.model_defaults(net_cpu)
@@ -286,7 +296,7 @@ def resnet_factory_from_scratch(basename, base_vision, out_features, head_metas)
         out_features=out_features,
     )
 
-    headnets = [heads.CompositeField(h, basenet.out_features) for h in head_metas]
+    headnets = [heads.CompositeFieldFused(h, basenet.out_features) for h in head_metas]
     net_cpu = nets.Shell(basenet, headnets)
     nets.model_defaults(net_cpu)
     return net_cpu

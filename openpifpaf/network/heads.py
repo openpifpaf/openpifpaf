@@ -44,14 +44,13 @@ class CifCafCollector(torch.nn.Module):
 
     @staticmethod
     def concat_fields(fields):
-        # LOG.debug('fields = %s', [f.shape for f in fields])
-        return torch.cat(
-            [
-                field if len(field.shape) == 5 else torch.unsqueeze(field, 2)
-                for field in fields
-            ],
-            dim=2,
-        )
+        fields = [
+            f.view(f.shape[0], f.shape[1], f.shape[2] * f.shape[3], *f.shape[4:])
+            if len(f.shape) == 6
+            else f.view(f.shape[0], f.shape[1], f.shape[2], *f.shape[3:])
+            for f in fields
+        ]
+        return torch.cat(fields, dim=2)
 
     @staticmethod
     def concat_heads(heads):
@@ -259,6 +258,7 @@ class CompositeField(torch.nn.Module):
 
         # dequad
         self.dequad_op = torch.nn.PixelShuffle(2)
+        raise Exception('use CompositeFieldFused instead of CompositeField')
 
     def stride(self, basenet_stride):
         return basenet_stride // (2 ** self._quad)
@@ -304,3 +304,85 @@ class CompositeField(torch.nn.Module):
         ]
 
         return classes_x + regs_x + regs_logb + scales_x
+
+
+class CompositeFieldFused(torch.nn.Module):
+    dropout_p = 0.0
+    quad = 1
+
+    def __init__(self,
+                 meta: Union[IntensityMeta, AssociationMeta, DetectionMeta],
+                 in_features, *,
+                 kernel_size=1, padding=0, dilation=1):
+        super().__init__()
+
+        LOG.debug('%s config: fields = %d, confidences = %d, vectors = %d, scales = %d '
+                  'kernel = %d, padding = %d, dilation = %d',
+                  meta.name, meta.n_fields, meta.n_confidences, meta.n_vectors, meta.n_scales,
+                  kernel_size, padding, dilation)
+
+        self.meta = meta
+        self.dropout = torch.nn.Dropout2d(p=self.dropout_p)
+        self._quad = self.quad
+
+        # classification
+        self.out_features = [
+            meta.n_confidences * meta.n_fields,
+            meta.n_vectors * 2 * meta.n_fields,
+            meta.n_vectors * 1 * meta.n_fields,
+            meta.n_scales * meta.n_fields,
+        ]
+        self.conv = torch.nn.Conv2d(in_features, sum(self.out_features) * (4 ** self._quad),
+                                    kernel_size, padding=padding, dilation=dilation)
+
+        # dequad
+        self.dequad_op = torch.nn.PixelShuffle(2)
+
+    def stride(self, basenet_stride):
+        return basenet_stride // (2 ** self._quad)
+
+    def forward(self, x):  # pylint: disable=arguments-differ
+        x = self.dropout(x)
+        x = self.conv(x)
+        # upscale
+        for _ in range(self._quad):
+            x = self.dequad_op(x)[:, :, :-1, :-1]
+
+        # classification
+        classes_x = x[:, 0:self.out_features[0]]
+        classes_x = classes_x.view(classes_x.shape[0],
+                                   classes_x.shape[1] // self.meta.n_confidences,
+                                   self.meta.n_confidences,
+                                   classes_x.shape[2],
+                                   classes_x.shape[3])
+        if not self.training:
+            classes_x = torch.sigmoid(classes_x)
+
+        # regressions
+        regs_x = x[:, self.out_features[0]:self.out_features[0] + self.out_features[1]]
+        regs_x = regs_x.view(regs_x.shape[0],
+                             regs_x.shape[1] // self.meta.n_vectors // 2,
+                             self.meta.n_vectors,
+                             2,
+                             regs_x.shape[2],
+                             regs_x.shape[3])
+        regs_logb = x[:, self.out_features[1]:self.out_features[1] + self.out_features[2]]
+        regs_logb = regs_logb.view(regs_logb.shape[0],
+                                   regs_logb.shape[1] // self.meta.n_vectors,
+                                   self.meta.n_vectors,
+                                   regs_logb.shape[2],
+                                   regs_logb.shape[3])
+        if self.training:
+            regs_logb = 3.0 * torch.tanh(regs_logb / 3.0)
+
+        # scale
+        scales_x = x[:, self.out_features[2]:self.out_features[2] + self.out_features[3]]
+        scales_x = scales_x.view(scales_x.shape[0],
+                                 scales_x.shape[1] // self.meta.n_scales,
+                                 self.meta.n_scales,
+                                 scales_x.shape[2],
+                                 scales_x.shape[3])
+        if not self.training:
+            scales_x = torch.exp(scales_x)
+
+        return classes_x, regs_x, regs_logb, scales_x

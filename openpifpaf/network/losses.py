@@ -241,6 +241,9 @@ class CompositeLoss(torch.nn.Module):
     def _confidence_loss(self, x_confidence, target_confidence):
         bce_masks = torch.isnan(target_confidence) == 0
 
+        # TODO assumes one confidence
+        x_confidence = x_confidence[:, :, 0]
+
         # for numerical stability, filter out predictions that are certain
         bce_masks = (
             bce_masks
@@ -291,11 +294,11 @@ class CompositeLoss(torch.nn.Module):
             weight = 1.0 / multiplicity
 
         reg_losses = []
-        for x_reg, x_logb, target_reg in zip(x_regs, x_logbs, target_regs):
+        for i, target_reg in enumerate(target_regs):
             reg_losses.append(self.regression_loss(
-                torch.masked_select(x_reg[:, :, 0], reg_masks),
-                torch.masked_select(x_reg[:, :, 1], reg_masks),
-                torch.masked_select(x_logb, reg_masks),
+                torch.masked_select(x_regs[:, :, i, 0], reg_masks),
+                torch.masked_select(x_regs[:, :, i, 1], reg_masks),
+                torch.masked_select(x_logbs[:, :, i], reg_masks),
                 torch.masked_select(target_reg[:, :, 0], reg_masks),
                 torch.masked_select(target_reg[:, :, 1], reg_masks),
                 weight=(weight if weight is not None else 1.0) * 0.1,
@@ -305,18 +308,16 @@ class CompositeLoss(torch.nn.Module):
 
     @staticmethod
     def _scale_losses(x_scales, target_scales):
-        if not x_scales:
-            return []
+        assert x_scales.shape[2] == len(target_scales)
 
-        assert len(x_scales) == len(target_scales)
-        batch_size = x_scales[0].shape[0]
+        batch_size = x_scales.shape[0]
         return [
             logl1_loss(
-                torch.masked_select(x_scale, torch.isnan(target_scale) == 0),
+                torch.masked_select(x_scales[:, :, i], torch.isnan(target_scale) == 0),
                 torch.masked_select(target_scale, torch.isnan(target_scale) == 0),
                 reduction='sum',
             ) / (100.0 * batch_size)
-            for x_scale, target_scale in zip(x_scales, target_scales)
+            for i, target_scale in enumerate(target_scales)
         ]
 
     def _margin_losses(self, x_regs, target_regs, *, target_confidence):
@@ -350,12 +351,7 @@ class CompositeLoss(torch.nn.Module):
         x = [xx.double() for xx in x]
         t = [tt.double() for tt in t]
 
-        assert len(x) == 1 + 2 * self.n_vectors + self.n_scales
-        running_x = iter(x)
-        x_confidence = next(running_x)
-        x_regs = [next(running_x) for _ in range(self.n_vectors)]
-        x_logbs = [next(running_x) for _ in range(self.n_vectors)]
-        x_scales = [next(running_x) for _ in range(self.n_scales)]
+        x_confidence, x_regs, x_logbs, x_scales = x
 
         assert len(t) == 1 + self.n_vectors + self.n_scales
         running_t = iter(t)
