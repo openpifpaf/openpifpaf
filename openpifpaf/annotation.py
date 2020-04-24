@@ -3,7 +3,7 @@ import numpy as np
 # pylint: disable=import-error
 from .functional import scalar_value_clipped
 
-NOTSET = object()
+NOTSET = '__notset__'
 
 
 class Annotation:
@@ -58,7 +58,7 @@ class Annotation:
             self.joint_scales[xyv_i] = scale / hr_scale
 
     def score(self):
-        if self.fixed_score is not NOTSET:
+        if self.fixed_score != NOTSET:
             return self.fixed_score
 
         v = self.data[:, 2]
