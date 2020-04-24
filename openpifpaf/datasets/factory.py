@@ -87,19 +87,19 @@ def train_coco_preprocess_factory(
         preprocess_transformations.append(
             transforms.RescaleRelative(scale_range=(0.25 * rescale_images,
                                                     2.0 * rescale_images),
-                                       power_law=True, fast=True)
+                                       power_law=True)
         )
     elif dataset == 'cocodet':
         preprocess_transformations.append(
             transforms.RescaleRelative(scale_range=(0.5 * rescale_images,
                                                     1.0 * rescale_images),
-                                       power_law=True, fast=True)
+                                       power_law=True)
         )
     else:
         preprocess_transformations.append(
             transforms.RescaleRelative(scale_range=(0.4 * rescale_images,
                                                     2.0 * rescale_images),
-                                       power_law=True, fast=True)
+                                       power_law=True)
         )
 
     preprocess_transformations += [
