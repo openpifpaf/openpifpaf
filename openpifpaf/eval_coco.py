@@ -123,7 +123,8 @@ class EvalCoco(object):
                     )
                 if 'keypoints' in g:
                     gt_anns.append(
-                        Annotation(COCO_KEYPOINTS, COCO_PERSON_SKELETON).set(g['keypoints'])
+                        Annotation(COCO_KEYPOINTS, COCO_PERSON_SKELETON)
+                        .set(g['keypoints'], fixed_score=None)
                     )
             gt_anns = transforms.Preprocess.annotations_inverse(gt_anns, meta)
             self.view_annotations(meta, predictions, gt_anns)
