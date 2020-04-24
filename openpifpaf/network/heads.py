@@ -325,14 +325,18 @@ class CompositeFieldFused(torch.nn.Module):
         self.dropout = torch.nn.Dropout2d(p=self.dropout_p)
         self._quad = self.quad
 
-        # classification
-        self.out_features = [
+        # convolution
+        feature_groups = [
             meta.n_confidences * meta.n_fields,
             meta.n_vectors * 2 * meta.n_fields,
             meta.n_vectors * 1 * meta.n_fields,
             meta.n_scales * meta.n_fields,
         ]
-        self.conv = torch.nn.Conv2d(in_features, sum(self.out_features) * (4 ** self._quad),
+        self.out_features = []  # the cumulative of the feature_groups above
+        for fg in feature_groups:
+            self.out_features.append(
+                (self.out_features[-1] if self.out_features else 0) + fg)
+        self.conv = torch.nn.Conv2d(in_features, self.out_features[-1] * (4 ** self._quad),
                                     kernel_size, padding=padding, dilation=dilation)
 
         # dequad
@@ -359,14 +363,14 @@ class CompositeFieldFused(torch.nn.Module):
             classes_x = torch.sigmoid(classes_x)
 
         # regressions
-        regs_x = x[:, self.out_features[0]:self.out_features[0] + self.out_features[1]]
+        regs_x = x[:, self.out_features[0]:self.out_features[1]]
         regs_x = regs_x.view(regs_x.shape[0],
                              regs_x.shape[1] // self.meta.n_vectors // 2,
                              self.meta.n_vectors,
                              2,
                              regs_x.shape[2],
                              regs_x.shape[3])
-        regs_logb = x[:, self.out_features[1]:self.out_features[1] + self.out_features[2]]
+        regs_logb = x[:, self.out_features[1]:self.out_features[2]]
         regs_logb = regs_logb.view(regs_logb.shape[0],
                                    regs_logb.shape[1] // self.meta.n_vectors,
                                    self.meta.n_vectors,
@@ -376,7 +380,7 @@ class CompositeFieldFused(torch.nn.Module):
             regs_logb = 3.0 * torch.tanh(regs_logb / 3.0)
 
         # scale
-        scales_x = x[:, self.out_features[2]:self.out_features[2] + self.out_features[3]]
+        scales_x = x[:, self.out_features[2]:self.out_features[3]]
         scales_x = scales_x.view(scales_x.shape[0],
                                  scales_x.shape[1] // self.meta.n_scales,
                                  self.meta.n_scales,
