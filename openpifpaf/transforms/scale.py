@@ -18,22 +18,25 @@ def _scale(image, anns, meta, target_w, target_h, resample, *, fast=False):
     Internally, resample in Pillow are aliases:
     PIL.Image.BILINEAR = 2
     PIL.Image.BICUBIC = 3
-    which maps already to the correct "order" in scipy.
     """
     meta = copy.deepcopy(meta)
     anns = copy.deepcopy(anns)
     w, h = image.size
 
+    assert resample in (0, 2, 3)
+
+    # scale image
     if fast:
         image = image.resize((target_w, target_h), resample)
     else:
-        assert resample in (2, 3)
+        order = resample
+        if order == 2:
+            order = 1
 
-        # scale image
         im_np = np.asarray(image)
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
-            im_np = scipy.ndimage.zoom(im_np, (target_h / h, target_w / w, 1), order=resample)
+            im_np = scipy.ndimage.zoom(im_np, (target_h / h, target_w / w, 1), order=order)
         image = PIL.Image.fromarray(im_np)
 
     LOG.debug('before resize = (%f, %f), after = %s', w, h, image.size)
