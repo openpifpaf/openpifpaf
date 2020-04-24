@@ -95,13 +95,12 @@ class GetPifC(torch.nn.Module):
         return heads[0][0]
 
 
-def apply(checkpoint, outfile, verbose=True):
-    monkey_patches = MonkeyPatches()
-    monkey_patches.apply()
+def apply(model, outfile, verbose=True):
+    # monkey_patches = MonkeyPatches()
+    # monkey_patches.apply()
 
     # dummy_input = torch.randn(1, 3, 193, 257)
     dummy_input = torch.randn(1, 3, 97, 129)
-    model, _ = openpifpaf.network.factory(checkpoint=checkpoint)
     # model = torch.nn.Sequential(model, GetPifC())
 
     # Providing input and output names sets the display names for values
@@ -114,17 +113,18 @@ def apply(checkpoint, outfile, verbose=True):
     # a list here shorter than the number of inputs to the model, and we will
     # only set that subset of names, starting from the beginning.
     input_names = ['input_batch']
-    output_names = [
-        'pif_c',
-        'pif_r',
-        'pif_b',
-        'pif_s',
-        'paf_c',
-        'paf_r1',
-        'paf_r2',
-        'paf_b1',
-        'paf_b2',
-    ]
+    # output_names = [
+    #     'pif_c',
+    #     'pif_r',
+    #     'pif_b',
+    #     'pif_s',
+    #     'paf_c',
+    #     'paf_r1',
+    #     'paf_r2',
+    #     'paf_b1',
+    #     'paf_b2',
+    # ]
+    output_names = ['cif', 'caf']
 
     torch.onnx.export(
         model, dummy_input, outfile, verbose=verbose,
@@ -146,7 +146,7 @@ def apply(checkpoint, outfile, verbose=True):
         # },
     )
 
-    monkey_patches.revert()
+    # monkey_patches.revert()
 
 
 def optimize(infile, outfile=None):
@@ -200,7 +200,8 @@ def main():
     parser.add_argument('--no-check', dest='check', default=True, action='store_false')
     args = parser.parse_args()
 
-    apply(args.checkpoint, args.outfile)
+    model, _ = openpifpaf.network.factory(checkpoint=args.checkpoint)
+    apply(model, args.outfile)
     if args.simplify:
         simplify(args.outfile)
     if args.optimize:
