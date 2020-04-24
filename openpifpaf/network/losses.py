@@ -238,35 +238,35 @@ class CompositeLoss(torch.nn.Module):
 
         self.bce_blackout = None
 
-    def _confidence_loss(self, x_intensity, target_intensity):
-        bce_masks = torch.isnan(target_intensity) == 0
+    def _confidence_loss(self, x_confidence, target_confidence):
+        bce_masks = torch.isnan(target_confidence) == 0
 
         # for numerical stability, filter out predictions that are certain
         bce_masks = (
             bce_masks
-            & ((x_intensity > -4.0) | ((x_intensity < -4.0) & (target_intensity == 1)))
-            & ((x_intensity < 4.0) | ((x_intensity > 4.0) & (target_intensity == 0)))
+            & ((x_confidence > -4.0) | ((x_confidence < -4.0) & (target_confidence == 1)))
+            & ((x_confidence < 4.0) | ((x_confidence > 4.0) & (target_confidence == 0)))
         )
 
         if not torch.any(bce_masks):
             return None
 
-        batch_size = x_intensity.shape[0]
+        batch_size = x_confidence.shape[0]
         LOG.debug('batch size = %d', batch_size)
 
         if self.bce_blackout:
-            x_intensity = x_intensity[:, self.bce_blackout]
+            x_confidence = x_confidence[:, self.bce_blackout]
             bce_masks = bce_masks[:, self.bce_blackout]
-            target_intensity = target_intensity[:, self.bce_blackout]
+            target_confidence = target_confidence[:, self.bce_blackout]
 
         LOG.debug('BCE: x = %s, target = %s, mask = %s',
-                  x_intensity.shape, target_intensity.shape, bce_masks.shape)
-        bce_target = torch.masked_select(target_intensity, bce_masks)
+                  x_confidence.shape, target_confidence.shape, bce_masks.shape)
+        bce_target = torch.masked_select(target_confidence, bce_masks)
         bce_weight = torch.full_like(bce_target, 0.1, requires_grad=False)
         if self.background_weight != 1.0:
             bce_weight[bce_target == 0] *= self.background_weight
         ce_loss = torch.nn.functional.binary_cross_entropy_with_logits(
-            torch.masked_select(x_intensity, bce_masks),
+            torch.masked_select(x_confidence, bce_masks),
             bce_target,
             weight=bce_weight,
             reduction='sum',
@@ -274,10 +274,10 @@ class CompositeLoss(torch.nn.Module):
 
         return ce_loss
 
-    def _localization_loss(self, x_regs, x_logbs, target_regs, *, target_intensity):
-        batch_size = target_intensity.shape[0]
+    def _localization_loss(self, x_regs, x_logbs, target_regs, *, target_confidence):
+        batch_size = target_confidence.shape[0]
 
-        reg_masks = target_intensity > 0.5
+        reg_masks = target_confidence > 0.5
         if not torch.any(reg_masks):
             return [None for _ in target_regs]
 
@@ -319,11 +319,11 @@ class CompositeLoss(torch.nn.Module):
             for x_scale, target_scale in zip(x_scales, target_scales)
         ]
 
-    def _margin_losses(self, x_regs, target_regs, *, target_intensity):
+    def _margin_losses(self, x_regs, target_regs, *, target_confidence):
         if not self.margin:
             return []
 
-        reg_masks = target_intensity > 0.5
+        reg_masks = target_confidence > 0.5
         if not torch.any(reg_masks):
             return [None for _ in target_regs]
 
@@ -352,23 +352,23 @@ class CompositeLoss(torch.nn.Module):
 
         assert len(x) == 1 + 2 * self.n_vectors + self.n_scales
         running_x = iter(x)
-        x_intensity = next(running_x)
+        x_confidence = next(running_x)
         x_regs = [next(running_x) for _ in range(self.n_vectors)]
-        x_spreads = [next(running_x) for _ in range(self.n_vectors)]
+        x_logbs = [next(running_x) for _ in range(self.n_vectors)]
         x_scales = [next(running_x) for _ in range(self.n_scales)]
 
         assert len(t) == 1 + self.n_vectors + self.n_scales
         running_t = iter(t)
-        target_intensity = next(running_t)
+        target_confidence = next(running_t)
         target_regs = [next(running_t) for _ in range(self.n_vectors)]
         target_scales = [next(running_t) for _ in range(self.n_scales)]
 
-        ce_loss = self._confidence_loss(x_intensity, target_intensity)
-        reg_losses = self._localization_loss(x_regs, x_spreads, target_regs,
-                                             target_intensity=target_intensity)
+        ce_loss = self._confidence_loss(x_confidence, target_confidence)
+        reg_losses = self._localization_loss(x_regs, x_logbs, target_regs,
+                                             target_confidence=target_confidence)
         scale_losses = self._scale_losses(x_scales, target_scales)
         margin_losses = self._margin_losses(x_regs, target_regs,
-                                            target_intensity=target_intensity)
+                                            target_confidence=target_confidence)
 
         return [ce_loss] + reg_losses + scale_losses + margin_losses
 
