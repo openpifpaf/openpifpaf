@@ -129,8 +129,8 @@ class ShuffleNetV2K(torch.nn.Module):
 
         if len(stages_repeats) != 3:
             raise ValueError('expected stages_repeats as list of 3 positive ints')
-        if len(stages_out_channels) != 5:
-            raise ValueError('expected stages_out_channels as list of 5 positive ints')
+        if len(stages_out_channels) not in (4, 5):
+            raise ValueError('expected stages_out_channels as list of 4 or 5 positive ints')
         self._stage_out_channels = stages_out_channels
 
         input_channels = 3
@@ -152,12 +152,14 @@ class ShuffleNetV2K(torch.nn.Module):
             setattr(self, name, torch.nn.Sequential(*seq))
             input_channels = output_channels
 
-        output_channels = self._stage_out_channels[-1]
-        self.conv5 = torch.nn.Sequential(
-            torch.nn.Conv2d(input_channels, output_channels, 1, 1, 0, bias=False),
-            torch.nn.BatchNorm2d(output_channels),
-            torch.nn.ReLU(inplace=True),
-        )
+        self.conv5 = None
+        if len(self._stage_out_channels) == 5:
+            output_channels = self._stage_out_channels[-1]
+            self.conv5 = torch.nn.Sequential(
+                torch.nn.Conv2d(input_channels, output_channels, 1, 1, 0, bias=False),
+                torch.nn.BatchNorm2d(output_channels),
+                torch.nn.ReLU(inplace=True),
+            )
 
     def forward(self, *args):
         x = args[0]
@@ -165,5 +167,6 @@ class ShuffleNetV2K(torch.nn.Module):
         x = self.stage2(x)
         x = self.stage3(x)
         x = self.stage4(x)
-        x = self.conv5(x)
+        if self.conv5 is not None:
+            x = self.conv5(x)
         return x
