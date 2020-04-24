@@ -311,19 +311,20 @@ class KeypointPainter:
             elif hasattr(ann, 'id_'):
                 color = ann.id_
 
-            text = '{:.0%}'.format(ann.score())
-            text_is_score = True
+            text = None
+            text_is_score = False
             if texts is not None:
                 text = texts[i]
-                text_is_score = False
             elif hasattr(ann, 'id_'):
                 text = '{}'.format(ann.id_)
-                text_is_score = False
+            elif ann.score():
+                text = '{:.0%}'.format(ann.score())
+                text_is_score = True
 
             subtext = None
             if subtexts is not None:
                 subtext = subtexts[i]
-            elif not text_is_score:
+            elif not text_is_score and ann.score():
                 subtext = '{:.0%}'.format(ann.score())
 
             self.annotation(ax, ann, color=color, text=text, subtext=subtext)

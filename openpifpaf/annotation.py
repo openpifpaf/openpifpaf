@@ -3,6 +3,8 @@ import numpy as np
 # pylint: disable=import-error
 from .functional import scalar_value_clipped
 
+NOTSET = object()
+
 
 class Annotation:
     def __init__(self, keypoints, skeleton, *, category_id=1, suppress_score_index=None):
@@ -13,7 +15,7 @@ class Annotation:
 
         self.data = np.zeros((len(keypoints), 3), dtype=np.float32)
         self.joint_scales = np.zeros((len(keypoints),), dtype=np.float32)
-        self.fixed_score = None
+        self.fixed_score = NOTSET
         self.decoding_order = []
         self.frontier_order = []
 
@@ -29,10 +31,13 @@ class Annotation:
         self.data[joint_i] = xyv
         return self
 
-    def set(self, data, joint_scales=None):
+    def set(self, data, joint_scales=None, *, fixed_score=NOTSET):
         self.data = data
         if joint_scales is not None:
             self.joint_scales = joint_scales
+        else:
+            self.joint_scales[:] = 0.0
+        self.fixed_score = fixed_score
         return self
 
     def rescale(self, scale_factor):
@@ -53,7 +58,7 @@ class Annotation:
             self.joint_scales[xyv_i] = scale / hr_scale
 
     def score(self):
-        if self.fixed_score is not None:
+        if self.fixed_score is not NOTSET:
             return self.fixed_score
 
         v = self.data[:, 2]

@@ -27,7 +27,7 @@ class Caf(BaseVisualizer):
         assert self.skeleton is not None
 
         annotations = [
-            Annotation(keypoints=self.keypoints, skeleton=self.skeleton).set(kps)
+            Annotation(keypoints=self.keypoints, skeleton=self.skeleton).set(kps, fixed_score=None)
             for kps in keypoint_sets
         ]
 
