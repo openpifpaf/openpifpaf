@@ -19,7 +19,7 @@ def test_pil_resize(resample):
     assert np.all(d_in == d_out[0, ::2])
 
 
-@pytest.mark.parametrize('order', [2, 3])
+@pytest.mark.parametrize('order', [0, 1, 2, 3])
 def test_scipy_zoom(order):
     d_in = np.array([[0, 10, 20, 30, 40, 50]], dtype=np.uint8)
 
