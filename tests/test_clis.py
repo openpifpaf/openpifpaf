@@ -24,9 +24,10 @@ def test_predict(batch_size, tmpdir):
 
 
 @pytest.mark.skipif(sys.platform == 'win32', reason='does not run on windows')
-def test_video():
+def test_video(tmpdir):
     subprocess.run([
         PYTHON, '-m', 'openpifpaf.video',
         '--checkpoint=shufflenetv2k18w',
         '--source=docs/coco/000000081988.jpg',
+        '--json-output={}'.format(os.path.join(tmpdir, 'video.json')),
     ], check=True)

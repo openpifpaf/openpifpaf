@@ -84,10 +84,6 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     visualizer.configure(args)
     show.AnimationFrame.video_fps = args.video_fps
 
-    # make sure json output does not exist already
-    if args.json_output:
-        assert not os.path.exists(args.json_output)
-
     # check whether source should be an int
     if len(args.source) == 1:
         args.source = int(args.source)

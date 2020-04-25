@@ -62,8 +62,7 @@ matrix:
       env: PATH=/c/Python37:/c/Python37/Scripts:$PATH
 install:
  - "pip3 install --editable .[test]"
- - "pip3 install jupyter notebook"
 script:
  - pylint openpifpaf --disable=fixme
  - pytest -vv
- - pytest --nbval-lax docs/predict.ipynb
+ - pytest --nbval-lax --current-env docs/predict.ipynb
