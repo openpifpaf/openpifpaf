@@ -67,8 +67,8 @@ setup(
         'pysparkling',  # for log analysis
         'python-json-logger',
         'scipy',
-        'torch>=1.1.0',
-        'torchvision>=0.3',
+        'torch>=1.3.1',
+        'torchvision>=0.4',
         'pillow<7',  # temporary compat requirement for torchvision
     ],
     extras_require={
@@ -83,10 +83,8 @@ setup(
             'thop',
         ],
         'train': [
-            'matplotlib',
+            'matplotlib',  # required by pycocotools
             'pycocotools',  # pre-install cython (currently incompatible with numpy 1.18 or above)
-            'torch>=1.3.0',
-            'torchvision>=0.4',
         ],
     },
 )
