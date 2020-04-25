@@ -12,8 +12,8 @@ usage: video.py [-h] [--checkpoint CHECKPOINT] [--basenet BASENET]
                 [--show-box] [--show-joint-scales] [--show-joint-confidences]
                 [--show-decoding-order] [--show-frontier-order]
                 [--show-only-decoded-connections] [--debug-cifhr]
-                [--debug-cif-c] [--debug-cif-v] [--debug-caf-c]
-                [--debug-caf-v]
+                [--debug-cif-c] [--debug-cif-v] [--debug-cifdet-c]
+                [--debug-cifdet-v] [--debug-caf-c] [--debug-caf-v]
                 [--debug-indices DEBUG_INDICES [DEBUG_INDICES ...]]
                 [--video-output [VIDEO_OUTPUT [VIDEO_OUTPUT ...]]]
                 [--video-fps VIDEO_FPS] [--show] [--horizontal-flip]
@@ -80,7 +80,7 @@ head:
                         input (default: 0.0)
   --head-quad HEAD_QUAD
                         number of times to apply quad (subpixel conv) to heads
-                        (default: 0)
+                        (default: 1)
 
 decoder configuration:
   --seed-threshold SEED_THRESHOLD
@@ -118,6 +118,8 @@ pose visualizer:
   --debug-cifhr
   --debug-cif-c
   --debug-cif-v
+  --debug-cifdet-c
+  --debug-cifdet-v
   --debug-caf-c
   --debug-caf-v
   --debug-indices DEBUG_INDICES [DEBUG_INDICES ...]

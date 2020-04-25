@@ -13,13 +13,14 @@ usage: eval_coco.py [-h] [--checkpoint CHECKPOINT] [--basenet BASENET]
                     [--show-joint-scales] [--show-joint-confidences]
                     [--show-decoding-order] [--show-frontier-order]
                     [--show-only-decoded-connections] [--debug-cifhr]
-                    [--debug-cif-c] [--debug-cif-v] [--debug-caf-c]
-                    [--debug-caf-v]
+                    [--debug-cif-c] [--debug-cif-v] [--debug-cifdet-c]
+                    [--debug-cifdet-v] [--debug-caf-c] [--debug-caf-v]
                     [--debug-indices DEBUG_INDICES [DEBUG_INDICES ...]]
-                    [--output OUTPUT] [-n N] [--skip-n SKIP_N]
-                    [--dataset {val,test,test-dev}] [--min-ann MIN_ANN]
-                    [--batch-size BATCH_SIZE] [--long-edge LONG_EDGE]
-                    [--loader-workers LOADER_WORKERS] [--extended-scale]
+                    [--output OUTPUT] [--detection-annotations] [-n N]
+                    [--skip-n SKIP_N] [--dataset {val,test,test-dev}]
+                    [--min-ann MIN_ANN] [--batch-size BATCH_SIZE]
+                    [--long-edge LONG_EDGE] [--loader-workers LOADER_WORKERS]
+                    [--orientation-invariant] [--extended-scale]
                     [--skip-existing] [--disable-cuda] [--write-predictions]
                     [--all-images] [--debug] [--log-stats]
 
@@ -28,6 +29,7 @@ Evaluation on COCO data.
 optional arguments:
   -h, --help            show this help message and exit
   --output OUTPUT       output filename without file extension (default: None)
+  --detection-annotations
   -n N                  number of batches (default: 0)
   --skip-n SKIP_N       skip n batches (default: 0)
   --dataset {val,test,test-dev}
@@ -39,6 +41,7 @@ optional arguments:
                         long edge of input images (default: 641)
   --loader-workers LOADER_WORKERS
                         number of workers for data loading (default: None)
+  --orientation-invariant
   --extended-scale
   --skip-existing       skip if output eval file exists already (default:
                         False)
@@ -71,7 +74,7 @@ head:
                         input (default: 0.0)
   --head-quad HEAD_QUAD
                         number of times to apply quad (subpixel conv) to heads
-                        (default: 0)
+                        (default: 1)
 
 decoder configuration:
   --seed-threshold SEED_THRESHOLD
@@ -109,6 +112,8 @@ pose visualizer:
   --debug-cifhr
   --debug-cif-c
   --debug-cif-v
+  --debug-cifdet-c
+  --debug-cifdet-v
   --debug-caf-c
   --debug-caf-v
   --debug-indices DEBUG_INDICES [DEBUG_INDICES ...]

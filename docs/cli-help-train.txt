@@ -23,18 +23,19 @@ usage: train.py [-h] [--debug] [--checkpoint CHECKPOINT] [--basenet BASENET]
                 [--train-annotations TRAIN_ANNOTATIONS]
                 [--train-image-dir TRAIN_IMAGE_DIR]
                 [--val-annotations VAL_ANNOTATIONS]
-                [--val-image-dir VAL_IMAGE_DIR] [--n-images N_IMAGES]
-                [--duplicate-data DUPLICATE_DATA]
+                [--val-image-dir VAL_IMAGE_DIR] [--dataset DATASET]
+                [--n-images N_IMAGES] [--duplicate-data DUPLICATE_DATA]
                 [--loader-workers LOADER_WORKERS] [--batch-size BATCH_SIZE]
-                [--debug-cifhr] [--debug-cif-c] [--debug-cif-v]
+                [--square-edge SQUARE_EDGE] [--extended-scale]
+                [--orientation-invariant ORIENTATION_INVARIANT]
+                [--no-augmentation] [--debug-cifhr] [--debug-cif-c]
+                [--debug-cif-v] [--debug-cifdet-c] [--debug-cifdet-v]
                 [--debug-caf-c] [--debug-caf-v]
                 [--debug-indices DEBUG_INDICES [DEBUG_INDICES ...]]
                 [-o OUTPUT] [--stride-apply STRIDE_APPLY] [--epochs EPOCHS]
                 [--rescale-images RESCALE_IMAGES]
-                [--orientation-invariant ORIENTATION_INVARIANT]
-                [--extended-scale] [--update-batchnorm-runningstatistics]
-                [--square-edge SQUARE_EDGE] [--ema EMA] [--disable-cuda]
-                [--no-augmentation] [--profile PROFILE] [--log-stats]
+                [--update-batchnorm-runningstatistics] [--ema EMA]
+                [--disable-cuda] [--profile PROFILE] [--log-stats]
 
 Train a pifpaf network.
 
@@ -47,16 +48,10 @@ optional arguments:
   --epochs EPOCHS       number of epochs to train (default: 75)
   --rescale-images RESCALE_IMAGES
                         overall image rescale factor (default: 1.0)
-  --orientation-invariant ORIENTATION_INVARIANT
-                        augment with random orientations (default: 0.0)
-  --extended-scale      augment with an extended scale range (default: False)
   --update-batchnorm-runningstatistics
                         update batch norm running statistics (default: False)
-  --square-edge SQUARE_EDGE
-                        square edge of input images (default: 385)
   --ema EMA             ema decay constant (default: 0.001)
   --disable-cuda        disable CUDA (default: False)
-  --no-augmentation     do not apply data augmentation (default: True)
 
 logging:
   --debug               print debug messages (default: False)
@@ -84,12 +79,11 @@ head:
                         input (default: 0.0)
   --head-quad HEAD_QUAD
                         number of times to apply quad (subpixel conv) to heads
-                        (default: 0)
+                        (default: 1)
 
 losses:
   --lambdas LAMBDAS [LAMBDAS ...]
-                        prefactor for head losses (default: [30.0, 2.0, 2.0,
-                        50.0, 3.0, 3.0])
+                        prefactor for head losses (default: None)
   --r-smooth R_SMOOTH   r_{smooth} for SmoothL1 regressions (default: 0.0)
   --regression-loss {smoothl1,smootherl1,l1,laplace}
                         type of regression loss (default: laplace)
@@ -140,7 +134,7 @@ learning rate scheduler:
                         starting epoch for warm-up (default: 0)
   --lr-warm-up-epochs LR_WARM_UP_EPOCHS
                         number of epochs at the beginning with lower learning
-                        rate (default: 2)
+                        rate (default: 1)
   --lr-warm-up-factor LR_WARM_UP_FACTOR
                         learning pre-factor during warm-up (default: 0.001)
 
@@ -149,6 +143,7 @@ dataset and loader:
   --train-image-dir TRAIN_IMAGE_DIR
   --val-annotations VAL_ANNOTATIONS
   --val-image-dir VAL_IMAGE_DIR
+  --dataset DATASET
   --n-images N_IMAGES   number of images to sample (default: None)
   --duplicate-data DUPLICATE_DATA
                         duplicate data (default: None)
@@ -157,10 +152,20 @@ dataset and loader:
   --batch-size BATCH_SIZE
                         batch size (default: 8)
 
+augmentations:
+  --square-edge SQUARE_EDGE
+                        square edge of input images (default: 385)
+  --extended-scale      augment with an extended scale range (default: False)
+  --orientation-invariant ORIENTATION_INVARIANT
+                        augment with random orientations (default: 0.0)
+  --no-augmentation     do not apply data augmentation (default: True)
+
 pose visualizer:
   --debug-cifhr
   --debug-cif-c
   --debug-cif-v
+  --debug-cifdet-c
+  --debug-cifdet-v
   --debug-caf-c
   --debug-caf-v
   --debug-indices DEBUG_INDICES [DEBUG_INDICES ...]

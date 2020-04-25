@@ -23,17 +23,19 @@ usage: python3 -m openpifpaf.predict [-h] [--checkpoint CHECKPOINT]
                                      [--show-frontier-order]
                                      [--show-only-decoded-connections]
                                      [--debug-cifhr] [--debug-cif-c]
-                                     [--debug-cif-v] [--debug-caf-c]
+                                     [--debug-cif-v] [--debug-cifdet-c]
+                                     [--debug-cifdet-v] [--debug-caf-c]
                                      [--debug-caf-v]
                                      [--debug-indices DEBUG_INDICES [DEBUG_INDICES ...]]
-                                     [--glob GLOB] [-o OUTPUT_DIRECTORY]
-                                     [--show]
-                                     [--output-types OUTPUT_TYPES [OUTPUT_TYPES ...]]
+                                     [--glob GLOB] [--show]
+                                     [--image-output [IMAGE_OUTPUT [IMAGE_OUTPUT ...]]]
+                                     [--json-output [JSON_OUTPUT [JSON_OUTPUT ...]]]
                                      [--batch-size BATCH_SIZE]
                                      [--long-edge LONG_EDGE]
                                      [--loader-workers LOADER_WORKERS]
                                      [--disable-cuda]
                                      [--line-width LINE_WIDTH]
+                                     [--monocolor-connections]
                                      [--figure-width FIGURE_WIDTH]
                                      [--dpi-factor DPI_FACTOR] [-q] [--debug]
                                      [images [images ...]]
@@ -47,13 +49,11 @@ optional arguments:
   -h, --help            show this help message and exit
   --glob GLOB           glob expression for input images (for many images)
                         (default: None)
-  -o OUTPUT_DIRECTORY, --output-directory OUTPUT_DIRECTORY
-                        Output directory. When using this option, make sure
-                        input images have distinct file names. (default: None)
   --show                show image of output overlay (default: False)
-  --output-types OUTPUT_TYPES [OUTPUT_TYPES ...]
-                        what to output: skeleton, keypoints, json (default:
-                        ['skeleton', 'json'])
+  --image-output [IMAGE_OUTPUT [IMAGE_OUTPUT ...]]
+                        image output file or directory (default: None)
+  --json-output [JSON_OUTPUT [JSON_OUTPUT ...]]
+                        json output file or directory (default: None)
   --batch-size BATCH_SIZE
                         processing batch size (default: 1)
   --long-edge LONG_EDGE
@@ -63,6 +63,7 @@ optional arguments:
   --disable-cuda        disable CUDA (default: False)
   --line-width LINE_WIDTH
                         line width for skeleton (default: 6)
+  --monocolor-connections
   --figure-width FIGURE_WIDTH
                         figure width (default: 10.0)
   --dpi-factor DPI_FACTOR
@@ -92,7 +93,7 @@ head:
                         input (default: 0.0)
   --head-quad HEAD_QUAD
                         number of times to apply quad (subpixel conv) to heads
-                        (default: 0)
+                        (default: 1)
 
 decoder configuration:
   --seed-threshold SEED_THRESHOLD
@@ -130,6 +131,8 @@ pose visualizer:
   --debug-cifhr
   --debug-cif-c
   --debug-cif-v
+  --debug-cifdet-c
+  --debug-cifdet-v
   --debug-caf-c
   --debug-caf-v
   --debug-indices DEBUG_INDICES [DEBUG_INDICES ...]
