@@ -4,6 +4,7 @@ import openpifpaf
 
 
 def test_forward():
+    openpifpaf.network.heads.CompositeFieldFused.quad = 0
     model, _ = openpifpaf.network.factory(
         base_name='resnet18',
         head_names=['cif', 'caf', 'caf25'],
@@ -17,6 +18,7 @@ def test_forward():
 
 
 def test_forward_dense():
+    openpifpaf.network.heads.CompositeFieldFused.quad = 0
     model, _ = openpifpaf.network.factory(
         base_name='resnet18',
         head_names=['cif', 'caf', 'caf25'],
@@ -31,7 +33,7 @@ def test_forward_dense():
 
 
 def test_forward_headquad():
-    openpifpaf.network.heads.CompositeField.quad = 1
+    openpifpaf.network.heads.CompositeFieldFused.quad = 1
     model, _ = openpifpaf.network.factory(
         base_name='resnet18',
         head_names=['cif', 'caf', 'caf25'],
