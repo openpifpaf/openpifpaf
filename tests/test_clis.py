@@ -17,7 +17,6 @@ def test_predict(batch_size, tmpdir):
         '--loader-workers=0',
         '--json-output', tmpdir,
         '--long-edge=181',
-        '--debug',
         'docs/coco/000000081988.jpg',
     ], check=True)
 
