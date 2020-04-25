@@ -22,6 +22,8 @@ SHUFFLENETV2X1_MODEL = ('http://github.com/vita-epfl/openpifpaf-torchhub/release
                         'v0.1.0/shufflenetv2x1-pif-paf-edge401-190705-151607-d9a35d7e.pkl')
 SHUFFLENETV2X2_MODEL = ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
                         'v0.10.0/shufflenetv2x2-pif-paf-paf25-edge401-191010-172527-ef704f06.pkl')
+SHUFFLENETV2K18W_MODEL = ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
+                          'v0.11rc1/shufflenetv2k18w-200424-173759-cif-caf-caf25.pkl.epoch115')
 
 LOG = logging.getLogger(__name__)
 
@@ -78,6 +80,10 @@ def factory(
             checkpoint = torch.hub.load_state_dict_from_url(SHUFFLENETV2X1_MODEL, check_hash=True)
         elif checkpoint == 'shufflenetv2x2':
             checkpoint = torch.hub.load_state_dict_from_url(SHUFFLENETV2X2_MODEL, check_hash=True)
+        elif checkpoint == 'shufflenetv2k18w':
+            # TODO: set check_hash to True on final model
+            checkpoint = torch.hub.load_state_dict_from_url(
+                SHUFFLENETV2K18W_MODEL, check_hash=False)
         elif checkpoint.startswith('http'):
             checkpoint = torch.hub.load_state_dict_from_url(
                 checkpoint, check_hash=not checkpoint.startswith('https'))
