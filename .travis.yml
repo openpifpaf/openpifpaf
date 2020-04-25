@@ -65,4 +65,7 @@ install:
 script:
  - pylint openpifpaf --disable=fixme
  - pytest -vv
- - pytest --nbval-lax --current-env docs/predict.ipynb
+ - |
+   if [ $PIFPAFTRAINING == "1" ]; then
+     pytest --nbval-lax --current-env docs/predict.ipynb;
+   fi
