@@ -28,13 +28,12 @@ def cli():
                         help='input images')
     parser.add_argument('--glob',
                         help='glob expression for input images (for many images)')
-    parser.add_argument('-o', '--output-directory',
-                        help=('Output directory. When using this option, make '
-                              'sure input images have distinct file names.'))
     parser.add_argument('--show', default=False, action='store_true',
                         help='show image of output overlay')
-    parser.add_argument('--output-types', nargs='+', default=['image', 'json'],
-                        help='what to output: image, json')
+    parser.add_argument('--image-output', default=None, nargs='*',
+                        help='image output file or directory')
+    parser.add_argument('--json-output', default=None, nargs='*',
+                        help='json output file or directory')
     parser.add_argument('--batch-size', default=1, type=int,
                         help='processing batch size')
     parser.add_argument('--long-edge', default=None, type=int,
@@ -107,10 +106,35 @@ def preprocess_factory(args):
     if args.long_edge:
         preprocess.append(transforms.RescaleAbsolute(args.long_edge))
     if args.batch_size > 1:
+        assert args.long_edge, '--long-edge must be provided for batch size > 1'
         preprocess.append(transforms.CenterPad(args.long_edge))
     else:
         preprocess.append(transforms.CenterPadTight(16))
     return transforms.Compose(preprocess + [transforms.EVAL_TRANSFORM])
+
+
+def out_name(arg_list, in_name, default_extension):
+    """Determine an output name from args, input name and extension.
+
+    arg_list can be:
+    - empty: activate this output and determine a default name
+    - one entry:
+        - not a directory: use this as the output file name
+        - is a directory: use directory name and input name to form an output
+    """
+    if len(arg_list) == 0:
+        oname = in_name + default_extension
+    elif len(arg_list) == 1:
+        oname = arg_list[0]
+        if os.path.isdir(oname):
+            oname = os.path.join(
+                oname,
+                os.path.basename(in_name)
+            ) + default_extension
+    else:
+        raise Exception('provide one or no value instead of {}'.format(arg_list))
+
+    return oname
 
 
 def main():
@@ -139,16 +163,11 @@ def main():
 
         # unbatch
         for pred, meta in zip(pred_batch, meta_batch):
-            if args.output_directory is None:
-                output_path = meta['file_name']
-            else:
-                file_name = os.path.basename(meta['file_name'])
-                output_path = os.path.join(args.output_directory, file_name)
-            LOG.info('batch %d: %s to %s', batch_i, meta['file_name'], output_path)
+            LOG.info('batch %d: %s', batch_i, meta['file_name'])
 
             # load the original image if necessary
             cpu_image = None
-            if args.debug or 'image' in args.output_types:
+            if args.debug or args.image_output is not None:
                 with open(meta['file_name'], 'rb') as f:
                     cpu_image = PIL.Image.open(f).convert('RGB')
 
@@ -156,13 +175,19 @@ def main():
             if preprocess is not None:
                 pred = preprocess.annotations_inverse(pred, meta)
 
-            if 'json' in args.output_types:
-                with open(output_path + '.predictions.json', 'w') as f:
+            if args.json_output is not None:
+                json_out_name = out_name(
+                    args.json_output, meta['file_name'], '.predictions.json')
+                LOG.debug('json output = %s', json_out_name)
+                with open(json_out_name, 'w') as f:
                     json.dump([ann.json_data() for ann in pred], f)
 
-            if 'image' in args.output_types:
+            if args.image_output is not None:
+                image_out_name = out_name(
+                    args.image_output, meta['file_name'], '.predictions.png')
+                LOG.debug('image output = %s', image_out_name)
                 with show.image_canvas(cpu_image,
-                                       output_path + '.predictions.png',
+                                       image_out_name,
                                        show=args.show,
                                        fig_width=args.figure_width,
                                        dpi_factor=args.dpi_factor) as ax:
