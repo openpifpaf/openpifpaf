@@ -294,6 +294,8 @@ def configure(args):
     # configure CompositeField
     heads.CompositeField.dropout_p = args.head_dropout
     heads.CompositeField.quad = args.head_quad
+    heads.CompositeFieldFused.dropout_p = args.head_dropout
+    heads.CompositeFieldFused.quad = args.head_quad
 
 
 def cli(parser):
@@ -319,7 +321,7 @@ def cli(parser):
                        help='[experimental]')
 
     group = parser.add_argument_group('head')
-    group.add_argument('--head-dropout', default=heads.CompositeField.dropout_p, type=float,
+    group.add_argument('--head-dropout', default=heads.CompositeFieldFused.dropout_p, type=float,
                        help='[experimental] zeroing probability of feature in head input')
-    group.add_argument('--head-quad', default=heads.CompositeField.quad, type=int,
+    group.add_argument('--head-quad', default=heads.CompositeFieldFused.quad, type=int,
                        help='number of times to apply quad (subpixel conv) to heads')
