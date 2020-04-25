@@ -22,6 +22,7 @@ openpifpaf/functional.html
 docs/*
 data-*/
 data_*/
+docs-private/
 data-mscoco
 *debug.png
 *.pl
