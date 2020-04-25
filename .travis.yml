@@ -60,3 +60,4 @@ install:
 script:
  - pylint openpifpaf --disable=fixme
  - pytest -vv
+ - pytest --nbval-lax docs/predict.ipynb

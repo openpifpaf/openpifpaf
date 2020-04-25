@@ -77,6 +77,7 @@ setup(
             'onnx-simplifier',
         ],
         'test': [
+            'nbval',
             'pylint',
             'pytest',
             'opencv-python',
