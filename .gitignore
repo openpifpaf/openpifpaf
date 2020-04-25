@@ -19,7 +19,6 @@ openpifpaf/functional.cpython-*
 openpifpaf/functional.html
 
 # data
-docs/*
 data-*/
 data_*/
 docs-private/
@@ -31,7 +30,6 @@ data-mscoco
 *.pkl
 *.pkl-*
 *.pkl.*
-*.json
 *.log
 *.zip
 outputs/
