@@ -4,6 +4,8 @@ Continuously tested on Linux, MacOS and Windows: [![Build Status](https://travis
 [CVPR 2019 paper](http://openaccess.thecvf.com/content_CVPR_2019/html/Kreiss_PifPaf_Composite_Fields_for_Human_Pose_Estimation_CVPR_2019_paper.html),
 [arxiv.org/abs/1903.06593](https://arxiv.org/abs/1903.06593)
 
+> PifPaf: Composite Fields for Human Pose Estimation
+>
 > We propose a new bottom-up method for multi-person 2D human pose
 > estimation that is particularly well suited for urban mobility such as self-driving cars
 > and delivery robots. The new method, PifPaf, uses a Part Intensity Field (PIF) to
@@ -22,7 +24,7 @@ Continuously tested on Linux, MacOS and Windows: [![Build Status](https://travis
 
 # Demo
 
-![example image with overlaid pose skeleton](docs/coco/000000081988.jpg.skeleton.png)
+![example image with overlaid pose predictions](docs/coco/000000081988.jpg.predictions.png)
 
 Image credit: "[Learning to surf](https://www.flickr.com/photos/fotologic/6038911779/in/photostream/)" by fotologic which is licensed under [CC-BY-2.0].<br />
 Created with:
@@ -49,8 +51,7 @@ pip3 install openpifpaf
 
 For a live demo, we recommend to try the
 [openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo) project.
-Alternatively, `openpifpaf.video` provides a live demo as well.
-It requires OpenCV.
+Alternatively, `openpifpaf.video` (requires OpenCV) provides a live demo as well.
 
 For development of the openpifpaf source code itself, you need to clone this repository and then:
 
@@ -61,7 +62,8 @@ pip3 install --editable '.[train,test]'
 
 The last command installs the Python package in the current directory
 (signified by the dot) with the optional dependencies needed for training and
-testing.
+testing. If you modify `functional.pyx`, run this last command again which
+recompiles the static code.
 
 
 # Interfaces
@@ -74,7 +76,6 @@ testing.
 
 Tools to work with models:
 
-* `python3 -m openpifpaf.add_pyramid --help`: [help screen](docs/cli-help-add_pyramid.txt)
 * `python3 -m openpifpaf.migrate --help`: [help screen](docs/cli-help-migrate.txt)
 * `python3 -m openpifpaf.export_onnx --help`: [help screen](docs/cli-help-export_onnx.txt)
 
@@ -85,22 +86,25 @@ Performance metrics with version 0.10.1 on the COCO val set obtained with a GTX1
 
 | Backbone               | AP       | APᴹ      | APᴸ      | t_{total} [ms]  | t_{dec} [ms] |
 |-----------------------:|:--------:|:--------:|:--------:|:---------------:|:------------:|
-| [shufflenetv2x2]       | __60.4__ | 55.5     | 67.8     | 56              | 33           |
-| [resnet50]             | __64.4__ | 61.1     | 69.9     | 76              | 32           |
-| [(v0.8) resnext50]     | __63.8__ | 61.1     | 68.1     | 93              | 33           |
-| [resnet101]            | __67.8__ | 63.6     | 74.3     | 97              | 28           |
-| [(v0.8) resnet152]     | __67.8__ | 64.4     | 73.3     | 122             | 30           |
+| [shufflenetv2k18w]     | __65.0__ | ????     | ????     | ??              | ??           |
+| [shufflenetv2k32w]     | __71.5__ | ????     | ????     | ??              | ??           |
+
+For comparison, old v0.10:
+
+| Backbone               | AP       | APᴹ      | APᴸ      | t_{total} [ms]  | t_{dec} [ms] |
+|-----------------------:|:--------:|:--------:|:--------:|:---------------:|:------------:|
+| [shufflenetv2x2] v0.10 | __60.4__ | 55.5     | 67.8     | 56              | 33           |
+| [resnet50] v0.10       | __64.4__ | 61.1     | 69.9     | 76              | 32           |
+| [resnet101] v0.10      | __67.8__ | 63.6     | 74.3     | 97              | 28           |
 
 [SHUFFLENETV2X1]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.1.0/shufflenetv2x1-pif-paf-edge401-190705-151607-d9a35d7e.pkl
 [shufflenetv2x2]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.10.0/shufflenetv2x2-pif-paf-paf25-edge401-191010-172527-ef704f06.pkl
 [resnet18]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.10.1/resnet18-pif-paf-paf25-edge401-191022-210137-84326f0f.pkl
 [resnet50]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.10.0/resnet50-pif-paf-paf25-edge401-191016-192503-d2b85396.pkl
-[(v0.8) resnext50]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.1.0/resnext50block5-pif-paf-edge401-190629-151121-24491655.pkl
 [resnet101]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.10.0/resnet101block5-pif-paf-paf25-edge401-191012-132602-a2bf7ecd.pkl
-[(v0.8) resnet152]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.1.0/resnet152block5-pif-paf-edge401-190625-185426-3e2f28ed.pkl
 
-Pretrained model files are shared in the releases of the
-__[openpifpaf-torchhub](https://github.com/vita-epfl/openpifpaf-torchhub)__
+Pretrained model files are shared in the
+__[openpifpaf-torchhub](https://github.com/vita-epfl/openpifpaf-torchhub/releases)__
 repository. The pretrained models are downloaded automatically when
 using the command line option `--checkpoint backbonenameasintableabove`.
 
@@ -195,23 +199,14 @@ COCO / kinematic tree / dense:
 
 <img src="docs/skeleton_coco.png" height="250" /><img src="docs/skeleton_kinematic_tree.png" height="250" /><img src="docs/skeleton_dense.png" height="250" />
 
-Created with `python3 -m openpifpaf.data`.
+Created with `python3 -m openpifpaf.datasets.constants`.
 
 
 # Video
 
-Processing a video frame by frame from `video.avi` to `video.pose.mp4` using ffmpeg:
-
 ```sh
-export VIDEO=video.avi  # change to your video file
-
-mkdir ${VIDEO}.images
-ffmpeg -i ${VIDEO} -qscale:v 2 -vf scale=641:-1 -f image2 ${VIDEO}.images/%05d.jpg
-python3 -m openpifpaf.predict --checkpoint resnet152 --glob "${VIDEO}.images/*.jpg"
-ffmpeg -framerate 24 -pattern_type glob -i ${VIDEO}.images/'*.jpg.skeleton.png' -vf scale=640:-2 -c:v libx264 -pix_fmt yuv420p ${VIDEO}.pose.mp4
+python3 -m openpifpaf.video --checkpoint shufflenetv2k18w myvideotoprocess.mp4 --video-output --json-output
 ```
-
-In this process, ffmpeg scales the video to `641px` which can be adjusted.
 
 
 # Documentation Pages
@@ -220,7 +215,6 @@ In this process, ffmpeg scales the video to `641px` which can be adjusted.
 * [Google Colab demo](https://colab.research.google.com/drive/1H8T4ZE6wc0A9xJE4oGnhgHpUpAH5HL7W)
 * [studies.ipynb](docs/studies.ipynb)
 * [evaluation logs](docs/eval_logs.md)
-* [performance analysis](docs/performance.md)
 * [history](HISTORY.md)
 * [contributing](CONTRIBUTING.md)
 
