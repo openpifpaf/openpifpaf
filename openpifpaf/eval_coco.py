@@ -52,6 +52,7 @@ class EvalCoco(object):
         self.image_ids = []
         self.eval = None
         self.decoder_time = 0.0
+        self.nn_time = 0.0
 
         LOG.debug('max = %d, category ids = %s, iou_type = %s',
                   self.max_per_image, self.category_ids, self.iou_type)
@@ -312,6 +313,7 @@ def write_evaluations(eval_coco, filename, args, total_time):
                 'stats': stats.tolist(),
                 'n_images': n_images,
                 'decoder_time': eval_coco.decoder_time,
+                'nn_time': eval_coco.nn_time,
                 'total_time': total_time,
                 'checkpoint': args.checkpoint,
                 'count_ops': list(eval_coco.count_ops()),
@@ -322,6 +324,8 @@ def write_evaluations(eval_coco, filename, args, total_time):
     print('n images = {}'.format(n_images))
     print('decoder time = {:.1f}s ({:.0f}ms / image)'
           ''.format(eval_coco.decoder_time, 1000 * eval_coco.decoder_time / n_images))
+    print('nn time = {:.1f}s ({:.0f}ms / image)'
+          ''.format(eval_coco.nn_time, 1000 * eval_coco.nn_time / n_images))
     print('total time = {:.1f}s ({:.0f}ms / image)'
           ''.format(total_time, 1000 * total_time / n_images))
 
@@ -406,7 +410,7 @@ def main():
         model.base_net = model_cpu.base_net
         model.head_nets = model_cpu.head_nets
 
-    processor = decoder.factory_from_args(args, model, args.device)
+    processor = decoder.factory_from_args(args, model)
     # processor.instance_scorer = decocder.instance_scorer.InstanceScoreRecorder()
     # processor.instance_scorer = torch.load('instance_scorer.pkl')
 
@@ -420,7 +424,7 @@ def main():
     )
     total_start = time.time()
     loop_start = time.time()
-    for batch_i, (image_tensors_cpu, anns_batch, meta_batch) in enumerate(data_loader):
+    for batch_i, (image_tensors, anns_batch, meta_batch) in enumerate(data_loader):
         LOG.info('batch %d, last loop: %.3fs, batches per second=%.1f',
                  batch_i, time.time() - loop_start,
                  batch_i / max(1, (time.time() - total_start)))
@@ -437,17 +441,13 @@ def main():
                 if np.any(a['keypoints'][:, 2] > 0)]) < args.min_ann:
             continue
 
-        fields_batch = processor.fields(image_tensors_cpu)
-
-        decoder_start = time.perf_counter()
-        pred_batch = processor.annotations_batch(
-            fields_batch, meta_batch=meta_batch, debug_images=image_tensors_cpu)
-        eval_coco.decoder_time += time.perf_counter() - decoder_start
+        pred_batch = processor.batch(model, image_tensors, device=args.device)
+        eval_coco.decoder_time += processor.last_decoder_time
+        eval_coco.nn_time += processor.last_nn_time
 
         # loop over batch
-        assert len(image_tensors_cpu) == len(fields_batch)
-        assert len(image_tensors_cpu) == len(anns_batch)
-        assert len(image_tensors_cpu) == len(meta_batch)
+        assert len(image_tensors) == len(anns_batch)
+        assert len(image_tensors) == len(meta_batch)
         for pred, anns, meta in zip(pred_batch, anns_batch, meta_batch):
             eval_coco.from_predictions(pred, meta, debug=args.debug, gt=anns)
     total_time = time.time() - total_start

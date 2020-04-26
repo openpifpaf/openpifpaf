@@ -2,6 +2,9 @@ from collections import defaultdict
 import logging
 import time
 
+import torch
+
+from .generator import Generator
 from ...annotation import AnnotationDet
 from ..field_config import FieldConfig
 from ..cif_hr import CifDetHr
@@ -12,12 +15,28 @@ from ..occupancy import Occupancy
 LOG = logging.getLogger(__name__)
 
 
-class CifDet:
-    def __init__(self, field_config: FieldConfig, categories):
+class CifDet(Generator):
+    def __init__(self, field_config: FieldConfig, categories, *, worker_pool=None):
+        super().__init__(worker_pool)
         self.field_config = field_config
         self.categories = categories
 
         self.timers = defaultdict(float)
+
+    @staticmethod
+    def fields_batch(model, image_batch, *, device=None):
+        start = time.time()
+        with torch.no_grad():
+            if device is not None:
+                image_batch = image_batch.to(device, non_blocking=True)
+
+            cif_head, _ = model(image_batch)
+
+            # to numpy
+            cif_head = cif_head.cpu().numpy()
+
+        LOG.debug('nn processing time: %.3fs', time.time() - start)
+        return [(ch,) for ch in cif_head]
 
     def __call__(self, fields):
         start = time.perf_counter()

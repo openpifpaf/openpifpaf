@@ -122,12 +122,12 @@ def processor_factory(args):
     model, _ = network.factory_from_args(args)
     model = model.to(args.device)
     processor = decoder.factory_from_args(args, model)
-    return processor
+    return processor, model
 
 
 def main():
     args = cli()
-    processor = processor_factory(args)
+    processor, model = processor_factory(args)
 
     # create keypoint painter
     keypoint_painter = show.KeypointPainter(color_connections=args.colored_connections, linewidth=6)
@@ -174,8 +174,7 @@ def main():
         processed_image = processed_image_cpu.contiguous().to(args.device, non_blocking=True)
         LOG.debug('preprocessing time %.3fs', time.time() - start)
 
-        fields = processor.fields(torch.unsqueeze(processed_image, 0))[0]
-        preds = processor.annotations(fields)
+        preds = processor.batch(model, torch.unsqueeze(processed_image, 0), device=args.device)[0]
 
         if args.json_output:
             with open(args.json_output, 'a+') as f:

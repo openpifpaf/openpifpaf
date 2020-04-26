@@ -97,8 +97,8 @@ def processor_factory(args):
         model = torch.nn.DataParallel(model)
         model.head_names = model_cpu.head_names
         model.head_strides = model_cpu.head_strides
-    processor = decoder.factory_from_args(args, model, args.device)
-    return processor
+    processor = decoder.factory_from_args(args, model)
+    return processor, model
 
 
 def preprocess_factory(args):
@@ -144,7 +144,7 @@ def out_name(arg_list, in_name, default_extension):
 def main():
     args = cli()
 
-    processor = processor_factory(args)
+    processor, model = processor_factory(args)
     preprocess = preprocess_factory(args)
 
     # data
@@ -162,8 +162,7 @@ def main():
     annotation_painter = show.AnnotationPainter(keypoint_painter=keypoint_painter)
 
     for batch_i, (image_tensors_batch, _, meta_batch) in enumerate(data_loader):
-        fields_batch = processor.fields(image_tensors_batch)
-        pred_batch = processor.annotations_batch(fields_batch, debug_images=image_tensors_batch)
+        pred_batch = processor.batch(model, image_tensors_batch, device=args.device)
 
         # unbatch
         for pred, meta in zip(pred_batch, meta_batch):

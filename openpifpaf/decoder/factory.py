@@ -5,7 +5,6 @@ from .field_config import FieldConfig
 from .caf_scored import CafScored
 from .cif_hr import CifHr
 from .cif_seeds import CifSeeds
-from .processor import Processor, ProcessorDet
 from .profiler import Profiler
 from .. import network, visualizer
 
@@ -60,22 +59,6 @@ def cli(parser, *,
 
 
 def configure(args):
-    # configure CifHr
-    CifHr.v_threshold = args.cif_th
-
-    # configure CifSeeds
-    CifSeeds.threshold = args.seed_threshold
-
-    # configure CafScored
-    CafScored.default_score_th = args.caf_th
-
-    # configure debug visualizer
-    CifSeeds.debug_visualizer = visualizer.Seeds()
-    CifHr.debug_visualizer = visualizer.CifHr()
-    Processor.debug_visualizer = visualizer.Occupancy()
-    ProcessorDet.debug_visualizer = visualizer.Occupancy()
-    generator.CifCaf.debug_visualizer = visualizer.Occupancy()
-
     # default value for keypoint filter depends on whether complete pose is forced
     if args.keypoint_threshold is None:
         args.keypoint_threshold = 0.001 if not args.force_complete_pose else 0.0
@@ -85,11 +68,24 @@ def configure(args):
         assert args.keypoint_threshold == 0.0
     assert args.seed_threshold >= args.keypoint_threshold
 
+    # configure CifHr
+    CifHr.v_threshold = args.cif_th
+    CifHr.debug_visualizer = visualizer.CifHr()
+
+    # configure CifSeeds
+    CifSeeds.threshold = args.seed_threshold
+    CifSeeds.debug_visualizer = visualizer.Seeds()
+
+    # configure CafScored
+    CafScored.default_score_th = args.caf_th
+
     # configure decoder generator
     generator.CifCaf.force_complete = args.force_complete_pose
     generator.CifCaf.keypoint_threshold = args.keypoint_threshold
     generator.CifCaf.greedy = args.greedy
     generator.CifCaf.connection_method = args.connection_method
+    generator.CifCaf.occupancy_visualizer = visualizer.Occupancy()
+    generator.CifDet.occupancy_visualizer = visualizer.Occupancy()
 
     # configure nms
     nms.Detection.instance_threshold = args.instance_threshold
@@ -103,7 +99,7 @@ def configure(args):
         args.decoder_workers = args.batch_size
 
 
-def factory_from_args(args, model, device=None):
+def factory_from_args(args, model):
     configure(args)
 
     decode = factory_decode(model,
@@ -111,18 +107,12 @@ def factory_from_args(args, model, device=None):
                             dense_connections=args.dense_connections,
                             caf_seeds=args.caf_seeds,
                             multi_scale=args.multi_scale,
-                            multi_scale_hflip=args.multi_scale_hflip)
+                            multi_scale_hflip=args.multi_scale_hflip,
+                            worker_pool=args.decoder_workers)
     if args.profile_decoder is not None:
         decode = Profiler(decode, out_name=args.profile_decoder)
 
-    if isinstance(decode, generator.CifDet):
-        return ProcessorDet(model, decode,
-                            worker_pool=args.decoder_workers,
-                            device=device)
-
-    return Processor(model, decode,
-                     worker_pool=args.decoder_workers,
-                     device=device)
+    return decode
 
 
 def factory_decode(model, *,
@@ -131,7 +121,7 @@ def factory_decode(model, *,
                    caf_seeds=False,
                    multi_scale=False,
                    multi_scale_hflip=True,
-                   **kwargs):
+                   worker_pool=None):
     """Instantiate a decoder."""
     assert not caf_seeds, 'not implemented'
 
@@ -140,7 +130,11 @@ def factory_decode(model, *,
 
     if isinstance(model.head_nets[0].meta, network.heads.DetectionMeta):
         field_config = FieldConfig()
-        return generator.CifDet(field_config, model.head_nets[0].meta.categories, **kwargs)
+        return generator.CifDet(
+            field_config,
+            model.head_nets[0].meta.categories,
+            worker_pool=worker_pool,
+        )
 
     if isinstance(model.head_nets[0].meta, network.heads.IntensityMeta) \
        and isinstance(model.head_nets[1].meta, network.heads.AssociationMeta):
@@ -199,7 +193,7 @@ def factory_decode(model, *,
             keypoints=model.head_nets[0].meta.keypoints,
             skeleton=skeleton,
             out_skeleton=model.head_nets[1].meta.skeleton,
-            **kwargs
+            worker_pool=worker_pool,
         )
 
     raise Exception('decoder unknown for head names: {}'.format(head_names))

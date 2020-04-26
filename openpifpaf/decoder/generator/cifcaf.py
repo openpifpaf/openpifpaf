@@ -4,7 +4,9 @@ from queue import PriorityQueue
 import time
 
 import numpy as np
+import torch
 
+from .generator import Generator
 from ...annotation import Annotation
 from ..field_config import FieldConfig
 from ..cif_hr import CifHr
@@ -19,9 +21,9 @@ from ...functional import caf_center_s
 LOG = logging.getLogger(__name__)
 
 
-class CifCaf(object):
+class CifCaf(Generator):
     connection_method = 'blend'
-    debug_visualizer = None
+    occupancy_visualizer = None
     force_complete = False
     greedy = False
     keypoint_threshold = 0.0
@@ -30,7 +32,9 @@ class CifCaf(object):
                  keypoints,
                  skeleton,
                  out_skeleton=None,
-                 confidence_scales=None):
+                 confidence_scales=None,
+                 worker_pool=None):
+        super().__init__(worker_pool)
         self.field_config = field_config
 
         self.keypoints = keypoints
@@ -50,6 +54,25 @@ class CifCaf(object):
         for caf_i, (j1, j2) in enumerate(self.skeleton_m1):
             self.by_source[j1][j2] = (caf_i, True)
             self.by_source[j2][j1] = (caf_i, False)
+
+    @staticmethod
+    def fields_batch(model, image_batch, *, device=None):
+        start = time.time()
+        with torch.no_grad():
+            if device is not None:
+                image_batch = image_batch.to(device, non_blocking=True)
+
+            cif_head, caf_head = model(image_batch)
+
+            # to numpy
+            cif_head = cif_head.cpu().numpy()
+            caf_head = caf_head.cpu().numpy()
+
+        # index by frame (item in batch)
+        heads = list(zip(cif_head, caf_head))
+
+        LOG.debug('nn processing time: %.3fs', time.time() - start)
+        return heads
 
     def __call__(self, fields, initial_annotations=None):
         start = time.perf_counter()
@@ -94,8 +117,8 @@ class CifCaf(object):
             annotations.append(ann)
             mark_occupied(ann)
 
-        if self.debug_visualizer:
-            self.debug_visualizer.predicted(occupied)
+        if self.occupancy_visualizer:
+            self.occupancy_visualizer.predicted(occupied)
 
         LOG.debug('annotations %d, %.3fs', len(annotations), time.perf_counter() - start)
 
