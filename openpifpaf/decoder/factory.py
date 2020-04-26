@@ -44,7 +44,7 @@ def cli(parser, *,
                            default=False, action='store_true')
 
     group.add_argument('--profile-decoder',
-                       help='activates decoder profiler, specify out file')
+                       help='activates decoder profiler, specify out file or empty string')
 
     group = parser.add_argument_group('CifCaf decoders')
     group.add_argument('--cif-th', default=CifHr.v_threshold, type=float,
@@ -107,7 +107,7 @@ def factory_from_args(args, model, device=None):
                             caf_seeds=args.caf_seeds,
                             multi_scale=args.multi_scale,
                             multi_scale_hflip=args.multi_scale_hflip)
-    if args.profile_decoder:
+    if args.profile_decoder is not None:
         decode = Profiler(decode, out_name=args.profile_decoder)
 
     if isinstance(decode, generator.CifDet):

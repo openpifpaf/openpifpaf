@@ -18,7 +18,7 @@ class Profiler:
     def __call__(self, *args, **kwargs):
         self.profile.enable()
 
-        self.function_to_profile(*args, **kwargs)
+        result = self.function_to_profile(*args, **kwargs)
 
         self.profile.disable()
         iostream = io.StringIO()
@@ -28,3 +28,5 @@ class Profiler:
         if self.out_name:
             ps.dump_stats(self.out_name)
         print(iostream.getvalue())
+
+        return result
