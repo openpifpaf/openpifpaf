@@ -74,7 +74,7 @@ class Processor(object):
 
         return self.annotations(fields, meta=meta)
 
-    def annotations(self, fields, *, initial_annotations=None, meta=None):
+    def annotations(self, fields, *, initial_annotations=None, meta=None):  # pylint: disable=unused-argument
         start = time.time()
 
         annotations = self.decode(fields, initial_annotations=initial_annotations)
