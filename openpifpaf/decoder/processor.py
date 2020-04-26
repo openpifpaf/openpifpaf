@@ -79,8 +79,6 @@ class Processor(object):
 
         annotations = self.decode(fields, initial_annotations=initial_annotations)
 
-        LOG.info('%d annotations: %s', len(annotations),
-                 [np.sum(ann.data[:, 2] > 0.1) for ann in annotations])
         LOG.debug('total processing time: %.3fs', time.time() - start)
         return annotations
 

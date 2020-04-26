@@ -103,6 +103,9 @@ class CifCaf(object):
             annotations = self.complete_annotations(cifhr, fields, annotations)
 
         annotations = nms.Keypoints().annotations(annotations)
+
+        LOG.info('%d annotations: %s', len(annotations),
+                 [np.sum(ann.data[:, 2] > 0.1) for ann in annotations])
         return annotations
 
     def _grow_connection(self, xy, xy_scale, caf_field):
