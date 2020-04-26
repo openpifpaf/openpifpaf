@@ -117,24 +117,28 @@ def out_name(arg_list, in_name, default_extension):
     """Determine an output name from args, input name and extension.
 
     arg_list can be:
+    - none: return none (e.g. show image but don't store it)
     - empty: activate this output and determine a default name
     - one entry:
         - not a directory: use this as the output file name
         - is a directory: use directory name and input name to form an output
     """
+    if arg_list is None:
+        return None
+
     if len(arg_list) == 0:
-        oname = in_name + default_extension
-    elif len(arg_list) == 1:
+        return in_name + default_extension
+
+    if len(arg_list) == 1:
         oname = arg_list[0]
         if os.path.isdir(oname):
             oname = os.path.join(
                 oname,
                 os.path.basename(in_name)
             ) + default_extension
-    else:
-        raise Exception('provide one or no value instead of {}'.format(arg_list))
+        return oname
 
-    return oname
+    raise Exception('provide one or no value instead of {}'.format(arg_list))
 
 
 def main():
@@ -167,7 +171,7 @@ def main():
 
             # load the original image if necessary
             cpu_image = None
-            if args.debug or args.image_output is not None:
+            if args.debug or args.show or args.image_output is not None:
                 with open(meta['file_name'], 'rb') as f:
                     cpu_image = PIL.Image.open(f).convert('RGB')
 
@@ -182,7 +186,7 @@ def main():
                 with open(json_out_name, 'w') as f:
                     json.dump([ann.json_data() for ann in pred], f)
 
-            if args.image_output is not None:
+            if args.show or args.image_output is not None:
                 image_out_name = out_name(
                     args.image_output, meta['file_name'], '.predictions.png')
                 LOG.debug('image output = %s', image_out_name)

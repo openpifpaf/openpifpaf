@@ -55,9 +55,9 @@ def factory(
         multi_scale=False,
         multi_scale_hflip=True):
 
-    if not checkpoint:
-        assert base_name
+    if base_name:
         assert head_names
+        assert checkpoint is None
         net_cpu = factory_from_scratch(base_name, head_names, pretrained=pretrained)
         epoch = 0
     else:
@@ -65,7 +65,9 @@ def factory(
         assert head_names is None
 
         if not checkpoint:
-            checkpoint = torch.hub.load_state_dict_from_url(SHUFFLENETV2X2_MODEL, check_hash=True)
+            # TODO: set check_hash to True on final model
+            checkpoint = torch.hub.load_state_dict_from_url(
+                SHUFFLENETV2K18W_MODEL, check_hash=False)
         elif checkpoint == 'resnet18':
             checkpoint = torch.hub.load_state_dict_from_url(RESNET18_MODEL, check_hash=True)
         elif checkpoint == 'resnet50':
