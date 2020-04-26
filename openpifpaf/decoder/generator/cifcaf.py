@@ -10,6 +10,7 @@ from ..field_config import FieldConfig
 from ..cif_hr import CifHr
 from ..cif_seeds import CifSeeds
 from ..caf_scored import CafScored
+from .. import nms
 from ..occupancy import Occupancy
 
 # pylint: disable=import-error
@@ -101,6 +102,7 @@ class CifCaf(object):
         if self.force_complete:
             annotations = self.complete_annotations(cifhr, fields, annotations)
 
+        annotations = nms.Keypoints().annotations(annotations)
         return annotations
 
     def _grow_connection(self, xy, xy_scale, caf_field):

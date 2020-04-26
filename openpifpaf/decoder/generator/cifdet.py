@@ -6,6 +6,7 @@ from ...annotation import AnnotationDet
 from ..field_config import FieldConfig
 from ..cif_hr import CifDetHr
 from ..cif_seeds import CifDetSeeds
+from .. import nms
 from ..occupancy import Occupancy
 
 LOG = logging.getLogger(__name__)
@@ -36,6 +37,8 @@ class CifDet:
             ann = AnnotationDet(self.categories).set(f, v, (x - w/2.0, y - h/2.0, w, h))
             annotations.append(ann)
             occupied.set(f, x, y, 0.1 * min(w, h))
+
+        annotations = nms.Detection().annotations(annotations)
 
         LOG.debug('annotations %d, %.3fs', len(annotations), time.perf_counter() - start)
         return annotations

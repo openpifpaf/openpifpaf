@@ -1,6 +1,6 @@
 import logging
 
-from . import generator
+from . import generator, nms
 from .field_config import FieldConfig
 from .caf_scored import CafScored
 from .cif_hr import CifHr
@@ -91,6 +91,11 @@ def configure(args):
     generator.CifCaf.greedy = args.greedy
     generator.CifCaf.connection_method = args.connection_method
 
+    # configure nms
+    nms.Detection.instance_threshold = args.instance_threshold
+    nms.Keypoints.instance_threshold = args.instance_threshold
+    nms.Keypoints.keypoint_threshold = args.keypoint_threshold
+
     # decoder workers
     if args.decoder_workers is None and \
        getattr(args, 'batch_size', 1) > 1 and \
@@ -112,13 +117,10 @@ def factory_from_args(args, model, device=None):
 
     if isinstance(decode, generator.CifDet):
         return ProcessorDet(model, decode,
-                            instance_threshold=args.instance_threshold,
                             worker_pool=args.decoder_workers,
                             device=device)
 
     return Processor(model, decode,
-                     instance_threshold=args.instance_threshold,
-                     keypoint_threshold=args.keypoint_threshold,
                      worker_pool=args.decoder_workers,
                      device=device)
 
