@@ -6,6 +6,7 @@ from .caf_scored import CafScored
 from .cif_hr import CifHr
 from .cif_seeds import CifSeeds
 from .processor import Processor, ProcessorDet
+from .profiler import Profiler
 from .. import network, visualizer
 
 LOG = logging.getLogger(__name__)
@@ -42,8 +43,8 @@ def cli(parser, *,
         group.add_argument('--force-complete-pose', dest='force_complete_pose',
                            default=False, action='store_true')
 
-    group.add_argument('--profile-decoder', default=None, action='store_true',
-                       help='profile decoder')
+    group.add_argument('--profile-decoder',
+                       help='activates decoder profiler, specify out file')
 
     group = parser.add_argument_group('CifCaf decoders')
     group.add_argument('--cif-th', default=CifHr.v_threshold, type=float,
@@ -106,17 +107,18 @@ def factory_from_args(args, model, device=None):
                             caf_seeds=args.caf_seeds,
                             multi_scale=args.multi_scale,
                             multi_scale_hflip=args.multi_scale_hflip)
+    if args.profile_decoder:
+        decode = Profiler(decode, out_name=args.profile_decoder)
+
     if isinstance(decode, generator.CifDet):
         return ProcessorDet(model, decode,
                             instance_threshold=args.instance_threshold,
-                            profile=args.profile_decoder,
                             worker_pool=args.decoder_workers,
                             device=device)
 
     return Processor(model, decode,
                      instance_threshold=args.instance_threshold,
                      keypoint_threshold=args.keypoint_threshold,
-                     profile=args.profile_decoder,
                      worker_pool=args.decoder_workers,
                      device=device)
 
