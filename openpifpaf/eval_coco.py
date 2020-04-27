@@ -79,13 +79,11 @@ class EvalCoco(object):
         self.eval.summarize()
         return self.eval.stats
 
-    def count_ops(self, height=641, width=641):
-        if isinstance(self.processor.model, torch.nn.DataParallel):
-            return None, None
-
-        device = next(self.processor.model.parameters()).device
+    @staticmethod
+    def count_ops(model, height=641, width=641):
+        device = next(model.parameters()).device
         dummy_input = torch.randn(1, 3, height, width, device=device)
-        gmacs, params = thop.profile(self.processor.model, inputs=(dummy_input, ))
+        gmacs, params = thop.profile(model, inputs=(dummy_input, ))
         LOG.info('GMACs = {0:.2f}, million params = {1:.2f}'.format(gmacs / 1e9, params / 1e6))
         return gmacs, params
 
@@ -299,7 +297,7 @@ def cli():  # pylint: disable=too-many-statements
     return args
 
 
-def write_evaluations(eval_coco, filename, args, total_time):
+def write_evaluations(eval_coco, filename, args, total_time, count_ops):
     if args.write_predictions:
         eval_coco.write_predictions(filename)
 
@@ -316,7 +314,7 @@ def write_evaluations(eval_coco, filename, args, total_time):
                 'nn_time': eval_coco.nn_time,
                 'total_time': total_time,
                 'checkpoint': args.checkpoint,
-                'count_ops': list(eval_coco.count_ops()),
+                'count_ops': count_ops,
             }, f)
     else:
         print('given dataset does not have ground truth, so no stats summary')
@@ -453,7 +451,8 @@ def main():
     total_time = time.time() - total_start
 
     # processor.instance_scorer.write_data('instance_score_data.json')
-    write_evaluations(eval_coco, args.output, args, total_time)
+    count_ops = list(eval_coco.count_ops(model_cpu))
+    write_evaluations(eval_coco, args.output, args, total_time, count_ops)
 
 
 if __name__ == '__main__':
