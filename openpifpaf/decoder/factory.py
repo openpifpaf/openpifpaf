@@ -1,10 +1,12 @@
 import logging
 
-from . import generator, nms
-from .field_config import FieldConfig
 from .caf_scored import CafScored
 from .cif_hr import CifHr
 from .cif_seeds import CifSeeds
+from .field_config import FieldConfig
+from .generator.cifcaf import CifCaf
+from .generator.cifdet import CifDet
+from . import nms
 from .profiler import Profiler
 from .. import network, visualizer
 
@@ -51,7 +53,7 @@ def cli(parser, *,
     group.add_argument('--caf-th', default=CafScored.default_score_th, type=float,
                        help='caf threshold')
     group.add_argument('--connection-method',
-                       default=generator.CifCaf.connection_method,
+                       default=CifCaf.connection_method,
                        choices=('max', 'blend'),
                        help='connection method to use, max is faster')
     group.add_argument('--greedy', default=False, action='store_true',
@@ -80,12 +82,12 @@ def configure(args):
     CafScored.default_score_th = args.caf_th
 
     # configure decoder generator
-    generator.CifCaf.force_complete = args.force_complete_pose
-    generator.CifCaf.keypoint_threshold = args.keypoint_threshold
-    generator.CifCaf.greedy = args.greedy
-    generator.CifCaf.connection_method = args.connection_method
-    generator.CifCaf.occupancy_visualizer = visualizer.Occupancy()
-    generator.CifDet.occupancy_visualizer = visualizer.Occupancy()
+    CifCaf.force_complete = args.force_complete_pose
+    CifCaf.keypoint_threshold = args.keypoint_threshold
+    CifCaf.greedy = args.greedy
+    CifCaf.connection_method = args.connection_method
+    CifCaf.occupancy_visualizer = visualizer.Occupancy()
+    CifDet.occupancy_visualizer = visualizer.Occupancy()
 
     # configure nms
     nms.Detection.instance_threshold = args.instance_threshold
@@ -130,7 +132,7 @@ def factory_decode(model, *,
 
     if isinstance(model.head_nets[0].meta, network.heads.DetectionMeta):
         field_config = FieldConfig()
-        return generator.CifDet(
+        return CifDet(
             field_config,
             model.head_nets[0].meta.categories,
             worker_pool=worker_pool,
@@ -188,7 +190,7 @@ def factory_decode(model, *,
             for i in field_config.caf_indices
         ]
 
-        return generator.CifCaf(
+        return CifCaf(
             field_config,
             keypoints=model.head_nets[0].meta.keypoints,
             skeleton=skeleton,
