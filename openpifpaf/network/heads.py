@@ -54,7 +54,7 @@ class CifCafCollector(torch.nn.Module):
 
     @staticmethod
     def concat_heads(heads):
-        if len(heads) == 0:
+        if not heads:
             return None
         if len(heads) == 1:
             return heads[0]

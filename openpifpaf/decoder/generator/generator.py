@@ -3,6 +3,8 @@ import logging
 import multiprocessing
 import time
 
+import torch
+
 from ... import visualizer
 
 LOG = logging.getLogger(__name__)
@@ -33,10 +35,39 @@ class Generator:
             if k not in ('worker_pool',)
         }
 
-    @abstractstaticmethod
+    @staticmethod
     def fields_batch(model, image_batch, *, device=None):
         """From image batch to field batch."""
-        raise NotImplementedError()
+        start = time.time()
+
+        def apply(f, items):
+            """Apply f in a nested fashion to all items that are not list or tuple."""
+            if items is None:
+                return None
+            if isinstance(items, (list, tuple)):
+                return [apply(f, i) for i in items]
+            return f(items)
+
+        with torch.no_grad():
+            if device is not None:
+                image_batch = image_batch.to(device, non_blocking=True)
+
+            heads = model(image_batch)
+
+            # to numpy
+            heads = apply(lambda x: x.cpu().numpy(), heads)
+
+        # index by frame (item in batch)
+        head_iter = apply(iter, heads)
+        heads = []
+        while True:
+            try:
+                heads.append(apply(next, head_iter))
+            except StopIteration:
+                break
+
+        LOG.debug('nn processing time: %.3fs', time.time() - start)
+        return heads
 
     @abstractmethod
     def __call__(self, fields, *, initial_annotations=None):

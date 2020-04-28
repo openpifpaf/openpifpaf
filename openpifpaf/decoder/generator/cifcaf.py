@@ -55,25 +55,6 @@ class CifCaf(Generator):
             self.by_source[j1][j2] = (caf_i, True)
             self.by_source[j2][j1] = (caf_i, False)
 
-    @staticmethod
-    def fields_batch(model, image_batch, *, device=None):
-        start = time.time()
-        with torch.no_grad():
-            if device is not None:
-                image_batch = image_batch.to(device, non_blocking=True)
-
-            cif_head, caf_head = model(image_batch)
-
-            # to numpy
-            cif_head = cif_head.cpu().numpy()
-            caf_head = caf_head.cpu().numpy()
-
-        # index by frame (item in batch)
-        heads = list(zip(cif_head, caf_head))
-
-        LOG.debug('nn processing time: %.3fs', time.time() - start)
-        return heads
-
     def __call__(self, fields, initial_annotations=None):
         start = time.perf_counter()
         if not initial_annotations:

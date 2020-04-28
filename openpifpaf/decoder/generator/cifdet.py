@@ -23,21 +23,6 @@ class CifDet(Generator):
 
         self.timers = defaultdict(float)
 
-    @staticmethod
-    def fields_batch(model, image_batch, *, device=None):
-        start = time.time()
-        with torch.no_grad():
-            if device is not None:
-                image_batch = image_batch.to(device, non_blocking=True)
-
-            cif_head, _ = model(image_batch)
-
-            # to numpy
-            cif_head = cif_head.cpu().numpy()
-
-        LOG.debug('nn processing time: %.3fs', time.time() - start)
-        return [(ch,) for ch in cif_head]
-
     def __call__(self, fields):
         start = time.perf_counter()
 

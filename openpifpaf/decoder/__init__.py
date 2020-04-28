@@ -7,6 +7,7 @@ from .factory import cli, configure, factory_decode, factory_from_args
 from .field_config import FieldConfig
 from .generator.cifcaf import CifCaf
 from .generator.cifdet import CifDet
+from .generator.generator import Generator
 from . import nms
 from .occupancy import Occupancy
 from .profiler import Profiler
