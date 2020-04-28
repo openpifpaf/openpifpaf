@@ -147,37 +147,42 @@ time CUDA_VISIBLE_DEVICES=0,1 python3 -m openpifpaf.train \
 ShuffleNet models are trained without ImageNet pretraining:
 
 ```sh
-time CUDA_VISIBLE_DEVICES=0,1 python3 -m openpifpaf.train \
-  --lr=0.05 \
-  --momentum=0.9 \
-  --epochs=150 \
-  --lr-decay 120 140 \
-  --batch-size=32 \
-  --square-edge=385 \
-  --lambdas 1 1 0.2   1 1 1 0.2 0.2    1 1 1 0.2 0.2 \
-  --auto-tune-mtl \
-  --weight-decay=1e-5 \
-  --update-batchnorm-runningstatistics \
-  --ema=0.03 \
-  --basenet=shufflenetv2x2 \
-  --headnets pif pafs pafs25 \
-  --head-quad=1
-
-time CUDA_VISIBLE_DEVICES=0,1 python3 -m openpifpaf.train \
-  --lr=0.05 \
+time CUDA_VISIBLE_DEVICES=2,3 python3 -m openpifpaf.train \
+  --lr=0.1 \
   --momentum=0.9 \
   --epochs=250 \
-  --lr-decay 220 240 \
-  --lr-burn-in-start-epoch=150 \
-  --lr-burn-in-epochs=0.5 \
+  --lr-warm-up-epochs=1 \
+  --lr-decay 120 220 230 235 240 245 \
+  --lr-decay-epochs=5 \
+  --lr-decay-factor=0.5 \
   --batch-size=32 \
   --square-edge=385 \
   --lambdas 1 1 0.2   1 1 1 0.2 0.2    1 1 1 0.2 0.2 \
   --auto-tune-mtl \
   --weight-decay=1e-5 \
   --update-batchnorm-runningstatistics \
-  --ema=0.03 \
-  --checkpoint outputs/shufflenetv2x2pd-pif-pafs-pafs25-200105-120106.pkl
+  --ema=0.01 \
+  --basenet=shufflenetv2k32w \
+  --headnets cif caf caf25
+
+# for improved performance, take the epoch150 checkpoint and train with
+# extended-scale and 10% orientation-invariant:
+time CUDA_VISIBLE_DEVICES=0,1 python3 -m openpifpaf.train \
+  --lr=0.1 \
+  --momentum=0.9 \
+  --epochs=250 \
+  --lr-warm-up-epochs=1 \
+  --lr-decay 120 220 230 235 240 245 \
+  --lr-decay-epochs=5 \
+  --lr-decay-factor=0.5 \
+  --batch-size=32 \
+  --square-edge=385 \
+  --lambdas 1 1 0.2   1 1 1 0.2 0.2    1 1 1 0.2 0.2 \
+  --auto-tune-mtl \
+  --weight-decay=1e-5 \
+  --update-batchnorm-runningstatistics \
+  --ema=0.01 \
+  --checkpoint outputs/shufflenetv2k32w-200424-175127-cif-caf-caf25.pkl.epoch150_ --extended-scale --orientation-invariant=0.1
 ```
 
 You can refine an existing model with the `--checkpoint` option.
