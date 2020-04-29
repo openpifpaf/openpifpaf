@@ -103,7 +103,7 @@ def train_coco_preprocess_factory(
         )
 
     preprocess_transformations += [
-        transforms.Crop(square_edge),
+        transforms.Crop(square_edge, use_area_of_interest=dataset == 'cocokp'),
         transforms.CenterPad(square_edge),
     ]
 
