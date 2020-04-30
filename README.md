@@ -123,7 +123,6 @@ python3 -m openpifpaf.logs \
 # Train
 
 See [datasets](docs/datasets.md) for setup instructions.
-See [studies.ipynb](docs/studies.ipynb) for previous studies.
 
 The exact training command that was used for a model is in the first
 line of the training log file.
@@ -220,7 +219,6 @@ python3 -m openpifpaf.video --checkpoint shufflenetv2k18w myvideotoprocess.mp4 -
 
 * [datasets](docs/datasets.md)
 * [predict.ipynb](docs/predict.ipynb), on [Google Colab](https://colab.research.google.com/drive/1H8T4ZE6wc0A9xJE4oGnhgHpUpAH5HL7W)
-* [studies.ipynb](docs/studies.ipynb)
 * [evaluation logs](docs/eval_logs.md)
 * [history](HISTORY.md)
 * [contributing](CONTRIBUTING.md)
