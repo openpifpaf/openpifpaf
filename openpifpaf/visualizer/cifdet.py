@@ -32,6 +32,13 @@ class CifDet(BaseVisualizer):
         self._confidences(field[0])
         self._regressions(field[1], field[2], field[3], annotations=annotations)
 
+    def predicted(self, field, *, annotations=None):
+        self._confidences(field[:, 0])
+        self._regressions(field[:, 1:3], field[:, 4], field[:, 5],
+                          annotations=annotations,
+                          confidence_fields=field[:, 0],
+                          uv_is_offset=False)
+
     def _confidences(self, confidences):
         if not self.show_confidences:
             return

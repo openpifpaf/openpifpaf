@@ -134,6 +134,11 @@ def factory_decode(head_nets, *,
 
     if isinstance(head_nets[0].meta, network.heads.DetectionMeta):
         field_config = FieldConfig()
+        field_config.cif_visualizers = [
+            visualizer.CifDet(head_nets[0].meta.name,
+                              stride=head_nets[0].stride(basenet_stride),
+                              categories=head_nets[0].meta.categories)
+        ]
         return CifDet(
             field_config,
             head_nets[0].meta.categories,
