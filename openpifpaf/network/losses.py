@@ -215,8 +215,6 @@ class MultiHeadLossAutoTune(torch.nn.Module):
 class CompositeLoss(torch.nn.Module):
     background_weight = 1.0
     margin = False
-    multiplicity_correction = False
-    independence_scale = 3.0
 
     def __init__(self, head_net: heads.CompositeField, regression_loss):
         super(CompositeLoss, self).__init__()
@@ -240,19 +238,11 @@ class CompositeLoss(torch.nn.Module):
 
     def _confidence_loss(self, x_confidence, target_confidence):
         bce_masks = torch.isnan(target_confidence) == 0
+        if not torch.any(bce_masks):
+            return None
 
         # TODO assumes one confidence
         x_confidence = x_confidence[:, :, 0]
-
-        # for numerical stability, filter out predictions that are certain
-        bce_masks = (
-            bce_masks
-            & ((x_confidence > -4.0) | ((x_confidence < -4.0) & (target_confidence == 1)))
-            & ((x_confidence < 4.0) | ((x_confidence > 4.0) & (target_confidence == 0)))
-        )
-
-        if not torch.any(bce_masks):
-            return None
 
         batch_size = x_confidence.shape[0]
         LOG.debug('batch size = %d', batch_size)
@@ -284,15 +274,6 @@ class CompositeLoss(torch.nn.Module):
         if not torch.any(reg_masks):
             return [None for _ in target_regs]
 
-        weight = None
-        if self.multiplicity_correction:
-            assert len(target_regs) == 2
-            lengths = torch.norm(target_regs[0] - target_regs[1], dim=2)
-            multiplicity = (lengths - 3.0) / self.independence_scale
-            multiplicity = torch.clamp(multiplicity, min=1.0)
-            multiplicity = torch.masked_select(multiplicity, reg_masks)
-            weight = 1.0 / multiplicity
-
         reg_losses = []
         for i, target_reg in enumerate(target_regs):
             reg_losses.append(self.regression_loss(
@@ -301,7 +282,7 @@ class CompositeLoss(torch.nn.Module):
                 torch.masked_select(x_logbs[:, :, i], reg_masks),
                 torch.masked_select(target_reg[:, :, 0], reg_masks),
                 torch.masked_select(target_reg[:, :, 1], reg_masks),
-                weight=(weight if weight is not None else 1.0) * 0.1,
+                weight=0.1,
             ) / (100.0 * batch_size))
 
         return reg_losses
@@ -378,23 +359,20 @@ def cli(parser):
     group.add_argument('--regression-loss', default='laplace',
                        choices=['smoothl1', 'smootherl1', 'l1', 'laplace'],
                        help='type of regression loss')
-    group.add_argument('--background-weight', default=1.0, type=float,
-                       help='[experimental] BCE weight of background')
-    group.add_argument('--paf-multiplicity-correction',
-                       default=False, action='store_true',
-                       help='[experimental] use multiplicity correction for PAF loss')
-    group.add_argument('--paf-independence-scale', default=3.0, type=float,
-                       help='[experimental] linear length scale of independence for PAF regression')
+    group.add_argument('--background-weight', default=CompositeLoss.background_weight, type=float,
+                       help='BCE weight where ground truth is background')
     group.add_argument('--margin-loss', default=False, action='store_true',
                        help='[experimental]')
     group.add_argument('--auto-tune-mtl', default=False, action='store_true',
-                       help='[experimental]')
+                       help='use Kendall\'s prescription for adjusting the multitask weight')
 
 
 def configure(args):
     # apply for CompositeLoss
     CompositeLoss.background_weight = args.background_weight
     CompositeLoss.margin = args.margin_loss
+
+    # SmoothL1
     SmoothL1Loss.r_smooth = args.r_smooth
 
 
