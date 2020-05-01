@@ -75,11 +75,11 @@ class Detection:
         return inter_area / (box_area + other_areas - inter_area + 1e-5)
 
     def annotations(self, anns):
-        if not anns:
-            return anns
         start = time.perf_counter()
 
         anns = [ann for ann in anns if ann.score >= self.instance_threshold]
+        if not anns:
+            return anns
         anns = sorted(anns, key=lambda a: -a.score)
 
         all_boxes = np.stack([ann.bbox for ann in anns])
