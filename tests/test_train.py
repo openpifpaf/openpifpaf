@@ -13,10 +13,10 @@ TRAIN_COMMAND = [
     '--head-quad=1',
     '--headnets', 'cif', 'caf', 'caf25',
     '--square-edge=161',
-    '--train-annotations', 'tests/coco/train1.json',
-    '--train-image-dir', 'tests/coco/images/',
-    '--val-annotations', 'tests/coco/train1.json',
-    '--val-image-dir', 'tests/coco/images/',
+    '--cocokp-train-annotations', 'tests/coco/train1.json',
+    '--coco-train-image-dir', 'tests/coco/images/',
+    '--cocokp-val-annotations', 'tests/coco/train1.json',
+    '--coco-val-image-dir', 'tests/coco/images/',
 ]
 
 
