@@ -16,6 +16,7 @@ from .compose import Compose
 from .crop import Crop
 from .hflip import HFlip
 from .image import Blur, ImageTransform, JpegCompression
+from .minsize import MinSize
 from .multi_scale import MultiScale
 from .pad import CenterPad, CenterPadTight, SquarePad
 from .preprocess import Preprocess
