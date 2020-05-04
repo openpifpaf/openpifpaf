@@ -2,8 +2,6 @@ from collections import defaultdict
 import logging
 import time
 
-import torch
-
 from .generator import Generator
 from ...annotation import AnnotationDet
 from ..field_config import FieldConfig

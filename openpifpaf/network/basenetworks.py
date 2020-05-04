@@ -124,7 +124,7 @@ class InvertedResidualK(torch.nn.Module):
 class ShuffleNetV2K(torch.nn.Module):
     """Based on torchvision.models.ShuffleNetV2 where
     the kernel size in stages 2,3,4 is 5 instead of 3."""
-    def __init__(self, stages_repeats, stages_out_channels, num_classes=1000):
+    def __init__(self, stages_repeats, stages_out_channels):
         super(ShuffleNetV2K, self).__init__()
 
         if len(stages_repeats) != 3:
@@ -146,7 +146,7 @@ class ShuffleNetV2K(torch.nn.Module):
         for name, repeats, output_channels in zip(
                 stage_names, stages_repeats, self._stage_out_channels[1:]):
             seq = [InvertedResidualK(input_channels, output_channels, 2)]
-            for i in range(repeats - 1):
+            for _ in range(repeats - 1):
                 seq.append(InvertedResidualK(output_channels, output_channels, 1,
                                              kernel_size=5))
             setattr(self, name, torch.nn.Sequential(*seq))

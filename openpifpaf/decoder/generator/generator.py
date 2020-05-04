@@ -1,4 +1,4 @@
-from abc import abstractmethod, abstractstaticmethod
+from abc import abstractmethod
 import logging
 import multiprocessing
 import time

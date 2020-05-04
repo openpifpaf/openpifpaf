@@ -24,9 +24,12 @@ class Coco(torch.utils.data.Dataset):
 
     def __init__(self, image_dir, ann_file, *, target_transforms=None,
                  n_images=None, preprocess=None,
-                 category_ids=[1],
+                 category_ids=None,
                  image_filter='keypoint-annotations'):
-        from pycocotools.coco import COCO
+        if category_ids is None:
+            category_ids = [1]
+
+        from pycocotools.coco import COCO  # pylint: disable=import-outside-toplevel
         self.image_dir = image_dir
         self.coco = COCO(ann_file)
 

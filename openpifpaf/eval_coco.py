@@ -38,9 +38,12 @@ LOG = logging.getLogger(__name__)
 class EvalCoco(object):
     def __init__(self, coco, processor, *,
                  max_per_image=20,
-                 category_ids=[1],
+                 category_ids=None,
                  iou_type='keypoints',
                  small_threshold=0.0):
+        if category_ids is None:
+            category_ids = [1]
+
         self.coco = coco
         self.processor = processor
         self.max_per_image = max_per_image

@@ -4,7 +4,6 @@ from queue import PriorityQueue
 import time
 
 import numpy as np
-import torch
 
 from .generator import Generator
 from ...annotation import Annotation
