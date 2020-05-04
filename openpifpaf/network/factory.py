@@ -162,14 +162,14 @@ def factory_from_scratch(basename, head_names, *, pretrained=True):
         return shufflenet_factory_from_scratch(basename, base_vision, 2048, head_metas)
     if basename.startswith('shufflenetv2k16w'):
         base_vision = basenetworks.ShuffleNetV2K(
-            [4, 8, 4], [24, 348, 696, 1392, 2048],
+            [4, 8, 4], [24, 348, 696, 1392, 1392],
         )
-        return generic_factory_from_scratch(basename, base_vision, 2048, head_metas)
+        return generic_factory_from_scratch(basename, base_vision, 1392, head_metas)
     if basename.startswith('shufflenetv2k16'):
         base_vision = torchvision.models.ShuffleNetV2(
-            [4, 8, 4], [24, 348, 696, 1392, 2048],
+            [4, 8, 4], [24, 348, 696, 1392, 1392],
         )
-        return shufflenet_factory_from_scratch(basename, base_vision, 2048, head_metas)
+        return shufflenet_factory_from_scratch(basename, base_vision, 1392, head_metas)
     if basename.startswith('shufflenetv2k18w'):
         base_vision = basenetworks.ShuffleNetV2K(
             [4, 8, 6], [24, 348, 696, 1392],
