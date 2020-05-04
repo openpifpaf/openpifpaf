@@ -1,3 +1,4 @@
+from collections import defaultdict
 import copy
 import logging
 import os
@@ -35,6 +36,7 @@ class Coco(torch.utils.data.Dataset):
             self.ids = self.coco.getImgIds()
         elif image_filter == 'annotated':
             self.ids = self.coco.getImgIds(catIds=self.category_ids)
+            self.filter_for_annotations()
         elif image_filter == 'keypoint-annotations':
             self.ids = self.coco.getImgIds(catIds=self.category_ids)
             self.filter_for_keypoint_annotations()
@@ -63,6 +65,54 @@ class Coco(torch.utils.data.Dataset):
         self.ids = [image_id for image_id in self.ids
                     if has_keypoint_annotation(image_id)]
         LOG.info('... done.')
+
+    def filter_for_annotations(self):
+        """removes images that only contain crowd annotations"""
+        LOG.info('filter for annotations ...')
+        def has_annotation(image_id):
+            ann_ids = self.coco.getAnnIds(imgIds=image_id, catIds=self.category_ids)
+            anns = self.coco.loadAnns(ann_ids)
+            for ann in anns:
+                if ann['iscrowd']:
+                    continue
+                return True
+            return False
+
+        self.ids = [image_id for image_id in self.ids
+                    if has_annotation(image_id)]
+        LOG.info('... done.')
+
+    def class_aware_sample_weights(self):
+        """Class aware sampling.
+
+        To be used with PyTorch's WeightedRandomSampler.
+
+        Reference: Solution for Large-Scale Hierarchical Object Detection
+        Datasets with Incomplete Annotation and Data Imbalance
+        Yuan Gao, Xingyuan Bu, Yang Hu, Hui Shen, Ti Bai, Xubin Li and Shilei Wen
+        """
+        ann_ids = self.coco.getAnnIds(imgIds=self.ids, catIds=self.category_ids)
+        anns = self.coco.loadAnns(ann_ids)
+
+        category_image_counts = defaultdict(int)
+        image_categories = defaultdict(set)
+        for ann in anns:
+            if ann['iscrowd']:
+                continue
+            image = ann['image_id']
+            category = ann['category_id']
+            if category in image_categories[image]:
+                continue
+            image_categories[image].add(category)
+            category_image_counts[category] += 1
+
+        return [
+            sum(
+                1.0 / category_image_counts[category_id]
+                for category_id in image_categories[image_id]
+            )
+            for image_id in self.ids
+        ]
 
     def __getitem__(self, index):
         image_id = self.ids[index]
