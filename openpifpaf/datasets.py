@@ -47,7 +47,7 @@ class CocoKeypoints(torch.utils.data.Dataset):
 
     def __init__(self, root, annFile, *, target_transforms=None,
                  n_images=None, preprocess=None, all_images=False, all_persons=False):
-        from pycocotools.coco import COCO
+        from pycocotools.coco import COCO  # pylint: disable=import-outside-toplevel
         self.root = root
         self.coco = COCO(annFile)
 
