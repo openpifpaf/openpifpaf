@@ -127,6 +127,8 @@ class SmoothL1Loss(object):
 
 
 class MultiHeadLoss(torch.nn.Module):
+    task_sparsity_weight = 0.0
+
     def __init__(self, losses, lambdas):
         super(MultiHeadLoss, self).__init__()
 
@@ -143,6 +145,7 @@ class MultiHeadLoss(torch.nn.Module):
     def forward(self, head_fields, head_targets):  # pylint: disable=arguments-differ
         assert len(self.losses) == len(head_fields)
         assert len(self.losses) <= len(head_targets)
+        assert self.task_sparsity_weight == 0.0  # TODO implement
         flat_head_losses = [ll
                             for l, f, t in zip(self.losses, head_fields, head_targets)
                             for ll in l(f, t)]
@@ -157,7 +160,9 @@ class MultiHeadLoss(torch.nn.Module):
 
 
 class MultiHeadLossAutoTune(torch.nn.Module):
-    def __init__(self, losses, lambdas):
+    task_sparsity_weight = 0.0
+
+    def __init__(self, losses, lambdas, *, sparse_task_parameters=None):
         """Auto-tuning multi-head less.
 
         Uses idea from "Multi-Task Learning Using Uncertainty to Weigh Losses
@@ -176,6 +181,8 @@ class MultiHeadLossAutoTune(torch.nn.Module):
 
         self.losses = torch.nn.ModuleList(losses)
         self.lambdas = lambdas
+        self.sparse_task_parameters = sparse_task_parameters
+
         self.log_sigmas = torch.nn.Parameter(
             torch.zeros((len(lambdas),), dtype=torch.float64),
             requires_grad=True,
@@ -208,6 +215,15 @@ class MultiHeadLossAutoTune(torch.nn.Module):
                     for lam, log_sigma, l in zip(self.lambdas, self.log_sigmas, flat_head_losses)
                     if l is not None]
         total_loss = sum(loss_values) + sum(auto_reg) if loss_values else None
+
+        if self.task_sparsity_weight and self.sparse_task_parameters is not None:
+            head_sparsity_loss = sum(
+                # torch.norm(param, p=1)
+                param.abs().max(dim=1)[0].clamp(min=1e-6).sum()
+                for param in self.sparse_task_parameters
+            )
+            LOG.debug('l1 head sparsity loss = %f (total = %f)', head_sparsity_loss, total_loss)
+            total_loss = total_loss + self.task_sparsity_weight * head_sparsity_loss
 
         return total_loss, flat_head_losses
 
@@ -365,12 +381,20 @@ def cli(parser):
                        help='[experimental]')
     group.add_argument('--auto-tune-mtl', default=False, action='store_true',
                        help='use Kendall\'s prescription for adjusting the multitask weight')
+    assert MultiHeadLoss.task_sparsity_weight == MultiHeadLossAutoTune.task_sparsity_weight
+    group.add_argument('--task-sparsity-weight',
+                       default=MultiHeadLoss.task_sparsity_weight, type=float,
+                       help='[experimental]')
 
 
 def configure(args):
     # apply for CompositeLoss
     CompositeLoss.background_weight = args.background_weight
     CompositeLoss.margin = args.margin_loss
+
+    # MultiHeadLoss
+    MultiHeadLoss.task_sparsity_weight = args.task_sparsity_weight
+    MultiHeadLossAutoTune.task_sparsity_weight = args.task_sparsity_weight
 
     # SmoothL1
     SmoothL1Loss.r_smooth = args.r_smooth
@@ -386,6 +410,7 @@ def factory_from_args(args, head_nets):
     )
 
 
+# pylint: disable=too-many-branches
 def factory(head_nets, lambdas, *,
             reg_loss_name=None, device=None,
             auto_tune_mtl=False):
@@ -406,9 +431,22 @@ def factory(head_nets, lambdas, *,
     else:
         raise Exception('unknown regression loss type {}'.format(reg_loss_name))
 
+    sparse_task_parameters = None
+    if MultiHeadLoss.task_sparsity_weight:
+        sparse_task_parameters = []
+        for head_net in head_nets:
+            if getattr(head_net, 'sparse_task_parameters', None) is not None:
+                sparse_task_parameters += head_net.sparse_task_parameters
+            elif isinstance(head_net, heads.CompositeFieldFused):
+                sparse_task_parameters.append(head_net.conv.weight)
+            else:
+                raise Exception('unknown l1 parameters for given head: {} ({})'
+                                ''.format(head_net.meta.name, type(head_net)))
+
     losses = [CompositeLoss(head_net, reg_loss) for head_net in head_nets]
     if auto_tune_mtl:
-        loss = MultiHeadLossAutoTune(losses, lambdas)
+        loss = MultiHeadLossAutoTune(losses, lambdas,
+                                     sparse_task_parameters=sparse_task_parameters)
     else:
         loss = MultiHeadLoss(losses, lambdas)
 

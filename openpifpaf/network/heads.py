@@ -342,6 +342,10 @@ class CompositeFieldFused(torch.nn.Module):
         # dequad
         self.dequad_op = torch.nn.PixelShuffle(2)
 
+    @property
+    def sparse_task_parameters(self):
+        return [self.conv.weight]
+
     def stride(self, basenet_stride):
         return basenet_stride // (2 ** self._quad)
 
