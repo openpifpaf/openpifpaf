@@ -253,7 +253,7 @@ class CompositeLoss(torch.nn.Module):
         self.bce_blackout = None
 
     def _confidence_loss(self, x_confidence, target_confidence):
-        bce_masks = torch.isnan(target_confidence) == 0
+        bce_masks = torch.isnan(target_confidence).bitwise_not_()
         if not torch.any(bce_masks):
             return None
 
@@ -271,15 +271,16 @@ class CompositeLoss(torch.nn.Module):
         LOG.debug('BCE: x = %s, target = %s, mask = %s',
                   x_confidence.shape, target_confidence.shape, bce_masks.shape)
         bce_target = torch.masked_select(target_confidence, bce_masks)
-        bce_weight = torch.full_like(bce_target, 0.1, requires_grad=False)
+        bce_weight = None
         if self.background_weight != 1.0:
+            bce_weight = torch.ones_like(bce_target, requires_grad=False)
             bce_weight[bce_target == 0] *= self.background_weight
         ce_loss = torch.nn.functional.binary_cross_entropy_with_logits(
             torch.masked_select(x_confidence, bce_masks),
             bce_target,
             weight=bce_weight,
             reduction='sum',
-        ) / (100.0 * batch_size)
+        ) / (1000.0 * batch_size)
 
         return ce_loss
 
@@ -310,8 +311,8 @@ class CompositeLoss(torch.nn.Module):
         batch_size = x_scales.shape[0]
         return [
             logl1_loss(
-                torch.masked_select(x_scales[:, :, i], torch.isnan(target_scale) == 0),
-                torch.masked_select(target_scale, torch.isnan(target_scale) == 0),
+                torch.masked_select(x_scales[:, :, i], torch.isnan(target_scale).bitwise_not_()),
+                torch.masked_select(target_scale, torch.isnan(target_scale).bitwise_not_()),
                 reduction='sum',
             ) / (100.0 * batch_size)
             for i, target_scale in enumerate(target_scales)

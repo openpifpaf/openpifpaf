@@ -1,10 +1,8 @@
-# compat
-pifpaf
-
 # system
 .DS_Store
 .gitattributes
 .vscode
+*.so
 
 # Python
 build/
