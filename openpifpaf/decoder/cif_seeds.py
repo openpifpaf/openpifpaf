@@ -22,6 +22,8 @@ class CifSeeds:
     def fill_cif(self, cif, stride, *, min_scale=0.0, seed_mask=None):
         start = time.perf_counter()
 
+        sv = 0.0
+
         for field_i, p in enumerate(cif):
             if seed_mask is not None and not seed_mask[field_i]:
                 continue
@@ -29,7 +31,11 @@ class CifSeeds:
             if min_scale:
                 p = p[:, p[4] > min_scale / stride]
             _, x, y, _, s = p
+
+            start_sv = time.perf_counter()
             v = scalar_values(self.cifhr[field_i], x * stride, y * stride)
+            sv += time.perf_counter() - start_sv
+
             if self.score_scale != 1.0:
                 v = v * self.score_scale
             m = v > self.threshold
@@ -38,7 +44,7 @@ class CifSeeds:
             for vv, xx, yy, ss in zip(v, x, y, s):
                 self.seeds.append((vv, field_i, xx, yy, ss))
 
-        LOG.debug('seeds %d, %.3fs', len(self.seeds), time.perf_counter() - start)
+        LOG.debug('seeds %d, %.3fs (C++ %.3fs)', len(self.seeds), time.perf_counter() - start, sv)
         return self
 
     def get(self):
