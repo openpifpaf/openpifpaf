@@ -380,8 +380,6 @@ class CompositeFieldFused(torch.nn.Module):
                                    self.meta.n_vectors,
                                    regs_logb.shape[2],
                                    regs_logb.shape[3])
-        if self.training:
-            regs_logb = 3.0 * torch.tanh(regs_logb / 3.0)
 
         # scale
         scales_x = x[:, self.out_features[2]:self.out_features[3]]

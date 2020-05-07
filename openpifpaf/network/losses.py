@@ -20,6 +20,9 @@ def laplace_loss(x1, x2, logb, t1, t2, weight=None):
     # norm = torch.sqrt((x1 - t1)**2 + (x2 - t2)**2)
     norm = (torch.stack((x1, x2)) - torch.stack((t1, t2))).norm(dim=0)
 
+    # constrain range of logb
+    logb = 3.0 * torch.tanh(logb / 3.0)
+
     losses = 0.694 + logb + norm * torch.exp(-logb)
     if weight is not None:
         losses = losses * weight
