@@ -8,6 +8,7 @@ from .generator.cifcaf import CifCaf
 from .generator.cifdet import CifDet
 from . import nms
 from .profiler import Profiler
+from .profiler_autograd import ProfilerAutograd
 from .. import network, visualizer
 
 LOG = logging.getLogger(__name__)
@@ -45,7 +46,7 @@ def cli(parser, *,
                            default=False, action='store_true')
 
     group.add_argument('--profile-decoder',
-                       help='activates decoder profiler, specify out file or empty string')
+                       help='specify out .prof file or empty string')
 
     group = parser.add_argument_group('CifCaf decoders')
     group.add_argument('--cif-th', default=CifHr.v_threshold, type=float,
@@ -112,8 +113,12 @@ def factory_from_args(args, model):
                             multi_scale=args.multi_scale,
                             multi_scale_hflip=args.multi_scale_hflip,
                             worker_pool=args.decoder_workers)
+
     if args.profile_decoder is not None:
-        decode = Profiler(decode, out_name=args.profile_decoder)
+        decode.__class__.__call__ = Profiler(
+            decode.__call__, out_name=args.profile_decoder)
+        decode.fields_batch = ProfilerAutograd(
+            decode.fields_batch, device=args.device, out_name=args.profile_decoder)
 
     return decode
 

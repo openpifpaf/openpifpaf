@@ -11,3 +11,4 @@ from .generator.generator import Generator
 from . import nms
 from .occupancy import Occupancy
 from .profiler import Profiler
+from .profiler_autograd import ProfilerAutograd
