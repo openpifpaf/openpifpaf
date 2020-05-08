@@ -52,10 +52,12 @@ class Generator:
             if device is not None:
                 image_batch = image_batch.to(device, non_blocking=True)
 
-            heads = model(image_batch)
+            with torch.autograd.profiler.record_function('model'):
+                heads = model(image_batch)
 
             # to numpy
-            heads = apply(lambda x: x.cpu().numpy(), heads)
+            with torch.autograd.profiler.record_function('tonumpy'):
+                heads = apply(lambda x: x.cpu().numpy(), heads)
 
         # index by frame (item in batch)
         head_iter = apply(iter, heads)
