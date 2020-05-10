@@ -59,8 +59,10 @@ class Keypoints:
 
 class Detection:
     suppression = 0.1
+    suppression_soft = 0.3
     instance_threshold = 0.1
     iou_threshold = 0.7
+    iou_threshold_soft = 0.5
 
     @staticmethod
     def bbox_iou(box, other_boxes):
@@ -86,10 +88,12 @@ class Detection:
         for ann_i, ann in enumerate(anns[1:], start=1):
             mask = [ann.score >= self.instance_threshold for ann in anns[:ann_i]]
             ious = self.bbox_iou(ann.bbox, all_boxes[:ann_i][mask])
-            if np.max(ious) < self.iou_threshold:
-                continue
+            max_iou = np.max(ious)
 
-            ann.score *= self.suppression
+            if max_iou > self.iou_threshold:
+                ann.score *= self.suppression
+            elif max_iou > self.iou_threshold_soft:
+                ann.score *= self.suppression_soft
 
         anns = [ann for ann in anns if ann.score >= self.instance_threshold]
         anns = sorted(anns, key=lambda a: -a.score)
