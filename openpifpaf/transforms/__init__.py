@@ -23,6 +23,7 @@ from .preprocess import Preprocess
 from .random import DeterministicEqualChoice, RandomApply
 from .rotate import RotateBy90
 from .scale import RescaleAbsolute, RescaleRelative, ScaleMix
+from .unclipped import UnclippedArea, UnclippedSides
 
 
 EVAL_TRANSFORM = Compose([
