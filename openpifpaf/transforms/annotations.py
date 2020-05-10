@@ -20,6 +20,8 @@ class NormalizeAnnotations(Preprocess):
 
             ann['keypoints'] = np.asarray(ann['keypoints'], dtype=np.float32).reshape(-1, 3)
             ann['bbox'] = np.asarray(ann['bbox'], dtype=np.float32)
+            if 'bbox_original' not in ann:
+                ann['bbox_original'] = np.copy(ann['bbox'])
             if 'segmentation' in ann:
                 del ann['segmentation']
 
@@ -58,7 +60,10 @@ class AnnotationJitter(Preprocess):
 
         for ann in anns:
             keypoints_xy = ann['keypoints'][:, :2]
-            sym_rnd = (torch.rand(*keypoints_xy.shape).numpy() - 0.5) * 2.0
-            keypoints_xy += self.epsilon * sym_rnd
+            sym_rnd_kp = (torch.rand(*keypoints_xy.shape).numpy() - 0.5) * 2.0
+            keypoints_xy += self.epsilon * sym_rnd_kp
+
+            sym_rnd_bbox = (torch.rand((4,)).numpy() - 0.5) * 2.0
+            ann['bbox'] += 0.5 * self.epsilon * sym_rnd_bbox
 
         return image, anns, meta
