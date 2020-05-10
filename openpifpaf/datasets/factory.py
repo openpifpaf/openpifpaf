@@ -123,6 +123,8 @@ def train_cocodet_preprocess_factory(
         transforms.CenterPad(square_edge),
         orientation_t,
         transforms.MinSize(min_side=4.0),
+        transforms.UnclippedArea(),
+        transforms.UnclippedSides(),
         transforms.TRAIN_TRANSFORM,
     ])
 
