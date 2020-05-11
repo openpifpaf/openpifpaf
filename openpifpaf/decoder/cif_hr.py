@@ -32,8 +32,11 @@ class CifHr:
         y = y * stride
         sigma = np.maximum(1.0, 0.5 * scale * stride)
 
+        # Occupancy covers 2sigma.
+        # Restrict this accumulation to 1sigma so that seeds for the same joint
+        # are properly suppressed.
         scalar_square_add_gauss_with_max(
-            t, x, y, sigma, v / self.neighbors / len_cifs, truncate=2.0)
+            t, x, y, sigma, v / self.neighbors / len_cifs, truncate=1.0)
 
     def fill_multiple(self, cifs, stride, min_scale=0.0):
         start = time.perf_counter()
