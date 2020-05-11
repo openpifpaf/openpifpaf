@@ -276,6 +276,14 @@ cpdef unsigned char scalar_nonzero_clipped(unsigned char[:, :] field, float x, f
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+cpdef unsigned char scalar_nonzero_clipped_with_reduction(unsigned char[:, :] field, float x, float y, float r):
+    x = clip(x / r, 0.0, field.shape[1] - 1)
+    y = clip(y / r, 0.0, field.shape[0] - 1)
+    return field[<Py_ssize_t>y, <Py_ssize_t>x]
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def paf_center_b(float[:, :] paf_field, float x, float y, float sigma=1.0):
     result_np = np.empty_like(paf_field)
     cdef float[:, :] result = result_np

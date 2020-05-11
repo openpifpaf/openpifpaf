@@ -2,7 +2,7 @@ import logging
 import numpy as np
 
 from .utils import scalar_square_add_single
-from ..functional import scalar_nonzero_clipped
+from ..functional import scalar_nonzero_clipped_with_reduction
 
 LOG = logging.getLogger(__name__)
 
@@ -43,8 +43,5 @@ class Occupancy():
         if f >= len(self.occupancy):
             return 1.0
 
-        xi = x / self.reduction
-        yi = y / self.reduction
-
         # floor is done in scalar_nonzero_clipped below
-        return scalar_nonzero_clipped(self.occupancy[f], xi, yi)
+        return scalar_nonzero_clipped_with_reduction(self.occupancy[f], x, y, self.reduction)
