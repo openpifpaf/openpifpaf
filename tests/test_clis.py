@@ -12,7 +12,7 @@ PYTHON = 'python3' if sys.platform != 'win32' else 'python'
 def test_predict(batch_size, tmpdir):
     subprocess.run([
         PYTHON, '-m', 'openpifpaf.predict',
-        '--checkpoint=shufflenetv2k18w',
+        '--checkpoint=shufflenetv2k16w',
         '--batch-size={}'.format(batch_size),
         '--loader-workers=0',
         '--json-output', tmpdir,
@@ -27,7 +27,7 @@ def test_predict(batch_size, tmpdir):
 def test_video(tmpdir):
     subprocess.run([
         PYTHON, '-m', 'openpifpaf.video',
-        '--checkpoint=shufflenetv2k18w',
+        '--checkpoint=shufflenetv2k16w',
         '--source=docs/coco/000000081988.jpg',
         '--json-output={}'.format(os.path.join(tmpdir, 'video.json')),
     ], check=True)

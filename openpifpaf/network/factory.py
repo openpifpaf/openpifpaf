@@ -22,8 +22,10 @@ SHUFFLENETV2X1_MODEL = ('http://github.com/vita-epfl/openpifpaf-torchhub/release
                         'v0.1.0/shufflenetv2x1-pif-paf-edge401-190705-151607-d9a35d7e.pkl')
 SHUFFLENETV2X2_MODEL = ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
                         'v0.10.0/shufflenetv2x2-pif-paf-paf25-edge401-191010-172527-ef704f06.pkl')
-SHUFFLENETV2K18W_MODEL = ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
-                          'v0.11rc1/shufflenetv2k18w-200424-173759-cif-caf-caf25.pkl.epoch115')
+SHUFFLENETV2K16W_MODEL = ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
+                          'v0.11.0/shufflenetv2k16w-200510-221334-cif-caf-caf25-o10s-604c5956.pkl')
+SHUFFLENETV2K30W_MODEL = ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
+                          'v0.11.0/shufflenetv2k30w-200510-104256-cif-caf-caf25-o10s-0b5ba06f.pkl')
 
 LOG = logging.getLogger(__name__)
 
@@ -65,9 +67,7 @@ def factory(
         assert head_names is None
 
         if not checkpoint:
-            # TODO: set check_hash to True on final model
-            checkpoint = torch.hub.load_state_dict_from_url(
-                SHUFFLENETV2K18W_MODEL, check_hash=False)
+            checkpoint = torch.hub.load_state_dict_from_url(SHUFFLENETV2K16W_MODEL, check_hash=True)
         elif checkpoint == 'resnet18':
             checkpoint = torch.hub.load_state_dict_from_url(RESNET18_MODEL, check_hash=True)
         elif checkpoint == 'resnet50':
@@ -82,10 +82,10 @@ def factory(
             checkpoint = torch.hub.load_state_dict_from_url(SHUFFLENETV2X1_MODEL, check_hash=True)
         elif checkpoint == 'shufflenetv2x2':
             checkpoint = torch.hub.load_state_dict_from_url(SHUFFLENETV2X2_MODEL, check_hash=True)
-        elif checkpoint == 'shufflenetv2k18w':
-            # TODO: set check_hash to True on final model
-            checkpoint = torch.hub.load_state_dict_from_url(
-                SHUFFLENETV2K18W_MODEL, check_hash=False)
+        elif checkpoint == 'shufflenetv2k16w':
+            checkpoint = torch.hub.load_state_dict_from_url(SHUFFLENETV2K16W_MODEL, check_hash=True)
+        elif checkpoint == 'shufflenetv2k30w':
+            checkpoint = torch.hub.load_state_dict_from_url(SHUFFLENETV2K30W_MODEL, check_hash=True)
         elif checkpoint.startswith('http'):
             checkpoint = torch.hub.load_state_dict_from_url(
                 checkpoint, check_hash=not checkpoint.startswith('https'))
@@ -170,11 +170,6 @@ def factory_from_scratch(basename, head_names, *, pretrained=True):
             [4, 8, 4], [24, 348, 696, 1392, 1392],
         )
         return shufflenet_factory_from_scratch(basename, base_vision, 1392, head_metas)
-    if basename.startswith('shufflenetv2k18w'):
-        base_vision = basenetworks.ShuffleNetV2K(
-            [4, 8, 6], [24, 348, 696, 1392],
-        )
-        return generic_factory_from_scratch(basename, base_vision, 1392, head_metas)
     if basename.startswith('shufflenetv2k20w'):
         base_vision = basenetworks.ShuffleNetV2K(
             [5, 10, 5], [32, 512, 1024, 2048, 2048],
@@ -195,11 +190,6 @@ def factory_from_scratch(basename, head_names, *, pretrained=True):
             [8, 16, 6], [32, 512, 1024, 2048, 2048],
         )
         return shufflenet_factory_from_scratch(basename, base_vision, 2048, head_metas)
-    if basename.startswith('shufflenetv2k32w'):
-        base_vision = basenetworks.ShuffleNetV2K(
-            [8, 16, 8], [32, 512, 1024, 2048],
-        )
-        return generic_factory_from_scratch(basename, base_vision, 2048, head_metas)
     if basename.startswith('shufflenetv2k44'):
         base_vision = torchvision.models.ShuffleNetV2(
             [12, 24, 8], [32, 512, 1024, 2048, 2048],

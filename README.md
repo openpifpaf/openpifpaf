@@ -1,8 +1,8 @@
 # openpifpaf
 
 Continuously tested on Linux, MacOS and Windows: [![Build Status](https://travis-ci.org/vita-epfl/openpifpaf.svg?branch=master)](https://travis-ci.org/vita-epfl/openpifpaf)<br />
-[CVPR 2019 paper](http://openaccess.thecvf.com/content_CVPR_2019/html/Kreiss_PifPaf_Composite_Fields_for_Human_Pose_Estimation_CVPR_2019_paper.html),
-[arxiv.org/abs/1903.06593](https://arxiv.org/abs/1903.06593)
+[CVPR 2019 paper](http://openaccess.thecvf.com/content_CVPR_2019/html/Kreiss_PifPaf_Composite_Fields_for_Human_Pose_Estimation_CVPR_2019_paper.html)
+<!-- [arxiv.org/abs/1903.06593](https://arxiv.org/abs/1903.06593) -->
 
 > PifPaf: Composite Fields for Human Pose Estimation
 >
@@ -87,28 +87,78 @@ Performance metrics with version 0.11 on the COCO val set obtained with a GTX108
 
 | Backbone               | AP       | APᴹ      | APᴸ      | t_{total} [ms]  | t_{dec} [ms] |
 |-----------------------:|:--------:|:--------:|:--------:|:---------------:|:------------:|
-| [shufflenetv2k18w]     | __65.0__ | ????     | ????     | ??              | ??           |
-| [shufflenetv2k32w]     | __71.5__ | ????     | ????     | ??              | ??           |
+| [shufflenetv2k16w]     | __67.1__ | 62.0     | 75.3     | 54              | 25           |
+| [shufflenetv2k30w]     | __71.1__ | 65.9     | 79.1     | 94              | 22           |
 
-For comparison, old v0.10:
+[shufflenetv2k16w]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.11.0/shufflenetv2k16w-200510-221334-cif-caf-caf25-o10s-604c5956.pkl
+[shufflenetv2k30w]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.11.0/shufflenetv2k30w-200510-104256-cif-caf-caf25-o10s-0b5ba06f.pkl
 
-| Backbone               | AP       | APᴹ      | APᴸ      | t_{total} [ms]  | t_{dec} [ms] |
-|-----------------------:|:--------:|:--------:|:--------:|:---------------:|:------------:|
-| [shufflenetv2x2] v0.10 | __60.4__ | 55.5     | 67.8     | 56              | 33           |
-| [resnet50] v0.10       | __64.4__ | 61.1     | 69.9     | 76              | 32           |
-| [resnet101] v0.10      | __67.8__ | 63.6     | 74.3     | 97              | 28           |
-
-[SHUFFLENETV2X1]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.1.0/shufflenetv2x1-pif-paf-edge401-190705-151607-d9a35d7e.pkl
-[shufflenetv2x2]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.10.0/shufflenetv2x2-pif-paf-paf25-edge401-191010-172527-ef704f06.pkl
-[resnet18]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.10.1/resnet18-pif-paf-paf25-edge401-191022-210137-84326f0f.pkl
-[resnet50]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.10.0/resnet50-pif-paf-paf25-edge401-191016-192503-d2b85396.pkl
-[resnet101]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.10.0/resnet101block5-pif-paf-paf25-edge401-191012-132602-a2bf7ecd.pkl
+Command to reproduce this table: `python -m openpifpaf.benchmark --backbones shufflenetv2k16w shufflenetv2k30w`.
 
 Pretrained model files are shared in the
 __[openpifpaf-torchhub](https://github.com/vita-epfl/openpifpaf-torchhub/releases)__
 repository and linked from the backbone names in the table above.
 The pretrained models are downloaded automatically when
 using the command line option `--checkpoint backbonenameasintableabove`.
+
+For comparison, old v0.10:
+
+| Backbone               | AP       | APᴹ      | APᴸ      | t_{total} [ms]  | t_{dec} [ms] |
+|-----------------------:|:--------:|:--------:|:--------:|:---------------:|:------------:|
+| shufflenetv2x2 v0.10   | __60.4__ | 55.5     | 67.8     | 56              | 33           |
+| resnet50 v0.10         | __64.4__ | 61.1     | 69.9     | 76              | 32           |
+| resnet101 v0.10        | __67.8__ | 63.6     | 74.3     | 97              | 28           |
+
+
+# Train
+
+See [datasets](docs/datasets.md) for setup instructions.
+
+The exact training command that was used for a model is in the first
+line of the training log file.
+
+ShuffleNet models are trained without ImageNet pretraining:
+
+```sh
+time CUDA_VISIBLE_DEVICES=0,1 python3 -m openpifpaf.train \
+  --lr=0.1 \
+  --momentum=0.9 \
+  --epochs=150 \
+  --lr-warm-up-epochs=1 \
+  --lr-decay 120 \
+  --lr-decay-epochs=20 \
+  --lr-decay-factor=0.1 \
+  --batch-size=32 \
+  --square-edge=385 \
+  --lambdas 1 1 0.2   1 1 1 0.2 0.2    1 1 1 0.2 0.2 \
+  --auto-tune-mtl \
+  --weight-decay=1e-5 \
+  --update-batchnorm-runningstatistics \
+  --ema=0.01 \
+  --basenet=shufflenetv2k16w \
+  --headnets cif caf caf25
+
+# for improved performance, take the epoch150 checkpoint and train with
+# extended-scale and 10% orientation invariance:
+time CUDA_VISIBLE_DEVICES=0,1 python3 -m openpifpaf.train \
+  --lr=0.05 \
+  --momentum=0.9 \
+  --epochs=250 \
+  --lr-warm-up-epochs=1 \
+  --lr-decay 220 \
+  --lr-decay-epochs=30 \
+  --lr-decay-factor=0.01 \
+  --batch-size=32 \
+  --square-edge=385 \
+  --lambdas 1 1 0.2   1 1 1 0.2 0.2    1 1 1 0.2 0.2 \
+  --auto-tune-mtl \
+  --weight-decay=1e-5 \
+  --update-batchnorm-runningstatistics \
+  --ema=0.01 \
+  --checkpoint outputs/shufflenetv2k16w-200504-145520-cif-caf-caf25-d05e5520.pkl --extended-scale --orientation-invariant=0.1
+```
+
+You can refine an existing model with the `--checkpoint` option.
 
 To visualize logs:
 
@@ -119,79 +169,12 @@ python3 -m openpifpaf.logs \
   outputs/resnet152block5-pif-paf-edge401-190412-121848.pkl.log
 ```
 
-
-# Train
-
-See [datasets](docs/datasets.md) for setup instructions.
-
-The exact training command that was used for a model is in the first
-line of the training log file.
-
-Train a ResNet model:
-
-```sh
-time CUDA_VISIBLE_DEVICES=0,1 python3 -m openpifpaf.train \
-  --lr=1e-3 \
-  --momentum=0.95 \
-  --epochs=150 \
-  --lr-decay 120 140 \
-  --batch-size=16 \
-  --basenet=resnet101 \
-  --head-quad=1 \
-  --headnets pif paf paf25 \
-  --square-edge=401 \
-  --lambdas 10 1 1 15 1 1 15 1 1
-```
-
-ShuffleNet models are trained without ImageNet pretraining:
-
-```sh
-time CUDA_VISIBLE_DEVICES=2,3 python3 -m openpifpaf.train \
-  --lr=0.1 \
-  --momentum=0.9 \
-  --epochs=250 \
-  --lr-warm-up-epochs=1 \
-  --lr-decay 120 220 230 235 240 245 \
-  --lr-decay-epochs=5 \
-  --lr-decay-factor=0.5 \
-  --batch-size=32 \
-  --square-edge=385 \
-  --lambdas 1 1 0.2   1 1 1 0.2 0.2    1 1 1 0.2 0.2 \
-  --auto-tune-mtl \
-  --weight-decay=1e-5 \
-  --update-batchnorm-runningstatistics \
-  --ema=0.01 \
-  --basenet=shufflenetv2k32w \
-  --headnets cif caf caf25
-
-# for improved performance, take the epoch150 checkpoint and train with
-# extended-scale and 10% orientation-invariant:
-time CUDA_VISIBLE_DEVICES=0,1 python3 -m openpifpaf.train \
-  --lr=0.1 \
-  --momentum=0.9 \
-  --epochs=250 \
-  --lr-warm-up-epochs=1 \
-  --lr-decay 120 220 230 235 240 245 \
-  --lr-decay-epochs=5 \
-  --lr-decay-factor=0.5 \
-  --batch-size=32 \
-  --square-edge=385 \
-  --lambdas 1 1 0.2   1 1 1 0.2 0.2    1 1 1 0.2 0.2 \
-  --auto-tune-mtl \
-  --weight-decay=1e-5 \
-  --update-batchnorm-runningstatistics \
-  --ema=0.01 \
-  --checkpoint outputs/shufflenetv2k32w-200424-175127-cif-caf-caf25.pkl.epoch150_ --extended-scale --orientation-invariant=0.1
-```
-
-You can refine an existing model with the `--checkpoint` option.
-
-To produce evaluations at every epoch, check the directory for new
-snapshots every 5 minutes:
+To produce evaluation metrics every five epochs and check the directory for new
+checkpoints every 5 minutes:
 
 ```
 while true; do \
-  CUDA_VISIBLE_DEVICES=0 find outputs/ -name "resnet101block5-pif-paf-l1-190109-113346.pkl.epoch???" -exec \
+  CUDA_VISIBLE_DEVICES=0 find outputs/ -name "shufflenetv2k16w-200504-145520-cif-caf-caf25.pkl.epoch??[0,5]" -exec \
     python3 -m openpifpaf.eval_coco --checkpoint {} -n 500 --long-edge=641 --skip-existing \; \
   ; \
   sleep 300; \
@@ -210,9 +193,13 @@ Created with `python3 -m openpifpaf.datasets.constants`.
 
 # Video
 
+Requires OpenCV.
+
 ```sh
-python3 -m openpifpaf.video --checkpoint shufflenetv2k18w myvideotoprocess.mp4 --video-output --json-output
+python3 -m openpifpaf.video --checkpoint shufflenetv2k16w myvideotoprocess.mp4 --video-output --json-output
 ```
+
+Replace `myvideotoprocess.mp4` with `0` for webcam0 or other OpenCV compatible sources.
 
 
 # Documentation Pages

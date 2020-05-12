@@ -5,11 +5,11 @@ import openpifpaf.export_onnx
 
 
 def test_onnx_exportable(tmpdir):
-    outfile = str(tmpdir.join('openpifpaf-shufflenetv2k18w.onnx'))
+    outfile = str(tmpdir.join('openpifpaf-shufflenetv2k16w.onnx'))
     assert not os.path.exists(outfile)
 
     model, _ = openpifpaf.network.factory(
-        base_name='shufflenetv2k18w',
+        base_name='shufflenetv2k16w',
         head_names=['cif', 'caf', 'caf25'],
         pretrained=False,
     )
