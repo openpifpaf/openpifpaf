@@ -233,6 +233,7 @@ class MultiHeadLossAutoTune(torch.nn.Module):
 
 class CompositeLoss(torch.nn.Module):
     background_weight = 1.0
+    focal_gamma = 1.0
     margin = False
 
     def __init__(self, head_net: heads.CompositeField, regression_loss):
@@ -274,16 +275,22 @@ class CompositeLoss(torch.nn.Module):
         LOG.debug('BCE: x = %s, target = %s, mask = %s',
                   x_confidence.shape, target_confidence.shape, bce_masks.shape)
         bce_target = torch.masked_select(target_confidence, bce_masks)
-        bce_weight = None
+        bce_weight = 1.0
+        x_confidence = torch.masked_select(x_confidence, bce_masks)
         if self.background_weight != 1.0:
             bce_weight = torch.ones_like(bce_target, requires_grad=False)
             bce_weight[bce_target == 0] *= self.background_weight
-        ce_loss = torch.nn.functional.binary_cross_entropy_with_logits(
-            torch.masked_select(x_confidence, bce_masks),
+        elif self.focal_gamma != 0.0:
+            bce_weight = torch.empty_like(bce_target, requires_grad=False)
+            bce_weight[bce_target == 1] = x_confidence[bce_target == 1]
+            bce_weight[bce_target == 0] = -x_confidence[bce_target == 0]
+            bce_weight = (1.0 + torch.exp(bce_weight)).pow(-self.focal_gamma)
+        ce_loss = (torch.nn.functional.binary_cross_entropy_with_logits(
+            x_confidence,
             bce_target,
-            weight=bce_weight,
-            reduction='sum',
-        ) / (1000.0 * batch_size)
+            # weight=bce_weight,
+            reduction='none',
+        ) * bce_weight).sum() / (1000.0 * batch_size)
 
         return ce_loss
 
@@ -381,6 +388,8 @@ def cli(parser):
                        help='type of regression loss')
     group.add_argument('--background-weight', default=CompositeLoss.background_weight, type=float,
                        help='BCE weight where ground truth is background')
+    group.add_argument('--focal-gamma', default=CompositeLoss.focal_gamma, type=float,
+                       help='when > 0.0, use focal loss with the given gamma')
     group.add_argument('--margin-loss', default=False, action='store_true',
                        help='[experimental]')
     group.add_argument('--auto-tune-mtl', default=False, action='store_true',
@@ -394,6 +403,7 @@ def cli(parser):
 def configure(args):
     # apply for CompositeLoss
     CompositeLoss.background_weight = args.background_weight
+    CompositeLoss.focal_gamma = args.focal_gamma
     CompositeLoss.margin = args.margin_loss
 
     # MultiHeadLoss
