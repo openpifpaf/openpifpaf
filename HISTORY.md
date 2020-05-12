@@ -1,6 +1,17 @@
 # History
 
-* [master](https://github.com/vita-epfl/openpifpaf/compare/v0.10.1...master)
+* [master](https://github.com/vita-epfl/openpifpaf/compare/v0.11.0...master)
+* [0.11.0](https://github.com/vita-epfl/openpifpaf/compare/v0.10.1...v0.11.0) (2020-05-12)
+    * major refactor
+    * new ShuffleNetV2 models: `shufflenetv2k16w` and `shufflenetv2k30w`
+    * 64bit loss and Focal Loss for confidences
+    * fast fused convolutions for `CompositeHeadFused`
+    * new handling of crowd annotations in encoder
+    * new `--extended-scale` training and eval-coco option
+    * decoding with frontier is default
+    * more robust blending of connection candidates
+    * introduced `openpifpaf.visualizer` and many improvements to visualization
+    * [experimental] new `cocodet` dataset interface for detections
 * [0.10.1](https://github.com/vita-epfl/openpifpaf/compare/v0.10.0...v0.10.1) (2019-12-09)
     * faster decoder
     * refactored scale generation between loss and encoder
