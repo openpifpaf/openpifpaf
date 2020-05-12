@@ -15,7 +15,7 @@ def test_predict(batch_size, tmpdir):
         '--checkpoint=shufflenetv2k16w',
         '--batch-size={}'.format(batch_size),
         '--loader-workers=0',
-        '--json-output', tmpdir,
+        '--json-output', str(tmpdir),
         '--long-edge=181',
         'docs/coco/000000081988.jpg',
     ], check=True)
