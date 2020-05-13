@@ -16,7 +16,7 @@ class AnnRescaler(object):
         )
 
         # rotate the davinci pose by 45 degrees
-        c, s = np.cos(np.radians(45)), np.sin(np.radians(45))
+        c, s = np.cos(np.deg2rad(45)), np.sin(np.deg2rad(45))
         rotate = np.array(((c, -s), (s, c)))
         self.pose_45 = np.copy(pose)
         self.pose_45[:, :2] = np.einsum('ij,kj->ki', rotate, self.pose_45[:, :2])
