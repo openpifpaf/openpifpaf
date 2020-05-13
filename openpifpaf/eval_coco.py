@@ -4,10 +4,13 @@ import argparse
 import json
 import logging
 import os
+import sys
 import time
 import zipfile
 
 import numpy as np
+import PIL
+import thop
 import torch
 
 try:
@@ -18,11 +21,12 @@ try:
 except ImportError:
     pass
 
-from .data import COCO_PERSON_SKELETON
-from .network import nets
-from . import datasets, decoder, encoder, show, transforms
+from .annotation import Annotation, AnnotationDet
+from .datasets.constants import COCO_KEYPOINTS, COCO_PERSON_SKELETON, COCO_CATEGORIES
+from . import datasets, decoder, network, show, transforms, visualizer
 
 ANNOTATIONS_VAL = 'data-mscoco/annotations/person_keypoints_val2017.json'
+DET_ANNOTATIONS_VAL = 'data-mscoco/annotations/instances_val2017.json'
 IMAGE_DIR_VAL = 'data-mscoco/images/val2017/'
 ANNOTATIONS_TESTDEV = 'data-mscoco/annotations/image_info_test-dev2017.json'
 ANNOTATIONS_TEST = 'data-mscoco/annotations/image_info_test2017.json'
@@ -32,18 +36,29 @@ LOG = logging.getLogger(__name__)
 
 
 class EvalCoco(object):
-    def __init__(self, coco, processor, annotations_inverse, *,
-                 max_per_image=20, small_threshold=0.0):
+    def __init__(self, coco, processor, *,
+                 max_per_image=20,
+                 category_ids=None,
+                 iou_type='keypoints',
+                 small_threshold=0.0):
+        if category_ids is None:
+            category_ids = [1]
+
         self.coco = coco
         self.processor = processor
-        self.annotations_inverse = annotations_inverse
         self.max_per_image = max_per_image
+        self.category_ids = category_ids
+        self.iou_type = iou_type
         self.small_threshold = small_threshold
 
         self.predictions = []
         self.image_ids = []
         self.eval = None
         self.decoder_time = 0.0
+        self.nn_time = 0.0
+
+        LOG.debug('max = %d, category ids = %s, iou_type = %s',
+                  self.max_per_image, self.category_ids, self.iou_type)
 
     def stats(self, predictions=None, image_ids=None):
         # from pycocotools.cocoeval import COCOeval
@@ -52,13 +67,12 @@ class EvalCoco(object):
         if image_ids is None:
             image_ids = self.image_ids
 
-        cat_ids = self.coco.getCatIds(catNms=['person'])
-        print('cat_ids', cat_ids)
-
         coco_eval = self.coco.loadRes(predictions)
 
-        self.eval = COCOeval(self.coco, coco_eval, iouType='keypoints')
-        self.eval.params.catIds = cat_ids
+        self.eval = COCOeval(self.coco, coco_eval, iouType=self.iou_type)
+        LOG.info('cat_ids: %s', self.category_ids)
+        if self.category_ids:
+            self.eval.params.catIds = self.category_ids
 
         if image_ids is not None:
             print('image ids', image_ids)
@@ -69,87 +83,77 @@ class EvalCoco(object):
         return self.eval.stats
 
     @staticmethod
-    def view_keypoints(image_cpu, annotations, gt):
-        highlight = [5, 7, 9, 11, 13, 15]
-        keypoint_painter = show.KeypointPainter(highlight=highlight)
-        skeleton_painter = show.KeypointPainter(show_box=False, color_connections=True,
-                                                markersize=1, linewidth=6)
+    def count_ops(model, height=641, width=641):
+        device = next(model.parameters()).device
+        dummy_input = torch.randn(1, 3, height, width, device=device)
+        gmacs, params = thop.profile(model, inputs=(dummy_input, ))
+        LOG.info('GMACs = {0:.2f}, million params = {1:.2f}'.format(gmacs / 1e9, params / 1e6))
+        return gmacs, params
 
-        with show.canvas() as ax:
-            ax.imshow((np.moveaxis(image_cpu.numpy(), 0, -1) + 2.0) / 4.0)
-            keypoint_painter.annotations(ax, [ann for ann in annotations if ann.score() > 0.01])
+    @staticmethod
+    def view_annotations(meta, predictions, ground_truth):
+        annotation_painter = show.AnnotationPainter()
+        with open(os.path.join(IMAGE_DIR_VAL, meta['file_name']), 'rb') as f:
+            cpu_image = PIL.Image.open(f).convert('RGB')
 
-        with show.canvas() as ax:
-            ax.set_axis_off()
-            ax.imshow((np.moveaxis(image_cpu.numpy(), 0, -1) + 2.0) / 4.0)
-            skeleton_painter.annotations(ax, [ann for ann in annotations if ann.score() > 0.01])
+        with show.image_canvas(cpu_image) as ax:
+            annotation_painter.annotations(ax, predictions)
 
-        instances_gt = None
-        if gt:
-            instances_gt = np.stack([a['keypoints'] for a in gt])
+        if ground_truth:
+            with show.image_canvas(cpu_image) as ax:
+                show.white_screen(ax)
+                annotation_painter.annotations(ax, ground_truth, color='grey')
+                annotation_painter.annotations(ax, predictions)
 
-            # for test: overwrite prediction with true values
-            # instances = instances_gt.copy()[:1]
-
-        with show.canvas() as ax:
-            ax.imshow((np.moveaxis(image_cpu.numpy(), 0, -1) + 2.0) / 4.0)
-            keypoint_painter.keypoints(ax, instances_gt, skeleton=COCO_PERSON_SKELETON)
-
-        with show.canvas() as ax:
-            ax.imshow((np.moveaxis(image_cpu.numpy(), 0, -1) + 2.0) / 4.0)
-            show.white_screen(ax)
-            keypoint_painter.keypoints(ax, instances_gt, color='lightgrey',
-                                       skeleton=COCO_PERSON_SKELETON)
-            keypoint_painter.annotations(ax, [ann for ann in annotations if ann.score() > 0.01])
-
-    def from_predictions(self, predictions, meta,
-                         debug=False, gt=None, image_cpu=None, verbose=False,
-                         category_id=1):
+    def from_predictions(self, predictions, meta, debug=False, gt=None):
         image_id = int(meta['image_id'])
         self.image_ids.append(image_id)
 
-        if debug:
-            self.view_keypoints(image_cpu, predictions, gt)
-
-        predictions = self.annotations_inverse(predictions, meta)
+        predictions = transforms.Preprocess.annotations_inverse(predictions, meta)
         if self.small_threshold:
             predictions = [pred for pred in predictions
                            if pred.scale(v_th=0.01) >= self.small_threshold]
         if len(predictions) > self.max_per_image:
             predictions = predictions[:self.max_per_image]
+
+        if debug:
+            gt_anns = []
+            for g in gt:
+                if 'bbox' in g:
+                    gt_anns.append(
+                        AnnotationDet(COCO_CATEGORIES).set(g['category_id'] - 1, None, g['bbox'])
+                    )
+                if 'keypoints' in g:
+                    gt_anns.append(
+                        Annotation(COCO_KEYPOINTS, COCO_PERSON_SKELETON)
+                        .set(g['keypoints'], fixed_score=None)
+                    )
+            gt_anns = transforms.Preprocess.annotations_inverse(gt_anns, meta)
+            self.view_annotations(meta, predictions, gt_anns)
+
         image_annotations = []
         for pred in predictions:
-            # avoid visible keypoints becoming invisible due to rounding
-            v_mask = pred.data[:, 2] > 0.0
-            pred.data[v_mask, 2] = np.maximum(0.01, pred.data[v_mask, 2])
-
-            keypoints = np.around(pred.data, 2)
-            keypoints[:, 2] = 2.0
-            image_annotations.append({
-                'image_id': image_id,
-                'category_id': category_id,
-                'keypoints': keypoints.reshape(-1).tolist(),
-                'score': max(0.01, pred.score()),
-            })
+            pred_data = pred.json_data()
+            pred_data['image_id'] = image_id
+            pred_data = {
+                k: v for k, v in pred_data.items()
+                if k in ('category_id', 'score', 'keypoints', 'bbox', 'image_id')
+            }
+            image_annotations.append(pred_data)
 
         # force at least one annotation per image (for pycocotools)
         if not image_annotations:
             image_annotations.append({
                 'image_id': image_id,
-                'category_id': category_id,
+                'category_id': 1,
                 'keypoints': np.zeros((17*3,)).tolist(),
-                'score': 0.01,
+                'bbox': [0, 0, 1, 1],
+                'score': 0.001,
             })
 
         if debug:
             self.stats(image_annotations, [image_id])
-            if verbose:
-                print('detected', image_annotations, len(image_annotations))
-                oks = self.eval.computeOks(image_id, category_id)
-                oks[oks < 0.5] = 0.0
-                print('oks', oks)
-                print('evaluate', self.eval.evaluateImg(image_id, category_id, (0, 1e5 ** 2), 20))
-            print(meta)
+            LOG.debug(meta)
 
         self.predictions += image_annotations
 
@@ -161,10 +165,10 @@ class EvalCoco(object):
         ]
         with open(filename + '.pred.json', 'w') as f:
             json.dump(predictions, f)
-        print('wrote {}'.format(filename + '.pred.json'))
+        LOG.info('wrote %s.pred.json', filename)
         with zipfile.ZipFile(filename + '.zip', 'w') as myzip:
             myzip.write(filename + '.pred.json', arcname='predictions.json')
-        print('wrote {}'.format(filename + '.zip'))
+        LOG.info('wrote %s.zip', filename)
 
 
 def default_output_name(args):
@@ -177,6 +181,12 @@ def default_output_name(args):
         output += '-samples{}'.format(args.n)
     if not args.force_complete_pose:
         output += '-noforcecompletepose'
+    if args.orientation_invariant or args.extended_scale:
+        output += '-'
+        if args.orientation_invariant:
+            output += 'o'
+        if args.extended_scale:
+            output += 's'
     if args.two_scale:
         output += '-twoscale'
     if args.multi_scale:
@@ -187,16 +197,19 @@ def default_output_name(args):
     return output
 
 
-def cli():
+def cli():  # pylint: disable=too-many-statements
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    nets.cli(parser)
+    network.cli(parser)
     decoder.cli(parser, force_complete_pose=True)
-    encoder.cli(parser)
+    show.cli(parser)
+    visualizer.cli(parser)
+
     parser.add_argument('--output', default=None,
                         help='output filename without file extension')
+    parser.add_argument('--detection-annotations', default=False, action='store_true')
     parser.add_argument('-n', default=0, type=int,
                         help='number of batches')
     parser.add_argument('--skip-n', default=0, type=int,
@@ -211,6 +224,8 @@ def cli():
                         help='long edge of input images')
     parser.add_argument('--loader-workers', default=None, type=int,
                         help='number of workers for data loading')
+    parser.add_argument('--orientation-invariant', default=False, action='store_true')
+    parser.add_argument('--extended-scale', default=False, action='store_true')
     parser.add_argument('--skip-existing', default=False, action='store_true',
                         help='skip if output eval file exists already')
     parser.add_argument('--disable-cuda', action='store_true',
@@ -219,22 +234,44 @@ def cli():
                         help='write a json and a zip file of the predictions')
     parser.add_argument('--all-images', default=False, action='store_true',
                         help='run over all images irrespective of catIds')
+
     group = parser.add_argument_group('logging')
     group.add_argument('--debug', default=False, action='store_true',
                        help='print debug messages')
+    group.add_argument('--log-stats', default=False, action='store_true',
+                       help='enable stats logging')
+
     args = parser.parse_args()
 
-    logging.basicConfig()
     log_level = logging.INFO if not args.debug else logging.DEBUG
-    logging.getLogger('openpifpaf').setLevel(log_level)
-    LOG.setLevel(log_level)
+    if args.log_stats:
+        # pylint: disable=import-outside-toplevel
+        from pythonjsonlogger import jsonlogger
+        stdout_handler = logging.StreamHandler(sys.stdout)
+        stdout_handler.setFormatter(
+            jsonlogger.JsonFormatter('(message) (levelname) (name)'))
+        logging.basicConfig(handlers=[stdout_handler])
+        logging.getLogger('openpifpaf').setLevel(log_level)
+        logging.getLogger('openpifpaf.stats').setLevel(logging.DEBUG)
+        LOG.setLevel(log_level)
+    else:
+        logging.basicConfig()
+        logging.getLogger('openpifpaf').setLevel(log_level)
+        LOG.setLevel(log_level)
+
+    network.configure(args)
+    show.configure(args)
+    visualizer.configure(args, enable_all_plots_on_debug=True)
 
     if args.loader_workers is None:
-        args.loader_workers = args.batch_size
+        args.loader_workers = max(2, args.batch_size)
 
-    if args.dataset == 'val':
+    if args.dataset == 'val' and not args.detection_annotations:
         args.image_dir = IMAGE_DIR_VAL
         args.annotation_file = ANNOTATIONS_VAL
+    elif args.dataset == 'val' and args.detection_annotations:
+        args.image_dir = IMAGE_DIR_VAL
+        args.annotation_file = DET_ANNOTATIONS_VAL
     elif args.dataset == 'test':
         args.image_dir = IMAGE_DIR_TEST
         args.annotation_file = ANNOTATIONS_TEST
@@ -263,7 +300,7 @@ def cli():
     return args
 
 
-def write_evaluations(eval_coco, filename, args, total_time):
+def write_evaluations(eval_coco, filename, args, total_time, count_ops):
     if args.write_predictions:
         eval_coco.write_predictions(filename)
 
@@ -277,8 +314,10 @@ def write_evaluations(eval_coco, filename, args, total_time):
                 'stats': stats.tolist(),
                 'n_images': n_images,
                 'decoder_time': eval_coco.decoder_time,
+                'nn_time': eval_coco.nn_time,
                 'total_time': total_time,
                 'checkpoint': args.checkpoint,
+                'count_ops': count_ops,
             }, f)
     else:
         print('given dataset does not have ground truth, so no stats summary')
@@ -286,27 +325,70 @@ def write_evaluations(eval_coco, filename, args, total_time):
     print('n images = {}'.format(n_images))
     print('decoder time = {:.1f}s ({:.0f}ms / image)'
           ''.format(eval_coco.decoder_time, 1000 * eval_coco.decoder_time / n_images))
+    print('nn time = {:.1f}s ({:.0f}ms / image)'
+          ''.format(eval_coco.nn_time, 1000 * eval_coco.nn_time / n_images))
     print('total time = {:.1f}s ({:.0f}ms / image)'
           ''.format(total_time, 1000 * total_time / n_images))
 
 
-def preprocess_factory_from_args(args):
-    collate_fn = datasets.collate_images_anns_meta
-    if args.batch_size == 1 and not args.multi_scale:
-        preprocess = transforms.Compose([
-            transforms.NormalizeAnnotations(),
-            transforms.RescaleAbsolute(args.long_edge),
-            transforms.EVAL_TRANSFORM,
-        ])
-    else:
-        preprocess = transforms.Compose([
-            transforms.NormalizeAnnotations(),
-            transforms.RescaleAbsolute(args.long_edge),
-            transforms.CenterPad(args.long_edge),
-            transforms.EVAL_TRANSFORM,
-        ])
+def preprocess_factory(
+        long_edge,
+        *,
+        tight_padding=False,
+        extended_scale=False,
+        orientation_invariant=False,
+):
+    preprocess = [transforms.NormalizeAnnotations()]
 
-    return preprocess, collate_fn
+    if extended_scale:
+        preprocess += [
+            transforms.DeterministicEqualChoice([
+                transforms.RescaleAbsolute(long_edge),
+                transforms.RescaleAbsolute((long_edge - 1) // 2 + 1),
+            ], salt=1)
+        ]
+    else:
+        preprocess += [transforms.RescaleAbsolute(long_edge)]
+
+    if tight_padding:
+        preprocess += [transforms.CenterPadTight(16)]
+    else:
+        preprocess += [transforms.CenterPad(long_edge)]
+
+    if orientation_invariant:
+        preprocess += [
+            transforms.DeterministicEqualChoice([
+                None,
+                transforms.RotateBy90(fixed_angle=90),
+                transforms.RotateBy90(fixed_angle=180),
+                transforms.RotateBy90(fixed_angle=270),
+            ], salt=3)
+        ]
+
+    preprocess += [transforms.EVAL_TRANSFORM]
+    return transforms.Compose(preprocess)
+
+
+def dataloader_from_args(args):
+    preprocess = preprocess_factory(
+        args.long_edge,
+        tight_padding=args.batch_size == 1 and not args.multi_scale,
+        extended_scale=args.extended_scale,
+        orientation_invariant=args.orientation_invariant,
+    )
+    data = datasets.Coco(
+        image_dir=args.image_dir,
+        ann_file=args.annotation_file,
+        preprocess=preprocess,
+        image_filter='all' if args.all_images else 'annotated',
+        category_ids=[] if args.detection_annotations else [1],
+    )
+    data_loader = torch.utils.data.DataLoader(
+        data, batch_size=args.batch_size, pin_memory=args.pin_memory,
+        num_workers=args.loader_workers,
+        collate_fn=datasets.collate_images_anns_meta)
+
+    return data_loader
 
 
 def main():
@@ -320,35 +402,30 @@ def main():
             return
         print('Processing: {}'.format(args.checkpoint))
 
-    preprocess, collate_fn = preprocess_factory_from_args(args)
-    data = datasets.CocoKeypoints(
-        root=args.image_dir,
-        annFile=args.annotation_file,
-        preprocess=preprocess,
-        all_persons=True,
-        all_images=args.all_images,
-    )
-    data_loader = torch.utils.data.DataLoader(
-        data, batch_size=args.batch_size, pin_memory=args.pin_memory,
-        num_workers=args.loader_workers, collate_fn=collate_fn)
-
-    model_cpu, _ = nets.factory_from_args(args)
+    data_loader = dataloader_from_args(args)
+    model_cpu, _ = network.factory_from_args(args)
     model = model_cpu.to(args.device)
     if not args.disable_cuda and torch.cuda.device_count() > 1:
         LOG.info('Using multiple GPUs: %d', torch.cuda.device_count())
         model = torch.nn.DataParallel(model)
-        model.head_names = model_cpu.head_names
-        model.head_strides = model_cpu.head_strides
+        model.base_net = model_cpu.base_net
+        model.head_nets = model_cpu.head_nets
 
-    processor = decoder.factory_from_args(args, model, args.device)
+    processor = decoder.factory_from_args(args, model)
     # processor.instance_scorer = decocder.instance_scorer.InstanceScoreRecorder()
     # processor.instance_scorer = torch.load('instance_scorer.pkl')
 
     coco = pycocotools.coco.COCO(args.annotation_file)
-    eval_coco = EvalCoco(coco, processor, preprocess.annotations_inverse)
+    eval_coco = EvalCoco(
+        coco,
+        processor,
+        max_per_image=100 if args.detection_annotations else 20,
+        category_ids=[] if args.detection_annotations else [1],
+        iou_type='bbox' if args.detection_annotations else 'keypoints',
+    )
     total_start = time.time()
     loop_start = time.time()
-    for batch_i, (image_tensors_cpu, anns_batch, meta_batch) in enumerate(data_loader):
+    for batch_i, (image_tensors, anns_batch, meta_batch) in enumerate(data_loader):
         LOG.info('batch %d, last loop: %.3fs, batches per second=%.1f',
                  batch_i, time.time() - loop_start,
                  batch_i / max(1, (time.time() - total_start)))
@@ -365,26 +442,20 @@ def main():
                 if np.any(a['keypoints'][:, 2] > 0)]) < args.min_ann:
             continue
 
-        fields_batch = processor.fields(image_tensors_cpu)
-
-        decoder_start = time.perf_counter()
-        pred_batch = processor.annotations_batch(
-            fields_batch, meta_batch=meta_batch, debug_images=image_tensors_cpu)
-        eval_coco.decoder_time += time.perf_counter() - decoder_start
+        pred_batch = processor.batch(model, image_tensors, device=args.device)
+        eval_coco.decoder_time += processor.last_decoder_time
+        eval_coco.nn_time += processor.last_nn_time
 
         # loop over batch
-        assert len(image_tensors_cpu) == len(fields_batch)
-        assert len(image_tensors_cpu) == len(anns_batch)
-        assert len(image_tensors_cpu) == len(meta_batch)
-        for image_tensor_cpu, pred, anns, meta in zip(
-                image_tensors_cpu, pred_batch, anns_batch, meta_batch):
-            eval_coco.from_predictions(pred, meta,
-                                       debug=args.debug, gt=anns,
-                                       image_cpu=image_tensor_cpu)
+        assert len(image_tensors) == len(anns_batch)
+        assert len(image_tensors) == len(meta_batch)
+        for pred, anns, meta in zip(pred_batch, anns_batch, meta_batch):
+            eval_coco.from_predictions(pred, meta, debug=args.debug, gt=anns)
     total_time = time.time() - total_start
 
     # processor.instance_scorer.write_data('instance_score_data.json')
-    write_evaluations(eval_coco, args.output, args, total_time)
+    count_ops = list(eval_coco.count_ops(model_cpu))
+    write_evaluations(eval_coco, args.output, args, total_time, count_ops)
 
 
 if __name__ == '__main__':

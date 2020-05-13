@@ -1,5 +1,6 @@
 import logging
 import torch
+import torchvision.models
 
 LOG = logging.getLogger(__name__)
 
@@ -7,46 +8,20 @@ LOG = logging.getLogger(__name__)
 class BaseNetwork(torch.nn.Module):
     """Common base network."""
 
-    def __init__(self, net, shortname, input_output_scale, out_features):
+    def __init__(self, net, shortname, stride, out_features):
         super(BaseNetwork, self).__init__()
 
         self.net = net
         self.shortname = shortname
-        self.input_output_scale = input_output_scale
+        self.stride = stride
         self.out_features = out_features
 
         # print(list(net.children()))
-        LOG.info('stride = %d', self.input_output_scale)
+        LOG.info('stride = %d', self.stride)
         LOG.info('output features = %d', self.out_features)
 
     def forward(self, *args):
         return self.net(*args)
-
-
-class ShuffleNetV2Factory(object):
-    def __init__(self, torchvision_shufflenetv2):
-        self.torchvision_shufflenetv2 = torchvision_shufflenetv2
-
-    def blocks(self):
-        return [
-            self.torchvision_shufflenetv2.conv1,
-            # self.torchvision_shufflenetv2.maxpool,
-            self.torchvision_shufflenetv2.stage2,
-            self.torchvision_shufflenetv2.stage3,
-            self.torchvision_shufflenetv2.stage4,
-            self.torchvision_shufflenetv2.conv5,
-        ]
-
-
-class DownsampleCat(torch.nn.Module):
-    def __init__(self):
-        super(DownsampleCat, self).__init__()
-        self.pad = torch.nn.ConstantPad2d((0, 1, 0, 1), 0.0)
-
-    def forward(self, x):  # pylint: disable=arguments-differ
-        p = self.pad(x)
-        o = torch.cat((p[:, :, :-1:2, :-1:2], p[:, :, 1::2, 1::2]), dim=1)
-        return o
 
 
 class ResnetBlocks(object):
@@ -68,39 +43,6 @@ class ResnetBlocks(object):
 
         return torch.nn.Sequential(*modules)
 
-    @staticmethod
-    def stride(block):
-        """Compute the output stride of a block.
-
-        Assume that convolutions are in serious with pools; only one
-        convolutions with non-unit stride.
-        """
-        if isinstance(block, list):
-            stride = 1
-            for b in block:
-                stride *= ResnetBlocks.stride(b)
-            return stride
-
-        conv_stride = max(m.stride[0]
-                          for m in block.modules()
-                          if isinstance(m, torch.nn.Conv2d))
-
-        pool_stride = 1
-        pools = [m for m in block.modules() if isinstance(m, torch.nn.MaxPool2d)]
-        if pools:
-            for p in pools:
-                pool_stride *= p.stride
-
-        return conv_stride * pool_stride
-
-    @staticmethod
-    def replace_downsample(block):
-        print('!!!!!!!!!!')
-        first_bottleneck = block[0]
-        print(first_bottleneck.downsample)
-        first_bottleneck.downsample = DownsampleCat()
-        print(first_bottleneck)
-
     def block2(self):
         return self.modules[4]
 
@@ -112,3 +54,119 @@ class ResnetBlocks(object):
 
     def block5(self):
         return self.modules[7]
+
+
+class InvertedResidualK(torch.nn.Module):
+    """This is exactly the same as torchvision.models.shufflenet.InvertedResidual
+    but with a dilation parameter."""
+    def __init__(self, inp, oup, stride, dilation=1, kernel_size=3):
+        super(InvertedResidualK, self).__init__()
+
+        if not 1 <= stride <= 3:
+            raise ValueError('illegal stride value')
+        self.stride = stride
+
+        branch_features = oup // 2
+        assert (self.stride != 1) or (inp == branch_features << 1)
+
+        assert dilation == 1 or kernel_size == 3
+        padding = 1
+        if dilation != 1:
+            padding = dilation
+        elif kernel_size != 3:
+            padding = (kernel_size - 1) // 2
+
+        if self.stride > 1:
+            self.branch1 = torch.nn.Sequential(
+                self.depthwise_conv(inp, inp,
+                                    kernel_size=kernel_size, stride=self.stride,
+                                    padding=padding, dilation=dilation),
+                torch.nn.BatchNorm2d(inp),
+                torch.nn.Conv2d(inp, branch_features,
+                                kernel_size=1, stride=1, padding=0, bias=False),
+                torch.nn.BatchNorm2d(branch_features),
+                torch.nn.ReLU(inplace=True),
+            )
+
+        self.branch2 = torch.nn.Sequential(
+            torch.nn.Conv2d(inp if (self.stride > 1) else branch_features, branch_features,
+                            kernel_size=1, stride=1, padding=0, bias=False),
+            torch.nn.BatchNorm2d(branch_features),
+            torch.nn.ReLU(inplace=True),
+            self.depthwise_conv(branch_features, branch_features,
+                                kernel_size=kernel_size, stride=self.stride,
+                                padding=padding, dilation=dilation),
+            torch.nn.BatchNorm2d(branch_features),
+            torch.nn.Conv2d(branch_features, branch_features,
+                            kernel_size=1, stride=1, padding=0, bias=False),
+            torch.nn.BatchNorm2d(branch_features),
+            torch.nn.ReLU(inplace=True),
+        )
+
+    @staticmethod
+    def depthwise_conv(in_f, out_f, kernel_size, stride=1, padding=0, bias=False, dilation=1):
+        return torch.nn.Conv2d(in_f, out_f, kernel_size, stride, padding,
+                               bias=bias, groups=in_f, dilation=dilation)
+
+    def forward(self, *args):
+        x = args[0]
+        if self.stride == 1:
+            x1, x2 = x.chunk(2, dim=1)
+            out = torch.cat((x1, self.branch2(x2)), dim=1)
+        else:
+            out = torch.cat((self.branch1(x), self.branch2(x)), dim=1)
+
+        out = torchvision.models.shufflenetv2.channel_shuffle(out, 2)
+
+        return out
+
+
+class ShuffleNetV2K(torch.nn.Module):
+    """Based on torchvision.models.ShuffleNetV2 where
+    the kernel size in stages 2,3,4 is 5 instead of 3."""
+    def __init__(self, stages_repeats, stages_out_channels):
+        super(ShuffleNetV2K, self).__init__()
+
+        if len(stages_repeats) != 3:
+            raise ValueError('expected stages_repeats as list of 3 positive ints')
+        if len(stages_out_channels) not in (4, 5):
+            raise ValueError('expected stages_out_channels as list of 4 or 5 positive ints')
+        self._stage_out_channels = stages_out_channels
+
+        input_channels = 3
+        output_channels = self._stage_out_channels[0]
+        self.conv1 = torch.nn.Sequential(
+            torch.nn.Conv2d(input_channels, output_channels, 3, 2, 1, bias=False),
+            torch.nn.BatchNorm2d(output_channels),
+            torch.nn.ReLU(inplace=True),
+        )
+        input_channels = output_channels
+
+        stage_names = ['stage{}'.format(i) for i in [2, 3, 4]]
+        for name, repeats, output_channels in zip(
+                stage_names, stages_repeats, self._stage_out_channels[1:]):
+            seq = [InvertedResidualK(input_channels, output_channels, 2)]
+            for _ in range(repeats - 1):
+                seq.append(InvertedResidualK(output_channels, output_channels, 1,
+                                             kernel_size=5))
+            setattr(self, name, torch.nn.Sequential(*seq))
+            input_channels = output_channels
+
+        self.conv5 = None
+        if len(self._stage_out_channels) == 5:
+            output_channels = self._stage_out_channels[-1]
+            self.conv5 = torch.nn.Sequential(
+                torch.nn.Conv2d(input_channels, output_channels, 1, 1, 0, bias=False),
+                torch.nn.BatchNorm2d(output_channels),
+                torch.nn.ReLU(inplace=True),
+            )
+
+    def forward(self, *args):
+        x = args[0]
+        x = self.conv1(x)
+        x = self.stage2(x)
+        x = self.stage3(x)
+        x = self.stage4(x)
+        if self.conv5 is not None:
+            x = self.conv5(x)
+        return x

@@ -7,6 +7,8 @@ class Compose(Preprocess):
 
     def __call__(self, image, anns, meta):
         for p in self.preprocess_list:
+            if p is None:
+                continue
             image, anns, meta = p(image, anns, meta)
 
         return image, anns, meta

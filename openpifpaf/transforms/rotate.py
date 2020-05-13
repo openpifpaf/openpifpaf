@@ -8,6 +8,7 @@ import scipy
 import torch
 
 from .preprocess import Preprocess
+from . import utils
 
 LOG = logging.getLogger(__name__)
 
@@ -23,10 +24,6 @@ class RotateBy90(Preprocess):
         meta = copy.deepcopy(meta)
         anns = copy.deepcopy(anns)
 
-        # invalidate some meta information
-        meta['offset'][:] = np.nan
-        meta['scale'][:] = np.nan
-
         w, h = image.size
         if self.fixed_angle is not None:
             angle = self.fixed_angle
@@ -36,6 +33,10 @@ class RotateBy90(Preprocess):
             sym_rnd2 = (float(torch.rand(1).item()) - 0.5) * 2.0
             angle += sym_rnd2 * self.angle_perturbation
         LOG.debug('rotation angle = %f', angle)
+        assert meta['rotation']['angle'] == 0.0
+        meta['rotation']['angle'] = angle
+        meta['rotation']['width'] = w
+        meta['rotation']['height'] = h
 
         # rotate image
         if angle != 0.0:
@@ -63,10 +64,10 @@ class RotateBy90(Preprocess):
             y_old = xy[:, 1].copy() - (h - 1)/2
             xy[:, 0] = (w - 1)/2 + cangle * x_old + sangle * y_old
             xy[:, 1] = (h - 1)/2 - sangle * x_old + cangle * y_old
-            ann['bbox'] = self.rotate_box(ann['bbox'], w - 1, h - 1, angle)
+            ann['bbox'] = utils.rotate_box(ann['bbox'], w - 1, h - 1, angle)
 
         LOG.debug('meta before: %s', meta)
-        meta['valid_area'] = self.rotate_box(meta['valid_area'], w - 1, h - 1, angle)
+        meta['valid_area'] = utils.rotate_box(meta['valid_area'], w - 1, h - 1, angle)
         # fix valid area to be inside original image dimensions
         original_valid_area = meta['valid_area'].copy()
         meta['valid_area'][0] = np.clip(meta['valid_area'][0], 0, w)
@@ -77,33 +78,4 @@ class RotateBy90(Preprocess):
         meta['valid_area'][2:] = new_rb_corner - meta['valid_area'][:2]
         LOG.debug('meta after: %s', meta)
 
-        for ann in anns:
-            ann['valid_area'] = meta['valid_area']
-
         return image, anns, meta
-
-    @staticmethod
-    def rotate_box(bbox, width, height, angle_degrees):
-        """Input bounding box is of the form x, y, width, height."""
-
-        cangle = math.cos(angle_degrees / 180.0 * math.pi)
-        sangle = math.sin(angle_degrees / 180.0 * math.pi)
-
-        four_corners = np.array([
-            [bbox[0], bbox[1]],
-            [bbox[0] + bbox[2], bbox[1]],
-            [bbox[0], bbox[1] + bbox[3]],
-            [bbox[0] + bbox[2], bbox[1] + bbox[3]],
-        ])
-
-        x_old = four_corners[:, 0].copy() - width/2
-        y_old = four_corners[:, 1].copy() - height/2
-        four_corners[:, 0] = width/2 + cangle * x_old + sangle * y_old
-        four_corners[:, 1] = height/2 - sangle * x_old + cangle * y_old
-
-        x = np.min(four_corners[:, 0])
-        y = np.min(four_corners[:, 1])
-        xmax = np.max(four_corners[:, 0])
-        ymax = np.max(four_corners[:, 1])
-
-        return np.array([x, y, xmax - x, ymax - y])

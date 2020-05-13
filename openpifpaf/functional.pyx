@@ -92,7 +92,13 @@ cpdef void scalar_square_add_gauss(float[:, :] field, float[:] x, float[:] y, fl
             deltax2 = (xx - cx)**2
             for yy in range(miny, maxy):
                 deltay2 = (yy - cy)**2
-                vv = cv * approx_exp(-0.5 * (deltax2 + deltay2) / csigma2)
+
+                if deltax2 < 0.25 and deltay2 < 0.25:
+                    # this is the closest pixel
+                    vv = cv
+                else:
+                    vv = cv * approx_exp(-0.5 * (deltax2 + deltay2) / csigma2)
+
                 field[yy, xx] += vv
 
 
@@ -120,7 +126,13 @@ cpdef void scalar_square_add_gauss_with_max(float[:, :] field, float[:] x, float
             deltax2 = (xx - cx)**2
             for yy in range(miny, maxy):
                 deltay2 = (yy - cy)**2
-                vv = cv * approx_exp(-0.5 * (deltax2 + deltay2) / csigma2)
+
+                if deltax2 < 0.25 and deltay2 < 0.25:
+                    # this is the closest pixel
+                    vv = cv
+                else:
+                    vv = cv * approx_exp(-0.5 * (deltax2 + deltay2) / csigma2)
+
                 field[yy, xx] += vv
                 field[yy, xx] = min(max_value, field[yy, xx])
 
@@ -264,6 +276,14 @@ cpdef unsigned char scalar_nonzero_clipped(unsigned char[:, :] field, float x, f
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+cpdef unsigned char scalar_nonzero_clipped_with_reduction(unsigned char[:, :] field, float x, float y, float r):
+    x = clip(x / r, 0.0, field.shape[1] - 1)
+    y = clip(y / r, 0.0, field.shape[0] - 1)
+    return field[<Py_ssize_t>y, <Py_ssize_t>x]
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def paf_center_b(float[:, :] paf_field, float x, float y, float sigma=1.0):
     result_np = np.empty_like(paf_field)
     cdef float[:, :] result = result_np
@@ -306,6 +326,30 @@ def paf_center(float[:, :] paf_field, float x, float y, float sigma):
             continue
 
         result[:, result_i] = paf_field[:, i]
+        result_i += 1
+
+    return result_np[:, :result_i]
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def caf_center_s(float[:, :] caf_field, float x, float y, float sigma):
+    result_np = np.empty_like(caf_field)
+    cdef float[:, :] result = result_np
+    cdef unsigned int result_i = 0
+    cdef Py_ssize_t i
+
+    for i in range(caf_field.shape[1]):
+        if caf_field[1, i] < x - sigma:
+            continue
+        if caf_field[1, i] > x + sigma:
+            continue
+        if caf_field[2, i] < y - sigma:
+            continue
+        if caf_field[2, i] > y + sigma:
+            continue
+
+        result[:, result_i] = caf_field[:, i]
         result_i += 1
 
     return result_np[:, :result_i]

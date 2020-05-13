@@ -43,11 +43,14 @@ setup(
     version=VERSION,
     packages=[
         'openpifpaf',
+        'openpifpaf.datasets',
         'openpifpaf.decoder',
         'openpifpaf.decoder.generator',
         'openpifpaf.encoder',
         'openpifpaf.network',
+        'openpifpaf.show',
         'openpifpaf.transforms',
+        'openpifpaf.visualizer',
     ],
     license='GNU AGPLv3',
     description='PifPaf: Composite Fields for Human Pose Estimation',
@@ -64,8 +67,8 @@ setup(
         'pysparkling',  # for log analysis
         'python-json-logger',
         'scipy',
-        'torch>=1.1.0',
-        'torchvision>=0.3',
+        'torch>=1.3.1',
+        'torchvision>=0.4',
         'pillow<7',  # temporary compat requirement for torchvision
     ],
     extras_require={
@@ -74,15 +77,15 @@ setup(
             'onnx-simplifier',
         ],
         'test': [
+            'nbval',
             'pylint',
             'pytest',
             'opencv-python',
+            'thop',
         ],
         'train': [
-            'matplotlib',
-            'pycocotools',  # pre-install cython
-            'torch>=1.3.0',
-            'torchvision>=0.4',
+            'matplotlib',  # required by pycocotools
+            'pycocotools',  # pre-install cython (currently incompatible with numpy 1.18 or above)
         ],
     },
 )

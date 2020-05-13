@@ -16,7 +16,7 @@ def create_sink(side):
     return sink
 
 
-def mask_valid_area(intensities, valid_area):
+def mask_valid_area(intensities, valid_area, *, fill_value=0):
     """Mask area.
 
     Intensities is either a feature map or an image.
@@ -25,13 +25,13 @@ def mask_valid_area(intensities, valid_area):
         return
 
     if valid_area[1] >= 1.0:
-        intensities[:-1, :int(valid_area[1]), :] = 0
+        intensities[:, :int(valid_area[1]), :] = fill_value
     if valid_area[0] >= 1.0:
-        intensities[:-1, :, :int(valid_area[0])] = 0
+        intensities[:, :, :int(valid_area[0])] = fill_value
 
-    max_i = int(math.ceil(valid_area[1] + valid_area[3]))
-    max_j = int(math.ceil(valid_area[0] + valid_area[2]))
-    if max_i < intensities.shape[1]:
-        intensities[:-1, max_i:, :] = 0
-    if max_j < intensities.shape[2]:
-        intensities[:-1, :, max_j:] = 0
+    max_i = int(math.ceil(valid_area[1] + valid_area[3])) + 1
+    max_j = int(math.ceil(valid_area[0] + valid_area[2])) + 1
+    if 0 < max_i < intensities.shape[1]:
+        intensities[:, max_i:, :] = fill_value
+    if 0 < max_j < intensities.shape[2]:
+        intensities[:, :, max_j:] = fill_value

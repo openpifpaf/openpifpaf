@@ -174,6 +174,7 @@ class Plots(object):
 
     def epoch_head(self, ax, field_name):
         field_names = self.field_names()
+        last_five_y = []
         for color_i, (data, label) in enumerate(zip(self.datas, self.labels)):
             color = matplotlib.cm.get_cmap('tab10')((color_i % 10 + 0.05) / 10)
             if field_name not in field_names[label]:
@@ -186,6 +187,7 @@ class Plots(object):
                 y = np.array([row.get('head_losses')[field_i]
                               for row in data['val-epoch']], dtype=np.float)
                 ax.plot(x, y, 'o-', color=color, markersize=2, label=label)
+                last_five_y.append(y[-5:])
 
             if 'train-epoch' in data:
                 x = np.array([row.get('epoch') for row in data['train-epoch']])
@@ -193,9 +195,14 @@ class Plots(object):
                               for row in data['train-epoch']], dtype=np.float)
                 m = x > 0
                 ax.plot(x[m], y[m], 'x-', color=color, linestyle='dotted', markersize=2)
+                last_five_y.append(y[-5:])
 
+        if not last_five_y:
+            return
         ax.set_xlabel('epoch')
-        ax.set_ylabel('loss, {}'.format(field_name))
+        ax.set_ylabel(field_name)
+        last_five_y = np.concatenate(last_five_y)
+        ax.set_ylim(np.min(last_five_y), np.max(last_five_y))
         # ax.set_ylim(0.0, 1.0)
         # if min(y) > -0.1:
         #     ax.set_yscale('log', nonposy='clip')
@@ -276,7 +283,7 @@ class Plots(object):
                 optionally_shaded(ax, x[m], y[m], color=color, label=label)
 
         ax.set_xlabel('epoch')
-        ax.set_ylabel('training loss, {}'.format(field_name))
+        ax.set_ylabel(format(field_name))
         ax.set_ylim(3e-3, 3.0)
         if min(y) > -0.1:
             ax.set_yscale('log', nonposy='clip')
@@ -300,7 +307,7 @@ class Plots(object):
                 optionally_shaded(ax, x[m], y[m], color=color, label=label)
 
         ax.set_xlabel('epoch')
-        ax.set_ylabel('MTL sigma, {}'.format(field_name))
+        ax.set_ylabel(field_name)
         ax.set_ylim(-0.1, 1.1)
         if min(y) > -0.1:
             ax.set_ylim(3e-3, 3.0)
@@ -325,8 +332,8 @@ class Plots(object):
         n_rows = len(rows)
         n_cols = max(len(r) for r in rows.values())
         multi_figsize = (5 * n_cols, 2.5 * n_rows)
-        if multi_figsize[0] > 40.0:
-            multi_figsize = (40.0, multi_figsize[1] / multi_figsize[0] * 40.0)
+        # if multi_figsize[0] > 40.0:
+        #     multi_figsize = (40.0, multi_figsize[1] / multi_figsize[0] * 40.0)
 
         with show.canvas() as ax:
             self.time(ax)
@@ -338,6 +345,7 @@ class Plots(object):
             self.lr(ax)
 
         with show.canvas(nrows=n_rows, ncols=n_cols, squeeze=False,
+                         dpi=75,
                          figsize=multi_figsize,
                          sharey=share_y, sharex=True) as axs:
             for row_i, row in enumerate(rows.values()):
@@ -373,11 +381,12 @@ class Plots(object):
 
 class EvalPlots(object):
     def __init__(self, log_files, labels=None, output_prefix=None,
-                 edge=321, samples=200, decoder=0, legend_last_ap=True):
+                 edge=321, decoder=0, legend_last_ap=True,
+                 modifiers=''):
         self.edge = edge
-        self.samples = samples
         self.decoder = decoder
         self.legend_last_ap = legend_last_ap
+        self.modifiers = modifiers
 
         self.datas = [self.read_log(f) for f in log_files]
         self.labels = labels or [lf.replace('outputs/', '') for lf in log_files]
@@ -390,18 +399,10 @@ class EvalPlots(object):
         files = path.split(',')
         files = ','.join(
             [
-                '{}.epoch???.evalcoco-edge{}-samples{}-decoder{}.txt'
-                ''.format(f[:-4], self.edge, self.samples, self.decoder)
+                '{}.epoch???.evalcoco-edge{}{}.stats.json'
+                ''.format(f[:-4], self.edge, self.modifiers)
                 for f in files
-            ] + [
-                '{}.epoch???.evalcoco-edge{}-samples{}.txt'
-                ''.format(f[:-4], self.edge, self.samples)
-                for f in files
-            ] + ([
-                '{}.epoch???.evalcoco-edge{}.txt'
-                ''.format(f[:-4], self.edge)
-                for f in files
-            ] if not self.samples else [])
+            ]
         )
 
         def epoch_from_filename(filename):
@@ -412,65 +413,92 @@ class EvalPlots(object):
                 .wholeTextFiles(files)
                 .map(lambda k_c: (
                     epoch_from_filename(k_c[0]),
-                    [float(l) for l in k_c[1].splitlines()],
+                    json.loads(k_c[1]),
                 ))
-                .filter(lambda k_c: len(k_c[1]) == 10)
+                .filter(lambda k_c: len(k_c[1]['stats']) == 10)
                 .sortByKey()
                 .collect())
 
-    def frame(self, ax, entry):
+    def frame_stats(self, ax, entry):
         for data, label in zip(self.datas, self.labels):
             if not data:
                 continue
             if self.legend_last_ap:
-                last_ap = data[-1][1][0]
+                last_ap = data[-1][1]['stats'][0]
                 label = '{} (AP={:.1%})'.format(label, last_ap)
             x = np.array([e for e, _ in data])
-            y = np.array([d[entry] for _, d in data])
+            y = np.array([d['stats'][entry] for _, d in data])
             ax.plot(x, y, 'o-', label=label, markersize=2)
 
         ax.set_xlabel('epoch')
         ax.grid(linestyle='dotted')
         # ax.legend(loc='upper right')
 
+    def frame_ops(self, ax, entry):
+        assert entry in (0, 1)
+
+        s = 1e9 if entry == 0 else 1e6
+        for data, label in zip(self.datas, self.labels):
+            if not data:
+                continue
+            x = np.array([d.get('count_ops', [0, 0])[entry] / s for _, d in data])[-1]
+            if x == 0.0:
+                continue
+            y = np.array([d['stats'][0] for _, d in data])[-1]
+            ax.plot([x], [y], 'o', label=label, markersize=10)
+            ax.annotate(
+                label if len(label) < 20 else label.split('-')[0],
+                (x, y),
+                xytext=(0.0, -5.0),
+                textcoords='offset points',
+                rotation=90,
+                horizontalalignment='center', verticalalignment='top',
+            )
+
+        ax.set_ylim(bottom=0.56)
+        ax.set_xlabel('GMACs' if entry == 0 else 'million parameters')
+        ax.set_ylabel('AP')
+        ax.grid(linestyle='dotted')
+        # ax.legend(loc='lower right')
+
     def ap(self, ax):
-        self.frame(ax, entry=0)
+        self.frame_stats(ax, entry=0)
         ax.set_ylabel('AP')
 
     def ap050(self, ax):
-        self.frame(ax, entry=1)
+        self.frame_stats(ax, entry=1)
         ax.set_ylabel('AP$^{0.50}$')
 
     def ap075(self, ax):
-        self.frame(ax, entry=2)
+        self.frame_stats(ax, entry=2)
         ax.set_ylabel('AP$^{0.75}$')
 
     def apm(self, ax):
-        self.frame(ax, entry=3)
+        self.frame_stats(ax, entry=3)
         ax.set_ylabel('AP$^{M}$')
 
     def apl(self, ax):
-        self.frame(ax, entry=4)
+        self.frame_stats(ax, entry=4)
         ax.set_ylabel('AP$^{L}$')
 
     def ar(self, ax):
-        self.frame(ax, entry=5)
+        self.frame_stats(ax, entry=5)
         ax.set_ylabel('AR')
 
     def ar050(self, ax):
-        self.frame(ax, entry=6)
+        self.frame_stats(ax, entry=6)
         ax.set_ylabel('AR$^{0.50}$')
 
     def ar075(self, ax):
-        self.frame(ax, entry=7)
+        self.frame_stats(ax, entry=7)
         ax.set_ylabel('AR$^{0.75}$')
 
     def arm(self, ax):
-        self.frame(ax, entry=8)
+        self.frame_stats(ax, entry=8)
         ax.set_ylabel('AR$^{M}$')
 
     def arl(self, ax):
-        self.frame(ax, entry=9)
+        self.frame_stats(ax, entry=9)
         ax.set_ylabel('AR$^{L}$')
 
     def fill_all(self, axs):
@@ -488,6 +516,11 @@ class EvalPlots(object):
             self.fill_all(axs)
             axs[0, 4].legend(fontsize=5, loc='lower right')
 
+        with show.canvas(nrows=1, ncols=2, figsize=(10, 5),
+                         sharey=share_y) as axs:
+            self.frame_ops(axs[0], 0)
+            self.frame_ops(axs[1], 1)
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -500,8 +533,6 @@ def main():
                         help='labels in the same order as files')
     parser.add_argument('--eval-edge', default=593, type=int,
                         help='side length during eval')
-    parser.add_argument('--eval-samples', default=200, type=int,
-                        help='number of samples during eval')
     parser.add_argument('--no-share-y', dest='share_y',
                         default=True, action='store_false',
                         help='dont share y access')
@@ -514,8 +545,9 @@ def main():
         args.output = args.log_file[-1] + '.'
 
     EvalPlots(args.log_file, args.label, args.output,
-              edge=args.eval_edge,
-              samples=args.eval_samples).show_all(share_y=args.share_y)
+              edge=args.eval_edge).show_all(share_y=args.share_y)
+    EvalPlots(args.log_file, args.label, args.output,
+              edge=args.eval_edge, modifiers='-os').show_all(share_y=args.share_y)
     Plots(args.log_file, args.label, args.output).show_all(
         share_y=args.share_y, show_mtl_sigmas=args.show_mtl_sigmas)
 

@@ -1,12 +1,15 @@
 import logging
 
-from ..data import COCO_KEYPOINTS, COCO_PERSON_SKELETON, DENSER_COCO_PERSON_CONNECTIONS
-from .pif import Pif
-from .pif_hr import PifHr
-from .pifpaf import PifPaf
-from .pifpaf_dijkstra import PifPafDijkstra
-from .processor import Processor
-from .visualizer import Visualizer
+from .caf_scored import CafScored
+from .cif_hr import CifHr
+from .cif_seeds import CifSeeds
+from .field_config import FieldConfig
+from .generator.cifcaf import CifCaf
+from .generator.cifdet import CifDet
+from . import nms
+from .profiler import Profiler
+from .profiler_autograd import ProfilerAutograd
+from .. import network, visualizer
 
 LOG = logging.getLogger(__name__)
 
@@ -28,10 +31,12 @@ def cli(parser, *,
                        help='filter keypoints by score')
     group.add_argument('--decoder-workers', default=workers, type=int,
                        help='number of workers for pose decoding')
-    group.add_argument('--experimental-decoder', default=False, action='store_true',
-                       help='use an experimental decoder')
-    group.add_argument('--extra-coupling', default=0.0, type=float,
-                       help='extra coupling')
+    group.add_argument('--dense-connections', default=False, action='store_true',
+                       help='use dense connections')
+    group.add_argument('--dense-coupling', default=0.01, type=float,
+                       help='dense coupling')
+    group.add_argument('--caf-seeds', default=False, action='store_true',
+                       help='[experimental]')
 
     if force_complete_pose:
         group.add_argument('--no-force-complete-pose', dest='force_complete_pose',
@@ -40,183 +45,173 @@ def cli(parser, *,
         group.add_argument('--force-complete-pose', dest='force_complete_pose',
                            default=False, action='store_true')
 
-    group.add_argument('--debug-pif-indices', default=[], nargs='+',
-                       help=('indices of PIF fields to create debug plots for '
-                             '(group with comma, e.g. "0,1 2" to create one plot '
-                             'with field 0 and 1 and another plot with field 2)'))
-    group.add_argument('--debug-paf-indices', default=[], nargs='+',
-                       help=('indices of PAF fields to create debug plots for '
-                             '(same grouping behavior as debug-pif-indices)'))
-    group.add_argument('--debug-file-prefix', default=None,
-                       help='save debug plots with this prefix')
-    group.add_argument('--profile-decoder', default=None, action='store_true',
-                       help='profile decoder')
+    group.add_argument('--profile-decoder',
+                       help='specify out .prof file or empty string')
 
-    group = parser.add_argument_group('PifPaf decoders')
-    assert PifPaf.fixed_b == PifPafDijkstra.fixed_b
-    group.add_argument('--fixed-b', default=PifPaf.fixed_b, type=float,
-                       help='overwrite b with fixed value, e.g. 0.5')
-    assert PifPaf.pif_fixed_scale == PifPafDijkstra.pif_fixed_scale
-    group.add_argument('--pif-fixed-scale', default=PifPaf.pif_fixed_scale, type=float,
-                       help='overwrite pif scale with a fixed value')
-    group.add_argument('--pif-th', default=PifHr.v_threshold, type=float,
-                       help='pif threshold')
-    assert PifPaf.paf_th == PifPafDijkstra.paf_th
-    group.add_argument('--paf-th', default=PifPaf.paf_th, type=float,
-                       help='paf threshold')
-    assert PifPaf.connection_method == PifPafDijkstra.connection_method
+    group = parser.add_argument_group('CifCaf decoders')
+    group.add_argument('--cif-th', default=CifHr.v_threshold, type=float,
+                       help='cif threshold')
+    group.add_argument('--caf-th', default=CafScored.default_score_th, type=float,
+                       help='caf threshold')
     group.add_argument('--connection-method',
-                       default=PifPaf.connection_method,
-                       choices=('median', 'max', 'blend'),
+                       default=CifCaf.connection_method,
+                       choices=('max', 'blend'),
                        help='connection method to use, max is faster')
+    group.add_argument('--greedy', default=False, action='store_true',
+                       help='greedy decoding')
 
 
-def factory_from_args(args, model, device=None):
-    # configure PifPaf
-    PifPaf.fixed_b = args.fixed_b
-    PifPaf.pif_fixed_scale = args.pif_fixed_scale
-    PifPaf.paf_th = args.paf_th
-    PifPaf.connection_method = args.connection_method
-    PifPaf.force_complete = args.force_complete_pose
-
-    # configure PifPafDijkstra
-    PifPafDijkstra.fixed_b = args.fixed_b
-    PifPafDijkstra.pif_fixed_scale = args.pif_fixed_scale
-    PifPafDijkstra.paf_th = args.paf_th
-    PifPafDijkstra.connection_method = args.connection_method
-    PifPafDijkstra.force_complete = args.force_complete_pose
-
-    # configure Pif
-    Pif.pif_fixed_scale = args.pif_fixed_scale
-
-    # configure PifHr
-    PifHr.v_threshold = args.pif_th
-
-    debug_visualizer = None
-    if args.debug_pif_indices or args.debug_paf_indices:
-        debug_visualizer = Visualizer(
-            args.debug_pif_indices, args.debug_paf_indices,
-            file_prefix=args.debug_file_prefix,
-            skeleton=COCO_PERSON_SKELETON + DENSER_COCO_PERSON_CONNECTIONS,
-        )
-
+def configure(args):
     # default value for keypoint filter depends on whether complete pose is forced
     if args.keypoint_threshold is None:
         args.keypoint_threshold = 0.001 if not args.force_complete_pose else 0.0
 
+    # check consistency
+    if args.force_complete_pose:
+        assert args.keypoint_threshold == 0.0
+    assert args.seed_threshold >= args.keypoint_threshold
+
+    # configure CifHr
+    CifHr.v_threshold = args.cif_th
+    CifHr.debug_visualizer = visualizer.CifHr()
+
+    # configure CifSeeds
+    CifSeeds.threshold = args.seed_threshold
+    CifSeeds.debug_visualizer = visualizer.Seeds()
+
+    # configure CafScored
+    CafScored.default_score_th = args.caf_th
+
+    # configure decoder generator
+    CifCaf.force_complete = args.force_complete_pose
+    CifCaf.keypoint_threshold = args.keypoint_threshold
+    CifCaf.greedy = args.greedy
+    CifCaf.connection_method = args.connection_method
+    CifCaf.occupancy_visualizer = visualizer.Occupancy()
+    CifDet.occupancy_visualizer = visualizer.Occupancy()
+
+    # configure nms
+    nms.Detection.instance_threshold = args.instance_threshold
+    nms.Keypoints.instance_threshold = args.instance_threshold
+    nms.Keypoints.keypoint_threshold = args.keypoint_threshold
+
     # decoder workers
     if args.decoder_workers is None and \
        getattr(args, 'batch_size', 1) > 1 and \
-       debug_visualizer is None:
+       not args.debug:
         args.decoder_workers = args.batch_size
 
-    decode = factory_decode(model,
-                            experimental=args.experimental_decoder,
-                            seed_threshold=args.seed_threshold,
-                            extra_coupling=args.extra_coupling,
+
+def factory_from_args(args, model):
+    configure(args)
+
+    decode = factory_decode(model.head_nets,
+                            basenet_stride=model.base_net.stride,
+                            dense_coupling=args.dense_coupling,
+                            dense_connections=args.dense_connections,
+                            caf_seeds=args.caf_seeds,
                             multi_scale=args.multi_scale,
                             multi_scale_hflip=args.multi_scale_hflip,
-                            debug_visualizer=debug_visualizer)
+                            worker_pool=args.decoder_workers)
 
-    return Processor(model, decode,
-                     instance_threshold=args.instance_threshold,
-                     keypoint_threshold=args.keypoint_threshold,
-                     debug_visualizer=debug_visualizer,
-                     profile=args.profile_decoder,
-                     worker_pool=args.decoder_workers,
-                     device=device)
+    if args.profile_decoder is not None:
+        decode.__class__.__call__ = Profiler(
+            decode.__call__, out_name=args.profile_decoder)
+        decode.fields_batch = ProfilerAutograd(
+            decode.fields_batch, device=args.device, out_name=args.profile_decoder)
+
+    return decode
 
 
-def factory_decode(model, *,
-                   extra_coupling=0.0,
-                   experimental=False,
+def factory_decode(head_nets, *,
+                   basenet_stride,
+                   dense_coupling=0.0,
+                   dense_connections=False,
+                   caf_seeds=False,
                    multi_scale=False,
                    multi_scale_hflip=True,
-                   **kwargs):
+                   worker_pool=None):
     """Instantiate a decoder."""
+    assert not caf_seeds, 'not implemented'
 
-    head_names = (
-        tuple(model.head_names)
-        if hasattr(model, 'head_names')
-        else tuple(h.shortname for h in model.head_nets)
-    )
+    head_names = tuple(hn.meta.name for hn in head_nets)
     LOG.debug('head names = %s', head_names)
 
-    if head_names in (('pif',),):
-        return Pif(model.head_strides[-1], head_index=0, **kwargs)
+    if isinstance(head_nets[0].meta, network.heads.DetectionMeta):
+        field_config = FieldConfig()
+        field_config.cif_visualizers = [
+            visualizer.CifDet(head_nets[0].meta.name,
+                              stride=head_nets[0].stride(basenet_stride),
+                              categories=head_nets[0].meta.categories)
+        ]
+        return CifDet(
+            field_config,
+            head_nets[0].meta.categories,
+            worker_pool=worker_pool,
+        )
 
-    if head_names in (('pif', 'paf'),
-                      ('pif', 'paf44'),
-                      ('pif', 'paf16'),
-                      ('pif', 'wpaf')):
-        return PifPaf(model.head_strides[-1],
-                      keypoints=COCO_KEYPOINTS,
-                      skeleton=COCO_PERSON_SKELETON,
-                      **kwargs)
+    if isinstance(head_nets[0].meta, network.heads.IntensityMeta) \
+       and isinstance(head_nets[1].meta, network.heads.AssociationMeta):
+        field_config = FieldConfig()
 
-    if head_names in (('pif', 'paf', 'paf25'),):
-        stride = model.head_strides[-1]
-        pif_index = 0
-        paf_index = 1
-        pif_min_scale = 0.0
-        paf_min_distance = 0.0
-        paf_max_distance = None
+        if multi_scale:
+            if not dense_connections:
+                field_config.cif_indices = [v * 3 for v in range(5)]
+                field_config.caf_indices = [v * 3 + 1 for v in range(5)]
+            else:
+                field_config.cif_indices = [v * 2 for v in range(5)]
+                field_config.caf_indices = [v * 2 + 1 for v in range(5)]
+            field_config.cif_strides = [head_nets[i].stride(basenet_stride)
+                                        for i in field_config.cif_indices]
+            field_config.caf_strides = [head_nets[i].stride(basenet_stride)
+                                        for i in field_config.caf_indices]
+            field_config.cif_min_scales = [0.0, 12.0, 16.0, 24.0, 40.0]
+            field_config.caf_min_distances = [v * 3.0 for v in field_config.cif_min_scales]
+            field_config.caf_max_distances = [160.0, 240.0, 320.0, 480.0, None]
         if multi_scale and multi_scale_hflip:
-            resolutions = [1, 1.5, 2, 3, 5] * 2
-            stride = [model.head_strides[-1] * r for r in resolutions]
-            if not experimental:
-                pif_index = [v * 3 for v in range(10)]
-                paf_index = [v * 3 + 1 for v in range(10)]
+            if not dense_connections:
+                field_config.cif_indices = [v * 3 for v in range(10)]
+                field_config.caf_indices = [v * 3 + 1 for v in range(10)]
             else:
-                pif_index = [v * 2 for v in range(10)]
-                paf_index = [v * 2 + 1 for v in range(10)]
-            pif_min_scale = [0.0, 12.0, 16.0, 24.0, 40.0] * 2
-            paf_min_distance = [v * 3.0 for v in pif_min_scale]
-            paf_max_distance = [160.0, 240.0, 320.0, 480.0, None] * 2
-            # paf_max_distance = [128.0, 192.0, 256.0, 384.0, None] * 2
-        elif multi_scale and not multi_scale_hflip:
-            resolutions = [1, 1.5, 2, 3, 5]
-            stride = [model.head_strides[-1] * r for r in resolutions]
-            if not experimental:
-                pif_index = [v * 3 for v in range(5)]
-                paf_index = [v * 3 + 1 for v in range(5)]
-            else:
-                pif_index = [v * 2 for v in range(5)]
-                paf_index = [v * 2 + 1 for v in range(5)]
-            pif_min_scale = [0.0, 12.0, 16.0, 24.0, 40.0]
-            paf_min_distance = [v * 3.0 for v in pif_min_scale]
-            paf_max_distance = [160.0, 240.0, 320.0, 480.0, None]
-            # paf_max_distance = [128.0, 192.0, 256.0, 384.0, None]
+                field_config.cif_indices = [v * 2 for v in range(10)]
+                field_config.caf_indices = [v * 2 + 1 for v in range(10)]
+            field_config.cif_strides = [head_nets[i].stride(basenet_stride)
+                                        for i in field_config.cif_indices]
+            field_config.caf_strides = [head_nets[i].stride(basenet_stride)
+                                        for i in field_config.caf_indices]
+            field_config.cif_min_scales *= 2
+            field_config.caf_min_distances *= 2
+            field_config.caf_max_distances *= 2
 
-        if experimental:
-            LOG.warning('using experimental decoder')
-            confidence_scales = (
-                [1.0 for _ in COCO_PERSON_SKELETON] +
-                [extra_coupling for _ in DENSER_COCO_PERSON_CONNECTIONS]
+        skeleton = head_nets[1].meta.skeleton
+        if dense_connections:
+            field_config.confidence_scales = (
+                [1.0 for _ in skeleton] +
+                [dense_coupling for _ in head_nets[2].meta.skeleton]
             )
-            return PifPafDijkstra(
-                stride,
-                pif_index=pif_index,
-                paf_index=paf_index,
-                pif_min_scale=pif_min_scale,
-                paf_min_distance=paf_min_distance,
-                paf_max_distance=paf_max_distance,
-                keypoints=COCO_KEYPOINTS,
-                skeleton=COCO_PERSON_SKELETON + DENSER_COCO_PERSON_CONNECTIONS,
-                confidence_scales=confidence_scales,
-                **kwargs
-            )
+            skeleton += head_nets[2].meta.skeleton
 
-        return PifPaf(
-            stride,
-            pif_index=pif_index,
-            paf_index=paf_index,
-            pif_min_scale=pif_min_scale,
-            paf_min_distance=paf_min_distance,
-            paf_max_distance=paf_max_distance,
-            keypoints=COCO_KEYPOINTS,
-            skeleton=COCO_PERSON_SKELETON,
-            **kwargs
+        field_config.cif_visualizers = [
+            visualizer.Cif(head_nets[i].meta.name,
+                           stride=head_nets[i].stride(basenet_stride),
+                           keypoints=head_nets[0].meta.keypoints,
+                           skeleton=head_nets[0].meta.draw_skeleton)
+            for i in field_config.cif_indices
+        ]
+        field_config.caf_visualizers = [
+            visualizer.Caf(head_nets[i].meta.name,
+                           stride=head_nets[i].stride(basenet_stride),
+                           keypoints=head_nets[1].meta.keypoints,
+                           skeleton=skeleton)
+            for i in field_config.caf_indices
+        ]
+
+        return CifCaf(
+            field_config,
+            keypoints=head_nets[0].meta.keypoints,
+            skeleton=skeleton,
+            out_skeleton=head_nets[1].meta.skeleton,
+            worker_pool=worker_pool,
         )
 
     raise Exception('decoder unknown for head names: {}'.format(head_names))

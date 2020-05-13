@@ -14,14 +14,16 @@ import torchvision
 from .annotations import AnnotationJitter, NormalizeAnnotations
 from .compose import Compose
 from .crop import Crop
-from .hflip import HFlip, HorizontalSwap
+from .hflip import HFlip
 from .image import Blur, ImageTransform, JpegCompression
+from .minsize import MinSize
 from .multi_scale import MultiScale
-from .pad import CenterPad, SquarePad
+from .pad import CenterPad, CenterPadTight, SquarePad
 from .preprocess import Preprocess
-from .random import RandomApply
+from .random import DeterministicEqualChoice, RandomApply
 from .rotate import RotateBy90
-from .scale import RescaleAbsolute, RescaleRelative
+from .scale import RescaleAbsolute, RescaleRelative, ScaleMix
+from .unclipped import UnclippedArea, UnclippedSides
 
 
 EVAL_TRANSFORM = Compose([

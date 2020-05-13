@@ -5,24 +5,23 @@ import numpy as np
 import PIL
 
 from .preprocess import Preprocess
-from ..data import COCO_KEYPOINTS, HFLIP
 
 LOG = logging.getLogger(__name__)
 
 
-class HorizontalSwap():
-    def __init__(self, joints=None, hflip=None):
-        self.joints = joints or COCO_KEYPOINTS
-        self.hflip = hflip or HFLIP
+class _HorizontalSwap():
+    def __init__(self, keypoints, hflip):
+        self.keypoints = keypoints
+        self.hflip = hflip
 
     def __call__(self, keypoints):
         target = np.zeros(keypoints.shape)
 
         for source_i, xyv in enumerate(keypoints):
-            source_name = self.joints[source_i]
+            source_name = self.keypoints[source_i]
             target_name = self.hflip.get(source_name)
             if target_name:
-                target_i = self.joints.index(target_name)
+                target_i = self.keypoints.index(target_name)
             else:
                 target_i = source_i
             target[target_i] = xyv
@@ -31,8 +30,8 @@ class HorizontalSwap():
 
 
 class HFlip(Preprocess):
-    def __init__(self, *, swap=None):
-        self.swap = swap or HorizontalSwap()
+    def __init__(self, keypoints, hflip):
+        self.swap = _HorizontalSwap(keypoints, hflip)
 
     def __call__(self, image, anns, meta):
         meta = copy.deepcopy(meta)
@@ -51,7 +50,5 @@ class HFlip(Preprocess):
         meta['hflip'] = True
 
         meta['valid_area'][0] = -(meta['valid_area'][0] + meta['valid_area'][2]) + w
-        for ann in anns:
-            ann['valid_area'] = meta['valid_area']
 
         return image, anns, meta

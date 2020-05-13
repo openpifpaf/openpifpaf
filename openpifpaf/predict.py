@@ -6,12 +6,10 @@ import json
 import logging
 import os
 
-import numpy as np
 import PIL
 import torch
 
-from .network import nets
-from . import datasets, decoder, show, transforms
+from . import datasets, decoder, network, show, transforms, visualizer
 
 LOG = logging.getLogger(__name__)
 
@@ -22,19 +20,20 @@ def cli():
         description=__doc__,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    nets.cli(parser)
+    network.cli(parser)
     decoder.cli(parser, force_complete_pose=False, instance_threshold=0.1, seed_threshold=0.5)
+    show.cli(parser)
+    visualizer.cli(parser)
     parser.add_argument('images', nargs='*',
                         help='input images')
     parser.add_argument('--glob',
                         help='glob expression for input images (for many images)')
-    parser.add_argument('-o', '--output-directory',
-                        help=('Output directory. When using this option, make '
-                              'sure input images have distinct file names.'))
     parser.add_argument('--show', default=False, action='store_true',
                         help='show image of output overlay')
-    parser.add_argument('--output-types', nargs='+', default=['skeleton', 'json'],
-                        help='what to output: skeleton, keypoints, json')
+    parser.add_argument('--image-output', default=None, nargs='*',
+                        help='image output file or directory')
+    parser.add_argument('--json-output', default=None, nargs='*',
+                        help='json output file or directory')
     parser.add_argument('--batch-size', default=1, type=int,
                         help='processing batch size')
     parser.add_argument('--long-edge', default=None, type=int,
@@ -45,6 +44,7 @@ def cli():
                         help='disable CUDA')
     parser.add_argument('--line-width', default=6, type=int,
                         help='line width for skeleton')
+    parser.add_argument('--monocolor-connections', default=False, action='store_true')
     parser.add_argument('--figure-width', default=10.0, type=float,
                         help='figure width')
     parser.add_argument('--dpi-factor', default=1.0, type=float,
@@ -65,6 +65,10 @@ def cli():
     logging.getLogger('openpifpaf').setLevel(log_level)
     LOG.setLevel(log_level)
 
+    network.configure(args)
+    show.configure(args)
+    visualizer.configure(args, enable_all_plots_on_debug=True)
+
     if args.loader_workers is None:
         args.loader_workers = args.batch_size
 
@@ -84,38 +88,66 @@ def cli():
     return args
 
 
-def bbox_from_keypoints(kps):
-    m = kps[:, 2] > 0
-    if not np.any(m):
-        return [0, 0, 0, 0]
-
-    x, y = np.min(kps[:, 0][m]), np.min(kps[:, 1][m])
-    w, h = np.max(kps[:, 0][m]) - x, np.max(kps[:, 1][m]) - y
-    return [x, y, w, h]
-
-
-def main():
-    args = cli()
-
+def processor_factory(args):
     # load model
-    model_cpu, _ = nets.factory_from_args(args)
+    model_cpu, _ = network.factory_from_args(args)
     model = model_cpu.to(args.device)
     if not args.disable_cuda and torch.cuda.device_count() > 1:
         LOG.info('Using multiple GPUs: %d', torch.cuda.device_count())
         model = torch.nn.DataParallel(model)
         model.head_names = model_cpu.head_names
         model.head_strides = model_cpu.head_strides
-    processor = decoder.factory_from_args(args, model, args.device)
+    processor = decoder.factory_from_args(args, model)
+    return processor, model
+
+
+def preprocess_factory(args):
+    preprocess = [transforms.NormalizeAnnotations()]
+    if args.long_edge:
+        preprocess.append(transforms.RescaleAbsolute(args.long_edge))
+    if args.batch_size > 1:
+        assert args.long_edge, '--long-edge must be provided for batch size > 1'
+        preprocess.append(transforms.CenterPad(args.long_edge))
+    else:
+        preprocess.append(transforms.CenterPadTight(16))
+    return transforms.Compose(preprocess + [transforms.EVAL_TRANSFORM])
+
+
+def out_name(arg_list, in_name, default_extension):
+    """Determine an output name from args, input name and extension.
+
+    arg_list can be:
+    - none: return none (e.g. show image but don't store it)
+    - empty: activate this output and determine a default name
+    - one entry:
+        - not a directory: use this as the output file name
+        - is a directory: use directory name and input name to form an output
+    """
+    if arg_list is None:
+        return None
+
+    if len(arg_list) == 0:
+        return in_name + default_extension
+
+    if len(arg_list) == 1:
+        oname = arg_list[0]
+        if os.path.isdir(oname):
+            oname = os.path.join(
+                oname,
+                os.path.basename(in_name)
+            ) + default_extension
+        return oname
+
+    raise Exception('provide one or no value instead of {}'.format(arg_list))
+
+
+def main():
+    args = cli()
+
+    processor, model = processor_factory(args)
+    preprocess = preprocess_factory(args)
 
     # data
-    preprocess = None
-    if args.long_edge:
-        preprocess = transforms.Compose([
-            transforms.NormalizeAnnotations(),
-            transforms.RescaleAbsolute(args.long_edge),
-            transforms.CenterPad(args.long_edge),
-            transforms.EVAL_TRANSFORM,
-        ])
     data = datasets.ImageList(args.images, preprocess=preprocess)
     data_loader = torch.utils.data.DataLoader(
         data, batch_size=args.batch_size, shuffle=False,
@@ -124,68 +156,45 @@ def main():
 
     # visualizers
     keypoint_painter = show.KeypointPainter(
-        show_box=args.debug,
-        show_joint_scale=args.debug,
-    )
-    skeleton_painter = show.KeypointPainter(
-        color_connections=True,
-        markersize=args.line_width - 5,
+        color_connections=not args.monocolor_connections,
         linewidth=args.line_width,
-        show_box=args.debug,
-        show_joint_scale=args.debug,
     )
+    annotation_painter = show.AnnotationPainter(keypoint_painter=keypoint_painter)
 
     for batch_i, (image_tensors_batch, _, meta_batch) in enumerate(data_loader):
-        fields_batch = processor.fields(image_tensors_batch)
-        pred_batch = processor.annotations_batch(fields_batch, debug_images=image_tensors_batch)
+        pred_batch = processor.batch(model, image_tensors_batch, device=args.device)
 
         # unbatch
         for pred, meta in zip(pred_batch, meta_batch):
-            if args.output_directory is None:
-                output_path = meta['file_name']
-            else:
-                file_name = os.path.basename(meta['file_name'])
-                output_path = os.path.join(args.output_directory, file_name)
-            LOG.info('batch %d: %s to %s', batch_i, meta['file_name'], output_path)
+            LOG.info('batch %d: %s', batch_i, meta['file_name'])
 
             # load the original image if necessary
             cpu_image = None
-            if args.debug or \
-               'keypoints' in args.output_types or \
-               'skeleton' in args.output_types:
+            if args.debug or args.show or args.image_output is not None:
                 with open(meta['file_name'], 'rb') as f:
                     cpu_image = PIL.Image.open(f).convert('RGB')
 
-            processor.set_cpu_image(cpu_image, None)
+            visualizer.BaseVisualizer.image(cpu_image)
             if preprocess is not None:
                 pred = preprocess.annotations_inverse(pred, meta)
 
-            if 'json' in args.output_types:
-                with open(output_path + '.pifpaf.json', 'w') as f:
-                    json.dump([
-                        {
-                            'keypoints': np.around(ann.data, 1).reshape(-1).tolist(),
-                            'bbox': np.around(bbox_from_keypoints(ann.data), 1).tolist(),
-                            'score': round(ann.score(), 3),
-                        }
-                        for ann in pred
-                    ], f)
+            if args.json_output is not None:
+                json_out_name = out_name(
+                    args.json_output, meta['file_name'], '.predictions.json')
+                LOG.debug('json output = %s', json_out_name)
+                with open(json_out_name, 'w') as f:
+                    json.dump([ann.json_data() for ann in pred], f)
 
-            if 'keypoints' in args.output_types:
+            if args.show or args.image_output is not None:
+                image_out_name = out_name(
+                    args.image_output, meta['file_name'], '.predictions.png')
+                LOG.debug('image output = %s', image_out_name)
                 with show.image_canvas(cpu_image,
-                                       output_path + '.keypoints.png',
+                                       image_out_name,
                                        show=args.show,
                                        fig_width=args.figure_width,
                                        dpi_factor=args.dpi_factor) as ax:
-                    keypoint_painter.annotations(ax, pred)
-
-            if 'skeleton' in args.output_types:
-                with show.image_canvas(cpu_image,
-                                       output_path + '.skeleton.png',
-                                       show=args.show,
-                                       fig_width=args.figure_width,
-                                       dpi_factor=args.dpi_factor) as ax:
-                    skeleton_painter.annotations(ax, pred)
+                    annotation_painter.annotations(ax, pred)
 
 
 if __name__ == '__main__':

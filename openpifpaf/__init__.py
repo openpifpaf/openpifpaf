@@ -1,7 +1,8 @@
 """An open implementation of PifPaf."""
 
-__version__ = '0.10.1'
+__version__ = '0.11rc1'
 
+from .annotation import Annotation, AnnotationDet
 from . import datasets
 from . import decoder
 from . import network

@@ -24,33 +24,52 @@ def cli(parser):
     group_s = parser.add_argument_group('learning rate scheduler')
     group_s.add_argument('--lr', type=float, default=1e-3,
                          help='learning rate')
-    group_s.add_argument('--lr-decay', default=[], nargs='+', type=int,
+    group_s.add_argument('--lr-decay', default=[], nargs='+', type=float,
                          help='epochs at which to decay the learning rate')
-    group_s.add_argument('--lr-burn-in-epochs', default=2, type=int,
-                         help='number of epochs at the beginning with lower learning rate')
-    group_s.add_argument('--lr-burn-in-factor', default=0.001, type=float,
-                         help='learning pre-factor during burn-in')
-    group_s.add_argument('--lr-gamma', default=0.1, type=float,
+    group_s.add_argument('--lr-decay-factor', default=0.1, type=float,
                          help='learning rate decay factor')
+    group_s.add_argument('--lr-decay-epochs', default=1.0, type=float,
+                         help='learning rate decay duration in epochs')
+    group_s.add_argument('--lr-warm-up-start-epoch', default=0, type=float,
+                         help='starting epoch for warm-up')
+    group_s.add_argument('--lr-warm-up-epochs', default=1, type=float,
+                         help='number of epochs at the beginning with lower learning rate')
+    group_s.add_argument('--lr-warm-up-factor', default=0.001, type=float,
+                         help='learning pre-factor during warm-up')
 
 
 class LearningRateLambda(object):
-    def __init__(self, burn_in, decay_schedule, *,
-                 gamma=0.1,
-                 burn_in_factor=0.01):
-        self.burn_in = burn_in
+    def __init__(self, decay_schedule, *,
+                 decay_factor=0.1,
+                 decay_epochs=1.0,
+                 warm_up_start_epoch=0,
+                 warm_up_epochs=2.0,
+                 warm_up_factor=0.01):
         self.decay_schedule = decay_schedule
-        self.gamma = gamma
-        self.burn_in_factor = burn_in_factor
+        self.decay_factor = decay_factor
+        self.decay_epochs = decay_epochs
+        self.warm_up_start_epoch = warm_up_start_epoch
+        self.warm_up_epochs = warm_up_epochs
+        self.warm_up_factor = warm_up_factor
 
     def __call__(self, step_i):
-        if step_i < self.burn_in:
-            return self.burn_in_factor**(1.0 - step_i / self.burn_in)
-
         lambda_ = 1.0
+
+        if step_i <= self.warm_up_start_epoch:
+            lambda_ *= self.warm_up_factor
+
+        if self.warm_up_start_epoch < step_i < self.warm_up_start_epoch + self.warm_up_epochs:
+            lambda_ *= self.warm_up_factor**(
+                1.0 - (step_i - self.warm_up_start_epoch) / self.warm_up_epochs
+            )
+
         for d in self.decay_schedule:
-            if step_i >= d:
-                lambda_ *= self.gamma
+            if step_i >= d + self.decay_epochs:
+                lambda_ *= self.decay_factor
+            elif step_i > d:
+                lambda_ *= self.decay_factor**(
+                    (step_i - d) / self.decay_epochs
+                )
 
         return lambda_
 
@@ -78,8 +97,14 @@ def factory_optimizer(args, parameters):
 def factory_lrscheduler(args, optimizer, training_batches_per_epoch):
     return torch.optim.lr_scheduler.LambdaLR(
         optimizer,
-        [LearningRateLambda(args.lr_burn_in_epochs * training_batches_per_epoch,
-                            [s * training_batches_per_epoch for s in args.lr_decay],
-                            gamma=args.lr_gamma,
-                            burn_in_factor=args.lr_burn_in_factor)],
+        [
+            LearningRateLambda(
+                [s * training_batches_per_epoch for s in args.lr_decay],
+                decay_factor=args.lr_decay_factor,
+                decay_epochs=args.lr_decay_epochs * training_batches_per_epoch,
+                warm_up_start_epoch=args.lr_warm_up_start_epoch * training_batches_per_epoch,
+                warm_up_epochs=args.lr_warm_up_epochs * training_batches_per_epoch,
+                warm_up_factor=args.lr_warm_up_factor,
+            ),
+        ],
     )

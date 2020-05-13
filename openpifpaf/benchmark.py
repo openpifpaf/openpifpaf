@@ -32,6 +32,7 @@ def cli():
     parser.add_argument('--backbones', default=DEFAULT_BACKBONES, nargs='+',
                         help='backbones to evaluate')
     parser.add_argument('--iccv2019-ablation', default=False, action='store_true')
+    parser.add_argument('--dense-ablation', default=False, action='store_true')
     group = parser.add_argument_group('logging')
     group.add_argument('--debug', default=False, action='store_true',
                        help='print debug messages')
@@ -99,6 +100,20 @@ def main():
         ]
         for eval_args_i, name_i in zip(multi_eval_args, names):
             run_eval_coco(args.output, args.backbones[0], eval_args_i, output_name=name_i)
+    elif args.dense_ablation:
+        multi_eval_args = [
+            eval_args,
+            eval_args + ['--dense-connections', '--dense-coupling=1.0'],
+            eval_args + ['--dense-connections'],
+        ]
+        for backbone in args.backbones:
+            names = [
+                backbone,
+                '{}.wdense'.format(backbone),
+                '{}.wdense.whierarchy'.format(backbone),
+            ]
+            for eval_args_i, name_i in zip(multi_eval_args, names):
+                run_eval_coco(args.output, backbone, eval_args_i, output_name=name_i)
     else:
         for backbone in args.backbones:
             run_eval_coco(args.output, backbone, eval_args)
@@ -114,6 +129,14 @@ def main():
     LOG.debug('all data: %s', stats)
 
     # pretty printing
+    print(
+        '| Backbone                '
+        '| __AP__   '
+        '| APM   '
+        '| APL   '
+        '| t   '
+        '| tdec   |'
+    )
     for backbone, data in sorted(stats.items(), key=lambda b_d: b_d[1]['stats'][0]):
         print(
             '| {backbone: <25} '
