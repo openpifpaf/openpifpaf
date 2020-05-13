@@ -1,6 +1,7 @@
 from abc import abstractmethod
 import logging
 import multiprocessing
+import sys
 import time
 
 import torch
@@ -22,6 +23,10 @@ class Generator:
             worker_pool = DummyPool()
         if isinstance(worker_pool, int):
             LOG.info('creating decoder worker pool with %d workers', worker_pool)
+            assert not sys.platform.startswith('win'), (
+                'not supported, use --decoder-workers=0 '
+                'on windows'
+            )
             worker_pool = multiprocessing.Pool(worker_pool)
 
         self.worker_pool = worker_pool

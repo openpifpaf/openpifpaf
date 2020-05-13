@@ -10,6 +10,9 @@ PYTHON = 'python3' if sys.platform != 'win32' else 'python'
 
 @pytest.mark.parametrize('batch_size', [1, 2])
 def test_predict(batch_size, tmpdir):
+    if batch_size > 1 and sys.platform.startswith('win'):
+        pytest.skip('multiprocess decoding not supported on windows')
+
     subprocess.run([
         PYTHON, '-m', 'openpifpaf.predict',
         '--checkpoint=shufflenetv2k16w',
