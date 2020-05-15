@@ -62,6 +62,7 @@ setup(
     ext_modules=EXTENSIONS,
     zip_safe=False,
 
+    python_requires='>=3.6',
     install_requires=[
         'numpy>=1.16',
         'pysparkling',  # for log analysis
@@ -70,6 +71,7 @@ setup(
         'torch>=1.3.1',
         'torchvision>=0.4',
         'pillow<7',  # temporary compat requirement for torchvision
+        'dataclasses; python_version<"3.7"',
     ],
     extras_require={
         'onnx': [
