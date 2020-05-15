@@ -1,3 +1,5 @@
+"""Drawing primitives."""
+
 from .animation_frame import AnimationFrame
 from .canvas import canvas, image_canvas, load_image, white_screen
 from .cli import cli, configure

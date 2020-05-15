@@ -1,3 +1,5 @@
+"""Higher level drawing functions."""
+
 from .base import BaseVisualizer
 from .cif import Cif
 from .cifdet import CifDet

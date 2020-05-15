@@ -1,13 +1,4 @@
-"""Transform input data.
-
-Images are resized with Pillow which has a different coordinate convention:
-https://pillow.readthedocs.io/en/3.3.x/handbook/concepts.html#coordinate-system
-
-> The Python Imaging Library uses a Cartesian pixel coordinate system,
-  with (0,0) in the upper left corner. Note that the coordinates refer to
-  the implied pixel corners; the centre of a pixel addressed as (0, 0)
-  actually lies at (0.5, 0.5).
-"""
+"""Transform input data."""
 
 import torchvision
 
