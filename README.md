@@ -35,7 +35,7 @@ More demos:
 * [openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo) project (best performance)
 * OpenPifPaf running in your browser: https://vita-epfl.github.io/openpifpafwebdemo/ (experimental)
 * the `openpifpaf.video` command (requires OpenCV)
-* [Google Colab demo](https://colab.research.google.com/drive/1H8T4ZE6wc0A9xJE4oGnhgHpUpAH5HL7W)
+* [Google Colab demo](https://colab.research.google.com/drive/1KJN50tokGuatnO-jxlUIiQdJf4OPlZQ-?usp=sharing)
 
 <img src="docs/wave3.gif" height=250 alt="example image" />
 
@@ -205,7 +205,7 @@ Replace `myvideotoprocess.mp4` with `0` for webcam0 or other OpenCV compatible s
 # Documentation Pages
 
 * [datasets](docs/datasets.md)
-* [predict.ipynb](docs/predict.ipynb), on [Google Colab](https://colab.research.google.com/drive/1H8T4ZE6wc0A9xJE4oGnhgHpUpAH5HL7W)
+* [predict.ipynb](docs/predict.ipynb), on [Google Colab](https://colab.research.google.com/drive/1KJN50tokGuatnO-jxlUIiQdJf4OPlZQ-?usp=sharing)
 * [evaluation logs](docs/eval_logs.md)
 * [history](HISTORY.md)
 * [contributing](CONTRIBUTING.md)
@@ -222,7 +222,7 @@ Replace `myvideotoprocess.mp4` with `0` for webcam0 or other OpenCV compatible s
 ```
 @InProceedings{kreiss2019pifpaf,
   author = {Kreiss, Sven and Bertoni, Lorenzo and Alahi, Alexandre},
-  title = {PifPaf: Composite Fields for Human Pose Estimation},
+  title = {{PifPaf: Composite Fields for Human Pose Estimation}},
   booktitle = {The IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
   month = {June},
   year = {2019}
