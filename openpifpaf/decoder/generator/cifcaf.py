@@ -11,7 +11,7 @@ from ..field_config import FieldConfig
 from ..cif_hr import CifHr
 from ..cif_seeds import CifSeeds
 from ..caf_scored import CafScored
-from .. import nms
+from .. import nms as nms_module
 from ..occupancy import Occupancy
 
 # pylint: disable=import-error
@@ -21,6 +21,10 @@ LOG = logging.getLogger(__name__)
 
 
 class CifCaf(Generator):
+    """Generate CifCaf poses from fields.
+
+    :param: nms: set to None to switch off non-maximum suppression.
+    """
     connection_method = 'blend'
     occupancy_visualizer = None
     force_complete = False
@@ -32,8 +36,12 @@ class CifCaf(Generator):
                  skeleton,
                  out_skeleton=None,
                  confidence_scales=None,
-                 worker_pool=None):
+                 worker_pool=None,
+                 nms=True):
         super().__init__(worker_pool)
+        if nms is True:
+            nms = nms_module.Keypoints()
+
         self.field_config = field_config
 
         self.keypoints = keypoints
@@ -41,6 +49,7 @@ class CifCaf(Generator):
         self.skeleton_m1 = np.asarray(skeleton) - 1
         self.out_skeleton = out_skeleton or skeleton
         self.confidence_scales = confidence_scales
+        self.nms = nms
 
         self.timers = defaultdict(float)
 
@@ -105,7 +114,8 @@ class CifCaf(Generator):
         if self.force_complete:
             annotations = self.complete_annotations(cifhr, fields, annotations)
 
-        annotations = nms.Keypoints().annotations(annotations)
+        if self.nms is not None:
+            annotations = self.nms.annotations(annotations)
 
         LOG.info('%d annotations: %s', len(annotations),
                  [np.sum(ann.data[:, 2] > 0.1) for ann in annotations])
