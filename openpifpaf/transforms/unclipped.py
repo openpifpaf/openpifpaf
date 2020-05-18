@@ -46,8 +46,7 @@ class UnclippedArea(Preprocess):
         for ann in anns:
             area_original = np.prod(ann['bbox_original'][2:])
             area_origscale = np.prod(ann['bbox'][2:] / meta['scale'])
-            LOG.debug('clipped = %.0f, orig = %.0f, ratio = %.2f',
-                      area_origscale, area_original, area_origscale / area_original)
+            LOG.debug('clipped = %.0f, orig = %.0f', area_origscale, area_original)
 
             if area_original > 0.0 and area_origscale / area_original > self.threshold:
                 continue
