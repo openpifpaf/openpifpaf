@@ -14,14 +14,6 @@ RESNET50_MODEL = ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/down
                   'v0.10.0/resnet50-pif-paf-paf25-edge401-191016-192503-d2b85396.pkl')
 RESNET101_MODEL = ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
                    'v0.10.0/resnet101block5-pif-paf-paf25-edge401-191012-132602-a2bf7ecd.pkl')
-RESNET152_MODEL = ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
-                   'v0.1.0/resnet152block5-pif-paf-edge401-190625-185426-3e2f28ed.pkl')
-RESNEXT50_MODEL = ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
-                   'v0.1.0/resnext50block5-pif-paf-edge401-190629-151121-24491655.pkl')
-SHUFFLENETV2X1_MODEL = ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
-                        'v0.1.0/shufflenetv2x1-pif-paf-edge401-190705-151607-d9a35d7e.pkl')
-SHUFFLENETV2X2_MODEL = ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
-                        'v0.10.0/shufflenetv2x2-pif-paf-paf25-edge401-191010-172527-ef704f06.pkl')
 SHUFFLENETV2K16W_MODEL = ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
                           'v0.11.0/shufflenetv2k16w-200510-221334-cif-caf-caf25-o10s-604c5956.pkl')
 SHUFFLENETV2K30W_MODEL = ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
@@ -74,14 +66,6 @@ def factory(
             checkpoint = torch.hub.load_state_dict_from_url(RESNET50_MODEL, check_hash=True)
         elif checkpoint == 'resnet101':
             checkpoint = torch.hub.load_state_dict_from_url(RESNET101_MODEL, check_hash=True)
-        elif checkpoint == 'resnet152':
-            checkpoint = torch.hub.load_state_dict_from_url(RESNET152_MODEL, check_hash=True)
-        elif checkpoint == 'resnext50':
-            checkpoint = torch.hub.load_state_dict_from_url(RESNEXT50_MODEL, check_hash=True)
-        elif checkpoint == 'shufflenetv2x1':
-            checkpoint = torch.hub.load_state_dict_from_url(SHUFFLENETV2X1_MODEL, check_hash=True)
-        elif checkpoint == 'shufflenetv2x2':
-            checkpoint = torch.hub.load_state_dict_from_url(SHUFFLENETV2X2_MODEL, check_hash=True)
         elif checkpoint == 'shufflenetv2k16w':
             checkpoint = torch.hub.load_state_dict_from_url(SHUFFLENETV2K16W_MODEL, check_hash=True)
         elif checkpoint == 'shufflenetv2k30w':
@@ -190,16 +174,16 @@ def factory_from_scratch(basename, head_names, *, pretrained=True):
             [8, 16, 6], [32, 512, 1024, 2048, 2048],
         )
         return shufflenet_factory_from_scratch(basename, base_vision, 2048, head_metas)
+    if basename.startswith('shufflenetv2k44w'):
+        base_vision = basenetworks.ShuffleNetV2K(
+            [12, 24, 8], [32, 512, 1024, 2048, 2048],
+        )
+        return generic_factory_from_scratch(basename, base_vision, 2048, head_metas)
     if basename.startswith('shufflenetv2k44'):
         base_vision = torchvision.models.ShuffleNetV2(
             [12, 24, 8], [32, 512, 1024, 2048, 2048],
         )
         return shufflenet_factory_from_scratch(basename, base_vision, 2048, head_metas)
-    if basename.startswith('shufflenetv2k46w'):
-        base_vision = basenetworks.ShuffleNetV2K(
-            [12, 24, 10], [32, 512, 1024, 2048],
-        )
-        return generic_factory_from_scratch(basename, base_vision, 2048, head_metas)
 
     raise Exception('unknown base network in {}'.format(basename))
 
