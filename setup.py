@@ -70,7 +70,7 @@ setup(
         'scipy',
         'torch>=1.3.1',
         'torchvision>=0.4',
-        'pillow<7',  # temporary compat requirement for torchvision
+        'pillow',
         'dataclasses; python_version<"3.7"',
     ],
     extras_require={
