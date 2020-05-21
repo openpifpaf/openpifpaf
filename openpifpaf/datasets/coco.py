@@ -85,7 +85,7 @@ class Coco(torch.utils.data.Dataset):
                     if has_annotation(image_id)]
         LOG.info('... done.')
 
-    def class_aware_sample_weights(self):
+    def class_aware_sample_weights(self, max_multiple=30.0):
         """Class aware sampling.
 
         To be used with PyTorch's WeightedRandomSampler.
@@ -109,13 +109,20 @@ class Coco(torch.utils.data.Dataset):
             image_categories[image].add(category)
             category_image_counts[category] += 1
 
-        return [
+        weights = [
             sum(
                 1.0 / category_image_counts[category_id]
                 for category_id in image_categories[image_id]
             )
             for image_id in self.ids
         ]
+        min_w = min(weights)
+        LOG.debug('Class Aware Sampling: minW = %f, maxW = %f', min_w, max(weights))
+        max_w = min_w * max_multiple
+        weights = [min(w, max_w) for w in weights]
+        LOG.debug('Class Aware Sampling: minW = %f, maxW = %f', min_w, max(weights))
+
+        return weights
 
     def __getitem__(self, index):
         image_id = self.ids[index]
