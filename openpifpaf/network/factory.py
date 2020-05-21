@@ -174,6 +174,19 @@ def factory_from_scratch(basename, head_names, *, pretrained=True):
             [8, 16, 6], [32, 512, 1024, 2048, 2048],
         )
         return shufflenet_factory_from_scratch(basename, base_vision, 2048, head_metas)
+    if basename.startswith('shufflenetv2k44wgn'):
+        base_vision = basenetworks.ShuffleNetV2K(
+            [12, 24, 8], [32, 512, 1024, 2048, 2048],
+            layer_norm=lambda x: torch.nn.GroupNorm(32 if x > 100 else 4, x, eps=1e-4),
+        )
+        return generic_factory_from_scratch(basename, base_vision, 2048, head_metas)
+    if basename.startswith('shufflenetv2k44win'):
+        base_vision = basenetworks.ShuffleNetV2K(
+            [12, 24, 8], [32, 512, 1024, 2048, 2048],
+            layer_norm=lambda x: torch.nn.InstanceNorm2d(
+                x, eps=1e-4, momentum=0.01, affine=True, track_running_stats=True),
+        )
+        return generic_factory_from_scratch(basename, base_vision, 2048, head_metas)
     if basename.startswith('shufflenetv2k44w'):
         base_vision = basenetworks.ShuffleNetV2K(
             [12, 24, 8], [32, 512, 1024, 2048, 2048],

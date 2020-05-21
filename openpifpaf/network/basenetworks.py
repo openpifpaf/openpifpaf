@@ -59,7 +59,7 @@ class ResnetBlocks(object):
 class InvertedResidualK(torch.nn.Module):
     """This is exactly the same as torchvision.models.shufflenet.InvertedResidual
     but with a dilation parameter."""
-    def __init__(self, inp, oup, stride, dilation=1, kernel_size=3):
+    def __init__(self, inp, oup, stride, *, layer_norm, dilation=1, kernel_size=3):
         super(InvertedResidualK, self).__init__()
 
         if not 1 <= stride <= 3:
@@ -81,25 +81,25 @@ class InvertedResidualK(torch.nn.Module):
                 self.depthwise_conv(inp, inp,
                                     kernel_size=kernel_size, stride=self.stride,
                                     padding=padding, dilation=dilation),
-                torch.nn.BatchNorm2d(inp),
+                layer_norm(inp),
                 torch.nn.Conv2d(inp, branch_features,
                                 kernel_size=1, stride=1, padding=0, bias=False),
-                torch.nn.BatchNorm2d(branch_features),
+                layer_norm(branch_features),
                 torch.nn.ReLU(inplace=True),
             )
 
         self.branch2 = torch.nn.Sequential(
             torch.nn.Conv2d(inp if (self.stride > 1) else branch_features, branch_features,
                             kernel_size=1, stride=1, padding=0, bias=False),
-            torch.nn.BatchNorm2d(branch_features),
+            layer_norm(branch_features),
             torch.nn.ReLU(inplace=True),
             self.depthwise_conv(branch_features, branch_features,
                                 kernel_size=kernel_size, stride=self.stride,
                                 padding=padding, dilation=dilation),
-            torch.nn.BatchNorm2d(branch_features),
+            layer_norm(branch_features),
             torch.nn.Conv2d(branch_features, branch_features,
                             kernel_size=1, stride=1, padding=0, bias=False),
-            torch.nn.BatchNorm2d(branch_features),
+            layer_norm(branch_features),
             torch.nn.ReLU(inplace=True),
         )
 
@@ -124,20 +124,22 @@ class InvertedResidualK(torch.nn.Module):
 class ShuffleNetV2K(torch.nn.Module):
     """Based on torchvision.models.ShuffleNetV2 where
     the kernel size in stages 2,3,4 is 5 instead of 3."""
-    def __init__(self, stages_repeats, stages_out_channels):
+    def __init__(self, stages_repeats, stages_out_channels, *, layer_norm=None):
         super(ShuffleNetV2K, self).__init__()
+        if layer_norm is None:
+            layer_norm = torch.nn.BatchNorm2d
 
         if len(stages_repeats) != 3:
             raise ValueError('expected stages_repeats as list of 3 positive ints')
-        if len(stages_out_channels) not in (4, 5):
-            raise ValueError('expected stages_out_channels as list of 4 or 5 positive ints')
+        if len(stages_out_channels) != 5:
+            raise ValueError('expected stages_out_channels as list of 5 positive ints')
         self._stage_out_channels = stages_out_channels
 
         input_channels = 3
         output_channels = self._stage_out_channels[0]
         self.conv1 = torch.nn.Sequential(
             torch.nn.Conv2d(input_channels, output_channels, 3, 2, 1, bias=False),
-            torch.nn.BatchNorm2d(output_channels),
+            layer_norm(output_channels),
             torch.nn.ReLU(inplace=True),
         )
         input_channels = output_channels
@@ -145,21 +147,20 @@ class ShuffleNetV2K(torch.nn.Module):
         stage_names = ['stage{}'.format(i) for i in [2, 3, 4]]
         for name, repeats, output_channels in zip(
                 stage_names, stages_repeats, self._stage_out_channels[1:]):
-            seq = [InvertedResidualK(input_channels, output_channels, 2)]
+            seq = [InvertedResidualK(input_channels, output_channels, 2,
+                                     layer_norm=layer_norm)]
             for _ in range(repeats - 1):
                 seq.append(InvertedResidualK(output_channels, output_channels, 1,
-                                             kernel_size=5))
+                                             kernel_size=5, layer_norm=layer_norm))
             setattr(self, name, torch.nn.Sequential(*seq))
             input_channels = output_channels
 
-        self.conv5 = None
-        if len(self._stage_out_channels) == 5:
-            output_channels = self._stage_out_channels[-1]
-            self.conv5 = torch.nn.Sequential(
-                torch.nn.Conv2d(input_channels, output_channels, 1, 1, 0, bias=False),
-                torch.nn.BatchNorm2d(output_channels),
-                torch.nn.ReLU(inplace=True),
-            )
+        output_channels = self._stage_out_channels[-1]
+        self.conv5 = torch.nn.Sequential(
+            torch.nn.Conv2d(input_channels, output_channels, 1, 1, 0, bias=False),
+            layer_norm(output_channels),
+            torch.nn.ReLU(inplace=True),
+        )
 
     def forward(self, *args):
         x = args[0]
@@ -167,6 +168,5 @@ class ShuffleNetV2K(torch.nn.Module):
         x = self.stage2(x)
         x = self.stage3(x)
         x = self.stage4(x)
-        if self.conv5 is not None:
-            x = self.conv5(x)
+        x = self.conv5(x)
         return x
