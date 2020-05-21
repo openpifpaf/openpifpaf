@@ -294,15 +294,16 @@ class CompositeLoss(torch.nn.Module):
 
         return ce_loss
 
-    def _localization_loss(self, x_regs, x_logbs, target_regs, *, target_confidence):
-        batch_size = target_confidence.shape[0]
-
-        reg_masks = target_confidence > 0.5
-        if not torch.any(reg_masks):
-            return [None for _ in target_regs]
+    def _localization_loss(self, x_regs, x_logbs, target_regs):
+        batch_size = target_regs[0].shape[0]
 
         reg_losses = []
         for i, target_reg in enumerate(target_regs):
+            reg_masks = torch.isnan(target_reg[:, :, 0]).bitwise_not_()
+            if not torch.any(reg_masks):
+                reg_losses.append(None)
+                continue
+
             reg_losses.append(self.regression_loss(
                 torch.masked_select(x_regs[:, :, i, 0], reg_masks),
                 torch.masked_select(x_regs[:, :, i, 1], reg_masks),
@@ -368,8 +369,7 @@ class CompositeLoss(torch.nn.Module):
         target_scales = [next(running_t) for _ in range(self.n_scales)]
 
         ce_loss = self._confidence_loss(x_confidence, target_confidence)
-        reg_losses = self._localization_loss(x_regs, x_logbs, target_regs,
-                                             target_confidence=target_confidence)
+        reg_losses = self._localization_loss(x_regs, x_logbs, target_regs)
         scale_losses = self._scale_losses(x_scales, target_scales)
         margin_losses = self._margin_losses(x_regs, target_regs,
                                             target_confidence=target_confidence)

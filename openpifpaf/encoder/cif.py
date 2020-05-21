@@ -59,7 +59,7 @@ class CifGenerator(object):
         field_w = bg_mask.shape[1] + 2 * self.config.padding
         field_h = bg_mask.shape[0] + 2 * self.config.padding
         self.intensities = np.zeros((n_fields, field_h, field_w), dtype=np.float32)
-        self.fields_reg = np.zeros((n_fields, 6, field_h, field_w), dtype=np.float32)
+        self.fields_reg = np.full((n_fields, 6, field_h, field_w), np.nan, dtype=np.float32)
         self.fields_reg[:, 2:] = np.inf
         self.fields_scale = np.full((n_fields, field_h, field_w), np.nan, dtype=np.float32)
         self.fields_reg_l = np.full((n_fields, field_h, field_w), np.inf, dtype=np.float32)
@@ -149,9 +149,9 @@ class CifGenerator(object):
         fields_reg = self.fields_reg[:, :, p:-p, p:-p]
         fields_scale = self.fields_scale[:, p:-p, p:-p]
 
-        mask_valid_area(intensities[:-1], valid_area)
-        mask_valid_area(fields_reg[:, 0], valid_area)
-        mask_valid_area(fields_reg[:, 1], valid_area)
+        mask_valid_area(intensities, valid_area)
+        mask_valid_area(fields_reg[:, 0], valid_area, fill_value=np.nan)
+        mask_valid_area(fields_reg[:, 1], valid_area, fill_value=np.nan)
         mask_valid_area(fields_scale, valid_area, fill_value=np.nan)
 
         return (

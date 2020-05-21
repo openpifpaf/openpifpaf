@@ -75,8 +75,8 @@ class CafGenerator:
         field_w = bg_mask.shape[1] + 2 * self.config.padding
         field_h = bg_mask.shape[0] + 2 * self.config.padding
         self.intensities = np.zeros((n_fields, field_h, field_w), dtype=np.float32)
-        self.fields_reg1 = np.zeros((n_fields, 6, field_h, field_w), dtype=np.float32)
-        self.fields_reg2 = np.zeros((n_fields, 6, field_h, field_w), dtype=np.float32)
+        self.fields_reg1 = np.full((n_fields, 6, field_h, field_w), np.nan, dtype=np.float32)
+        self.fields_reg2 = np.full((n_fields, 6, field_h, field_w), np.nan, dtype=np.float32)
         self.fields_reg1[:, 2:] = np.inf
         self.fields_reg2[:, 2:] = np.inf
         self.fields_scale1 = np.full((n_fields, field_h, field_w), np.nan, dtype=np.float32)
@@ -227,11 +227,11 @@ class CafGenerator:
         fields_scale1 = self.fields_scale1[:, p:-p, p:-p]
         fields_scale2 = self.fields_scale2[:, p:-p, p:-p]
 
-        mask_valid_area(intensities[:-1], valid_area)
-        mask_valid_area(fields_reg1[:, 0], valid_area)
-        mask_valid_area(fields_reg1[:, 1], valid_area)
-        mask_valid_area(fields_reg2[:, 0], valid_area)
-        mask_valid_area(fields_reg2[:, 1], valid_area)
+        mask_valid_area(intensities, valid_area)
+        mask_valid_area(fields_reg1[:, 0], valid_area, fill_value=np.nan)
+        mask_valid_area(fields_reg1[:, 1], valid_area, fill_value=np.nan)
+        mask_valid_area(fields_reg2[:, 0], valid_area, fill_value=np.nan)
+        mask_valid_area(fields_reg2[:, 1], valid_area, fill_value=np.nan)
         mask_valid_area(fields_scale1, valid_area, fill_value=np.nan)
         mask_valid_area(fields_scale2, valid_area, fill_value=np.nan)
 
