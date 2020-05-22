@@ -7,14 +7,15 @@ usage: eval_coco.py [-h] [--checkpoint CHECKPOINT] [--basenet BASENET]
                     [--keypoint-threshold KEYPOINT_THRESHOLD]
                     [--decoder-workers DECODER_WORKERS] [--dense-connections]
                     [--dense-coupling DENSE_COUPLING] [--caf-seeds]
-                    [--no-force-complete-pose] [--profile-decoder]
-                    [--cif-th CIF_TH] [--caf-th CAF_TH]
-                    [--connection-method {max,blend}] [--greedy] [--show-box]
-                    [--show-joint-scales] [--show-joint-confidences]
-                    [--show-decoding-order] [--show-frontier-order]
-                    [--show-only-decoded-connections] [--debug-cifhr]
-                    [--debug-cif-c] [--debug-cif-v] [--debug-cifdet-c]
-                    [--debug-cifdet-v] [--debug-caf-c] [--debug-caf-v]
+                    [--no-force-complete-pose]
+                    [--profile-decoder PROFILE_DECODER] [--cif-th CIF_TH]
+                    [--caf-th CAF_TH] [--connection-method {max,blend}]
+                    [--greedy] [--show-box] [--show-joint-scales]
+                    [--show-joint-confidences] [--show-decoding-order]
+                    [--show-frontier-order] [--show-only-decoded-connections]
+                    [--debug-cifhr] [--debug-cif-c] [--debug-cif-v]
+                    [--debug-cifdet-c] [--debug-cifdet-v] [--debug-caf-c]
+                    [--debug-caf-v]
                     [--debug-indices DEBUG_INDICES [DEBUG_INDICES ...]]
                     [--output OUTPUT] [--detection-annotations] [-n N]
                     [--skip-n SKIP_N] [--dataset {val,test,test-dev}]
@@ -38,7 +39,8 @@ optional arguments:
   --batch-size BATCH_SIZE
                         batch size (default: 1)
   --long-edge LONG_EDGE
-                        long edge of input images (default: 641)
+                        long edge of input images. Setting to zero deactivates
+                        scaling. (default: 641)
   --loader-workers LOADER_WORKERS
                         number of workers for data loading (default: None)
   --orientation-invariant
@@ -90,7 +92,8 @@ decoder configuration:
                         dense coupling (default: 0.01)
   --caf-seeds           [experimental] (default: False)
   --no-force-complete-pose
-  --profile-decoder     profile decoder (default: None)
+  --profile-decoder PROFILE_DECODER
+                        specify out .prof file or empty string (default: None)
 
 CifCaf decoders:
   --cif-th CIF_TH       cif threshold (default: 0.1)

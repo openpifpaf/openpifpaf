@@ -1,4 +1,5 @@
-usage: python3 -m openpifpaf.predict [-h] [--checkpoint CHECKPOINT]
+usage: python3 -m openpifpaf.predict [-h] [--version]
+                                     [--checkpoint CHECKPOINT]
                                      [--basenet BASENET]
                                      [--headnets HEADNETS [HEADNETS ...]]
                                      [--no-pretrain] [--two-scale]
@@ -13,8 +14,8 @@ usage: python3 -m openpifpaf.predict [-h] [--checkpoint CHECKPOINT]
                                      [--dense-connections]
                                      [--dense-coupling DENSE_COUPLING]
                                      [--caf-seeds] [--force-complete-pose]
-                                     [--profile-decoder] [--cif-th CIF_TH]
-                                     [--caf-th CAF_TH]
+                                     [--profile-decoder PROFILE_DECODER]
+                                     [--cif-th CIF_TH] [--caf-th CAF_TH]
                                      [--connection-method {max,blend}]
                                      [--greedy] [--show-box]
                                      [--show-joint-scales]
@@ -47,6 +48,7 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
+  --version             show program's version number and exit
   --glob GLOB           glob expression for input images (for many images)
                         (default: None)
   --show                show image of output overlay (default: False)
@@ -109,7 +111,8 @@ decoder configuration:
                         dense coupling (default: 0.01)
   --caf-seeds           [experimental] (default: False)
   --force-complete-pose
-  --profile-decoder     profile decoder (default: None)
+  --profile-decoder PROFILE_DECODER
+                        specify out .prof file or empty string (default: None)
 
 CifCaf decoders:
   --cif-th CIF_TH       cif threshold (default: 0.1)

@@ -127,6 +127,9 @@ def simplify(infile, outfile=None):
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--version', action='version',
+                        version='OpenPifPaf {version}'.format(version=openpifpaf.__version__))
+
     parser.add_argument('--checkpoint', default='resnet50')
     parser.add_argument('--outfile', default='openpifpaf-resnet50.onnx')
     parser.add_argument('--simplify', dest='simplify', default=False, action='store_true')

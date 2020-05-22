@@ -4,6 +4,8 @@ import sys
 
 import pytest
 
+from openpifpaf import __version__
+
 
 PYTHON = 'python3' if sys.platform != 'win32' else 'python'
 
@@ -23,7 +25,7 @@ if sys.platform != 'win32':
 
 
 @pytest.mark.parametrize('module_name', MODULE_NAMES)
-def test_predict(module_name):
+def test_help(module_name):
     out_file = 'docs/cli-help-{}.txt'.format(module_name)
     with open(out_file, 'w') as f:
         subprocess.run([
@@ -32,3 +34,13 @@ def test_predict(module_name):
         ], stdout=f, check=True)
 
     assert os.path.getsize(out_file) > 0
+
+
+@pytest.mark.parametrize('module_name', MODULE_NAMES)
+def test_version(module_name):
+    output = subprocess.check_output([
+        PYTHON, '-m', 'openpifpaf.{}'.format(module_name),
+        '--version',
+    ])
+
+    assert output.decode() == 'OpenPifPaf {}\n'.format(__version__)

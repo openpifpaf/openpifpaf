@@ -6,9 +6,8 @@ usage: train.py [-h] [--debug] [--checkpoint CHECKPOINT] [--basenet BASENET]
                 [--r-smooth R_SMOOTH]
                 [--regression-loss {smoothl1,smootherl1,l1,laplace}]
                 [--background-weight BACKGROUND_WEIGHT]
-                [--paf-multiplicity-correction]
-                [--paf-independence-scale PAF_INDEPENDENCE_SCALE]
-                [--margin-loss] [--auto-tune-mtl]
+                [--focal-gamma FOCAL_GAMMA] [--margin-loss] [--auto-tune-mtl]
+                [--task-sparsity-weight TASK_SPARSITY_WEIGHT]
                 [--cif-side-length CIF_SIDE_LENGTH]
                 [--caf-min-size CAF_MIN_SIZE] [--caf-fixed-size]
                 [--caf-aspect-ratio CAF_ASPECT_RATIO] [--momentum MOMENTUM]
@@ -20,10 +19,12 @@ usage: train.py [-h] [--debug] [--checkpoint CHECKPOINT] [--basenet BASENET]
                 [--lr-warm-up-start-epoch LR_WARM_UP_START_EPOCH]
                 [--lr-warm-up-epochs LR_WARM_UP_EPOCHS]
                 [--lr-warm-up-factor LR_WARM_UP_FACTOR]
-                [--train-annotations TRAIN_ANNOTATIONS]
-                [--train-image-dir TRAIN_IMAGE_DIR]
-                [--val-annotations VAL_ANNOTATIONS]
-                [--val-image-dir VAL_IMAGE_DIR] [--dataset DATASET]
+                [--cocokp-train-annotations COCOKP_TRAIN_ANNOTATIONS]
+                [--cocodet-train-annotations COCODET_TRAIN_ANNOTATIONS]
+                [--cocokp-val-annotations COCOKP_VAL_ANNOTATIONS]
+                [--cocodet-val-annotations COCODET_VAL_ANNOTATIONS]
+                [--coco-train-image-dir COCO_TRAIN_IMAGE_DIR]
+                [--coco-val-image-dir COCO_VAL_IMAGE_DIR] [--dataset DATASET]
                 [--n-images N_IMAGES] [--duplicate-data DUPLICATE_DATA]
                 [--loader-workers LOADER_WORKERS] [--batch-size BATCH_SIZE]
                 [--square-edge SQUARE_EDGE] [--extended-scale]
@@ -88,15 +89,16 @@ losses:
   --regression-loss {smoothl1,smootherl1,l1,laplace}
                         type of regression loss (default: laplace)
   --background-weight BACKGROUND_WEIGHT
-                        [experimental] BCE weight of background (default: 1.0)
-  --paf-multiplicity-correction
-                        [experimental] use multiplicity correction for PAF
-                        loss (default: False)
-  --paf-independence-scale PAF_INDEPENDENCE_SCALE
-                        [experimental] linear length scale of independence for
-                        PAF regression (default: 3.0)
+                        BCE weight where ground truth is background (default:
+                        1.0)
+  --focal-gamma FOCAL_GAMMA
+                        when > 0.0, use focal loss with the given gamma
+                        (default: 1.0)
   --margin-loss         [experimental] (default: False)
-  --auto-tune-mtl       [experimental] (default: False)
+  --auto-tune-mtl       use Kendall's prescription for adjusting the multitask
+                        weight (default: False)
+  --task-sparsity-weight TASK_SPARSITY_WEIGHT
+                        [experimental] (default: 0.0)
 
 CIF encoder:
   --cif-side-length CIF_SIDE_LENGTH
@@ -139,10 +141,12 @@ learning rate scheduler:
                         learning pre-factor during warm-up (default: 0.001)
 
 dataset and loader:
-  --train-annotations TRAIN_ANNOTATIONS
-  --train-image-dir TRAIN_IMAGE_DIR
-  --val-annotations VAL_ANNOTATIONS
-  --val-image-dir VAL_IMAGE_DIR
+  --cocokp-train-annotations COCOKP_TRAIN_ANNOTATIONS
+  --cocodet-train-annotations COCODET_TRAIN_ANNOTATIONS
+  --cocokp-val-annotations COCOKP_VAL_ANNOTATIONS
+  --cocodet-val-annotations COCODET_VAL_ANNOTATIONS
+  --coco-train-image-dir COCO_TRAIN_IMAGE_DIR
+  --coco-val-image-dir COCO_VAL_IMAGE_DIR
   --dataset DATASET
   --n-images N_IMAGES   number of images to sample (default: None)
   --duplicate-data DUPLICATE_DATA

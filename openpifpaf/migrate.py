@@ -5,7 +5,7 @@ import logging
 
 import torch
 
-from . import network
+from . import network, __version__
 
 
 def main():
@@ -13,6 +13,9 @@ def main():
         description=__doc__,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
+    parser.add_argument('--version', action='version',
+                        version='OpenPifPaf {version}'.format(version=__version__))
+
     parser.add_argument('--debug', default=False, action='store_true')
     parser.add_argument('--output')
     network.cli(parser)

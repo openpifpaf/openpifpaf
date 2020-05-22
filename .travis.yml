@@ -65,6 +65,7 @@ install:
  - "pip3 install --editable .[test]"
 script:
  - pylint openpifpaf --disable=fixme
+ - pylint tests/*.py --disable=fixme
  - pytest -vv
  - |
    if [ $PIFPAFTRAINING == "1" ]; then
