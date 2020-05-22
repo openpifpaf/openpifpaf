@@ -43,4 +43,4 @@ def test_version(module_name):
         '--version',
     ])
 
-    assert output.decode() == 'OpenPifPaf {}\n'.format(__version__)
+    assert output.decode().strip() == 'OpenPifPaf {}'.format(__version__)
