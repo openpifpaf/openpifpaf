@@ -28,8 +28,10 @@ jobs:
     # Build the guide
     - name: Build the guide
       run: |
-        jq 'del(.metadata.kernelspec)' guide/dev.ipynb > guide/dev_.ipynb
-        mv guide/dev_.ipynb guide/dev.ipynb
+        for fn in guide/*.ipynb; do
+          jq 'del(.metadata.kernelspec)' ${fn} > ${fn}_
+          mv ${fn}_ ${fn}
+        done
         cd guide && jupyter-book build .
     # Push the book's HTML to gh-pages
     - name: GitHub Pages action
