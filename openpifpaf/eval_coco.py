@@ -221,7 +221,7 @@ def cli():  # pylint: disable=too-many-statements
     parser.add_argument('--batch-size', default=1, type=int,
                         help='batch size')
     parser.add_argument('--long-edge', default=641, type=int,
-                        help='long edge of input images')
+                        help='long edge of input images. Setting to zero deactivates scaling.')
     parser.add_argument('--loader-workers', default=None, type=int,
                         help='number of workers for data loading')
     parser.add_argument('--orientation-invariant', default=False, action='store_true')
@@ -341,18 +341,20 @@ def preprocess_factory(
     preprocess = [transforms.NormalizeAnnotations()]
 
     if extended_scale:
+        assert long_edge
         preprocess += [
             transforms.DeterministicEqualChoice([
                 transforms.RescaleAbsolute(long_edge),
                 transforms.RescaleAbsolute((long_edge - 1) // 2 + 1),
             ], salt=1)
         ]
-    else:
+    elif long_edge:
         preprocess += [transforms.RescaleAbsolute(long_edge)]
 
     if tight_padding:
         preprocess += [transforms.CenterPadTight(16)]
     else:
+        assert long_edge
         preprocess += [transforms.CenterPad(long_edge)]
 
     if orientation_invariant:
