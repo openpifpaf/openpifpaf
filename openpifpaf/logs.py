@@ -12,7 +12,7 @@ import sys
 import numpy as np
 import pysparkling
 
-from . import show
+from . import show, __version__
 
 try:
     import matplotlib
@@ -31,7 +31,6 @@ def cli(parser):
 def configure(args):
     # pylint: disable=import-outside-toplevel
     from pythonjsonlogger import jsonlogger
-    from . import __version__ as VERSION
 
     file_handler = logging.FileHandler(args.output + '.log', mode='w')
     file_handler.setFormatter(
@@ -44,7 +43,7 @@ def configure(args):
         'type': 'process',
         'argv': sys.argv,
         'args': vars(args),
-        'version': VERSION,
+        'version': __version__,
         'hostname': socket.gethostname(),
     })
     return log_level
@@ -527,6 +526,9 @@ def main():
         description=__doc__,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
+    parser.add_argument('--version', action='version',
+                        version='OpenPifPaf {version}'.format(version=__version__))
+
     parser.add_argument('log_file', nargs='+',
                         help='path to log file')
     parser.add_argument('--label', nargs='+',

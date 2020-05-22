@@ -8,7 +8,7 @@ import socket
 import torch
 
 from . import datasets, encoder, logs, network, optimize, visualizer
-from . import __version__ as VERSION
+from . import __version__
 
 
 def default_output_file(args, net_cpu):
@@ -38,6 +38,9 @@ def cli():
         description=__doc__,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
+    parser.add_argument('--version', action='version',
+                        version='OpenPifPaf {version}'.format(version=__version__))
+
     logs.cli(parser)
     network.cli(parser)
     network.losses.cli(parser)
@@ -118,7 +121,7 @@ def main():
         train_profile=args.profile,
         model_meta_data={
             'args': vars(args),
-            'version': VERSION,
+            'version': __version__,
             'hostname': socket.gethostname(),
         },
     )

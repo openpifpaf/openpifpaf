@@ -9,7 +9,7 @@ import os
 import PIL
 import torch
 
-from . import datasets, decoder, network, show, transforms, visualizer
+from . import datasets, decoder, network, show, transforms, visualizer, __version__
 
 LOG = logging.getLogger(__name__)
 
@@ -20,6 +20,9 @@ def cli():
         description=__doc__,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
+    parser.add_argument('--version', action='version',
+                        version='OpenPifPaf {version}'.format(version=__version__))
+
     network.cli(parser)
     decoder.cli(parser, force_complete_pose=False, instance_threshold=0.1, seed_threshold=0.5)
     show.cli(parser)
