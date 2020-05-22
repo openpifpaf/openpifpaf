@@ -30,11 +30,11 @@ class CifDet(BaseVisualizer):
         ]
 
         self._confidences(field[0])
-        self._regressions(field[1], field[2], field[3], annotations=annotations)
+        self._regressions(field[1], field[2], annotations=annotations)
 
     def predicted(self, field, *, annotations=None):
         self._confidences(field[:, 0])
-        self._regressions(field[:, 1:3], field[:, 4], field[:, 5],
+        self._regressions(field[:, 1:3], field[:, 4:6],
                           annotations=annotations,
                           confidence_fields=field[:, 0],
                           uv_is_offset=False)
@@ -51,7 +51,7 @@ class CifDet(BaseVisualizer):
                                alpha=0.9, vmin=0.0, vmax=1.0, cmap='Greens')
                 self.colorbar(ax, im)
 
-    def _regressions(self, regression_fields, w_fields, h_fields, *,
+    def _regressions(self, regression_fields, wh_fields, *,
                      annotations=None, confidence_fields=None, uv_is_offset=True):
         if not self.show_regressions:
             return
@@ -69,7 +69,7 @@ class CifDet(BaseVisualizer):
                                 confidence_field=confidence_field,
                                 xy_scale=self.stride, uv_is_offset=uv_is_offset,
                                 cmap='Greens', clim=(0.5, 1.0), width=0.001)
-                show.boxes_wh(ax, w_fields[f], h_fields[f],
+                show.boxes_wh(ax, wh_fields[f, 0], wh_fields[f, 1],
                               confidence_field=confidence_field,
                               regression_field=regression_fields[f, :2],
                               xy_scale=self.stride, cmap='Greens', fill=False,

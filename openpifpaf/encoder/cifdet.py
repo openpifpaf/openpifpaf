@@ -31,8 +31,7 @@ class CifDetGenerator(object):
 
         self.intensities = None
         self.fields_reg = None
-        self.fields_w = None
-        self.fields_h = None
+        self.fields_wh = None
         self.fields_reg_l = None
 
         self.sink = create_sink(config.side_length)
@@ -61,8 +60,7 @@ class CifDetGenerator(object):
         field_h = bg_mask.shape[-2] + 2 * self.config.padding
         self.intensities = np.zeros((n_fields, field_h, field_w), dtype=np.float32)
         self.fields_reg = np.full((n_fields, 2, field_h, field_w), np.nan, dtype=np.float32)
-        self.fields_w = np.full((n_fields, field_h, field_w), np.nan, dtype=np.float32)
-        self.fields_h = np.full((n_fields, field_h, field_w), np.nan, dtype=np.float32)
+        self.fields_wh = np.full((n_fields, 2, field_h, field_w), np.nan, dtype=np.float32)
         self.fields_reg_l = np.full((n_fields, field_h, field_w), np.inf, dtype=np.float32)
 
         # bg_mask
@@ -107,26 +105,23 @@ class CifDetGenerator(object):
 
         # update wh
         assert wh[0] > 0.0
-        self.fields_w[f, miny:maxy, minx:maxx][mask] = wh[0]
         assert wh[1] > 0.0
-        self.fields_h[f, miny:maxy, minx:maxx][mask] = wh[1]
+        self.fields_wh[f, :, miny:maxy, minx:maxx][:, mask] = np.expand_dims(wh, 1)
 
     def fields(self, valid_area):
         p = self.config.padding
         intensities = self.intensities[:, p:-p, p:-p]
         fields_reg = self.fields_reg[:, :, p:-p, p:-p]
-        fields_w = self.fields_w[:, p:-p, p:-p]
-        fields_h = self.fields_h[:, p:-p, p:-p]
+        fields_wh = self.fields_wh[:, :, p:-p, p:-p]
 
         mask_valid_area(intensities, valid_area)
         mask_valid_area(fields_reg[:, 0], valid_area, fill_value=np.nan)
         mask_valid_area(fields_reg[:, 1], valid_area, fill_value=np.nan)
-        mask_valid_area(fields_w, valid_area, fill_value=np.nan)
-        mask_valid_area(fields_h, valid_area, fill_value=np.nan)
+        mask_valid_area(fields_wh[:, 0], valid_area, fill_value=np.nan)
+        mask_valid_area(fields_wh[:, 1], valid_area, fill_value=np.nan)
 
         return (
             torch.from_numpy(intensities),
             torch.from_numpy(fields_reg),
-            torch.from_numpy(fields_w),
-            torch.from_numpy(fields_h),
+            torch.from_numpy(fields_wh),
         )

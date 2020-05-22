@@ -81,23 +81,22 @@ def factory(
         # normalize for backwards compatibility
         nets.model_migration(net_cpu)
 
-        base_name = net_cpu.base_net.shortname
-        head_names = [hn.meta.name for hn in net_cpu.head_nets]
-        LOG.debug('checkpoint base_name = %s, head_names = %s', base_name, head_names)
-
         # initialize for eval
         net_cpu.eval()
 
     cif_indices = [0]
     caf_indices = [1]
-    if not any('caf' in h for h in head_names):
+    if not any(isinstance(h.meta, heads.AssociationMeta) for h in net_cpu.head_nets):
         caf_indices = []
     if dense_connections and not multi_scale:
         caf_indices = [1, 2]
     elif dense_connections and multi_scale:
         cif_indices = [v * 3 + 1 for v in range(10)]
         caf_indices = [v * 3 + 2 for v in range(10)]
-    net_cpu.process_heads = heads.CifCafCollector(cif_indices, caf_indices)
+    if isinstance(net_cpu.head_nets[0].meta, heads.DetectionMeta):
+        net_cpu.process_heads = heads.CifdetCollector(cif_indices)
+    else:
+        net_cpu.process_heads = heads.CifCafCollector(cif_indices, caf_indices)
     net_cpu.cross_talk = cross_talk
 
     if two_scale:

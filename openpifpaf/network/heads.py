@@ -88,6 +88,60 @@ class CifCafCollector(torch.nn.Module):
         return cif_head, caf_head
 
 
+class CifdetCollector(torch.nn.Module):
+    def __init__(self, indices):
+        super(CifdetCollector, self).__init__()
+        self.indices = indices
+        LOG.debug('cifdet = %s', indices)
+
+    @staticmethod
+    def selector(inputs, index):
+        if not isinstance(index, (list, tuple)):
+            return inputs[index]
+
+        for ind in index:
+            inputs = inputs[ind]
+        return inputs
+
+    @staticmethod
+    def concat_fields(fields):
+        fields = [
+            f.view(f.shape[0], f.shape[1], f.shape[2] * f.shape[3], *f.shape[4:])
+            if len(f.shape) == 6
+            else f.view(f.shape[0], f.shape[1], f.shape[2], *f.shape[3:])
+            for f in fields
+        ]
+        return torch.cat(fields, dim=2)
+
+    @staticmethod
+    def concat_heads(heads):
+        if not heads:
+            return None
+        if len(heads) == 1:
+            return heads[0]
+
+        # LOG.debug('heads = %s', [h.shape for h in heads])
+        return torch.cat(heads, dim=1)
+
+    def forward(self, *args):
+        heads = args[0]
+
+        # concat fields
+        cifdet_heads = [self.concat_fields(self.selector(heads, head_index))
+                        for head_index in self.indices]
+
+        # concat heads
+        cifdet_head = self.concat_heads(cifdet_heads)
+
+        # add index
+        index_field = index_field_torch(cifdet_head.shape[-2:], device=cifdet_head.device)
+        cifdet_head[:, :, 1:3] += index_field
+        # rearrange caf_fields
+        cifdet_head = cifdet_head[:, :, (0, 1, 2, 5, 3, 4, 6)]
+
+        return (cifdet_head,)
+
+
 class PifHFlip(torch.nn.Module):
     def __init__(self, keypoints, hflip):
         super(PifHFlip, self).__init__()
@@ -202,8 +256,8 @@ class DetectionMeta:
     categories: List[str]
 
     n_confidences: int = 1
-    n_vectors: int = 1
-    n_scales: int = 2
+    n_vectors: int = 2
+    n_scales: int = 0
 
     @property
     def n_fields(self):
@@ -359,7 +413,7 @@ class CompositeFieldFused(torch.nn.Module):
         # classification
         classes_x = x[:, 0:self.out_features[0]]
         classes_x = classes_x.view(classes_x.shape[0],
-                                   classes_x.shape[1] // self.meta.n_confidences,
+                                   self.meta.n_fields,
                                    self.meta.n_confidences,
                                    classes_x.shape[2],
                                    classes_x.shape[3])
@@ -369,14 +423,14 @@ class CompositeFieldFused(torch.nn.Module):
         # regressions
         regs_x = x[:, self.out_features[0]:self.out_features[1]]
         regs_x = regs_x.view(regs_x.shape[0],
-                             regs_x.shape[1] // self.meta.n_vectors // 2,
+                             self.meta.n_fields,
                              self.meta.n_vectors,
                              2,
                              regs_x.shape[2],
                              regs_x.shape[3])
         regs_logb = x[:, self.out_features[1]:self.out_features[2]]
         regs_logb = regs_logb.view(regs_logb.shape[0],
-                                   regs_logb.shape[1] // self.meta.n_vectors,
+                                   self.meta.n_fields,
                                    self.meta.n_vectors,
                                    regs_logb.shape[2],
                                    regs_logb.shape[3])
@@ -384,7 +438,7 @@ class CompositeFieldFused(torch.nn.Module):
         # scale
         scales_x = x[:, self.out_features[2]:self.out_features[3]]
         scales_x = scales_x.view(scales_x.shape[0],
-                                 scales_x.shape[1] // self.meta.n_scales,
+                                 self.meta.n_fields,
                                  self.meta.n_scales,
                                  scales_x.shape[2],
                                  scales_x.shape[3])
