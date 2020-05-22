@@ -24,11 +24,12 @@ jobs:
       run: |
         pip install -r guide/requirements.txt
         pip install .
-        pip install nbstripout
+        sudo apt install jq
     # Build the guide
     - name: Build the guide
       run: |
-        nbstripout guide/*.ipynb
+        jq 'del(.metadata.kernelspec)' guide/dev.ipynb > guide/dev_.ipynb
+        mv guide/dev_.ipynb guide/dev.ipynb
         cd guide && jupyter-book build .
     # Push the book's HTML to gh-pages
     - name: GitHub Pages action
