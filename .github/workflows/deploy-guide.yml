@@ -24,9 +24,11 @@ jobs:
       run: |
         pip install -r guide/requirements.txt
         pip install .
+        pip install nbstripout
     # Build the guide
     - name: Build the guide
       run: |
+        nbstripout guide/*.ipynb
         cd guide && jupyter-book build .
     # Push the book's HTML to gh-pages
     - name: GitHub Pages action
