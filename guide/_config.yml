@@ -1,0 +1,11 @@
+# Book settings
+title: OpenPifPaf Guide
+author: Sven Kreiss
+# logo: logo.png
+
+# latex:
+#   latex_documents:
+#     targetname: book.tex
+
+# execute:
+#   execute_notebooks: 'off'
