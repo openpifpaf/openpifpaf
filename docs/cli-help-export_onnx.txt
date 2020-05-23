@@ -1,11 +1,24 @@
-usage: export_onnx.py [-h] [--checkpoint CHECKPOINT] [--outfile OUTFILE]
-                      [--simplify] [--no-polish] [--optimize] [--no-check]
+usage: python3 -m openpifpaf.export_onnx [-h] [--version]
+                                         [--checkpoint CHECKPOINT]
+                                         [--outfile OUTFILE] [--simplify]
+                                         [--no-polish] [--optimize]
+                                         [--no-check]
+
+Export a checkpoint as an ONNX model.
+
+Applies onnx utilities to improve the exported model and
+also tries to simplify the model with onnx-simplifier.
+
+https://github.com/onnx/onnx/blob/master/docs/PythonAPIOverview.md
+https://github.com/daquexian/onnx-simplifier
 
 optional arguments:
   -h, --help            show this help message and exit
+  --version             show program's version number and exit
   --checkpoint CHECKPOINT
   --outfile OUTFILE
   --simplify
-  --no-polish           runs checker, optimizer and shape inference
+  --no-polish           runs checker, optimizer and shape inference (default:
+                        True)
   --optimize
   --no-check

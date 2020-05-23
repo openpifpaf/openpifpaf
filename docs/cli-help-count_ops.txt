@@ -1,0 +1,15 @@
+usage: python3 -m openpifpaf.count_ops [-h] [--version]
+                                       [--checkpoint CHECKPOINT]
+
+Export a checkpoint as an ONNX model.
+
+Applies onnx utilities to improve the exported model and
+also tries to simplify the model with onnx-simplifier.
+
+https://github.com/onnx/onnx/blob/master/docs/PythonAPIOverview.md
+https://github.com/daquexian/onnx-simplifier
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --version             show program's version number and exit
+  --checkpoint CHECKPOINT

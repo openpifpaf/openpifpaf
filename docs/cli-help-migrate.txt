@@ -1,13 +1,19 @@
-usage: migrate.py [-h] [--debug] [--output OUTPUT] [--checkpoint CHECKPOINT]
-                  [--basenet BASENET] [--headnets HEADNETS [HEADNETS ...]]
-                  [--no-pretrain] [--two-scale] [--multi-scale]
-                  [--no-multi-scale-hflip] [--cross-talk CROSS_TALK]
-                  [--head-dropout HEAD_DROPOUT] [--head-quad HEAD_QUAD]
+usage: python3 -m openpifpaf.migrate [-h] [--version] [--debug]
+                                     [--output OUTPUT]
+                                     [--checkpoint CHECKPOINT]
+                                     [--basenet BASENET]
+                                     [--headnets HEADNETS [HEADNETS ...]]
+                                     [--no-pretrain] [--two-scale]
+                                     [--multi-scale] [--no-multi-scale-hflip]
+                                     [--cross-talk CROSS_TALK]
+                                     [--head-dropout HEAD_DROPOUT]
+                                     [--head-quad HEAD_QUAD]
 
 Migrate a model.
 
 optional arguments:
   -h, --help            show this help message and exit
+  --version             show program's version number and exit
   --debug
   --output OUTPUT
 

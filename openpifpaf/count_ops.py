@@ -25,8 +25,20 @@ def count(checkpoint):
     return thop.profile(model, inputs=(dummy_input, ))
 
 
+class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
+                      argparse.RawDescriptionHelpFormatter):
+    pass
+
+
 def main():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        prog='python3 -m openpifpaf.count_ops',
+        description=__doc__,
+        formatter_class=CustomFormatter,
+    )
+    parser.add_argument('--version', action='version',
+                        version='OpenPifPaf {version}'.format(version=openpifpaf.__version__))
+
     parser.add_argument('--checkpoint')
     args = parser.parse_args()
 
