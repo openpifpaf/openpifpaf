@@ -523,6 +523,7 @@ class EvalPlots(object):
 
 def main():
     parser = argparse.ArgumentParser(
+        prog='python3 -m openpifpaf.logs',
         description=__doc__,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )

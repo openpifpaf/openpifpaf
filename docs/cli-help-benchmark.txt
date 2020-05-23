@@ -1,0 +1,19 @@
+usage: python3 -m openpifpaf.benchmark [-h] [--version] [--output OUTPUT]
+                                       [--backbones BACKBONES [BACKBONES ...]]
+                                       [--iccv2019-ablation]
+                                       [--dense-ablation] [--debug]
+
+Benchmark.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --version             show program's version number and exit
+  --output OUTPUT       output file name (default: None)
+  --backbones BACKBONES [BACKBONES ...]
+                        backbones to evaluate (default: ['shufflenetv2x2',
+                        'resnet50', 'resnet101', 'resnet152'])
+  --iccv2019-ablation
+  --dense-ablation
+
+logging:
+  --debug               print debug messages (default: False)

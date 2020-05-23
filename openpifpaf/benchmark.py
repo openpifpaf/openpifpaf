@@ -9,6 +9,8 @@ import subprocess
 
 import pysparkling
 
+from . import __version__
+
 LOG = logging.getLogger(__name__)
 
 
@@ -22,11 +24,20 @@ DEFAULT_BACKBONES = [
 ]
 
 
+class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
+                      argparse.RawDescriptionHelpFormatter):
+    pass
+
+
 def cli():
     parser = argparse.ArgumentParser(
+        prog='python3 -m openpifpaf.benchmark',
         description=__doc__,
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        formatter_class=CustomFormatter,
     )
+    parser.add_argument('--version', action='version',
+                        version='OpenPifPaf {version}'.format(version=__version__))
+
     parser.add_argument('--output', default=None,
                         help='output file name')
     parser.add_argument('--backbones', default=DEFAULT_BACKBONES, nargs='+',

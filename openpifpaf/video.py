@@ -40,6 +40,7 @@ class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
 
 def cli():  # pylint: disable=too-many-statements,too-many-branches
     parser = argparse.ArgumentParser(
+        prog='python3 -m openpifpaf.video',
         description=__doc__,
         formatter_class=CustomFormatter,
     )
