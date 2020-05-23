@@ -104,10 +104,13 @@ def train_cocodet_preprocess_factory(
             transforms.EVAL_TRANSFORM,
         ])
 
-    rescale_t = None
     if extended_scale:
         rescale_t = transforms.RescaleRelative(
-            scale_range=(0.5 * rescale_images, 1.0 * rescale_images),
+            scale_range=(0.5 * rescale_images, 2.0 * rescale_images),
+            power_law=True)
+    else:
+        rescale_t = transforms.RescaleRelative(
+            scale_range=(0.7 * rescale_images, 1.5 * rescale_images),
             power_law=True)
 
     orientation_t = None
