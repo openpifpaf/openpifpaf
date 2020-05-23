@@ -1,7 +1,7 @@
 # Introduction
 
 ```{note}
-Experimental. At the moment, this guide is not much more than a placeholder.
+Under construction. At the moment, this guide is not much more than a placeholder.
 ```
 
 Continuously tested on Linux, MacOS and Windows: [![Build Status](https://travis-ci.org/vita-epfl/openpifpaf.svg?branch=master)](https://travis-ci.org/vita-epfl/openpifpaf)<br />
