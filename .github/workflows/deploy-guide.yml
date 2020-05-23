@@ -23,7 +23,7 @@ jobs:
     - name: Install dependencies
       run: |
         pip install -r guide/requirements.txt
-        pip install .
+        pip install .[test]
         sudo apt install jq
     # Build the guide
     - name: Build the guide
