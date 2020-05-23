@@ -47,7 +47,8 @@ def factory(
         cross_talk=0.0,
         two_scale=False,
         multi_scale=False,
-        multi_scale_hflip=True):
+        multi_scale_hflip=True,
+        download_progress=True):
 
     if base_name:
         assert head_names
@@ -58,20 +59,24 @@ def factory(
         assert base_name is None
         assert head_names is None
 
+        def load_model_from_url(url, check_hash=True):
+            return torch.hub.load_state_dict_from_url(
+                url, check_hash=check_hash, progress=download_progress)
+
         if not checkpoint:
-            checkpoint = torch.hub.load_state_dict_from_url(SHUFFLENETV2K16W_MODEL, check_hash=True)
+            checkpoint = load_model_from_url(SHUFFLENETV2K16W_MODEL)
         elif checkpoint == 'resnet18':
-            checkpoint = torch.hub.load_state_dict_from_url(RESNET18_MODEL, check_hash=True)
+            checkpoint = load_model_from_url(RESNET18_MODEL)
         elif checkpoint == 'resnet50':
-            checkpoint = torch.hub.load_state_dict_from_url(RESNET50_MODEL, check_hash=True)
+            checkpoint = load_model_from_url(RESNET50_MODEL)
         elif checkpoint == 'resnet101':
-            checkpoint = torch.hub.load_state_dict_from_url(RESNET101_MODEL, check_hash=True)
+            checkpoint = load_model_from_url(RESNET101_MODEL)
         elif checkpoint == 'shufflenetv2k16w':
-            checkpoint = torch.hub.load_state_dict_from_url(SHUFFLENETV2K16W_MODEL, check_hash=True)
+            checkpoint = load_model_from_url(SHUFFLENETV2K16W_MODEL)
         elif checkpoint == 'shufflenetv2k30w':
-            checkpoint = torch.hub.load_state_dict_from_url(SHUFFLENETV2K30W_MODEL, check_hash=True)
+            checkpoint = load_model_from_url(SHUFFLENETV2K30W_MODEL)
         elif checkpoint.startswith('http'):
-            checkpoint = torch.hub.load_state_dict_from_url(
+            checkpoint = load_model_from_url(
                 checkpoint, check_hash=not checkpoint.startswith('https'))
         else:
             checkpoint = torch.load(checkpoint)
