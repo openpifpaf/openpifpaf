@@ -58,18 +58,6 @@ For a live demo, we recommend to try the
 [openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo) project.
 Alternatively, `openpifpaf.video` (requires OpenCV) provides a live demo as well.
 
-For development of the openpifpaf source code itself, you need to clone this repository and then:
-
-```sh
-pip3 install numpy cython
-pip3 install --editable '.[train,test]'
-```
-
-The last command installs the Python package in the current directory
-(signified by the dot) with the optional dependencies needed for training and
-testing. If you modify `functional.pyx`, run this last command again which
-recompiles the static code.
-
 
 # Interfaces
 
