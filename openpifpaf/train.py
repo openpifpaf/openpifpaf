@@ -35,6 +35,7 @@ def default_output_file(args, net_cpu):
 
 def cli():
     parser = argparse.ArgumentParser(
+        prog='python3 -m openpifpaf.train',
         description=__doc__,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )

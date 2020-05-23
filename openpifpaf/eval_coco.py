@@ -197,10 +197,16 @@ def default_output_name(args):
     return output
 
 
+class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
+                      argparse.RawDescriptionHelpFormatter):
+    pass
+
+
 def cli():  # pylint: disable=too-many-statements
     parser = argparse.ArgumentParser(
+        prog='python3 -m openpifpaf.eval_coco',
         description=__doc__,
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        formatter_class=CustomFormatter,
     )
     parser.add_argument('--version', action='version',
                         version='OpenPifPaf {version}'.format(version=__version__))
