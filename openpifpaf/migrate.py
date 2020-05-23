@@ -10,6 +10,7 @@ from . import network, __version__
 
 def main():
     parser = argparse.ArgumentParser(
+        prog='python3 -m openpifpaf.migrate',
         description=__doc__,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )

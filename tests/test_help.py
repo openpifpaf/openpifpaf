@@ -17,6 +17,8 @@ MODULE_NAMES = [
     'eval_coco',
     'export_onnx',
     'migrate',
+    'count_ops',
+    'benchmark',
 ]
 
 
@@ -44,3 +46,13 @@ def test_version(module_name):
     ])
 
     assert output.decode().strip() == 'OpenPifPaf {}'.format(__version__)
+
+
+@pytest.mark.parametrize('module_name', MODULE_NAMES)
+def test_usage(module_name):
+    output = subprocess.check_output([
+        PYTHON, '-m', 'openpifpaf.{}'.format(module_name),
+        '--help',
+    ])
+
+    assert output.decode().startswith('usage: python3 -m openpifpaf.{}'.format(module_name))

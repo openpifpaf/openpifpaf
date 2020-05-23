@@ -125,8 +125,17 @@ def simplify(infile, outfile=None):
     onnx.save(simplified_model, outfile)
 
 
+class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
+                      argparse.RawDescriptionHelpFormatter):
+    pass
+
+
 def main():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        prog='python3 -m openpifpaf.export_onnx',
+        description=__doc__,
+        formatter_class=CustomFormatter,
+    )
     parser.add_argument('--version', action='version',
                         version='OpenPifPaf {version}'.format(version=openpifpaf.__version__))
 
