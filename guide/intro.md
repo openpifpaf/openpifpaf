@@ -41,7 +41,9 @@ More demos:
 * the `openpifpaf.video` command (requires OpenCV)
 * [Google Colab demo](https://colab.research.google.com/drive/1H8T4ZE6wc0A9xJE4oGnhgHpUpAH5HL7W)
 
-<img src="docs/wave3.gif" height=250 alt="example image" />
+```{image} ../docs/wave3.gif
+:height: "250"
+```
 
 
 # Install
@@ -100,115 +102,6 @@ For comparison, old v0.10:
 | shufflenetv2x2 v0.10   | __60.4__ | 55.5     | 67.8     | 56              | 33           |
 | resnet50 v0.10         | __64.4__ | 61.1     | 69.9     | 76              | 32           |
 | resnet101 v0.10        | __67.8__ | 63.6     | 74.3     | 97              | 28           |
-
-
-# Train
-
-See [datasets](docs/datasets.md) for setup instructions.
-
-The exact training command that was used for a model is in the first
-line of the training log file.
-
-ShuffleNet models are trained without ImageNet pretraining:
-
-```sh
-time CUDA_VISIBLE_DEVICES=0,1 python3 -m openpifpaf.train \
-  --lr=0.1 \
-  --momentum=0.9 \
-  --epochs=150 \
-  --lr-warm-up-epochs=1 \
-  --lr-decay 120 \
-  --lr-decay-epochs=20 \
-  --lr-decay-factor=0.1 \
-  --batch-size=32 \
-  --square-edge=385 \
-  --lambdas 1 1 0.2   1 1 1 0.2 0.2    1 1 1 0.2 0.2 \
-  --auto-tune-mtl \
-  --weight-decay=1e-5 \
-  --update-batchnorm-runningstatistics \
-  --ema=0.01 \
-  --basenet=shufflenetv2k16w \
-  --headnets cif caf caf25
-
-# for improved performance, take the epoch150 checkpoint and train with
-# extended-scale and 10% orientation invariance:
-time CUDA_VISIBLE_DEVICES=0,1 python3 -m openpifpaf.train \
-  --lr=0.05 \
-  --momentum=0.9 \
-  --epochs=250 \
-  --lr-warm-up-epochs=1 \
-  --lr-decay 220 \
-  --lr-decay-epochs=30 \
-  --lr-decay-factor=0.01 \
-  --batch-size=32 \
-  --square-edge=385 \
-  --lambdas 1 1 0.2   1 1 1 0.2 0.2    1 1 1 0.2 0.2 \
-  --auto-tune-mtl \
-  --weight-decay=1e-5 \
-  --update-batchnorm-runningstatistics \
-  --ema=0.01 \
-  --checkpoint outputs/shufflenetv2k16w-200504-145520-cif-caf-caf25-d05e5520.pkl --extended-scale --orientation-invariant=0.1
-```
-
-You can refine an existing model with the `--checkpoint` option.
-
-To visualize logs:
-
-```sh
-python3 -m openpifpaf.logs \
-  outputs/resnet50block5-pif-paf-edge401-190424-122009.pkl.log \
-  outputs/resnet101block5-pif-paf-edge401-190412-151013.pkl.log \
-  outputs/resnet152block5-pif-paf-edge401-190412-121848.pkl.log
-```
-
-To produce evaluation metrics every five epochs and check the directory for new
-checkpoints every 5 minutes:
-
-```
-while true; do \
-  CUDA_VISIBLE_DEVICES=0 find outputs/ -name "shufflenetv2k16w-200504-145520-cif-caf-caf25.pkl.epoch??[0,5]" -exec \
-    python3 -m openpifpaf.eval_coco --checkpoint {} -n 500 --long-edge=641 --skip-existing \; \
-  ; \
-  sleep 300; \
-done
-```
-
-
-# Person Skeletons
-
-COCO / kinematic tree / dense:
-
-```{image} ../docs/skeleton_coco.png
-:height: "250"
-```
-```{image} ../docs/skeleton_kinematic_tree.png
-:height: "250"
-```
-```{image} ../docs/skeleton_dense.png
-:height: "250"
-```
-
-Created with `python3 -m openpifpaf.datasets.constants`.
-
-
-# Video
-
-Requires OpenCV.
-
-```sh
-python3 -m openpifpaf.video --checkpoint shufflenetv2k16w myvideotoprocess.mp4 --video-output --json-output
-```
-
-Replace `myvideotoprocess.mp4` with `0` for webcam0 or other OpenCV compatible sources.
-
-
-# Documentation Pages
-
-* [datasets](docs/datasets.md)
-* [predict.ipynb](docs/predict.ipynb), on [Google Colab](https://colab.research.google.com/drive/1H8T4ZE6wc0A9xJE4oGnhgHpUpAH5HL7W)
-* [evaluation logs](docs/eval_logs.md)
-* [history](HISTORY.md)
-* [contributing](CONTRIBUTING.md)
 
 
 # Related Projects

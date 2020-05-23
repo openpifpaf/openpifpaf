@@ -1,5 +1,6 @@
 - file: intro
 - file: datasets
+- file: train
 - file: predict_cli
 
 - header: API
