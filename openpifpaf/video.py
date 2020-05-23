@@ -1,11 +1,14 @@
 """Video demo application.
 
+Use --scale=0.2 to reduce the input image size to 20%.
+Use --json-output for headless processing.
+
 Example commands:
-    python3 -m pifpaf.video  # usbcam or webcam 0
-    python3 -m pifpaf.video --source=1  # usbcam or webcam 1
+    python3 -m pifpaf.video --source=0  # default webcam
+    python3 -m pifpaf.video --source=1  # another webcam
 
     # streaming source
-    python3 -m pifpaf.video --source=http://128.179.139.21:8080/video
+    python3 -m pifpaf.video --source=http://127.0.0.1:8080/video
 
     # file system source (any valid OpenCV source)
     python3 -m pifpaf.video --source=docs/coco/000000081988.jpg
@@ -48,6 +51,8 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     show.cli(parser)
     visualizer.cli(parser)
 
+    parser.add_argument('--source',
+                        help='OpenCV source url. Integer for webcams. Supports rtmp streams.')
     parser.add_argument('--video-output', default=None, nargs='*', help='video output file')
     parser.add_argument('--video-fps', default=show.AnimationFrame.video_fps, type=float)
     parser.add_argument('--show', default=False, action='store_true')
@@ -57,9 +62,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
                         help='do not use colored connections to draw poses')
     parser.add_argument('--disable-cuda', action='store_true',
                         help='disable CUDA')
-    parser.add_argument('--source', default='0',
-                        help='OpenCV source url. Integer for webcams. Or ipwebcam streams.')
-    parser.add_argument('--scale', default=0.1, type=float,
+    parser.add_argument('--scale', default=1.0, type=float,
                         help='input image scale factor')
     parser.add_argument('--start-frame', type=int, default=0)
     parser.add_argument('--skip-frames', type=int, default=1)
@@ -172,9 +175,7 @@ def main():
 
         start = time.time()
         image_pil = PIL.Image.fromarray(image)
-        processed_image_cpu, _, __ = transforms.EVAL_TRANSFORM(image_pil, [], None)
-        visualizer.BaseVisualizer.processed_image(processed_image_cpu)
-        processed_image = processed_image_cpu.contiguous().to(args.device, non_blocking=True)
+        processed_image, _, __ = transforms.EVAL_TRANSFORM(image_pil, [], None)
         LOG.debug('preprocessing time %.3fs', time.time() - start)
 
         preds = processor.batch(model, torch.unsqueeze(processed_image, 0), device=args.device)[0]
