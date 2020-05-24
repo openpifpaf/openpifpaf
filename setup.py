@@ -80,6 +80,7 @@ setup(
         ],
         'test': [
             'nbval',
+            'onnx',
             'pylint',
             'pytest',
             'opencv-python',
