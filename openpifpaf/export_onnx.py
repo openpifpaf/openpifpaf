@@ -142,7 +142,7 @@ def main():
     parser.add_argument('--checkpoint', default='resnet50')
     parser.add_argument('--outfile', default='openpifpaf-resnet50.onnx')
     parser.add_argument('--simplify', dest='simplify', default=False, action='store_true')
-    parser.add_argument('--no-polish', dest='polish', default=True, action='store_false',
+    parser.add_argument('--polish', dest='polish', default=False, action='store_true',
                         help='runs checker, optimizer and shape inference')
     parser.add_argument('--optimize', dest='optimize', default=False, action='store_true')
     parser.add_argument('--no-check', dest='check', default=True, action='store_false')

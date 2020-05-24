@@ -15,3 +15,6 @@ def test_onnx_exportable(tmpdir):
     )
     openpifpaf.export_onnx.apply(model, outfile, verbose=False)
     assert os.path.exists(outfile)
+
+    # openpifpaf.export_onnx.polish(outfile)
+    openpifpaf.export_onnx.check(outfile)
