@@ -145,7 +145,7 @@ def main():
     parser.add_argument('--polish', dest='polish', default=False, action='store_true',
                         help='runs checker, optimizer and shape inference')
     parser.add_argument('--optimize', dest='optimize', default=False, action='store_true')
-    parser.add_argument('--no-check', dest='check', default=True, action='store_false')
+    parser.add_argument('--check', dest='check', default=False, action='store_true')
     args = parser.parse_args()
 
     model, _ = openpifpaf.network.factory(checkpoint=args.checkpoint)
