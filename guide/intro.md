@@ -32,8 +32,7 @@ Continuously tested on Linux, MacOS and Windows: [![Build Status](https://travis
 
 Image credit: "[Learning to surf](https://www.flickr.com/photos/fotologic/6038911779/in/photostream/)" by fotologic which is licensed under [CC-BY-2.0].<br />
 Created with
-`python3 -m openpifpaf.predict docs/coco/000000081988.jpg --show --image-output --json-output`
-which also produces [json output](../docs/coco/000000081988.jpg.predictions.json).
+`python3 -m openpifpaf.predict docs/coco/000000081988.jpg --image-output`.
 
 More demos:
 * [openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo) project (best performance)

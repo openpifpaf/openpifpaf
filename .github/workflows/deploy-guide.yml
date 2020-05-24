@@ -29,7 +29,7 @@ jobs:
     - name: Build the guide
       run: |
         for fn in guide/*.ipynb; do
-          jq 'del(.metadata.kernelspec)' ${fn} > ${fn}_
+          jq '(.metadata.kernelspec.name,.metadata.kernelspec.display_name)="python3"' ${fn} > ${fn}_
           mv ${fn}_ ${fn}
         done
         cd guide && jupyter-book build .
