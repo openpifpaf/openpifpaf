@@ -1,6 +1,7 @@
 # Book settings
 title: OpenPifPaf Guide
 author: Sven Kreiss
+email: research@svenkreiss.com
 # logo: logo.png
 
 # latex:
@@ -10,7 +11,7 @@ author: Sven Kreiss
 # Information about where the book exists on the web
 repository:
   url                       : https://github.com/vita-epfl/openpifpaf  # Online location of your book
-  book_path                 : guide  # Optional path to your book, relative to the repository root
+  path_to_book              : guide  # Optional path to your book, relative to the repository root
   branch                    : guide  # Which branch of the repository should be used when creating links (optional)
 
 launch_buttons:
