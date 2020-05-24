@@ -26,7 +26,7 @@ Continuously tested on Linux, MacOS and Windows: [![Build Status](https://travis
 > the transportation domain.
 
 
-# Demo
+## Demo
 
 ![example image with overlaid pose predictions](../docs/coco/000000081988.jpg.predictions.png)
 
@@ -45,7 +45,7 @@ More demos:
 ```
 
 
-# Install
+## Install
 
 Python 3 is required. Python 2 is not supported.
 Do not clone this repository
@@ -60,7 +60,7 @@ For a live demo, we recommend to try the
 Alternatively, `openpifpaf.video` (requires OpenCV) provides a live demo as well.
 
 
-# Interfaces
+## Interfaces
 
 * `python3 -m openpifpaf.predict --help`: {download}`help screen <../docs/cli-help-predict.txt>`
 * `python3 -m openpifpaf.video --help`: {download}`help screen <../docs/cli-help-video.txt>`
@@ -74,7 +74,7 @@ Tools to work with models:
 * `python3 -m openpifpaf.export_onnx --help`: {download}`help screen <../docs/cli-help-export_onnx.txt>`
 
 
-# Pre-trained Models
+## Pre-trained Models
 
 Performance metrics with version 0.11 on the COCO val set obtained with a GTX1080Ti:
 
@@ -103,14 +103,14 @@ For comparison, old v0.10:
 | resnet101 v0.10        | __67.8__ | 63.6     | 74.3     | 97              | 28           |
 
 
-# Related Projects
+## Related Projects
 
 * [monoloco](https://github.com/vita-epfl/monoloco): "Monocular 3D Pedestrian Localization and Uncertainty Estimation" which uses OpenPifPaf for poses.
 * [openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo): web front-end.
 
 
 
-# Citation
+## Citation
 
 ```
 @InProceedings{kreiss2019pifpaf,
