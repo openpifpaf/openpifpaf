@@ -193,10 +193,10 @@ Created with `python3 -m openpifpaf.datasets.constants`.
 
 # Video
 
-Requires OpenCV.
+Requires OpenCV. The `--video-output` option also requires matplotlib.
 
 ```sh
-python3 -m openpifpaf.video --checkpoint shufflenetv2k16w myvideotoprocess.mp4 --video-output --json-output
+python3 -m openpifpaf.video --source myvideotoprocess.mp4 --checkpoint shufflenetv2k16w --video-output --json-output
 ```
 
 Replace `myvideotoprocess.mp4` with `0` for webcam0 or other OpenCV compatible sources.
