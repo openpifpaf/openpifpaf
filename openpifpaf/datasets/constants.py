@@ -242,39 +242,51 @@ COCO_CATEGORIES = [
 ]
 
 
-def draw_skeletons(pose, margin=0.5):
+def draw_ann(ann, *, keypoint_painter, filename=None, margin=0.5, aspect=None, **kwargs):
     from .. import show  # pylint: disable=import-outside-toplevel
-    from ..annotation import Annotation  # pylint: disable=import-outside-toplevel
 
-    show.KeypointPainter.show_joint_scales = True
+    bbox = ann.bbox()
+    xlim = bbox[0] - margin, bbox[0] + bbox[2] + margin
+    ylim = bbox[1] - margin, bbox[1] + bbox[3] + margin
+    if aspect == 'equal':
+        fig_w = 5.0
+    else:
+        fig_w = 5.0 / (ylim[1] - ylim[0]) * (xlim[1] - xlim[0])
+
+    with show.canvas(filename, figsize=(fig_w, 5), nomargin=True, **kwargs) as ax:
+        ax.set_axis_off()
+        ax.set_xlim(*xlim)
+        ax.set_ylim(*ylim)
+
+        if aspect is not None:
+            ax.set_aspect(aspect)
+
+        keypoint_painter.annotation(ax, ann)
+
+
+def draw_skeletons(pose):
+    from ..annotation import Annotation  # pylint: disable=import-outside-toplevel
+    from .. import show  # pylint: disable=import-outside-toplevel
 
     scale = np.sqrt(
         (np.max(pose[:, 0]) - np.min(pose[:, 0]))
         * (np.max(pose[:, 1]) - np.min(pose[:, 1]))
     )
-    keypoint_painter = show.KeypointPainter(color_connections=True, linewidth=6)
 
-    def draw_ann(filename, ann):
-        xlim = ann.bbox()[0] - margin, ann.bbox()[0] + ann.bbox()[2] + margin
-        ylim = ann.bbox()[1] - margin, ann.bbox()[1] + ann.bbox()[3] + margin
-        fig_w = 5.0 / (ylim[1] - ylim[0]) * (xlim[1] - xlim[0])
-        with show.canvas(filename, figsize=(fig_w, 5), nomargin=True) as ax:
-            ax.set_axis_off()
-            ax.set_xlim(*xlim)
-            ax.set_ylim(*ylim)
-            keypoint_painter.annotation(ax, ann)
+    show.KeypointPainter.show_joint_scales = True
+    keypoint_painter = show.KeypointPainter(color_connections=True, linewidth=6)
 
     ann = Annotation(keypoints=COCO_KEYPOINTS, skeleton=COCO_PERSON_SKELETON)
     ann.set(pose, np.array(COCO_PERSON_SIGMAS) * scale)
-    draw_ann('docs/skeleton_coco.png', ann)
+    draw_ann(ann, filename='docs/skeleton_coco.png', keypoint_painter=keypoint_painter)
 
     ann = Annotation(keypoints=COCO_KEYPOINTS, skeleton=KINEMATIC_TREE_SKELETON)
     ann.set(pose, np.array(COCO_PERSON_SIGMAS) * scale)
-    draw_ann('docs/skeleton_kinematic_tree.png', ann)
+    draw_ann(ann, filename='docs/skeleton_kinematic_tree.png', keypoint_painter=keypoint_painter)
 
     ann = Annotation(keypoints=COCO_KEYPOINTS, skeleton=DENSER_COCO_PERSON_SKELETON)
     ann.set(pose, np.array(COCO_PERSON_SIGMAS) * scale)
-    draw_ann('docs/skeleton_dense.png', ann)
+    draw_ann(ann, filename='docs/skeleton_dense.png', keypoint_painter=keypoint_painter)
 
 
 def print_associations():
