@@ -2,12 +2,15 @@
 title: OpenPifPaf Guide
 author: Sven Kreiss
 email: research@svenkreiss.com
-# logo: logo.png
+logo: logo.png
 discription: Guide for OpenPifPaf.
 
 # latex:
 #   latex_documents:
 #     targetname: book.tex
+
+html:
+  favicon: favicon.png
 
 # Information about where the book exists on the web
 repository:
