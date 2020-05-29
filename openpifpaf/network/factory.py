@@ -8,12 +8,8 @@ from .. import datasets
 
 # generate hash values with: shasum -a 256 filename.pkl
 
-RESNET18_MODEL = ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
-                  'v0.10.1/resnet18-pif-paf-paf25-edge401-191022-210137-84326f0f.pkl')
 RESNET50_MODEL = ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
-                  'v0.10.0/resnet50-pif-paf-paf25-edge401-191016-192503-d2b85396.pkl')
-RESNET101_MODEL = ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
-                   'v0.10.0/resnet101block5-pif-paf-paf25-edge401-191012-132602-a2bf7ecd.pkl')
+                  'v0.11.2/resnet50-200527-171310-cif-caf-caf25-o10s-c0b7ae80.pkl')
 SHUFFLENETV2K16W_MODEL = ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
                           'v0.11.0/shufflenetv2k16w-200510-221334-cif-caf-caf25-o10s-604c5956.pkl')
 SHUFFLENETV2K30W_MODEL = ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
@@ -66,11 +62,11 @@ def factory(
         if not checkpoint:
             checkpoint = load_model_from_url(SHUFFLENETV2K16W_MODEL)
         elif checkpoint == 'resnet18':
-            checkpoint = load_model_from_url(RESNET18_MODEL)
+            raise Exception('this pretrained model is currently not available')
         elif checkpoint == 'resnet50':
             checkpoint = load_model_from_url(RESNET50_MODEL)
         elif checkpoint == 'resnet101':
-            checkpoint = load_model_from_url(RESNET101_MODEL)
+            raise Exception('this pretrained model is currently not available')
         elif checkpoint == 'shufflenetv2k16w':
             checkpoint = load_model_from_url(SHUFFLENETV2K16W_MODEL)
         elif checkpoint == 'shufflenetv2k30w':
