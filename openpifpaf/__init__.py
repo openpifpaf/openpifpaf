@@ -1,6 +1,6 @@
 """An open implementation of PifPaf."""
 
-__version__ = '0.11.1'
+__version__ = '0.11.2'
 
 from .annotation import Annotation, AnnotationDet
 from . import datasets

@@ -1,6 +1,10 @@
 # History
 
-* [master](https://github.com/vita-epfl/openpifpaf/compare/v0.11.0...master)
+* [master](https://github.com/vita-epfl/openpifpaf/compare/v0.11.2...master)
+* [0.11.2](https://github.com/vita-epfl/openpifpaf/compare/v0.11.0...v0.11.2) (2020-05-29)
+    * pretrained resnet50 model
+    * fix CUDA support in `openpifpaf.video`
+    * add `--version` option to all CLIs
 * [0.11.0](https://github.com/vita-epfl/openpifpaf/compare/v0.10.1...v0.11.0) (2020-05-12)
     * major refactor
     * now requires Python>=3.6 for type annotations
