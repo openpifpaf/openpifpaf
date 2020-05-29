@@ -80,9 +80,11 @@ Performance metrics with version 0.11 on the COCO val set obtained with a GTX108
 
 | Backbone               | AP       | APᴹ      | APᴸ      | t_{total} [ms]  | t_{dec} [ms] |
 |-----------------------:|:--------:|:--------:|:--------:|:---------------:|:------------:|
+| [resnet50]             | __67.7__ | 65.1     | 72.6     | 69              | 27           |
 | [shufflenetv2k16w]     | __67.1__ | 62.0     | 75.3     | 54              | 25           |
 | [shufflenetv2k30w]     | __71.1__ | 65.9     | 79.1     | 94              | 22           |
 
+[resnet50]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.11.2/resnet50-200527-171310-cif-caf-caf25-o10s-c0b7ae80.pkl
 [shufflenetv2k16w]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.11.0/shufflenetv2k16w-200510-221334-cif-caf-caf25-o10s-604c5956.pkl
 [shufflenetv2k30w]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.11.0/shufflenetv2k30w-200510-104256-cif-caf-caf25-o10s-0b5ba06f.pkl
 
