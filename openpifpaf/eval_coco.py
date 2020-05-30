@@ -202,7 +202,7 @@ class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
     pass
 
 
-def cli():  # pylint: disable=too-many-statements
+def cli():  # pylint: disable=too-many-statements,too-many-branches
     parser = argparse.ArgumentParser(
         prog='python3 -m openpifpaf.eval_coco',
         description=__doc__,
