@@ -275,7 +275,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
 
     network.configure(args)
     show.configure(args)
-    visualizer.configure(args, enable_all_plots_on_debug=args.debug_images)
+    visualizer.configure(args)
 
     if args.loader_workers is None:
         args.loader_workers = max(2, args.batch_size)

@@ -76,6 +76,8 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
                        help='print debug messages')
     args = parser.parse_args()
 
+    args.debug_images = False
+
     # configure logging
     log_level = logging.INFO
     if args.quiet:

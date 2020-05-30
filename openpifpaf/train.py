@@ -85,7 +85,7 @@ def cli():
     network.losses.configure(args)
     encoder.configure(args)
     datasets.train_configure(args)
-    visualizer.configure(args, enable_all_plots_on_debug=args.debug_images)
+    visualizer.configure(args)
 
     # add args.device
     args.device = torch.device('cpu')

@@ -75,7 +75,7 @@ def cli():
 
     network.configure(args)
     show.configure(args)
-    visualizer.configure(args, enable_all_plots_on_debug=args.debug_images)
+    visualizer.configure(args)
 
     if args.loader_workers is None:
         args.loader_workers = args.batch_size
