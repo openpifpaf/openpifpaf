@@ -28,7 +28,7 @@ def canvas(fig_file=None, show=True, dpi=200, nomargin=False, **kwargs):
 
     yield ax
 
-    fig.set_tight_layout(True)
+    fig.set_tight_layout(not nomargin)
     if fig_file:
         fig.savefig(fig_file, dpi=dpi)  # , bbox_inches='tight')
     if show:

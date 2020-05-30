@@ -99,6 +99,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     args.device = torch.device('cpu')
     if not args.disable_cuda and torch.cuda.is_available():
         args.device = torch.device('cuda')
+    LOG.debug('neural network device: %s', args.device)
 
     # standard filenames
     if args.video_output is not None:

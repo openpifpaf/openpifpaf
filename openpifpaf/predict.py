@@ -57,7 +57,12 @@ def cli():
                        help='only show warning messages or above')
     group.add_argument('--debug', default=False, action='store_true',
                        help='print debug messages')
+    group.add_argument('--debug-images', default=False, action='store_true',
+                       help='print debug messages and enable all debug images')
     args = parser.parse_args()
+
+    if args.debug_images:
+        args.debug = True
 
     log_level = logging.INFO
     if args.quiet:
@@ -70,7 +75,7 @@ def cli():
 
     network.configure(args)
     show.configure(args)
-    visualizer.configure(args, enable_all_plots_on_debug=True)
+    visualizer.configure(args, enable_all_plots_on_debug=args.debug_images)
 
     if args.loader_workers is None:
         args.loader_workers = args.batch_size
@@ -87,6 +92,7 @@ def cli():
     if not args.disable_cuda and torch.cuda.is_available():
         args.device = torch.device('cuda')
         args.pin_memory = True
+    LOG.debug('neural network device: %s', args.device)
 
     return args
 
