@@ -10,6 +10,8 @@ import torch
 from . import datasets, encoder, logs, network, optimize, visualizer
 from . import __version__
 
+LOG = logging.getLogger(__name__)
+
 
 def default_output_file(args, net_cpu):
     base_name = net_cpu.base_net.shortname
@@ -71,14 +73,19 @@ def cli():
                        help='enables profiling. specify path for chrome tracing file')
     group.add_argument('--log-stats', default=False, action='store_true',
                        help='enable stats logging')
+    group.add_argument('--debug-images', default=False, action='store_true',
+                       help='print debug messages and enable all debug images')
 
     args = parser.parse_args()
+
+    if args.debug_images:
+        args.debug = True
 
     network.configure(args)
     network.losses.configure(args)
     encoder.configure(args)
     datasets.train_configure(args)
-    visualizer.configure(args, enable_all_plots_on_debug=True)
+    visualizer.configure(args)
 
     # add args.device
     args.device = torch.device('cpu')
@@ -86,6 +93,7 @@ def cli():
     if not args.disable_cuda and torch.cuda.is_available():
         args.device = torch.device('cuda')
         args.pin_memory = True
+    LOG.debug('neural network device: %s', args.device)
 
     return args
 

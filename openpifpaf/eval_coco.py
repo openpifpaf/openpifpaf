@@ -202,7 +202,7 @@ class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
     pass
 
 
-def cli():  # pylint: disable=too-many-statements
+def cli():  # pylint: disable=too-many-statements,too-many-branches
     parser = argparse.ArgumentParser(
         prog='python3 -m openpifpaf.eval_coco',
         description=__doc__,
@@ -247,10 +247,15 @@ def cli():  # pylint: disable=too-many-statements
     group = parser.add_argument_group('logging')
     group.add_argument('--debug', default=False, action='store_true',
                        help='print debug messages')
+    group.add_argument('--debug-images', default=False, action='store_true',
+                       help='print debug messages and enable all debug images')
     group.add_argument('--log-stats', default=False, action='store_true',
                        help='enable stats logging')
 
     args = parser.parse_args()
+
+    if args.debug_images:
+        args.debug = True
 
     log_level = logging.INFO if not args.debug else logging.DEBUG
     if args.log_stats:
@@ -270,7 +275,7 @@ def cli():  # pylint: disable=too-many-statements
 
     network.configure(args)
     show.configure(args)
-    visualizer.configure(args, enable_all_plots_on_debug=True)
+    visualizer.configure(args)
 
     if args.loader_workers is None:
         args.loader_workers = max(2, args.batch_size)
@@ -301,6 +306,7 @@ def cli():  # pylint: disable=too-many-statements
     if not args.disable_cuda and torch.cuda.is_available():
         args.device = torch.device('cuda')
         args.pin_memory = True
+    LOG.debug('neural network device: %s', args.device)
 
     # generate a default output filename
     if args.output is None:
