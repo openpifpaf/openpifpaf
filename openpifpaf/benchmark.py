@@ -141,8 +141,8 @@ def main():
 
     # pretty printing
     # pylint: disable=line-too-long
-    print('| Backbone                  | AP       | APM      | APL      | t_{total} [ms]  | t_{dec} [ms] | size     |')
-    print('|--------------------------:|:--------:|:--------:|:--------:|:---------------:|:------------:|:--------:|')
+    print('| Backbone                  | AP       | APM      | APL      | t_{total} [ms]  | t_{dec} [ms] |     size |')
+    print('|--------------------------:|:--------:|:--------:|:--------:|:---------------:|:------------:|---------:|')
     for backbone, data in sorted(stats.items(), key=lambda b_d: b_d[1]['stats'][0]):
         print(
             '| {backbone: <25} '
