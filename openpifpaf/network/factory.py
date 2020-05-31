@@ -1,4 +1,5 @@
 import logging
+import os
 import torch
 
 import torchvision
@@ -8,12 +9,15 @@ from .. import datasets
 
 # generate hash values with: shasum -a 256 filename.pkl
 
-RESNET50_MODEL = ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
-                  'v0.11.2/resnet50-200527-171310-cif-caf-caf25-o10s-c0b7ae80.pkl')
-SHUFFLENETV2K16W_MODEL = ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
-                          'v0.11.0/shufflenetv2k16w-200510-221334-cif-caf-caf25-o10s-604c5956.pkl')
-SHUFFLENETV2K30W_MODEL = ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
-                          'v0.11.0/shufflenetv2k30w-200510-104256-cif-caf-caf25-o10s-0b5ba06f.pkl')
+
+CHECKPOINT_URLS = {
+    'resnet50': ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
+                 'v0.11.2/resnet50-200527-171310-cif-caf-caf25-o10s-c0b7ae80.pkl'),
+    'shufflenetv2k16w': ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
+                         'v0.11.0/shufflenetv2k16w-200510-221334-cif-caf-caf25-o10s-604c5956.pkl'),
+    'shufflenetv2k30w': ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
+                         'v0.11.0/shufflenetv2k30w-200510-104256-cif-caf-caf25-o10s-0b5ba06f.pkl'),
+}
 
 LOG = logging.getLogger(__name__)
 
@@ -30,6 +34,27 @@ def factory_from_args(args):
         multi_scale=args.multi_scale,
         multi_scale_hflip=args.multi_scale_hflip,
     )
+
+
+def local_checkpoint_path(checkpoint):
+    if os.path.exists(checkpoint):
+        return checkpoint
+
+    if checkpoint in CHECKPOINT_URLS:
+        url = CHECKPOINT_URLS[checkpoint]
+
+        file_name = os.path.join(
+            os.getenv('XDG_CACHE_HOME', os.path.join(os.getenv('HOME'), '.cache')),
+            'torch',
+            'checkpoints',
+            os.path.basename(url),
+        )
+        print(file_name, url, os.path.basename(url))
+
+        if os.path.exists(file_name):
+            return file_name
+
+    return None
 
 
 # pylint: disable=too-many-branches,too-many-statements
@@ -55,27 +80,23 @@ def factory(
         assert base_name is None
         assert head_names is None
 
-        def load_model_from_url(url, check_hash=True):
-            return torch.hub.load_state_dict_from_url(
-                url, check_hash=check_hash, progress=download_progress)
-
         if not checkpoint:
-            checkpoint = load_model_from_url(SHUFFLENETV2K16W_MODEL)
-        elif checkpoint == 'resnet18':
+            checkpoint = 'shufflenetv2k16w'
+
+        if checkpoint == 'resnet18':
             raise Exception('this pretrained model is currently not available')
-        elif checkpoint == 'resnet50':
-            checkpoint = load_model_from_url(RESNET50_MODEL)
-        elif checkpoint == 'resnet101':
+        if checkpoint == 'resnet101':
             raise Exception('this pretrained model is currently not available')
-        elif checkpoint == 'shufflenetv2k16w':
-            checkpoint = load_model_from_url(SHUFFLENETV2K16W_MODEL)
-        elif checkpoint == 'shufflenetv2k30w':
-            checkpoint = load_model_from_url(SHUFFLENETV2K30W_MODEL)
-        elif checkpoint.startswith('http'):
-            checkpoint = load_model_from_url(
-                checkpoint, check_hash=not checkpoint.startswith('https'))
+        checkpoint = CHECKPOINT_URLS.get(checkpoint, checkpoint)
+
+        if checkpoint.startswith('http'):
+            checkpoint = torch.hub.load_state_dict_from_url(
+                checkpoint,
+                check_hash=not checkpoint.startswith('https'),
+                progress=download_progress)
         else:
             checkpoint = torch.load(checkpoint)
+
         net_cpu = checkpoint['model']
         epoch = checkpoint['epoch']
 
