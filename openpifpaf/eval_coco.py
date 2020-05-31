@@ -315,7 +315,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     return args
 
 
-def write_evaluations(eval_coco, filename, args, total_time, count_ops):
+def write_evaluations(eval_coco, filename, args, total_time, count_ops, file_size):
     if args.write_predictions:
         eval_coco.write_predictions(filename)
 
@@ -333,6 +333,7 @@ def write_evaluations(eval_coco, filename, args, total_time, count_ops):
                 'total_time': total_time,
                 'checkpoint': args.checkpoint,
                 'count_ops': count_ops,
+                'file_size': file_size,
             }, f)
     else:
         print('given dataset does not have ground truth, so no stats summary')
@@ -471,8 +472,14 @@ def main():
     total_time = time.time() - total_start
 
     # processor.instance_scorer.write_data('instance_score_data.json')
+
+    # model stats
     count_ops = list(eval_coco.count_ops(model_cpu))
-    write_evaluations(eval_coco, args.output, args, total_time, count_ops)
+    local_checkpoint = network.local_checkpoint_path(args.checkpoint)
+    file_size = os.path.getsize(local_checkpoint) if local_checkpoint else -1.0
+
+    # write
+    write_evaluations(eval_coco, args.output, args, total_time, count_ops, file_size)
 
 
 if __name__ == '__main__':

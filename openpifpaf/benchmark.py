@@ -140,14 +140,9 @@ def main():
     LOG.debug('all data: %s', stats)
 
     # pretty printing
-    print(
-        '| Backbone                '
-        '| __AP__   '
-        '| APM   '
-        '| APL   '
-        '| t   '
-        '| tdec   |'
-    )
+    # pylint: disable=line-too-long
+    print('| Backbone                  | AP       | APM      | APL      | t_{total} [ms]  | t_{dec} [ms] |     size |')
+    print('|--------------------------:|:--------:|:--------:|:--------:|:---------------:|:------------:|---------:|')
     for backbone, data in sorted(stats.items(), key=lambda b_d: b_d[1]['stats'][0]):
         print(
             '| {backbone: <25} '
@@ -155,14 +150,16 @@ def main():
             '| {APM: <8.1f} '
             '| {APL: <8.1f} '
             '| {t: <15.0f} '
-            '| {tdec: <12.0f} |'
-            ''.format(
+            '| {tdec: <12.0f} '
+            '| {file_size: >6.1f}MB '
+            '|'.format(
                 backbone=backbone,
                 AP=100.0 * data['stats'][0],
                 APM=100.0 * data['stats'][3],
                 APL=100.0 * data['stats'][4],
                 t=1000.0 * data['total_time'] / data['n_images'],
                 tdec=1000.0 * data['decoder_time'] / data['n_images'],
+                file_size=data['file_size'] / 1024 / 1024,
             )
         )
 
