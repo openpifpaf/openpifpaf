@@ -60,20 +60,6 @@ For a live demo, we recommend to try the
 Alternatively, `openpifpaf.video` (requires OpenCV) provides a live demo as well.
 
 
-## Interfaces
-
-* `python3 -m openpifpaf.predict --help`: {download}`help screen <../docs/cli-help-predict.txt>`
-* `python3 -m openpifpaf.video --help`: {download}`help screen <../docs/cli-help-video.txt>`
-* `python3 -m openpifpaf.train --help`: {download}`help screen <../docs/cli-help-train.txt>`
-* `python3 -m openpifpaf.eval_coco --help`: {download}`help screen <../docs/cli-help-eval_coco.txt>`
-* `python3 -m openpifpaf.logs --help`: {download}`help screen <../docs/cli-help-logs.txt>`
-
-Tools to work with models:
-
-* `python3 -m openpifpaf.migrate --help`: {download}`help screen <../docs/cli-help-migrate.txt>`
-* `python3 -m openpifpaf.export_onnx --help`: {download}`help screen <../docs/cli-help-export_onnx.txt>`
-
-
 ## Pre-trained Models
 
 Performance metrics with version 0.11 on the COCO val set obtained with a GTX1080Ti:
@@ -109,7 +95,6 @@ For comparison, old v0.10:
 
 * [monoloco](https://github.com/vita-epfl/monoloco): "Monocular 3D Pedestrian Localization and Uncertainty Estimation" which uses OpenPifPaf for poses.
 * [openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo): web front-end.
-
 
 
 ## Citation
