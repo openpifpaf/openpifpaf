@@ -1,8 +1,7 @@
 usage: python3 -m openpifpaf.export_onnx [-h] [--version]
                                          [--checkpoint CHECKPOINT]
                                          [--outfile OUTFILE] [--simplify]
-                                         [--no-polish] [--optimize]
-                                         [--no-check]
+                                         [--polish] [--optimize] [--check]
 
 Export a checkpoint as an ONNX model.
 
@@ -18,7 +17,7 @@ optional arguments:
   --checkpoint CHECKPOINT
   --outfile OUTFILE
   --simplify
-  --no-polish           runs checker, optimizer and shape inference (default:
-                        True)
+  --polish              runs checker, optimizer and shape inference (default:
+                        False)
   --optimize
-  --no-check
+  --check

@@ -39,6 +39,7 @@ usage: python3 -m openpifpaf.predict [-h] [--version]
                                      [--monocolor-connections]
                                      [--figure-width FIGURE_WIDTH]
                                      [--dpi-factor DPI_FACTOR] [-q] [--debug]
+                                     [--debug-images]
                                      [images [images ...]]
 
 Predict poses for given images.
@@ -145,3 +146,5 @@ pose visualizer:
 logging:
   -q, --quiet           only show warning messages or above (default: False)
   --debug               print debug messages (default: False)
+  --debug-images        print debug messages and enable all debug images
+                        (default: False)

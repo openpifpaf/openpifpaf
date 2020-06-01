@@ -1,6 +1,9 @@
 # History
 
-* [master](https://github.com/vita-epfl/openpifpaf/compare/v0.11.2...master)
+* [master](https://github.com/vita-epfl/openpifpaf/compare/v0.11.3...master)
+* [0.11.3](https://github.com/vita-epfl/openpifpaf/compare/v0.11.2...v0.11.3) (2020-06-01)
+    * new debug message for "neural network device" (to check cpu versus gpu usage)
+    * debug output without plots is default; enable debug plots with new `--debug-images`
 * [0.11.2](https://github.com/vita-epfl/openpifpaf/compare/v0.11.0...v0.11.2) (2020-05-29)
     * pretrained resnet50 model
     * fix CUDA support in `openpifpaf.video`

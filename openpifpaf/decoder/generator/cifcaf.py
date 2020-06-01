@@ -13,6 +13,7 @@ from ..cif_seeds import CifSeeds
 from ..caf_scored import CafScored
 from .. import nms as nms_module
 from ..occupancy import Occupancy
+from ... import visualizer
 
 # pylint: disable=import-error
 from ...functional import caf_center_s
@@ -26,7 +27,7 @@ class CifCaf(Generator):
     :param: nms: set to None to switch off non-maximum suppression.
     """
     connection_method = 'blend'
-    occupancy_visualizer = None
+    occupancy_visualizer = visualizer.Occupancy()
     force_complete = False
     greedy = False
     keypoint_threshold = 0.0
@@ -106,8 +107,7 @@ class CifCaf(Generator):
             annotations.append(ann)
             mark_occupied(ann)
 
-        if self.occupancy_visualizer:
-            self.occupancy_visualizer.predicted(occupied)
+        self.occupancy_visualizer.predicted(occupied)
 
         LOG.debug('annotations %d, %.3fs', len(annotations), time.perf_counter() - start)
 

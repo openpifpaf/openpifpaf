@@ -9,11 +9,14 @@ from ..cif_hr import CifDetHr
 from ..cif_seeds import CifDetSeeds
 from .. import nms
 from ..occupancy import Occupancy
+from ... import visualizer
 
 LOG = logging.getLogger(__name__)
 
 
 class CifDet(Generator):
+    occupancy_visualizer = visualizer.Occupancy()
+
     def __init__(self, field_config: FieldConfig, categories, *, worker_pool=None):
         super().__init__(worker_pool)
         self.field_config = field_config
@@ -39,6 +42,8 @@ class CifDet(Generator):
             ann = AnnotationDet(self.categories).set(f, v, (x - w/2.0, y - h/2.0, w, h))
             annotations.append(ann)
             occupied.set(f, x, y, 0.1 * min(w, h))
+
+        self.occupancy_visualizer.predicted(occupied)
 
         annotations = nms.Detection().annotations(annotations)
 

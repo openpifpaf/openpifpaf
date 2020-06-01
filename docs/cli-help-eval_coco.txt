@@ -41,7 +41,8 @@ usage: python3 -m openpifpaf.eval_coco [-h] [--version]
                                        [--orientation-invariant]
                                        [--extended-scale] [--skip-existing]
                                        [--disable-cuda] [--write-predictions]
-                                       [--all-images] [--debug] [--log-stats]
+                                       [--all-images] [--debug]
+                                       [--debug-images] [--log-stats]
 
 Evaluation on COCO data.
 
@@ -144,4 +145,6 @@ pose visualizer:
 
 logging:
   --debug               print debug messages (default: False)
+  --debug-images        print debug messages and enable all debug images
+                        (default: False)
   --log-stats           enable stats logging (default: False)
