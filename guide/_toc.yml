@@ -2,6 +2,7 @@
 - file: datasets
 - file: train
 - file: predict_cli
+- file: cli_help
 
 - header: API
 - file: predict_api
