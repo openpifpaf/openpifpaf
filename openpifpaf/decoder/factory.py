@@ -73,11 +73,9 @@ def configure(args):
 
     # configure CifHr
     CifHr.v_threshold = args.cif_th
-    CifHr.debug_visualizer = visualizer.CifHr()
 
     # configure CifSeeds
     CifSeeds.threshold = args.seed_threshold
-    CifSeeds.debug_visualizer = visualizer.Seeds()
 
     # configure CafScored
     CafScored.default_score_th = args.caf_th
@@ -87,8 +85,6 @@ def configure(args):
     CifCaf.keypoint_threshold = args.keypoint_threshold
     CifCaf.greedy = args.greedy
     CifCaf.connection_method = args.connection_method
-    CifCaf.occupancy_visualizer = visualizer.Occupancy()
-    CifDet.occupancy_visualizer = visualizer.Occupancy()
 
     # configure nms
     nms.Detection.instance_threshold = args.instance_threshold

@@ -5,6 +5,7 @@ import time
 from ..functional import scalar_values
 from .field_config import FieldConfig
 from .cif_hr import CifHr
+from .. import visualizer
 
 LOG = logging.getLogger(__name__)
 
@@ -12,7 +13,7 @@ LOG = logging.getLogger(__name__)
 class CifSeeds:
     threshold = None
     score_scale = 1.0
-    debug_visualizer = None
+    debug_visualizer = visualizer.Seeds()
 
     def __init__(self, cifhr: CifHr, config: FieldConfig):
         self.cifhr = cifhr
@@ -48,9 +49,7 @@ class CifSeeds:
         return self
 
     def get(self):
-        if self.debug_visualizer:
-            self.debug_visualizer.predicted(self.seeds)
-
+        self.debug_visualizer.predicted(self.seeds)
         return sorted(self.seeds, reverse=True)
 
     def fill(self, fields):
