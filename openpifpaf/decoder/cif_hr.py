@@ -6,6 +6,7 @@ import numpy as np
 # pylint: disable=import-error
 from ..functional import scalar_square_add_gauss_with_max
 from .field_config import FieldConfig
+from .. import visualizer
 
 LOG = logging.getLogger(__name__)
 
@@ -13,7 +14,7 @@ LOG = logging.getLogger(__name__)
 class CifHr:
     neighbors = 16
     v_threshold = 0.1
-    debug_visualizer = None
+    debug_visualizer = visualizer.CifHr()
 
     def __init__(self, config: FieldConfig):
         self.config = config
@@ -76,8 +77,7 @@ class CifHr:
                                                 self.config.cif_min_scales):
                 self.fill_cif(fields[cif_i], stride, min_scale=min_scale)
 
-        if self.debug_visualizer is not None:
-            self.debug_visualizer.predicted(self.accumulated)
+        self.debug_visualizer.predicted(self.accumulated)
         return self
 
 
