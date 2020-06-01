@@ -1,6 +1,5 @@
 # system
 .DS_Store
-.gitattributes
 .vscode
 *.so
 
