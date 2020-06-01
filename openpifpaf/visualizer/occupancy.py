@@ -19,9 +19,11 @@ class Occupancy(BaseVisualizer):
         for f in self.indices:
             LOG.debug('%d (field name: %s)',
                       f, self.field_names[f] if self.field_names else 'unknown')
-            with self.image_canvas(self.image) as ax:
-                occ = occupancy.occupied[f].copy()
+
+            # occupancy maps are at a reduced scale wrt the processed image
+            reduced_image = self._processed_image[::occupancy.reduction, ::occupancy.reduction]
+
+            with self.image_canvas(reduced_image) as ax:
+                occ = occupancy.occupancy[f].copy()
                 occ[occ > 0] = 1.0
-                reduced_image = self._processed_image[::occupancy.reduction, ::occupancy.reduction]
-                with self.image_canvas(reduced_image) as ax:
-                    ax.imshow(occ, alpha=0.5)
+                ax.imshow(occ, alpha=0.7)
