@@ -54,7 +54,8 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
 
     parser.add_argument('--source',
                         help='OpenCV source url. Integer for webcams. Supports rtmp streams.')
-    parser.add_argument('--video-output', default=None, nargs='*', help='video output file')
+    parser.add_argument('--video-output', default=None, nargs='?', const=True,
+                        help='video output file')
     parser.add_argument('--video-fps', default=show.AnimationFrame.video_fps, type=float)
     parser.add_argument('--show', default=False, action='store_true')
     parser.add_argument('--horizontal-flip', default=False, action='store_true')
@@ -68,7 +69,8 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     parser.add_argument('--start-frame', type=int, default=0)
     parser.add_argument('--skip-frames', type=int, default=1)
     parser.add_argument('--max-frames', type=int)
-    parser.add_argument('--json-output', default=None, nargs='*', help='json output file')
+    parser.add_argument('--json-output', default=None, nargs='?', const=True,
+                        help='json output file')
     group = parser.add_argument_group('logging')
     group.add_argument('-q', '--quiet', default=False, action='store_true',
                        help='only show warning messages or above')
@@ -104,26 +106,16 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     LOG.debug('neural network device: %s', args.device)
 
     # standard filenames
-    if args.video_output is not None:
-        if not args.video_output:
-            args.video_output = '{}.trackandfield.mp4'.format(args.source)
-            if os.path.exists(args.video_output):
-                os.remove(args.video_output)
-        elif len(args.video_output) == 1:
-            args.video_output = args.video_output[0]
-        else:
-            raise Exception('give zero or one --video-output arguments')
-        assert not os.path.exists(args.video_output)
-    if args.json_output is not None:
-        if not args.json_output:
-            args.json_output = '{}.trackandfield.json'.format(args.source)
-            if os.path.exists(args.json_output):
-                os.remove(args.json_output)
-        elif len(args.json_output) == 1:
-            args.json_output = args.json_output[0]
-        else:
-            raise Exception('give zero or one --json-output arguments')
-        assert not os.path.exists(args.json_output)
+    if args.video_output is True:
+        args.video_output = '{}.trackandfield.mp4'.format(args.source)
+        if os.path.exists(args.video_output):
+            os.remove(args.video_output)
+    assert not os.path.exists(args.video_output)
+    if args.json_output is True:
+        args.json_output = '{}.trackandfield.json'.format(args.source)
+        if os.path.exists(args.json_output):
+            os.remove(args.json_output)
+    assert not os.path.exists(args.json_output)
 
     return args
 

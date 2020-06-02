@@ -45,8 +45,8 @@ def cli(parser, *,
         group.add_argument('--force-complete-pose', dest='force_complete_pose',
                            default=False, action='store_true')
 
-    group.add_argument('--profile-decoder',
-                       help='specify out .prof file or empty string')
+    group.add_argument('--profile-decoder', nargs='?', const='profile_decoder.prof', default=None,
+                       help='specify out .prof file or nothing for default file name')
 
     group = parser.add_argument_group('CifCaf decoders')
     group.add_argument('--cif-th', default=CifHr.v_threshold, type=float,
