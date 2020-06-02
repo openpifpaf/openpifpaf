@@ -26,6 +26,7 @@ class Profiler:
         ps = ps.sort_stats('tottime')
         ps.print_stats()
         if self.out_name:
+            LOG.info('writing profile file %s', self.out_name)
             ps.dump_stats(self.out_name)
         print(iostream.getvalue())
 
