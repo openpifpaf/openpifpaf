@@ -1,0 +1,19 @@
+name: update-latest
+
+on:
+  push:
+    branches:
+      - master
+  release:
+    types:
+      - created
+
+jobs:
+  update-latest:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: Embraser01/update-git-branch-action@v1.0.0
+      with:
+        branch: latest
+        githubToken: ${{ secrets.GITHUB_TOKEN }}
