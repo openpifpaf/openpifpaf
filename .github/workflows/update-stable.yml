@@ -18,6 +18,7 @@ jobs:
 
     - name: Push to stable branch
       run: |
+        git pull
         git checkout stable
         git merge master -c "merge master"
         git push
