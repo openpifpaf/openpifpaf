@@ -22,17 +22,21 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install -r guide/requirements.txt
-        pip install .[test]
+        pip install .[dev,test]
         sudo apt install jq
-    # Build the guide
-    - name: Build the guide
+
+    # make sure KernelSpec in all notebooks is python3
+    - name: Normalize KernelSpec
       run: |
         for fn in guide/*.ipynb; do
           jq '(.metadata.kernelspec.name,.metadata.kernelspec.display_name)="python3"' ${fn} > ${fn}_
           mv ${fn}_ ${fn}
         done
-        cd guide && jupyter-book build .
+
+    # Build the guide
+    - name: Build the guide
+      run: cd guide && jupyter-book build .
+
     # Push the book's HTML to gh-pages
     - name: GitHub Pages action
       uses: peaceiris/actions-gh-pages@v3.5.9
