@@ -2,10 +2,13 @@ name: deploy-guide
 
 # Only run this when the master branch changes
 on:
-  push:
-    branches:
-    - master
-    - guide
+  # push:
+  #   branches:
+  #   - master
+  #   - guide
+  release:
+    types:
+      - created
 
 # This job installs dependencies, build the guide, and pushes it to `gh-pages`
 jobs:
