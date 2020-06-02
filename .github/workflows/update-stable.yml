@@ -13,9 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-      with:
-        ref: refs/heads/master
-
     - name: Push to stable branch
       run: |
         git pull
