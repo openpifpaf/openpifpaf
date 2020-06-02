@@ -33,6 +33,7 @@ def factory_from_args(args):
         two_scale=args.two_scale,
         multi_scale=args.multi_scale,
         multi_scale_hflip=args.multi_scale_hflip,
+        download_progress=args.download_progress,
     )
 
 
@@ -335,6 +336,9 @@ def cli(parser):
                        help='[experimental]')
     group.add_argument('--cross-talk', default=0.0, type=float,
                        help='[experimental]')
+    group.add_argument('--no-download-progress', dest='download_progress',
+                       default=True, action='store_false',
+                       help='suppress model download progress bar')
 
     group = parser.add_argument_group('head')
     group.add_argument('--head-dropout', default=heads.CompositeFieldFused.dropout_p, type=float,
