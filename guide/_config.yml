@@ -16,7 +16,7 @@ html:
 repository:
   url                       : https://github.com/vita-epfl/openpifpaf  # Online location of your book
   path_to_book              : guide  # Optional path to your book, relative to the repository root
-  branch                    : guide  # Which branch of the repository should be used when creating links (optional)
+  branch                    : releases/latest  # Which branch of the repository should be used when creating links (optional)
 
 launch_buttons:
   binderhub_url             : "https://mybinder.org"  # The URL for your BinderHub (e.g., https://mybinder.org)
