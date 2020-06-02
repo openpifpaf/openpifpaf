@@ -1,6 +1,5 @@
 # system
 .DS_Store
-.gitattributes
 .vscode
 *.so
 
@@ -15,6 +14,16 @@ dist/
 .ipynb_checkpoints/
 openpifpaf/functional.cpython-*
 openpifpaf/functional.html
+
+# guide
+guide/_build/
+guide/coco/*.predictions.png
+guide/coco/*.predictions.json
+guide/logo.png
+guide/favicon.png
+guide/profile_decoder.1.json
+guide/profile_decoder.prof
+guide/profile_decoder_flame.svg
 
 # data
 data-*/

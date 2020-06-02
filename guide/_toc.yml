@@ -1,0 +1,15 @@
+- file: intro
+- file: datasets
+- file: train
+- file: predict_cli
+- file: cli_help
+- file: faq
+
+- header: API
+- file: predict_api
+- file: moduledocs
+
+- header: Development
+- file: dev
+- title: GitHub
+  url: https://github.com/vita-epfl/openpifpaf

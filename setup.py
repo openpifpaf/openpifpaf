@@ -74,6 +74,12 @@ setup(
         'dataclasses; python_version<"3.7"',
     ],
     extras_require={
+        'dev': [
+            'flameprof',
+            'jupyter-book>=0.7.0b',
+            'matplotlib',
+            'nbstripout',
+        ],
         'onnx': [
             'onnx',
             'onnx-simplifier',
