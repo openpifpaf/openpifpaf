@@ -16,5 +16,3 @@ jobs:
 
     - name: Push to stable branch
       run: git push . stable
-      with:
-        githubToken: ${{ secrets.GITHUB_TOKEN }}
