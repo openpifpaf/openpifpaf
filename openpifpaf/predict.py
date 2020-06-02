@@ -33,9 +33,9 @@ def cli():
                         help='glob expression for input images (for many images)')
     parser.add_argument('--show', default=False, action='store_true',
                         help='show image of output overlay')
-    parser.add_argument('--image-output', default=None, nargs='*',
+    parser.add_argument('--image-output', default=None, nargs='?', const=True,
                         help='image output file or directory')
-    parser.add_argument('--json-output', default=None, nargs='*',
+    parser.add_argument('--json-output', default=None, nargs='?', const=True,
                         help='json output file or directory')
     parser.add_argument('--batch-size', default=1, type=int,
                         help='processing batch size')
@@ -122,32 +122,29 @@ def preprocess_factory(args):
     return transforms.Compose(preprocess + [transforms.EVAL_TRANSFORM])
 
 
-def out_name(arg_list, in_name, default_extension):
+def out_name(arg, in_name, default_extension):
     """Determine an output name from args, input name and extension.
 
-    arg_list can be:
+    arg can be:
     - none: return none (e.g. show image but don't store it)
-    - empty: activate this output and determine a default name
-    - one entry:
+    - True: activate this output and determine a default name
+    - string:
         - not a directory: use this as the output file name
         - is a directory: use directory name and input name to form an output
     """
-    if arg_list is None:
+    if arg is None:
         return None
 
-    if len(arg_list) == 0:
+    if arg is True:
         return in_name + default_extension
 
-    if len(arg_list) == 1:
-        oname = arg_list[0]
-        if os.path.isdir(oname):
-            oname = os.path.join(
-                oname,
-                os.path.basename(in_name)
-            ) + default_extension
-        return oname
+    if os.path.isdir(arg):
+        return os.path.join(
+            arg,
+            os.path.basename(in_name)
+        ) + default_extension
 
-    raise Exception('provide one or no value instead of {}'.format(arg_list))
+    return arg
 
 
 def main():
