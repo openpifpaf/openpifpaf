@@ -110,12 +110,12 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
         args.video_output = '{}.trackandfield.mp4'.format(args.source)
         if os.path.exists(args.video_output):
             os.remove(args.video_output)
-    assert not os.path.exists(args.video_output)
+    assert args.video_output is None or not os.path.exists(args.video_output)
     if args.json_output is True:
         args.json_output = '{}.trackandfield.json'.format(args.source)
         if os.path.exists(args.json_output):
             os.remove(args.json_output)
-    assert not os.path.exists(args.json_output)
+    assert args.json_output is None or not os.path.exists(args.json_output)
 
     return args
 
