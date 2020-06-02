@@ -20,5 +20,5 @@ jobs:
       run: |
         git pull
         git checkout stable
-        git merge master -c "merge master"
+        git merge master -m "merge master"
         git push
