@@ -53,7 +53,7 @@ class Keypoints:
         anns = [ann for ann in anns if ann.score() >= self.instance_threshold]
         anns = sorted(anns, key=lambda a: -a.score())
 
-        LOG.debug('nms = %.3f', time.perf_counter() - start)
+        LOG.debug('nms = %.3fs', time.perf_counter() - start)
         return anns
 
 
@@ -98,5 +98,5 @@ class Detection:
         anns = [ann for ann in anns if ann.score >= self.instance_threshold]
         anns = sorted(anns, key=lambda a: -a.score)
 
-        LOG.debug('nms = %.3f', time.perf_counter() - start)
+        LOG.debug('nms = %.3fs', time.perf_counter() - start)
         return anns
