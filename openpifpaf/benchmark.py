@@ -153,7 +153,7 @@ def main():
             '| {tdec: <12.0f} '
             '| {file_size: >6.1f}MB '
             '|'.format(
-                backbone=backbone,
+                backbone='['+backbone+']',
                 AP=100.0 * data['stats'][0],
                 APM=100.0 * data['stats'][3],
                 APL=100.0 * data['stats'][4],

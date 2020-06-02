@@ -28,13 +28,14 @@ class CifSeeds:
         for field_i, p in enumerate(cif):
             if seed_mask is not None and not seed_mask[field_i]:
                 continue
-            p = p[:, p[0] > self.threshold / 2.0]
+            p = p[:, p[0] > self.threshold]
             if min_scale:
                 p = p[:, p[4] > min_scale / stride]
-            _, x, y, _, s = p
+            c, x, y, _, s = p
 
             start_sv = time.perf_counter()
-            v = scalar_values(self.cifhr[field_i], x * stride, y * stride)
+            v = scalar_values(self.cifhr[field_i], x * stride, y * stride, default=0.0)
+            v = 0.9 * v + 0.1 * c
             sv += time.perf_counter() - start_sv
 
             if self.score_scale != 1.0:
@@ -70,12 +71,13 @@ class CifDetSeeds(CifSeeds):
         for field_i, p in enumerate(cif):
             if seed_mask is not None and not seed_mask[field_i]:
                 continue
-            p = p[:, p[0] > self.threshold / 2.0]
+            p = p[:, p[0] > self.threshold]
             if min_scale:
                 p = p[:, p[4] > min_scale / stride]
                 p = p[:, p[5] > min_scale / stride]
-            _, x, y, _, w, h, _ = p
-            v = scalar_values(self.cifhr[field_i], x * stride, y * stride)
+            c, x, y, _, w, h, _ = p
+            v = scalar_values(self.cifhr[field_i], x * stride, y * stride, default=0.0)
+            v = 0.9 * v + 0.1 * c
             if self.score_scale != 1.0:
                 v = v * self.score_scale
             m = v > self.threshold
