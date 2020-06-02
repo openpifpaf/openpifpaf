@@ -13,6 +13,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        ref: refs/heads/master
 
     - name: Push to stable branch
-      run: git push origin stable
+      run: |
+        git checkout stable
+        git merge master -c "merge master"
+        git push
