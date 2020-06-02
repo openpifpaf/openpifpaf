@@ -1,9 +1,6 @@
 name: update-stable
 
 on:
-  push:
-    branches:
-      - master
   release:
     types:
       - created
