@@ -1,4 +1,4 @@
-name: update-latest
+name: update-stable
 
 on:
   push:
@@ -9,11 +9,12 @@ on:
       - created
 
 jobs:
-  update-latest:
+  update-stable:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - uses: Embraser01/update-git-branch-action@v1.0.0
+
+    - name: Push to stable branch
+      run: git push . stable
       with:
-        branch: latest
         githubToken: ${{ secrets.GITHUB_TOKEN }}
