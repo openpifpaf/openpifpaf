@@ -52,7 +52,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     show.cli(parser)
     visualizer.cli(parser)
 
-    parser.add_argument('--source',
+    parser.add_argument('--source', default='0',
                         help='OpenCV source url. Integer for webcams. Supports rtmp streams.')
     parser.add_argument('--video-output', default=None, nargs='?', const=True,
                         help='video output file')
