@@ -63,7 +63,7 @@ def cli():
     parser.add_argument('--update-batchnorm-runningstatistics',
                         default=False, action='store_true',
                         help='update batch norm running statistics')
-    parser.add_argument('--ema', default=1e-3, type=float,
+    parser.add_argument('--ema', default=1e-2, type=float,
                         help='ema decay constant')
     parser.add_argument('--disable-cuda', action='store_true',
                         help='disable CUDA')
