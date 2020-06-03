@@ -85,7 +85,7 @@ class Coco(torch.utils.data.Dataset):
                     if has_annotation(image_id)]
         LOG.info('... done.')
 
-    def class_aware_sample_weights(self, max_multiple=30.0):
+    def class_aware_sample_weights(self, max_multiple=10.0):
         """Class aware sampling.
 
         To be used with PyTorch's WeightedRandomSampler.
