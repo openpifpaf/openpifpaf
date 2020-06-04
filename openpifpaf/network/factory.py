@@ -319,8 +319,8 @@ def cli(parser):
     group = parser.add_argument_group('network configuration')
     group.add_argument('--checkpoint', default=None,
                        help=('Load a model from a checkpoint. '
-                             'Use "resnet50", "resnet101" '
-                             'or "resnet152" for pretrained OpenPifPaf models.'))
+                             'Use "resnet50", "shufflenetv2k16w" '
+                             'or "shufflenetv2k30w" for pretrained OpenPifPaf models.'))
     group.add_argument('--basenet', default=None,
                        help='base network, e.g. resnet50')
     group.add_argument('--headnets', default=None, nargs='+',
