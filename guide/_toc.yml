@@ -11,5 +11,7 @@
 
 - header: Development
 - file: dev
+- title: History
+  url: https://github.com/vita-epfl/openpifpaf/blob/master/HISTORY.md
 - title: GitHub
   url: https://github.com/vita-epfl/openpifpaf
