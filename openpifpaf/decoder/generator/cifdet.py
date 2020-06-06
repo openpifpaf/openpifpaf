@@ -48,5 +48,5 @@ class CifDet(Generator):
         annotations = nms.Detection().annotations(annotations)
         # annotations = sorted(annotations, key=lambda a: -a.score)
 
-        LOG.debug('annotations %d, %.3fs', len(annotations), time.perf_counter() - start)
+        LOG.info('annotations %d, decoder = %.3fs', len(annotations), time.perf_counter() - start)
         return annotations
