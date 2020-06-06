@@ -110,6 +110,7 @@ cpdef void scalar_square_add_gauss_with_max(float[:, :] field, float[:] x, float
     cdef float vv, deltax2, deltay2
     cdef float cv, cx, cy, csigma, csigma2
     cdef long minx, miny, maxx, maxy
+    cdef float truncate2 = truncate * truncate
 
     for i in range(x.shape[0]):
         csigma = sigma[i]
@@ -119,13 +120,16 @@ cpdef void scalar_square_add_gauss_with_max(float[:, :] field, float[:] x, float
         cv = v[i]
 
         minx = (<long>clip(cx - truncate * csigma, 0, field.shape[1] - 1))
-        maxx = (<long>clip(cx + truncate * csigma, minx + 1, field.shape[1]))
+        maxx = (<long>clip(cx + truncate * csigma + 1, minx + 1, field.shape[1]))
         miny = (<long>clip(cy - truncate * csigma, 0, field.shape[0] - 1))
-        maxy = (<long>clip(cy + truncate * csigma, miny + 1, field.shape[0]))
+        maxy = (<long>clip(cy + truncate * csigma + 1, miny + 1, field.shape[0]))
         for xx in range(minx, maxx):
             deltax2 = (xx - cx)**2
             for yy in range(miny, maxy):
                 deltay2 = (yy - cy)**2
+
+                if deltax2 + deltay2 > truncate2 * csigma2:
+                    continue
 
                 if deltax2 < 0.25 and deltay2 < 0.25:
                     # this is the closest pixel
