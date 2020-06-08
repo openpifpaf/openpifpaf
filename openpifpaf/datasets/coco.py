@@ -76,7 +76,7 @@ class Coco(torch.utils.data.Dataset):
             ann_ids = self.coco.getAnnIds(imgIds=image_id, catIds=self.category_ids)
             anns = self.coco.loadAnns(ann_ids)
             for ann in anns:
-                if ann['iscrowd']:
+                if ann.get('iscrowd'):
                     continue
                 return True
             return False
