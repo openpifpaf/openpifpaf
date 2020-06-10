@@ -201,6 +201,7 @@ class Plots(object):
         ax.set_xlabel('epoch')
         ax.set_ylabel(field_name)
         last_five_y = np.concatenate(last_five_y)
+        last_five_y = last_five_y[np.logical_not(np.isnan(last_five_y))]
         ax.set_ylim(np.min(last_five_y), np.max(last_five_y))
         # ax.set_ylim(0.0, 1.0)
         # if min(y) > -0.1:
