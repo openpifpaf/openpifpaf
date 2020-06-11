@@ -3,6 +3,7 @@
 - file: train
 - file: predict_cli
 - file: cli_help
+- file: examples
 - file: faq
 
 - header: API
