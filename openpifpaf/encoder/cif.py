@@ -1,5 +1,6 @@
 import dataclasses
 import logging
+from typing import ClassVar
 
 import numpy as np
 import torch
@@ -16,10 +17,10 @@ class Cif:
     rescaler: AnnRescaler
     sigmas: list
     v_threshold: int = 0
-
-    side_length: int = 4
-    padding: int = 10
     visualizer: CifVisualizer = None
+
+    side_length: ClassVar[int] = 4
+    padding: ClassVar[int] = 10
 
     def __call__(self, image, anns, meta):
         return CifGenerator(self)(image, anns, meta)
