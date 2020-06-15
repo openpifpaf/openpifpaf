@@ -1,5 +1,6 @@
 import dataclasses
 import logging
+from typing import ClassVar
 
 import numpy as np
 import torch
@@ -16,10 +17,10 @@ class CifDet:
     n_categories: int
     rescaler: AnnRescaler
     v_threshold: int = 0
-
-    side_length: int = 5
-    padding: int = 10
     visualizer: CifDetVisualizer = None
+
+    side_length: ClassVar[int] = 5
+    padding: ClassVar[int] = 10
 
     def __call__(self, image, anns, meta):
         return CifDetGenerator(self)(image, anns, meta)
