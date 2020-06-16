@@ -1,5 +1,7 @@
 import dataclasses
 import logging
+from typing import ClassVar
+
 import numpy as np
 import torch
 
@@ -20,12 +22,12 @@ class Caf:
     dense_to_sparse_radius: float = 2.0
     only_in_field_of_view: bool = False
     v_threshold: int = 0
-
-    min_size: int = 3
-    fixed_size: bool = False
-    aspect_ratio: float = 0.0
-    padding: int = 10
     visualizer: CafVisualizer = None
+
+    min_size: ClassVar[int] = 3
+    fixed_size: ClassVar[bool] = False
+    aspect_ratio: ClassVar[float] = 0.0
+    padding: ClassVar[int] = 10
 
     def __call__(self, image, anns, meta):
         return CafGenerator(self)(image, anns, meta)

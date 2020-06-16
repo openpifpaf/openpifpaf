@@ -37,6 +37,9 @@ jobs:
         done
 
     # Build the guide
+    - name: Build the artwork for guide
+      run: cd guide && python artwork.py
+
     - name: Build the guide
       run: cd guide && jupyter-book build .
 

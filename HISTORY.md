@@ -1,6 +1,9 @@
 # History
 
-* [master](https://github.com/vita-epfl/openpifpaf/compare/v0.11.4...master)
+* [master](https://github.com/vita-epfl/openpifpaf/compare/v0.11.6...master)
+* [0.11.6](https://github.com/vita-epfl/openpifpaf/compare/v0.11.4...v0.11.6) (2020-06-15)
+    * circular truncation for CifHr
+    * extend Guide
 * [0.11.4](https://github.com/vita-epfl/openpifpaf/compare/v0.11.3...v0.11.4) (2020-06-02)
     * init Guide
     * minor updates
