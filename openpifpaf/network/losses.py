@@ -253,7 +253,10 @@ class MultiHeadLossAutoTuneVariance(torch.nn.Module):
         self.sparse_task_parameters = sparse_task_parameters
 
         self.epsilons = torch.ones((len(lambdas),), dtype=torch.float64)
-        self.buffer = torch.full((len(lambdas), 50), float('nan'), dtype=torch.float64)
+        # choose a prime number for the buffer length:
+        # for multiple tasks, prevents that always the same buffer_index is
+        # skipped which would mean that some nan values will remain forever
+        self.buffer = torch.full((len(lambdas), 53), float('nan'), dtype=torch.float64)
         self.buffer_index = -1
 
         self.field_names = [n for l in self.losses for n in l.field_names]
