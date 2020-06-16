@@ -185,24 +185,25 @@ class Plots(object):
                 x = np.array([row.get('epoch') for row in data['val-epoch']])
                 y = np.array([row.get('head_losses')[field_i]
                               for row in data['val-epoch']], dtype=np.float)
-                ax.plot(x, y, 'o-', color=color, markersize=2, label=label)
-                last_five_y.append(y[-5:])
+                m = y == y
+                ax.plot(x[m], y[m], 'o-', color=color, markersize=2, label=label)
+                last_five_y.append(y[m][-5:])
 
             if 'train-epoch' in data:
                 x = np.array([row.get('epoch') for row in data['train-epoch']])
                 y = np.array([row.get('head_losses')[field_i]
                               for row in data['train-epoch']], dtype=np.float)
-                m = x > 0
+                m = y == y
                 ax.plot(x[m], y[m], 'x-', color=color, linestyle='dotted', markersize=2)
-                last_five_y.append(y[-5:])
+                last_five_y.append(y[m][-5:])
 
         if not last_five_y:
             return
         ax.set_xlabel('epoch')
         ax.set_ylabel(field_name)
         last_five_y = np.concatenate(last_five_y)
-        last_five_y = last_five_y[np.logical_not(np.isnan(last_five_y))]
-        ax.set_ylim(np.min(last_five_y), np.max(last_five_y))
+        if last_five_y.shape[0]:
+            ax.set_ylim(np.min(last_five_y), np.max(last_five_y))
         # ax.set_ylim(0.0, 1.0)
         # if min(y) > -0.1:
         #     ax.set_yscale('log', nonposy='clip')
