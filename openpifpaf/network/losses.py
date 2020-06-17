@@ -23,6 +23,7 @@ def laplace_loss(x1, x2, logb, t1, t2, weight=None):
     # constrain range of logb
     logb = 3.0 * torch.tanh(logb / 3.0)
 
+    # ln(2) = 0.694
     losses = 0.694 + logb + norm * torch.exp(-logb)
     if weight is not None:
         losses = losses * weight
@@ -35,7 +36,8 @@ def l1_loss(x1, x2, _, t1, t2, weight=None):
     Loss for a single two-dimensional vector (x1, x2)
     true (t1, t2) vector.
     """
-    losses = torch.sqrt((x1 - t1)**2 + (x2 - t2)**2)
+    # losses = torch.sqrt((x1 - t1)**2 + (x2 - t2)**2)
+    losses = (torch.stack((x1, x2)) - torch.stack((t1, t2))).norm(dim=0)
     if weight is not None:
         losses = losses * weight
     return torch.sum(losses)
@@ -165,11 +167,13 @@ class MultiHeadLoss(torch.nn.Module):
 class MultiHeadLossAutoTuneKendall(torch.nn.Module):
     task_sparsity_weight = 0.0
 
-    def __init__(self, losses, lambdas, *, sparse_task_parameters=None):
+    def __init__(self, losses, lambdas, *, sparse_task_parameters=None, no_tune=None):
         """Auto-tuning multi-head loss.
 
         Uses idea from "Multi-Task Learning Using Uncertainty to Weigh Losses
         for Scene Geometry and Semantics" by Kendall, Gal and Cipolla.
+
+        Individual losses must not be negative for Kendall's prescription.
 
         In the common setting, use lambdas of zero and one to deactivate and
         activate the tasks you want to train. Less common, if you have
@@ -185,6 +189,7 @@ class MultiHeadLossAutoTuneKendall(torch.nn.Module):
         self.losses = torch.nn.ModuleList(losses)
         self.lambdas = lambdas
         self.sparse_task_parameters = sparse_task_parameters
+        self.no_tune = no_tune
 
         self.log_sigmas = torch.nn.Parameter(
             torch.zeros((len(lambdas),), dtype=torch.float64),
@@ -195,6 +200,12 @@ class MultiHeadLossAutoTuneKendall(torch.nn.Module):
         LOG.info('multihead loss with autotune: %s', self.field_names)
         assert len(self.field_names) == len(self.lambdas)
         assert len(self.field_names) == len(self.log_sigmas)
+
+        if isinstance(self.no_tune, str):
+            self.no_tune = [self.no_tune in n for n in self.field_names]
+            LOG.info('setting no-tune mask: %s', self.no_tune)
+        if self.no_tune is None:
+            self.no_tune = [False for _ in self.field_names]
 
     def batch_meta(self):
         return {'mtl_sigmas': [round(float(s), 3) for s in self.log_sigmas.exp()]}
@@ -211,13 +222,21 @@ class MultiHeadLossAutoTuneKendall(torch.nn.Module):
 
         assert len(self.lambdas) == len(flat_head_losses)
         assert len(self.log_sigmas) == len(flat_head_losses)
-        loss_values = [lam * l / (2.0 * (log_sigma.exp() ** 2))
-                       for lam, log_sigma, l in zip(self.lambdas, self.log_sigmas, flat_head_losses)
-                       if l is not None]
-        auto_reg = [lam * log_sigma
-                    for lam, log_sigma, l in zip(self.lambdas, self.log_sigmas, flat_head_losses)
-                    if l is not None]
-        total_loss = sum(loss_values) + sum(auto_reg) if loss_values else None
+        constrained_log_sigmas = 3.0 * torch.tanh(self.log_sigmas / 3.0)
+        if self.no_tune is not None:
+            constrained_log_sigmas[self.no_tune] = 0.0
+        loss_values = [
+            # this is the negative ln of a Gaussian with
+            # ln(sqrt(2pi)) = 0.919
+            lam * (
+                l
+                if nt
+                else (0.919 + log_sigma + l * 0.5 * torch.exp(-2.0 * log_sigma))
+            )
+            for lam, nt, log_sigma, l in zip(self.lambdas, self.no_tune, constrained_log_sigmas, flat_head_losses)
+            if l is not None
+        ]
+        total_loss = sum(loss_values) if loss_values else None
 
         if self.task_sparsity_weight and self.sparse_task_parameters is not None:
             head_sparsity_loss = sum(
@@ -476,9 +495,9 @@ def cli(parser):
                        help='when > 0.0, use focal loss with the given gamma')
     group.add_argument('--margin-loss', default=False, action='store_true',
                        help='[experimental]')
-    group.add_argument('--auto-tune-mtl-kendall', default=False, action='store_true',
-                       help='use Kendall\'s prescription for adjusting the multitask weight')
     group.add_argument('--auto-tune-mtl', default=False, action='store_true',
+                       help='use Kendall\'s prescription for adjusting the multitask weight')
+    group.add_argument('--auto-tune-mtl-variance', default=False, action='store_true',
                        help='use Variance prescription for adjusting the multitask weight')
     assert MultiHeadLoss.task_sparsity_weight == MultiHeadLossAutoTuneKendall.task_sparsity_weight
     assert MultiHeadLoss.task_sparsity_weight == MultiHeadLossAutoTuneVariance.task_sparsity_weight
@@ -509,14 +528,14 @@ def factory_from_args(args, head_nets):
         reg_loss_name=args.regression_loss,
         device=args.device,
         auto_tune_mtl=args.auto_tune_mtl,
-        auto_tune_mtl_kendall=args.auto_tune_mtl_kendall,
+        auto_tune_mtl_variance=args.auto_tune_mtl_variance,
     )
 
 
 # pylint: disable=too-many-branches
 def factory(head_nets, lambdas, *,
             reg_loss_name=None, device=None,
-            auto_tune_mtl=False, auto_tune_mtl_kendall=False):
+            auto_tune_mtl=False, auto_tune_mtl_variance=False):
     if isinstance(head_nets[0], (list, tuple)):
         return [factory(hn, lam,
                         reg_loss_name=reg_loss_name,
@@ -548,11 +567,12 @@ def factory(head_nets, lambdas, *,
 
     losses = [CompositeLoss(head_net, reg_loss) for head_net in head_nets]
     if auto_tune_mtl:
+        loss = MultiHeadLossAutoTuneKendall(losses, lambdas,
+                                            sparse_task_parameters=sparse_task_parameters,
+                                            no_tune='.vec')
+    elif auto_tune_mtl_variance:
         loss = MultiHeadLossAutoTuneVariance(losses, lambdas,
                                              sparse_task_parameters=sparse_task_parameters)
-    elif auto_tune_mtl_kendall:
-        loss = MultiHeadLossAutoTuneKendall(losses, lambdas,
-                                            sparse_task_parameters=sparse_task_parameters)
     else:
         loss = MultiHeadLoss(losses, lambdas)
 
