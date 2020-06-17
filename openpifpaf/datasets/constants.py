@@ -40,6 +40,14 @@ COCO_KEYPOINTS = [
     'right_ankle',     # 17
 ]
 
+BBOX_KEYPOINTS = [
+    'top_left',            # 1
+    'top_right',        # 2
+    'bottom_right',       # 3
+    'bottom_left',        # 4
+    'center',       # 5
+]
+
 
 COCO_UPRIGHT_POSE = np.array([
     [0.0, 9.3, 2.0],  # 'nose',            # 1
@@ -102,6 +110,13 @@ HFLIP = {
     'right_ankle': 'left_ankle',
 }
 
+BBOX_HFLIP = {
+    'top_left': 'top_right',
+    'top_right': 'top_left',
+    'bottom_right': 'bottom_left',
+    'bottom_left': 'bottom_right',
+    'center': 'center',
+}
 
 DENSER_COCO_PERSON_SKELETON = [
     (1, 2), (1, 3), (2, 3), (1, 4), (1, 5), (4, 5),

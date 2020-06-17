@@ -46,3 +46,7 @@ decoder_flame.svg
 *.onnx
 debug.*.png
 test-clis-*/
+data
+pretrained
+coco_debug
+outputs
