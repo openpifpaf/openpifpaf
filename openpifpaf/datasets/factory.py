@@ -351,16 +351,16 @@ def train_uavdt_factory(args, target_transforms):
     if args.loader_workers is None:
         args.loader_workers = args.batch_size
     train_data = dataset(
-        root=args.uavdt_train_image_dir,
-        annFile=args.uavdt_train_annotations,
+        image_dir=args.uavdt_train_image_dir,
+        ann_file=args.uavdt_train_annotations,
         preprocess=preprocess,
         target_transforms=target_transforms,
         n_images=args.n_images,
     )
 
     val_data = dataset(
-        root=args.uavdt_val_image_dir,
-        annFile=args.uavdt_val_annotations,
+        image_dir=args.uavdt_val_image_dir,
+        ann_file=args.uavdt_val_annotations,
         preprocess=preprocess,
         target_transforms=target_transforms,
         n_images=args.n_images,
@@ -399,16 +399,16 @@ def train_visdrone_factory(args, target_transforms):
     if args.loader_workers is None:
         args.loader_workers = args.batch_size
     train_data = dataset(
-        root=args.visdrone_train_image_dir,
-        annFile=args.visdrone_train_annotations,
+        image_dir=args.visdrone_train_image_dir,
+        ann_file=args.visdrone_train_annotations,
         preprocess=preprocess,
         target_transforms=target_transforms,
         n_images=args.n_images,
     )
 
     val_data = dataset(
-        root=args.visdrone_val_image_dir,
-        annFile=args.visdrone_val_annotations,
+        image_dir=args.visdrone_val_image_dir,
+        ann_file=args.visdrone_val_annotations,
         preprocess=preprocess,
         target_transforms=target_transforms,
         n_images=args.n_images,
@@ -449,16 +449,16 @@ def train_eurocity_factory(args, target_transforms):
         args.loader_workers = args.batch_size
 
     train_data = dataset(
-        root=args.eurocity_train_image_dir,
-        annFile=args.eurocity_train_annotations,
+        image_dir=args.eurocity_train_image_dir,
+        ann_file=args.eurocity_train_annotations,
         preprocess=preprocess,
         target_transforms=target_transforms,
         n_images=args.n_images,
     )
 
     val_data = dataset(
-        root=args.eurocity_val_image_dir,
-        annFile=args.eurocity_val_annotations,
+        image_dir=args.eurocity_val_image_dir,
+        ann_file=args.eurocity_val_annotations,
         preprocess=preprocess,
         target_transforms=target_transforms,
         n_images=args.n_images,
@@ -499,16 +499,16 @@ def train_nightowls_factory(args, target_transforms):
         args.loader_workers = args.batch_size
 
     train_data = dataset(
-        root=args.nightowls_train_image_dir,
-        annFile=args.nightowls_train_annotations,
+        image_dir=args.nightowls_train_image_dir,
+        ann_file=args.nightowls_train_annotations,
         preprocess=preprocess,
         target_transforms=target_transforms,
         n_images=args.n_images,
     )
 
     val_data = dataset(
-        root=args.nightowls_val_image_dir,
-        annFile=args.nightowls_val_annotations,
+        image_dir=args.nightowls_val_image_dir,
+        ann_file=args.nightowls_val_annotations,
         preprocess=preprocess,
         target_transforms=target_transforms,
         n_images=args.n_images,

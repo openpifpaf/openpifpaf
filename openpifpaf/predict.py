@@ -104,9 +104,11 @@ def processor_factory(args):
     if not args.disable_cuda and torch.cuda.device_count() > 1:
         LOG.info('Using multiple GPUs: %d', torch.cuda.device_count())
         model = torch.nn.DataParallel(model)
-        model.head_names = model_cpu.head_names
-        model.head_strides = model_cpu.head_strides
-    processor = decoder.factory_from_args(args, model)
+        model.head_nets = model_cpu.head_nets
+        #model.head_strides = model_cpu.head_strides
+        processor = decoder.factory_from_args(args, model.module)
+    else:
+        processor = decoder.factory_from_args(args, model)
     return processor, model
 
 

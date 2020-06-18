@@ -22,10 +22,12 @@ class EuroCity(torch.utils.data.Dataset):
     test_path = {'val': "./data/ECP/{}/img/val", 'test-challenge': "./data/ECP/{}/img/test"}
     categories = ['pedestrian', 'rider']
     extra_categories = ['scooter', 'motorbike', 'bicycle', 'buggy', 'wheelchair', 'tricycle']
-    def __init__(self, root, annFile, *, time=('day', 'night'), target_transforms=None,
-                 n_images=None, preprocess=None, all_images=False, rider_vehicles=False):
-        self.annFile = annFile
-        self.root = root
+    def __init__(self, image_dir, ann_file, *, time=('day', 'night'), target_transforms=None,
+                 n_images=None, preprocess=None,
+                 category_ids=None,
+                 image_filter='keypoint-annotations', rider_vehicles=False):
+        self.annFile = ann_file
+        self.root = image_dir
         if not isinstance(time, tuple):
             imgFolder = root.format(time)
             self.gt_files = glob.glob(imgFolder + '/*/*' + '.png')

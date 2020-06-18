@@ -22,7 +22,7 @@ class NightOwls(torch.utils.data.Dataset):
 
     Args:
         root (string): Root directory where images are downloaded to.
-        annFile (string): Path to json annotation file.
+        ann_file (string): Path to json annotation file.
         transform (callable, optional): A function/transform that  takes in an PIL image
             and returns a transformed version. E.g, ``transforms.ToTensor``
         target_transform (callable, optional): A function/transform that takes in the
@@ -35,11 +35,13 @@ class NightOwls(torch.utils.data.Dataset):
     test_path = {'val': "data/nightowls/annotations/nightowls_test.json"}
 
     categories = ['pedestrian', 'bicycle-driver', 'motorbike-driver']
-    def __init__(self, root, annFile, *, target_transforms=None, class_ids=None,
-                 n_images=None, preprocess=None, all_images=False, all_persons=False):
+    def __init__(self, image_dir, ann_file, *, target_transforms=None, class_ids=None,
+                 n_images=None, preprocess=None,
+                 category_ids=None,
+                 image_filter='keypoint-annotations'):
         from pycocotools.coco import COCO
-        self.root = root
-        self.coco = COCO(annFile)
+        self.root = image_dir
+        self.coco = COCO(ann_file)
 
         # Image ID
         if class_ids:

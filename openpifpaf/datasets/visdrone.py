@@ -4,6 +4,8 @@ import logging
 import numpy as np
 import torch.utils.data
 import torchvision
+from collections import defaultdict
+
 from PIL import Image
 from .. import transforms, utils
 
@@ -19,7 +21,7 @@ class VisDrone(torch.utils.data.Dataset):
 
     Args:
         root (string): Root directory where images are downloaded to.
-        annFile (string): Path to json annotation file.
+        ann_file (string): Path to json annotation file.
         transform (callable, optional): A function/transform that  takes in an PIL image
             and returns a transformed version. E.g, ``transforms.ToTensor``
         target_transform (callable, optional): A function/transform that takes in the
@@ -30,11 +32,14 @@ class VisDrone(torch.utils.data.Dataset):
     train_annotations = "data/VisDrone2019/VisDrone2019-DET-train/annotations"
     val_annotations = "data/VisDrone2019/VisDrone2019-DET-val/annotations"
 
-    test_path = {'val': "data/VisDrone2019/VisDrone2019-DET-val/images", 'test-dev': "data/VisDrone2019/VisDrone2019-DET-test-dev/images", 'test-challenge': "data/VisDrone2019/VisDrone2019-DET-test-challenge/images"}
+    test_path = {'val': "data/VisDrone2019/VisDrone2019-DET-val/images", 'test-dev-images': "data/VisDrone2019/VisDrone2019-DET-test-dev/images",'test-dev-annotations': "data/VisDrone2019/VisDrone2019-DET-test-dev/annotations", 'test-challenge': "data/VisDrone2019/VisDrone2019-DET-test-challenge/images"}
 
     categories = ["pedestrian", "people", "bicycle", "car", "van", "truck", "tricycle", "awning-tricycle", "bus", "motor"]
-    def __init__(self, root, annFile, *, target_transforms=None, n_images=None, preprocess=None):
-        self.root = root
+    def __init__(self, image_dir, ann_file, *, target_transforms=None,
+                 n_images=None, preprocess=None,
+                 category_ids=None,
+                 image_filter='keypoint-annotations'):
+        self.root = image_dir
         self.imgs = [os.path.join(self.root, f) for f in os.listdir(self.root)]
 
         if n_images:
@@ -42,7 +47,7 @@ class VisDrone(torch.utils.data.Dataset):
         self.targets = []
         self.targets_ignored = []
         ids = set()
-        if annFile:
+        if ann_file:
             for row, img_path in enumerate(self.imgs):
                 with open(os.path.splitext(img_path)[0].replace("images", "annotations")+".txt", 'r') as txt:
                     list_temp = []
@@ -156,14 +161,16 @@ class VisDrone(torch.utils.data.Dataset):
         return len(self.imgs)
 
     def write_evaluations(self, eval_class, path, total_time):
-        for folder in eval_class.dict_folder.keys():
+        dict_folder = defaultdict(list)
+        for annotation in eval_class.predictions:
+            x, y, w, h = annotation['bbox']
+            categ = int(annotation['category_id'])
+            fileName = annotation['file_dir']
+            fileName = fileName.split("/")
+            folder = os.path.splitext(fileName[-1])[0]
+            dict_folder[folder].append(",".join(list(map(str,[x, y, w, h, annotation['score'], categ, -1, -1]))))
+
+        for folder in dict_folder.keys():
             utils.mkdir_if_missing(path)
             with open(os.path.join(path,folder+".txt"), "w") as file:
-                file.write("\n".join(eval_class.dict_folder[folder]))
-        n_images = len(eval_class.image_ids)
-
-        print('n images = {}'.format(n_images))
-        print('decoder time = {:.1f}s ({:.0f}ms / image)'
-              ''.format(eval_class.decoder_time, 1000 * eval_class.decoder_time / n_images))
-        print('total time = {:.1f}s ({:.0f}ms / image)'
-              ''.format(total_time, 1000 * total_time / n_images))
+                file.write("\n".join(dict_folder[folder]))

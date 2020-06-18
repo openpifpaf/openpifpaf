@@ -33,9 +33,12 @@ class UAVDT(torch.utils.data.Dataset):
 
     #categories = ["car", "truck", "bus", "van", "cyclist", "pedestrian"]
     categories = ["vehicle"]
-    def __init__(self, root, annFile, *, target_transforms=None, n_images=None, preprocess=None):
-        self.root = root
-        self.annFile = annFile
+    def __init__(self, image_dir, ann_file, *, target_transforms=None,
+                 n_images=None, preprocess=None,
+                 category_ids=None,
+                 image_filter='keypoint-annotations'):
+        self.root = image_dir
+        self.annFile = ann_file
         folders = os.listdir(self.root)
 
         self.imgs = []
@@ -167,14 +170,17 @@ class UAVDT(torch.utils.data.Dataset):
         return len(self.imgs)
 
     def write_evaluations(self, eval_class, path, total_time):
-        for folder in eval_class.dict_folder.keys():
+        dict_folder = defaultdict(list)
+        for annotation in eval_class.predictions:
+            x, y, w, h = annotation['bbox']
+            categ = int(annotation['category_id'])
+            fileName = annotation['file_dir']
+            fileName = fileName.split("/")
+            folder = fileName[-2]
+            image_numb = int(fileName[-1][3:9])
+            dict_folder[folder].append(",".join(list(map(str,[image_numb, -1, x, y, w, h, s, 1, categ-1]))))
+
+        for folder in dict_folder.keys():
             utils.mkdir_if_missing(path)
             with open(os.path.join(path,folder+".txt"), "w") as file:
-                file.write("\n".join(eval_class.dict_folder[folder]))
-        n_images = len(eval_class.image_ids)
-
-        print('n images = {}'.format(n_images))
-        print('decoder time = {:.1f}s ({:.0f}ms / image)'
-              ''.format(eval_class.decoder_time, 1000 * eval_class.decoder_time / n_images))
-        print('total time = {:.1f}s ({:.0f}ms / image)'
-              ''.format(total_time, 1000 * total_time / n_images))
+                file.write("\n".join(dict_folder[folder]))
