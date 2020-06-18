@@ -20,7 +20,8 @@ class EuroCity(torch.utils.data.Dataset):
     val_annotations = "./data/ECP/{}/labels/val"
 
     test_path = {'val': "./data/ECP/{}/img/val", 'test-challenge': "./data/ECP/{}/img/test"}
-    categories = ['pedestrian', 'rider', 'scooter', 'motorbike', 'bicycle', 'buggy', 'wheelchair', 'tricycle']
+    categories = ['pedestrian', 'rider']
+    extra_categories = ['scooter', 'motorbike', 'bicycle', 'buggy', 'wheelchair', 'tricycle']
     def __init__(self, root, annFile, *, time=('day', 'night'), target_transforms=None,
                  n_images=None, preprocess=None, all_images=False, rider_vehicles=False):
         self.annFile = annFile
@@ -40,10 +41,10 @@ class EuroCity(torch.utils.data.Dataset):
         self.preprocess = preprocess or transforms.EVAL_TRANSFORM
         self.target_transforms = target_transforms
 
+        print('Images: {}'.format(len(self.gt_files)))
         self.cat_ids = ["pedestrian", "rider"]
         if rider_vehicles:
             self.cat_ids.extend(['scooter', 'motorbike', 'bicycle','buggy', 'wheelchair', 'tricycle'])
-        print("Number of classes: {}".format(len(self.cat_ids)))
 
     def _get_gt_frame(self, gt_dict):
         if gt_dict['identity'] == 'frame':
@@ -117,7 +118,7 @@ class EuroCity(torch.utils.data.Dataset):
                 if gt['identity'] in self.cat_ids:
                     anns.append({
                         'image_id': index,
-                        'category_id': gt['identity'],
+                        'category_id': self.cat_ids.index(gt['identity']),
                         'bbox': [x, y, w, h],
                         "area": w*h,
                         "keypoints":[x, y, 2, x+w, y, 2, x+w, y+h, 2, x, y+h, 2, x+w/2, y+h/2, 2],
@@ -125,15 +126,35 @@ class EuroCity(torch.utils.data.Dataset):
                         "segmentation":[],
                     })
                 else:
-                    anns.append({
-                        'image_id': index,
-                        'category_id': -1,
-                        'bbox': [x, y, w, h],
-                        "area": w*h,
-                        "keypoints":[x, y, 2, x+w, y, 2, x+w, y+h, 2, x, y+h, 2, x+w/2, y+h/2, 2],
-                        "iscrowd": 1,
-                        "segmentation":[],
-                    })
+                    if gt['identity'] in ("person-group-far-away",):
+                        anns.append({
+                            'image_id': index,
+                            'category_id': self.cat_ids.index("pedestrian"),
+                            'bbox': [x, y, w, h],
+                            "area": w*h,
+                            "keypoints":[x, y, 2, x+w, y, 2, x+w, y+h, 2, x, y+h, 2, x+w/2, y+h/2, 2],
+                            "iscrowd": 1,
+                            "segmentation":[],
+                        })
+                    elif gt['identity'] in ("rider+vehicle-group-far-away",):
+                        anns.append({
+                            'image_id': index,
+                            'category_id': self.cat_ids.index("rider"),
+                            'bbox': [x, y, w, h],
+                            "area": w*h,
+                            "keypoints":[x, y, 2, x+w, y, 2, x+w, y+h, 2, x, y+h, 2, x+w/2, y+h/2, 2],
+                            "iscrowd": 1,
+                            "segmentation":[],
+                        })
+                    # anns.append({
+                    #     'image_id': index,
+                    #     'category_id': -1,
+                    #     'bbox': [x, y, w, h],
+                    #     "area": w*h,
+                    #     "keypoints":[x, y, 2, x+w, y, 2, x+w, y+h, 2, x, y+h, 2, x+w/2, y+h/2, 2],
+                    #     "iscrowd": 1,
+                    #     "segmentation":[],
+                    # })
             # preprocess image and annotations
         image, anns, meta = self.preprocess(image, anns, None)
         meta.update(meta_init)
