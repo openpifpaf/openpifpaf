@@ -107,11 +107,15 @@ class EvalWrapper(object):
             pred_data['image_id'] = image_id
             pred_data['file_name'] = meta['file_name']
             pred_data['file_dir'] = meta['file_dir']
+            pred_data['mode'] = meta['mode'] if 'mode' in meta else ''
+            pred_data['time'] = meta['time'] if 'time' in meta else ''
             pred_data = {
                 k: v for k, v in pred_data.items()
                 if k in ('category_id', 'score', 'keypoints', 'bbox', 'image_id',
-                         'file_name', 'file_dir')
+                         'file_name', 'file_dir', 'mode', 'time')
             }
+            if 'mode' in meta:
+
             image_annotations.append(pred_data)
 
         # force at least one annotation per image (for pycocotools)
@@ -124,7 +128,10 @@ class EvalWrapper(object):
                 'keypoints': np.zeros((17*3,)).tolist(),
                 'bbox': [0, 0, 1, 1],
                 'score': 0.001,
+                'mode': meta['mode'] if 'mode' in meta else '',
+                'time': meta['time'] if 'time' in meta else '',
             })
+
         if debug:
             #self.stats(image_annotations, [image_id])
             LOG.debug(meta)

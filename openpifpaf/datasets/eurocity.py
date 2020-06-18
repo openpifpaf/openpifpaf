@@ -176,7 +176,16 @@ class EuroCity(torch.utils.data.Dataset):
         return len(self.gt_files)
 
     def write_evaluations(self, eval_class, path, total_time):
-        for filename in eval_class.dict_folder.keys():
+        dict_folder = defaultdict(list)
+        for annotation in eval_class.predictions:
+            x, y, w, h = annotation['bbox']
+            categ = int(annotation['category_id'])
+            folder = annotation['file_dir']
+            mode = annotation['mode']
+            time = annotation['time']
+            dict_folder[folder].append(",".join(list(map(str,[x, y, w, h, s, categ-1, mode, time]))))
+
+        for filename in dict_folder.keys():
             dict_singleFrame = {}
             dict_singleFrame["identity"] = "frame"
             dict_singleFrame["children"] = []
@@ -196,10 +205,3 @@ class EuroCity(torch.utils.data.Dataset):
             utils.mkdir_if_missing(os.path.join(path, time, mode))
             with open(os.path.join(path, time, mode, filename+".json"), "w") as file:
                 json.dump(dict_singleFrame, file)
-        n_images = len(eval_class.image_ids)
-
-        print('n images = {}'.format(n_images))
-        print('decoder time = {:.1f}s ({:.0f}ms / image)'
-              ''.format(eval_class.decoder_time, 1000 * eval_class.decoder_time / n_images))
-        print('total time = {:.1f}s ({:.0f}ms / image)'
-              ''.format(total_time, 1000 * total_time / n_images))
