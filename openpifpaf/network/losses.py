@@ -49,6 +49,15 @@ def logl1_loss(logx, t, **kwargs):
         logx, torch.log(t), **kwargs)
 
 
+def log1pl1_loss(logx, t, **kwargs):
+    """Swap in replacement for functional.l1_loss."""
+    return torch.nn.functional.l1_loss(
+        torch.log1p(torch.exp(logx)),
+        torch.log1p(t),
+        **kwargs
+    )
+
+
 def margin_loss(x1, x2, t1, t2, max_r1, max_r2, max_r3, max_r4):
     x = torch.stack((x1, x2))
     t = torch.stack((t1, t2))
@@ -167,7 +176,7 @@ class MultiHeadLoss(torch.nn.Module):
 class MultiHeadLossAutoTuneKendall(torch.nn.Module):
     task_sparsity_weight = 0.0
 
-    def __init__(self, losses, lambdas, *, sparse_task_parameters=None, no_tune=None):
+    def __init__(self, losses, lambdas, *, sparse_task_parameters=None, tune=None):
         """Auto-tuning multi-head loss.
 
         Uses idea from "Multi-Task Learning Using Uncertainty to Weigh Losses
@@ -189,7 +198,7 @@ class MultiHeadLossAutoTuneKendall(torch.nn.Module):
         self.losses = torch.nn.ModuleList(losses)
         self.lambdas = lambdas
         self.sparse_task_parameters = sparse_task_parameters
-        self.no_tune = no_tune
+        self.tune = tune
 
         self.log_sigmas = torch.nn.Parameter(
             torch.zeros((len(lambdas),), dtype=torch.float64),
@@ -201,11 +210,18 @@ class MultiHeadLossAutoTuneKendall(torch.nn.Module):
         assert len(self.field_names) == len(self.lambdas)
         assert len(self.field_names) == len(self.log_sigmas)
 
-        if isinstance(self.no_tune, str):
-            self.no_tune = [self.no_tune in n for n in self.field_names]
-            LOG.info('setting no-tune mask: %s', self.no_tune)
-        if self.no_tune is None:
-            self.no_tune = [False for _ in self.field_names]
+        if self.tune is None:
+            def tune_from_name(name):
+                if '.vec' in name:
+                    return 'none'
+                if '.scale' in name:
+                    return 'laplace'
+                return 'gauss'
+            self.tune = [
+                tune_from_name(n)
+                for l in self.losses for n in l.field_names
+            ]
+        LOG.info('tune config: %s', self.tune)
 
     def batch_meta(self):
         return {'mtl_sigmas': [round(float(s), 3) for s in self.log_sigmas.exp()]}
@@ -223,17 +239,22 @@ class MultiHeadLossAutoTuneKendall(torch.nn.Module):
         assert len(self.lambdas) == len(flat_head_losses)
         assert len(self.log_sigmas) == len(flat_head_losses)
         constrained_log_sigmas = 3.0 * torch.tanh(self.log_sigmas / 3.0)
-        if self.no_tune is not None:
-            constrained_log_sigmas[self.no_tune] = 0.0
+        def tuned_loss(tune, log_sigma, loss):
+            if tune == 'none':
+                return loss
+            if tune == 'laplace':
+                # this is the negative ln of a Laplace with
+                # ln(2) = 0.694
+                return 0.694 + log_sigma + loss * torch.exp(-log_sigma)
+            if tune == 'gauss':
+                # this is the negative ln of a Gaussian with
+                # ln(sqrt(2pi)) = 0.919
+                return 0.919 + log_sigma + loss * 0.5 * torch.exp(-2.0 * log_sigma)
+            raise Exception('unknown tune: {}'.format(tune))
         loss_values = [
-            # this is the negative ln of a Gaussian with
-            # ln(sqrt(2pi)) = 0.919
-            lam * (
-                l
-                if nt
-                else (0.919 + log_sigma + l * 0.5 * torch.exp(-2.0 * log_sigma))
-            )
-            for lam, nt, log_sigma, l in zip(self.lambdas, self.no_tune, constrained_log_sigmas, flat_head_losses)
+            lam * tuned_loss(t, log_sigma, l)
+            for lam, t, log_sigma, l in zip(
+                self.lambdas, self.tune, constrained_log_sigmas, flat_head_losses)
             if l is not None
         ]
         total_loss = sum(loss_values) if loss_values else None
@@ -424,7 +445,7 @@ class CompositeLoss(torch.nn.Module):
 
         batch_size = x_scales.shape[0]
         return [
-            logl1_loss(
+            log1pl1_loss(
                 torch.masked_select(x_scales[:, :, i], torch.isnan(target_scale).bitwise_not_()),
                 torch.masked_select(target_scale, torch.isnan(target_scale).bitwise_not_()),
                 reduction='sum',
@@ -568,8 +589,7 @@ def factory(head_nets, lambdas, *,
     losses = [CompositeLoss(head_net, reg_loss) for head_net in head_nets]
     if auto_tune_mtl:
         loss = MultiHeadLossAutoTuneKendall(losses, lambdas,
-                                            sparse_task_parameters=sparse_task_parameters,
-                                            no_tune='.vec')
+                                            sparse_task_parameters=sparse_task_parameters)
     elif auto_tune_mtl_variance:
         loss = MultiHeadLossAutoTuneVariance(losses, lambdas,
                                              sparse_task_parameters=sparse_task_parameters)
