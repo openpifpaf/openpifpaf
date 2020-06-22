@@ -8,6 +8,49 @@ from . import heads
 LOG = logging.getLogger(__name__)
 
 
+class BceTuned(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.log_sigma = torch.nn.Parameter(torch.zeros((1,), dtype=torch.float64))
+
+    def forward(self, x, t, *, weight):
+        bce = torch.nn.functional.binary_cross_entropy_with_logits(
+            x,
+            t,
+            reduction='none',
+        )
+
+        bce = bce * weight
+        # bce = bce.sum()
+
+        # ln(sqrt(2pi)) = 0.919
+        return self.log_sigma + bce * 0.5 * torch.exp(-2.0 * self.log_sigma)
+
+
+class Bce(torch.nn.Module):
+    def forward(self, x, t, *, weight):
+        return torch.nn.functional.binary_cross_entropy_with_logits(
+            x,
+            t,
+            reduction='none',
+        ) * weight
+
+
+class Log1pL1Tuned(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.logb = torch.nn.Parameter(torch.zeros((1,), dtype=torch.float64))
+
+    def forward(self, logs, t):
+        loss = torch.nn.functional.l1_loss(
+            torch.log1p(torch.exp(logs)),
+            torch.log1p(t),
+            reduction='none',
+        )
+        # ln(2) = 0.694
+        return self.logb + loss * torch.exp(-self.logb)
+
+
 def laplace_loss(x1, x2, logb, t1, t2, weight=None):
     """Loss based on Laplace Distribution.
 
@@ -24,10 +67,10 @@ def laplace_loss(x1, x2, logb, t1, t2, weight=None):
     logb = 3.0 * torch.tanh(logb / 3.0)
 
     # ln(2) = 0.694
-    losses = 0.694 + logb + norm * torch.exp(-logb)
+    losses = logb + norm * torch.exp(-logb)
     if weight is not None:
         losses = losses * weight
-    return torch.sum(losses)
+    return losses
 
 
 def l1_loss(x1, x2, _, t1, t2, weight=None):
@@ -40,7 +83,7 @@ def l1_loss(x1, x2, _, t1, t2, weight=None):
     losses = (torch.stack((x1, x2)) - torch.stack((t1, t2))).norm(dim=0)
     if weight is not None:
         losses = losses * weight
-    return torch.sum(losses)
+    return losses
 
 
 def logl1_loss(logx, t, **kwargs):
@@ -368,7 +411,9 @@ class CompositeLoss(torch.nn.Module):
         LOG.debug('%s: n_vectors = %d, n_scales = %d, margin = %s',
                   head_net.meta.name, self.n_vectors, self.n_scales, self.margin)
 
+        self.confidence_loss = Bce()  # BceTuned()
         self.regression_loss = regression_loss or laplace_loss
+        self.scale_losses = torch.nn.ModuleList([Log1pL1Tuned() for _ in range(self.n_scales)])
         self.field_names = (
             ['{}.c'.format(head_net.meta.name)] +
             ['{}.vec{}'.format(head_net.meta.name, i + 1) for i in range(self.n_vectors)] +
@@ -409,12 +454,11 @@ class CompositeLoss(torch.nn.Module):
             bce_weight[bce_target == 1] = x_confidence[bce_target == 1]
             bce_weight[bce_target == 0] = -x_confidence[bce_target == 0]
             bce_weight = (1.0 + torch.exp(bce_weight)).pow(-self.focal_gamma)
-        ce_loss = (torch.nn.functional.binary_cross_entropy_with_logits(
+        ce_loss = self.confidence_loss(
             x_confidence,
             bce_target,
-            # weight=bce_weight,
-            reduction='none',
-        ) * bce_weight).sum() / (1000.0 * batch_size)
+            weight=bce_weight,
+        ).sum() / batch_size
 
         return ce_loss
 
@@ -434,23 +478,20 @@ class CompositeLoss(torch.nn.Module):
                 torch.masked_select(x_logbs[:, :, i], reg_masks),
                 torch.masked_select(target_reg[:, :, 0], reg_masks),
                 torch.masked_select(target_reg[:, :, 1], reg_masks),
-                weight=0.1,
-            ) / (100.0 * batch_size))
+            ).sum() / batch_size)
 
         return reg_losses
 
-    @staticmethod
-    def _scale_losses(x_scales, target_scales):
+    def _scale_losses(self, x_scales, target_scales):
         assert x_scales.shape[2] == len(target_scales)
 
         batch_size = x_scales.shape[0]
         return [
-            log1pl1_loss(
+            sl(
                 torch.masked_select(x_scales[:, :, i], torch.isnan(target_scale).bitwise_not_()),
                 torch.masked_select(target_scale, torch.isnan(target_scale).bitwise_not_()),
-                reduction='sum',
-            ) / (100.0 * batch_size)
-            for i, target_scale in enumerate(target_scales)
+            ).sum() / batch_size
+            for i, (sl, target_scale) in enumerate(zip(self.scale_losses, target_scales))
         ]
 
     def _margin_losses(self, x_regs, target_regs, *, target_confidence):
