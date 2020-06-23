@@ -82,12 +82,12 @@ setup(
         ],
         'onnx': [
             'onnx',
-            'onnx-simplifier',
+            'onnx-simplifier>=0.2.9',
         ],
         'test': [
             'nbval',
             'onnx',
-            'onnx-simplifier',
+            'onnx-simplifier>=0.2.9',
             'pylint',
             'pytest',
             'opencv-python',
