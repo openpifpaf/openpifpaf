@@ -1,9 +1,12 @@
 import os
+import pytest
+import torch
 
 import openpifpaf
 import openpifpaf.export_onnx
 
 
+@pytest.mark.skipif(not torch.__version__.startswith('1.5'), reason='only PyTorch 1.5')
 def test_onnx_exportable(tmpdir):
     outfile = str(tmpdir.join('openpifpaf-shufflenetv2k16w.onnx'))
     assert not os.path.exists(outfile)
