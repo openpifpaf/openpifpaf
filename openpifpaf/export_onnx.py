@@ -67,8 +67,10 @@ def apply(model, outfile, verbose=True):
     torch.onnx.export(
         model, dummy_input, outfile, verbose=verbose,
         input_names=input_names, output_names=output_names,
+        keep_initializers_as_inputs=True,
         # opset_version=10,
-        # do_constant_folding=True,
+        do_constant_folding=True,
+        export_params=True,
         # dynamic_axes={  # TODO: gives warnings
         #     'input_batch': {0: 'batch', 2: 'height', 3: 'width'},
         #     'pif_c': {0: 'batch', 2: 'fheight', 3: 'fwidth'},
@@ -121,7 +123,8 @@ def simplify(infile, outfile=None):
         infile = infile.replace('.onnx', '.unsimplified.onnx')
         shutil.copyfile(outfile, infile)
 
-    simplified_model = onnxsim.simplify(infile, check_n=0, perform_optimization=False)
+    simplified_model, check_ok = onnxsim.simplify(infile, check_n=3, perform_optimization=False)
+    assert check_ok
     onnx.save(simplified_model, outfile)
 
 
