@@ -78,10 +78,10 @@ class CifCafCollector(torch.nn.Module):
         # add index
         index_field = index_field_torch(cif_head.shape[-2:], device=cif_head.device)
         if cif_head is not None:
-            cif_head[:, :, 1:3] += index_field
+            cif_head[:, :, 1:3].add_(index_field)
         if caf_head is not None:
-            caf_head[:, :, 1:3] += index_field
-            caf_head[:, :, 3:5] += index_field
+            caf_head[:, :, 1:3].add_(index_field)
+            caf_head[:, :, 3:5].add_(index_field)
             # rearrange caf_fields
             caf_head = caf_head[:, :, (0, 1, 2, 5, 7, 3, 4, 6, 8)]
 
