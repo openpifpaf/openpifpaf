@@ -67,6 +67,7 @@ def apply(model, outfile, verbose=True):
     torch.onnx.export(
         model, dummy_input, outfile, verbose=verbose,
         input_names=input_names, output_names=output_names,
+        keep_initializers_as_inputs=True,
         # opset_version=10,
         # do_constant_folding=True,
         # dynamic_axes={  # TODO: gives warnings
