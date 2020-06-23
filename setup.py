@@ -78,6 +78,7 @@ setup(
             'flameprof',
             'jupyter-book>=0.7.0b',
             'matplotlib',
+            'nbdime',
             'nbstripout',
         ],
         'onnx': [
