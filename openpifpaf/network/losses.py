@@ -23,8 +23,11 @@ class BceTuned(torch.nn.Module):
         bce = bce * weight
         # bce = bce.sum()
 
+        # constrain range of logsigma
+        logsigma_constr = 3.0 * torch.tanh(self.log_sigma / 3.0)
+
         # ln(sqrt(2pi)) = 0.919
-        return self.log_sigma + bce * 0.5 * torch.exp(-2.0 * self.log_sigma)
+        return logsigma_constr + bce * 0.5 * torch.exp(-2.0 * logsigma_constr)
 
 
 class Bce(torch.nn.Module):
@@ -47,8 +50,12 @@ class Log1pL1Tuned(torch.nn.Module):
             torch.log1p(t),
             reduction='none',
         )
+
+        # constrain range of logb
+        logb_constr = 3.0 * torch.tanh(self.logb / 3.0)
+
         # ln(2) = 0.694
-        return self.logb + loss * torch.exp(-self.logb)
+        return logb_constr + loss * torch.exp(-logb_constr)
 
 
 def laplace_loss(x1, x2, logb, t1, t2, weight=None):
@@ -539,7 +546,10 @@ class CompositeLoss(torch.nn.Module):
         margin_losses = self._margin_losses(x_regs, target_regs,
                                             target_confidence=target_confidence)
 
-        return [ce_loss] + reg_losses + scale_losses + margin_losses
+        all_losses = [ce_loss] + reg_losses + scale_losses + margin_losses
+        if not all(torch.isfinite(l).item() for l in all_losses):
+            raise Exception('found a loss that is not finite: {}'.format(all_losses))
+        return all_losses
 
 
 def cli(parser):
