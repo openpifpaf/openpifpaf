@@ -36,6 +36,10 @@ def cli(parser):
                          help='number of epochs at the beginning with lower learning rate')
     group_s.add_argument('--lr-warm-up-factor', default=0.001, type=float,
                          help='learning pre-factor during warm-up')
+    group_s.add_argument('--lr-warm-restarts', default=[], nargs='+', type=float,
+                         help='list of epochs to do a warm restart')
+    group_s.add_argument('--lr-warm-restart-duration', default=0.5, type=float,
+                         help='duration of a warm restart')
 
 
 class LearningRateLambda(object):
@@ -44,13 +48,17 @@ class LearningRateLambda(object):
                  decay_epochs=1.0,
                  warm_up_start_epoch=0,
                  warm_up_epochs=2.0,
-                 warm_up_factor=0.01):
+                 warm_up_factor=0.01,
+                 warm_restart_schedule=None,
+                 warm_restart_duration=0.5):
         self.decay_schedule = decay_schedule
         self.decay_factor = decay_factor
         self.decay_epochs = decay_epochs
         self.warm_up_start_epoch = warm_up_start_epoch
         self.warm_up_epochs = warm_up_epochs
         self.warm_up_factor = warm_up_factor
+        self.warm_restart_schedule = warm_restart_schedule
+        self.warm_restart_duration = warm_restart_duration
 
     def __call__(self, step_i):
         lambda_ = 1.0
@@ -69,6 +77,12 @@ class LearningRateLambda(object):
             elif step_i > d:
                 lambda_ *= self.decay_factor**(
                     (step_i - d) / self.decay_epochs
+                )
+
+        for r in self.warm_restart_schedule:
+            if r <= step_i < r + self.warm_restart_duration:
+                lambda_ = lambda_**(
+                    (step_i - r) / self.warm_restart_duration
                 )
 
         return lambda_
@@ -105,6 +119,9 @@ def factory_lrscheduler(args, optimizer, training_batches_per_epoch):
                 warm_up_start_epoch=args.lr_warm_up_start_epoch * training_batches_per_epoch,
                 warm_up_epochs=args.lr_warm_up_epochs * training_batches_per_epoch,
                 warm_up_factor=args.lr_warm_up_factor,
+                warm_restart_schedule=[r * training_batches_per_epoch
+                                       for r in args.lr_warm_restarts],
+                warm_restart_duration=args.lr_warm_restart_duration * training_batches_per_epoch,
             ),
         ],
     )
