@@ -112,6 +112,14 @@ class Trainer(object):
         if loss is not None:
             with torch.autograd.profiler.record_function('backward'):
                 loss.backward()
+        # max_norm = 0.01 / self.lr()
+        # total_norm = torch.nn.utils.clip_grad_norm_(
+        #     self.model.parameters(), max_norm, norm_type=float('inf'))
+        # print('total norm before clip: {}, max norm: {}'.format(total_norm, max_norm))
+        # for n, p in self.model.named_parameters():
+        #     max_grad = torch.max(p.grad.abs())
+        #     if max_grad > 10.0:
+        #         print('LARGE GRAD', n, max_grad, torch.min(p).item(), torch.max(p).item())
         if apply_gradients:
             with torch.autograd.profiler.record_function('step'):
                 self.optimizer.step()
