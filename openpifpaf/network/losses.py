@@ -13,15 +13,12 @@ class BceTuned(torch.nn.Module):
         super().__init__()
         self.log_sigma = torch.nn.Parameter(torch.zeros((1,), dtype=torch.float64))
 
-    def forward(self, x, t, *, weight):
+    def forward(self, x, t):  # pylint: disable=arguments-differ
         bce = torch.nn.functional.binary_cross_entropy_with_logits(
             x,
             t,
             reduction='none',
         )
-
-        bce = bce * weight
-        # bce = bce.sum()
 
         # constrain range of logsigma
         logsigma_constr = 3.0 * torch.tanh(self.log_sigma / 3.0)
@@ -31,12 +28,15 @@ class BceTuned(torch.nn.Module):
 
 
 class Bce(torch.nn.Module):
-    def forward(self, x, t, *, weight):
-        return torch.nn.functional.binary_cross_entropy_with_logits(
+    def forward(self, x, t):  # pylint: disable=arguments-differ
+        # print(torch.min(x).item(), torch.max(x).item())
+        x = x.clamp(-5.0, 5.0)
+        bce = torch.nn.functional.binary_cross_entropy_with_logits(
             x,
             t,
             reduction='none',
-        ) * weight
+        )
+        return bce
 
 
 class Log1pL1Tuned(torch.nn.Module):
@@ -44,18 +44,19 @@ class Log1pL1Tuned(torch.nn.Module):
         super().__init__()
         self.logb = torch.nn.Parameter(torch.zeros((1,), dtype=torch.float64))
 
-    def forward(self, logs, t):
+    def forward(self, logs, t):  # pylint: disable=arguments-differ
         loss = torch.nn.functional.l1_loss(
             torch.log1p(torch.exp(logs)),
             torch.log1p(t),
             reduction='none',
         )
+        loss = loss.clamp_max(5.0)
 
         # constrain range of logb
-        logb_constr = 3.0 * torch.tanh(self.logb / 3.0)
+        self.logb.data.clamp_min_(-3.0)
 
         # ln(2) = 0.694
-        return logb_constr + loss * torch.exp(-logb_constr)
+        return self.logb + (loss + 0.1) * torch.exp(-self.logb)
 
 
 def laplace_loss(x1, x2, logb, t1, t2, weight=None):
@@ -69,12 +70,13 @@ def laplace_loss(x1, x2, logb, t1, t2, weight=None):
     # https://github.com/pytorch/pytorch/issues/2421
     # norm = torch.sqrt((x1 - t1)**2 + (x2 - t2)**2)
     norm = (torch.stack((x1, x2)) - torch.stack((t1, t2))).norm(dim=0)
+    norm = norm.clamp_max(5.0)
 
     # constrain range of logb
-    logb = 3.0 * torch.tanh(logb / 3.0)
+    logb = logb.clamp_min(-3.0)
 
     # ln(2) = 0.694
-    losses = logb + norm * torch.exp(-logb)
+    losses = logb + (norm + 0.1) * torch.exp(-logb)
     if weight is not None:
         losses = losses * weight
     return losses
@@ -431,6 +433,7 @@ class CompositeLoss(torch.nn.Module):
                                  for i in range(self.n_vectors)]
 
         self.bce_blackout = None
+        self.previous_losses = None
 
     def _confidence_loss(self, x_confidence, target_confidence):
         bce_masks = torch.isnan(target_confidence).bitwise_not_()
@@ -451,22 +454,17 @@ class CompositeLoss(torch.nn.Module):
         LOG.debug('BCE: x = %s, target = %s, mask = %s',
                   x_confidence.shape, target_confidence.shape, bce_masks.shape)
         bce_target = torch.masked_select(target_confidence, bce_masks)
-        bce_weight = 1.0
         x_confidence = torch.masked_select(x_confidence, bce_masks)
+        ce_loss = self.confidence_loss(x_confidence, bce_target)
+        if self.focal_gamma != 0.0:
+            pt = torch.exp(-ce_loss)
+            ce_loss = (1.0 - pt)**self.focal_gamma * ce_loss
         if self.background_weight != 1.0:
             bce_weight = torch.ones_like(bce_target, requires_grad=False)
             bce_weight[bce_target == 0] *= self.background_weight
-        elif self.focal_gamma != 0.0:
-            bce_weight = torch.empty_like(bce_target, requires_grad=False)
-            bce_weight[bce_target == 1] = x_confidence[bce_target == 1]
-            bce_weight[bce_target == 0] = -x_confidence[bce_target == 0]
-            bce_weight = (1.0 + torch.exp(bce_weight)).pow(-self.focal_gamma)
-        ce_loss = self.confidence_loss(
-            x_confidence,
-            bce_target,
-            weight=bce_weight,
-        ).sum() / batch_size
+            ce_loss = ce_loss * bce_weight
 
+        ce_loss = ce_loss.sum() / batch_size
         return ce_loss
 
     def _localization_loss(self, x_regs, x_logbs, target_regs):
@@ -547,8 +545,11 @@ class CompositeLoss(torch.nn.Module):
                                             target_confidence=target_confidence)
 
         all_losses = [ce_loss] + reg_losses + scale_losses + margin_losses
-        if not all(torch.isfinite(l).item() for l in all_losses):
-            raise Exception('found a loss that is not finite: {}'.format(all_losses))
+        if not all(torch.isfinite(l).item() if l is not None else True for l in all_losses):
+            raise Exception('found a loss that is not finite: {}, prev: {}'
+                            ''.format(all_losses, self.previous_losses))
+        self.previous_losses = [float(l.item()) if l is not None else None for l in all_losses]
+
         return all_losses
 
 
