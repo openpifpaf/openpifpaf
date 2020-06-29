@@ -8,25 +8,6 @@ from . import heads
 LOG = logging.getLogger(__name__)
 
 
-class BceTuned(torch.nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.log_sigma = torch.nn.Parameter(torch.zeros((1,), dtype=torch.float64))
-
-    def forward(self, x, t):  # pylint: disable=arguments-differ
-        bce = torch.nn.functional.binary_cross_entropy_with_logits(
-            x,
-            t,
-            reduction='none',
-        )
-
-        # constrain range of logsigma
-        logsigma_constr = 3.0 * torch.tanh(self.log_sigma / 3.0)
-
-        # ln(sqrt(2pi)) = 0.919
-        return logsigma_constr + bce * 0.5 * torch.exp(-2.0 * logsigma_constr)
-
-
 class Bce(torch.nn.Module):
     def forward(self, x, t):  # pylint: disable=arguments-differ
         # print(torch.min(x).item(), torch.max(x).item())
@@ -88,8 +69,7 @@ def l1_loss(x1, x2, _, t1, t2, weight=None):
     Loss for a single two-dimensional vector (x1, x2)
     true (t1, t2) vector.
     """
-    # losses = torch.sqrt((x1 - t1)**2 + (x2 - t2)**2)
-    losses = (torch.stack((x1, x2)) - torch.stack((t1, t2))).norm(dim=0)
+    losses = torch.sqrt((x1 - t1)**2 + (x2 - t2)**2)
     if weight is not None:
         losses = losses * weight
     return losses
