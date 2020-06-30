@@ -29,12 +29,12 @@ class EuroCity(torch.utils.data.Dataset):
         self.annFile = ann_file
         self.root = image_dir
         if not isinstance(time, tuple):
-            imgFolder = root.format(time)
+            imgFolder = self.root.format(time)
             self.gt_files = glob.glob(imgFolder + '/*/*' + '.png')
         else:
             self.gt_files = []
             for indv_time in time:
-                imgFolder = root.format(indv_time)
+                imgFolder = self.root.format(indv_time)
                 self.gt_files.extend(glob.glob(imgFolder + '/*/*' + '.png'))
 
         if n_images:
@@ -99,7 +99,7 @@ class EuroCity(torch.utils.data.Dataset):
             'dataset_index': index,
             'image_id': index,
             'file_dir': img_path,
-            'file_name': os.path.splitext(os.path.basename(img_path))[0],
+            'file_name': os.path.basename(img_path),
             'mode':img_path.split("/")[-3],
             'time': img_path.split("/")[-5]
         }
@@ -120,7 +120,7 @@ class EuroCity(torch.utils.data.Dataset):
                 if gt['identity'] in self.cat_ids:
                     anns.append({
                         'image_id': index,
-                        'category_id': self.cat_ids.index(gt['identity']),
+                        'category_id': self.cat_ids.index(gt['identity'])+1,
                         'bbox': [x, y, w, h],
                         "area": w*h,
                         "keypoints":[x, y, 2, x+w, y, 2, x+w, y+h, 2, x, y+h, 2, x+w/2, y+h/2, 2],
@@ -131,7 +131,7 @@ class EuroCity(torch.utils.data.Dataset):
                     if gt['identity'] in ("person-group-far-away",):
                         anns.append({
                             'image_id': index,
-                            'category_id': self.cat_ids.index("pedestrian"),
+                            'category_id': self.cat_ids.index("pedestrian")+1,
                             'bbox': [x, y, w, h],
                             "area": w*h,
                             "keypoints":[x, y, 2, x+w, y, 2, x+w, y+h, 2, x, y+h, 2, x+w/2, y+h/2, 2],
@@ -141,23 +141,14 @@ class EuroCity(torch.utils.data.Dataset):
                     elif gt['identity'] in ("rider+vehicle-group-far-away",):
                         anns.append({
                             'image_id': index,
-                            'category_id': self.cat_ids.index("rider"),
+                            'category_id': self.cat_ids.index("rider")+1,
                             'bbox': [x, y, w, h],
                             "area": w*h,
                             "keypoints":[x, y, 2, x+w, y, 2, x+w, y+h, 2, x, y+h, 2, x+w/2, y+h/2, 2],
                             "iscrowd": 1,
                             "segmentation":[],
                         })
-                    # anns.append({
-                    #     'image_id': index,
-                    #     'category_id': -1,
-                    #     'bbox': [x, y, w, h],
-                    #     "area": w*h,
-                    #     "keypoints":[x, y, 2, x+w, y, 2, x+w, y+h, 2, x, y+h, 2, x+w/2, y+h/2, 2],
-                    #     "iscrowd": 1,
-                    #     "segmentation":[],
-                    # })
-            # preprocess image and annotations
+        # preprocess image and annotations
         image, anns, meta = self.preprocess(image, anns, None)
         meta.update(meta_init)
 
@@ -176,16 +167,7 @@ class EuroCity(torch.utils.data.Dataset):
         return len(self.gt_files)
 
     def write_evaluations(self, eval_class, path, total_time):
-        dict_folder = defaultdict(list)
-        for annotation in eval_class.predictions:
-            x, y, w, h = annotation['bbox']
-            categ = int(annotation['category_id'])
-            folder = annotation['file_dir']
-            mode = annotation['mode']
-            time = annotation['time']
-            dict_folder[folder].append(",".join(list(map(str,[x, y, w, h, s, categ-1, mode, time]))))
-
-        for filename in dict_folder.keys():
+        for filename in eval_class.dict_folder.keys():
             dict_singleFrame = {}
             dict_singleFrame["identity"] = "frame"
             dict_singleFrame["children"] = []
@@ -203,5 +185,12 @@ class EuroCity(torch.utils.data.Dataset):
                 "orient": -10.0,
                 "identity": self.cat_ids[int(instance[5])]})
             utils.mkdir_if_missing(os.path.join(path, time, mode))
-            with open(os.path.join(path, time, mode, filename+".json"), "w") as file:
+            with open(os.path.join(path, time, mode, filename.replace(".png", "") + ".json"), "w") as file:
                 json.dump(dict_singleFrame, file)
+        n_images = len(eval_class.image_ids)
+
+        print('n images = {}'.format(n_images))
+        print('decoder time = {:.1f}s ({:.0f}ms / image)'
+              ''.format(eval_class.decoder_time, 1000 * eval_class.decoder_time / n_images))
+        print('total time = {:.1f}s ({:.0f}ms / image)'
+              ''.format(total_time, 1000 * total_time / n_images))

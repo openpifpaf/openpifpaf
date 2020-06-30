@@ -7,11 +7,15 @@ import torchvision
 from PIL import Image
 from .. import transforms, utils
 
+import logging
 # Swap function
 def swapPositions(list, pos1, pos2):
 
     list[pos1], list[pos2] = list[pos2], list[pos1]
     return list
+
+LOG = logging.getLogger(__name__)
+STAT_LOG = logging.getLogger(__name__.replace('openpifpaf.', 'openpifpaf.stats.'))
 
 class NightOwls(torch.utils.data.Dataset):
     """`MS Coco Detection <http://mscoco.org/dataset/#detections-challenge2016>`_ Dataset.
@@ -28,13 +32,13 @@ class NightOwls(torch.utils.data.Dataset):
         target_transform (callable, optional): A function/transform that takes in the
             target and transforms it.
     """
-    train_image_dir = "data/nightowls/images/"
-    val_image_dir = "data/nightowls/images/"
-    train_annotations = "data/nightowls/annotations/nightowls_training.json"
-    val_annotations = "data/nightowls/annotations/nightowls_validation.json"
+    train_image_dir = "data/nightowls/nightowls_validation/"
+    val_image_dir = "data/nightowls/nightowls_validation/"
+    train_annotations = "data/nightowls/nightowls_validation.json"
+    val_annotations = "data/nightowls/nightowls_validation.json"
     test_path = {'val': "data/nightowls/annotations/nightowls_test.json"}
 
-    categories = ['pedestrian', 'bicycle-driver', 'motorbike-driver']
+    categories = ['pedestrian', 'bicycledriver', 'motorbikedriver']
     def __init__(self, image_dir, ann_file, *, target_transforms=None, class_ids=None,
                  n_images=None, preprocess=None,
                  category_ids=None,
@@ -69,7 +73,65 @@ class NightOwls(torch.utils.data.Dataset):
             self.cat_ids = self.coco.getCatIds()
         print("Number of classes: {}".format(len(self.cat_ids)))
         self.catID_label = {catid:label for label, catid in enumerate(self.cat_ids)}
-        self.PIF_category = PIF_Category(num_classes=len(self.cat_ids), catID_label=self.catID_label)
+
+        # index = 4
+        # import pdb; pdb.set_trace()
+        # image_id = self.ids[index]
+        # ann_ids = self.coco.getAnnIds(imgIds=image_id, catIds=self.cat_ids)
+        # anns = self.coco.loadAnns(ann_ids)
+        #
+        # anns = copy.deepcopy(anns)
+        # for ann in anns:
+        #     x, y, w, h = ann["bbox"]
+        #     if ann["category_id"] < 4:
+        #         ann["iscrowd"] = 0
+        #         ann["category_id"] = ann["category_id"]-1
+        #         ann["keypoints"] = [x, y, 2, x+w, y, 2, x+w, y+h, 2, x, y+h, 2, x+w/2, y+h/2, 2]
+        #         ann["segmentation"] = []
+        #         ann['num_keypoints'] = 5
+        #     else:
+        #         ann["iscrowd"] = 1
+        #         ann["category_id"] = 0
+        #         for catg in range(len(self.categories[1:])):
+        #             ann_temp = copy.deepcopy(ann)
+        #             ann_temp["category_id"] = catg + 2
+        #             ann["keypoints"] = [x, y, 2, x+w, y, 2, x+w, y+h, 2, x, y+h, 2, x+w/2, y+h/2, 2]
+        #             ann['num_keypoints'] = 5
+        #             anns.append(ann_temp)
+        #
+        # image_info = self.coco.loadImgs(image_id)[0]
+        #
+        # LOG.debug(image_info)
+        # with open(os.path.join(self.root, image_info['file_name']), 'rb') as f:
+        #     image = Image.open(f).convert('RGB')
+        #
+        # meta_init = {
+        #     'dataset_index': index,
+        #     'image_id': image_id,
+        #     'file_dir': os.path.join(self.root, image_info['file_name']),
+        #     'file_name': image_info['file_name'],
+        # }
+        #
+        # if 'flickr_url' in image_info:
+        #     _, flickr_file_name = image_info['flickr_url'].rsplit('/', maxsplit=1)
+        #     flickr_id, _ = flickr_file_name.split('_', maxsplit=1)
+        #     meta_init['flickr_full_page'] = 'http://flickr.com/photo.gne?id={}'.format(flickr_id)
+        #
+        # # preprocess image and annotations
+        # image, anns, meta = self.preprocess(image, anns, None)
+        # meta.update(meta_init)
+        #
+        # # mask valid
+        # valid_area = meta['valid_area']
+        # utils.mask_valid_area(image, valid_area)
+        #
+        # # if there are not target transforms, done here
+        # LOG.debug(meta)
+        # # transform targets
+        # if self.target_transforms is not None:
+        #     anns = [t(image, anns, meta) for t in self.target_transforms]
+        #
+        # return image, anns, meta
 
     def __getitem__(self, index):
         """
@@ -84,6 +146,26 @@ class NightOwls(torch.utils.data.Dataset):
         anns = self.coco.loadAnns(ann_ids)
 
         anns = copy.deepcopy(anns)
+        for ann in anns:
+            x, y, w, h = ann["bbox"]
+            if ann["category_id"] < 4:
+                ann["iscrowd"] = 0
+                ann["keypoints"] = [x, y, 2, x+w, y, 2, x+w, y+h, 2, x, y+h, 2, x+w/2, y+h/2, 2]
+                ann["segmentation"] = []
+                ann['num_keypoints'] = 5
+            else:
+                ann["iscrowd"] = 1
+                ann["category_id"] = 1
+                ann["keypoints"] = [x, y, 2, x+w, y, 2, x+w, y+h, 2, x, y+h, 2, x+w/2, y+h/2, 2]
+                ann["segmentation"] = []
+                ann['num_keypoints'] = 5
+                for catg in range(len(self.categories[1:])):
+                    ann_temp = copy.deepcopy(ann)
+                    ann_temp["keypoints"] = [x, y, 2, x+w, y, 2, x+w, y+h, 2, x, y+h, 2, x+w/2, y+h/2, 2]
+                    ann_temp["category_id"] = catg + 2
+                    ann_temp["segmentation"] = []
+                    ann_temp['num_keypoints'] = 5
+                    anns.append(ann_temp)
 
         image_info = self.coco.loadImgs(image_id)[0]
 
@@ -121,24 +203,3 @@ class NightOwls(torch.utils.data.Dataset):
 
     def __len__(self):
         return len(self.ids)
-
-class ImageList(torch.utils.data.Dataset):
-    def __init__(self, image_paths, preprocess=None):
-        self.image_paths = image_paths
-        self.preprocess = preprocess
-    def __getitem__(self, index):
-        image_path = self.image_paths[index]
-        with open(image_path, 'rb') as f:
-            image = Image.open(f).convert('RGB')
-
-        anns = []
-        image, anns, meta = self.preprocess(image, anns, None)
-        meta.update({
-            'dataset_index': index,
-            'file_name': image_path,
-        })
-
-        return image, anns, meta
-
-    def __len__(self):
-        return len(self.image_paths)

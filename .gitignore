@@ -50,3 +50,4 @@ data
 pretrained
 coco_debug
 outputs
+visualrelation_debug

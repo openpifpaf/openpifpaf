@@ -121,7 +121,7 @@ class VisDrone(torch.utils.data.Dataset):
                 for i in range(len(self.categories)):
                     anns.append({
                         'image_id': index,
-                        'category_id': int(i),
+                        'category_id': int(i) + 1,
                         'bbox': [x, y, w, h],
                         "area": w*h,
                         "iscrowd": 1,

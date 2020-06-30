@@ -124,7 +124,7 @@ class UAVDT(torch.utils.data.Dataset):
                 y = target[2]
                 anns.append({
                     'image_id': index,
-                    'category_id': 0,#int(target[0]),
+                    'category_id': 1,#int(target[0]),
                     'bbox': [x, y, w, h],
                     "area": w*h,
                     "iscrowd": 0,
@@ -139,7 +139,7 @@ class UAVDT(torch.utils.data.Dataset):
                 y = target[2]
                 anns.append({
                     'image_id': index,
-                    'category_id': 0, #int(target[0]),
+                    'category_id': 1, #int(target[0]),
                     'bbox': [x, y, w, h],
                     "area": w*h,
                     "iscrowd": 1,

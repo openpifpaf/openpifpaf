@@ -5,6 +5,7 @@ from .visdrone import VisDrone
 from .uavdt import UAVDT
 from .eurocity import EuroCity
 from .nightowls import NightOwls
+from .visual_relationship import VisualRelationship
 from .collate import collate_images_targets_meta
 from .constants import COCO_KEYPOINTS, HFLIP, BBOX_KEYPOINTS, BBOX_HFLIP
 from .. import transforms
@@ -31,10 +32,15 @@ EUROCITY_ANNOTATIONS_VAL = 'data/ECP/{}/labels/val'
 EUROCITY_IMAGE_DIR_TRAIN = 'data/ECP/{}/img/train'
 EUROCITY_IMAGE_DIR_VAL = 'data/ECP/{}/img/val'
 
-NIGHTOWLS_ANNOTATIONS_TRAIN = 'data/nightowls/annotations/nightowls_training.json'
-NIGHTOWLS_ANNOTATIONS_VAL = 'data/nightowls/annotations/nightowls_validation.json'
-NIGHTOWLS_IMAGE_DIR_TRAIN = 'data/nightowls/images/'
-NIGHTOWLS_IMAGE_DIR_VAL = 'data/nightowls/images/'
+NIGHTOWLS_ANNOTATIONS_TRAIN = 'data/nightowls/nightowls_validation.json'
+NIGHTOWLS_ANNOTATIONS_VAL = 'data/nightowls/nightowls_validation.json'
+NIGHTOWLS_IMAGE_DIR_TRAIN = 'data/nightowls/nightowls_validation/'
+NIGHTOWLS_IMAGE_DIR_VAL = 'data/nightowls/nightowls_validation/'
+
+VISUAL_ANNOTATIONS_TRAIN = 'data/visual_relationship/annotations_train.json'
+VISUAL_ANNOTATIONS_VAL = 'data/visual_relationship/annotations_test.json'
+VISUAL_IMAGE_DIR_TRAIN = 'data/visual_relationship/sg_dataset/sg_train_images'
+VISUAL_IMAGE_DIR_VAL = 'data/visual_relationship/sg_dataset/sg_test_images'
 
 dataset_list = {
     'uavdt': UAVDT,
@@ -42,7 +48,8 @@ dataset_list = {
     'cocokp': Coco,
     'cocodet': Coco,
     'eurocity': EuroCity,
-    'nightowls': NightOwls
+    'nightowls': NightOwls,
+    'visual_relationship': VisualRelationship,
 }
 
 dataset_meta = {}
@@ -76,6 +83,11 @@ def train_cli(parser):
     group.add_argument('--eurocity-train-annotations', default=EUROCITY_ANNOTATIONS_TRAIN)
     group.add_argument('--eurocity-val-annotations', default=EUROCITY_ANNOTATIONS_VAL)
 
+    group.add_argument('--visualrelationship-train-image-dir', default=VISUAL_IMAGE_DIR_TRAIN)
+    group.add_argument('--visualrelationship-val-image-dir', default=VISUAL_IMAGE_DIR_VAL)
+    group.add_argument('--visualrelationship-train-annotations', default=VISUAL_ANNOTATIONS_TRAIN)
+    group.add_argument('--visualrelationship-val-annotations', default=VISUAL_ANNOTATIONS_VAL)
+
     group.add_argument('--dataset', type=str, default='cocokp',
                         choices=dataset_list.keys())
     group.add_argument('--n-images', default=None, type=int,
@@ -104,6 +116,8 @@ def train_configure(args):
         dataset_meta['categories'] = COCO_KEYPOINTS
         return
     dataset_meta['categories'] = dataset_list[args.dataset].categories
+    if args.dataset in ('visual_relationship'):
+        dataset_meta['rel_categories'] = dataset_list[args.dataset].rel_categories
 
 
 def train_cocokp_preprocess_factory(
@@ -228,10 +242,10 @@ def train_det_preprocess_factory(
         transforms.AnnotationJitter(),
         transforms.RandomApply(transforms.HFlip(keypoints, hflip), 0.5),
         rescale_t,
-        transforms.Crop(square_edge, use_area_of_interest=False),
+        transforms.Crop(square_edge, use_area_of_interest=True),
         transforms.CenterPad(square_edge),
         orientation_t,
-        transforms.MinSize(min_side=4.0),
+        #transforms.MinSize(min_side=4.0),
         transforms.UnclippedArea(),
         transforms.UnclippedSides(),
         transforms.TRAIN_TRANSFORM,
@@ -533,6 +547,56 @@ def train_nightowls_factory(args, target_transforms):
 
     return train_loader, val_loader
 
+def train_visual_factory(args, target_transforms):
+    dataset = dataset_list['visual_relationship']
+
+    preprocess = train_det_preprocess_factory(
+        square_edge=args.square_edge,
+        augmentation=args.augmentation,
+        extended_scale=args.extended_scale,
+        orientation_invariant=args.orientation_invariant,
+        rescale_images=args.rescale_images,
+        keypoints=BBOX_KEYPOINTS,
+        hflip=BBOX_HFLIP)
+
+    if args.loader_workers is None:
+        args.loader_workers = args.batch_size
+
+    train_data = dataset(
+        image_dir=args.visualrelationship_train_image_dir,
+        ann_file=args.visualrelationship_train_annotations,
+        preprocess=preprocess,
+        target_transforms=target_transforms,
+        n_images=args.n_images,
+    )
+
+    val_data = dataset(
+        image_dir=args.visualrelationship_val_image_dir,
+        ann_file=args.visualrelationship_val_annotations,
+        preprocess=preprocess,
+        target_transforms=target_transforms,
+        n_images=args.n_images,
+    )
+
+    if args.duplicate_data:
+        train_data = torch.utils.data.ConcatDataset(
+            [train_data for _ in range(args.duplicate_data)])
+    train_loader = torch.utils.data.DataLoader(
+        train_data, batch_size=args.batch_size, shuffle= not args.debug,
+        pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
+        collate_fn=collate_images_targets_meta)
+
+
+    if args.duplicate_data:
+        val_data = torch.utils.data.ConcatDataset(
+            [val_data for _ in range(args.duplicate_data)])
+    val_loader = torch.utils.data.DataLoader(
+        val_data, batch_size=args.batch_size, shuffle=False,
+        pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
+        collate_fn=collate_images_targets_meta)
+
+    return train_loader, val_loader
+
 def train_factory(args, target_transforms):
     if args.dataset in ('cocokp',):
         return train_cocokp_factory(args, target_transforms)
@@ -546,5 +610,6 @@ def train_factory(args, target_transforms):
         return train_visdrone_factory(args, target_transforms)
     if args.dataset in ('nightowls',):
         return train_nightowls_factory(args, target_transforms)
-
+    if args.dataset in ('visual_relationship',):
+        return train_visual_factory(args, target_transforms)
     raise Exception('unknown dataset: {}'.format(args.dataset))
