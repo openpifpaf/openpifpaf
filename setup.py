@@ -78,15 +78,17 @@ setup(
             'flameprof',
             'jupyter-book>=0.7.0b',
             'matplotlib',
+            'nbdime',
             'nbstripout',
         ],
         'onnx': [
             'onnx',
-            'onnx-simplifier',
+            'onnx-simplifier>=0.2.9',
         ],
         'test': [
             'nbval',
             'onnx',
+            'onnx-simplifier>=0.2.9',
             'pylint',
             'pytest',
             'opencv-python',
