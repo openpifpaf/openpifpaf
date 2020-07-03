@@ -29,7 +29,7 @@ Continuously tested on Linux, MacOS and Windows: [![Build Status](https://travis
 Image credit: "[Learning to surf](https://www.flickr.com/photos/fotologic/6038911779/in/photostream/)" by fotologic which is licensed under [CC-BY-2.0].<br />
 Created with:
 ```sh
-pip3 install openpifpaf
+pip3 install openpifpaf matplotlib
 python3 -m openpifpaf.predict coco/000000081988.jpg --image-output
 ```
 
