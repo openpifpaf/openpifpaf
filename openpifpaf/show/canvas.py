@@ -15,6 +15,9 @@ LOG = logging.getLogger(__name__)
 
 @contextmanager
 def canvas(fig_file=None, show=True, dpi=200, nomargin=False, **kwargs):
+    if plt is None:
+        raise Exception('please install matplotlib')
+
     if 'figsize' not in kwargs:
         # kwargs['figsize'] = (15, 8)
         kwargs['figsize'] = (10, 6)
@@ -38,6 +41,9 @@ def canvas(fig_file=None, show=True, dpi=200, nomargin=False, **kwargs):
 
 @contextmanager
 def image_canvas(image, fig_file=None, show=True, dpi_factor=1.0, fig_width=10.0, **kwargs):
+    if plt is None:
+        raise Exception('please install matplotlib')
+
     image = np.asarray(image)
     if 'figsize' not in kwargs:
         kwargs['figsize'] = (fig_width, fig_width * image.shape[0] / image.shape[1])
