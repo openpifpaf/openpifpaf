@@ -40,3 +40,9 @@ Continue to our __[OpenPifPaf Guide](https://vita-epfl.github.io/openpifpaf/intr
 
 
 [CC-BY-2.0]: https://creativecommons.org/licenses/by/2.0/
+
+
+# Commercial License
+
+This software is available for licensing via the EPFL Technology Transfer
+Office (https://tto.epfl.ch/, info.tto@epfl.ch).
