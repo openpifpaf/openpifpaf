@@ -131,3 +131,9 @@ Reference: {cite}`kreiss2019pifpaf`
 
 ```{bibliography} references.bib
 ```
+
+
+## Commercial License
+
+This software is available for licensing via the EPFL Technology Transfer
+Office (https://tto.epfl.ch/, info.tto@epfl.ch).
