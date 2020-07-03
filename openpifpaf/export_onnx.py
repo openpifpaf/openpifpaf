@@ -104,7 +104,12 @@ def apply_components(model, outfile, input_w=129, input_h=97, verbose=True):
     for head_i, head in enumerate(model.head_nets):
         torch.onnx.export(
             head,
-            torch.randn(1, model.base_net.out_features, (input_h - 1) // 16 + 1, (input_w - 1) // 16 + 1),
+            torch.randn(
+                1,
+                model.base_net.out_features,
+                (input_h - 1) // 16 + 1,
+                (input_w - 1) // 16 + 1,
+            ),
             outfile + '.head{}.onnx'.format(head_i), verbose=verbose,
             input_names=['features'], output_names=['head{}'.format(head_i)],
             keep_initializers_as_inputs=True,
