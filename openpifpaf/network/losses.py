@@ -10,8 +10,6 @@ LOG = logging.getLogger(__name__)
 
 class Bce(torch.nn.Module):
     def forward(self, x, t):  # pylint: disable=arguments-differ
-        # print(torch.min(x).item(), torch.max(x).item())
-        x = x.clamp(-5.0, 5.0)
         bce = torch.nn.functional.binary_cross_entropy_with_logits(
             x,
             t,
@@ -31,13 +29,30 @@ class Log1pL1Tuned(torch.nn.Module):
             torch.log1p(t),
             reduction='none',
         )
-        loss = loss.clamp_max(5.0)
 
         # constrain range of logb
         self.logb.data.clamp_min_(-3.0)
 
         # ln(2) = 0.694
         return self.logb + (loss + 0.1) * torch.exp(-self.logb)
+
+
+class Log1pL1Clipped(torch.nn.Module):
+    def __init__(self, alpha):
+        """low_clip = alpha * target"""
+        super().__init__()
+        self.alpha = alpha
+
+    def forward(self, logs, t):  # pylint: disable=arguments-differ
+        loss = torch.nn.functional.l1_loss(
+            torch.log1p(torch.exp(logs)),
+            torch.log1p(t),
+            reduction='none',
+        )
+        low_clip = torch.log1p(t * (1.0 + self.alpha)) - torch.log1p(t)
+        loss = loss[loss > low_clip]
+
+        return loss
 
 
 def laplace_loss(x1, x2, logb, t1, t2, weight=None):
@@ -51,7 +66,6 @@ def laplace_loss(x1, x2, logb, t1, t2, weight=None):
     # https://github.com/pytorch/pytorch/issues/2421
     # norm = torch.sqrt((x1 - t1)**2 + (x2 - t2)**2)
     norm = (torch.stack((x1, x2)) - torch.stack((t1, t2))).norm(dim=0)
-    norm = norm.clamp_max(5.0)
 
     # constrain range of logb
     logb = logb.clamp_min(-3.0)
@@ -402,7 +416,7 @@ class CompositeLoss(torch.nn.Module):
 
         self.confidence_loss = Bce()
         self.regression_loss = regression_loss or laplace_loss
-        self.scale_losses = torch.nn.ModuleList([Log1pL1Tuned() for _ in range(self.n_scales)])
+        self.scale_losses = torch.nn.ModuleList([Log1pL1Clipped(0.1) for _ in range(self.n_scales)])
         self.field_names = (
             ['{}.c'.format(head_net.meta.name)] +
             ['{}.vec{}'.format(head_net.meta.name, i + 1) for i in range(self.n_vectors)] +
