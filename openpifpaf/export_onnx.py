@@ -36,9 +36,9 @@ class GetPifC(torch.nn.Module):
         return heads[0][0]
 
 
-def apply(model, outfile, verbose=True):
+def apply(model, outfile, input_w=129, input_h=97, verbose=True):
     # dummy_input = torch.randn(1, 3, 193, 257)
-    dummy_input = torch.randn(1, 3, 97, 129)
+    dummy_input = torch.randn(1, 3, input_h, input_w)
     # model = torch.nn.Sequential(model, GetPifC())
 
     # Providing input and output names sets the display names for values
@@ -85,6 +85,36 @@ def apply(model, outfile, verbose=True):
         #     'paf_b2': {0: 'batch', 2: 'fheight', 3: 'fwidth'},
         # },
     )
+
+
+def apply_components(model, outfile, input_w=129, input_h=97, verbose=True):
+    output_files = []
+    torch.onnx.export(
+        model.base_net,
+        torch.randn(1, 3, input_h, input_w),
+        outfile + '.base.onnx', verbose=verbose,
+        input_names=['input_batch'], output_names=['features'],
+        keep_initializers_as_inputs=True,
+        # opset_version=10,
+        do_constant_folding=True,
+        export_params=True,
+    )
+    output_files.append(outfile + '.base.onnx')
+
+    for head_i, head in enumerate(model.head_nets):
+        torch.onnx.export(
+            head,
+            torch.randn(1, model.base_net.out_features, (input_h - 1) // 16 + 1, (input_w - 1) // 16 + 1),
+            outfile + '.head{}.onnx'.format(head_i), verbose=verbose,
+            input_names=['features'], output_names=['head{}'.format(head_i)],
+            keep_initializers_as_inputs=True,
+            # opset_version=10,
+            do_constant_folding=True,
+            export_params=True,
+        )
+        output_files.append(outfile + '.head{}.onnx'.format(head_i))
+
+    return output_files
 
 
 def optimize(infile, outfile=None):
@@ -149,18 +179,30 @@ def main():
                         help='runs checker, optimizer and shape inference')
     parser.add_argument('--optimize', dest='optimize', default=False, action='store_true')
     parser.add_argument('--check', dest='check', default=False, action='store_true')
+    parser.add_argument('--input-width', type=int, default=129)
+    parser.add_argument('--input-height', type=int, default=97)
+    parser.add_argument('--model-components', default=False, action='store_true')
     args = parser.parse_args()
 
     model, _ = openpifpaf.network.factory(checkpoint=args.checkpoint)
-    apply(model, args.outfile)
-    if args.simplify:
-        simplify(args.outfile)
-    if args.optimize:
-        optimize(args.outfile)
-    if args.polish:
-        polish(args.outfile)
-    if args.check:
-        check(args.outfile)
+
+    if args.model_components:
+        out_files = apply_components(
+            model, args.outfile,
+            input_w=args.input_width, input_h=args.input_height)
+    else:
+        apply(model, args.outfile, input_w=args.input_width, input_h=args.input_height)
+        out_files = [args.outfile]
+
+    for out_name in out_files:
+        if args.simplify:
+            simplify(out_name)
+        if args.optimize:
+            optimize(out_name)
+        if args.polish:
+            polish(out_name)
+        if args.check:
+            check(out_name)
 
 
 if __name__ == '__main__':
