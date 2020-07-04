@@ -15,6 +15,7 @@ class Bce(torch.nn.Module):
             t,
             reduction='none',
         )
+        bce = torch.clamp_min(bce, 0.001)  # 0.001 => p = 0.999
         return bce
 
 
@@ -66,6 +67,7 @@ def laplace_loss(x1, x2, logb, t1, t2, weight=None):
     # https://github.com/pytorch/pytorch/issues/2421
     # norm = torch.sqrt((x1 - t1)**2 + (x2 - t2)**2)
     norm = (torch.stack((x1, x2)) - torch.stack((t1, t2))).norm(dim=0)
+    norm = torch.clamp_min(norm, 0.01)
 
     # constrain range of logb
     logb = logb.clamp_min(-3.0)
