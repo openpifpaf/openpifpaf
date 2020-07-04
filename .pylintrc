@@ -9,6 +9,21 @@ good-names=ap,ar,ax,d,f,g,gt,h,i,im,lr,p,r,s,t,t1,t2,th,v,vs,w,wh,x,x1,x2,xs,y,y
 allow-any-import-level=pycocotools,pycocotools.coco
 
 
+[SIMILARITIES]
+
+# Minimum lines number of a similarity.
+min-similarity-lines=15
+
+# Ignore comments when computing similarities.
+ignore-comments=yes
+
+# Ignore docstrings when computing similarities.
+ignore-docstrings=yes
+
+# Ignore imports when computing similarities.
+ignore-imports=yes
+
+
 [TYPECHECK]
 
 # List of members which are set dynamically and missed by pylint inference
@@ -19,6 +34,5 @@ generated-members=numpy.*,torch.*,cv2.*,openpifpaf.functional.*
 ignored-modules=openpifpaf.functional,pycocotools
 
 
-# for pylint bugs related to numpy: unsubscriptable-object,comparison-with-callable
 # for pytorch: not-callable
-disable=missing-docstring,useless-object-inheritance,duplicate-code,too-many-arguments,too-many-instance-attributes,too-many-locals,too-few-public-methods,unsubscriptable-object,comparison-with-callable,not-callable
+disable=missing-docstring,useless-object-inheritance,too-many-arguments,too-many-instance-attributes,too-many-locals,too-few-public-methods,not-callable
