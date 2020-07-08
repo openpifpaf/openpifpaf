@@ -451,10 +451,14 @@ class CompositeLoss(torch.nn.Module):
                   x_confidence.shape, target_confidence.shape, bce_masks.shape)
         bce_target = torch.masked_select(target_confidence, bce_masks)
         x_confidence = torch.masked_select(x_confidence, bce_masks)
-        ce_loss = self.confidence_loss(x_confidence, bce_target)
+        bce_target_zeroone = bce_target.clone()
+        bce_target_zeroone[bce_target_zeroone > 0.0] = 1.0
+        ce_loss = self.confidence_loss(x_confidence, bce_target_zeroone)
         if self.focal_gamma != 0.0:
             pt = torch.exp(-ce_loss)
             ce_loss = (1.0 - pt)**self.focal_gamma * ce_loss
+        weight_mask = bce_target_zeroone != bce_target
+        ce_loss[weight_mask] = ce_loss[weight_mask] * bce_target[weight_mask]
         if self.background_weight != 1.0:
             bce_weight = torch.ones_like(bce_target, requires_grad=False)
             bce_weight[bce_target == 0] *= self.background_weight
