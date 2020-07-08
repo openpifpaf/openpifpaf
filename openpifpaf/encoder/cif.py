@@ -130,10 +130,12 @@ class CifGenerator(object):
         sink_reg = self.sink + offset
         sink_l = np.linalg.norm(sink_reg, axis=0)
         mask = sink_l < self.fields_reg_l[f, miny:maxy, minx:maxx]
+        mask_peak = np.logical_and(mask, sink_l < 0.7)
         self.fields_reg_l[f, miny:maxy, minx:maxx][mask] = sink_l[mask]
 
         # update intensity
         self.intensities[f, miny:maxy, minx:maxx][mask] = 1.0
+        self.intensities[f, miny:maxy, minx:maxx][mask_peak] = 1.0
 
         # update regression
         patch = self.fields_reg[f, :, miny:maxy, minx:maxx]

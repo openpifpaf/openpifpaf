@@ -202,10 +202,12 @@ class CafGenerator:
                 - offset[0] * sink1[1]
             ) / (offset_d + 0.01)
             mask = sink_l < self.fields_reg_l[paf_i, fminy:fmaxy, fminx:fmaxx]
+            mask_peak = np.logical_and(mask, np.linalg.norm(sink1 + sink2, axis=0) < 0.7)
             self.fields_reg_l[paf_i, fminy:fmaxy, fminx:fmaxx][mask] = sink_l[mask]
 
             # update intensity
             self.intensities[paf_i, fminy:fmaxy, fminx:fmaxx][mask] = 1.0
+            self.intensities[paf_i, fminy:fmaxy, fminx:fmaxx][mask_peak] = 1.0
 
             # update regressions
             patch1 = self.fields_reg1[paf_i, :, fminy:fmaxy, fminx:fmaxx]
