@@ -9,13 +9,23 @@ LOG = logging.getLogger(__name__)
 
 
 class Bce(torch.nn.Module):
+    def __init__(self, *, focal_gamma=0.0):
+        super().__init__()
+        self.focal_gamma = focal_gamma
+
     def forward(self, x, t):  # pylint: disable=arguments-differ
+        t_zeroone = t.clone()
+        t_zeroone[t_zeroone > 0.0] = 1.0
         bce = torch.nn.functional.binary_cross_entropy_with_logits(
-            x,
-            t,
-            reduction='none',
-        )
-        bce = torch.clamp_min(bce, 0.001)  # 0.001 => p = 0.999
+            x, t_zeroone, reduction='none')
+
+        if self.focal_gamma != 0.0:
+            pt = torch.exp(-bce)
+            bce = (1.0 - pt)**self.focal_gamma * bce
+
+        weight_mask = t_zeroone != t
+        bce[weight_mask] = bce[weight_mask] * t[weight_mask]
+
         return bce
 
 
@@ -39,9 +49,9 @@ class Log1pL1Tuned(torch.nn.Module):
 
 
 class Log1pL1Clipped(torch.nn.Module):
-    def __init__(self, alpha):
-        """low_clip = alpha * target"""
+    def __init__(self, b, *, alpha):
         super().__init__()
+        self.b = b
         self.alpha = alpha
 
     def forward(self, logs, t):  # pylint: disable=arguments-differ
@@ -50,8 +60,10 @@ class Log1pL1Clipped(torch.nn.Module):
             torch.log1p(t),
             reduction='none',
         )
-        low_clip = torch.log1p(t * (1.0 + self.alpha)) - torch.log1p(t)
+        low_clip = torch.log1p(t + self.alpha) - torch.log1p(t)
         loss = loss[loss > low_clip]
+
+        loss = loss / self.b
 
         return loss
 
@@ -416,9 +428,10 @@ class CompositeLoss(torch.nn.Module):
         LOG.debug('%s: n_vectors = %d, n_scales = %d, margin = %s',
                   head_net.meta.name, self.n_vectors, self.n_scales, self.margin)
 
-        self.confidence_loss = Bce()
+        self.confidence_loss = Bce(focal_gamma=self.focal_gamma)
         self.regression_loss = regression_loss or laplace_loss
-        self.scale_losses = torch.nn.ModuleList([Log1pL1Clipped(0.1) for _ in range(self.n_scales)])
+        self.scale_losses = torch.nn.ModuleList([Log1pL1Clipped(5.0, alpha=0.01)
+                                                 for _ in range(self.n_scales)])
         self.field_names = (
             ['{}.c'.format(head_net.meta.name)] +
             ['{}.vec{}'.format(head_net.meta.name, i + 1) for i in range(self.n_vectors)] +
@@ -451,14 +464,7 @@ class CompositeLoss(torch.nn.Module):
                   x_confidence.shape, target_confidence.shape, bce_masks.shape)
         bce_target = torch.masked_select(target_confidence, bce_masks)
         x_confidence = torch.masked_select(x_confidence, bce_masks)
-        bce_target_zeroone = bce_target.clone()
-        bce_target_zeroone[bce_target_zeroone > 0.0] = 1.0
-        ce_loss = self.confidence_loss(x_confidence, bce_target_zeroone)
-        if self.focal_gamma != 0.0:
-            pt = torch.exp(-ce_loss)
-            ce_loss = (1.0 - pt)**self.focal_gamma * ce_loss
-        weight_mask = bce_target_zeroone != bce_target
-        ce_loss[weight_mask] = ce_loss[weight_mask] * bce_target[weight_mask]
+        ce_loss = self.confidence_loss(x_confidence, bce_target)
         if self.background_weight != 1.0:
             bce_weight = torch.ones_like(bce_target, requires_grad=False)
             bce_weight[bce_target == 0] *= self.background_weight
