@@ -470,7 +470,9 @@ class CompositeLoss(torch.nn.Module):
             bce_weight[bce_target == 0] *= self.background_weight
             ce_loss = ce_loss * bce_weight
 
-        ce_loss = ce_loss.sum() / batch_size
+        n_positive = torch.sum(bce_target > 0.0)
+        ce_loss = ce_loss.sum() / (n_positive + 1)
+
         return ce_loss
 
     def _localization_loss(self, x_regs, x_logbs, target_regs):
@@ -489,7 +491,7 @@ class CompositeLoss(torch.nn.Module):
                 torch.masked_select(x_logbs[:, :, i], reg_masks),
                 torch.masked_select(target_reg[:, :, 0], reg_masks),
                 torch.masked_select(target_reg[:, :, 1], reg_masks),
-            ).sum() / batch_size)
+            ).mean())
 
         return reg_losses
 
@@ -501,7 +503,7 @@ class CompositeLoss(torch.nn.Module):
             sl(
                 torch.masked_select(x_scales[:, :, i], torch.isnan(target_scale).bitwise_not_()),
                 torch.masked_select(target_scale, torch.isnan(target_scale).bitwise_not_()),
-            ).sum() / batch_size
+            ).mean()
             for i, (sl, target_scale) in enumerate(zip(self.scale_losses, target_scales))
         ]
 
