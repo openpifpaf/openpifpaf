@@ -35,6 +35,9 @@ class Trainer(object):
         self.ema = None
         self.ema_restore_params = None
 
+        self.n_clipped_grad = 0
+        self.max_norm = 0.0
+
         self.model_meta_data = model_meta_data
 
         if train_profile:
@@ -112,12 +115,14 @@ class Trainer(object):
         if loss is not None:
             with torch.autograd.profiler.record_function('backward'):
                 loss.backward()
-        # max_norm = 0.1 / self.lr()
-        # total_norm = torch.nn.utils.clip_grad_norm_(
-        #     self.model.parameters(), max_norm, norm_type=float('inf'))
-        # if total_norm > max_norm:
-        #     print('CLIPPED GRAD NORM: total norm before clip: {}, max norm: {}'
-        #           ''.format(total_norm, max_norm))
+        max_norm = 0.1 / self.lr()
+        total_norm = torch.nn.utils.clip_grad_norm_(
+            self.model.parameters(), max_norm, norm_type=float('inf'))
+        self.max_norm = max(float(total_norm), self.max_norm)
+        if total_norm > max_norm:
+            self.n_clipped_grad += 1
+            print('CLIPPED GRAD NORM: total norm before clip: {}, max norm: {}'
+                  ''.format(total_norm, max_norm))
         if apply_gradients:
             with torch.autograd.profiler.record_function('step'):
                 self.optimizer.step()
@@ -221,7 +226,11 @@ class Trainer(object):
             'head_losses': [round(l / max(1, c), 5)
                             for l, c in zip(head_epoch_losses, head_epoch_counts)],
             'time': round(time.time() - start_time, 1),
+            'n_clipped_grad': self.n_clipped_grad,
+            'max_norm': self.max_norm,
         })
+        self.n_clipped_grad = 0
+        self.max_norm = 0.0
 
     def val(self, scenes, epoch):
         start_time = time.time()
