@@ -185,7 +185,7 @@ def factory_decode(head_nets, *,
                 [1.0 for _ in skeleton] +
                 [dense_coupling for _ in head_nets[2].meta.skeleton]
             )
-            skeleton += head_nets[2].meta.skeleton
+            skeleton = skeleton + head_nets[2].meta.skeleton
 
         field_config.cif_visualizers = [
             visualizer.Cif(head_nets[i].meta.name,

@@ -70,7 +70,7 @@ class Trainer(object):
             return
 
         for p, ema_p in zip(self.model.parameters(), self.ema):
-            ema_p.mul_(1.0 - self.ema_decay).add_(self.ema_decay, p.data)
+            ema_p.mul_(1.0 - self.ema_decay).add_(p.data, alpha=self.ema_decay)
 
     def apply_ema(self):
         if self.ema is None:
