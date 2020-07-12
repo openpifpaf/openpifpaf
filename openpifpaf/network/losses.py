@@ -418,6 +418,7 @@ class MultiHeadLossAutoTuneVariance(torch.nn.Module):
 class CompositeLoss(torch.nn.Module):
     background_weight = 1.0
     focal_gamma = 1.0
+    b_scale = 5.0
     margin = False
 
     def __init__(self, head_net: heads.CompositeField, regression_loss):
@@ -430,7 +431,7 @@ class CompositeLoss(torch.nn.Module):
 
         self.confidence_loss = Bce(focal_gamma=self.focal_gamma)
         self.regression_loss = regression_loss or laplace_loss
-        self.scale_losses = torch.nn.ModuleList([Log1pL1Clipped(5.0, alpha=0.01)
+        self.scale_losses = torch.nn.ModuleList([Log1pL1Clipped(self.b_scale, alpha=0.01)
                                                  for _ in range(self.n_scales)])
         self.field_names = (
             ['{}.c'.format(head_net.meta.name)] +
@@ -470,8 +471,7 @@ class CompositeLoss(torch.nn.Module):
             bce_weight[bce_target == 0] *= self.background_weight
             ce_loss = ce_loss * bce_weight
 
-        n_positive = torch.sum(bce_target > 0.0)
-        ce_loss = ce_loss.sum() / (n_positive + 1)
+        ce_loss = ce_loss.sum() / batch_size
 
         return ce_loss
 
@@ -491,7 +491,7 @@ class CompositeLoss(torch.nn.Module):
                 torch.masked_select(x_logbs[:, :, i], reg_masks),
                 torch.masked_select(target_reg[:, :, 0], reg_masks),
                 torch.masked_select(target_reg[:, :, 1], reg_masks),
-            ).mean())
+            ).sum() / batch_size)
 
         return reg_losses
 
@@ -503,7 +503,7 @@ class CompositeLoss(torch.nn.Module):
             sl(
                 torch.masked_select(x_scales[:, :, i], torch.isnan(target_scale).bitwise_not_()),
                 torch.masked_select(target_scale, torch.isnan(target_scale).bitwise_not_()),
-            ).mean()
+            ).sum() / batch_size
             for i, (sl, target_scale) in enumerate(zip(self.scale_losses, target_scales))
         ]
 
@@ -572,6 +572,8 @@ def cli(parser):
                        help='type of regression loss')
     group.add_argument('--background-weight', default=CompositeLoss.background_weight, type=float,
                        help='BCE weight where ground truth is background')
+    group.add_argument('--b-scale', default=CompositeLoss.b_scale, type=float,
+                       help='Laplace width b for scale loss')
     group.add_argument('--focal-gamma', default=CompositeLoss.focal_gamma, type=float,
                        help='when > 0.0, use focal loss with the given gamma')
     group.add_argument('--margin-loss', default=False, action='store_true',
@@ -591,6 +593,7 @@ def configure(args):
     # apply for CompositeLoss
     CompositeLoss.background_weight = args.background_weight
     CompositeLoss.focal_gamma = args.focal_gamma
+    CompositeLoss.b_scale = args.b_scale
     CompositeLoss.margin = args.margin_loss
 
     # MultiHeadLoss
