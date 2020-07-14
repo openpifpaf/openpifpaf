@@ -1,2 +1,4 @@
 include openpifpaf/functional.pyx
 include openpifpaf/functional.c
+include versioneer.py
+include openpifpaf/_version.py
