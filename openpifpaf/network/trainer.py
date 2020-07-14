@@ -19,7 +19,8 @@ class Trainer(object):
                  stride_apply=1,
                  ema_decay=None,
                  train_profile=None,
-                 model_meta_data=None):
+                 model_meta_data=None,
+                 clip_grad_norm=0.0):
         self.model = model
         self.loss = loss
         self.optimizer = optimizer
@@ -35,6 +36,7 @@ class Trainer(object):
         self.ema = None
         self.ema_restore_params = None
 
+        self.clip_grad_norm = clip_grad_norm
         self.n_clipped_grad = 0
         self.max_norm = 0.0
 
@@ -115,14 +117,15 @@ class Trainer(object):
         if loss is not None:
             with torch.autograd.profiler.record_function('backward'):
                 loss.backward()
-        max_norm = 0.1 / self.lr()
-        total_norm = torch.nn.utils.clip_grad_norm_(
-            self.model.parameters(), max_norm, norm_type=float('inf'))
-        self.max_norm = max(float(total_norm), self.max_norm)
-        if total_norm > max_norm:
-            self.n_clipped_grad += 1
-            print('CLIPPED GRAD NORM: total norm before clip: {}, max norm: {}'
-                  ''.format(total_norm, max_norm))
+        if self.clip_grad_norm:
+            max_norm = self.clip_grad_norm / self.lr()
+            total_norm = torch.nn.utils.clip_grad_norm_(
+                self.model.parameters(), max_norm, norm_type=float('inf'))
+            self.max_norm = max(float(total_norm), self.max_norm)
+            if total_norm > max_norm:
+                self.n_clipped_grad += 1
+                print('CLIPPED GRAD NORM: total norm before clip: {}, max norm: {}'
+                      ''.format(total_norm, max_norm))
         if apply_gradients:
             with torch.autograd.profiler.record_function('step'):
                 self.optimizer.step()

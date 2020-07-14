@@ -9,9 +9,10 @@ LOG = logging.getLogger(__name__)
 
 
 class Bce(torch.nn.Module):
-    def __init__(self, *, focal_gamma=0.0):
+    def __init__(self, *, focal_gamma=0.0, detach_focal=False):
         super().__init__()
         self.focal_gamma = focal_gamma
+        self.detach_focal = detach_focal
 
     def forward(self, x, t):  # pylint: disable=arguments-differ
         t_zeroone = t.clone()
@@ -21,7 +22,10 @@ class Bce(torch.nn.Module):
 
         if self.focal_gamma != 0.0:
             pt = torch.exp(-bce)
-            bce = (1.0 - pt)**self.focal_gamma * bce
+            focal = (1.0 - pt)**self.focal_gamma
+            if self.detach_focal:
+                focal = focal.detach()
+            bce = focal * bce
 
         weight_mask = t_zeroone != t
         bce[weight_mask] = bce[weight_mask] * t[weight_mask]
@@ -48,11 +52,11 @@ class Log1pL1Tuned(torch.nn.Module):
         return self.logb + (loss + 0.1) * torch.exp(-self.logb)
 
 
-class Log1pL1Clipped(torch.nn.Module):
-    def __init__(self, b, *, alpha):
+class Log1pL1(torch.nn.Module):
+    def __init__(self, b, *, low_clip=0.0):
         super().__init__()
         self.b = b
-        self.alpha = alpha
+        self.low_clip = low_clip
 
     def forward(self, logs, t):  # pylint: disable=arguments-differ
         loss = torch.nn.functional.l1_loss(
@@ -60,15 +64,17 @@ class Log1pL1Clipped(torch.nn.Module):
             torch.log1p(t),
             reduction='none',
         )
-        low_clip = torch.log1p(t + self.alpha) - torch.log1p(t)
-        loss = loss[loss > low_clip]
+
+        if self.low_clip > 0.0:
+            loss_low_clip = torch.log1p(t + self.low_clip) - torch.log1p(t)
+            loss = loss[loss > loss_low_clip]
 
         loss = loss / self.b
 
         return loss
 
 
-def laplace_loss(x1, x2, logb, t1, t2, weight=None):
+def laplace_loss(x1, x2, logb, t1, t2, *, weight=None, norm_low_clip=0.0):
     """Loss based on Laplace Distribution.
 
     Loss for a single two-dimensional vector (x1, x2) with radial
@@ -79,10 +85,14 @@ def laplace_loss(x1, x2, logb, t1, t2, weight=None):
     # https://github.com/pytorch/pytorch/issues/2421
     # norm = torch.sqrt((x1 - t1)**2 + (x2 - t2)**2)
     norm = (torch.stack((x1, x2)) - torch.stack((t1, t2))).norm(dim=0)
-    norm = torch.clamp_min(norm, 0.01)
+
+    if norm_low_clip > 0.0:
+        norm = torch.clamp_min(norm, norm_low_clip)
 
     # constrain range of logb
-    logb = logb.clamp_min(-3.0)
+    # low range constraint: prevent strong confidence when overfitting
+    # high range constraint: force some data dependence
+    logb = 3.0 * torch.tanh(logb / 3.0)
 
     # ln(2) = 0.694
     losses = logb + (norm + 0.1) * torch.exp(-logb)
@@ -418,7 +428,7 @@ class MultiHeadLossAutoTuneVariance(torch.nn.Module):
 class CompositeLoss(torch.nn.Module):
     background_weight = 1.0
     focal_gamma = 1.0
-    b_scale = 5.0
+    b_scale = 1.0
     margin = False
 
     def __init__(self, head_net: heads.CompositeField, regression_loss):
@@ -431,7 +441,7 @@ class CompositeLoss(torch.nn.Module):
 
         self.confidence_loss = Bce(focal_gamma=self.focal_gamma)
         self.regression_loss = regression_loss or laplace_loss
-        self.scale_losses = torch.nn.ModuleList([Log1pL1Clipped(self.b_scale, alpha=0.01)
+        self.scale_losses = torch.nn.ModuleList([Log1pL1(self.b_scale, low_clip=0.01)
                                                  for _ in range(self.n_scales)])
         self.field_names = (
             ['{}.c'.format(head_net.meta.name)] +
@@ -491,6 +501,7 @@ class CompositeLoss(torch.nn.Module):
                 torch.masked_select(x_logbs[:, :, i], reg_masks),
                 torch.masked_select(target_reg[:, :, 0], reg_masks),
                 torch.masked_select(target_reg[:, :, 1], reg_masks),
+                norm_low_clip=0.01,
             ).sum() / batch_size)
 
         return reg_losses

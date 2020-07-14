@@ -65,6 +65,8 @@ def cli():
                         help='update batch norm running statistics')
     parser.add_argument('--ema', default=1e-2, type=float,
                         help='ema decay constant')
+    parser.add_argument('--clip-grad-norm', default=0.0, type=float,
+                        help='clip grad norm: specify largest change for single param')
     parser.add_argument('--log-interval', default=10, type=int,
                         help='log loss every n steps')
     parser.add_argument('--disable-cuda', action='store_true',
@@ -138,6 +140,7 @@ def main():
             'version': __version__,
             'hostname': socket.gethostname(),
         },
+        clip_grad_norm=args.clip_grad_norm,
     )
     trainer.loop(train_loader, val_loader, args.epochs, start_epoch=start_epoch)
 
