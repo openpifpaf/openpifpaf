@@ -44,8 +44,9 @@ def test_version(module_name):
         PYTHON, '-m', 'openpifpaf.{}'.format(module_name),
         '--version',
     ])
+    cli_version = output.decode().strip().replace('.dirty', '')
 
-    assert output.decode().strip() == 'OpenPifPaf {}'.format(__version__)
+    assert cli_version == 'OpenPifPaf {}'.format(__version__.replace('.dirty', ''))
 
 
 @pytest.mark.parametrize('module_name', MODULE_NAMES)
