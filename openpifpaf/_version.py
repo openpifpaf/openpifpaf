@@ -16,6 +16,8 @@ import re
 import subprocess
 import sys
 
+# pylint: skip-file
+
 
 def get_keywords():
     """Get the keywords needed to look up the version information."""
