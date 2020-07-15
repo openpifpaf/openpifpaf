@@ -369,7 +369,7 @@ class KeypointPainter:
             self._draw_joint_confidences(ax, x, y, v, color)
 
         if self.show_box:
-            x_, y_, w_, h_ = ann.bbox()
+            x_, y_, w_, h_ = [v * self.xy_scale for v in ann.bbox()]
             self._draw_box(ax, x_, y_, w_, h_, color, ann.score())
 
         if text is not None:
