@@ -88,7 +88,9 @@ class RelativeScale(torch.nn.Module):
         )
 
         if self.low_clip > 0.0:
-            loss = loss[loss > self.low_clip]
+            mask = loss > self.low_clip
+            loss = loss[mask]
+            t = t[mask]
 
         loss = loss / (self.b * (1.0 + t))
 
