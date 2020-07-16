@@ -439,7 +439,7 @@ class CompositeLoss(torch.nn.Module):
         LOG.debug('%s: n_vectors = %d, n_scales = %d, margin = %s',
                   head_net.meta.name, self.n_vectors, self.n_scales, self.margin)
 
-        self.confidence_loss = Bce(focal_gamma=self.focal_gamma)
+        self.confidence_loss = Bce(focal_gamma=self.focal_gamma, detach_focal=True)
         self.regression_loss = regression_loss or laplace_loss
         self.scale_losses = torch.nn.ModuleList([Log1pL1(self.b_scale, low_clip=0.01)
                                                  for _ in range(self.n_scales)])
