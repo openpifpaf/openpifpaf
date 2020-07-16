@@ -52,7 +52,9 @@ class CifCafCollector(torch.nn.Module):
         feature_width = int(fields[0].shape[4])
 
         fields = [
-            f.view(batch_size, n_features, f.shape[2] * f.shape[3], feature_height, feature_width)
+            f.view(batch_size, n_features,
+                   int(f.shape[2]) * int(f.shape[3]),
+                   feature_height, feature_width)
             if len(f.shape) == 6
             else f
             for f in fields
