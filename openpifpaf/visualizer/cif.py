@@ -20,15 +20,16 @@ class Cif(BaseVisualizer):
         self.keypoints = keypoints
         self.skeleton = skeleton
 
-        self.keypoint_painter = show.KeypointPainter(xy_scale=self.stride)
+        self.keypoint_painter = show.KeypointPainter()  #xy_scale=self.stride)
 
-    def targets(self, field, keypoint_sets):
+    def targets(self, field, *, annotation_dicts):
         assert self.keypoints is not None
         assert self.skeleton is not None
 
         annotations = [
-            Annotation(keypoints=self.keypoints, skeleton=self.skeleton).set(kps, fixed_score=None)
-            for kps in keypoint_sets
+            Annotation(keypoints=self.keypoints, skeleton=self.skeleton).set(
+                ann['keypoints'], fixed_score=None, fixed_bbox=ann['bbox'])
+            for ann in annotation_dicts
         ]
 
         self._confidences(field[0])
