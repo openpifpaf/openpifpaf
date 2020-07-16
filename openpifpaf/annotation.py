@@ -16,6 +16,7 @@ class Annotation:
         self.data = np.zeros((len(keypoints), 3), dtype=np.float32)
         self.joint_scales = np.zeros((len(keypoints),), dtype=np.float32)
         self.fixed_score = NOTSET
+        self.fixed_bbox = NOTSET
         self.decoding_order = []
         self.frontier_order = []
 
@@ -31,13 +32,14 @@ class Annotation:
         self.data[joint_i] = xyv
         return self
 
-    def set(self, data, joint_scales=None, *, fixed_score=NOTSET):
+    def set(self, data, joint_scales=None, *, fixed_score=NOTSET, fixed_bbox=NOTSET):
         self.data = data
         if joint_scales is not None:
             self.joint_scales = joint_scales
         else:
             self.joint_scales[:] = 0.0
         self.fixed_score = fixed_score
+        self.fixed_bbox = fixed_bbox
         return self
 
     def rescale(self, scale_factor):
@@ -104,6 +106,8 @@ class Annotation:
         return data
 
     def bbox(self):
+        if self.fixed_bbox != NOTSET:
+            return self.fixed_bbox
         return self.bbox_from_keypoints(self.data, self.joint_scales)
 
     @staticmethod

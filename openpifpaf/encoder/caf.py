@@ -59,7 +59,8 @@ class CafGenerator:
         width_height_original = image.shape[2:0:-1]
 
         keypoint_sets = self.config.rescaler.keypoint_sets(anns)
-        bg_mask = self.config.rescaler.bg_mask(anns, width_height_original)
+        bg_mask = self.config.rescaler.bg_mask(anns, width_height_original,
+                                               crowd_margin=(self.config.min_size - 1) / 2)
         valid_area = self.config.rescaler.valid_area(meta)
         LOG.debug('valid area: %s', valid_area)
 
