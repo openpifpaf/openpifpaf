@@ -44,10 +44,17 @@ class CifCafCollector(torch.nn.Module):
 
     @staticmethod
     def concat_fields(fields):
+        # Extract some shape paramters once. Convert to int so they are
+        # treated as constant in ONNX export.
+        batch_size = int(fields[0].shape[0])
+        n_features = int(fields[0].shape[1])
+        feature_height = int(fields[0].shape[3])
+        feature_width = int(fields[0].shape[4])
+
         fields = [
-            f.view(f.shape[0], f.shape[1], f.shape[2] * f.shape[3], *f.shape[4:])
+            f.view(batch_size, n_features, f.shape[2] * f.shape[3], feature_height, feature_width)
             if len(f.shape) == 6
-            else f.view(f.shape[0], f.shape[1], f.shape[2], *f.shape[3:])
+            else f
             for f in fields
         ]
         return torch.cat(fields, dim=2)
@@ -408,40 +415,51 @@ class CompositeFieldFused(torch.nn.Module):
         x = self.conv(x)
         # upscale
         for _ in range(self._quad):
-            x = self.dequad_op(x)[:, :, :-1, :-1]
+            x = self.dequad_op(x)
+            if self.training:
+                x = x[:, :, :-1, :-1]  # negative axes not supported by ONNX TensorRT
+            else:
+                # the int() forces the tracer to use static shape
+                x = x[:, :, :int(x.shape[2]) - 1, :int(x.shape[3]) - 1]
+
+        # Extract some shape parameters once.
+        # Convert to int so that shape is constant in ONNX export.
+        batch_size = int(x.shape[0])
+        feature_height = int(x.shape[2])
+        feature_width = int(x.shape[3])
 
         # classification
         classes_x = x[:, 0:self.out_features[0]]
-        classes_x = classes_x.view(classes_x.shape[0],
+        classes_x = classes_x.view(batch_size,
                                    self.meta.n_fields,
                                    self.meta.n_confidences,
-                                   classes_x.shape[2],
-                                   classes_x.shape[3])
+                                   feature_height,
+                                   feature_width)
         if not self.training:
             classes_x = torch.sigmoid(classes_x)
 
         # regressions
         regs_x = x[:, self.out_features[0]:self.out_features[1]]
-        regs_x = regs_x.view(regs_x.shape[0],
+        regs_x = regs_x.view(batch_size,
                              self.meta.n_fields,
                              self.meta.n_vectors,
                              2,
-                             regs_x.shape[2],
-                             regs_x.shape[3])
+                             feature_height,
+                             feature_width)
         regs_logb = x[:, self.out_features[1]:self.out_features[2]]
-        regs_logb = regs_logb.view(regs_logb.shape[0],
+        regs_logb = regs_logb.view(batch_size,
                                    self.meta.n_fields,
                                    self.meta.n_vectors,
-                                   regs_logb.shape[2],
-                                   regs_logb.shape[3])
+                                   feature_height,
+                                   feature_width)
 
         # scale
         scales_x = x[:, self.out_features[2]:self.out_features[3]]
-        scales_x = scales_x.view(scales_x.shape[0],
+        scales_x = scales_x.view(batch_size,
                                  self.meta.n_fields,
                                  self.meta.n_scales,
-                                 scales_x.shape[2],
-                                 scales_x.shape[3])
+                                 feature_height,
+                                 feature_width)
         if not self.training:
             scales_x = torch.exp(scales_x)
 
