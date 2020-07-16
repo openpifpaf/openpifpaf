@@ -1,10 +1,12 @@
-"""Train a pifpaf net."""
+"""Train a neural net."""
 
 import copy
 import hashlib
 import logging
 import shutil
 import time
+import warnings
+
 import torch
 
 LOG = logging.getLogger(__name__)
@@ -67,7 +69,7 @@ class Trainer(object):
             return
 
         for p, ema_p in zip(self.model.parameters(), self.ema):
-            ema_p.mul_(1.0 - self.ema_decay).add_(self.ema_decay, p.data)
+            ema_p.mul_(1.0 - self.ema_decay).add_(p.data, alpha=self.ema_decay)
 
     def apply_ema(self):
         if self.ema is None:
@@ -90,8 +92,10 @@ class Trainer(object):
 
     def loop(self, train_scenes, val_scenes, epochs, start_epoch=0):
         if self.lr_scheduler is not None:
-            for _ in range(start_epoch * len(train_scenes)):
-                self.lr_scheduler.step()
+            with warnings.catch_warnings():
+                warnings.simplefilter('ignore')
+                for _ in range(start_epoch * len(train_scenes)):
+                    self.lr_scheduler.step()
 
         for epoch in range(start_epoch, epochs):
             self.train(train_scenes, epoch)

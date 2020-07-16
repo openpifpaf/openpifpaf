@@ -7,7 +7,7 @@ import socket
 
 import torch
 
-from . import datasets, encoder, logs, network, optimize, visualizer
+from . import datasets, encoder, logs, network, optimize, show, visualizer
 from . import __version__
 
 LOG = logging.getLogger(__name__)
@@ -50,6 +50,7 @@ def cli():
     encoder.cli(parser)
     optimize.cli(parser)
     datasets.train_cli(parser)
+    show.cli(parser)
     visualizer.cli(parser)
 
     parser.add_argument('-o', '--output', default=None,
@@ -85,6 +86,7 @@ def cli():
     network.losses.configure(args)
     encoder.configure(args)
     datasets.train_configure(args)
+    show.configure(args)
     visualizer.configure(args)
 
     # add args.device

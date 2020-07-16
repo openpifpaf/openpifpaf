@@ -1,6 +1,11 @@
 # History
 
-* [master](https://github.com/vita-epfl/openpifpaf/compare/v0.11.6...master)
+* [master](https://github.com/vita-epfl/openpifpaf/compare/v0.11.7...master)
+* [0.11.7](https://github.com/vita-epfl/openpifpaf/compare/v0.11.6...v0.11.7) (2020-07-14)
+    * fix predict with multiple GPUs
+    * fix ONNX optimization
+    * fix dense connection option and add a test for it
+    * suppress a warning during training that doesn't apply
 * [0.11.6](https://github.com/vita-epfl/openpifpaf/compare/v0.11.4...v0.11.6) (2020-06-15)
     * circular truncation for CifHr
     * extend Guide
