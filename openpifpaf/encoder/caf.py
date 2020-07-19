@@ -174,6 +174,7 @@ class CafGenerator:
         # set fields
         num = max(2, int(np.ceil(offset_d)))
         fmargin = min(0.4, (s_offset + 1) / (offset_d + np.spacing(1)))
+        assert 0.0 <= fmargin <= 0.4
         # fmargin = 0.0
         frange = np.linspace(fmargin, 1.0-fmargin, num=num)
         if self.config.fixed_size:

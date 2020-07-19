@@ -144,7 +144,7 @@ class CifGenerator(object):
         patch[2:, mask] = np.expand_dims(max_r, 1) * 0.5
 
         # update scale
-        assert np.isnan(scale) or scale > 0.0
+        assert np.isnan(scale) or 0.0 < scale < 100.0
         self.fields_scale[f, miny:maxy, minx:maxx][mask] = scale
 
     def fields(self, valid_area):
