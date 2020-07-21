@@ -8069,15 +8069,15 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_32grow_connection_blend(CYTH
   /* "openpifpaf/functional.pyx":371
  *     "BlazeFace: Sub-millisecond Neural Face Detection on Mobile GPUs".
  *     """
- *     cdef float sigma_filter = 2.0 * xy_scale             # <<<<<<<<<<<<<<
+ *     cdef float sigma_filter = 1.5 * xy_scale  # 1.5 = 3 sigma             # <<<<<<<<<<<<<<
  *     cdef float sigma2 = 0.25 * xy_scale * xy_scale
  *     cdef float d2, v, score
  */
-  __pyx_v_sigma_filter = (2.0 * __pyx_v_xy_scale);
+  __pyx_v_sigma_filter = (1.5 * __pyx_v_xy_scale);
 
   /* "openpifpaf/functional.pyx":372
  *     """
- *     cdef float sigma_filter = 2.0 * xy_scale
+ *     cdef float sigma_filter = 1.5 * xy_scale  # 1.5 = 3 sigma
  *     cdef float sigma2 = 0.25 * xy_scale * xy_scale             # <<<<<<<<<<<<<<
  *     cdef float d2, v, score
  * 
