@@ -357,3 +357,65 @@ def caf_center_s(float[:, :] caf_field, float x, float y, float sigma):
         result_i += 1
 
     return result_np[:, :result_i]
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.cdivision(True)
+def grow_connection_blend(float[:, :] caf_field, float x, float y, float xy_scale):
+    """Blending the top two candidates with a weighted average.
+
+    Similar to the post processing step in
+    "BlazeFace: Sub-millisecond Neural Face Detection on Mobile GPUs".
+    """
+    cdef float[:] scores = np.zeros((caf_field.shape[1],), dtype=np.float32)
+    cdef float sigma_filter = 2.0 * xy_scale
+    cdef float d2, v, sigma
+
+    cdef Py_ssize_t i
+    for i in range(caf_field.shape[1]):
+        if caf_field[1, i] < x - sigma_filter:
+            continue
+        if caf_field[1, i] > x + sigma_filter:
+            continue
+        if caf_field[2, i] < y - sigma_filter:
+            continue
+        if caf_field[2, i] > y + sigma_filter:
+            continue
+
+        # source distance
+        d2 = (caf_field[1, i] - x)**2 + (caf_field[2, i] - y)**2
+
+        # combined value and source distance
+        v = caf_field[0, i]
+        sigma = 0.5 * xy_scale
+        scores[i] = approx_exp(-0.5 * d2 / sigma**2) * v
+
+    # blend
+    cdef float[:, :] target_coordinates = caf_field[5:]
+    cdef unsigned int max_score_i = 0
+    cdef unsigned int max_score2_i = 0
+    for i in range(1, scores.shape[0]):
+        if scores[i] > scores[max_score_i]:
+            max_score2_i = max_score_i
+            max_score_i = i
+        elif scores[i] > scores[max_score2_i]:
+            max_score2_i = i
+
+    max_entry_1 = target_coordinates[:, max_score_i]
+    max_entry_2 = target_coordinates[:, max_score2_i]
+    cdef float score_1 = scores[max_score_i]
+    cdef float score_2 = scores[max_score2_i]
+    if score_2 < 0.01 or score_2 < 0.5 * score_1:
+        return max_entry_1[0], max_entry_1[1], max_entry_1[3], score_1 * 0.5
+
+    cdef float blend_d2 = (max_entry_1[0] - max_entry_2[0])**2 + (max_entry_1[1] - max_entry_2[1])**2
+    if blend_d2 > max_entry_1[3]**2 / 4.0:
+        return max_entry_1[0], max_entry_1[1], max_entry_1[3], score_1 * 0.5
+
+    return (
+        (score_1 * max_entry_1[0] + score_2 * max_entry_2[0]) / (score_1 + score_2),
+        (score_1 * max_entry_1[1] + score_2 * max_entry_2[1]) / (score_1 + score_2),
+        (score_1 * max_entry_1[3] + score_2 * max_entry_2[3]) / (score_1 + score_2),
+        0.5 * (score_1 + score_2),
+    )
