@@ -86,12 +86,7 @@ class RelativeScale(torch.nn.Module):
             t,
             reduction='none',
         )
-        loss = torch.clamp_max(loss, 5.0)
-
-        if self.low_clip > 0.0:
-            mask = loss > self.low_clip
-            loss = loss[mask]
-            t = t[mask]
+        loss = torch.clamp(loss, self.low_clip, 5.0)
 
         loss = loss / (self.b * (1.0 + t))
 
@@ -109,10 +104,7 @@ def laplace_loss(x1, x2, logb, t1, t2, *, weight=None, norm_low_clip=0.0):
     # https://github.com/pytorch/pytorch/issues/2421
     # norm = torch.sqrt((x1 - t1)**2 + (x2 - t2)**2)
     norm = (torch.stack((x1, x2)) - torch.stack((t1, t2))).norm(dim=0)
-    norm = torch.clamp_max(norm, 5.0)
-
-    if norm_low_clip > 0.0:
-        norm = torch.clamp_min(norm, norm_low_clip)
+    norm = torch.clamp(norm, norm_low_clip, 5.0)
 
     # constrain range of logb
     # low range constraint: prevent strong confidence when overfitting
