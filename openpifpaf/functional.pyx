@@ -368,7 +368,7 @@ def grow_connection_blend(float[:, :] caf_field, float x, float y, float xy_scal
     Similar to the post processing step in
     "BlazeFace: Sub-millisecond Neural Face Detection on Mobile GPUs".
     """
-    cdef float sigma_filter = 1.0 * xy_scale  # 1.0 = 2 sigma
+    cdef float sigma_filter = 2.0 * xy_scale  # 2.0 = 4 sigma
     cdef float sigma2 = 0.25 * xy_scale * xy_scale
     cdef float d2, v, score
 
@@ -391,7 +391,7 @@ def grow_connection_blend(float[:, :] caf_field, float x, float y, float xy_scal
         d2 = (caf_field[1, i] - x)**2 + (caf_field[2, i] - y)**2
 
         # combined value and source distance
-        score = approx_exp(-0.5 * d2 / sigma2) * caf_field[0, i]
+        score = exp(-0.5 * d2 / sigma2) * caf_field[0, i]
 
         if score > score_1:
             score_2_i = score_1_i

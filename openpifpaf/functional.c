@@ -8069,15 +8069,15 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_32grow_connection_blend(CYTH
   /* "openpifpaf/functional.pyx":371
  *     "BlazeFace: Sub-millisecond Neural Face Detection on Mobile GPUs".
  *     """
- *     cdef float sigma_filter = 1.5 * xy_scale  # 1.5 = 3 sigma             # <<<<<<<<<<<<<<
+ *     cdef float sigma_filter = 2.0 * xy_scale  # 1.0 = 2 sigma             # <<<<<<<<<<<<<<
  *     cdef float sigma2 = 0.25 * xy_scale * xy_scale
  *     cdef float d2, v, score
  */
-  __pyx_v_sigma_filter = (1.5 * __pyx_v_xy_scale);
+  __pyx_v_sigma_filter = (2.0 * __pyx_v_xy_scale);
 
   /* "openpifpaf/functional.pyx":372
  *     """
- *     cdef float sigma_filter = 1.5 * xy_scale  # 1.5 = 3 sigma
+ *     cdef float sigma_filter = 2.0 * xy_scale  # 1.0 = 2 sigma
  *     cdef float sigma2 = 0.25 * xy_scale * xy_scale             # <<<<<<<<<<<<<<
  *     cdef float d2, v, score
  * 
@@ -8268,16 +8268,16 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_32grow_connection_blend(CYTH
     /* "openpifpaf/functional.pyx":394
  * 
  *         # combined value and source distance
- *         score = approx_exp(-0.5 * d2 / sigma2) * caf_field[0, i]             # <<<<<<<<<<<<<<
+ *         score = exp(-0.5 * d2 / sigma2) * caf_field[0, i]             # <<<<<<<<<<<<<<
  * 
  *         if score > score_1:
  */
     __pyx_t_17 = 0;
     __pyx_t_18 = __pyx_v_i;
-    __pyx_v_score = (__pyx_f_10openpifpaf_10functional_approx_exp(((-0.5 * __pyx_v_d2) / ((double)__pyx_v_sigma2))) * (*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_caf_field.data + __pyx_t_17 * __pyx_v_caf_field.strides[0]) ) + __pyx_t_18 * __pyx_v_caf_field.strides[1]) ))));
+    __pyx_v_score = (exp(((-0.5 * __pyx_v_d2) / ((double)__pyx_v_sigma2))) * (*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_caf_field.data + __pyx_t_17 * __pyx_v_caf_field.strides[0]) ) + __pyx_t_18 * __pyx_v_caf_field.strides[1]) ))));
 
     /* "openpifpaf/functional.pyx":396
- *         score = approx_exp(-0.5 * d2 / sigma2) * caf_field[0, i]
+ *         score = exp(-0.5 * d2 / sigma2) * caf_field[0, i]
  * 
  *         if score > score_1:             # <<<<<<<<<<<<<<
  *             score_2_i = score_1_i
@@ -8323,7 +8323,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_32grow_connection_blend(CYTH
       __pyx_v_score_1 = __pyx_v_score;
 
       /* "openpifpaf/functional.pyx":396
- *         score = approx_exp(-0.5 * d2 / sigma2) * caf_field[0, i]
+ *         score = exp(-0.5 * d2 / sigma2) * caf_field[0, i]
  * 
  *         if score > score_1:             # <<<<<<<<<<<<<<
  *             score_2_i = score_1_i
