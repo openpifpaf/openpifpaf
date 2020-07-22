@@ -127,7 +127,10 @@ class CifCaf(Generator):
         xyv = ann.data[start_i]
         xy_scale_s = max(0.0, ann.joint_scales[start_i])
 
-        new_xysv = grow_connection_blend(caf_f, xyv[0], xyv[1], xy_scale_s)
+        only_max = self.connection_method == 'max'
+
+        new_xysv = grow_connection_blend(
+            caf_f, xyv[0], xyv[1], xy_scale_s, only_max)
         keypoint_score = np.sqrt(new_xysv[3] * xyv[2])  # geometric mean
         if keypoint_score < self.keypoint_threshold:
             return 0.0, 0.0, 0.0, 0.0
@@ -137,7 +140,8 @@ class CifCaf(Generator):
 
         # reverse match
         if reverse_match:
-            reverse_xyv = grow_connection_blend(caf_b, new_xysv[0], new_xysv[1], xy_scale_t)
+            reverse_xyv = grow_connection_blend(
+                caf_b, new_xysv[0], new_xysv[1], xy_scale_t, only_max)
             if reverse_xyv[2] == 0.0:
                 return 0.0, 0.0, 0.0, 0.0
             if abs(xyv[0] - reverse_xyv[0]) + abs(xyv[1] - reverse_xyv[1]) > xy_scale_s:

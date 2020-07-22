@@ -362,7 +362,7 @@ def caf_center_s(float[:, :] caf_field, float x, float y, float sigma):
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.cdivision(True)
-def grow_connection_blend(float[:, :] caf_field, float x, float y, float xy_scale):
+def grow_connection_blend(float[:, :] caf_field, float x, float y, float xy_scale, bint only_max=False):
     """Blending the top two candidates with a weighted average.
 
     Similar to the post processing step in
@@ -405,8 +405,12 @@ def grow_connection_blend(float[:, :] caf_field, float x, float y, float xy_scal
     if score_1 == 0.0:
         return 0.0, 0.0, 0.0, 0.0
 
-    # blend
+    # only max
     cdef float[:] entry_1 = caf_field[5:, score_1_i]
+    if only_max:
+        return entry_1[0], entry_1[1], entry_1[3], score_1
+
+    # blend
     cdef float[:] entry_2 = caf_field[5:, score_2_i]
     if score_2 < 0.01 or score_2 < 0.5 * score_1:
         return entry_1[0], entry_1[1], entry_1[3], score_1 * 0.5
