@@ -89,6 +89,8 @@ def apply(model, outfile, input_w=129, input_h=97, verbose=True):
 
 def apply_components(model, outfile, input_w=129, input_h=97, verbose=True):
     output_files = []
+
+    # base
     torch.onnx.export(
         model.base_net,
         torch.randn(1, 3, input_h, input_w),
@@ -101,23 +103,25 @@ def apply_components(model, outfile, input_w=129, input_h=97, verbose=True):
     )
     output_files.append(outfile + '.base.onnx')
 
-    for head_i, head in enumerate(model.head_nets):
-        torch.onnx.export(
-            head,
-            torch.randn(
-                1,
-                model.base_net.out_features,
-                (input_h - 1) // 16 + 1,
-                (input_w - 1) // 16 + 1,
-            ),
-            outfile + '.head{}.onnx'.format(head_i), verbose=verbose,
-            input_names=['features'], output_names=['head{}'.format(head_i)],
-            keep_initializers_as_inputs=True,
-            # opset_version=10,
-            do_constant_folding=True,
-            export_params=True,
-        )
-        output_files.append(outfile + '.head{}.onnx'.format(head_i))
+    # heads
+    head_in_features = model.base_net.out_features
+    model.base_net = torch.nn.Sequential()
+    torch.onnx.export(
+        model,
+        torch.randn(
+            1,
+            head_in_features,
+            (input_h - 1) // 16 + 1,
+            (input_w - 1) // 16 + 1,
+        ),
+        outfile + '.heads.onnx', verbose=verbose,
+        input_names=['features'], output_names=['cif', 'caf'],
+        keep_initializers_as_inputs=True,
+        # opset_version=10,
+        do_constant_folding=True,
+        export_params=True,
+    )
+    output_files.append(outfile + '.heads.onnx')
 
     return output_files
 
