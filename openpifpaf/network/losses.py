@@ -19,7 +19,7 @@ class Bce(torch.nn.Module):
         t_zeroone[t_zeroone > 0.0] = 1.0
         bce = torch.nn.functional.binary_cross_entropy_with_logits(
             x, t_zeroone, reduction='none')
-        bce = torch.clamp_max(bce, 5.0)
+        bce = torch.clamp_max(bce, 20.0)
 
         if self.focal_gamma != 0.0:
             pt = torch.exp(-bce)
