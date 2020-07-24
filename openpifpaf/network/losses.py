@@ -17,9 +17,10 @@ class Bce(torch.nn.Module):
     def forward(self, x, t):  # pylint: disable=arguments-differ
         t_zeroone = t.clone()
         t_zeroone[t_zeroone > 0.0] = 1.0
-        x = torch.clamp(x, -20.0, 20.0)
+        # x = torch.clamp(x, -20.0, 20.0)
         bce = torch.nn.functional.binary_cross_entropy_with_logits(
             x, t_zeroone, reduction='none')
+        bce = torch.clamp(bce, 0.001, 20)  # 0.001 -> -7
 
         if self.focal_gamma != 0.0:
             pt = torch.exp(-bce)
