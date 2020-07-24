@@ -110,7 +110,8 @@ def laplace_loss(x1, x2, logb, t1, t2, *, weight=None, norm_low_clip=0.0):
     # constrain range of logb
     # low range constraint: prevent strong confidence when overfitting
     # high range constraint: force some data dependence
-    logb = 3.0 * torch.tanh(logb / 3.0)
+    # logb = 3.0 * torch.tanh(logb / 3.0)
+    logb = torch.clamp_min(logb, -3.0)
 
     # ln(2) = 0.694
     losses = logb + (norm + 0.1) * torch.exp(-logb)
