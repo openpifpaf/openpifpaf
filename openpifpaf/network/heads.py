@@ -46,10 +46,11 @@ class CifCafCollector(torch.nn.Module):
     def concat_fields(fields):
         # Extract some shape paramters once. Convert to int so they are
         # treated as constant in ONNX export.
-        batch_size = int(fields[0].shape[0])
-        n_features = int(fields[0].shape[1])
-        feature_height = int(fields[0].shape[3])
-        feature_width = int(fields[0].shape[4])
+        f0_size = fields[0].size()
+        batch_size = int(f0_size[0])
+        n_features = int(f0_size[1])
+        feature_height = int(f0_size[3])
+        feature_width = int(f0_size[4])
 
         fields = [
             f.view(batch_size, n_features,
@@ -426,9 +427,10 @@ class CompositeFieldFused(torch.nn.Module):
 
         # Extract some shape parameters once.
         # Convert to int so that shape is constant in ONNX export.
-        batch_size = int(x.shape[0])
-        feature_height = int(x.shape[2])
-        feature_width = int(x.shape[3])
+        x_size = x.size()
+        batch_size = int(x_size[0])
+        feature_height = int(x_size[2])
+        feature_width = int(x_size[3])
 
         # classification
         classes_x = x[:, 0:self.out_features[0]]
