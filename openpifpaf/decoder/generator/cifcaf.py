@@ -215,7 +215,7 @@ class CifCaf(Generator):
                     return (-score, new_xysv, start_i, end_i)
                 if self.confidence_scales is not None:
                     caf_i, _ = self.by_source[start_i][end_i]
-                    score *= self.confidence_scales[caf_i]
+                    score = score * self.confidence_scales[caf_i]
                 heapq.heappush(frontier, (-score, new_xysv, start_i, end_i))
 
         # seeding the frontier
@@ -244,11 +244,14 @@ class CifCaf(Generator):
         frontier = []
 
         def add_to_frontier(start_i):
-            for end_i in self.by_source[start_i].keys():
+            for end_i, (caf_i, _) in self.by_source[start_i].items():
                 if ann.data[end_i, 2] > 0.0:
                     continue
                 start_xyv = ann.data[start_i].tolist()
-                heapq.heappush(frontier, (-xyv[2], end_i, start_xyv, ann.joint_scales[start_i]))
+                score = xyv[2]
+                if self.confidence_scales is not None:
+                    score = score * self.confidence_scales[caf_i]
+                heapq.heappush(frontier, (-score, end_i, start_xyv, ann.joint_scales[start_i]))
 
         for start_i, xyv in enumerate(ann.data):
             if xyv[2] == 0.0:
