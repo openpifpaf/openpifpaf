@@ -178,15 +178,8 @@ class CafGenerator:
         s_offset = (s - 1.0) / 2.0
 
         # set fields
-        # do not start on top of joint but in-between
-        fmargin = (s_offset + 1) / (offset_d + np.spacing(1))
-        # for large distances, limit active range to "10 - size of s"
-        fmargin = max(fmargin, 0.5 - 3.5 / (offset_d + np.spacing(1)))
-        fmargin = min(0.4, fmargin)
-        assert 0.0 <= fmargin <= 0.4
-        # fmargin = 0.0
         num = max(2, int(np.ceil(offset_d)))
-        frange = np.linspace(fmargin, 1.0-fmargin, num=num)
+        frange = np.linspace(0.25, 0.75, num=num)
         if self.config.fixed_size:
             frange = [0.5]
         for f in frange:
