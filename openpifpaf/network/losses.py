@@ -76,11 +76,12 @@ class Log1pL1(torch.nn.Module):
         return loss
 
 
-class RelativeScale(torch.nn.Module):
-    def __init__(self, b, *, low_clip=0.0):
+class ScaleLoss(torch.nn.Module):
+    def __init__(self, b, *, low_clip=0.0, relative=False):
         super().__init__()
         self.b = b
         self.low_clip = low_clip
+        self.relative = relative
 
     def forward(self, logs, t):  # pylint: disable=arguments-differ
         loss = torch.nn.functional.l1_loss(
@@ -90,7 +91,9 @@ class RelativeScale(torch.nn.Module):
         )
         loss = torch.clamp(loss, self.low_clip, 5.0)
 
-        loss = loss / (self.b * (1.0 + t))
+        loss = loss / self.b
+        if self.relative:
+            loss = loss / (1.0 + t)
 
         return loss
 
@@ -461,7 +464,7 @@ class CompositeLoss(torch.nn.Module):
 
         self.confidence_loss = Bce(focal_gamma=self.focal_gamma, detach_focal=True)
         self.regression_loss = regression_loss or laplace_loss
-        self.scale_losses = torch.nn.ModuleList([RelativeScale(self.b_scale, low_clip=0.01)
+        self.scale_losses = torch.nn.ModuleList([ScaleLoss(self.b_scale, low_clip=0.01)
                                                  for _ in range(self.n_scales)])
         self.field_names = (
             ['{}.c'.format(head_net.meta.name)] +
