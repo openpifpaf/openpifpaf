@@ -144,8 +144,8 @@ class CafGenerator:
                 joint2[0] > self.intensities.shape[2] - 1 - 2 * self.config.padding or \
                 joint2[1] > self.intensities.shape[1] - 1 - 2 * self.config.padding
             )
-            if out_field_of_view_1 and out_field_of_view_2:
-                continue
+            # if out_field_of_view_1 and out_field_of_view_2:
+            #     continue
             if self.config.only_in_field_of_view:
                 if out_field_of_view_1 or out_field_of_view_2:
                     continue
