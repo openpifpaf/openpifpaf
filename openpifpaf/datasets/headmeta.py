@@ -31,7 +31,7 @@ def factory_single(head_name):
                                COCO_PERSON_SIGMAS,
                                COCO_UPRIGHT_POSE,
                                DENSER_COCO_PERSON_CONNECTIONS,
-                            #    sparse_skeleton=COCO_PERSON_SKELETON,
+                               sparse_skeleton=COCO_PERSON_SKELETON,
                                only_in_field_of_view=True)
     if 'caf16' in head_name:
         return AssociationMeta(head_name,
