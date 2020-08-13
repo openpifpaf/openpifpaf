@@ -1,5 +1,4 @@
 import logging
-import numpy as np
 
 from .base import BaseVisualizer
 from ..annotation import Annotation
@@ -53,13 +52,6 @@ class Caf(BaseVisualizer):
 
             with self.image_canvas(self._processed_image) as ax:
                 im = ax.imshow(self.scale_scalar(confidences[f], self.stride),
-                               alpha=0.9, vmin=0.0, vmax=1.0, cmap='Blues')
-                self.colorbar(ax, im)
-
-            with self.image_canvas(self._processed_image) as ax:
-                extremes = np.copy(confidences[f])
-                extremes[np.logical_and(extremes > 0.001, extremes < 0.999)] = np.nan
-                im = ax.imshow(self.scale_scalar(extremes, self.stride),
                                alpha=0.9, vmin=0.0, vmax=1.0, cmap='Blues')
                 self.colorbar(ax, im)
 

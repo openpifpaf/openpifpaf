@@ -35,47 +35,6 @@ class Bce(torch.nn.Module):
         return bce
 
 
-class Log1pL1Tuned(torch.nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.logb = torch.nn.Parameter(torch.zeros((1,), dtype=torch.float64))
-
-    def forward(self, logs, t):  # pylint: disable=arguments-differ
-        loss = torch.nn.functional.l1_loss(
-            torch.log1p(torch.exp(logs)),
-            torch.log1p(t),
-            reduction='none',
-        )
-
-        # constrain range of logb
-        self.logb.data.clamp_min_(-3.0)
-
-        # ln(2) = 0.694
-        return self.logb + (loss + 0.1) * torch.exp(-self.logb)
-
-
-class Log1pL1(torch.nn.Module):
-    def __init__(self, b, *, low_clip=0.0):
-        super().__init__()
-        self.b = b
-        self.low_clip = low_clip
-
-    def forward(self, logs, t):  # pylint: disable=arguments-differ
-        loss = torch.nn.functional.l1_loss(
-            torch.log1p(torch.exp(logs)),
-            torch.log1p(t),
-            reduction='none',
-        )
-
-        if self.low_clip > 0.0:
-            loss_low_clip = torch.log1p(t + self.low_clip) - torch.log1p(t)
-            loss = loss[loss > loss_low_clip]
-
-        loss = loss / self.b
-
-        return loss
-
-
 class ScaleLoss(torch.nn.Module):
     def __init__(self, b, *, low_clip=0.0, relative=False):
         super().__init__()
@@ -140,15 +99,6 @@ def logl1_loss(logx, t, **kwargs):
     """Swap in replacement for functional.l1_loss."""
     return torch.nn.functional.l1_loss(
         logx, torch.log(t), **kwargs)
-
-
-def log1pl1_loss(logx, t, **kwargs):
-    """Swap in replacement for functional.l1_loss."""
-    return torch.nn.functional.l1_loss(
-        torch.log1p(torch.exp(logx)),
-        torch.log1p(t),
-        **kwargs
-    )
 
 
 def margin_loss(x1, x2, t1, t2, max_r1, max_r2, max_r3, max_r4):
@@ -613,9 +563,11 @@ def cli(parser):
     group.add_argument('--margin-loss', default=False, action='store_true',
                        help='[experimental]')
     group.add_argument('--auto-tune-mtl', default=False, action='store_true',
-                       help='use Kendall\'s prescription for adjusting the multitask weight')
+                       help=('[experimental] use Kendall\'s prescription for '
+                             'adjusting the multitask weight'))
     group.add_argument('--auto-tune-mtl-variance', default=False, action='store_true',
-                       help='use Variance prescription for adjusting the multitask weight')
+                       help=('[experimental] use Variance prescription for '
+                             'adjusting the multitask weight'))
     assert MultiHeadLoss.task_sparsity_weight == MultiHeadLossAutoTuneKendall.task_sparsity_weight
     assert MultiHeadLoss.task_sparsity_weight == MultiHeadLossAutoTuneVariance.task_sparsity_weight
     group.add_argument('--task-sparsity-weight',
@@ -645,7 +597,7 @@ def factory_from_args(args, head_nets):
         args.lambdas,
         reg_loss_name=args.regression_loss,
         device=args.device,
-        auto_tune_mtl=args.auto_tune_mtl,
+        auto_tune_mtl_kendall=args.auto_tune_mtl,
         auto_tune_mtl_variance=args.auto_tune_mtl_variance,
     )
 
@@ -653,7 +605,7 @@ def factory_from_args(args, head_nets):
 # pylint: disable=too-many-branches
 def factory(head_nets, lambdas, *,
             reg_loss_name=None, device=None,
-            auto_tune_mtl=False, auto_tune_mtl_variance=False):
+            auto_tune_mtl_kendall=False, auto_tune_mtl_variance=False):
     if isinstance(head_nets[0], (list, tuple)):
         return [factory(hn, lam,
                         reg_loss_name=reg_loss_name,
@@ -684,7 +636,7 @@ def factory(head_nets, lambdas, *,
                                 ''.format(head_net.meta.name, type(head_net)))
 
     losses = [CompositeLoss(head_net, reg_loss) for head_net in head_nets]
-    if auto_tune_mtl:
+    if auto_tune_mtl_kendall:
         loss = MultiHeadLossAutoTuneKendall(losses, lambdas,
                                             sparse_task_parameters=sparse_task_parameters)
     elif auto_tune_mtl_variance:
