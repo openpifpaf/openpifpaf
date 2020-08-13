@@ -71,12 +71,14 @@ class RescaleRelative(Preprocess):
                  resample=PIL.Image.BILINEAR,
                  absolute_reference=None,
                  fast=False,
-                 power_law=False):
+                 power_law=False,
+                 stretch_range=None):
         self.scale_range = scale_range
         self.resample = resample
         self.absolute_reference = absolute_reference
         self.fast = fast
         self.power_law = power_law
+        self.stretch_range = stretch_range
 
     def __call__(self, image, anns, meta):
         if isinstance(self.scale_range, tuple):
@@ -106,7 +108,15 @@ class RescaleRelative(Preprocess):
             else:
                 w *= self.absolute_reference / h
                 h = self.absolute_reference
-        target_w, target_h = int(w * scale_factor), int(h * scale_factor)
+
+        stretch_factor = 1.0
+        if self.stretch_range is not None:
+            stretch_factor = (
+                self.stretch_range[0] +
+                torch.rand(1).item() * (self.stretch_range[1] - self.stretch_range[0])
+            )
+
+        target_w, target_h = int(w * scale_factor * stretch_factor), int(h * scale_factor)
         return _scale(image, anns, meta, target_w, target_h, self.resample, fast=self.fast)
 
 

@@ -66,11 +66,11 @@ def train_cocokp_preprocess_factory(
     if extended_scale:
         rescale_t = transforms.RescaleRelative(
             scale_range=(0.25 * rescale_images, 2.0 * rescale_images),
-            power_law=True)
+            power_law=True, stretch_range=(0.75, 1.33))
     else:
         rescale_t = transforms.RescaleRelative(
             scale_range=(0.4 * rescale_images, 2.0 * rescale_images),
-            power_law=True)
+            power_law=True, stretch_range=(0.75, 1.33))
 
     orientation_t = None
     if orientation_invariant:
@@ -107,11 +107,11 @@ def train_cocodet_preprocess_factory(
     if extended_scale:
         rescale_t = transforms.RescaleRelative(
             scale_range=(0.5 * rescale_images, 2.0 * rescale_images),
-            power_law=True)
+            power_law=True, stretch_range=(0.75, 1.33))
     else:
         rescale_t = transforms.RescaleRelative(
             scale_range=(0.7 * rescale_images, 1.5 * rescale_images),
-            power_law=True)
+            power_law=True, stretch_range=(0.75, 1.33))
 
     orientation_t = None
     if orientation_invariant:
