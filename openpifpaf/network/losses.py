@@ -519,9 +519,6 @@ class CompositeLoss(torch.nn.Module):
 
         x, t = args
 
-        x = [xx.double() for xx in x]
-        t = [tt.double() for tt in t]
-
         x_confidence, x_regs, x_logbs, x_scales = x
 
         assert len(t) == 1 + self.n_vectors + self.n_scales
