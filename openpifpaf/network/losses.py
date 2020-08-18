@@ -414,7 +414,7 @@ class CompositeLoss(torch.nn.Module):
 
         self.confidence_loss = Bce(focal_gamma=self.focal_gamma, detach_focal=True)
         self.regression_loss = regression_loss or laplace_loss
-        self.scale_losses = torch.nn.ModuleList([ScaleLoss(self.b_scale, low_clip=0.0)
+        self.scale_losses = torch.nn.ModuleList([ScaleLoss(self.b_scale, low_clip=0.01)
                                                  for _ in range(self.n_scales)])
         self.field_names = (
             ['{}.c'.format(head_net.meta.name)] +
@@ -474,7 +474,7 @@ class CompositeLoss(torch.nn.Module):
                 torch.masked_select(x_logbs[:, :, i], reg_masks),
                 torch.masked_select(target_reg[:, :, 0], reg_masks),
                 torch.masked_select(target_reg[:, :, 1], reg_masks),
-                norm_low_clip=0.0,
+                norm_low_clip=0.01,
             ).sum() / batch_size)
 
         return reg_losses
