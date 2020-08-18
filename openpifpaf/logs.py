@@ -64,19 +64,21 @@ def optionally_shaded(ax, x, y, *, color, label, **kwargs):
 
 
 class Plots(object):
-    def __init__(self, log_files, labels=None, output_prefix=None):
+    def __init__(self, log_files, labels=None, output_prefix=None, first_epoch=0.0):
         self.log_files = log_files
-        self.datas = [self.read_log(f) for f in log_files]
         self.labels = labels or [lf.replace('outputs/', '') for lf in log_files]
         self.output_prefix = output_prefix or log_files[-1] + '.'
+        self.first_epoch = first_epoch
 
-    @staticmethod
-    def read_log(path):
+        self.datas = [self.read_log(f) for f in log_files]
+
+    def read_log(self, path):
         sc = pysparkling.Context()
         return (sc
                 .textFile(path)
                 .filter(lambda line: line.startswith(('{', 'json:')) and line.endswith('}'))
                 .map(lambda line: json.loads(line.strip('json:')))
+                .filter(lambda data: data.get('epoch', np.inf) >= self.first_epoch)
                 .groupBy(lambda data: data.get('type'))
                 .collectAsMap())
 
@@ -383,11 +385,12 @@ class Plots(object):
 class EvalPlots(object):
     def __init__(self, log_files, labels=None, output_prefix=None,
                  edge=321, decoder=0, legend_last_ap=True,
-                 modifiers=''):
+                 modifiers='', first_epoch=0.0):
         self.edge = edge
         self.decoder = decoder
         self.legend_last_ap = legend_last_ap
         self.modifiers = modifiers
+        self.first_epoch = first_epoch
 
         self.datas = [self.read_log(f) for f in log_files]
         self.labels = labels or [lf.replace('outputs/', '') for lf in log_files]
@@ -416,7 +419,7 @@ class EvalPlots(object):
                     epoch_from_filename(k_c[0]),
                     json.loads(k_c[1]),
                 ))
-                .filter(lambda k_c: len(k_c[1]['stats']) == 10)
+                .filter(lambda k_c: k_c[0] >= self.first_epoch and len(k_c[1]['stats']) == 10)
                 .sortByKey()
                 .collect())
 
@@ -536,8 +539,9 @@ def main():
                         help='path to log file')
     parser.add_argument('--label', nargs='+',
                         help='labels in the same order as files')
-    parser.add_argument('--eval-edge', default=593, type=int,
+    parser.add_argument('--eval-edge', default=641, type=int,
                         help='side length during eval')
+    parser.add_argument('--first-epoch', default=1e-6, type=float)
     parser.add_argument('--no-share-y', dest='share_y',
                         default=True, action='store_false',
                         help='dont share y access')
@@ -550,10 +554,12 @@ def main():
         args.output = args.log_file[-1] + '.'
 
     EvalPlots(args.log_file, args.label, args.output,
-              edge=args.eval_edge).show_all(share_y=args.share_y)
+              edge=args.eval_edge, first_epoch=args.first_epoch,
+              ).show_all(share_y=args.share_y)
     EvalPlots(args.log_file, args.label, args.output,
-              edge=args.eval_edge, modifiers='-os').show_all(share_y=args.share_y)
-    Plots(args.log_file, args.label, args.output).show_all(
+              edge=args.eval_edge, modifiers='-os', first_epoch=args.first_epoch,
+              ).show_all(share_y=args.share_y)
+    Plots(args.log_file, args.label, args.output, first_epoch=args.first_epoch).show_all(
         share_y=args.share_y, show_mtl_sigmas=args.show_mtl_sigmas)
 
 
