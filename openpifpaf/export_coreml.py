@@ -25,6 +25,7 @@ def apply(model, outfile, input_w=129, input_h=97):
         traced_model,
         inputs=[coremltools.ImageType(name='image', shape=dummy_input.shape)],
         # classifier_config = ct.ClassifierConfig(class_labels) # provide only if step 4 was performed
+        minimum_deployment_target=coremltools.target.iOS13,
     )
 
     # Meta
