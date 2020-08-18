@@ -445,6 +445,7 @@ class CompositeFieldFused(torch.nn.Module):
 class CompositeFieldFused2(torch.nn.Module):
     dropout_p = 0.0
     quad = 1
+    inplace_ops = False
 
     def __init__(self,
                  meta: Union[IntensityMeta, AssociationMeta, DetectionMeta],
@@ -503,7 +504,7 @@ class CompositeFieldFused2(torch.nn.Module):
             feature_width
         )
 
-        if not self.training:
+        if not self.training and self.inplace_ops:
             # classification
             classes_x = x[:, :, 0:self.meta.n_confidences]
             torch.sigmoid_(classes_x)
@@ -512,5 +513,21 @@ class CompositeFieldFused2(torch.nn.Module):
             first_scale_feature = self.meta.n_confidences + self.meta.n_vectors * 3
             scales_x = x[:, first_scale_feature:first_scale_feature + self.meta.n_scales]
             torch.exp_(scales_x)
+        elif not self.training and not self.inplace_ops:
+            # classification
+            classes_x = x[:, :, 0:self.meta.n_confidences]
+            classes_x = torch.sigmoid(classes_x)
+
+            # regressions
+            first_reg_feature = self.meta.n_confidences
+            regs_x = x[:, :, first_reg_feature:first_reg_feature + self.meta.n_vectors * 3]
+
+            # scale
+            first_scale_feature = self.meta.n_confidences + self.meta.n_vectors * 3
+            scales_x = x[:, :, first_scale_feature:first_scale_feature + self.meta.n_scales]
+            scales_x = torch.exp(scales_x)
+
+            # concat
+            x = torch.cat([classes_x, regs_x, scales_x], dim=2)
 
         return x
