@@ -294,7 +294,7 @@ class CompositeLoss(torch.nn.Module):
 
         return ce_loss
 
-    def _localization_loss(self, x_regs, x_logbs, target_regs):
+    def _localization_loss(self, x_regs, target_regs):
         batch_size = target_regs[0].shape[0]
 
         reg_losses = []
@@ -305,9 +305,9 @@ class CompositeLoss(torch.nn.Module):
                 continue
 
             reg_losses.append(self.regression_loss(
-                torch.masked_select(x_regs[:, :, i, 0], reg_masks),
-                torch.masked_select(x_regs[:, :, i, 1], reg_masks),
-                torch.masked_select(x_logbs[:, :, i], reg_masks),
+                torch.masked_select(x_regs[:, :, i*2 + 0], reg_masks),
+                torch.masked_select(x_regs[:, :, i*2 + 1], reg_masks),
+                torch.masked_select(x_regs[:, :, len(target_regs)*2 + i], reg_masks),
                 torch.masked_select(target_reg[:, :, 0], reg_masks),
                 torch.masked_select(target_reg[:, :, 1], reg_masks),
                 weight=0.1,
@@ -357,10 +357,12 @@ class CompositeLoss(torch.nn.Module):
 
         x, t = args
 
-        x = [xx.double() for xx in x]
-        t = [tt.double() for tt in t]
+        # x = [xx.double() for xx in x]
+        # t = [tt.double() for tt in t]
 
-        x_confidence, x_regs, x_logbs, x_scales = x
+        x_confidence = x[:, :, 0:1]
+        x_regs = x[:, :, 1:1 + self.n_vectors * 3]
+        x_scales = x[:, :, 1 + self.n_vectors * 3:]
 
         assert len(t) == 1 + self.n_vectors + self.n_scales
         running_t = iter(t)
@@ -369,7 +371,7 @@ class CompositeLoss(torch.nn.Module):
         target_scales = [next(running_t) for _ in range(self.n_scales)]
 
         ce_loss = self._confidence_loss(x_confidence, target_confidence)
-        reg_losses = self._localization_loss(x_regs, x_logbs, target_regs)
+        reg_losses = self._localization_loss(x_regs, target_regs)
         scale_losses = self._scale_losses(x_scales, target_scales)
         margin_losses = self._margin_losses(x_regs, target_regs,
                                             target_confidence=target_confidence)

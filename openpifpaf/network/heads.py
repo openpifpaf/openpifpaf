@@ -65,15 +65,11 @@ class CifCafCollector(torch.nn.Module):
     def forward(self, *args):
         heads = args[0]
 
-        # concat fields
-        cif_heads = [self.concat_fields(self.selector(heads, head_index))
-                     for head_index in self.cif_indices]
-        caf_heads = [self.concat_fields(self.selector(heads, head_index))
-                     for head_index in self.caf_indices]
-
         # concat heads
-        cif_head = self.concat_heads(cif_heads)
-        caf_head = self.concat_heads(caf_heads)
+        cif_head = self.concat_heads([self.selector(heads, head_index)
+                                      for head_index in self.cif_indices])
+        caf_head = self.concat_heads([self.selector(heads, head_index)
+                                      for head_index in self.caf_indices])
 
         # add index
         index_field = index_field_torch(cif_head.shape[-2:], device=cif_head.device)
@@ -82,8 +78,6 @@ class CifCafCollector(torch.nn.Module):
         if caf_head is not None:
             caf_head[:, :, 1:3].add_(index_field)
             caf_head[:, :, 3:5].add_(index_field)
-            # rearrange caf_fields
-            caf_head = caf_head[:, :, (0, 1, 2, 5, 7, 3, 4, 6, 8)]
 
         return cif_head, caf_head
 
@@ -446,3 +440,77 @@ class CompositeFieldFused(torch.nn.Module):
             scales_x = torch.exp(scales_x)
 
         return classes_x, regs_x, regs_logb, scales_x
+
+
+class CompositeFieldFused2(torch.nn.Module):
+    dropout_p = 0.0
+    quad = 1
+
+    def __init__(self,
+                 meta: Union[IntensityMeta, AssociationMeta, DetectionMeta],
+                 in_features, *,
+                 kernel_size=1, padding=0, dilation=1):
+        super().__init__()
+
+        LOG.debug('%s config: fields = %d, confidences = %d, vectors = %d, scales = %d '
+                  'kernel = %d, padding = %d, dilation = %d',
+                  meta.name, meta.n_fields, meta.n_confidences, meta.n_vectors, meta.n_scales,
+                  kernel_size, padding, dilation)
+
+        self.meta = meta
+        self.dropout = torch.nn.Dropout2d(p=self.dropout_p)
+        self._quad = self.quad
+
+        # convolution
+        out_features = meta.n_fields * (meta.n_confidences + meta.n_vectors * 3 + meta.n_scales)
+        self.conv = torch.nn.Conv2d(in_features, out_features * (4 ** self._quad),
+                                    kernel_size, padding=padding, dilation=dilation)
+
+        # dequad
+        self.dequad_op = torch.nn.PixelShuffle(2)
+
+    @property
+    def sparse_task_parameters(self):
+        return [self.conv.weight]
+
+    def stride(self, basenet_stride):
+        return basenet_stride // (2 ** self._quad)
+
+    def forward(self, x):  # pylint: disable=arguments-differ
+        x = self.dropout(x)
+        x = self.conv(x)
+        # upscale
+        for _ in range(self._quad):
+            x = self.dequad_op(x)
+            if self.training:
+                x = x[:, :, :-1, :-1]  # negative axes not supported by ONNX TensorRT
+            else:
+                # the int() forces the tracer to use static shape
+                x = x[:, :, :int(x.shape[2]) - 1, :int(x.shape[3]) - 1]
+
+        # Extract some shape parameters once.
+        # Convert to int so that shape is constant in ONNX export.
+        x_size = x.size()
+        batch_size = int(x_size[0])
+        feature_height = int(x_size[2])
+        feature_width = int(x_size[3])
+
+        x = x.view(
+            batch_size,
+            self.meta.n_fields,
+            self.meta.n_confidences + self.meta.n_vectors * 3 + self.meta.n_scales,
+            feature_height,
+            feature_width
+        )
+
+        if not self.training:
+            # classification
+            classes_x = x[:, :, 0:self.meta.n_confidences]
+            torch.sigmoid_(classes_x)
+
+            # scale
+            first_scale_feature = self.meta.n_confidences + self.meta.n_vectors * 3
+            scales_x = x[:, first_scale_feature:first_scale_feature + self.meta.n_scales]
+            torch.exp_(scales_x)
+
+        return x
