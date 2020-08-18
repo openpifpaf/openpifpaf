@@ -442,7 +442,7 @@ class CompositeFieldFused(torch.nn.Module):
         return classes_x, regs_x, regs_logb, scales_x
 
 
-class CompositeFieldFused2(torch.nn.Module):
+class CompositeField3(torch.nn.Module):
     dropout_p = 0.0
     quad = 1
     inplace_ops = False
