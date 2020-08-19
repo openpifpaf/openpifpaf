@@ -1,9 +1,5 @@
 # Introduction
 
-```{note}
-Under construction.
-```
-
 Continuously tested on Linux, MacOS and Windows: [![Build Status](https://travis-ci.org/vita-epfl/openpifpaf.svg?branch=master)](https://travis-ci.org/vita-epfl/openpifpaf)<br />
 [CVPR 2019 paper](http://openaccess.thecvf.com/content_CVPR_2019/html/Kreiss_PifPaf_Composite_Fields_for_Human_Pose_Estimation_CVPR_2019_paper.html)
 <!-- [arxiv.org/abs/1903.06593](https://arxiv.org/abs/1903.06593) -->
@@ -56,6 +52,8 @@ pip3 install openpifpaf
 ```
 
 You need to install `matplotlib` to produce visual outputs.
+
+To modify openpifpaf itself, please follow {ref}`modify-code`.
 
 For a live demo, we recommend to try the
 [openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo) project.

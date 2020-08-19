@@ -1,6 +1,13 @@
 # History
 
-* [master](https://github.com/vita-epfl/openpifpaf/compare/v0.11.7...master)
+* [master](https://github.com/vita-epfl/openpifpaf/compare/v0.11.8...master)
+* [0.11.8](https://github.com/vita-epfl/openpifpaf/compare/v0.11.7...v0.11.8) (2020-08-19)
+    * PyTorch 1.6 compatibility
+    * modified loss recommendation to avoid autotune
+    * use versioneer to create dynamic version numbers
+    * use stretch augmentation [#262](https://github.com/vita-epfl/openpifpaf/pull/262)
+    * improved decoding performance [#252](https://github.com/vita-epfl/openpifpaf/pull/252)
+    * add v0.8 cpp decoder [#249](https://github.com/vita-epfl/openpifpaf/pull/249)
 * [0.11.7](https://github.com/vita-epfl/openpifpaf/compare/v0.11.6...v0.11.7) (2020-07-14)
     * fix predict with multiple GPUs
     * fix ONNX optimization

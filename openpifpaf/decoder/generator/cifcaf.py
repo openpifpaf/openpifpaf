@@ -36,7 +36,6 @@ class CifCaf(Generator):
                  keypoints,
                  skeleton,
                  out_skeleton=None,
-                 confidence_scales=None,
                  worker_pool=None,
                  nms=True):
         super().__init__(worker_pool)
@@ -49,7 +48,6 @@ class CifCaf(Generator):
         self.skeleton = skeleton
         self.skeleton_m1 = np.asarray(skeleton) - 1
         self.out_skeleton = out_skeleton or skeleton
-        self.confidence_scales = confidence_scales
         self.nms = nms
 
         self.timers = defaultdict(float)
@@ -190,8 +188,8 @@ class CifCaf(Generator):
                     continue
 
                 max_possible_score = np.sqrt(ann.data[start_i, 2])
-                if self.confidence_scales is not None:
-                    max_possible_score *= self.confidence_scales[caf_i]
+                if self.field_config.confidence_scales is not None:
+                    max_possible_score *= self.field_config.confidence_scales[caf_i]
                 heapq.heappush(frontier, (-max_possible_score, None, start_i, end_i))
                 in_frontier.add((start_i, end_i))
                 ann.frontier_order.append((start_i, end_i))
@@ -213,9 +211,9 @@ class CifCaf(Generator):
                 score = new_xysv[3]
                 if self.greedy:
                     return (-score, new_xysv, start_i, end_i)
-                if self.confidence_scales is not None:
+                if self.field_config.confidence_scales is not None:
                     caf_i, _ = self.by_source[start_i][end_i]
-                    score *= self.confidence_scales[caf_i]
+                    score = score * self.field_config.confidence_scales[caf_i]
                 heapq.heappush(frontier, (-score, new_xysv, start_i, end_i))
 
         # seeding the frontier
@@ -244,11 +242,14 @@ class CifCaf(Generator):
         frontier = []
 
         def add_to_frontier(start_i):
-            for end_i in self.by_source[start_i].keys():
+            for end_i, (caf_i, _) in self.by_source[start_i].items():
                 if ann.data[end_i, 2] > 0.0:
                     continue
                 start_xyv = ann.data[start_i].tolist()
-                heapq.heappush(frontier, (-xyv[2], end_i, start_xyv, ann.joint_scales[start_i]))
+                score = xyv[2]
+                if self.field_config.confidence_scales is not None:
+                    score = score * self.field_config.confidence_scales[caf_i]
+                heapq.heappush(frontier, (-score, end_i, start_xyv, ann.joint_scales[start_i]))
 
         for start_i, xyv in enumerate(ann.data):
             if xyv[2] == 0.0:
