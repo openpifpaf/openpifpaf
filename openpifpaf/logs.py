@@ -287,7 +287,7 @@ class Plots(object):
 
         ax.set_xlabel('epoch')
         ax.set_ylabel(format(field_name))
-        ax.set_ylim(3e-3, 3.0)
+        # ax.set_ylim(3e-3, 3.0)
         if min(y) > -0.1:
             ax.set_yscale('log', nonposy='clip')
         ax.grid(linestyle='dotted')
