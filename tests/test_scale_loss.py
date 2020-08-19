@@ -4,7 +4,7 @@ import openpifpaf
 
 
 def test_relative_scale_loss():
-    loss = openpifpaf.network.losses.RelativeScale(1.0)
+    loss = openpifpaf.network.losses.ScaleLoss(1.0)
     x = torch.ones((4,)).log()
     t = torch.ones((4,))
     loss_values = loss(x, t)
@@ -12,7 +12,7 @@ def test_relative_scale_loss():
 
 
 def test_relative_scale_loss_masked():
-    loss = openpifpaf.network.losses.RelativeScale(1.0)
+    loss = openpifpaf.network.losses.ScaleLoss(1.0)
     x = torch.ones((4,)).log()
     t = torch.ones((4,))
 
