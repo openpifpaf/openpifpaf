@@ -98,6 +98,9 @@ class Trainer(object):
                     self.lr_scheduler.step()
 
         for epoch in range(start_epoch, epochs):
+            if epoch == 0:
+                self.write_model(0, final=False)
+
             self.train(train_scenes, epoch)
 
             self.write_model(epoch + 1, epoch == epochs - 1)
