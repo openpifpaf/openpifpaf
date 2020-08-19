@@ -1,18 +1,24 @@
 - file: intro
-- file: datasets
-- file: train
-- file: predict_cli
-- file: cli_help
-- file: examples
-- file: faq
 
-- header: API
-- file: predict_api
-- file: moduledocs
+- part: Getting Started
+  chapters:
+  - file: datasets
+  - file: train
+  - file: predict_cli
+  - file: cli_help
+  - file: examples
+  - file: faq
 
-- header: Development
-- file: dev
-- title: History
-  url: https://github.com/vita-epfl/openpifpaf/blob/master/HISTORY.md
-- title: GitHub
-  url: https://github.com/vita-epfl/openpifpaf
+- part: API
+  chapters:
+  - file: predict_api
+  - file: moduledocs
+
+- part: Development
+  chapters:
+  - file: dev
+  - file: profile
+  - title: History
+    url: https://github.com/vita-epfl/openpifpaf/blob/master/HISTORY.md
+  - title: GitHub
+    url: https://github.com/vita-epfl/openpifpaf
