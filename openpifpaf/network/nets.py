@@ -150,6 +150,10 @@ def model_migration(net_cpu):
     if not hasattr(net_cpu, 'process_heads'):
         net_cpu.process_heads = None
 
+    for m in net_cpu.modules():
+        if not hasattr(m, '_non_persistent_buffers_set'):
+            m._non_persistent_buffers_set = set()  # pylint: disable=protected-access
+
 
 def model_defaults(net_cpu):
     for m in net_cpu.modules():
