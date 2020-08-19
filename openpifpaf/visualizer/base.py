@@ -5,13 +5,8 @@ import numpy as np
 from .. import show
 
 try:
-    import matplotlib.cm
     import matplotlib.pyplot as plt
     from mpl_toolkits.axes_grid1 import make_axes_locatable
-
-    matplotlib.cm.get_cmap('Oranges').set_bad('white', alpha=0.5)
-    matplotlib.cm.get_cmap('Blues').set_bad('white', alpha=0.5)
-    matplotlib.cm.get_cmap('Greens').set_bad('white', alpha=0.5)
 except ImportError:
     plt = None
     make_axes_locatable = None
