@@ -63,6 +63,21 @@ def optionally_shaded(ax, x, y, *, color, label, **kwargs):
         ax.plot(x, y, color=color, label=label, **kwargs)
 
 
+def fractional_epoch(row, *, default=None):
+    """Given a data row, compute the fractional epoch taking batch into account.
+
+    Example:
+        Epoch 1 at batch 30 out of 100 batches per epoch would return
+        epoch 1.3.
+    """
+
+    if 'epoch' not in row:
+        return default
+    if 'batch' not in row:
+        return row.get('epoch')
+    return row.get('epoch') + row.get('batch') / row.get('n_batches')
+
+
 class Plots(object):
     def __init__(self, log_files, labels=None, output_prefix=None, first_epoch=0.0):
         self.log_files = log_files
@@ -78,7 +93,7 @@ class Plots(object):
                 .textFile(path)
                 .filter(lambda line: line.startswith(('{', 'json:')) and line.endswith('}'))
                 .map(lambda line: json.loads(line.strip('json:')))
-                .filter(lambda data: data.get('epoch', np.inf) >= self.first_epoch)
+                .filter(lambda data: fractional_epoch(data, default=np.inf) >= self.first_epoch)
                 .groupBy(lambda data: data.get('type'))
                 .collectAsMap())
 
@@ -100,8 +115,7 @@ class Plots(object):
             color = matplotlib.cm.get_cmap('tab10')((color_i % 10 + 0.05) / 10)
 
             if 'train' in data:
-                x = np.array([row.get('epoch') + row.get('batch') / row.get('n_batches')
-                              for row in data['train']])
+                x = np.array([fractional_epoch(row) for row in data['train']])
                 y = [datetime.datetime.strptime(row.get('asctime')[:-4], '%Y-%m-%d %H:%M:%S')
                      for row in data['train']]
                 y = [(yi - y[0]).total_seconds() / 3600.0 for yi in y]
@@ -140,8 +154,7 @@ class Plots(object):
             color = matplotlib.cm.get_cmap('tab10')((color_i % 10 + 0.05) / 10)
 
             if 'train' in data:
-                x = [row.get('epoch') + row.get('batch') / row.get('n_batches')
-                     for row in data['train']]
+                x = [fractional_epoch(row) for row in data['train']]
                 y = [row.get('lr') for row in data['train']]
                 ax.plot(x, y, color=color, label=label)
 
@@ -217,8 +230,7 @@ class Plots(object):
             color = matplotlib.cm.get_cmap('tab10')((color_i % 10 + 0.05) / 10)
 
             if 'train' in data:
-                x = np.array([row.get('epoch') + row.get('batch') / row.get('n_batches')
-                              for row in data['train']])
+                x = np.array([fractional_epoch(row) for row in data['train']])
                 y = np.array([row.get('data_time') / row.get('time') * 100.0
                               for row in data['train']], dtype=np.float)
                 stride = int(len(x) / (x[-1] - x[0]) / 30.0)  # 30 per epoch
@@ -246,8 +258,7 @@ class Plots(object):
                 xy_all = defaultdict(list)
                 for row in data['train']:
                     xy_all[row.get('loss_index', 0)].append(
-                        (row.get('epoch') + row.get('batch') / row.get('n_batches'),
-                         row.get('loss'))
+                        (fractional_epoch(row), row.get('loss'))
                     )
                 for loss_index, xy in xy_all.items():
                     x = np.array([x for x, _ in xy])
@@ -278,8 +289,7 @@ class Plots(object):
             field_i = field_names[label].index(field_name)
 
             if 'train' in data:
-                x = np.array([row.get('epoch') + row.get('batch') / row.get('n_batches')
-                              for row in data['train']])
+                x = np.array([fractional_epoch(row) for row in data['train']])
                 y = np.array([row.get('head_losses')[field_i]
                               for row in data['train']], dtype=np.float)
                 m = np.logical_not(np.isnan(y))
@@ -302,8 +312,7 @@ class Plots(object):
             field_i = field_names[label].index(field_name)
 
             if 'train' in data:
-                x = np.array([row.get('epoch') + row.get('batch') / row.get('n_batches')
-                              for row in data['train']])
+                x = np.array([fractional_epoch(row) for row in data['train']])
                 y = np.array([row['mtl_sigmas'][field_i] if 'mtl_sigmas' in row else np.nan
                               for row in data['train']], dtype=np.float)
                 m = np.logical_not(np.isnan(y))
@@ -541,7 +550,8 @@ def main():
                         help='labels in the same order as files')
     parser.add_argument('--eval-edge', default=641, type=int,
                         help='side length during eval')
-    parser.add_argument('--first-epoch', default=1e-6, type=float)
+    parser.add_argument('--first-epoch', default=1e-6, type=float,
+                        help='epoch (can be float) of first data point to plot')
     parser.add_argument('--no-share-y', dest='share_y',
                         default=True, action='store_false',
                         help='dont share y access')
