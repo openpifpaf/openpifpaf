@@ -22,7 +22,8 @@ class Trainer():
                  ema_decay=None,
                  train_profile=None,
                  model_meta_data=None,
-                 clip_grad_norm=0.0):
+                 clip_grad_norm=0.0,
+                 val_interval=1):
         self.model = model
         self.loss = loss
         self.optimizer = optimizer
@@ -41,6 +42,8 @@ class Trainer():
         self.clip_grad_norm = clip_grad_norm
         self.n_clipped_grad = 0
         self.max_norm = 0.0
+
+        self.val_interval = val_interval
 
         self.model_meta_data = model_meta_data
 
@@ -108,8 +111,10 @@ class Trainer():
 
             self.train(train_scenes, epoch)
 
-            self.write_model(epoch + 1, epoch == epochs - 1)
-            self.val(val_scenes, epoch + 1)
+            if (epoch + 1) % self.val_interval == 0 \
+               or epoch + 1 == epochs:
+                self.write_model(epoch + 1, epoch + 1 == epochs)
+                self.val(val_scenes, epoch + 1)
 
     def train_batch(self, data, targets, apply_gradients=True):  # pylint: disable=method-hidden
         if self.device:

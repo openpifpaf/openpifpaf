@@ -24,8 +24,6 @@ def train_cli(parser):
     group.add_argument('--dataset', default='cocokp')
     group.add_argument('--n-images', default=None, type=int,
                        help='number of images to sample')
-    group.add_argument('--duplicate-data', default=None, type=int,
-                       help='duplicate data')
     group.add_argument('--loader-workers', default=None, type=int,
                        help='number of workers for data loading')
     group.add_argument('--batch-size', default=8, type=int,
@@ -152,9 +150,6 @@ def train_cocokp_factory(args, target_transforms):
         image_filter='keypoint-annotations',
         category_ids=[1],
     )
-    if args.duplicate_data:
-        train_data = torch.utils.data.ConcatDataset(
-            [train_data for _ in range(args.duplicate_data)])
     train_loader = torch.utils.data.DataLoader(
         train_data, batch_size=args.batch_size, shuffle=not args.debug,
         pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
@@ -169,9 +164,6 @@ def train_cocokp_factory(args, target_transforms):
         image_filter='keypoint-annotations',
         category_ids=[1],
     )
-    if args.duplicate_data:
-        val_data = torch.utils.data.ConcatDataset(
-            [val_data for _ in range(args.duplicate_data)])
     val_loader = torch.utils.data.DataLoader(
         val_data, batch_size=args.batch_size, shuffle=False,
         pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
@@ -200,9 +192,6 @@ def train_cocodet_factory(args, target_transforms):
         image_filter='annotated',
         category_ids=[],
     )
-    if args.duplicate_data:
-        train_data = torch.utils.data.ConcatDataset(
-            [train_data for _ in range(args.duplicate_data)])
     train_loader = torch.utils.data.DataLoader(
         train_data, batch_size=args.batch_size, shuffle=False,
         sampler=torch.utils.data.WeightedRandomSampler(
@@ -219,9 +208,6 @@ def train_cocodet_factory(args, target_transforms):
         image_filter='annotated',
         category_ids=[],
     )
-    if args.duplicate_data:
-        val_data = torch.utils.data.ConcatDataset(
-            [val_data for _ in range(args.duplicate_data)])
     val_loader = torch.utils.data.DataLoader(
         val_data, batch_size=args.batch_size, shuffle=False,
         sampler=torch.utils.data.WeightedRandomSampler(

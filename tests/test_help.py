@@ -1,4 +1,3 @@
-import os
 import subprocess
 import sys
 
@@ -28,14 +27,12 @@ if sys.platform != 'win32':
 
 @pytest.mark.parametrize('module_name', MODULE_NAMES)
 def test_help(module_name):
-    out_file = 'docs/cli-help-{}.txt'.format(module_name)
-    with open(out_file, 'w') as f:
-        subprocess.run([
-            PYTHON, '-m', 'openpifpaf.{}'.format(module_name),
-            '--help',
-        ], stdout=f, check=True)
+    help_text = subprocess.check_output([
+        PYTHON, '-m', 'openpifpaf.{}'.format(module_name),
+        '--help',
+    ])
 
-    assert os.path.getsize(out_file) > 0
+    assert len(help_text) > 10
 
 
 @pytest.mark.parametrize('module_name', MODULE_NAMES)
