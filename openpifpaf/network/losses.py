@@ -519,8 +519,8 @@ class CompositeLoss(torch.nn.Module):
 
         x, t = args
 
-        # x = [xx.double() for xx in x]
-        # t = [tt.double() for tt in t]
+        x = [xx.double() for xx in x]
+        t = [tt.double() for tt in t]
 
         x_confidence = x[:, :, 0:1]
         x_regs = x[:, :, 1:1 + self.n_vectors * 3]
