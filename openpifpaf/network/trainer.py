@@ -12,7 +12,7 @@ import torch
 LOG = logging.getLogger(__name__)
 
 
-class Trainer(object):
+class Trainer():
     def __init__(self, model, loss, optimizer, out, *,
                  lr_scheduler=None,
                  log_interval=10,

@@ -5,7 +5,7 @@ import numpy as np
 LOG = logging.getLogger(__name__)
 
 
-class AnnRescaler(object):
+class AnnRescaler():
     def __init__(self, stride, n_keypoints, pose):
         self.stride = stride
         self.n_keypoints = n_keypoints
@@ -118,7 +118,7 @@ class AnnRescaler(object):
         return scale
 
 
-class AnnRescalerDet(object):
+class AnnRescalerDet():
     def __init__(self, stride, n_categories):
         self.stride = stride
         self.n_categories = n_categories

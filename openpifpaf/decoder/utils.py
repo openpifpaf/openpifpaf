@@ -20,7 +20,7 @@ def sparse_bilinear_kernel(coord, value):
     return g, v
 
 
-class Sparse2DGaussianField(object):
+class Sparse2DGaussianField():
     def __init__(self, data=None, nearest_neighbors=25):
         if data is None:
             data = np.zeros((0, 3))

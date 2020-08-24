@@ -35,7 +35,7 @@ IMAGE_DIR_TEST = 'data-mscoco/images/test2017/'
 LOG = logging.getLogger(__name__)
 
 
-class EvalCoco(object):
+class EvalCoco():
     def __init__(self, coco, processor, *,
                  max_per_image=20,
                  category_ids=None,

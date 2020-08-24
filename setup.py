@@ -13,7 +13,7 @@ except ImportError:
 import versioneer
 
 
-class NumpyIncludePath(object):
+class NumpyIncludePath():
     """Lazy import of numpy to get include path."""
     @staticmethod
     def __str__():
