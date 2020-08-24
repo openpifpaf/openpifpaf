@@ -10,7 +10,7 @@ LOG = logging.getLogger(__name__)
 class Shell(torch.nn.Module):
     def __init__(self, base_net, head_nets, *,
                  process_heads=None, cross_talk=0.0):
-        super(Shell, self).__init__()
+        super().__init__()
 
         self.base_net = base_net
         self.head_nets = torch.nn.ModuleList(head_nets)
@@ -35,7 +35,7 @@ class Shell(torch.nn.Module):
 
 class Shell2Scale(torch.nn.Module):
     def __init__(self, base_net, head_nets, *, reduced_stride=3):
-        super(Shell2Scale, self).__init__()
+        super().__init__()
 
         self.base_net = base_net
         self.head_nets = torch.nn.ModuleList(head_nets)
@@ -95,7 +95,7 @@ class Shell2Scale(torch.nn.Module):
 class ShellMultiScale(torch.nn.Module):
     def __init__(self, base_net, head_nets, *,
                  process_heads=None, include_hflip=True):
-        super(ShellMultiScale, self).__init__()
+        super().__init__()
 
         self.base_net = base_net
         self.head_nets = torch.nn.ModuleList(head_nets)

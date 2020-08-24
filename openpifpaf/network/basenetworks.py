@@ -9,7 +9,7 @@ class BaseNetwork(torch.nn.Module):
     """Common base network."""
 
     def __init__(self, net, shortname, stride, out_features):
-        super(BaseNetwork, self).__init__()
+        super().__init__()
 
         self.net = net
         self.shortname = shortname
@@ -24,7 +24,7 @@ class BaseNetwork(torch.nn.Module):
         return self.net(*args)
 
 
-class ResnetBlocks(object):
+class ResnetBlocks():
     def __init__(self, resnet):
         self.modules = list(resnet.children())
         LOG.debug('modules = %s', self.modules)
@@ -60,7 +60,7 @@ class InvertedResidualK(torch.nn.Module):
     """This is exactly the same as torchvision.models.shufflenet.InvertedResidual
     but with a dilation parameter."""
     def __init__(self, inp, oup, stride, *, layer_norm, dilation=1, kernel_size=3):
-        super(InvertedResidualK, self).__init__()
+        super().__init__()
 
         if not 1 <= stride <= 3:
             raise ValueError('illegal stride value')
@@ -125,7 +125,7 @@ class ShuffleNetV2K(torch.nn.Module):
     """Based on torchvision.models.ShuffleNetV2 where
     the kernel size in stages 2,3,4 is 5 instead of 3."""
     def __init__(self, stages_repeats, stages_out_channels, *, layer_norm=None):
-        super(ShuffleNetV2K, self).__init__()
+        super().__init__()
         if layer_norm is None:
             layer_norm = torch.nn.BatchNorm2d
 

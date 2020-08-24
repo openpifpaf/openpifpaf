@@ -1,8 +1,15 @@
+import copy
 import logging
 
 from .base import BaseVisualizer
 from ..annotation import Annotation
 from .. import show
+
+try:
+    import matplotlib.cm
+    CMAP_BLUES_NAN = copy.copy(matplotlib.cm.get_cmap('Blues')).set_bad('white', alpha=0.5)
+except ImportError:
+    CMAP_BLUES_NAN = None
 
 LOG = logging.getLogger(__name__)
 
@@ -52,7 +59,7 @@ class Caf(BaseVisualizer):
 
             with self.image_canvas(self._processed_image) as ax:
                 im = ax.imshow(self.scale_scalar(confidences[f], self.stride),
-                               alpha=0.9, vmin=0.0, vmax=1.0, cmap='Blues')
+                               alpha=0.9, vmin=0.0, vmax=1.0, cmap=CMAP_BLUES_NAN)
                 self.colorbar(ax, im)
 
     def _regressions(self, regression_fields1, regression_fields2,

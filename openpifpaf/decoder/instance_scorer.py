@@ -7,7 +7,7 @@ import torch
 
 class InstanceScorer(torch.nn.Module):
     def __init__(self, in_features=35):
-        super(InstanceScorer, self).__init__()
+        super().__init__()
         self.compute_layers = torch.nn.Sequential(
             torch.nn.Linear(in_features, 64),
             torch.nn.Tanh(),
@@ -30,7 +30,7 @@ class InstanceScorer(torch.nn.Module):
             return float(self.forward(v).item())
 
 
-class InstanceScoreRecorder(object):
+class InstanceScoreRecorder():
     def __init__(self):
         """Drop in replacement for InstanceScorer that records the
         ground truth dataset instead."""

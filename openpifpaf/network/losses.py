@@ -150,7 +150,7 @@ def quadrant_margin_loss(x1, x2, t1, t2, max_r1, max_r2, max_r3, max_r4):
     )
 
 
-class SmoothL1Loss(object):
+class SmoothL1Loss():
     r_smooth = 0.0
 
     def __init__(self, *, scale_required=True):
@@ -187,7 +187,7 @@ class MultiHeadLoss(torch.nn.Module):
     task_sparsity_weight = 0.0
 
     def __init__(self, losses, lambdas):
-        super(MultiHeadLoss, self).__init__()
+        super().__init__()
 
         if not lambdas:
             lambdas = [1.0 for l in losses for _ in l.field_names]
@@ -405,7 +405,7 @@ class CompositeLoss(torch.nn.Module):
     margin = False
 
     def __init__(self, head_net: heads.CompositeField, regression_loss):
-        super(CompositeLoss, self).__init__()
+        super().__init__()
         self.n_vectors = head_net.meta.n_vectors
         self.n_scales = head_net.meta.n_scales
 
