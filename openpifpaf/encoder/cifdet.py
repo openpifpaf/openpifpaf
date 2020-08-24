@@ -26,7 +26,7 @@ class CifDet:
         return CifDetGenerator(self)(image, anns, meta)
 
 
-class CifDetGenerator(object):
+class CifDetGenerator():
     def __init__(self, config: CifDet):
         self.config = config
 

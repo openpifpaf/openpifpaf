@@ -78,7 +78,7 @@ def fractional_epoch(row, *, default=None):
     return row.get('epoch') + row.get('batch') / row.get('n_batches')
 
 
-class Plots(object):
+class Plots():
     def __init__(self, log_files, labels=None, output_prefix=None, first_epoch=0.0):
         self.log_files = log_files
         self.labels = labels or [lf.replace('outputs/', '') for lf in log_files]
@@ -391,7 +391,7 @@ class Plots(object):
         self.print_last_line()
 
 
-class EvalPlots(object):
+class EvalPlots():
     def __init__(self, log_files, labels=None, output_prefix=None,
                  edge=321, decoder=0, legend_last_ap=True,
                  modifiers='', first_epoch=0.0):

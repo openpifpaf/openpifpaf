@@ -42,7 +42,7 @@ def cli(parser):
                          help='duration of a warm restart')
 
 
-class LearningRateLambda(object):
+class LearningRateLambda():
     def __init__(self, decay_schedule, *,
                  decay_factor=0.1,
                  decay_epochs=1.0,

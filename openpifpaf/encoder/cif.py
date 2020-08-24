@@ -26,7 +26,7 @@ class Cif:
         return CifGenerator(self)(image, anns, meta)
 
 
-class CifGenerator(object):
+class CifGenerator():
     def __init__(self, config: Cif):
         self.config = config
 

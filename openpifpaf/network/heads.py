@@ -28,7 +28,7 @@ def index_field_torch(shape, *, device=None, n_unsqueeze=2):
 
 class CifCafCollector(torch.nn.Module):
     def __init__(self, cif_indices, caf_indices):
-        super(CifCafCollector, self).__init__()
+        super().__init__()
         self.cif_indices = cif_indices
         self.caf_indices = caf_indices
         LOG.debug('cif = %s, caf = %s', cif_indices, caf_indices)
@@ -90,7 +90,7 @@ class CifCafCollector(torch.nn.Module):
 
 class CifdetCollector(torch.nn.Module):
     def __init__(self, indices):
-        super(CifdetCollector, self).__init__()
+        super().__init__()
         self.indices = indices
         LOG.debug('cifdet = %s', indices)
 
@@ -144,7 +144,7 @@ class CifdetCollector(torch.nn.Module):
 
 class PifHFlip(torch.nn.Module):
     def __init__(self, keypoints, hflip):
-        super(PifHFlip, self).__init__()
+        super().__init__()
 
         flip_indices = torch.LongTensor([
             keypoints.index(hflip[kp_name]) if kp_name in hflip else kp_i
@@ -169,7 +169,7 @@ class PifHFlip(torch.nn.Module):
 
 class PafHFlip(torch.nn.Module):
     def __init__(self, keypoints, skeleton, hflip):
-        super(PafHFlip, self).__init__()
+        super().__init__()
         skeleton_names = [
             (keypoints[j1 - 1], keypoints[j2 - 1])
             for j1, j2 in skeleton
@@ -272,7 +272,7 @@ class CompositeField(torch.nn.Module):
                  meta: Union[IntensityMeta, AssociationMeta, DetectionMeta],
                  in_features, *,
                  kernel_size=1, padding=0, dilation=1):
-        super(CompositeField, self).__init__()
+        super().__init__()
 
         LOG.debug('%s config: fields = %d, confidences = %d, vectors = %d, scales = %d '
                   'kernel = %d, padding = %d, dilation = %d',
