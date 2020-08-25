@@ -59,6 +59,8 @@ def cli():
                         help='apply and reset gradients every n batches')
     parser.add_argument('--epochs', default=75, type=int,
                         help='number of epochs to train')
+    parser.add_argument('--val-interval', default=1, type=int,
+                        help='validation run every n epochs')
     parser.add_argument('--rescale-images', type=float, default=1.0,
                         help='overall image rescale factor')
     parser.add_argument('--update-batchnorm-runningstatistics',
@@ -143,6 +145,7 @@ def main():
             'hostname': socket.gethostname(),
         },
         clip_grad_norm=args.clip_grad_norm,
+        val_interval=args.val_interval,
     )
     trainer.loop(train_loader, val_loader, args.epochs, start_epoch=start_epoch)
 
