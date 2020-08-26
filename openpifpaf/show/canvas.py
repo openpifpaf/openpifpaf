@@ -51,8 +51,8 @@ def image_canvas(image, fig_file=None, show=True, dpi_factor=1.0, fig_width=10.0
     fig = plt.figure(dpi=image.shape[1] / kwargs['figsize'][0] * dpi_factor, **kwargs)
     ax = plt.Axes(fig, [0.0, 0.0, 1.0, 1.0])
     ax.set_axis_off()
-    ax.set_xlim(0, image.shape[1])
-    ax.set_ylim(image.shape[0], 0)
+    ax.set_xlim(-0.5, image.shape[1] - 0.5)  # imshow uses center-pixel-coordinates
+    ax.set_ylim(image.shape[0] - 0.5, -0.5)
     fig.add_axes(ax)
     ax.imshow(image)
 
