@@ -15,6 +15,9 @@ except ImportError:
 def apply(model, outfile, input_w=129, input_h=97):
     assert coremltools is not None
 
+    # configure: inplace-ops are not supported
+    openpifpaf.network.heads.CompositeField3.inplace_ops = False
+
     dummy_input = torch.randn(1, 3, input_h, input_w)
     with torch.no_grad():
         traced_model = torch.jit.trace(model, dummy_input)
