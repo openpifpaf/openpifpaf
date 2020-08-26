@@ -36,6 +36,7 @@ def single_pixel_transform(x, y, transform, image_wh=(13, 11)):
 
     return (
         [image_yx[1], image_yx[0]],
+        # pylint: disable=unsubscriptable-object
         anns_transformed[0]['keypoints'][0][:2].tolist(),
     )
 
