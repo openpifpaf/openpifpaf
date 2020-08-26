@@ -49,7 +49,7 @@ def cli():
     network.losses.cli(parser)
     encoder.cli(parser)
     optimize.cli(parser)
-    datasets.train_cli(parser)
+    datasets.cli(parser)
     show.cli(parser)
     visualizer.cli(parser)
 
@@ -99,7 +99,7 @@ def cli():
     network.configure(args)
     network.losses.configure(args)
     encoder.configure(args)
-    datasets.train_configure(args)
+    datasets.configure(args)
     show.configure(args)
     visualizer.configure(args)
 
@@ -108,7 +108,7 @@ def cli():
 
 def main():
     args = cli()
-    datamodule = datasets.datamodule_factory(args.dataset)
+    datamodule = datasets.factory(args.dataset)
     net_cpu, start_epoch = network.factory_from_args(args, head_metas=datamodule.head_metas())
     net_cpu.process_heads = None
     if args.output is None:

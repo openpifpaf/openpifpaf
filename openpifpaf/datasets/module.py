@@ -9,6 +9,9 @@ class DataModule():
     """
     description = ''
 
+    batch_size = 8
+    loader_workers = None
+
     @classmethod
     def cli(cls, parser):
         pass

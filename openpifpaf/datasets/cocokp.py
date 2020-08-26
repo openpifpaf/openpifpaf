@@ -1,6 +1,6 @@
 import torch
 
-from ..data_module import DataModule
+from .module import DataModule
 from ..network import headmeta
 from .. import transforms
 from .coco import Coco
@@ -25,9 +25,6 @@ class CocoKp(DataModule):
     val_image_dir = 'data-mscoco/images/val2017/'
 
     n_images = None
-    loader_workers = None
-    batch_size = 8
-
     square_edge = 385
     extended_scale = False
     orientation_invariant = 0.0
@@ -50,13 +47,6 @@ class CocoKp(DataModule):
         group.add_argument('--cocokp-n-images',
                            default=cls.n_images, type=int,
                            help='number of images to sample')
-        group.add_argument('--cocokp-loader-workers',
-                           default=cls.loader_workers, type=int,
-                           help='number of workers for data loading')
-        group.add_argument('--cocokp-batch-size',
-                           default=cls.batch_size, type=int,
-                           help='batch size')
-
         group.add_argument('--cocokp-square-edge',
                            default=cls.square_edge, type=int,
                            help='square edge of input images')
@@ -89,19 +79,14 @@ class CocoKp(DataModule):
         cls.val_image_dir = args.cocokp_val_image_dir
 
         cls.n_images = args.cocokp_n_images
-        cls.loader_workers = args.cocokp_loader_workers
-        cls.batch_size = args.cocokp_batch_size
-
         cls.square_edge = args.cocokp_square_edge
         cls.extended_scale = args.cocokp_extended_scale
         cls.orientation_invariant = args.cocokp_orientation_invariant
         cls.augmentation = args.cocokp_augmentation
         cls.rescale_images = args.cocokp_rescale_images
 
-        if cls.loader_workers is None:
-            cls.loader_workers = cls.batch_size
-
-    def head_metas(self):
+    @staticmethod
+    def head_metas():
         cif = headmeta.Intensity('cif',
                                  COCO_KEYPOINTS,
                                  COCO_PERSON_SIGMAS,

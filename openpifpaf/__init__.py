@@ -5,7 +5,6 @@ __version__ = get_versions()['version']
 del get_versions
 
 from .annotation import Annotation, AnnotationDet
-from .data_module import DataModule
 from . import datasets
 from . import decoder
 from . import network
