@@ -5,10 +5,10 @@ class Compose(Preprocess):
     def __init__(self, preprocess_list):
         self.preprocess_list = preprocess_list
 
-    def __call__(self, image, anns, meta):
+    def __call__(self, *args):
         for p in self.preprocess_list:
             if p is None:
                 continue
-            image, anns, meta = p(image, anns, meta)
+            args = p(*args)
 
-        return image, anns, meta
+        return args
