@@ -5,7 +5,6 @@ import torch
 import torchvision
 
 from . import basenetworks, headmeta, heads, nets
-from .. import datasets
 
 # generate hash values with: shasum -a 256 filename.pkl
 
@@ -22,11 +21,11 @@ CHECKPOINT_URLS = {
 LOG = logging.getLogger(__name__)
 
 
-def factory_from_args(args):
+def factory_from_args(args, *, head_metas=None):
     return factory(
         checkpoint=args.checkpoint,
         base_name=args.basenet,
-        head_names=args.headnets,
+        head_metas=head_metas,
         pretrained=args.pretrained,
         dense_connections=getattr(args, 'dense_connections', False),
         cross_talk=args.cross_talk,
@@ -69,7 +68,7 @@ def factory(
         *,
         checkpoint=None,
         base_name=None,
-        head_names=None,
+        head_metas=None,
         pretrained=True,
         dense_connections=False,
         cross_talk=0.0,
@@ -79,13 +78,13 @@ def factory(
         download_progress=True):
 
     if base_name:
-        assert head_names
+        assert head_metas
         assert checkpoint is None
-        net_cpu = factory_from_scratch(base_name, head_names, pretrained=pretrained)
+        net_cpu = factory_from_scratch(base_name, head_metas, pretrained=pretrained)
         epoch = 0
     else:
         assert base_name is None
-        assert head_names is None
+        assert head_metas is None
 
         if not checkpoint:
             checkpoint = 'shufflenetv2k16w'
@@ -140,9 +139,7 @@ def factory(
 
 
 # pylint: disable=too-many-return-statements
-def factory_from_scratch(basename, head_names, *, pretrained=True):
-    head_metas = datasets.headmeta.factory(head_names)
-
+def factory_from_scratch(basename, head_metas, *, pretrained=True):
     if 'resnet18' in basename:
         base_vision = torchvision.models.resnet18(pretrained)
         return resnet_factory_from_scratch(basename, base_vision, 512, head_metas)
@@ -327,8 +324,6 @@ def cli(parser):
                              'or "shufflenetv2k30w" for pretrained OpenPifPaf models.'))
     group.add_argument('--basenet', default=None,
                        help='base network, e.g. resnet50')
-    group.add_argument('--headnets', default=None, nargs='+',
-                       help='head networks')
     group.add_argument('--no-pretrain', dest='pretrained', default=True, action='store_false',
                        help='create model without ImageNet pretraining')
     group.add_argument('--two-scale', default=False, action='store_true',

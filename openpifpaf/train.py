@@ -19,17 +19,17 @@ def default_output_file(args, net_cpu):
 
     now = datetime.datetime.now().strftime('%y%m%d-%H%M%S')
     out = 'outputs/{}-{}-{}'.format(base_name, now, '-'.join(head_names))
-    if args.square_edge != 385:
+    if args.cocokp_square_edge != 385:
         out += '-edge{}'.format(args.square_edge)
     if args.regression_loss != 'laplace':
         out += '-{}'.format(args.regression_loss)
     if args.r_smooth != 0.0:
         out += '-rsmooth{}'.format(args.r_smooth)
-    if args.orientation_invariant or args.extended_scale:
+    if args.cocokp_orientation_invariant or args.cocokp_extended_scale:
         out += '-'
-        if args.orientation_invariant:
+        if args.cocokp_orientation_invariant:
             out += 'o{:02.0f}'.format(args.orientation_invariant * 100.0)
-        if args.extended_scale:
+        if args.cocokp_extended_scale:
             out += 's'
 
     return out + '.pkl'
@@ -88,13 +88,6 @@ def cli():
     if args.debug_images:
         args.debug = True
 
-    network.configure(args)
-    network.losses.configure(args)
-    encoder.configure(args)
-    datasets.train_configure(args)
-    show.configure(args)
-    visualizer.configure(args)
-
     # add args.device
     args.device = torch.device('cpu')
     args.pin_memory = False
@@ -103,12 +96,20 @@ def cli():
         args.pin_memory = True
     LOG.debug('neural network device: %s', args.device)
 
+    network.configure(args)
+    network.losses.configure(args)
+    encoder.configure(args)
+    datasets.train_configure(args)
+    show.configure(args)
+    visualizer.configure(args)
+
     return args
 
 
 def main():
     args = cli()
-    net_cpu, start_epoch = network.factory_from_args(args)
+    datamodule = datasets.datamodule_factory(args.dataset)
+    net_cpu, start_epoch = network.factory_from_args(args, head_metas=datamodule.head_metas())
     net_cpu.process_heads = None
     if args.output is None:
         args.output = default_output_file(args, net_cpu)
@@ -125,7 +126,8 @@ def main():
 
     loss = network.losses.factory_from_args(args, net_cpu.head_nets)
     target_transforms = encoder.factory(net_cpu.head_nets, net_cpu.base_net.stride)
-    train_loader, val_loader = datasets.train_factory(args, target_transforms)
+    train_loader = datamodule.train_loader(target_transforms)
+    val_loader = datamodule.val_loader(target_transforms)
 
     optimizer = optimize.factory_optimizer(
         args, list(net.parameters()) + list(loss.parameters()))
