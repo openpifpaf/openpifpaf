@@ -37,7 +37,7 @@ def factory(headnets, basenet_stride):
     return [factory_head(head_net, basenet_stride) for head_net in headnets]
 
 
-def factory_head(head_net: network.heads.CompositeField, basenet_stride):
+def factory_head(head_net: network.heads.CompositeField3, basenet_stride):
     meta = head_net.meta
     stride = head_net.stride(basenet_stride)
 
