@@ -29,6 +29,12 @@ class CafScored:
 
         return self.backward[caf_i], self.forward[caf_i]
 
+    def rescore(self, nine, joint_t):
+        if self.cif_floor < 1.0 and joint_t < len(self.cifhr):
+            cifhr_t = scalar_values(self.cifhr[joint_t], nine[3], nine[4], default=0.0)
+            nine[0] = nine[0] * (self.cif_floor + (1.0 - self.cif_floor) * cifhr_t)
+        return nine[:, nine[0] > self.score_th]
+
     def fill_caf(self, caf, stride, min_distance=0.0, max_distance=None):
         start = time.perf_counter()
 
@@ -54,32 +60,15 @@ class CafScored:
                 mask_dist = dist < max_distance / stride
                 nine = nine[:, mask_dist]
 
-            # TODO: remove this reshuffling
-            nine = np.copy(nine)[(0, 1, 2, 5, 7, 3, 4, 6, 8), :]
             nine[(1, 2, 3, 4, 5, 6, 7, 8), :] *= stride
-            scores = nine[0]
 
-            j1i = self.skeleton[caf_i][0] - 1
-            if self.cif_floor < 1.0 and j1i < len(self.cifhr):
-                cifhr_b = scalar_values(self.cifhr[j1i], nine[1], nine[2], default=0.0)
-                scores_b = scores * (self.cif_floor + (1.0 - self.cif_floor) * cifhr_b)
-            else:
-                scores_b = scores
-            mask_b = scores_b > self.score_th
-            d9_b = np.copy(nine[:, mask_b][(0, 5, 6, 7, 8, 1, 2, 3, 4), :])
-            d9_b[0] = scores_b[mask_b]
-            self.backward[caf_i] = np.concatenate((self.backward[caf_i], d9_b), axis=1)
+            nine_b = np.copy(nine[(0, 3, 4, 1, 2, 6, 5, 8, 7), :])
+            nine_b = self.rescore(nine_b, self.skeleton[caf_i][0] - 1)
+            self.backward[caf_i] = np.concatenate((self.backward[caf_i], nine_b), axis=1)
 
-            j2i = self.skeleton[caf_i][1] - 1
-            if self.cif_floor < 1.0 and j2i < len(self.cifhr):
-                cifhr_f = scalar_values(self.cifhr[j2i], nine[5], nine[6], default=0.0)
-                scores_f = scores * (self.cif_floor + (1.0 - self.cif_floor) * cifhr_f)
-            else:
-                scores_f = scores
-            mask_f = scores_f > self.score_th
-            d9_f = np.copy(nine[:, mask_f])
-            d9_f[0] = scores_f[mask_f]
-            self.forward[caf_i] = np.concatenate((self.forward[caf_i], d9_f), axis=1)
+            nine_f = np.copy(nine)
+            nine_f = self.rescore(nine_f, self.skeleton[caf_i][1] - 1)
+            self.forward[caf_i] = np.concatenate((self.forward[caf_i], nine_f), axis=1)
 
         LOG.debug('scored caf (%d, %d) in %.3fs',
                   sum(f.shape[1] for f in self.forward),
