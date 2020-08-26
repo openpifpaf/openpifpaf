@@ -4,7 +4,7 @@ import torch
 
 import torchvision
 
-from . import basenetworks, heads, nets
+from . import basenetworks, headmeta, heads, nets
 from .. import datasets
 
 # generate hash values with: shasum -a 256 filename.pkl
@@ -115,14 +115,14 @@ def factory(
 
     cif_indices = [0]
     caf_indices = [1]
-    if not any(isinstance(h.meta, heads.AssociationMeta) for h in net_cpu.head_nets):
+    if not any(isinstance(h.meta, headmeta.Association) for h in net_cpu.head_nets):
         caf_indices = []
     if dense_connections and not multi_scale:
         caf_indices = [1, 2]
     elif dense_connections and multi_scale:
         cif_indices = [v * 3 + 1 for v in range(10)]
         caf_indices = [v * 3 + 2 for v in range(10)]
-    if isinstance(net_cpu.head_nets[0].meta, heads.DetectionMeta):
+    if isinstance(net_cpu.head_nets[0].meta, headmeta.Detection):
         net_cpu.process_heads = heads.CifdetCollector(cif_indices)
     else:
         net_cpu.process_heads = heads.CifCafCollector(cif_indices, caf_indices)

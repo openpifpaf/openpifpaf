@@ -19,12 +19,10 @@ def apply(model, outfile, input_w=129, input_h=97):
     with torch.no_grad():
         traced_model = torch.jit.trace(model, dummy_input)
 
-    output_names = ['cif', 'caf']
-
     coreml_model = coremltools.convert(
         traced_model,
         inputs=[coremltools.ImageType(name='image', shape=dummy_input.shape)],
-        # classifier_config = ct.ClassifierConfig(class_labels) # provide only if step 4 was performed
+        # classifier_config = ct.ClassifierConfig(class_labels)
         minimum_deployment_target=coremltools.target.iOS13,
     )
 
@@ -32,7 +30,7 @@ def apply(model, outfile, input_w=129, input_h=97):
     coreml_model.input_description['image'] = 'Input image to be classified'
     # coreml_model.output_description['cif'] = 'Composite Intensity Field'
     # coreml_model.output_description['caf'] = 'Composite Association Field'
-    coreml_model.author = 'Original Paper: Kreiss, Bertoni, Alahi, "Composite Fields for Human Pose Estimation"'
+    coreml_model.author = 'Kreiss, Bertoni, Alahi: Composite Fields for Human Pose Estimation'
     coreml_model.license = 'Please see https://github.com/vita-epfl/openpifpaf'
     coreml_model.short_description = 'Composite Fields for Human Pose Estimation'
     coreml_model.version = openpifpaf.__version__

@@ -1,12 +1,12 @@
 """Head networks."""
 
-from dataclasses import dataclass
 import functools
 import logging
-from typing import Any, List, Tuple, Union
 
 import numpy as np
 import torch
+
+from . import headmeta
 
 LOG = logging.getLogger(__name__)
 
@@ -208,63 +208,13 @@ class PafHFlip(torch.nn.Module):
         return out
 
 
-@dataclass
-class IntensityMeta:
-    name: str
-    keypoints: List[str]
-    sigmas: List[float]
-    pose: Any
-    draw_skeleton: List[Tuple[int, int]] = None
-
-    n_confidences: int = 1
-    n_vectors: int = 1
-    n_scales: int = 1
-
-    @property
-    def n_fields(self):
-        return len(self.keypoints)
-
-
-@dataclass
-class AssociationMeta:
-    name: str
-    keypoints: List[str]
-    sigmas: List[float]
-    pose: Any
-    skeleton: List[Tuple[int, int]]
-    sparse_skeleton: List[Tuple[int, int]] = None
-    only_in_field_of_view: bool = False
-
-    n_confidences: int = 1
-    n_vectors: int = 2
-    n_scales: int = 2
-
-    @property
-    def n_fields(self):
-        return len(self.skeleton)
-
-
-@dataclass
-class DetectionMeta:
-    name: str
-    categories: List[str]
-
-    n_confidences: int = 1
-    n_vectors: int = 2
-    n_scales: int = 0
-
-    @property
-    def n_fields(self):
-        return len(self.categories)
-
-
 class CompositeField3(torch.nn.Module):
     dropout_p = 0.0
     quad = 1
     inplace_ops = True
 
     def __init__(self,
-                 meta: Union[IntensityMeta, AssociationMeta, DetectionMeta],
+                 meta: headmeta.Base,
                  in_features, *,
                  kernel_size=1, padding=0, dilation=1):
         super().__init__()

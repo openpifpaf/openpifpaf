@@ -133,7 +133,7 @@ def factory_decode(head_nets, *,
     head_names = tuple(hn.meta.name for hn in head_nets)
     LOG.debug('head names = %s', head_names)
 
-    if isinstance(head_nets[0].meta, network.heads.DetectionMeta):
+    if isinstance(head_nets[0].meta, network.headmeta.Detection):
         field_config = FieldConfig()
         field_config.cif_visualizers = [
             visualizer.CifDet(head_nets[0].meta.name,
@@ -146,8 +146,8 @@ def factory_decode(head_nets, *,
             worker_pool=worker_pool,
         )
 
-    if isinstance(head_nets[0].meta, network.heads.IntensityMeta) \
-       and isinstance(head_nets[1].meta, network.heads.AssociationMeta):
+    if isinstance(head_nets[0].meta, network.headmeta.Intensity) \
+       and isinstance(head_nets[1].meta, network.headmeta.Association):
         field_config = FieldConfig()
 
         if multi_scale:

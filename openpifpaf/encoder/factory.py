@@ -41,7 +41,7 @@ def factory_head(head_net: network.heads.CompositeField3, basenet_stride):
     meta = head_net.meta
     stride = head_net.stride(basenet_stride)
 
-    if isinstance(meta, network.heads.DetectionMeta):
+    if isinstance(meta, network.headmeta.Detection):
         n_categories = len(meta.categories)
         LOG.info('selected encoder CIFDET for %s with %d categories', meta.name, n_categories)
         vis = visualizer.CifDet(meta.name,
@@ -51,7 +51,7 @@ def factory_head(head_net: network.heads.CompositeField3, basenet_stride):
                       AnnRescalerDet(stride, n_categories),
                       visualizer=vis)
 
-    if isinstance(meta, network.heads.IntensityMeta):
+    if isinstance(meta, network.headmeta.Intensity):
         LOG.info('selected encoder CIF for %s', meta.name)
         vis = visualizer.Cif(meta.name,
                              stride=stride,
@@ -60,7 +60,7 @@ def factory_head(head_net: network.heads.CompositeField3, basenet_stride):
                    sigmas=meta.sigmas,
                    visualizer=vis)
 
-    if isinstance(meta, network.heads.AssociationMeta):
+    if isinstance(meta, network.headmeta.Association):
         n_keypoints = len(meta.keypoints)
         LOG.info('selected encoder CAF for %s', meta.name)
         vis = visualizer.Caf(meta.name,
