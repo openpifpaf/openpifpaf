@@ -54,7 +54,8 @@ class CafScored:
                 mask_dist = dist < max_distance / stride
                 nine = nine[:, mask_dist]
 
-            nine = np.copy(nine)
+            # TODO: remove this reshuffling
+            nine = np.copy(nine)[(0, 1, 2, 5, 7, 3, 4, 6, 8), :]
             nine[(1, 2, 3, 4, 5, 6, 7, 8), :] *= stride
             scores = nine[0]
 

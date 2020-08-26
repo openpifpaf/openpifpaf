@@ -307,7 +307,7 @@ def resnet_factory_from_scratch(basename, base_vision, out_features, head_metas)
         out_features=out_features,
     )
 
-    headnets = [heads.CompositeFieldFused(h, basenet.out_features) for h in head_metas]
+    headnets = [heads.CompositeField3(h, basenet.out_features) for h in head_metas]
     net_cpu = nets.Shell(basenet, headnets)
     nets.model_defaults(net_cpu)
     return net_cpu
@@ -315,10 +315,6 @@ def resnet_factory_from_scratch(basename, base_vision, out_features, head_metas)
 
 def configure(args):
     # configure CompositeField
-    heads.CompositeField.dropout_p = args.head_dropout
-    heads.CompositeField.quad = args.head_quad
-    heads.CompositeFieldFused.dropout_p = args.head_dropout
-    heads.CompositeFieldFused.quad = args.head_quad
     heads.CompositeField3.dropout_p = args.head_dropout
     heads.CompositeField3.quad = args.head_quad
 
@@ -349,11 +345,7 @@ def cli(parser):
                        help='suppress model download progress bar')
 
     group = parser.add_argument_group('head')
-    assert heads.CompositeFieldFused.dropout_p == heads.CompositeField.dropout_p
-    assert heads.CompositeFieldFused.dropout_p == heads.CompositeField3.dropout_p
-    group.add_argument('--head-dropout', default=heads.CompositeFieldFused.dropout_p, type=float,
+    group.add_argument('--head-dropout', default=heads.CompositeField3.dropout_p, type=float,
                        help='[experimental] zeroing probability of feature in head input')
-    assert heads.CompositeFieldFused.quad == heads.CompositeField.quad
-    assert heads.CompositeFieldFused.quad == heads.CompositeField3.quad
-    group.add_argument('--head-quad', default=heads.CompositeFieldFused.quad, type=int,
+    group.add_argument('--head-quad', default=heads.CompositeField3.quad, type=int,
                        help='number of times to apply quad (subpixel conv) to heads')

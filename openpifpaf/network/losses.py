@@ -404,7 +404,7 @@ class CompositeLoss(torch.nn.Module):
     b_scale = 1.0
     margin = False
 
-    def __init__(self, head_net: heads.CompositeField, regression_loss):
+    def __init__(self, head_net: heads.CompositeField3, regression_loss):
         super().__init__()
         self.n_vectors = head_net.meta.n_vectors
         self.n_scales = head_net.meta.n_scales
@@ -519,7 +519,7 @@ class CompositeLoss(torch.nn.Module):
 
         x, t = args
 
-        x = [xx.double() for xx in x]
+        x = x.double()
         t = [tt.double() for tt in t]
 
         x_confidence = x[:, :, 0:1]
@@ -631,7 +631,7 @@ def factory(head_nets, lambdas, *,
         for head_net in head_nets:
             if getattr(head_net, 'sparse_task_parameters', None) is not None:
                 sparse_task_parameters += head_net.sparse_task_parameters
-            elif isinstance(head_net, heads.CompositeFieldFused):
+            elif isinstance(head_net, heads.CompositeField3):
                 sparse_task_parameters.append(head_net.conv.weight)
             else:
                 raise Exception('unknown l1 parameters for given head: {} ({})'
