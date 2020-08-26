@@ -34,7 +34,7 @@ def configure(args):
 
     file_handler = logging.FileHandler(args.output + '.log', mode='w')
     file_handler.setFormatter(
-        jsonlogger.JsonFormatter('(message) (levelname) (name) (asctime)'))
+        jsonlogger.JsonFormatter('%(message) %(levelname) %(name) %(asctime)'))
     stdout_handler = logging.StreamHandler(sys.stdout)
     logging.basicConfig(handlers=[stdout_handler, file_handler])
     log_level = logging.INFO if not args.debug else logging.DEBUG

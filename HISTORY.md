@@ -1,6 +1,12 @@
 # History
 
-* [master](https://github.com/vita-epfl/openpifpaf/compare/v0.11.8...master)
+* [master](https://github.com/vita-epfl/openpifpaf/compare/v0.11.9...master)
+* [0.11.9](https://github.com/vita-epfl/openpifpaf/compare/v0.11.8...v0.11.9) (2020-08-25)
+    * new `--val-interval` which replaces the use-cases for previous `--duplicate-data`
+    * extended ColorJitter ranges for training: brightness=0.4, saturation=0.4, hue=0.1
+    * PyLint 2.6 compatibility
+    * matplotlib 3.3 compatibility
+    * Cython 0.29.21
 * [0.11.8](https://github.com/vita-epfl/openpifpaf/compare/v0.11.7...v0.11.8) (2020-08-19)
     * PyTorch 1.6 compatibility
     * modified loss recommendation to avoid autotune
