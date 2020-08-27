@@ -43,16 +43,6 @@ class CifCafCollector(torch.nn.Module):
         return inputs
 
     @staticmethod
-    def concat_fields(fields):
-        fields = [
-            f.view(f.shape[0], f.shape[1], f.shape[2] * f.shape[3], *f.shape[4:])
-            if len(f.shape) == 6
-            else f.view(f.shape[0], f.shape[1], f.shape[2], *f.shape[3:])
-            for f in fields
-        ]
-        return torch.cat(fields, dim=2)
-
-    @staticmethod
     def concat_heads(heads):
         if not heads:
             return None
