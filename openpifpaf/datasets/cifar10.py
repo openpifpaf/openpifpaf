@@ -74,14 +74,22 @@ class Cifar10(DataModule):
                 cls._convert_data,
                 transforms.NormalizeAnnotations(),
                 transforms.RescaleAbsolute(33),
-                transforms.EVAL_TRANSFORM,
+                transforms.ImageTransform(torchvision.transforms.ToTensor()),
+                transforms.ImageTransform(
+                    torchvision.transforms.Normalize(mean=[0.5, 0.5, 0.5],
+                                                     std=[0.5, 0.5, 0.5]),
+                ),
             ])
 
         return transforms.Compose([
             cls._convert_data,
             transforms.NormalizeAnnotations(),
             transforms.RescaleAbsolute(33),
-            transforms.TRAIN_TRANSFORM,
+            transforms.ImageTransform(torchvision.transforms.ToTensor()),
+            transforms.ImageTransform(
+                torchvision.transforms.Normalize(mean=[0.5, 0.5, 0.5],
+                                                 std=[0.5, 0.5, 0.5]),
+            ),
         ])
 
     def train_loader(self, target_transforms):
