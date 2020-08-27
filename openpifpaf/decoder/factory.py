@@ -135,6 +135,7 @@ def factory_decode(head_nets, *,
 
     if isinstance(head_nets[0].meta, network.heads.DetectionMeta):
         field_config = FieldConfig()
+        field_config.cif_strides = [head_nets[0].stride(basenet_stride)]
         field_config.cif_visualizers = [
             visualizer.CifDet(head_nets[0].meta.name,
                               stride=head_nets[0].stride(basenet_stride),
@@ -149,6 +150,8 @@ def factory_decode(head_nets, *,
     if isinstance(head_nets[0].meta, network.heads.IntensityMeta) \
        and isinstance(head_nets[1].meta, network.heads.AssociationMeta):
         field_config = FieldConfig()
+        field_config.cif_strides = [head_nets[0].stride(basenet_stride)]
+        field_config.caf_strides = [head_nets[1].stride(basenet_stride)]
 
         if multi_scale:
             if not dense_connections:
