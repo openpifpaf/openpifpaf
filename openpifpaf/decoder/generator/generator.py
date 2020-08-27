@@ -27,7 +27,13 @@ class Generator:
                 'not supported, use --decoder-workers=0 '
                 'on windows'
             )
-            worker_pool = multiprocessing.Pool(worker_pool)
+
+            # The new default for multiprocessing is 'spawn' for py38 on Mac.
+            # This is not compatible with our configuration system.
+            # For now, try to use 'fork'.
+            # TODO: how to make configuration 'spawn' compatible
+            multiprocessing_context = multiprocessing.get_context('fork')
+            worker_pool = multiprocessing_context.Pool(worker_pool)
 
         self.worker_pool = worker_pool
 
