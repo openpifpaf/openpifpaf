@@ -31,6 +31,7 @@ class Intensity(Base):
     n_scales: int = 1
 
     vector_offsets = [True]
+    upsample_stride = 1
 
     @property
     def n_fields(self):
@@ -51,6 +52,7 @@ class Association(Base):
     n_scales: int = 2
 
     vector_offsets = [True, True]
+    upsample_stride = 1
 
     @property
     def n_fields(self):
@@ -81,6 +83,7 @@ class Detection(Base):
     n_scales: int = 0
 
     vector_offsets = [True, False]
+    upsample_stride = 1
 
     @property
     def n_fields(self):

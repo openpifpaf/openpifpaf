@@ -4,7 +4,7 @@ import torch
 
 import torchvision
 
-from . import basenetworks, headmeta, heads, nets
+from . import basenetworks, heads, nets
 from .. import datasets
 
 # generate hash values with: shasum -a 256 filename.pkl
@@ -313,7 +313,6 @@ def resnet_factory_from_scratch(basename, base_vision, out_features, head_metas)
 def configure(args):
     # configure CompositeField
     heads.CompositeField3.dropout_p = args.head_dropout
-    heads.CompositeField3.quad = args.head_quad
 
 
 def cli(parser):
@@ -344,5 +343,3 @@ def cli(parser):
     group = parser.add_argument_group('head')
     group.add_argument('--head-dropout', default=heads.CompositeField3.dropout_p, type=float,
                        help='[experimental] zeroing probability of feature in head input')
-    group.add_argument('--head-quad', default=heads.CompositeField3.quad, type=int,
-                       help='number of times to apply quad (subpixel conv) to heads')

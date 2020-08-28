@@ -2,7 +2,7 @@
 
 import functools
 import logging
-from typing import List
+import math
 
 import numpy as np
 import torch
@@ -102,7 +102,7 @@ class PafHFlip(torch.nn.Module):
 class CafConcatenate(torch.nn.Module):
     def __init__(self, parents):
         super().__init__()
-        self.parents = parents
+        self.parents = torch.nn.ModuleList(parents)
         self.meta = headmeta.Association.concatenate([p.meta for p in parents])
 
     def forward(self, *args):
@@ -112,7 +112,6 @@ class CafConcatenate(torch.nn.Module):
 
 class CompositeField3(torch.nn.Module):
     dropout_p = 0.0
-    quad = 1
     inplace_ops = True
 
     def __init__(self,
@@ -132,30 +131,33 @@ class CompositeField3(torch.nn.Module):
 
         # convolution
         out_features = meta.n_fields * (meta.n_confidences + meta.n_vectors * 3 + meta.n_scales)
-        self.conv = torch.nn.Conv2d(in_features, out_features * (4 ** self._quad),
+        self.conv = torch.nn.Conv2d(in_features, out_features * (meta.upsample_stride ** 2),
                                     kernel_size, padding=padding, dilation=dilation)
 
-        # dequad
-        self.dequad_op = torch.nn.PixelShuffle(2)
+        # upsample
+        assert meta.upsample_stride >= 1
+        self.upsample_op = None
+        if meta.upsample_stride > 1:
+            self.upsample_op = torch.nn.PixelShuffle(meta.upsample_stride)
 
     @property
     def sparse_task_parameters(self):
         return [self.conv.weight]
 
-    def stride(self, basenet_stride):
-        return basenet_stride // (2 ** self._quad)
-
     def forward(self, x):  # pylint: disable=arguments-differ
         x = self.dropout(x)
         x = self.conv(x)
         # upscale
-        for _ in range(self._quad):
-            x = self.dequad_op(x)
+        if self.upsample_op is not None:
+            x = self.upsample_op(x)
+            low_cut = (self.meta.upsample_stride - 1) // 2
+            high_cut = math.ceil((self.meta.upsample_stride - 1) / 2.0)
             if self.training:
-                x = x[:, :, :-1, :-1]  # negative axes not supported by ONNX TensorRT
+                # negative axes not supported by ONNX TensorRT
+                x = x[:, :, low_cut:-high_cut, low_cut:-high_cut]
             else:
                 # the int() forces the tracer to use static shape
-                x = x[:, :, :int(x.shape[2]) - 1, :int(x.shape[3]) - 1]
+                x = x[:, :, low_cut:int(x.shape[2]) - high_cut, low_cut:int(x.shape[3]) - high_cut]
 
         # Extract some shape parameters once.
         # Convert to int so that shape is constant in ONNX export.
