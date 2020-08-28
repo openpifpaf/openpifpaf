@@ -40,16 +40,31 @@ def canvas(fig_file=None, show=True, dpi=200, nomargin=False, **kwargs):
 
 
 @contextmanager
-def image_canvas(image, fig_file=None, show=True, dpi_factor=1.0, fig_width=10.0, **kwargs):
+def image_canvas(image, fig_file=None, *, show=True, dpi_factor=1.0,
+                 fig_width=10.0, margin=None, **kwargs):
     if plt is None:
         raise Exception('please install matplotlib')
 
     image = np.asarray(image)
+
+    if margin is None:
+        margin = [0.0, 0.0, 0.0, 0.0]
+    elif isinstance(margin, float):
+        margin = [margin, margin, margin, margin]
+    assert len(margin) == 4
+
     if 'figsize' not in kwargs:
-        kwargs['figsize'] = (fig_width, fig_width * image.shape[0] / image.shape[1])
+        # compute figure size: use image ratio and take the drawable area
+        # into account that is left after subtracting margins.
+        image_ratio = image.shape[0] / image.shape[1]
+        image_area_ratio = (1.0 - margin[1] - margin[3]) / (1.0 - margin[0] - margin[2])
+        kwargs['figsize'] = (fig_width, fig_width * image_ratio / image_area_ratio)
 
     fig = plt.figure(dpi=image.shape[1] / kwargs['figsize'][0] * dpi_factor, **kwargs)
-    ax = plt.Axes(fig, [0.0, 0.0, 1.0, 1.0])
+    ax = plt.Axes(fig, [0.0 + margin[0],
+                        0.0 + margin[1],
+                        1.0 - margin[2],
+                        1.0 - margin[3]])
     ax.set_axis_off()
     ax.set_xlim(-0.5, image.shape[1] - 0.5)  # imshow uses center-pixel-coordinates
     ax.set_ylim(image.shape[0] - 0.5, -0.5)
