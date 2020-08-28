@@ -29,10 +29,12 @@ def apply(model, outfile, input_w=129, input_h=97):
         # classifier_config = ct.ClassifierConfig(class_labels)
         minimum_deployment_target=coremltools.target.iOS13,
     )
-    # coremltools.models.utils.rename_feature(
-    #     coreml_model._spec, coreml_model._spec.description.output[0].name, 'cif_head')
-    # coremltools.models.utils.rename_feature(
-    #     coreml_model._spec, coreml_model._spec.description.output[1].name, 'caf_head')
+
+    # pylint: disable=protected-access
+    coremltools.models.utils.rename_feature(
+        coreml_model._spec, coreml_model._spec.description.output[0].name, 'cif_head')
+    coremltools.models.utils.rename_feature(
+        coreml_model._spec, coreml_model._spec.description.output[1].name, 'caf_head')
 
     # Meta
     coreml_model.input_description['image'] = 'Input image to be classified'
@@ -52,7 +54,7 @@ def apply(model, outfile, input_w=129, input_h=97):
 
 def print_preprocessing_spec(out_name):
     spec = coremltools.models.utils.load_spec(out_name)
-    print(spec.neuralNetwork)  # pylint: disable=no-member
+    print(spec.neuralNetwork.preprocessing)  # pylint: disable=no-member
 
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
