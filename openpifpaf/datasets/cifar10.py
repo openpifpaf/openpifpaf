@@ -62,8 +62,8 @@ class Cifar10(DataModule):
         image, category_id = parent_data
 
         anns = [{
-            'bbox': np.asarray([0, 0, 31, 31], dtype=np.float32),
-            'category_id': category_id,
+            'bbox': np.asarray([5, 5, 21, 21], dtype=np.float32),
+            'category_id': category_id + 1,
         }]
 
         return image, anns, meta
