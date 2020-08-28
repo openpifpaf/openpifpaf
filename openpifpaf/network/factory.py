@@ -123,7 +123,8 @@ def factory(
         # cif_indices = [v * 3 + 1 for v in range(10)]
         # caf_indices = [v * 3 + 2 for v in range(10)]
         raise NotImplementedError
-    net_cpu.cross_talk = cross_talk
+    if cross_talk:
+        net_cpu.process_input = nets.CrossTalk(cross_talk)
 
     if two_scale:
         net_cpu = nets.Shell2Scale(net_cpu.base_net, net_cpu.head_nets)
