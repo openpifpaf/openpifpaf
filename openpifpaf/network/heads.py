@@ -127,7 +127,6 @@ class CompositeField3(torch.nn.Module):
 
         self.meta = meta
         self.dropout = torch.nn.Dropout2d(p=self.dropout_p)
-        self._quad = self.quad
 
         # convolution
         out_features = meta.n_fields * (meta.n_confidences + meta.n_vectors * 3 + meta.n_scales)

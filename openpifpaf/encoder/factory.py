@@ -39,7 +39,7 @@ def factory(headnets, basenet_stride):
 
 def factory_head(head_net: network.heads.CompositeField3, basenet_stride):
     meta = head_net.meta
-    stride = head_net.stride(basenet_stride)
+    stride = basenet_stride // meta.upsample_stride
 
     if isinstance(meta, network.headmeta.Detection):
         n_categories = len(meta.categories)
