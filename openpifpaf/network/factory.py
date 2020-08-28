@@ -113,19 +113,16 @@ def factory(
         # initialize for eval
         net_cpu.eval()
 
-    cif_indices = [0]
-    caf_indices = [1]
-    if not any(isinstance(h.meta, headmeta.Association) for h in net_cpu.head_nets):
-        caf_indices = []
     if dense_connections and not multi_scale:
-        caf_indices = [1, 2]
+        concatenated_caf = heads.CafConcatenate(
+            (net_cpu.head_nets[1], net_cpu.head_nets[2]))
+        net_cpu.head_nets.pop(2)
+        net_cpu.head_nets[1] = concatenated_caf
     elif dense_connections and multi_scale:
-        cif_indices = [v * 3 + 1 for v in range(10)]
-        caf_indices = [v * 3 + 2 for v in range(10)]
-    if isinstance(net_cpu.head_nets[0].meta, headmeta.Detection):
-        net_cpu.process_heads = heads.CifdetCollector(cif_indices)
-    else:
-        net_cpu.process_heads = heads.CifCafCollector(cif_indices, caf_indices)
+        # TODO: fix multi-scale
+        # cif_indices = [v * 3 + 1 for v in range(10)]
+        # caf_indices = [v * 3 + 2 for v in range(10)]
+        raise NotImplementedError
     net_cpu.cross_talk = cross_talk
 
     if two_scale:

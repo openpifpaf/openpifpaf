@@ -2,6 +2,7 @@
 
 import functools
 import logging
+from typing import List
 
 import numpy as np
 import torch
@@ -24,106 +25,6 @@ def index_field_torch(shape, *, device=None, n_unsqueeze=2):
         xy = torch.unsqueeze(xy, 0)
 
     return xy
-
-
-class CifCafCollector(torch.nn.Module):
-    def __init__(self, cif_indices, caf_indices):
-        super().__init__()
-        self.cif_indices = cif_indices
-        self.caf_indices = caf_indices
-        LOG.debug('cif = %s, caf = %s', cif_indices, caf_indices)
-
-    @staticmethod
-    def selector(inputs, index):
-        if not isinstance(index, (list, tuple)):
-            return inputs[index]
-
-        for ind in index:
-            inputs = inputs[ind]
-        return inputs
-
-    @staticmethod
-    def concat_heads(heads):
-        if not heads:
-            return None
-        if len(heads) == 1:
-            return heads[0]
-
-        # LOG.debug('heads = %s', [h.shape for h in heads])
-        return torch.cat(heads, dim=1)
-
-    def forward(self, *args):
-        heads = args[0]
-
-        # concat heads
-        cif_head = self.concat_heads([self.selector(heads, head_index)
-                                      for head_index in self.cif_indices])
-        caf_head = self.concat_heads([self.selector(heads, head_index)
-                                      for head_index in self.caf_indices])
-
-        # add index
-        index_field = index_field_torch(cif_head.shape[-2:], device=cif_head.device)
-        if cif_head is not None:
-            cif_head[:, :, 1:3].add_(index_field)
-        if caf_head is not None:
-            caf_head[:, :, 1:3].add_(index_field)
-            caf_head[:, :, 3:5].add_(index_field)
-
-        return cif_head, caf_head
-
-
-class CifdetCollector(torch.nn.Module):
-    def __init__(self, indices):
-        super().__init__()
-        self.indices = indices
-        LOG.debug('cifdet = %s', indices)
-
-    @staticmethod
-    def selector(inputs, index):
-        if not isinstance(index, (list, tuple)):
-            return inputs[index]
-
-        for ind in index:
-            inputs = inputs[ind]
-        return inputs
-
-    @staticmethod
-    def concat_fields(fields):
-        fields = [
-            f.view(f.shape[0], f.shape[1], f.shape[2] * f.shape[3], *f.shape[4:])
-            if len(f.shape) == 6
-            else f.view(f.shape[0], f.shape[1], f.shape[2], *f.shape[3:])
-            for f in fields
-        ]
-        return torch.cat(fields, dim=2)
-
-    @staticmethod
-    def concat_heads(heads):
-        if not heads:
-            return None
-        if len(heads) == 1:
-            return heads[0]
-
-        # LOG.debug('heads = %s', [h.shape for h in heads])
-        return torch.cat(heads, dim=1)
-
-    def forward(self, *args):
-        heads = args[0]
-
-        # concat fields
-        cifdet_heads = [self.concat_fields(self.selector(heads, head_index))
-                        for head_index in self.indices]
-
-        # concat heads
-        cifdet_head = self.concat_heads(cifdet_heads)
-
-        # add index
-        index_field = index_field_torch(cifdet_head.shape[-2:], device=cifdet_head.device)
-        cifdet_head[:, :, 1:3] += index_field
-        # rearrange caf_fields
-        cifdet_head = cifdet_head[:, :, (0, 1, 2, 5, 3, 4, 6)]
-
-        return (cifdet_head,)
 
 
 class PifHFlip(torch.nn.Module):
@@ -198,6 +99,17 @@ class PafHFlip(torch.nn.Module):
         return out
 
 
+class CafConcatenate(torch.nn.Module):
+    def __init__(self, parents):
+        super().__init__()
+        self.parents = parents
+        self.meta = headmeta.Association.concatenate([p.meta for p in parents])
+
+    def forward(self, *args):
+        x = args[0]
+        return torch.cat([p(x) for p in self.parents], dim=1)
+
+
 class CompositeField3(torch.nn.Module):
     dropout_p = 0.0
     quad = 1
@@ -265,6 +177,16 @@ class CompositeField3(torch.nn.Module):
             classes_x = x[:, :, 0:self.meta.n_confidences]
             torch.sigmoid_(classes_x)
 
+            # regressions x: add index
+            if self.meta.n_vectors > 0:
+                index_field = index_field_torch(x.shape[-2:], device=x.device)
+                first_reg_feature = self.meta.n_confidences
+                for i, do_offset in enumerate(self.meta.vector_offsets):
+                    if not do_offset:
+                        continue
+                    reg_x = x[:, :, first_reg_feature + i * 2:first_reg_feature + (i + 1) * 2]
+                    reg_x.add_(index_field)
+
             # scale
             first_scale_feature = self.meta.n_confidences + self.meta.n_vectors * 3
             scales_x = x[:, :, first_scale_feature:first_scale_feature + self.meta.n_scales]
@@ -274,9 +196,20 @@ class CompositeField3(torch.nn.Module):
             classes_x = x[:, :, 0:self.meta.n_confidences]
             classes_x = torch.sigmoid(classes_x)
 
-            # regressions
+            # regressions x
             first_reg_feature = self.meta.n_confidences
-            regs_x = x[:, :, first_reg_feature:first_reg_feature + self.meta.n_vectors * 3]
+            regs_x = [
+                x[:, :, first_reg_feature + i * 2:first_reg_feature + (i + 1) * 2]
+                for i in range(self.meta.n_vectors)
+            ]
+            # regressions x: add index
+            index_field = index_field_torch(x.shape[-2:], device=x.device)
+            regs_x = [reg_x.add(index_field) if do_offset else reg_x
+                      for reg_x, do_offset in zip(regs_x, self.meta.vector_offsets)]
+
+            # regressions logb
+            first_reglogb_feature = self.meta.n_confidences + self.meta.n_vectors * 2
+            regs_logb = x[:, :, first_reglogb_feature:first_reglogb_feature + self.meta.n_vectors]
 
             # scale
             first_scale_feature = self.meta.n_confidences + self.meta.n_vectors * 3
@@ -284,6 +217,6 @@ class CompositeField3(torch.nn.Module):
             scales_x = torch.exp(scales_x)
 
             # concat
-            x = torch.cat([classes_x, regs_x, scales_x], dim=2)
+            x = torch.cat([classes_x, *regs_x, regs_logb, scales_x], dim=2)
 
         return x
