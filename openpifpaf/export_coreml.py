@@ -24,7 +24,8 @@ def apply(model, outfile, input_w=129, input_h=97):
 
     coreml_model = coremltools.convert(
         traced_model,
-        inputs=[coremltools.ImageType(name='image', shape=dummy_input.shape)],
+        inputs=[coremltools.ImageType(name='image', shape=dummy_input.shape,
+                                      bias=[-1.0, -1.0, -1.0], scale=1.0 / 127.0)],
         # classifier_config = ct.ClassifierConfig(class_labels)
         minimum_deployment_target=coremltools.target.iOS13,
     )
@@ -47,6 +48,11 @@ def apply(model, outfile, input_w=129, input_h=97):
     # # test predict
     # test_predict = coreml_model.predict({'input_1': dummy_input.numpy()})
     # print('!!!!!!!!', test_predict)
+
+
+def print_preprocessing_spec(out_name):
+    spec = coremltools.models.utils.load_spec(out_name)
+    print(spec.neuralNetwork)  # pylint: disable=no-member
 
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
@@ -73,6 +79,7 @@ def main():
 
     assert args.outfile.endswith('.mlmodel')
     apply(model, args.outfile, input_w=args.input_width, input_h=args.input_height)
+    print_preprocessing_spec(args.outfile)
 
 
 if __name__ == '__main__':
