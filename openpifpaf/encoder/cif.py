@@ -6,6 +6,7 @@ import numpy as np
 import torch
 
 from .annrescaler import AnnRescaler
+from ..network import headmeta
 from ..visualizer import Cif as CifVisualizer
 from ..utils import create_sink, mask_valid_area
 
@@ -14,8 +15,9 @@ LOG = logging.getLogger(__name__)
 
 @dataclasses.dataclass
 class Cif:
-    rescaler: AnnRescaler
-    sigmas: list
+    meta: headmeta.Intensity
+    stride: int
+    rescaler: AnnRescaler = None
     v_threshold: int = 0
     visualizer: CifVisualizer = None
 
@@ -30,6 +32,12 @@ class CifGenerator():
     def __init__(self, config: Cif):
         self.config = config
 
+        self.rescaler = config.rescaler or AnnRescaler(
+            config.stride, len(config.meta.keypoints), config.meta.pose)
+        self.visualizer = config.visualizer or CifVisualizer(
+            config.meta.name, stride=config.stride,
+            keypoints=config.meta.keypoints, skeleton=config.meta.draw_skeleton)
+
         self.intensities = None
         self.fields_reg = None
         self.fields_scale = None
@@ -41,10 +49,10 @@ class CifGenerator():
     def __call__(self, image, anns, meta):
         width_height_original = image.shape[2:0:-1]
 
-        keypoint_sets = self.config.rescaler.keypoint_sets(anns)
-        bg_mask = self.config.rescaler.bg_mask(anns, width_height_original,
-                                               crowd_margin=(self.config.side_length - 1) / 2)
-        valid_area = self.config.rescaler.valid_area(meta)
+        keypoint_sets = self.rescaler.keypoint_sets(anns)
+        bg_mask = self.rescaler.bg_mask(anns, width_height_original,
+                                        crowd_margin=(self.config.side_length - 1) / 2)
+        valid_area = self.rescaler.valid_area(meta)
         LOG.debug('valid area: %s, pif side length = %d', valid_area, self.config.side_length)
 
         n_fields = keypoint_sets.shape[1]
@@ -52,8 +60,8 @@ class CifGenerator():
         self.fill(keypoint_sets)
         fields = self.fields(valid_area)
 
-        self.config.visualizer.processed_image(image)
-        self.config.visualizer.targets(fields, annotation_dicts=anns)
+        self.visualizer.processed_image(image)
+        self.visualizer.targets(fields, annotation_dicts=anns)
 
         return fields
 
@@ -102,7 +110,7 @@ class CifGenerator():
         return out
 
     def fill_keypoints(self, keypoints, other_keypoints):
-        scale = self.config.rescaler.scale(keypoints)
+        scale = self.rescaler.scale(keypoints)
         for f, xyv in enumerate(keypoints):
             if xyv[2] <= self.config.v_threshold:
                 continue
@@ -111,7 +119,11 @@ class CifGenerator():
                          if other_kps[f, 2] > self.config.v_threshold]
             max_r = self.max_r(xyv, other_xyv)
 
-            joint_scale = scale if self.config.sigmas is None else scale * self.config.sigmas[f]
+            joint_scale = (
+                scale
+                if self.config.meta.sigmas is None
+                else scale * self.config.meta.sigmas[f]
+            )
             joint_scale = np.min([joint_scale, np.min(max_r) * 0.25])
 
             self.fill_coordinate(f, xyv, joint_scale, max_r)

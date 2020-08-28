@@ -7,6 +7,7 @@ import torch
 
 from .annrescaler import AnnRescaler
 from .cif import CifGenerator
+from ..network import headmeta
 from ..visualizer import Caf as CafVisualizer
 from ..utils import create_sink, mask_valid_area
 
@@ -15,12 +16,9 @@ LOG = logging.getLogger(__name__)
 
 @dataclasses.dataclass
 class Caf:
-    rescaler: AnnRescaler
-    skeleton: list
-    sigmas: list
-    sparse_skeleton: list = None
-    dense_to_sparse_radius: float = 2.0
-    only_in_field_of_view: bool = False
+    meta: headmeta.Association
+    stride: int
+    rescaler: AnnRescaler = None
     v_threshold: int = 0
     visualizer: CafVisualizer = None
 
@@ -36,16 +34,23 @@ class Caf:
 class CafGenerator:
     def __init__(self, config: Caf):
         self.config = config
-        self.skeleton_m1 = np.asarray(config.skeleton) - 1
+
+        self.rescaler = config.rescaler or AnnRescaler(
+            config.stride, len(config.meta.keypoints), config.meta.pose)
+        self.visualizer = config.visualizer or CafVisualizer(
+            config.meta.name, stride=config.stride,
+            keypoints=config.meta.keypoints, skeleton=config.meta.skeleton)
+
+        self.skeleton_m1 = np.asarray(config.meta.skeleton) - 1
         self.sparse_skeleton_m1 = (
-            np.asarray(config.sparse_skeleton) - 1
-            if config.sparse_skeleton else None)
+            np.asarray(config.meta.sparse_skeleton) - 1
+            if config.meta.sparse_skeleton else None)
 
         if self.config.fixed_size:
             assert self.config.aspect_ratio == 0.0
 
         LOG.debug('only_in_field_of_view = %s, paf min size = %d',
-                  config.only_in_field_of_view,
+                  config.meta.only_in_field_of_view,
                   self.config.min_size)
 
         self.intensities = None
@@ -58,18 +63,18 @@ class CafGenerator:
     def __call__(self, image, anns, meta):
         width_height_original = image.shape[2:0:-1]
 
-        keypoint_sets = self.config.rescaler.keypoint_sets(anns)
-        bg_mask = self.config.rescaler.bg_mask(anns, width_height_original,
-                                               crowd_margin=(self.config.min_size - 1) / 2)
-        valid_area = self.config.rescaler.valid_area(meta)
+        keypoint_sets = self.rescaler.keypoint_sets(anns)
+        bg_mask = self.rescaler.bg_mask(anns, width_height_original,
+                                        crowd_margin=(self.config.min_size - 1) / 2)
+        valid_area = self.rescaler.valid_area(meta)
         LOG.debug('valid area: %s', valid_area)
 
         self.init_fields(bg_mask)
         self.fill(keypoint_sets)
         fields = self.fields(valid_area)
 
-        self.config.visualizer.processed_image(image)
-        self.config.visualizer.targets(fields, keypoint_sets=keypoint_sets)
+        self.visualizer.processed_image(image)
+        self.visualizer.targets(fields, keypoint_sets=keypoint_sets)
 
         return fields
 
@@ -115,7 +120,7 @@ class CafGenerator:
         return shortest
 
     def fill_keypoints(self, keypoints, other_keypoints):
-        scale = self.config.rescaler.scale(keypoints)
+        scale = self.rescaler.scale(keypoints)
         for paf_i, (joint1i, joint2i) in enumerate(self.skeleton_m1):
             joint1 = keypoints[joint1i]
             joint2 = keypoints[joint2i]
@@ -124,7 +129,8 @@ class CafGenerator:
 
             # check if there are shorter connections in the sparse skeleton
             if self.sparse_skeleton_m1 is not None:
-                d = np.linalg.norm(joint1[:2] - joint2[:2]) / self.config.dense_to_sparse_radius
+                d = (np.linalg.norm(joint1[:2] - joint2[:2])
+                     / self.config.meta.dense_to_sparse_radius)
                 if self.shortest_sparse(joint1i, keypoints) < d \
                    and self.shortest_sparse(joint2i, keypoints) < d:
                     continue
@@ -146,7 +152,7 @@ class CafGenerator:
             )
             if out_field_of_view_1 and out_field_of_view_2:
                 continue
-            if self.config.only_in_field_of_view:
+            if self.config.meta.only_in_field_of_view:
                 if out_field_of_view_1 or out_field_of_view_2:
                     continue
 
@@ -157,11 +163,11 @@ class CafGenerator:
             max_r1 = CifGenerator.max_r(joint1, other_j1s)
             max_r2 = CifGenerator.max_r(joint2, other_j2s)
 
-            if self.config.sigmas is None:
+            if self.config.meta.sigmas is None:
                 scale1, scale2 = scale, scale
             else:
-                scale1 = scale * self.config.sigmas[joint1i]
-                scale2 = scale * self.config.sigmas[joint2i]
+                scale1 = scale * self.config.meta.sigmas[joint1i]
+                scale2 = scale * self.config.meta.sigmas[joint2i]
             scale1 = np.min([scale1, np.min(max_r1) * 0.25])
             scale2 = np.min([scale2, np.min(max_r2) * 0.25])
             self.fill_association(paf_i, joint1, joint2, scale1, scale2, max_r1, max_r2)

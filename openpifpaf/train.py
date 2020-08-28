@@ -125,9 +125,8 @@ def main():
         net = torch.nn.DataParallel(net)
 
     loss = network.losses.factory_from_args(args, net_cpu.head_nets)
-    target_transforms = encoder.factory(net_cpu.head_nets, net_cpu.base_net.stride)
-    train_loader = datamodule.train_loader(target_transforms)
-    val_loader = datamodule.val_loader(target_transforms)
+    train_loader = datamodule.train_loader(net_cpu.base_net.stride)
+    val_loader = datamodule.val_loader(net_cpu.base_net.stride)
 
     optimizer = optimize.factory_optimizer(
         args, list(net.parameters()) + list(loss.parameters()))

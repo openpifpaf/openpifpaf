@@ -4,7 +4,7 @@ import torchvision
 
 from .module import DataModule
 from ..network import headmeta
-from .. import transforms
+from .. import encoder, transforms
 from .collate import collate_images_targets_meta
 from .torch_dataset import TorchDataset
 
@@ -51,7 +51,8 @@ class Cifar10(DataModule):
         cls.n_images = args.cifar10_n_images
         cls.augmentation = args.cifar10_augmentation
 
-    def head_metas(self):
+    @classmethod
+    def head_metas(cls):
         categories = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog',
                       'horse', 'ship', 'truck')
         return (headmeta.Detection('cifdet', categories),)
@@ -68,7 +69,10 @@ class Cifar10(DataModule):
         return image, anns, meta
 
     @classmethod
-    def _preprocess(cls):
+    def _preprocess(cls, base_stride):
+        metas = cls.head_metas()
+        enc = encoder.CifDet(metas[0], base_stride // metas[0].upsample_stride)
+
         if not cls.augmentation:
             return transforms.Compose([
                 cls._convert_data,
@@ -79,6 +83,7 @@ class Cifar10(DataModule):
                     torchvision.transforms.Normalize(mean=[0.5, 0.5, 0.5],
                                                      std=[0.5, 0.5, 0.5]),
                 ),
+                transforms.Encoders([enc]),
             ])
 
         return transforms.Compose([
@@ -90,13 +95,13 @@ class Cifar10(DataModule):
                 torchvision.transforms.Normalize(mean=[0.5, 0.5, 0.5],
                                                  std=[0.5, 0.5, 0.5]),
             ),
+            transforms.Encoders([enc]),
         ])
 
-    def train_loader(self, target_transforms):
+    def train_loader(self, base_stride):
         train_data = TorchDataset(
             torchvision.datasets.CIFAR10(self.root_dir, train=True, download=self.download),
-            preprocess=self._preprocess(),
-            target_transforms=target_transforms,
+            preprocess=self._preprocess(base_stride),
         )
         if self.n_images:
             train_data = torch.utils.data.Subset(train_data, indices=range(self.n_images))
@@ -105,13 +110,10 @@ class Cifar10(DataModule):
             pin_memory=self.pin_memory, num_workers=self.loader_workers, drop_last=True,
             collate_fn=collate_images_targets_meta)
 
-    def val_loader(self, target_transforms):
-        val_data = torchvision.datasets.CIFAR10(
-            self.root_dir,
-            train=False,
-            transform=self._preprocess(),
-            target_transform=target_transforms,
-            download=self.download,
+    def val_loader(self, base_stride):
+        val_data = TorchDataset(
+            torchvision.datasets.CIFAR10( self.root_dir, train=False, download=self.download),
+            preprocess=self._preprocess(base_stride),
         )
         if self.n_images:
             val_data = torch.utils.data.Subset(val_data, indices=range(self.n_images))

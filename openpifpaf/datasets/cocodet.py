@@ -2,7 +2,7 @@ import torch
 
 from .module import DataModule
 from ..network import headmeta
-from .. import transforms
+from .. import encoder, transforms
 from .coco import Coco
 from .collate import collate_images_targets_meta
 from .constants import (
@@ -87,13 +87,17 @@ class CocoDet(DataModule):
         return (headmeta.Detection('cifdet', COCO_CATEGORIES),)
 
     @classmethod
-    def _preprocess(cls):
+    def _preprocess(cls, base_stride):
+        metas = cls.head_metas()
+        enc = encoder.CifDet(metas[0], base_stride // metas[0].upsample_stride)
+
         if not cls.augmentation:
             return transforms.Compose([
                 transforms.NormalizeAnnotations(),
                 transforms.RescaleAbsolute(cls.square_edge),
                 transforms.CenterPad(cls.square_edge),
                 transforms.EVAL_TRANSFORM,
+                transforms.Encoders([enc]),
             ])
 
         if cls.extended_scale:
@@ -124,14 +128,14 @@ class CocoDet(DataModule):
             transforms.UnclippedArea(),
             transforms.UnclippedSides(),
             transforms.TRAIN_TRANSFORM,
+            transforms.Encoders([enc]),
         ])
 
-    def train_loader(self, target_transforms):
+    def train_loader(self, base_stride):
         train_data = Coco(
             image_dir=self.train_image_dir,
             ann_file=self.train_annotations,
-            preprocess=self._preprocess(),
-            target_transforms=target_transforms,
+            preprocess=self._preprocess(base_stride),
             n_images=self.n_images,
             image_filter='annotated',
             category_ids=[],
@@ -141,12 +145,11 @@ class CocoDet(DataModule):
             pin_memory=self.pin_memory, num_workers=self.loader_workers, drop_last=True,
             collate_fn=collate_images_targets_meta)
 
-    def val_loader(self, target_transforms):
+    def val_loader(self, base_stride):
         val_data = Coco(
             image_dir=self.val_image_dir,
             ann_file=self.val_annotations,
-            preprocess=self._preprocess(),
-            target_transforms=target_transforms,
+            preprocess=self._preprocess(base_stride),
             n_images=self.n_images,
             image_filter='annotated',
             category_ids=[],

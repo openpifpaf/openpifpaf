@@ -20,13 +20,14 @@ class DataModule():
     def configure(cls, args):
         pass
 
-    def head_metas(self):
+    @classmethod
+    def head_metas(cls):
         raise NotImplementedError
 
-    def train_loader(self, target_transforms):
+    def train_loader(self, base_stride):
         raise NotImplementedError
 
-    def val_loader(self, target_transforms):
+    def val_loader(self, base_stride):
         raise NotImplementedError
 
     def test_loader(self):

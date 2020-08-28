@@ -5,7 +5,8 @@ from typing import ClassVar
 import numpy as np
 import torch
 
-from .annrescaler import AnnRescaler
+from .annrescaler import AnnRescalerDet
+from ..network import headmeta
 from ..visualizer import CifDet as CifDetVisualizer
 from ..utils import create_sink, mask_valid_area
 
@@ -14,8 +15,9 @@ LOG = logging.getLogger(__name__)
 
 @dataclasses.dataclass
 class CifDet:
-    n_categories: int
-    rescaler: AnnRescaler
+    meta: headmeta.Detection
+    stride: int
+    rescaler: AnnRescalerDet = None
     v_threshold: int = 0
     visualizer: CifDetVisualizer = None
 
@@ -30,6 +32,11 @@ class CifDetGenerator():
     def __init__(self, config: CifDet):
         self.config = config
 
+        self.rescaler = config.rescaler or AnnRescalerDet(
+            config.stride, len(config.meta.categories))
+        self.visualizer = config.visualizer or CifDetVisualizer(
+            config.meta.name, stride=config.stride, categories=config.meta.categories)
+
         self.intensities = None
         self.fields_reg = None
         self.fields_wh = None
@@ -41,19 +48,19 @@ class CifDetGenerator():
     def __call__(self, image, anns, meta):
         width_height_original = image.shape[2:0:-1]
 
-        detections = self.config.rescaler.detections(anns)
-        bg_mask = self.config.rescaler.bg_mask(anns, width_height_original,
-                                               crowd_margin=(self.config.side_length - 1) / 2)
-        valid_area = self.config.rescaler.valid_area(meta)
+        detections = self.rescaler.detections(anns)
+        bg_mask = self.rescaler.bg_mask(anns, width_height_original,
+                                        crowd_margin=(self.config.side_length - 1) / 2)
+        valid_area = self.rescaler.valid_area(meta)
         LOG.debug('valid area: %s, pif side length = %d', valid_area, self.config.side_length)
 
-        n_fields = self.config.n_categories
+        n_fields = len(self.config.meta.categories)
         self.init_fields(n_fields, bg_mask)
         self.fill(detections)
         fields = self.fields(valid_area)
 
-        self.config.visualizer.processed_image(image)
-        self.config.visualizer.targets(fields, detections=detections)
+        self.visualizer.processed_image(image)
+        self.visualizer.targets(fields, detections=detections)
 
         return fields
 

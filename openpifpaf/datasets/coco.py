@@ -3,7 +3,6 @@ import copy
 import logging
 import os
 
-import numpy as np
 import torch.utils.data
 from PIL import Image
 
@@ -22,7 +21,7 @@ class Coco(torch.utils.data.Dataset):
         ann_file (string): Path to json annotation file.
     """
 
-    def __init__(self, image_dir, ann_file, *, target_transforms=None,
+    def __init__(self, image_dir, ann_file, *,
                  n_images=None, preprocess=None,
                  category_ids=None,
                  image_filter='keypoint-annotations'):
@@ -51,7 +50,6 @@ class Coco(torch.utils.data.Dataset):
         LOG.info('Images: %d', len(self.ids))
 
         self.preprocess = preprocess or transforms.EVAL_TRANSFORM
-        self.target_transforms = target_transforms
 
     def filter_for_keypoint_annotations(self):
         LOG.info('filter for keypoint annotations ...')
@@ -155,17 +153,14 @@ class Coco(torch.utils.data.Dataset):
 
         LOG.debug(meta)
 
-        # log stats
-        for ann in anns:
-            if getattr(ann, 'iscrowd', False):
-                continue
-            if not np.any(ann['keypoints'][:, 2] > 0.0):
-                continue
-            STAT_LOG.debug({'bbox': [int(v) for v in ann['bbox']]})
-
-        # transform targets
-        if self.target_transforms is not None:
-            anns = [t(image, anns, meta) for t in self.target_transforms]
+        # TODO: convert into transform
+        # # log stats
+        # for ann in anns:
+        #     if getattr(ann, 'iscrowd', False):
+        #         continue
+        #     if not np.any(ann['keypoints'][:, 2] > 0.0):
+        #         continue
+        #     STAT_LOG.debug({'bbox': [int(v) for v in ann['bbox']]})
 
         return image, anns, meta
 

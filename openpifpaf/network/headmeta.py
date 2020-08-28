@@ -39,6 +39,7 @@ class Association(Base):
     pose: Any
     skeleton: List[Tuple[int, int]]
     sparse_skeleton: List[Tuple[int, int]] = None
+    dense_to_sparse_radius: float = 2.0
     only_in_field_of_view: bool = False
 
     n_confidences: int = 1
