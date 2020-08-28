@@ -56,7 +56,7 @@ class Cif(BaseVisualizer):
         for f in self.indices:
             LOG.debug('%s', self.keypoints[f])
 
-            with self.image_canvas(self._processed_image) as ax:
+            with self.image_canvas(self._processed_image, margin=[0.0, 0.01, 0.05, 0.01]) as ax:
                 im = ax.imshow(self.scale_scalar(confidences[f], self.stride),
                                alpha=0.9, vmin=0.0, vmax=1.0, cmap=CMAP_ORANGES_NAN)
                 self.colorbar(ax, im)
@@ -70,7 +70,7 @@ class Cif(BaseVisualizer):
             LOG.debug('%s', self.keypoints[f])
             confidence_field = confidence_fields[f] if confidence_fields is not None else None
 
-            with self.image_canvas(self._processed_image) as ax:
+            with self.image_canvas(self._processed_image, margin=[0.0, 0.01, 0.05, 0.01]) as ax:
                 show.white_screen(ax, alpha=0.5)
                 if annotations:
                     self.keypoint_painter.annotations(ax, annotations)
