@@ -13,7 +13,7 @@ LOG = logging.getLogger(__name__)
 
 
 @functools.lru_cache(maxsize=16)
-def index_field_torch(shape, *, device=None, n_unsqueeze=2):
+def index_field_torch(shape, *, device=None, unsqueeze=(0, 0)):
     yx = np.indices(shape, dtype=np.float32)
     xy = np.flip(yx, axis=0)
 
@@ -21,8 +21,8 @@ def index_field_torch(shape, *, device=None, n_unsqueeze=2):
     if device is not None:
         xy = xy.to(device, non_blocking=True)
 
-    for _ in range(n_unsqueeze):
-        xy = torch.unsqueeze(xy, 0)
+    for dim in unsqueeze:
+        xy = torch.unsqueeze(xy, dim)
 
     return xy
 
@@ -193,31 +193,39 @@ class CompositeField3(torch.nn.Module):
             scales_x = x[:, :, first_scale_feature:first_scale_feature + self.meta.n_scales]
             torch.exp_(scales_x)
         elif not self.training and not self.inplace_ops:
+            # TODO: CoreMLv4 does not like strided slices.
+            # Strides are avoided when switching the first and second dim
+            # temporarily.
+            x = x.transpose(1, 2)
+
             # classification
-            classes_x = x[:, :, 0:self.meta.n_confidences]
+            classes_x = x[:, 0:self.meta.n_confidences]
             classes_x = torch.sigmoid(classes_x)
 
             # regressions x
             first_reg_feature = self.meta.n_confidences
             regs_x = [
-                x[:, :, first_reg_feature + i * 2:first_reg_feature + (i + 1) * 2]
+                x[:, first_reg_feature + i * 2:first_reg_feature + (i + 1) * 2]
                 for i in range(self.meta.n_vectors)
             ]
             # regressions x: add index
-            index_field = index_field_torch(x.shape[-2:], device=x.device)
+            index_field = index_field_torch(x.shape[-2:], device=x.device, unsqueeze=(1, 0))
             regs_x = [reg_x.add(index_field) if do_offset else reg_x
                       for reg_x, do_offset in zip(regs_x, self.meta.vector_offsets)]
 
             # regressions logb
             first_reglogb_feature = self.meta.n_confidences + self.meta.n_vectors * 2
-            regs_logb = x[:, :, first_reglogb_feature:first_reglogb_feature + self.meta.n_vectors]
+            regs_logb = x[:, first_reglogb_feature:first_reglogb_feature + self.meta.n_vectors]
 
             # scale
             first_scale_feature = self.meta.n_confidences + self.meta.n_vectors * 3
-            scales_x = x[:, :, first_scale_feature:first_scale_feature + self.meta.n_scales]
+            scales_x = x[:, first_scale_feature:first_scale_feature + self.meta.n_scales]
             scales_x = torch.exp(scales_x)
 
             # concat
-            x = torch.cat([classes_x, *regs_x, regs_logb, scales_x], dim=2)
+            x = torch.cat([classes_x, *regs_x, regs_logb, scales_x], dim=1)
+
+            # TODO: CoreMLv4 problem (see above).
+            x = x.transpose(1, 2)
 
         return x
