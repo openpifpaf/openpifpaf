@@ -4,7 +4,7 @@ import torch
 
 import torchvision
 
-from . import basenetworks, headmeta, heads, nets
+from . import basenetworks, heads, nets
 
 # generate hash values with: shasum -a 256 filename.pkl
 
@@ -112,20 +112,18 @@ def factory(
         # initialize for eval
         net_cpu.eval()
 
-    cif_indices = [0]
-    caf_indices = [1]
-    if not any(isinstance(h.meta, headmeta.Association) for h in net_cpu.head_nets):
-        caf_indices = []
     if dense_connections and not multi_scale:
-        caf_indices = [1, 2]
+        concatenated_caf = heads.CafConcatenate(
+            (net_cpu.head_nets[1], net_cpu.head_nets[2]))
+        net_cpu.head_nets.pop(2)
+        net_cpu.head_nets[1] = concatenated_caf
     elif dense_connections and multi_scale:
-        cif_indices = [v * 3 + 1 for v in range(10)]
-        caf_indices = [v * 3 + 2 for v in range(10)]
-    if isinstance(net_cpu.head_nets[0].meta, headmeta.Detection):
-        net_cpu.process_heads = heads.CifdetCollector(cif_indices)
-    else:
-        net_cpu.process_heads = heads.CifCafCollector(cif_indices, caf_indices)
-    net_cpu.cross_talk = cross_talk
+        # TODO: fix multi-scale
+        # cif_indices = [v * 3 + 1 for v in range(10)]
+        # caf_indices = [v * 3 + 2 for v in range(10)]
+        raise NotImplementedError
+    if cross_talk:
+        net_cpu.process_input = nets.CrossTalk(cross_talk)
 
     if two_scale:
         net_cpu = nets.Shell2Scale(net_cpu.base_net, net_cpu.head_nets)
@@ -313,7 +311,6 @@ def resnet_factory_from_scratch(basename, base_vision, out_features, head_metas)
 def configure(args):
     # configure CompositeField
     heads.CompositeField3.dropout_p = args.head_dropout
-    heads.CompositeField3.quad = args.head_quad
 
 
 def cli(parser):
@@ -342,5 +339,3 @@ def cli(parser):
     group = parser.add_argument_group('head')
     group.add_argument('--head-dropout', default=heads.CompositeField3.dropout_p, type=float,
                        help='[experimental] zeroing probability of feature in head input')
-    group.add_argument('--head-quad', default=heads.CompositeField3.quad, type=int,
-                       help='number of times to apply quad (subpixel conv) to heads')

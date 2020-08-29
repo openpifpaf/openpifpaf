@@ -9,20 +9,19 @@ LOG = logging.getLogger(__name__)
 
 class Shell(torch.nn.Module):
     def __init__(self, base_net, head_nets, *,
-                 process_heads=None, cross_talk=0.0):
+                 process_input=None, process_heads=None):
         super().__init__()
 
         self.base_net = base_net
         self.head_nets = torch.nn.ModuleList(head_nets)
+        self.process_input = process_input
         self.process_heads = process_heads
-        self.cross_talk = cross_talk
 
     def forward(self, *args):
         image_batch = args[0]
 
-        if self.training and self.cross_talk:
-            rolled_images = torch.cat((image_batch[-1:], image_batch[:-1]))
-            image_batch += rolled_images * self.cross_talk
+        if self.process_input is not None:
+            image_batch = self.process_input(image_batch)
 
         x = self.base_net(image_batch)
         head_outputs = [hn(x) for hn in self.head_nets]
@@ -31,6 +30,19 @@ class Shell(torch.nn.Module):
             head_outputs = self.process_heads(head_outputs)
 
         return head_outputs
+
+
+class CrossTalk(torch.nn.Module):
+    def __init__(self, strength=0.2):
+        super().__init__()
+        self.strength = strength
+
+    def forward(self, *args):
+        image_batch = args[0]
+        if self.training and self.strength:
+            rolled_images = torch.cat((image_batch[-1:], image_batch[:-1]))
+            image_batch += rolled_images * self.cross_talk
+        return image_batch
 
 
 class Shell2Scale(torch.nn.Module):

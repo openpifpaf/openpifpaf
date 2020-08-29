@@ -135,6 +135,7 @@ def factory_decode(head_nets, *,
 
     if isinstance(head_nets[0].meta, network.headmeta.Detection):
         field_config = FieldConfig()
+        field_config.cif_strides = [head_nets[0].stride(basenet_stride)]
         field_config.cif_visualizers = [
             visualizer.CifDet(head_nets[0].meta.name,
                               stride=head_nets[0].stride(basenet_stride),
@@ -149,6 +150,8 @@ def factory_decode(head_nets, *,
     if isinstance(head_nets[0].meta, network.headmeta.Intensity) \
        and isinstance(head_nets[1].meta, network.headmeta.Association):
         field_config = FieldConfig()
+        field_config.cif_strides = [basenet_stride / head_nets[0].meta.upsample_stride]
+        field_config.caf_strides = [basenet_stride / head_nets[1].meta.upsample_stride]
 
         if multi_scale:
             if not dense_connections:
@@ -157,9 +160,9 @@ def factory_decode(head_nets, *,
             else:
                 field_config.cif_indices = [v * 2 for v in range(5)]
                 field_config.caf_indices = [v * 2 + 1 for v in range(5)]
-            field_config.cif_strides = [head_nets[i].stride(basenet_stride)
+            field_config.cif_strides = [basenet_stride / head_nets[i].meta.upsample_stride
                                         for i in field_config.cif_indices]
-            field_config.caf_strides = [head_nets[i].stride(basenet_stride)
+            field_config.caf_strides = [basenet_stride / head_nets[i].meta.upsample_stride
                                         for i in field_config.caf_indices]
             field_config.cif_min_scales = [0.0, 12.0, 16.0, 24.0, 40.0]
             field_config.caf_min_distances = [v * 3.0 for v in field_config.cif_min_scales]
@@ -171,9 +174,9 @@ def factory_decode(head_nets, *,
             else:
                 field_config.cif_indices = [v * 2 for v in range(10)]
                 field_config.caf_indices = [v * 2 + 1 for v in range(10)]
-            field_config.cif_strides = [head_nets[i].stride(basenet_stride)
+            field_config.cif_strides = [basenet_stride / head_nets[i].meta.upsample_stride
                                         for i in field_config.cif_indices]
-            field_config.caf_strides = [head_nets[i].stride(basenet_stride)
+            field_config.caf_strides = [basenet_stride / head_nets[i].meta.upsample_stride
                                         for i in field_config.caf_indices]
             field_config.cif_min_scales *= 2
             field_config.caf_min_distances *= 2
@@ -189,14 +192,14 @@ def factory_decode(head_nets, *,
 
         field_config.cif_visualizers = [
             visualizer.Cif(head_nets[i].meta.name,
-                           stride=head_nets[i].stride(basenet_stride),
+                           stride=basenet_stride / head_nets[i].meta.upsample_stride,
                            keypoints=head_nets[0].meta.keypoints,
                            skeleton=head_nets[0].meta.draw_skeleton)
             for i in field_config.cif_indices
         ]
         field_config.caf_visualizers = [
             visualizer.Caf(head_nets[i].meta.name,
-                           stride=head_nets[i].stride(basenet_stride),
+                           stride=basenet_stride / head_nets[i].meta.upsample_stride,
                            keypoints=head_nets[1].meta.keypoints,
                            skeleton=skeleton)
             for i in field_config.caf_indices

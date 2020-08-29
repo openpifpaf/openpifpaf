@@ -406,12 +406,16 @@ def grow_connection_blend(float[:, :] caf_field, float x, float y, float xy_scal
         return 0.0, 0.0, 0.0, 0.0
 
     # only max
-    cdef float[:] entry_1 = caf_field[(3, 4, 6, 8):, score_1_i]
+    cdef float[4] entry_1 = [
+        caf_field[3, score_1_i], caf_field[4, score_1_i],
+        caf_field[6, score_1_i], caf_field[8, score_1_i]]
     if only_max:
         return entry_1[0], entry_1[1], entry_1[3], score_1
 
     # blend
-    cdef float[:] entry_2 = caf_field[(3, 4, 6, 8):, score_2_i]
+    cdef float[4] entry_2 = [
+        caf_field[3, score_2_i], caf_field[4, score_2_i],
+        caf_field[6, score_2_i], caf_field[8, score_2_i]]
     if score_2 < 0.01 or score_2 < 0.5 * score_1:
         return entry_1[0], entry_1[1], entry_1[3], score_1 * 0.5
 
