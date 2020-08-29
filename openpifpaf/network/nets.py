@@ -12,7 +12,8 @@ class Shell(torch.nn.Module):
                  process_input=None, process_heads=None):
         super().__init__()
 
-        for hn in head_nets:
+        for hn_i, hn in enumerate(head_nets):
+            hn.meta.head_index = hn_i
             hn.meta.base_stride = base_net.stride
 
         self.base_net = base_net
@@ -168,6 +169,12 @@ def model_migration(net_cpu):
     for m in net_cpu.modules():
         if not hasattr(m, '_non_persistent_buffers_set'):
             m._non_persistent_buffers_set = set()  # pylint: disable=protected-access
+
+    for hn_i, hn in enumerate(net_cpu.head_nets):
+        if not hn.meta.base_stride:
+            hn.meta.base_stride = net_cpu.base_net.stride
+        if hn.meta.head_index is None:
+            hn.meta.head_index = hn_i
 
 
 def model_defaults(net_cpu):

@@ -19,6 +19,13 @@ class Cifar10(DataModule):
     n_images = None
     augmentation = True
 
+    def __init__(self):
+        super().__init__()
+
+        categories = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog',
+                      'horse', 'ship', 'truck')
+        self.head_metas = (headmeta.Detection('cifdet', categories),)
+
     @classmethod
     def cli(cls, parser):
         group = parser.add_argument_group('data module Cifar10')
@@ -51,12 +58,6 @@ class Cifar10(DataModule):
         cls.n_images = args.cifar10_n_images
         cls.augmentation = args.cifar10_augmentation
 
-    @classmethod
-    def head_metas(cls):
-        categories = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog',
-                      'horse', 'ship', 'truck')
-        return (headmeta.Detection('cifdet', categories),)
-
     @staticmethod
     def _convert_data(parent_data, meta):
         image, category_id = parent_data
@@ -68,14 +69,12 @@ class Cifar10(DataModule):
 
         return image, anns, meta
 
-    @classmethod
-    def _preprocess(cls, base_stride):
-        metas = cls.head_metas()
-        enc = encoder.CifDet(metas[0], base_stride // metas[0].upsample_stride)
+    def _preprocess(self):
+        enc = encoder.CifDet(self.head_metas[0])
 
-        if not cls.augmentation:
+        if not self.augmentation:
             return transforms.Compose([
-                cls._convert_data,
+                self._convert_data,
                 transforms.NormalizeAnnotations(),
                 transforms.RescaleAbsolute(33),
                 transforms.ImageTransform(torchvision.transforms.ToTensor()),
@@ -87,7 +86,7 @@ class Cifar10(DataModule):
             ])
 
         return transforms.Compose([
-            cls._convert_data,
+            self._convert_data,
             transforms.NormalizeAnnotations(),
             transforms.RescaleAbsolute(33),
             transforms.ImageTransform(torchvision.transforms.ToTensor()),
@@ -98,10 +97,10 @@ class Cifar10(DataModule):
             transforms.Encoders([enc]),
         ])
 
-    def train_loader(self, base_stride):
+    def train_loader(self):
         train_data = TorchDataset(
             torchvision.datasets.CIFAR10(self.root_dir, train=True, download=self.download),
-            preprocess=self._preprocess(base_stride),
+            preprocess=self._preprocess(),
         )
         if self.n_images:
             train_data = torch.utils.data.Subset(train_data, indices=range(self.n_images))
@@ -110,10 +109,10 @@ class Cifar10(DataModule):
             pin_memory=self.pin_memory, num_workers=self.loader_workers, drop_last=True,
             collate_fn=collate_images_targets_meta)
 
-    def val_loader(self, base_stride):
+    def val_loader(self):
         val_data = TorchDataset(
             torchvision.datasets.CIFAR10( self.root_dir, train=False, download=self.download),
-            preprocess=self._preprocess(base_stride),
+            preprocess=self._preprocess(),
         )
         if self.n_images:
             val_data = torch.utils.data.Subset(val_data, indices=range(self.n_images))

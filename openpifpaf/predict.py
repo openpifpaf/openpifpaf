@@ -14,6 +14,7 @@ from . import datasets, decoder, network, show, transforms, visualizer, __versio
 LOG = logging.getLogger(__name__)
 
 
+# pylint: disable=too-many-statements
 def cli():
     parser = argparse.ArgumentParser(
         prog='python3 -m openpifpaf.predict',
@@ -73,6 +74,7 @@ def cli():
     logging.getLogger('openpifpaf').setLevel(log_level)
     LOG.setLevel(log_level)
 
+    decoder.configure(args)
     network.configure(args)
     show.configure(args)
     visualizer.configure(args)
@@ -106,8 +108,11 @@ def processor_factory(args):
         model = torch.nn.DataParallel(model)
         model.base_net = model_cpu.base_net
         model.head_nets = model_cpu.head_nets
-    processor = decoder.factory_from_args(args, model)
-    return processor, model
+
+    head_metas = [hn.meta for hn in model.head_nets]
+    processors = decoder.factory(
+        head_metas, profile=args.profile_decoder, profile_device=args.device)
+    return processors[0], model
 
 
 def preprocess_factory(args):

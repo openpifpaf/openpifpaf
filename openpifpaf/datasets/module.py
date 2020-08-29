@@ -12,6 +12,8 @@ class DataModule():
     batch_size = 8
     loader_workers = None
 
+    head_metas = None  # make instance(!) variable (not class variable) in derived classes
+
     @classmethod
     def cli(cls, parser):
         pass
@@ -20,14 +22,10 @@ class DataModule():
     def configure(cls, args):
         pass
 
-    @classmethod
-    def head_metas(cls):
+    def train_loader(self):
         raise NotImplementedError
 
-    def train_loader(self, base_stride):
-        raise NotImplementedError
-
-    def val_loader(self, base_stride):
+    def val_loader(self):
         raise NotImplementedError
 
     def test_loader(self):

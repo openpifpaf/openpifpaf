@@ -16,7 +16,6 @@ LOG = logging.getLogger(__name__)
 @dataclasses.dataclass
 class Cif:
     meta: headmeta.Intensity
-    stride: int
     rescaler: AnnRescaler = None
     v_threshold: int = 0
     visualizer: CifVisualizer = None
@@ -33,10 +32,8 @@ class CifGenerator():
         self.config = config
 
         self.rescaler = config.rescaler or AnnRescaler(
-            config.stride, len(config.meta.keypoints), config.meta.pose)
-        self.visualizer = config.visualizer or CifVisualizer(
-            config.meta.name, stride=config.stride,
-            keypoints=config.meta.keypoints, skeleton=config.meta.draw_skeleton)
+            config.meta.stride, len(config.meta.keypoints), config.meta.pose)
+        self.visualizer = config.visualizer or CifVisualizer(config.meta)
 
         self.intensities = None
         self.fields_reg = None

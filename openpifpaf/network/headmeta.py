@@ -13,6 +13,8 @@ from typing import Any, List, Tuple
 @dataclass
 class Base:
     name: str
+
+    head_index: int = field(default=None, init=False)
     base_stride: int = field(default=None, init=False)
     upsample_stride: int = field(default=1, init=False)
 
@@ -60,6 +62,9 @@ class Association(Base):
     n_scales: int = 2
 
     vector_offsets = [True, True]
+    decoder_min_distance = 0.0
+    decoder_max_distance = float('inf')
+    decoder_confidence_scales = None
 
     @property
     def n_fields(self):
@@ -77,6 +82,13 @@ class Association(Base):
             skeleton=[s for meta in metas for s in meta.skeleton],
             sparse_skeleton=metas[0].sparse_skeleton,
             only_in_field_of_view=metas[0].only_in_field_of_view,
+            decoder_confidence_scales=[
+                s
+                for meta in metas
+                for s in (meta.decoder_confidence_scales
+                          if meta.decoder_confidence_scales
+                          else [1.0 for _ in meta.skeleton])
+            ]
         )
         return concatenated
 

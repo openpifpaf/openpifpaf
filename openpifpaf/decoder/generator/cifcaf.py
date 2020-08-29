@@ -2,15 +2,16 @@ from collections import defaultdict
 import heapq
 import logging
 import time
+from typing import List
 
 import numpy as np
 
 from .generator import Generator
 from ...annotation import Annotation
-from ..field_config import FieldConfig
 from ..cif_hr import CifHr
 from ..cif_seeds import CifSeeds
 from ..caf_scored import CafScored
+from ...network import headmeta
 from .. import nms as nms_module
 from ..occupancy import Occupancy
 from ... import visualizer
@@ -31,24 +32,31 @@ class CifCaf(Generator):
     force_complete = False
     greedy = False
     keypoint_threshold = 0.0
+    nms = True
 
-    def __init__(self, field_config: FieldConfig, *,
-                 keypoints,
-                 skeleton,
-                 out_skeleton=None,
-                 worker_pool=None,
-                 nms=True):
-        super().__init__(worker_pool)
-        if nms is True:
-            nms = nms_module.Keypoints()
+    def __init__(self,
+                 cif_metas: List[headmeta.Intensity],
+                 caf_metas: List[headmeta.Association],
+                 *,
+                 cif_visualizers=None,
+                 caf_visualizers=None):
+        super().__init__()
+        self.cif_metas = cif_metas
+        self.caf_metas = caf_metas
+        self.skeleton_m1 = np.asarray(self.caf_metas[0].skeleton) - 1
+        self.keypoints = cif_metas[0].keypoints
+        self.out_skeleton = caf_metas[0].skeleton
+        self.confidence_scales = caf_metas[0].decoder_confidence_scales
 
-        self.field_config = field_config
+        self.cif_visualizers = cif_visualizers
+        if self.cif_visualizers is None:
+            self.cif_visualizers = [visualizer.Cif(meta) for meta in cif_metas]
+        self.caf_visualizers = caf_visualizers
+        if self.caf_visualizers is None:
+            self.caf_visualizers = [visualizer.Caf(meta) for meta in caf_metas]
 
-        self.keypoints = keypoints
-        self.skeleton = skeleton
-        self.skeleton_m1 = np.asarray(skeleton) - 1
-        self.out_skeleton = out_skeleton or skeleton
-        self.nms = nms
+        if self.nms is True:
+            self.nms = nms_module.Keypoints()
 
         self.timers = defaultdict(float)
 
@@ -62,22 +70,32 @@ class CifCaf(Generator):
             self.by_source[j1][j2] = (caf_i, True)
             self.by_source[j2][j1] = (caf_i, False)
 
+    @classmethod
+    def factory(cls, head_metas):
+        # TODO: multi-scale
+        return [
+            CifCaf([meta], [meta_next])
+            for meta, meta_next in zip(head_metas[:-1], head_metas[1:])
+            if (isinstance(meta, headmeta.Intensity)
+                and isinstance(meta_next, headmeta.Association))
+        ]
+
     def __call__(self, fields, initial_annotations=None):
         start = time.perf_counter()
         if not initial_annotations:
             initial_annotations = []
         LOG.debug('initial annotations = %d', len(initial_annotations))
 
-        if self.field_config.cif_visualizers:
-            for vis, cif_i in zip(self.field_config.cif_visualizers, self.field_config.cif_indices):
-                vis.predicted(fields[cif_i])
-        if self.field_config.caf_visualizers:
-            for vis, caf_i in zip(self.field_config.caf_visualizers, self.field_config.caf_indices):
-                vis.predicted(fields[caf_i])
+        for vis, meta in zip(self.cif_visualizers, self.cif_metas):
+            vis.predicted(fields[meta.head_index])
+        for vis, meta in zip(self.caf_visualizers, self.caf_metas):
+            vis.predicted(fields[meta.head_index])
 
-        cifhr = CifHr(self.field_config).fill(fields)
-        seeds = CifSeeds(cifhr.accumulated, self.field_config).fill(fields)
-        caf_scored = CafScored(cifhr.accumulated, self.field_config, self.skeleton).fill(fields)
+        cif_fields = [fields[meta.head_index] for meta in self.cif_metas]
+        cifhr = CifHr().fill(cif_fields, self.cif_metas)
+        seeds = CifSeeds(cifhr.accumulated).fill(cif_fields, self.cif_metas)
+        caf_fields = [fields[meta.head_index] for meta in self.caf_metas]
+        caf_scored = CafScored(cifhr.accumulated).fill(caf_fields, self.caf_metas)
 
         occupied = Occupancy(cifhr.accumulated.shape, 2, min_scale=4)
         annotations = []
@@ -188,8 +206,8 @@ class CifCaf(Generator):
                     continue
 
                 max_possible_score = np.sqrt(ann.data[start_i, 2])
-                if self.field_config.confidence_scales is not None:
-                    max_possible_score *= self.field_config.confidence_scales[caf_i]
+                if self.confidence_scales is not None:
+                    max_possible_score *= self.confidence_scales[caf_i]
                 heapq.heappush(frontier, (-max_possible_score, None, start_i, end_i))
                 in_frontier.add((start_i, end_i))
                 ann.frontier_order.append((start_i, end_i))
@@ -211,9 +229,9 @@ class CifCaf(Generator):
                 score = new_xysv[3]
                 if self.greedy:
                     return (-score, new_xysv, start_i, end_i)
-                if self.field_config.confidence_scales is not None:
+                if self.confidence_scales is not None:
                     caf_i, _ = self.by_source[start_i][end_i]
-                    score = score * self.field_config.confidence_scales[caf_i]
+                    score = score * self.confidence_scales[caf_i]
                 heapq.heappush(frontier, (-score, new_xysv, start_i, end_i))
 
         # seeding the frontier
@@ -247,8 +265,8 @@ class CifCaf(Generator):
                     continue
                 start_xyv = ann.data[start_i].tolist()
                 score = xyv[2]
-                if self.field_config.confidence_scales is not None:
-                    score = score * self.field_config.confidence_scales[caf_i]
+                if self.confidence_scales is not None:
+                    score = score * self.confidence_scales[caf_i]
                 heapq.heappush(frontier, (-score, end_i, start_xyv, ann.joint_scales[start_i]))
 
         for start_i, xyv in enumerate(ann.data):
@@ -268,8 +286,8 @@ class CifCaf(Generator):
     def complete_annotations(self, cifhr, fields, annotations):
         start = time.perf_counter()
 
-        caf_scored = CafScored(cifhr.accumulated, self.field_config, self.skeleton,
-                               score_th=0.0001).fill(fields)
+        caf_fields = [fields[meta.head_index] for meta in self.caf_metas]
+        caf_scored = CafScored(cifhr.accumulated, score_th=0.0001).fill(caf_fields, self.caf_metas)
 
         for ann in annotations:
             unfilled_mask = ann.data[:, 2] == 0.0

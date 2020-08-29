@@ -90,6 +90,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     logging.getLogger('openpifpaf').setLevel(log_level)
     LOG.setLevel(log_level)
 
+    decoder.configure(args)
     network.configure(args)
     show.configure(args)
     visualizer.configure(args)
@@ -123,7 +124,11 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
 def processor_factory(args):
     model, _ = network.factory_from_args(args)
     model = model.to(args.device)
-    processor = decoder.factory_from_args(args, model)
+
+    head_metas = [hn.meta for hn in model.head_nets]
+    processor = decoder.factory(
+        head_metas, profile=args.profile_decoder, profile_device=args.device)[0]
+
     return processor, model
 
 

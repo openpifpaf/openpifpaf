@@ -31,6 +31,28 @@ class CocoKp(DataModule):
     augmentation = True
     rescale_images = 1.0
 
+    def __init__(self):
+        super().__init__()
+
+        cif = headmeta.Intensity('cif',
+                                 COCO_KEYPOINTS,
+                                 COCO_PERSON_SIGMAS,
+                                 COCO_UPRIGHT_POSE,
+                                 COCO_PERSON_SKELETON)
+        caf = headmeta.Association('caf',
+                                   COCO_KEYPOINTS,
+                                   COCO_PERSON_SIGMAS,
+                                   COCO_UPRIGHT_POSE,
+                                   COCO_PERSON_SKELETON)
+        dcaf = headmeta.Association('caf25',
+                                    COCO_KEYPOINTS,
+                                    COCO_PERSON_SIGMAS,
+                                    COCO_UPRIGHT_POSE,
+                                    DENSER_COCO_PERSON_CONNECTIONS,
+                                    sparse_skeleton=COCO_PERSON_SKELETON,
+                                    only_in_field_of_view=True)
+        self.head_metas = (cif, caf, dcaf)
+
     @classmethod
     def cli(cls, parser):
         group = parser.add_argument_group('data module CocoKp')
@@ -85,78 +107,53 @@ class CocoKp(DataModule):
         cls.augmentation = args.cocokp_augmentation
         cls.rescale_images = args.cocokp_rescale_images
 
-    @staticmethod
-    def head_metas():
-        cif = headmeta.Intensity('cif',
-                                 COCO_KEYPOINTS,
-                                 COCO_PERSON_SIGMAS,
-                                 COCO_UPRIGHT_POSE,
-                                 COCO_PERSON_SKELETON)
-        caf = headmeta.Association('caf',
-                                   COCO_KEYPOINTS,
-                                   COCO_PERSON_SIGMAS,
-                                   COCO_UPRIGHT_POSE,
-                                   COCO_PERSON_SKELETON)
-        dcaf = headmeta.Association('caf25',
-                                    COCO_KEYPOINTS,
-                                    COCO_PERSON_SIGMAS,
-                                    COCO_UPRIGHT_POSE,
-                                    DENSER_COCO_PERSON_CONNECTIONS,
-                                    sparse_skeleton=COCO_PERSON_SKELETON,
-                                    only_in_field_of_view=True)
-        return cif, caf, dcaf
+    def _preprocess(self):
+        encoders = (encoder.Cif(self.head_metas[0]),
+                    encoder.Caf(self.head_metas[1]),
+                    encoder.Caf(self.head_metas[2]))
 
-    @classmethod
-    def _preprocess(cls, base_stride):
-        metas = cls.head_metas()
-        encoders = (
-            encoder.Cif(metas[0], base_stride // metas[0].upsample_stride),
-            encoder.Caf(metas[1], base_stride // metas[1].upsample_stride),
-            encoder.Caf(metas[2], base_stride // metas[2].upsample_stride),
-        )
-
-        if not cls.augmentation:
+        if not self.augmentation:
             return transforms.Compose([
                 transforms.NormalizeAnnotations(),
-                transforms.RescaleAbsolute(cls.square_edge),
-                transforms.CenterPad(cls.square_edge),
+                transforms.RescaleAbsolute(self.square_edge),
+                transforms.CenterPad(self.square_edge),
                 transforms.EVAL_TRANSFORM,
                 transforms.Encoders(encoders),
             ])
 
-        if cls.extended_scale:
+        if self.extended_scale:
             rescale_t = transforms.RescaleRelative(
-                scale_range=(0.25 * cls.rescale_images,
-                             2.0 * cls.rescale_images),
+                scale_range=(0.25 * self.rescale_images,
+                             2.0 * self.rescale_images),
                 power_law=True, stretch_range=(0.75, 1.33))
         else:
             rescale_t = transforms.RescaleRelative(
-                scale_range=(0.4 * cls.rescale_images,
-                             2.0 * cls.rescale_images),
+                scale_range=(0.4 * self.rescale_images,
+                             2.0 * self.rescale_images),
                 power_law=True, stretch_range=(0.75, 1.33))
 
         orientation_t = None
-        if cls.orientation_invariant:
+        if self.orientation_invariant:
             orientation_t = transforms.RandomApply(
-                transforms.RotateBy90(), cls.orientation_invariant)
+                transforms.RotateBy90(), self.orientation_invariant)
 
         return transforms.Compose([
             transforms.NormalizeAnnotations(),
             transforms.AnnotationJitter(),
             transforms.RandomApply(transforms.HFlip(COCO_KEYPOINTS, HFLIP), 0.5),
             rescale_t,
-            transforms.Crop(cls.square_edge, use_area_of_interest=True),
-            transforms.CenterPad(cls.square_edge),
+            transforms.Crop(self.square_edge, use_area_of_interest=True),
+            transforms.CenterPad(self.square_edge),
             orientation_t,
             transforms.TRAIN_TRANSFORM,
             transforms.Encoders(encoders),
         ])
 
-    def train_loader(self, base_stride):
+    def train_loader(self):
         train_data = Coco(
             image_dir=self.train_image_dir,
             ann_file=self.train_annotations,
-            preprocess=self._preprocess(base_stride),
+            preprocess=self._preprocess(),
             n_images=self.n_images,
             image_filter='keypoint-annotations',
             category_ids=[1],
@@ -166,11 +163,11 @@ class CocoKp(DataModule):
             pin_memory=self.pin_memory, num_workers=self.loader_workers, drop_last=True,
             collate_fn=collate_images_targets_meta)
 
-    def val_loader(self, base_stride):
+    def val_loader(self):
         val_data = Coco(
             image_dir=self.val_image_dir,
             ann_file=self.val_annotations,
-            preprocess=self._preprocess(base_stride),
+            preprocess=self._preprocess(),
             n_images=self.n_images,
             image_filter='keypoint-annotations',
             category_ids=[1],

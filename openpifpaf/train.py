@@ -109,7 +109,7 @@ def cli():
 def main():
     args = cli()
     datamodule = datasets.factory(args.dataset)
-    net_cpu, start_epoch = network.factory_from_args(args, head_metas=datamodule.head_metas())
+    net_cpu, start_epoch = network.factory_from_args(args, head_metas=datamodule.head_metas)
     net_cpu.process_heads = None
     if args.output is None:
         args.output = default_output_file(args, net_cpu)
@@ -125,8 +125,8 @@ def main():
         net = torch.nn.DataParallel(net)
 
     loss = network.losses.factory_from_args(args, net_cpu.head_nets)
-    train_loader = datamodule.train_loader(net_cpu.base_net.stride)
-    val_loader = datamodule.val_loader(net_cpu.base_net.stride)
+    train_loader = datamodule.train_loader()
+    val_loader = datamodule.val_loader()
 
     optimizer = optimize.factory_optimizer(
         args, list(net.parameters()) + list(loss.parameters()))

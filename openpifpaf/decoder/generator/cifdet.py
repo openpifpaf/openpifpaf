@@ -1,6 +1,7 @@
 from collections import defaultdict
 import logging
 import time
+from typing import List
 
 from .generator import Generator
 from ...annotation import AnnotationDet
@@ -17,33 +18,32 @@ LOG = logging.getLogger(__name__)
 class CifDet(Generator):
     occupancy_visualizer = visualizer.Occupancy()
 
-    def __init__(self, head_metas, *, visualizers=None):
+    def __init__(self, head_metas: List[headmeta.Detection], *, visualizers=None):
         super().__init__()
-        self.metas = [head_metas[0]]
-        self.field_indices = [0]
+        self.metas = head_metas
 
         self.visualizers = visualizers
         if self.visualizers is None:
-            self.visualizers = [
-                visualizer.CifDet(
-                    meta.name, stride=meta.stride,
-                    categories=meta.categories)
-                for meta in self.metas
-            ]
+            self.visualizers = [visualizer.CifDet(meta) for meta in self.metas]
 
         self.timers = defaultdict(float)
 
     @classmethod
-    def match(cls, head_metas):
-        return isinstance(head_metas[0], headmeta.Detection)
+    def factory(cls, head_metas):
+        # TODO: multi-scale
+        return [
+            CifDet([meta])
+            for meta in head_metas
+            if isinstance(meta, headmeta.Detection)
+        ]
 
     def __call__(self, fields):
         start = time.perf_counter()
-        cifdet_fields = [fields[i] for i in self.field_indices]
+        cifdet_fields = [fields[meta.head_index] for meta in self.metas]
 
         if self.visualizers:
-            for vis, cif_i in zip(self.visualizers, self.field_indices):
-                vis.predicted(fields[cif_i])
+            for vis, meta in zip(self.visualizers, self.metas):
+                vis.predicted(fields[meta.head_index])
 
         cifhr = CifDetHr().fill(cifdet_fields, self.metas)
         seeds = CifDetSeeds(cifhr.accumulated).fill(cifdet_fields, self.metas)

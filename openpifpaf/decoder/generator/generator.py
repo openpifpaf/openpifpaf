@@ -49,7 +49,7 @@ class Generator:
         }
 
     @classmethod
-    def match(cls, head_metas):
+    def factory(cls, head_metas):
         raise NotImplementedError
 
     @staticmethod

@@ -16,7 +16,6 @@ LOG = logging.getLogger(__name__)
 @dataclasses.dataclass
 class CifDet:
     meta: headmeta.Detection
-    stride: int
     rescaler: AnnRescalerDet = None
     v_threshold: int = 0
     visualizer: CifDetVisualizer = None
@@ -33,9 +32,8 @@ class CifDetGenerator():
         self.config = config
 
         self.rescaler = config.rescaler or AnnRescalerDet(
-            config.stride, len(config.meta.categories))
-        self.visualizer = config.visualizer or CifDetVisualizer(
-            config.meta.name, stride=config.stride, categories=config.meta.categories)
+            config.meta.stride, len(config.meta.categories))
+        self.visualizer = config.visualizer or CifDetVisualizer(config.meta)
 
         self.intensities = None
         self.fields_reg = None
@@ -60,7 +58,7 @@ class CifDetGenerator():
         fields = self.fields(valid_area)
 
         self.visualizer.processed_image(image)
-        self.visualizer.targets(fields, detections=detections)
+        self.visualizer.targets(fields, annotation_dicts=anns)
 
         return fields
 

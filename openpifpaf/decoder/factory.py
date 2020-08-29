@@ -3,15 +3,13 @@ import logging
 from .caf_scored import CafScored
 from .cif_hr import CifHr
 from .cif_seeds import CifSeeds
-from .field_config import FieldConfig
-from .generator.cifcaf import CifCaf
-from .generator.cifdet import CifDet
-from . import nms
+from . import generator, nms
 from .profiler import Profiler
 from .profiler_autograd import ProfilerAutograd
-from .. import network, visualizer
 
 LOG = logging.getLogger(__name__)
+
+DECODERS = [generator.CifDet, generator.CifCaf]
 
 
 def cli(parser, *,
@@ -54,7 +52,7 @@ def cli(parser, *,
     group.add_argument('--caf-th', default=CafScored.default_score_th, type=float,
                        help='caf threshold')
     group.add_argument('--connection-method',
-                       default=CifCaf.connection_method,
+                       default=generator.CifCaf.connection_method,
                        choices=('max', 'blend'),
                        help='connection method to use, max is faster')
     group.add_argument('--greedy', default=False, action='store_true',
@@ -80,11 +78,12 @@ def configure(args):
     # configure CafScored
     CafScored.default_score_th = args.caf_th
 
-    # configure decoder generator
-    CifCaf.force_complete = args.force_complete_pose
-    CifCaf.keypoint_threshold = args.keypoint_threshold
-    CifCaf.greedy = args.greedy
-    CifCaf.connection_method = args.connection_method
+    # configure generators
+    generator.CifCaf.force_complete = args.force_complete_pose
+    generator.CifCaf.keypoint_threshold = args.keypoint_threshold
+    generator.CifCaf.greedy = args.greedy
+    generator.CifCaf.connection_method = args.connection_method
+    generator.Generator.default_worker_pool = args.decoder_workers
 
     # configure nms
     nms.Detection.instance_threshold = args.instance_threshold
@@ -97,120 +96,71 @@ def configure(args):
        not args.debug:
         args.decoder_workers = args.batch_size
 
+    # TODO: caf seeds
+    assert not args.caf_seeds, 'not implemented'
 
-def factory_from_args(args, model):
-    configure(args)
 
-    decode = factory_decode(model.head_nets,
-                            basenet_stride=model.base_net.stride,
-                            dense_coupling=args.dense_coupling,
-                            dense_connections=args.dense_connections,
-                            caf_seeds=args.caf_seeds,
-                            multi_scale=args.multi_scale,
-                            multi_scale_hflip=args.multi_scale_hflip,
-                            worker_pool=args.decoder_workers)
+def factory(head_metas, *, profile=False, profile_device=None):
+    """Instantiate decoders."""
+    # TODO implement!
+                            # dense_coupling=args.dense_coupling,
+                            # dense_connections=args.dense_connections,
+                            # multi_scale=args.multi_scale,
+                            # multi_scale_hflip=args.multi_scale_hflip,
 
-    if args.profile_decoder is not None:
+    LOG.debug('head names = %s', [meta.name for meta in head_metas])
+    decoders = [
+        dec
+        for dec_classes in DECODERS
+        for dec in dec_classes.factory(head_metas)
+    ]
+    LOG.debug('matched %d decoders', len(decoders))
+    if not decoders:
+        LOG.warning('no decoders found for heads %s', [meta.name for meta in head_metas])
+
+    if profile:
+        decode = decoders[0]
         decode.__class__.__call__ = Profiler(
-            decode.__call__, out_name=args.profile_decoder)
+            decode.__call__, out_name=profile)
         decode.fields_batch = ProfilerAutograd(
-            decode.fields_batch, device=args.device, out_name=args.profile_decoder)
+            decode.fields_batch, device=profile_device, out_name=profile)
 
-    return decode
+    return decoders
 
+    # TODO implement!
+        # if multi_scale:
+        #     if not dense_connections:
+        #         field_config.cif_indices = [v * 3 for v in range(5)]
+        #         field_config.caf_indices = [v * 3 + 1 for v in range(5)]
+        #     else:
+        #         field_config.cif_indices = [v * 2 for v in range(5)]
+        #         field_config.caf_indices = [v * 2 + 1 for v in range(5)]
+        #     field_config.cif_strides = [basenet_stride / head_nets[i].meta.upsample_stride
+        #                                 for i in field_config.cif_indices]
+        #     field_config.caf_strides = [basenet_stride / head_nets[i].meta.upsample_stride
+        #                                 for i in field_config.caf_indices]
+        #     field_config.cif_min_scales = [0.0, 12.0, 16.0, 24.0, 40.0]
+        #     field_config.caf_min_distances = [v * 3.0 for v in field_config.cif_min_scales]
+        #     field_config.caf_max_distances = [160.0, 240.0, 320.0, 480.0, None]
+        # if multi_scale and multi_scale_hflip:
+        #     if not dense_connections:
+        #         field_config.cif_indices = [v * 3 for v in range(10)]
+        #         field_config.caf_indices = [v * 3 + 1 for v in range(10)]
+        #     else:
+        #         field_config.cif_indices = [v * 2 for v in range(10)]
+        #         field_config.caf_indices = [v * 2 + 1 for v in range(10)]
+        #     field_config.cif_strides = [basenet_stride / head_nets[i].meta.upsample_stride
+        #                                 for i in field_config.cif_indices]
+        #     field_config.caf_strides = [basenet_stride / head_nets[i].meta.upsample_stride
+        #                                 for i in field_config.caf_indices]
+        #     field_config.cif_min_scales *= 2
+        #     field_config.caf_min_distances *= 2
+        #     field_config.caf_max_distances *= 2
 
-def factory_decode(head_nets, *,
-                   basenet_stride,
-                   dense_coupling=0.0,
-                   dense_connections=False,
-                   caf_seeds=False,
-                   multi_scale=False,
-                   multi_scale_hflip=True,
-                   worker_pool=None):
-    """Instantiate a decoder."""
-    assert not caf_seeds, 'not implemented'
-    metas = [hn.meta for hn in head_nets]
-    LOG.debug('head names = %s', [meta.name for meta in metas])
-
-    if isinstance(metas[0], network.headmeta.Detection):
-        return CifDet(metas)
-        # field_config = FieldConfig()
-        # field_config.cif_strides = [head_nets[0].stride(basenet_stride)]
-        # field_config.cif_visualizers = [
-        #     visualizer.CifDet(head_nets[0].meta.name,
-        #                       stride=head_nets[0].stride(basenet_stride),
-        #                       categories=head_nets[0].meta.categories)
-        # ]
-        # return CifDet(
-        #     field_config,
-        #     head_nets[0].meta.categories,
-        #     worker_pool=worker_pool,
-        # )
-
-    if isinstance(head_nets[0].meta, network.headmeta.Intensity) \
-       and isinstance(head_nets[1].meta, network.headmeta.Association):
-        field_config = FieldConfig()
-        field_config.cif_strides = [basenet_stride / head_nets[0].meta.upsample_stride]
-        field_config.caf_strides = [basenet_stride / head_nets[1].meta.upsample_stride]
-
-        if multi_scale:
-            if not dense_connections:
-                field_config.cif_indices = [v * 3 for v in range(5)]
-                field_config.caf_indices = [v * 3 + 1 for v in range(5)]
-            else:
-                field_config.cif_indices = [v * 2 for v in range(5)]
-                field_config.caf_indices = [v * 2 + 1 for v in range(5)]
-            field_config.cif_strides = [basenet_stride / head_nets[i].meta.upsample_stride
-                                        for i in field_config.cif_indices]
-            field_config.caf_strides = [basenet_stride / head_nets[i].meta.upsample_stride
-                                        for i in field_config.caf_indices]
-            field_config.cif_min_scales = [0.0, 12.0, 16.0, 24.0, 40.0]
-            field_config.caf_min_distances = [v * 3.0 for v in field_config.cif_min_scales]
-            field_config.caf_max_distances = [160.0, 240.0, 320.0, 480.0, None]
-        if multi_scale and multi_scale_hflip:
-            if not dense_connections:
-                field_config.cif_indices = [v * 3 for v in range(10)]
-                field_config.caf_indices = [v * 3 + 1 for v in range(10)]
-            else:
-                field_config.cif_indices = [v * 2 for v in range(10)]
-                field_config.caf_indices = [v * 2 + 1 for v in range(10)]
-            field_config.cif_strides = [basenet_stride / head_nets[i].meta.upsample_stride
-                                        for i in field_config.cif_indices]
-            field_config.caf_strides = [basenet_stride / head_nets[i].meta.upsample_stride
-                                        for i in field_config.caf_indices]
-            field_config.cif_min_scales *= 2
-            field_config.caf_min_distances *= 2
-            field_config.caf_max_distances *= 2
-
-        skeleton = head_nets[1].meta.skeleton
-        if dense_connections:
-            field_config.confidence_scales = (
-                [1.0 for _ in skeleton] +
-                [dense_coupling for _ in head_nets[2].meta.skeleton]
-            )
-            skeleton = skeleton + head_nets[2].meta.skeleton
-
-        field_config.cif_visualizers = [
-            visualizer.Cif(head_nets[i].meta.name,
-                           stride=basenet_stride / head_nets[i].meta.upsample_stride,
-                           keypoints=head_nets[0].meta.keypoints,
-                           skeleton=head_nets[0].meta.draw_skeleton)
-            for i in field_config.cif_indices
-        ]
-        field_config.caf_visualizers = [
-            visualizer.Caf(head_nets[i].meta.name,
-                           stride=basenet_stride / head_nets[i].meta.upsample_stride,
-                           keypoints=head_nets[1].meta.keypoints,
-                           skeleton=skeleton)
-            for i in field_config.caf_indices
-        ]
-
-        return CifCaf(
-            field_config,
-            keypoints=head_nets[0].meta.keypoints,
-            skeleton=skeleton,
-            out_skeleton=head_nets[1].meta.skeleton,
-            worker_pool=worker_pool,
-        )
-
-    raise Exception('decoder unknown for head names: {}'.format(head_names))
+        # skeleton = head_nets[1].meta.skeleton
+        # if dense_connections:
+        #     field_config.confidence_scales = (
+        #         [1.0 for _ in skeleton] +
+        #         [dense_coupling for _ in head_nets[2].meta.skeleton]
+        #     )
+        #     skeleton = skeleton + head_nets[2].meta.skeleton

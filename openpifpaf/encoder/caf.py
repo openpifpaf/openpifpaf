@@ -17,7 +17,6 @@ LOG = logging.getLogger(__name__)
 @dataclasses.dataclass
 class Caf:
     meta: headmeta.Association
-    stride: int
     rescaler: AnnRescaler = None
     v_threshold: int = 0
     visualizer: CafVisualizer = None
@@ -36,10 +35,8 @@ class CafGenerator:
         self.config = config
 
         self.rescaler = config.rescaler or AnnRescaler(
-            config.stride, len(config.meta.keypoints), config.meta.pose)
-        self.visualizer = config.visualizer or CafVisualizer(
-            config.meta.name, stride=config.stride,
-            keypoints=config.meta.keypoints, skeleton=config.meta.skeleton)
+            config.meta.stride, len(config.meta.keypoints), config.meta.pose)
+        self.visualizer = config.visualizer or CafVisualizer(config.meta)
 
         self.skeleton_m1 = np.asarray(config.meta.skeleton) - 1
         self.sparse_skeleton_m1 = (
@@ -74,7 +71,7 @@ class CafGenerator:
         fields = self.fields(valid_area)
 
         self.visualizer.processed_image(image)
-        self.visualizer.targets(fields, keypoint_sets=keypoint_sets)
+        self.visualizer.targets(fields, annotation_dicts=anns)
 
         return fields
 
