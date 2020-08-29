@@ -29,10 +29,6 @@ def cli(parser, *,
                        help='filter keypoints by score')
     group.add_argument('--decoder-workers', default=workers, type=int,
                        help='number of workers for pose decoding')
-    group.add_argument('--dense-connections', default=False, action='store_true',
-                       help='use dense connections')
-    group.add_argument('--dense-coupling', default=0.01, type=float,
-                       help='dense coupling')
     group.add_argument('--caf-seeds', default=False, action='store_true',
                        help='[experimental]')
 

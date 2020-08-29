@@ -27,7 +27,7 @@ def factory_from_args(args, *, head_metas=None):
         base_name=args.basenet,
         head_metas=head_metas,
         pretrained=args.pretrained,
-        dense_connections=getattr(args, 'dense_connections', False),
+        dense_coupling=args.dense_coupling,
         cross_talk=args.cross_talk,
         two_scale=args.two_scale,
         multi_scale=args.multi_scale,
@@ -70,7 +70,7 @@ def factory(
         base_name=None,
         head_metas=None,
         pretrained=True,
-        dense_connections=False,
+        dense_coupling=0.0,
         cross_talk=0.0,
         two_scale=False,
         multi_scale=False,
@@ -112,12 +112,13 @@ def factory(
         # initialize for eval
         net_cpu.eval()
 
-    if dense_connections and not multi_scale:
+    if dense_coupling and not multi_scale:
+        dcaf_meta = net_cpu.head_nets[2].meta
+        dcaf_meta.decoder_confidence_scales = [dense_coupling for _ in dcaf_meta.skeleton]
         concatenated_caf = heads.CafConcatenate(
             (net_cpu.head_nets[1], net_cpu.head_nets[2]))
-        net_cpu.head_nets.pop(2)
-        net_cpu.head_nets[1] = concatenated_caf
-    elif dense_connections and multi_scale:
+        net_cpu.head_nets = torch.nn.ModuleList([net_cpu.head_nets[0], concatenated_caf])
+    elif dense_coupling and multi_scale:
         # TODO: fix multi-scale
         # cif_indices = [v * 3 + 1 for v in range(10)]
         # caf_indices = [v * 3 + 2 for v in range(10)]
@@ -335,6 +336,8 @@ def cli(parser):
     group.add_argument('--no-download-progress', dest='download_progress',
                        default=True, action='store_false',
                        help='suppress model download progress bar')
+    group.add_argument('--dense-coupling', default=0.0, type=float,
+                       help='dense coupling')
 
     group = parser.add_argument_group('head')
     group.add_argument('--head-dropout', default=heads.CompositeField3.dropout_p, type=float,

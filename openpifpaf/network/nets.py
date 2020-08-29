@@ -12,14 +12,24 @@ class Shell(torch.nn.Module):
                  process_input=None, process_heads=None):
         super().__init__()
 
-        for hn_i, hn in enumerate(head_nets):
-            hn.meta.head_index = hn_i
-            hn.meta.base_stride = base_net.stride
-
         self.base_net = base_net
-        self.head_nets = torch.nn.ModuleList(head_nets)
+        self._head_nets = None
         self.process_input = process_input
         self.process_heads = process_heads
+
+        self.head_nets = head_nets
+
+    @property
+    def head_nets(self):
+        return self._head_nets
+
+    @head_nets.setter
+    def head_nets(self, head_nets):
+        for hn_i, hn in enumerate(head_nets):
+            hn.meta.head_index = hn_i
+            hn.meta.base_stride = self.base_net.stride
+
+        self._head_nets = torch.nn.ModuleList(head_nets)
 
     def forward(self, *args):
         image_batch = args[0]

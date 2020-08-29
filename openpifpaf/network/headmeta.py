@@ -64,7 +64,7 @@ class Association(Base):
     vector_offsets = [True, True]
     decoder_min_distance = 0.0
     decoder_max_distance = float('inf')
-    decoder_confidence_scales = None
+    decoder_confidence_scales: List[float] = None
 
     @property
     def n_fields(self):
