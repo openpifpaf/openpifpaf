@@ -129,23 +129,23 @@ def factory_decode(head_nets, *,
                    worker_pool=None):
     """Instantiate a decoder."""
     assert not caf_seeds, 'not implemented'
+    metas = [hn.meta for hn in head_nets]
+    LOG.debug('head names = %s', [meta.name for meta in metas])
 
-    head_names = tuple(hn.meta.name for hn in head_nets)
-    LOG.debug('head names = %s', head_names)
-
-    if isinstance(head_nets[0].meta, network.headmeta.Detection):
-        field_config = FieldConfig()
-        field_config.cif_strides = [head_nets[0].stride(basenet_stride)]
-        field_config.cif_visualizers = [
-            visualizer.CifDet(head_nets[0].meta.name,
-                              stride=head_nets[0].stride(basenet_stride),
-                              categories=head_nets[0].meta.categories)
-        ]
-        return CifDet(
-            field_config,
-            head_nets[0].meta.categories,
-            worker_pool=worker_pool,
-        )
+    if isinstance(metas[0], network.headmeta.Detection):
+        return CifDet(metas)
+        # field_config = FieldConfig()
+        # field_config.cif_strides = [head_nets[0].stride(basenet_stride)]
+        # field_config.cif_visualizers = [
+        #     visualizer.CifDet(head_nets[0].meta.name,
+        #                       stride=head_nets[0].stride(basenet_stride),
+        #                       categories=head_nets[0].meta.categories)
+        # ]
+        # return CifDet(
+        #     field_config,
+        #     head_nets[0].meta.categories,
+        #     worker_pool=worker_pool,
+        # )
 
     if isinstance(head_nets[0].meta, network.headmeta.Intensity) \
        and isinstance(head_nets[1].meta, network.headmeta.Association):

@@ -12,6 +12,9 @@ class Shell(torch.nn.Module):
                  process_input=None, process_heads=None):
         super().__init__()
 
+        for hn in head_nets:
+            hn.meta.base_stride = base_net.stride
+
         self.base_net = base_net
         self.head_nets = torch.nn.ModuleList(head_nets)
         self.process_input = process_input

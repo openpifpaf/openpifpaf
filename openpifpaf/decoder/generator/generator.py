@@ -18,11 +18,15 @@ class DummyPool():
 
 
 class Generator:
-    def __init__(self, worker_pool=None):
-        if worker_pool is None or worker_pool == 0:
-            worker_pool = DummyPool()
-        if isinstance(worker_pool, int):
-            LOG.info('creating decoder worker pool with %d workers', worker_pool)
+    default_worker_pool = None
+
+    def __init__(self):
+        self.worker_pool = self.default_worker_pool
+
+        if self.worker_pool is None or self.worker_pool == 0:
+            self.worker_pool = DummyPool()
+        if isinstance(self.worker_pool, int):
+            LOG.info('creating decoder worker pool with %d workers', self.worker_pool)
             assert not sys.platform.startswith('win'), (
                 'not supported, use --decoder-workers=0 '
                 'on windows'
@@ -33,9 +37,7 @@ class Generator:
             # For now, try to use 'fork'.
             # TODO: how to make configuration 'spawn' compatible
             multiprocessing_context = multiprocessing.get_context('fork')
-            worker_pool = multiprocessing_context.Pool(worker_pool)
-
-        self.worker_pool = worker_pool
+            self.worker_pool = multiprocessing_context.Pool(self.worker_pool)
 
         self.last_decoder_time = 0.0
         self.last_nn_time = 0.0
@@ -45,6 +47,10 @@ class Generator:
             k: v for k, v in self.__dict__.items()
             if k not in ('worker_pool',)
         }
+
+    @classmethod
+    def match(cls, head_metas):
+        raise NotImplementedError
 
     @staticmethod
     def fields_batch(model, image_batch, *, device=None):

@@ -6,16 +6,22 @@ vector_offsets: has to be length n_vectors and identifies which vectors
 get their location offset added during inference.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, List, Tuple
 
 
 @dataclass
 class Base:
     name: str
+    base_stride: int = field(default=None, init=False)
+    upsample_stride: int = field(default=1, init=False)
 
     @property
-    def n_fields(self):
+    def stride(self) -> int:
+        return self.base_stride // self.upsample_stride
+
+    @property
+    def n_fields(self) -> int:
         raise NotImplementedError
 
 
@@ -31,7 +37,8 @@ class Intensity(Base):
     n_scales: int = 1
 
     vector_offsets = [True]
-    upsample_stride = 1
+    decoder_min_scale = 0.0
+    decoder_seed_mask: List[int] = None
 
     @property
     def n_fields(self):
@@ -53,7 +60,6 @@ class Association(Base):
     n_scales: int = 2
 
     vector_offsets = [True, True]
-    upsample_stride = 1
 
     @property
     def n_fields(self):
@@ -84,7 +90,7 @@ class Detection(Base):
     n_scales: int = 0
 
     vector_offsets = [True, False]
-    upsample_stride = 1
+    decoder_min_scale = 0.0
 
     @property
     def n_fields(self):
