@@ -18,7 +18,7 @@ CHECKPOINT_URLS = {
                          'v0.11.0/shufflenetv2k30w-200510-104256-cif-caf-caf25-o10s-0b5ba06f.pkl'),
 }
 
-BASENETS = (basenetworks.Resnet,)
+BASETYPES = (basenetworks.Resnet, basenetworks.ShuffleNetV2K)
 
 BASENET_FACTORIES = {
     'resnet18': lambda: basenetworks.Resnet('resnet18', torchvision.models.resnet18, 512),
@@ -27,6 +27,14 @@ BASENET_FACTORIES = {
     'resnet152': lambda: basenetworks.Resnet('resnet152', torchvision.models.resnet152),
     'resnext50': lambda: basenetworks.Resnet('resnext50', torchvision.models.resnext50_32x4d),
     'resnext101': lambda: basenetworks.Resnet('resnext101', torchvision.models.resnext101_32x8d),
+    'shufflenetv2k16w': lambda: basenetworks.ShuffleNetV2K(
+        'shufflenetv2k16w', [4, 8, 4], [24, 348, 696, 1392, 1392]),
+    'shufflenetv2k20w': lambda: basenetworks.ShuffleNetV2K(
+        'shufflenetv2k20w', [5, 10, 5], [32, 512, 1024, 2048, 2048]),
+    'shufflenetv2k30w': lambda: basenetworks.ShuffleNetV2K(
+        'shufflenetv2k30w', [8, 16, 6], [32, 512, 1024, 2048, 2048]),
+    'shufflenetv2k44w': lambda: basenetworks.ShuffleNetV2K(
+        'shufflenetv2k44w', [12, 24, 8], [32, 512, 1024, 2048, 2048]),
 }
 
 LOG = logging.getLogger(__name__)
@@ -153,54 +161,21 @@ def factory_from_scratch_(basename, head_metas):
     if basename.startswith('shufflenetv2x2'):
         base_vision = torchvision.models.shufflenet_v2_x2_0(pretrained)
         return shufflenet_factory_from_scratch(basename, base_vision, 2048, head_metas)
-    if basename.startswith('shufflenetv2k16w'):
-        base_vision = basenetworks.ShuffleNetV2K(
-            [4, 8, 4], [24, 348, 696, 1392, 1392],
-        )
-        return generic_factory_from_scratch(basename, base_vision, 1392, head_metas)
     if basename.startswith('shufflenetv2k16'):
         base_vision = torchvision.models.ShuffleNetV2(
             [4, 8, 4], [24, 348, 696, 1392, 1392],
         )
         return shufflenet_factory_from_scratch(basename, base_vision, 1392, head_metas)
-    if basename.startswith('shufflenetv2k20w'):
-        base_vision = basenetworks.ShuffleNetV2K(
-            [5, 10, 5], [32, 512, 1024, 2048, 2048],
-        )
-        return generic_factory_from_scratch(basename, base_vision, 2048, head_metas)
     if basename.startswith('shufflenetv2k20'):
         base_vision = torchvision.models.ShuffleNetV2(
             [5, 10, 5], [32, 512, 1024, 2048, 2048],
         )
         return shufflenet_factory_from_scratch(basename, base_vision, 2048, head_metas)
-    if basename.startswith('shufflenetv2k30w'):
-        base_vision = basenetworks.ShuffleNetV2K(
-            [8, 16, 6], [32, 512, 1024, 2048, 2048],
-        )
-        return generic_factory_from_scratch(basename, base_vision, 2048, head_metas)
     if basename.startswith('shufflenetv2k30'):
         base_vision = torchvision.models.ShuffleNetV2(
             [8, 16, 6], [32, 512, 1024, 2048, 2048],
         )
         return shufflenet_factory_from_scratch(basename, base_vision, 2048, head_metas)
-    if basename.startswith('shufflenetv2k44wgn'):
-        base_vision = basenetworks.ShuffleNetV2K(
-            [12, 24, 8], [32, 512, 1024, 2048, 2048],
-            layer_norm=lambda x: torch.nn.GroupNorm(32 if x > 100 else 4, x, eps=1e-4),
-        )
-        return generic_factory_from_scratch(basename, base_vision, 2048, head_metas)
-    if basename.startswith('shufflenetv2k44win'):
-        base_vision = basenetworks.ShuffleNetV2K(
-            [12, 24, 8], [32, 512, 1024, 2048, 2048],
-            layer_norm=lambda x: torch.nn.InstanceNorm2d(
-                x, eps=1e-4, momentum=0.01, affine=True, track_running_stats=True),
-        )
-        return generic_factory_from_scratch(basename, base_vision, 2048, head_metas)
-    if basename.startswith('shufflenetv2k44w'):
-        base_vision = basenetworks.ShuffleNetV2K(
-            [12, 24, 8], [32, 512, 1024, 2048, 2048],
-        )
-        return generic_factory_from_scratch(basename, base_vision, 2048, head_metas)
     if basename.startswith('shufflenetv2k44'):
         base_vision = torchvision.models.ShuffleNetV2(
             [12, 24, 8], [32, 512, 1024, 2048, 2048],
@@ -223,76 +198,8 @@ def factory_from_scratch(basename, head_metas):
     return net_cpu
 
 
-def shufflenet_factory_from_scratch(basename, base_vision, out_features, head_metas):
-    blocks = [
-        base_vision.conv1,
-        # base_vision.maxpool,
-        base_vision.stage2,
-        base_vision.stage3,
-        base_vision.stage4,
-        base_vision.conv5,
-    ]
-    basenet = basenetworks.BaseNetwork(
-        torch.nn.Sequential(*blocks),
-        basename,
-        stride=16,
-        out_features=out_features,
-    )
-
-    headnets = [heads.CompositeField3(h, basenet.out_features) for h in head_metas]
-
-    net_cpu = nets.Shell(basenet, headnets)
-    nets.model_defaults(net_cpu)
-    LOG.debug(net_cpu)
-    return net_cpu
-
-
-def resnet_factory_from_scratch(basename, base_vision, out_features, head_metas):
-    resnet_factory = basenetworks.ResnetBlocks(base_vision)
-
-    # input block
-    use_pool = 'pool0' in basename
-    conv_stride = 2
-    if 'is4' in basename:
-        conv_stride = 4
-    if 'is1' in basename:
-        conv_stride = 1
-    output_stride = conv_stride
-
-    pool_stride = 2
-    if 'pool0s4' in basename:
-        pool_stride = 4
-    output_stride *= pool_stride if use_pool else 1
-
-    # all blocks
-    blocks = [
-        resnet_factory.input_block(use_pool, conv_stride, pool_stride),
-        resnet_factory.block2(),  # no stride
-        resnet_factory.block3(),
-        resnet_factory.block4(),
-    ]
-    output_stride *= 4
-    if 'block4' not in basename:
-        blocks.append(resnet_factory.block5())
-        output_stride *= 2
-    else:
-        out_features //= 2
-
-    basenet = basenetworks.BaseNetwork(
-        torch.nn.Sequential(*blocks),
-        basename,
-        stride=output_stride,
-        out_features=out_features,
-    )
-
-    headnets = [heads.CompositeField3(h, basenet.out_features) for h in head_metas]
-    net_cpu = nets.Shell(basenet, headnets)
-    nets.model_defaults(net_cpu)
-    return net_cpu
-
-
 def configure(args):
-    for bn in BASENETS:
+    for bn in BASETYPES:
         bn.configure(args)
 
     # configure CompositeField
@@ -300,7 +207,7 @@ def configure(args):
 
 
 def cli(parser):
-    for bn in BASENETS:
+    for bn in BASETYPES:
         bn.cli(parser)
 
     group = parser.add_argument_group('network configuration')
