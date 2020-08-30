@@ -14,7 +14,7 @@ LOG = logging.getLogger(__name__)
 
 
 def default_output_file(args, net_cpu):
-    base_name = net_cpu.base_net.shortname
+    base_name = net_cpu.base_net.name
     head_names = [hn.meta.name for hn in net_cpu.head_nets]
 
     now = datetime.datetime.now().strftime('%y%m%d-%H%M%S')

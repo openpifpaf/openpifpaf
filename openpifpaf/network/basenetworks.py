@@ -8,52 +8,93 @@ LOG = logging.getLogger(__name__)
 class BaseNetwork(torch.nn.Module):
     """Common base network."""
 
-    def __init__(self, net, shortname, stride, out_features):
+    def __init__(self, name, net, *, stride, out_features):
         super().__init__()
-
+        self.name = name
         self.net = net
-        self.shortname = shortname
         self.stride = stride
         self.out_features = out_features
-
-        # print(list(net.children()))
-        LOG.info('stride = %d', self.stride)
-        LOG.info('output features = %d', self.out_features)
+        LOG.info('%s: stride = %d, output features = %d', name, stride, out_features)
 
     def forward(self, *args):
         return self.net(*args)
 
+    @classmethod
+    def cli(cls, parser):
+        pass
 
-class ResnetBlocks():
-    def __init__(self, resnet):
-        self.modules = list(resnet.children())
-        LOG.debug('modules = %s', self.modules)
+    @classmethod
+    def configure(cls, args):
+        pass
 
-    def input_block(self, use_pool=False, conv_stride=2, pool_stride=2):
-        modules = self.modules[:4]
 
-        if not use_pool:
-            modules.pop(3)
+class Resnet(BaseNetwork):
+    pretrained = True
+    pool0_stride = 0
+    input_conv_stride = 2
+    remove_last_block = False
+
+    def __init__(self, name, torchvision_resnet, out_features=2048):
+        modules = list(torchvision_resnet(self.pretrained).children())
+        stride = 32
+
+        input_block = modules[:4]
+
+        # input pool
+        if self.pool0_stride:
+            if self.pool0_stride != 2:
+                input_block[3].stride = torch.nn.modules.utils._pair(self.pool0_stride)  # pylint: disable=protected-access
+                stride = int(stride * 2 / self.pool0_stride)
         else:
-            if pool_stride != 2:
-                modules[3].stride = torch.nn.modules.utils._pair(pool_stride)  # pylint: disable=protected-access
+            input_block.pop(3)
+            stride //= 2
 
-        if conv_stride != 2:
-            modules[0].stride = torch.nn.modules.utils._pair(conv_stride)  # pylint: disable=protected-access
+        # input conv
+        if self.input_conv_stride != 2:
+            input_block[0].stride = torch.nn.modules.utils._pair(self.input_conv_stride)  # pylint: disable=protected-access
+            stride = int(stride * 2 / self.input_conv_stride)
 
-        return torch.nn.Sequential(*modules)
+        blocks = [
+            *input_block,
+            modules[4],  # block 2, no stride
+            modules[5],  # block 3
+            modules[6],  # block 4
+            modules[7],  # block 5
+        ]
 
-    def block2(self):
-        return self.modules[4]
+        # block 5
+        if self.remove_last_block:
+            blocks = blocks[:-1]
+            stride //= 2
+            out_features //= 2
 
-    def block3(self):
-        return self.modules[5]
+        net = torch.nn.Sequential(*blocks)
+        super().__init__(name, net, stride=stride, out_features=out_features)
 
-    def block4(self):
-        return self.modules[6]
+    @classmethod
+    def cli(cls, parser):
+        group = parser.add_argument_group('ResNet')
+        assert cls.pretrained
+        group.add_argument('--resnet-no-pretrain', dest='resnet_pretrained',
+                           default=True, action='store_false',
+                           help='use randomly initialized models')
+        group.add_argument('--resnet-pool0-stride',
+                           default=cls.pool0_stride, type=int,
+                           help='stride of zero removes the pooling op')
+        group.add_argument('--resnet-input-conv-stride',
+                           default=cls.input_conv_stride, type=int,
+                           help='stride of the input convolution')
+        assert not cls.remove_last_block
+        group.add_argument('--resnet-remove-last-block',
+                           default=False, action='store_true',
+                           help='create a network without the last block')
 
-    def block5(self):
-        return self.modules[7]
+    @classmethod
+    def configure(cls, args):
+        cls.pretrained = args.resnet_pretrained
+        cls.pool0_stride = args.resnet_pool0_stride
+        cls.input_conv_stride = args.resnet_input_conv_stride
+        cls.remove_last_block = args.resnet_remove_last_block
 
 
 class InvertedResidualK(torch.nn.Module):
@@ -121,7 +162,7 @@ class InvertedResidualK(torch.nn.Module):
         return out
 
 
-class ShuffleNetV2K(torch.nn.Module):
+class ShuffleNetV2K(BaseNetwork):
     """Based on torchvision.models.ShuffleNetV2 where
     the kernel size in stages 2,3,4 is 5 instead of 3."""
     def __init__(self, stages_repeats, stages_out_channels, *, layer_norm=None):

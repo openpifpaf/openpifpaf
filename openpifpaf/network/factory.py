@@ -18,6 +18,17 @@ CHECKPOINT_URLS = {
                          'v0.11.0/shufflenetv2k30w-200510-104256-cif-caf-caf25-o10s-0b5ba06f.pkl'),
 }
 
+BASENETS = (basenetworks.Resnet,)
+
+BASENET_FACTORIES = {
+    'resnet18': lambda: basenetworks.Resnet('resnet18', torchvision.models.resnet18, 512),
+    'resnet50': lambda: basenetworks.Resnet('resnet50', torchvision.models.resnet50),
+    'resnet101': lambda: basenetworks.Resnet('resnet101', torchvision.models.resnet101),
+    'resnet152': lambda: basenetworks.Resnet('resnet152', torchvision.models.resnet152),
+    'resnext50': lambda: basenetworks.Resnet('resnext50', torchvision.models.resnext50_32x4d),
+    'resnext101': lambda: basenetworks.Resnet('resnext101', torchvision.models.resnext101_32x8d),
+}
+
 LOG = logging.getLogger(__name__)
 
 
@@ -26,7 +37,6 @@ def factory_from_args(args, *, head_metas=None):
         checkpoint=args.checkpoint,
         base_name=args.basenet,
         head_metas=head_metas,
-        pretrained=args.pretrained,
         dense_coupling=args.dense_coupling,
         cross_talk=args.cross_talk,
         two_scale=args.two_scale,
@@ -69,7 +79,6 @@ def factory(
         checkpoint=None,
         base_name=None,
         head_metas=None,
-        pretrained=True,
         dense_coupling=0.0,
         cross_talk=0.0,
         two_scale=False,
@@ -80,7 +89,7 @@ def factory(
     if base_name:
         assert head_metas
         assert checkpoint is None
-        net_cpu = factory_from_scratch(base_name, head_metas, pretrained=pretrained)
+        net_cpu = factory_from_scratch(base_name, head_metas)
         epoch = 0
     else:
         assert base_name is None
@@ -137,31 +146,7 @@ def factory(
     return net_cpu, epoch
 
 
-# pylint: disable=too-many-return-statements
-def factory_from_scratch(basename, head_metas, *, pretrained=True):
-    if 'resnet18' in basename:
-        base_vision = torchvision.models.resnet18(pretrained)
-        return resnet_factory_from_scratch(basename, base_vision, 512, head_metas)
-    if 'resnet50' in basename:
-        base_vision = torchvision.models.resnet50(pretrained)
-        return resnet_factory_from_scratch(basename, base_vision, 2048, head_metas)
-    if 'resnet101' in basename:
-        base_vision = torchvision.models.resnet101(pretrained)
-        return resnet_factory_from_scratch(basename, base_vision, 2048, head_metas)
-    if 'resnet152' in basename:
-        base_vision = torchvision.models.resnet152(pretrained)
-        return resnet_factory_from_scratch(basename, base_vision, 2048, head_metas)
-    if 'resnet260' in basename:
-        assert pretrained is False
-        base_vision = torchvision.models.ResNet(
-            torchvision.models.resnet.Bottleneck, [3, 8, 72, 3])
-        return resnet_factory_from_scratch(basename, base_vision, 2048, head_metas)
-    if 'resnext50' in basename:
-        base_vision = torchvision.models.resnext50_32x4d(pretrained)
-        return resnet_factory_from_scratch(basename, base_vision, 2048, head_metas)
-    if 'resnext101' in basename:
-        base_vision = torchvision.models.resnext101_32x8d(pretrained)
-        return resnet_factory_from_scratch(basename, base_vision, 2048, head_metas)
+def factory_from_scratch_(basename, head_metas):
     if basename == 'shufflenetv2x1':
         base_vision = torchvision.models.shufflenet_v2_x1_0(pretrained)
         return shufflenet_factory_from_scratch(basename, base_vision, 1024, head_metas)
@@ -225,14 +210,11 @@ def factory_from_scratch(basename, head_metas, *, pretrained=True):
     raise Exception('unknown base network in {}'.format(basename))
 
 
-def generic_factory_from_scratch(basename, base_vision, out_features, head_metas):
-    basenet = basenetworks.BaseNetwork(
-        base_vision,
-        basename,
-        stride=16,
-        out_features=out_features,
-    )
+def factory_from_scratch(basename, head_metas):
+    if basename not in BASENET_FACTORIES:
+        raise Exception('basename {} unknown'.format(basename))
 
+    basenet = BASENET_FACTORIES[basename]()
     headnets = [heads.CompositeField3(h, basenet.out_features) for h in head_metas]
 
     net_cpu = nets.Shell(basenet, headnets)
@@ -310,11 +292,17 @@ def resnet_factory_from_scratch(basename, base_vision, out_features, head_metas)
 
 
 def configure(args):
+    for bn in BASENETS:
+        bn.configure(args)
+
     # configure CompositeField
     heads.CompositeField3.dropout_p = args.head_dropout
 
 
 def cli(parser):
+    for bn in BASENETS:
+        bn.cli(parser)
+
     group = parser.add_argument_group('network configuration')
     group.add_argument('--checkpoint', default=None,
                        help=('Load a model from a checkpoint. '
@@ -322,8 +310,6 @@ def cli(parser):
                              'or "shufflenetv2k30w" for pretrained OpenPifPaf models.'))
     group.add_argument('--basenet', default=None,
                        help='base network, e.g. resnet50')
-    group.add_argument('--no-pretrain', dest='pretrained', default=True, action='store_false',
-                       help='create model without ImageNet pretraining')
     group.add_argument('--two-scale', default=False, action='store_true',
                        help='[experimental]')
     group.add_argument('--multi-scale', default=False, action='store_true',
