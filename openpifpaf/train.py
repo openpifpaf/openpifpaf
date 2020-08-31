@@ -63,9 +63,9 @@ def cli():
                         help='validation run every n epochs')
     parser.add_argument('--rescale-images', type=float, default=1.0,
                         help='overall image rescale factor')
-    parser.add_argument('--update-batchnorm-runningstatistics',
+    parser.add_argument('--fix-batch-norm',
                         default=False, action='store_true',
-                        help='update batch norm running statistics')
+                        help='fix batch norm running statistics')
     parser.add_argument('--ema', default=1e-2, type=float,
                         help='ema decay constant')
     parser.add_argument('--clip-grad-norm', default=0.0, type=float,
@@ -135,7 +135,7 @@ def main():
         net, loss, optimizer, args.output,
         lr_scheduler=lr_scheduler,
         device=args.device,
-        fix_batch_norm=not args.update_batchnorm_runningstatistics,
+        fix_batch_norm=args.fix_batch_norm,
         stride_apply=args.stride_apply,
         ema_decay=args.ema,
         log_interval=args.log_interval,
