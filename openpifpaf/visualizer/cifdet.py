@@ -77,7 +77,8 @@ class CifDet(BaseVisualizer):
                 show.boxes_wh(ax, wh_fields[f, 0], wh_fields[f, 1],
                               confidence_field=confidence_field,
                               regression_field=regression_fields[f, :2],
-                              xy_scale=self.meta.stride, cmap='Greens', fill=False,
+                              xy_scale=self.meta.stride, cmap='Greens',
+                              fill=False, linewidth=2,
                               regression_field_is_offset=uv_is_offset)
                 if self.show_margin:
                     show.margins(ax, regression_fields[f, :6], xy_scale=self.meta.stride)

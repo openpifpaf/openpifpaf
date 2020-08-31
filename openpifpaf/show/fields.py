@@ -109,7 +109,7 @@ def boxes(ax, sigma_field, **kwargs):
 def boxes_wh(ax, w_field, h_field, *, confidence_field=None, regression_field=None,
              xy_scale=1.0, step=1, threshold=0.5,
              regression_field_is_offset=False,
-             cmap='viridis_r', clim=(0.5, 1.0), **kwargs):
+             cmap='viridis_r', clim=(0.5, 1.0), linewidth=1, **kwargs):
     x, y, w, h, c = [], [], [], [], []
     for j in range(0, w_field.shape[0], step):
         for i in range(0, w_field.shape[1], step):
@@ -134,7 +134,7 @@ def boxes_wh(ax, w_field, h_field, *, confidence_field=None, regression_field=No
         color = cmap(cnorm(cc))
         rectangle = matplotlib.patches.Rectangle(
             (xx - ww / 2.0, yy - hh / 2.0), ww, hh,
-            color=color, zorder=10, linewidth=1, **kwargs)
+            color=color, zorder=10, linewidth=linewidth, **kwargs)
         ax.add_artist(rectangle)
 
 
