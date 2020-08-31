@@ -67,7 +67,7 @@ class CifDetSeeds(CifSeeds):
             if meta.decoder_min_scale:
                 p = p[:, p[4] > meta.decoder_min_scale / meta.stride]
                 p = p[:, p[5] > meta.decoder_min_scale / meta.stride]
-            c, x, y, _, w, h, _ = p
+            c, x, y, w, h, _, __ = p
             v = scalar_values(self.cifhr[field_i], x * meta.stride, y * meta.stride, default=0.0)
             v = 0.9 * v + 0.1 * c
             if self.score_scale != 1.0:
