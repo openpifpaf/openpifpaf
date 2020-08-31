@@ -99,18 +99,34 @@ class PafHFlip(torch.nn.Module):
         return out
 
 
-class CafConcatenate(torch.nn.Module):
-    def __init__(self, parents):
+class BaseHead(torch.nn.Module):
+    def __init__(self, meta: headmeta.Base, in_features):
         super().__init__()
+        self.meta = meta
+        self.in_features = in_features
+
+    @classmethod
+    def cli(cls, parser):
+        pass
+
+    @classmethod
+    def configure(cls, args):
+        pass
+
+
+class CafConcatenate(BaseHead):
+    def __init__(self, parents):
+        meta = headmeta.Association.concatenate([p.meta for p in parents])
+        super().__init__(meta, parents[0].in_features)
+
         self.parents = torch.nn.ModuleList(parents)
-        self.meta = headmeta.Association.concatenate([p.meta for p in parents])
 
     def forward(self, *args):
         x = args[0]
         return torch.cat([p(x) for p in self.parents], dim=1)
 
 
-class CompositeField3(torch.nn.Module):
+class CompositeField3(BaseHead):
     dropout_p = 0.0
     inplace_ops = True
 
@@ -118,14 +134,13 @@ class CompositeField3(torch.nn.Module):
                  meta: headmeta.Base,
                  in_features, *,
                  kernel_size=1, padding=0, dilation=1):
-        super().__init__()
+        super().__init__(meta, in_features)
 
         LOG.debug('%s config: fields = %d, confidences = %d, vectors = %d, scales = %d '
                   'kernel = %d, padding = %d, dilation = %d',
                   meta.name, meta.n_fields, meta.n_confidences, meta.n_vectors, meta.n_scales,
                   kernel_size, padding, dilation)
 
-        self.meta = meta
         self.dropout = torch.nn.Dropout2d(p=self.dropout_p)
 
         # convolution
@@ -138,6 +153,21 @@ class CompositeField3(torch.nn.Module):
         self.upsample_op = None
         if meta.upsample_stride > 1:
             self.upsample_op = torch.nn.PixelShuffle(meta.upsample_stride)
+
+    @classmethod
+    def cli(cls, parser):
+        group = parser.add_argument_group('CompositeField3')
+        group.add_argument('--cf3-dropout', default=cls.dropout_p, type=float,
+                           help='[experimental] zeroing probability of feature in head input')
+        assert cls.inplace_ops
+        group.add_argument('--cf3-no-inplace-ops', dest='cf3_inplace_ops',
+                           default=True, action='store_false',
+                           help='alternative graph without inplace ops')
+
+    @classmethod
+    def configure(cls, args):
+        cls.dropout_p = args.cf3_dropout
+        cls.inplace_ops = args.cf3_inplace_ops
 
     @property
     def sparse_task_parameters(self):

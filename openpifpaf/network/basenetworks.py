@@ -28,6 +28,35 @@ class BaseNetwork(torch.nn.Module):
         pass
 
 
+class ShuffleNetV2(BaseNetwork):
+    pretrained = True
+
+    def __init__(self, name, torchvision_shufflenetv2, out_features=2048):
+        base_vision = torchvision_shufflenetv2(self.pretrained)
+
+        net = torch.nn.Sequential(
+            base_vision.conv1,
+            # base_vision.maxpool,
+            base_vision.stage2,
+            base_vision.stage3,
+            base_vision.stage4,
+            base_vision.conv5,
+        )
+        super().__init__(name, net, stride=16, out_features=out_features)
+
+    @classmethod
+    def cli(cls, parser):
+        group = parser.add_argument_group('ShuffleNetv2')
+        assert cls.pretrained
+        group.add_argument('--shufflenetv2-no-pretrain', dest='shufflenetv2_pretrained',
+                           default=True, action='store_false',
+                           help='use randomly initialized models')
+
+    @classmethod
+    def configure(cls, args):
+        cls.pretrained = args.shufflenetv2_pretrained
+
+
 class Resnet(BaseNetwork):
     pretrained = True
     pool0_stride = 0

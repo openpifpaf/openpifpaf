@@ -4,7 +4,7 @@ import torch
 
 import torchvision
 
-from . import basenetworks, heads, nets
+from . import basenetworks, headmeta, heads, nets
 
 # generate hash values with: shasum -a 256 filename.pkl
 
@@ -18,15 +18,18 @@ CHECKPOINT_URLS = {
                          'v0.11.0/shufflenetv2k30w-200510-104256-cif-caf-caf25-o10s-0b5ba06f.pkl'),
 }
 
-BASETYPES = (basenetworks.Resnet, basenetworks.ShuffleNetV2K)
-
-BASENET_FACTORIES = {
+BASE_TYPES = (basenetworks.Resnet, basenetworks.ShuffleNetV2, basenetworks.ShuffleNetV2K)
+BASE_FACTORIES = {
     'resnet18': lambda: basenetworks.Resnet('resnet18', torchvision.models.resnet18, 512),
     'resnet50': lambda: basenetworks.Resnet('resnet50', torchvision.models.resnet50),
     'resnet101': lambda: basenetworks.Resnet('resnet101', torchvision.models.resnet101),
     'resnet152': lambda: basenetworks.Resnet('resnet152', torchvision.models.resnet152),
     'resnext50': lambda: basenetworks.Resnet('resnext50', torchvision.models.resnext50_32x4d),
     'resnext101': lambda: basenetworks.Resnet('resnext101', torchvision.models.resnext101_32x8d),
+    'shufflenetv2x1': lambda: basenetworks.ShuffleNetV2(
+        'shufflenetv2x1', torchvision.models.shufflenet_v2_x1_0, 1024),
+    'shufflenetv2x2': lambda: basenetworks.ShuffleNetV2(
+        'shufflenetv2x2', torchvision.models.shufflenet_v2_x2_0),
     'shufflenetv2k16w': lambda: basenetworks.ShuffleNetV2K(
         'shufflenetv2k16w', [4, 8, 4], [24, 348, 696, 1392, 1392]),
     'shufflenetv2k20w': lambda: basenetworks.ShuffleNetV2K(
@@ -35,6 +38,13 @@ BASENET_FACTORIES = {
         'shufflenetv2k30w', [8, 16, 6], [32, 512, 1024, 2048, 2048]),
     'shufflenetv2k44w': lambda: basenetworks.ShuffleNetV2K(
         'shufflenetv2k44w', [12, 24, 8], [32, 512, 1024, 2048, 2048]),
+}
+
+HEAD_TYPES = (heads.CompositeField3,)
+HEAD_FACTORIES = {
+    headmeta.Intensity: heads.CompositeField3,
+    headmeta.Association: heads.CompositeField3,
+    headmeta.Detection: heads.CompositeField3,
 }
 
 LOG = logging.getLogger(__name__)
@@ -154,43 +164,12 @@ def factory(
     return net_cpu, epoch
 
 
-def factory_from_scratch_(basename, head_metas):
-    if basename == 'shufflenetv2x1':
-        base_vision = torchvision.models.shufflenet_v2_x1_0(pretrained)
-        return shufflenet_factory_from_scratch(basename, base_vision, 1024, head_metas)
-    if basename.startswith('shufflenetv2x2'):
-        base_vision = torchvision.models.shufflenet_v2_x2_0(pretrained)
-        return shufflenet_factory_from_scratch(basename, base_vision, 2048, head_metas)
-    if basename.startswith('shufflenetv2k16'):
-        base_vision = torchvision.models.ShuffleNetV2(
-            [4, 8, 4], [24, 348, 696, 1392, 1392],
-        )
-        return shufflenet_factory_from_scratch(basename, base_vision, 1392, head_metas)
-    if basename.startswith('shufflenetv2k20'):
-        base_vision = torchvision.models.ShuffleNetV2(
-            [5, 10, 5], [32, 512, 1024, 2048, 2048],
-        )
-        return shufflenet_factory_from_scratch(basename, base_vision, 2048, head_metas)
-    if basename.startswith('shufflenetv2k30'):
-        base_vision = torchvision.models.ShuffleNetV2(
-            [8, 16, 6], [32, 512, 1024, 2048, 2048],
-        )
-        return shufflenet_factory_from_scratch(basename, base_vision, 2048, head_metas)
-    if basename.startswith('shufflenetv2k44'):
-        base_vision = torchvision.models.ShuffleNetV2(
-            [12, 24, 8], [32, 512, 1024, 2048, 2048],
-        )
-        return shufflenet_factory_from_scratch(basename, base_vision, 2048, head_metas)
-
-    raise Exception('unknown base network in {}'.format(basename))
-
-
 def factory_from_scratch(basename, head_metas):
-    if basename not in BASENET_FACTORIES:
+    if basename not in BASE_FACTORIES:
         raise Exception('basename {} unknown'.format(basename))
 
-    basenet = BASENET_FACTORIES[basename]()
-    headnets = [heads.CompositeField3(h, basenet.out_features) for h in head_metas]
+    basenet = BASE_FACTORIES[basename]()
+    headnets = [HEAD_FACTORIES[h.__class__](h, basenet.out_features) for h in head_metas]
 
     net_cpu = nets.Shell(basenet, headnets)
     nets.model_defaults(net_cpu)
@@ -199,16 +178,17 @@ def factory_from_scratch(basename, head_metas):
 
 
 def configure(args):
-    for bn in BASETYPES:
+    for bn in BASE_TYPES:
         bn.configure(args)
-
-    # configure CompositeField
-    heads.CompositeField3.dropout_p = args.head_dropout
+    for hn in HEAD_TYPES:
+        hn.configure(args)
 
 
 def cli(parser):
-    for bn in BASETYPES:
+    for bn in BASE_TYPES:
         bn.cli(parser)
+    for hn in HEAD_TYPES:
+        hn.cli(parser)
 
     group = parser.add_argument_group('network configuration')
     group.add_argument('--checkpoint', default=None,
@@ -231,7 +211,3 @@ def cli(parser):
                        help='suppress model download progress bar')
     group.add_argument('--dense-coupling', default=0.0, type=float,
                        help='dense coupling')
-
-    group = parser.add_argument_group('head')
-    group.add_argument('--head-dropout', default=heads.CompositeField3.dropout_p, type=float,
-                       help='[experimental] zeroing probability of feature in head input')
