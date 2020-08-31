@@ -238,6 +238,9 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     parser.add_argument('--extended-scale', default=False, action='store_true')
     parser.add_argument('--skip-existing', default=False, action='store_true',
                         help='skip if output eval file exists already')
+    parser.add_argument('--no-skip-epoch0', dest='skip_epoch0',
+                        default=True, action='store_false',
+                        help='do not skip eval for epoch 0')
     parser.add_argument('--disable-cuda', action='store_true',
                         help='disable CUDA')
     parser.add_argument('--write-predictions', default=False, action='store_true',
@@ -415,6 +418,10 @@ def main():
     args = cli()
 
     # skip existing?
+    if args.skip_epoch0:
+        if args.checkpoint.endswith('.epoch000'):
+            print('Not evaluating epoch 0.')
+            return
     if args.skip_existing:
         if os.path.exists(args.output + '.stats.json'):
             print('Output file {} exists already. Exiting.'
