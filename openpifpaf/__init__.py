@@ -9,3 +9,4 @@ from . import datasets
 from . import decoder
 from . import network
 from . import optimize
+from . import plugins

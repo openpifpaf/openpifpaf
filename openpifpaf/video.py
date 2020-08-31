@@ -28,7 +28,7 @@ import PIL
 import torch
 
 import cv2  # pylint: disable=import-error
-from . import decoder, network, show, transforms, visualizer, __version__
+from . import decoder, network, plugins, show, transforms, visualizer, __version__
 
 LOG = logging.getLogger(__name__)
 
@@ -47,6 +47,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     parser.add_argument('--version', action='version',
                         version='OpenPifPaf {version}'.format(version=__version__))
 
+    plugins.register()
     network.cli(parser)
     decoder.cli(parser, force_complete_pose=False, instance_threshold=0.1, seed_threshold=0.5)
     show.cli(parser)

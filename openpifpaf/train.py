@@ -7,7 +7,7 @@ import socket
 
 import torch
 
-from . import datasets, encoder, logs, network, optimize, show, visualizer
+from . import datasets, encoder, logs, network, optimize, plugins, show, visualizer
 from . import __version__
 
 LOG = logging.getLogger(__name__)
@@ -43,6 +43,7 @@ def cli():
     parser.add_argument('--version', action='version',
                         version='OpenPifPaf {version}'.format(version=__version__))
 
+    plugins.register()
     logs.cli(parser)
     network.cli(parser)
     network.losses.cli(parser)

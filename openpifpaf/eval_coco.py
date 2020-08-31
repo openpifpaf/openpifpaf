@@ -23,7 +23,7 @@ except ImportError:
 
 from .annotation import Annotation, AnnotationDet
 from .datasets.constants import COCO_KEYPOINTS, COCO_PERSON_SKELETON, COCO_CATEGORIES
-from . import datasets, decoder, network, show, transforms, visualizer, __version__
+from . import datasets, decoder, network, plugins, show, transforms, visualizer, __version__
 
 ANNOTATIONS_VAL = 'data-mscoco/annotations/person_keypoints_val2017.json'
 DET_ANNOTATIONS_VAL = 'data-mscoco/annotations/instances_val2017.json'
@@ -211,6 +211,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     parser.add_argument('--version', action='version',
                         version='OpenPifPaf {version}'.format(version=__version__))
 
+    plugins.register()
     network.cli(parser)
     decoder.cli(parser, force_complete_pose=True)
     show.cli(parser)
