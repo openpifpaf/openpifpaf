@@ -30,6 +30,7 @@ class CocoKp(DataModule):
     orientation_invariant = 0.0
     augmentation = True
     rescale_images = 1.0
+    upsample_stride = 1
 
     def __init__(self):
         super().__init__()
@@ -51,6 +52,10 @@ class CocoKp(DataModule):
                                     DENSER_COCO_PERSON_CONNECTIONS,
                                     sparse_skeleton=COCO_PERSON_SKELETON,
                                     only_in_field_of_view=True)
+
+        cif.upsample_stride = self.upsample_stride
+        caf.upsample_stride = self.upsample_stride
+        dcaf.upsample_stride = self.upsample_stride
         self.head_metas = (cif, caf, dcaf)
 
     @classmethod
@@ -88,6 +93,10 @@ class CocoKp(DataModule):
                            default=cls.rescale_images, type=float,
                            help='overall rescale factor for images')
 
+        group.add_argument('--cocokp-upsample',
+                           default=cls.upsample_stride, type=int,
+                           help='head upsample stride')
+
     @classmethod
     def configure(cls, args):
         # extract global information
@@ -106,6 +115,7 @@ class CocoKp(DataModule):
         cls.orientation_invariant = args.cocokp_orientation_invariant
         cls.augmentation = args.cocokp_augmentation
         cls.rescale_images = args.cocokp_rescale_images
+        cls.upsample_stride = args.cocokp_upsample
 
     def _preprocess(self):
         encoders = (encoder.Cif(self.head_metas[0]),
