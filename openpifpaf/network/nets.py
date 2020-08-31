@@ -25,11 +25,14 @@ class Shell(torch.nn.Module):
 
     @head_nets.setter
     def head_nets(self, head_nets):
+        if not isinstance(head_nets, torch.nn.ModuleList):
+            head_nets = torch.nn.ModuleList(head_nets)
+
         for hn_i, hn in enumerate(head_nets):
             hn.meta.head_index = hn_i
             hn.meta.base_stride = self.base_net.stride
 
-        self._head_nets = torch.nn.ModuleList(head_nets)
+        self._head_nets = head_nets
 
     def forward(self, *args):
         image_batch = args[0]
