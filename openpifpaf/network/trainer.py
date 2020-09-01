@@ -154,7 +154,7 @@ class Trainer():
     def val_batch(self, data, targets):
         if self.device:
             data = data.to(self.device, non_blocking=True)
-            targets = [[t.to(self.device, non_blocking=True) for t in head] for head in targets]
+            targets = [head.to(self.device, non_blocking=True) for head in targets]
 
         with torch.no_grad():
             outputs = self.model(data)
