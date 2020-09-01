@@ -22,15 +22,18 @@ class CocoDet(DataModule):
     val_image_dir = 'data-mscoco/images/val2017/'
 
     n_images = None
-    square_edge = 385
+    square_edge = 513
     extended_scale = False
     orientation_invariant = 0.0
     augmentation = True
     rescale_images = 1.0
+    upsample_stride = 1
 
     def __init__(self):
         super().__init__()
-        self.head_metas = (headmeta.Detection('cifdet', COCO_CATEGORIES),)
+        cifdet = headmeta.Detection('cifdet', COCO_CATEGORIES)
+        cifdet.upsample_stride = self.upsample_stride
+        self.head_metas = (cifdet,)
 
     @classmethod
     def cli(cls, parser):
@@ -67,6 +70,10 @@ class CocoDet(DataModule):
                            default=cls.rescale_images, type=float,
                            help='overall rescale factor for images')
 
+        group.add_argument('--cocodet-upsample',
+                           default=cls.upsample_stride, type=int,
+                           help='head upsample stride')
+
     @classmethod
     def configure(cls, args):
         # extract global information
@@ -85,6 +92,7 @@ class CocoDet(DataModule):
         cls.orientation_invariant = args.cocodet_orientation_invariant
         cls.augmentation = args.cocodet_augmentation
         cls.rescale_images = args.cocodet_rescale_images
+        cls.upsample_stride = args.cocodet_upsample
 
     def _preprocess(self):
         enc = encoder.CifDet(self.head_metas[0])
@@ -123,8 +131,8 @@ class CocoDet(DataModule):
             transforms.CenterPad(self.square_edge),
             orientation_t,
             transforms.MinSize(min_side=4.0),
-            transforms.UnclippedArea(),
-            transforms.UnclippedSides(),
+            transforms.UnclippedArea(threshold=0.75),
+            # transforms.UnclippedSides(),
             transforms.TRAIN_TRANSFORM,
             transforms.Encoders([enc]),
         ])
