@@ -459,7 +459,7 @@ class CompositeLoss(torch.nn.Module):
 
         return ce_loss
 
-    def _localization_loss(self, x_regs, t_regs):
+    def _localization_loss(self, x_regs, t_regs, *, weight=None):
         assert x_regs.shape[2] == self.n_vectors * 3
         assert t_regs.shape[2] == self.n_vectors * 2
         batch_size = t_regs.shape[0]
@@ -471,14 +471,17 @@ class CompositeLoss(torch.nn.Module):
                 reg_losses.append(None)
                 continue
 
-            reg_losses.append(self.regression_loss(
+            loss = self.regression_loss(
                 torch.masked_select(x_regs[:, :, i*2 + 0], reg_masks),
                 torch.masked_select(x_regs[:, :, i*2 + 1], reg_masks),
                 torch.masked_select(x_regs[:, :, self.n_vectors*2 + i], reg_masks),
                 torch.masked_select(t_regs[:, :, i*2 + 0], reg_masks),
                 torch.masked_select(t_regs[:, :, i*2 + 1], reg_masks),
                 norm_low_clip=0.0,
-            ).sum() / batch_size)
+            )
+            if weight is not None:
+                loss = loss * weight[:, :, 0][reg_masks]
+            reg_losses.append(loss.sum() / batch_size)
 
         return reg_losses
 
