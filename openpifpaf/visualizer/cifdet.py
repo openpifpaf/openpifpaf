@@ -34,8 +34,9 @@ class CifDet(BaseVisualizer):
             for ann in annotation_dicts
         ]
 
-        self._confidences(field[0])
-        self._regressions(field[1], field[2], annotations=annotations)
+        self._confidences(field[:, 0])
+        self._regressions(field[:, 1:3], field[:, 3:5],
+                          annotations=annotations)
 
     def predicted(self, field, *, annotations=None):
         self._confidences(field[:, 0])

@@ -250,10 +250,10 @@ class CafGenerator:
         mask_valid_area(fields_scale1, valid_area, fill_value=np.nan)
         mask_valid_area(fields_scale2, valid_area, fill_value=np.nan)
 
-        return (
-            torch.from_numpy(intensities),
-            torch.from_numpy(fields_reg1),
-            torch.from_numpy(fields_reg2),
-            torch.from_numpy(fields_scale1),
-            torch.from_numpy(fields_scale2),
-        )
+        return torch.from_numpy(np.concatenate([
+            np.expand_dims(intensities, 1),
+            fields_reg1[:, :2],  # TODO dropped margin components for now
+            fields_reg2[:, :2],
+            np.expand_dims(fields_scale1, 1),
+            np.expand_dims(fields_scale2, 1),
+        ], axis=1))

@@ -167,8 +167,8 @@ class CifGenerator():
         mask_valid_area(fields_reg[:, 1], valid_area, fill_value=np.nan)
         mask_valid_area(fields_scale, valid_area, fill_value=np.nan)
 
-        return (
-            torch.from_numpy(intensities),
-            torch.from_numpy(fields_reg),
-            torch.from_numpy(fields_scale),
-        )
+        return torch.from_numpy(np.concatenate([
+            np.expand_dims(intensities, 1),
+            fields_reg[:, :2],  # TODO dropped margin components for now
+            np.expand_dims(fields_scale, 1),
+        ], axis=1))

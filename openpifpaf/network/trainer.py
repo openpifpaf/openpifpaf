@@ -119,7 +119,7 @@ class Trainer():
     def train_batch(self, data, targets, apply_gradients=True):  # pylint: disable=method-hidden
         if self.device:
             data = data.to(self.device, non_blocking=True)
-            targets = [[t.to(self.device, non_blocking=True) for t in head] for head in targets]
+            targets = [head.to(self.device, non_blocking=True) for head in targets]
 
         # train encoder
         with torch.autograd.profiler.record_function('model'):

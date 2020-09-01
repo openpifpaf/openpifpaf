@@ -36,8 +36,9 @@ class Caf(BaseVisualizer):
             for ann in annotation_dicts
         ]
 
-        self._confidences(field[0])
-        self._regressions(field[1], field[2], field[3], field[4], annotations=annotations)
+        self._confidences(field[:, 0])
+        self._regressions(field[:, 1:3], field[:, 3:5], field[:, 5], field[:, 6],
+                          annotations=annotations)
 
     def predicted(self, field, *, annotations=None):
         self._confidences(field[:, 0])

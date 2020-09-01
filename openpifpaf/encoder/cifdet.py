@@ -127,8 +127,8 @@ class CifDetGenerator():
         mask_valid_area(fields_wh[:, 0], valid_area, fill_value=np.nan)
         mask_valid_area(fields_wh[:, 1], valid_area, fill_value=np.nan)
 
-        return (
-            torch.from_numpy(intensities),
-            torch.from_numpy(fields_reg),
-            torch.from_numpy(fields_wh),
-        )
+        return torch.from_numpy(np.concatenate([
+            np.expand_dims(intensities, 1),
+            fields_reg,
+            fields_wh
+        ], axis=1))
