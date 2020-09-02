@@ -6,9 +6,6 @@ import openpifpaf
 
 
 class Cifar10(openpifpaf.datasets.DataModule):
-    description = 'Cifar10 data module.'
-
-    # cli configurable
     root_dir = 'data-cifar10/'
     download = False
 

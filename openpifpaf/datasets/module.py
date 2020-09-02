@@ -7,8 +7,6 @@ class DataModule():
     Overwrite cli() and configure() to make your data module configureable
     from the command line.
     """
-    description = ''
-
     batch_size = 8
     loader_workers = None
 
