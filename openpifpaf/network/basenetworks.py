@@ -8,16 +8,12 @@ LOG = logging.getLogger(__name__)
 class BaseNetwork(torch.nn.Module):
     """Common base network."""
 
-    def __init__(self, name, net, *, stride, out_features):
+    def __init__(self, name, *, stride, out_features):
         super().__init__()
         self.name = name
-        self.net = net
         self.stride = stride
         self.out_features = out_features
         LOG.info('%s: stride = %d, output features = %d', name, stride, out_features)
-
-    def forward(self, *args):
-        return self.net(*args)
 
     @classmethod
     def cli(cls, parser):
@@ -32,17 +28,24 @@ class ShuffleNetV2(BaseNetwork):
     pretrained = True
 
     def __init__(self, name, torchvision_shufflenetv2, out_features=2048):
-        base_vision = torchvision_shufflenetv2(self.pretrained)
+        super().__init__(name, stride=16, out_features=out_features)
 
-        net = torch.nn.Sequential(
-            base_vision.conv1,
-            # base_vision.maxpool,
-            base_vision.stage2,
-            base_vision.stage3,
-            base_vision.stage4,
-            base_vision.conv5,
-        )
-        super().__init__(name, net, stride=16, out_features=out_features)
+        base_vision = torchvision_shufflenetv2(self.pretrained)
+        self.conv1 = base_vision.conv1
+        # base_vision.maxpool
+        self.stage2 = base_vision.stage2
+        self.stage3 = base_vision.stage3
+        self.stage4 = base_vision.stage4
+        self.conv5 = base_vision.conv5
+
+    def forward(self, *args):
+        x = args[0]
+        x = self.conv1(x)
+        x = self.stage2(x)
+        x = self.stage3(x)
+        x = self.stage4(x)
+        x = self.conv5(x)
+        return x
 
     @classmethod
     def cli(cls, parser):
@@ -68,50 +71,57 @@ class Resnet(BaseNetwork):
         modules = list(torchvision_resnet(self.pretrained).children())
         stride = 32
 
-        input_block = modules[:4]
+        input_modules = modules[:4]
 
         # input pool
         if self.pool0_stride:
             if self.pool0_stride != 2:
-                input_block[3].stride = torch.nn.modules.utils._pair(self.pool0_stride)  # pylint: disable=protected-access
+                input_modules[3].stride = torch.nn.modules.utils._pair(self.pool0_stride)  # pylint: disable=protected-access
                 stride = int(stride * 2 / self.pool0_stride)
         else:
-            input_block.pop(3)
+            input_modules.pop(3)
             stride //= 2
+
+        # input conv
+        if self.input_conv_stride != 2:
+            input_modules[0].stride = torch.nn.modules.utils._pair(self.input_conv_stride)  # pylint: disable=protected-access
+            stride = int(stride * 2 / self.input_conv_stride)
 
         # optional use a conv in place of the max pool
         if self.input_conv2_stride:
             assert not self.pool0_stride  # this is only intended as a replacement for maxpool
-            channels = input_block[0].out_channels
-            conv2 = torch.nn.Conv2d(channels, channels,
-                                    kernel_size=3, stride=2, padding=1, bias=False)
-            bn2 = torch.nn.BatchNorm2d(channels)
-            relu2 = torch.nn.ReLU(inplace=True)
-            input_block += [conv2, bn2, relu2]
+            channels = input_modules[0].out_channels
+            conv2 = torch.nn.Sequential(
+                torch.nn.Conv2d(channels, channels, 3, 2, 1, bias=False),
+                torch.nn.BatchNorm2d(channels),
+                torch.nn.ReLU(inplace=True),
+            )
+            input_modules.append(conv2)
             stride *= 2
             LOG.debug('replaced max pool with [3x3 conv, bn, relu] with %d channels', channels)
 
-        # input conv
-        if self.input_conv_stride != 2:
-            input_block[0].stride = torch.nn.modules.utils._pair(self.input_conv_stride)  # pylint: disable=protected-access
-            stride = int(stride * 2 / self.input_conv_stride)
-
-        blocks = [
-            *input_block,
-            modules[4],  # block 2, no stride
-            modules[5],  # block 3
-            modules[6],  # block 4
-            modules[7],  # block 5
-        ]
-
         # block 5
+        block5 = modules[7]
         if self.remove_last_block:
-            blocks = blocks[:-1]
+            block5 = None
             stride //= 2
             out_features //= 2
 
-        net = torch.nn.Sequential(*blocks)
-        super().__init__(name, net, stride=stride, out_features=out_features)
+        super().__init__(name, stride=stride, out_features=out_features)
+        self.input_block = torch.nn.Sequential(*input_modules)
+        self.block2 = modules[4]
+        self.block3 = modules[5]
+        self.block4 = modules[6]
+        self.block5 = block5
+
+    def forward(self, *args):
+        x = args[0]
+        x = self.input_block(x)
+        x = self.block2(x)
+        x = self.block3(x)
+        x = self.block4(x)
+        x = self.block5(x)
+        return x
 
     @classmethod
     def cli(cls, parser):
@@ -226,7 +236,7 @@ class ShuffleNetV2K(BaseNetwork):
         _stage_out_channels = stages_out_channels
 
         stride = 16  # in the default configuration
-        blocks = []
+        input_modules = []
         input_channels = 3
         output_channels = _stage_out_channels[0]
         conv1 = torch.nn.Sequential(
@@ -234,7 +244,7 @@ class ShuffleNetV2K(BaseNetwork):
             layer_norm(output_channels),
             torch.nn.ReLU(inplace=True),
         )
-        blocks.append(conv1)
+        input_modules.append(conv1)
         input_channels = output_channels
 
         # optional use a conv in place of the max pool
@@ -244,11 +254,12 @@ class ShuffleNetV2K(BaseNetwork):
                 layer_norm(input_channels),
                 torch.nn.ReLU(inplace=True),
             )
-            blocks.append(conv2)
+            input_modules.append(conv2)
             stride *= 2
             LOG.debug('replaced max pool with [3x3 conv, bn, relu] with %d channels',
                       input_channels)
 
+        stages = []
         for repeats, output_channels in zip(
                 stages_repeats, _stage_out_channels[1:]):
             seq = [InvertedResidualK(input_channels, output_channels, 2,
@@ -256,7 +267,7 @@ class ShuffleNetV2K(BaseNetwork):
             for _ in range(repeats - 1):
                 seq.append(InvertedResidualK(output_channels, output_channels, 1,
                                              kernel_size=5, layer_norm=layer_norm))
-            blocks.append(torch.nn.Sequential(*seq))
+            stages.append(torch.nn.Sequential(*seq))
             input_channels = output_channels
 
         output_channels = _stage_out_channels[-1]
@@ -265,10 +276,22 @@ class ShuffleNetV2K(BaseNetwork):
             layer_norm(output_channels),
             torch.nn.ReLU(inplace=True),
         )
-        blocks.append(conv5)
 
-        net = torch.nn.Sequential(*blocks)
-        super().__init__(name, net, stride=stride, out_features=output_channels)
+        super().__init__(name, stride=stride, out_features=output_channels)
+        self.input_block = torch.nn.Sequential(*input_modules)
+        self.stage2 = stages[0]
+        self.stage3 = stages[1]
+        self.stage4 = stages[2]
+        self.conv5 = conv5
+
+    def forward(self, *args):
+        x = args[0]
+        x = self.input_block(x)
+        x = self.stage2(x)
+        x = self.stage3(x)
+        x = self.stage4(x)
+        x = self.conv5(x)
+        return x
 
     @classmethod
     def cli(cls, parser):
