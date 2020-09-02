@@ -211,6 +211,7 @@ class InvertedResidualK(torch.nn.Module):
 class ShuffleNetV2K(BaseNetwork):
     """Based on torchvision.models.ShuffleNetV2 where
     the kernel size in stages 2,3,4 is 5 instead of 3."""
+    input_conv2_stride = 0
     layer_norm = None
 
     def __init__(self, name, stages_repeats, stages_out_channels):
@@ -224,6 +225,8 @@ class ShuffleNetV2K(BaseNetwork):
             raise ValueError('expected stages_out_channels as list of 5 positive ints')
         _stage_out_channels = stages_out_channels
 
+        stride = 16  # in the default configuration
+        blocks = []
         input_channels = 3
         output_channels = _stage_out_channels[0]
         conv1 = torch.nn.Sequential(
@@ -231,9 +234,21 @@ class ShuffleNetV2K(BaseNetwork):
             layer_norm(output_channels),
             torch.nn.ReLU(inplace=True),
         )
+        blocks.append(conv1)
         input_channels = output_channels
 
-        stages = []
+        # optional use a conv in place of the max pool
+        if self.input_conv2_stride:
+            conv2 = torch.nn.Sequential(
+                torch.nn.Conv2d(input_channels, input_channels, 3, 2, 1, bias=False),
+                layer_norm(input_channels),
+                torch.nn.ReLU(inplace=True),
+            )
+            blocks.append(conv2)
+            stride *= 2
+            LOG.debug('replaced max pool with [3x3 conv, bn, relu] with %d channels',
+                      input_channels)
+
         for repeats, output_channels in zip(
                 stages_repeats, _stage_out_channels[1:]):
             seq = [InvertedResidualK(input_channels, output_channels, 2,
@@ -241,7 +256,7 @@ class ShuffleNetV2K(BaseNetwork):
             for _ in range(repeats - 1):
                 seq.append(InvertedResidualK(output_channels, output_channels, 1,
                                              kernel_size=5, layer_norm=layer_norm))
-            stages.append(torch.nn.Sequential(*seq))
+            blocks.append(torch.nn.Sequential(*seq))
             input_channels = output_channels
 
         output_channels = _stage_out_channels[-1]
@@ -250,13 +265,17 @@ class ShuffleNetV2K(BaseNetwork):
             layer_norm(output_channels),
             torch.nn.ReLU(inplace=True),
         )
+        blocks.append(conv5)
 
-        net = torch.nn.Sequential(conv1, *stages, conv5)
-        super().__init__(name, net, stride=16, out_features=output_channels)
+        net = torch.nn.Sequential(*blocks)
+        super().__init__(name, net, stride=stride, out_features=output_channels)
 
     @classmethod
     def cli(cls, parser):
         group = parser.add_argument_group('shufflenetv2k')
+        group.add_argument('--shufflenetv2k-input-conv2-stride',
+                           default=cls.input_conv2_stride, type=int,
+                           help='stride of the optional 2nd input convolution')
         layer_norm_group = group.add_mutually_exclusive_group()
         layer_norm_group.add_argument('--shufflenetv2k-instance-norm',
                                       default=False, action='store_true')
@@ -265,6 +284,7 @@ class ShuffleNetV2K(BaseNetwork):
 
     @classmethod
     def configure(cls, args):
+        cls.input_conv2_stride = args.shufflenetv2k_input_conv2_stride
         # layer norms
         if args.shufflenetv2k_instance_norm:
             cls.layer_norm = lambda x: torch.nn.InstanceNorm2d(
