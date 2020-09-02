@@ -3,7 +3,7 @@ name: update-stable
 on:
   release:
     types:
-      - created
+      - released
 
 jobs:
   update-stable:
