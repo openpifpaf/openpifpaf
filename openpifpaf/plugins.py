@@ -11,22 +11,29 @@ import importlib
 import logging
 import pkgutil
 
+from . import contrib
+
 LOG = logging.getLogger(__name__)
 
 REGISTERED = set()
 
 
 def register():
+    contrib_plugins = {
+        'openpifpaf.contrib.{}'.format(name):
+            importlib.import_module('openpifpaf.contrib.{}'.format(name))
+        for finder, name, ispkg in pkgutil.iter_modules(contrib.__path__)
+    }
     discovered_plugins = {
         name: importlib.import_module(name)
         for finder, name, ispkg in pkgutil.iter_modules()
         if name.startswith('openpifpaf_')
     }
-    LOG.debug('discoverd %d plugins', len(discovered_plugins))
+    # print('{} contrib plugins. Discoverd {} plugins.'.format(
+    #     len(contrib_plugins), len(discovered_plugins)))
 
-    for name, module in discovered_plugins.items():
+    for name, module in dict(**contrib_plugins, **discovered_plugins).items():
         if name in REGISTERED:
             continue
-        LOG.info('registering %s', name)
         module.register()
         REGISTERED.add(name)

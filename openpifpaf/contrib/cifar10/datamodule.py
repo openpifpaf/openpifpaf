@@ -2,14 +2,10 @@ import numpy as np
 import torch
 import torchvision
 
-from .module import DataModule
-from ..network import headmeta
-from .. import encoder, transforms
-from .collate import collate_images_targets_meta
-from .torch_dataset import TorchDataset
+import openpifpaf
 
 
-class Cifar10(DataModule):
+class Cifar10(openpifpaf.datasets.DataModule):
     description = 'Cifar10 data module.'
 
     # cli configurable
@@ -24,7 +20,7 @@ class Cifar10(DataModule):
 
         categories = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog',
                       'horse', 'ship', 'truck')
-        self.head_metas = (headmeta.Detection('cifdet', categories),)
+        self.head_metas = (openpifpaf.network.headmeta.Detection('cifdet', categories),)
 
     @classmethod
     def cli(cls, parser):
@@ -70,35 +66,35 @@ class Cifar10(DataModule):
         return image, anns, meta
 
     def _preprocess(self):
-        enc = encoder.CifDet(self.head_metas[0])
+        enc = openpifpaf.encoder.CifDet(self.head_metas[0])
 
         if not self.augmentation:
-            return transforms.Compose([
+            return openpifpaf.transforms.Compose([
                 self._convert_data,
-                transforms.NormalizeAnnotations(),
-                transforms.RescaleAbsolute(33),
-                transforms.ImageTransform(torchvision.transforms.ToTensor()),
-                transforms.ImageTransform(
+                openpifpaf.transforms.NormalizeAnnotations(),
+                openpifpaf.transforms.RescaleAbsolute(33),
+                openpifpaf.transforms.ImageTransform(torchvision.transforms.ToTensor()),
+                openpifpaf.transforms.ImageTransform(
                     torchvision.transforms.Normalize(mean=[0.5, 0.5, 0.5],
                                                      std=[0.5, 0.5, 0.5]),
                 ),
-                transforms.Encoders([enc]),
+                openpifpaf.transforms.Encoders([enc]),
             ])
 
-        return transforms.Compose([
+        return openpifpaf.transforms.Compose([
             self._convert_data,
-            transforms.NormalizeAnnotations(),
-            transforms.RescaleAbsolute(33),
-            transforms.ImageTransform(torchvision.transforms.ToTensor()),
-            transforms.ImageTransform(
+            openpifpaf.transforms.NormalizeAnnotations(),
+            openpifpaf.transforms.RescaleAbsolute(33),
+            openpifpaf.transforms.ImageTransform(torchvision.transforms.ToTensor()),
+            openpifpaf.transforms.ImageTransform(
                 torchvision.transforms.Normalize(mean=[0.5, 0.5, 0.5],
                                                  std=[0.5, 0.5, 0.5]),
             ),
-            transforms.Encoders([enc]),
+            openpifpaf.transforms.Encoders([enc]),
         ])
 
     def train_loader(self):
-        train_data = TorchDataset(
+        train_data = openpifpaf.datasets.TorchDataset(
             torchvision.datasets.CIFAR10(self.root_dir, train=True, download=self.download),
             preprocess=self._preprocess(),
         )
@@ -107,10 +103,10 @@ class Cifar10(DataModule):
         return torch.utils.data.DataLoader(
             train_data, batch_size=self.batch_size, shuffle=not self.debug,
             pin_memory=self.pin_memory, num_workers=self.loader_workers, drop_last=True,
-            collate_fn=collate_images_targets_meta)
+            collate_fn=openpifpaf.datasets.collate_images_targets_meta)
 
     def val_loader(self):
-        val_data = TorchDataset(
+        val_data = openpifpaf.datasets.TorchDataset(
             torchvision.datasets.CIFAR10( self.root_dir, train=False, download=self.download),
             preprocess=self._preprocess(),
         )
@@ -119,4 +115,4 @@ class Cifar10(DataModule):
         return torch.utils.data.DataLoader(
             val_data, batch_size=self.batch_size, shuffle=False,
             pin_memory=self.pin_memory, num_workers=self.loader_workers, drop_last=True,
-            collate_fn=collate_images_targets_meta)
+            collate_fn=openpifpaf.datasets.collate_images_targets_meta)

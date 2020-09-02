@@ -1,19 +1,17 @@
-from .cifar10 import Cifar10
 from .cocodet import CocoDet
 from .cocokp import CocoKp
 from .module import DataModule
 
-DATAMODULES = {Cifar10, CocoDet, CocoKp}
+DATAMODULES = {
+    'cocodet': CocoDet,
+    'cocokp': CocoKp,
+}
 
 
 def factory(dataset):
-    dataset_lower = dataset.lower()
-
-    for dm in DATAMODULES:
-        if dataset_lower == dm.__name__.lower():
-            return dm()
-
-    return None
+    if dataset not in DATAMODULES:
+        raise Exception('dataset {} unknown'.format(dataset))
+    return DATAMODULES[dataset]()
 
 
 def cli(parser):
@@ -26,7 +24,7 @@ def cli(parser):
                         default=DataModule.batch_size, type=int,
                         help='batch size')
 
-    for dm in DATAMODULES:
+    for dm in DATAMODULES.values():
         dm.cli(parser)
 
 
@@ -40,5 +38,5 @@ def configure(args):
         # on that machine crash.
         DataModule.loader_workers = min(16, DataModule.batch_size)
 
-    for dm in DATAMODULES:
+    for dm in DATAMODULES.values():
         dm.configure(args)

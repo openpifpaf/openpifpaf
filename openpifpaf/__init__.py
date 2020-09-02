@@ -10,3 +10,6 @@ from . import decoder
 from . import network
 from . import optimize
 from . import plugins
+
+from .datasets import DATAMODULES
+from .network.factory import BASE_FACTORIES, BASE_TYPES, HEAD_FACTORIES, HEAD_TYPES
