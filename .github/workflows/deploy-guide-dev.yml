@@ -37,7 +37,7 @@ jobs:
       run: cd guide && python artwork.py
 
     - name: Build the guide
-      run: cd guide && jupyter-book build .
+      run: cd guide && cp _config_dev.yml _config.yml && jupyter-book build .
 
     # Push the book's HTML to gh-pages
     - name: GitHub Pages action
