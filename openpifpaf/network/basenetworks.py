@@ -61,6 +61,7 @@ class Resnet(BaseNetwork):
     pretrained = True
     pool0_stride = 0
     input_conv_stride = 2
+    input_conv2_stride = 0
     remove_last_block = False
 
     def __init__(self, name, torchvision_resnet, out_features=2048):
@@ -77,6 +78,18 @@ class Resnet(BaseNetwork):
         else:
             input_block.pop(3)
             stride //= 2
+
+        # optional use a conv in place of the max pool
+        if self.input_conv2_stride:
+            assert not self.pool0_stride  # this is only intended as a replacement for maxpool
+            channels = input_block[0].out_channels
+            conv2 = torch.nn.Conv2d(channels, channels,
+                                    kernel_size=3, stride=2, padding=1, bias=False)
+            bn2 = torch.nn.BatchNorm2d(channels)
+            relu2 = torch.nn.ReLU(inplace=True)
+            input_block += [conv2, bn2, relu2]
+            stride *= 2
+            LOG.debug('replaced max pool with [3x3 conv, bn, relu] with %d channels', channels)
 
         # input conv
         if self.input_conv_stride != 2:
@@ -113,6 +126,9 @@ class Resnet(BaseNetwork):
         group.add_argument('--resnet-input-conv-stride',
                            default=cls.input_conv_stride, type=int,
                            help='stride of the input convolution')
+        group.add_argument('--resnet-input-conv2-stride',
+                           default=cls.input_conv2_stride, type=int,
+                           help='stride of the optional 2nd input convolution')
         assert not cls.remove_last_block
         group.add_argument('--resnet-remove-last-block',
                            default=False, action='store_true',
@@ -123,6 +139,7 @@ class Resnet(BaseNetwork):
         cls.pretrained = args.resnet_pretrained
         cls.pool0_stride = args.resnet_pool0_stride
         cls.input_conv_stride = args.resnet_input_conv_stride
+        cls.input_conv2_stride = args.resnet_input_conv2_stride
         cls.remove_last_block = args.resnet_remove_last_block
 
 
