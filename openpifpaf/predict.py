@@ -187,7 +187,7 @@ def main():
                 with open(meta['file_name'], 'rb') as f:
                     cpu_image = PIL.Image.open(f).convert('RGB')
 
-            visualizer.BaseVisualizer.image(cpu_image)
+            visualizer.Base.image(cpu_image)
             if preprocess is not None:
                 pred = preprocess.annotations_inverse(pred, meta)
 

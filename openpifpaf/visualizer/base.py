@@ -14,9 +14,11 @@ except ImportError:
 LOG = logging.getLogger(__name__)
 
 
-class BaseVisualizer:
+class Base:
     all_indices = []
     common_ax = None
+    processed_image_intensity_spread = 2.0
+
     _image = None
     _processed_image = None
 
@@ -29,25 +31,25 @@ class BaseVisualizer:
     @staticmethod
     def image(image):
         if image is None:
-            BaseVisualizer._image = None
+            Base._image = None
             return
 
-        BaseVisualizer._image = np.asarray(image)
+        Base._image = np.asarray(image)
 
-    @staticmethod
-    def processed_image(image):
+    @classmethod
+    def processed_image(cls, image):
         if image is None:
-            BaseVisualizer._processed_image = None
+            Base._processed_image = None
             return
 
         image = np.moveaxis(np.asarray(image), 0, -1)
-        image = np.clip(image * 0.25 + 0.5, 0.0, 1.0)
-        BaseVisualizer._processed_image = image
+        image = np.clip(image / cls.processed_image_intensity_spread * 0.5 + 0.5, 0.0, 1.0)
+        Base._processed_image = image
 
     @staticmethod
     def reset():
-        BaseVisualizer._image = None
-        BaseVisualizer._processed_image = None
+        Base._image = None
+        Base._processed_image = None
 
     @property
     def indices(self):

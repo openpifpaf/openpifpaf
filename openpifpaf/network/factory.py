@@ -19,7 +19,7 @@ CHECKPOINT_URLS = {
                          'v0.11.0/shufflenetv2k30w-200510-104256-cif-caf-caf25-o10s-0b5ba06f.pkl'),
 }
 
-BASE_TYPES = (basenetworks.Resnet, basenetworks.ShuffleNetV2, basenetworks.ShuffleNetV2K)
+BASE_TYPES = set([basenetworks.Resnet, basenetworks.ShuffleNetV2, basenetworks.ShuffleNetV2K])
 BASE_FACTORIES = {
     'resnet18': lambda: basenetworks.Resnet('resnet18', torchvision.models.resnet18, 512),
     'resnet50': lambda: basenetworks.Resnet('resnet50', torchvision.models.resnet50),
@@ -41,7 +41,7 @@ BASE_FACTORIES = {
         'shufflenetv2k44w', [12, 24, 8], [32, 512, 1024, 2048, 2048]),
 }
 
-HEAD_TYPES = (heads.CompositeField3,)
+HEAD_TYPES = set([heads.CompositeField3])
 HEAD_FACTORIES = {
     headmeta.Cif: heads.CompositeField3,
     headmeta.Caf: heads.CompositeField3,

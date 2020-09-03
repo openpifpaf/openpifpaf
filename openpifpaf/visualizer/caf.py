@@ -1,7 +1,7 @@
 import copy
 import logging
 
-from .base import BaseVisualizer
+from .base import Base
 from ..annotation import Annotation
 from .. import headmeta, show
 
@@ -14,7 +14,7 @@ except ImportError:
 LOG = logging.getLogger(__name__)
 
 
-class Caf(BaseVisualizer):
+class Caf(Base):
     show_margin = False
     show_background = False
     show_confidences = False

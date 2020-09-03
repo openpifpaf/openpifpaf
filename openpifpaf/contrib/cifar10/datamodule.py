@@ -10,6 +10,9 @@ class Cifar10(openpifpaf.datasets.DataModule):
     root_dir = 'data-cifar10/'
     download = False
 
+    debug = False
+    pin_memory = False
+
     n_images = None
     augmentation = True
 

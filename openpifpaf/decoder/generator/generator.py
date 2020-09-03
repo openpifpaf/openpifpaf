@@ -114,6 +114,6 @@ class Generator:
 
     def _mappable_annotations(self, fields, debug_image):
         if debug_image is not None:
-            visualizer.BaseVisualizer.processed_image(debug_image)
+            visualizer.Base.processed_image(debug_image)
 
         return self(fields)

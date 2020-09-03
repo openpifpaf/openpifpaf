@@ -15,7 +15,7 @@ class DataModule():
     Set `head_metas` in constructor.
     """
     batch_size = 8
-    loader_workers = None
+    loader_workers = 0
 
     # make instance(!) variable (not class variable) in derived classes
     head_metas: List[headmeta.Base] = None

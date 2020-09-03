@@ -1,12 +1,12 @@
 import logging
 
-from .base import BaseVisualizer
+from .base import Base
 from .. import show
 
 LOG = logging.getLogger(__name__)
 
 
-class Seeds(BaseVisualizer):
+class Seeds(Base):
     show = False
     show_confidences = False
 

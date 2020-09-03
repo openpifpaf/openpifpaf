@@ -172,8 +172,8 @@ def main():
 
         if ax is None:
             ax, ax_second = animation.frame_init(image)
-        visualizer.BaseVisualizer.image(image)
-        visualizer.BaseVisualizer.common_ax = ax_second
+        visualizer.Base.image(image)
+        visualizer.Base.common_ax = ax_second
 
         start = time.time()
         image_pil = PIL.Image.fromarray(image)

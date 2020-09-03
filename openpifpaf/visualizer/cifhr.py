@@ -1,11 +1,11 @@
 import logging
 
-from .base import BaseVisualizer
+from .base import Base
 
 LOG = logging.getLogger(__name__)
 
 
-class CifHr(BaseVisualizer):
+class CifHr(Base):
     show = False
 
     def __init__(self, *, stride=1, field_names=None):

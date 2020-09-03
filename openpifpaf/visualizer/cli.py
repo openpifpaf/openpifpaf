@@ -1,4 +1,4 @@
-from .base import BaseVisualizer
+from .base import Base
 from .caf import Caf
 from .cif import Cif
 from .cifdet import CifDet
@@ -41,7 +41,7 @@ def configure(args):
     # configure visualizer
     args.debug_indices = [di.partition(':') for di in args.debug_indices]
     args.debug_indices = [(di[0], int(di[2])) for di in args.debug_indices]
-    BaseVisualizer.all_indices = args.debug_indices
+    Base.all_indices = args.debug_indices
 
     Caf.show_confidences = args.debug_caf_c
     Caf.show_regressions = args.debug_caf_v
