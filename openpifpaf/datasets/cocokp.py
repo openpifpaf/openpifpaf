@@ -35,20 +35,20 @@ class CocoKp(DataModule):
         super().__init__()
 
         cif = headmeta.Cif('cif', 'cocokp',
-                           COCO_KEYPOINTS,
-                           COCO_PERSON_SIGMAS,
-                           COCO_UPRIGHT_POSE,
-                           COCO_PERSON_SKELETON)
+                           keypoints=COCO_KEYPOINTS,
+                           sigmas=COCO_PERSON_SIGMAS,
+                           pose=COCO_UPRIGHT_POSE,
+                           draw_skeleton=COCO_PERSON_SKELETON)
         caf = headmeta.Caf('caf', 'cocokp',
-                            COCO_KEYPOINTS,
-                            COCO_PERSON_SIGMAS,
-                            COCO_UPRIGHT_POSE,
-                            COCO_PERSON_SKELETON)
+                           keypoints=COCO_KEYPOINTS,
+                           sigmas=COCO_PERSON_SIGMAS,
+                           pose=COCO_UPRIGHT_POSE,
+                           skeleton=COCO_PERSON_SKELETON)
         dcaf = headmeta.Caf('caf25', 'cocokp',
-                            COCO_KEYPOINTS,
-                            COCO_PERSON_SIGMAS,
-                            COCO_UPRIGHT_POSE,
-                            DENSER_COCO_PERSON_CONNECTIONS,
+                            keypoints=COCO_KEYPOINTS,
+                            sigmas=COCO_PERSON_SIGMAS,
+                            pose=COCO_UPRIGHT_POSE,
+                            skeleton=DENSER_COCO_PERSON_CONNECTIONS,
                             sparse_skeleton=COCO_PERSON_SKELETON,
                             only_in_field_of_view=True)
 
