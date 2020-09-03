@@ -67,6 +67,7 @@ class Resnet(BaseNetwork):
     input_conv_stride = 2
     input_conv2_stride = 0
     remove_last_block = False
+    block5_dilation = 1
 
     def __init__(self, name, torchvision_resnet, out_features=2048):
         modules = list(torchvision_resnet(self.pretrained).children())
@@ -108,6 +109,22 @@ class Resnet(BaseNetwork):
             stride //= 2
             out_features //= 2
 
+        if self.block5_dilation != 1:
+            stride //= 2
+            for m in block5.modules():
+                if not isinstance(m, torch.nn.Conv2d):
+                    continue
+
+                # also must be changed for the skip-conv that has kernel=1
+                m.stride = torch.nn.modules.utils._pair(1)
+
+                if m.kernel_size[0] == 1:
+                    continue
+
+                m.dilation = torch.nn.modules.utils._pair(self.block5_dilation)
+                padding = (m.kernel_size[0] - 1) // 2 * self.block5_dilation
+                m.padding = torch.nn.modules.utils._pair(padding)
+
         super().__init__(name, stride=stride, out_features=out_features)
         self.input_block = torch.nn.Sequential(*input_modules)
         self.block2 = modules[4]
@@ -140,6 +157,9 @@ class Resnet(BaseNetwork):
         group.add_argument('--resnet-input-conv2-stride',
                            default=cls.input_conv2_stride, type=int,
                            help='stride of the optional 2nd input convolution')
+        group.add_argument('--resnet-block5-dilation',
+                           default=cls.block5_dilation, type=int,
+                           help='use dilated convs in block5')
         assert not cls.remove_last_block
         group.add_argument('--resnet-remove-last-block',
                            default=False, action='store_true',
@@ -151,6 +171,7 @@ class Resnet(BaseNetwork):
         cls.pool0_stride = args.resnet_pool0_stride
         cls.input_conv_stride = args.resnet_input_conv_stride
         cls.input_conv2_stride = args.resnet_input_conv2_stride
+        cls.block5_dilation = args.resnet_block5_dilation
         cls.remove_last_block = args.resnet_remove_last_block
 
 
