@@ -154,29 +154,23 @@ class Resnet(BaseNetwork):
 
 
 class InvertedResidualK(torch.nn.Module):
-    """This is exactly the same as torchvision.models.shufflenet.InvertedResidual
-    but with a dilation parameter."""
-    def __init__(self, inp, oup, stride, *, layer_norm, dilation=1, kernel_size=3):
+    """Based on torchvision.models.shufflenet.InvertedResidual."""
+
+    def __init__(self, inp, oup, first_in_stage, *,
+                 stride=1, layer_norm, dilation=1, kernel_size=3):
         super().__init__()
+        assert (stride != 1 or dilation != 1) or not first_in_stage
+        LOG.debug('InvResK: %d %d %s, stride=%d, dilation=%d',
+                  inp, oup, first_in_stage, stride, dilation)
 
-        if not 1 <= stride <= 3:
-            raise ValueError('illegal stride value')
-        self.stride = stride
-
+        self.first_in_stage = first_in_stage
         branch_features = oup // 2
-        assert (self.stride != 1) or (inp == branch_features << 1)
+        padding = (kernel_size - 1) // 2 * dilation
 
-        assert dilation == 1 or kernel_size == 3
-        padding = 1
-        if dilation != 1:
-            padding = dilation
-        elif kernel_size != 3:
-            padding = (kernel_size - 1) // 2
-
-        if self.stride > 1:
+        if self.first_in_stage:
             self.branch1 = torch.nn.Sequential(
                 self.depthwise_conv(inp, inp,
-                                    kernel_size=kernel_size, stride=self.stride,
+                                    kernel_size=kernel_size, stride=stride,
                                     padding=padding, dilation=dilation),
                 layer_norm(inp),
                 torch.nn.Conv2d(inp, branch_features,
@@ -186,12 +180,12 @@ class InvertedResidualK(torch.nn.Module):
             )
 
         self.branch2 = torch.nn.Sequential(
-            torch.nn.Conv2d(inp if (self.stride > 1) else branch_features, branch_features,
+            torch.nn.Conv2d(inp if first_in_stage else branch_features, branch_features,
                             kernel_size=1, stride=1, padding=0, bias=False),
             layer_norm(branch_features),
             torch.nn.ReLU(inplace=True),
             self.depthwise_conv(branch_features, branch_features,
-                                kernel_size=kernel_size, stride=self.stride,
+                                kernel_size=kernel_size, stride=stride,
                                 padding=padding, dilation=dilation),
             layer_norm(branch_features),
             torch.nn.Conv2d(branch_features, branch_features,
@@ -207,7 +201,7 @@ class InvertedResidualK(torch.nn.Module):
 
     def forward(self, *args):
         x = args[0]
-        if self.stride == 1:
+        if not self.first_in_stage:
             x1, x2 = x.chunk(2, dim=1)
             out = torch.cat((x1, self.branch2(x2)), dim=1)
         else:
@@ -224,6 +218,7 @@ class ShuffleNetV2K(BaseNetwork):
     input_conv2_stride = 0
     input_conv2_outchannels = None
     layer_norm = None
+    stage4_dilation = 1
 
     def __init__(self, name, stages_repeats, stages_out_channels):
         layer_norm = self.layer_norm
@@ -262,13 +257,16 @@ class ShuffleNetV2K(BaseNetwork):
             LOG.debug('replaced max pool with [3x3 conv, bn, relu]')
 
         stages = []
-        for repeats, output_channels in zip(
-                stages_repeats, _stage_out_channels[1:]):
-            seq = [InvertedResidualK(input_channels, output_channels, 2,
-                                     layer_norm=layer_norm)]
+        for repeats, output_channels, dilation in zip(
+                stages_repeats, _stage_out_channels[1:], [1, 1, self.stage4_dilation]):
+            stage_stride = 2 if dilation == 1 else 1
+            stride = int(stride * stage_stride / 2)
+            seq = [InvertedResidualK(input_channels, output_channels, True, stride=stage_stride,
+                                     layer_norm=layer_norm, dilation=dilation)]
             for _ in range(repeats - 1):
-                seq.append(InvertedResidualK(output_channels, output_channels, 1,
-                                             kernel_size=5, layer_norm=layer_norm))
+                seq.append(InvertedResidualK(output_channels, output_channels, False,
+                                             kernel_size=5, layer_norm=layer_norm,
+                                             dilation=dilation))
             stages.append(torch.nn.Sequential(*seq))
             input_channels = output_channels
 
@@ -304,6 +302,10 @@ class ShuffleNetV2K(BaseNetwork):
         group.add_argument('--shufflenetv2k-input-conv2-outchannels',
                            default=cls.input_conv2_outchannels, type=int,
                            help='out channels of the optional 2nd input convolution')
+        group.add_argument('--shufflenetv2k-stage4-dilation',
+                           default=cls.stage4_dilation, type=int,
+                           help='dilation factor of stage 4')
+
         layer_norm_group = group.add_mutually_exclusive_group()
         layer_norm_group.add_argument('--shufflenetv2k-instance-norm',
                                       default=False, action='store_true')
@@ -314,6 +316,7 @@ class ShuffleNetV2K(BaseNetwork):
     def configure(cls, args):
         cls.input_conv2_stride = args.shufflenetv2k_input_conv2_stride
         cls.input_conv2_outchannels = args.shufflenetv2k_input_conv2_outchannels
+        cls.stage4_dilation = args.shufflenetv2k_stage4_dilation
 
         # layer norms
         if args.shufflenetv2k_instance_norm:
