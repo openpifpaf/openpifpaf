@@ -3,6 +3,7 @@
 import argparse
 import datetime
 import logging
+import os
 import socket
 
 import torch
@@ -13,8 +14,10 @@ from . import __version__
 LOG = logging.getLogger(__name__)
 
 
-def default_output_file(args, net_cpu):
-    base_name = net_cpu.base_net.name
+def default_output_file(args):
+    base_name = args.basenet
+    if not base_name:
+        base_name, _, __ = os.path.basename(args.checkpoint).partition('-')
 
     now = datetime.datetime.now().strftime('%y%m%d-%H%M%S')
     out = 'outputs/{}-{}-{}'.format(base_name, now, args.dataset)
@@ -96,6 +99,15 @@ def cli():
         args.pin_memory = True
     LOG.debug('neural network device: %s', args.device)
 
+    # output
+    if args.output is None:
+        args.output = default_output_file(args)
+
+    log_level = logs.configure(args)
+    LOG.setLevel(log_level)
+    if args.log_stats:
+        logging.getLogger('openpifpaf.stats').setLevel(logging.DEBUG)
+
     network.configure(args)
     network.losses.configure(args)
     encoder.configure(args)
@@ -108,17 +120,10 @@ def cli():
 
 def main():
     args = cli()
+
     datamodule = datasets.factory(args.dataset)
+
     net_cpu, start_epoch = network.factory_from_args(args, head_metas=datamodule.head_metas)
-    net_cpu.process_heads = None
-    if args.output is None:
-        args.output = default_output_file(args, net_cpu)
-
-    log_level = logs.configure(args)
-    LOG.setLevel(log_level)
-    if args.log_stats:
-        logging.getLogger('openpifpaf.stats').setLevel(logging.DEBUG)
-
     net = net_cpu.to(device=args.device)
     if not args.disable_cuda and torch.cuda.device_count() > 1:
         print('Using multiple GPUs: {}'.format(torch.cuda.device_count()))
