@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 from setuptools.extension import Extension
 
 try:
@@ -38,17 +38,7 @@ setup(
     name='openpifpaf',
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),
-    packages=[
-        'openpifpaf',
-        'openpifpaf.datasets',
-        'openpifpaf.decoder',
-        'openpifpaf.decoder.generator',
-        'openpifpaf.encoder',
-        'openpifpaf.network',
-        'openpifpaf.show',
-        'openpifpaf.transforms',
-        'openpifpaf.visualizer',
-    ],
+    packages=find_packages(),
     license='GNU AGPLv3',
     description='PifPaf: Composite Fields for Human Pose Estimation',
     long_description=open('README.md', encoding='utf-8').read(),
@@ -81,6 +71,9 @@ setup(
         'onnx': [
             'onnx',
             'onnx-simplifier>=0.2.9',
+        ],
+        'coreml': [
+            'coremltools==4.0b3',
         ],
         'test': [
             'nbval',

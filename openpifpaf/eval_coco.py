@@ -23,7 +23,7 @@ except ImportError:
 
 from .annotation import Annotation, AnnotationDet
 from .datasets.constants import COCO_KEYPOINTS, COCO_PERSON_SKELETON, COCO_CATEGORIES
-from . import datasets, decoder, network, show, transforms, visualizer, __version__
+from . import datasets, decoder, network, plugins, show, transforms, visualizer, __version__
 
 ANNOTATIONS_VAL = 'data-mscoco/annotations/person_keypoints_val2017.json'
 DET_ANNOTATIONS_VAL = 'data-mscoco/annotations/instances_val2017.json'
@@ -211,6 +211,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     parser.add_argument('--version', action='version',
                         version='OpenPifPaf {version}'.format(version=__version__))
 
+    plugins.register()
     network.cli(parser)
     decoder.cli(parser, force_complete_pose=True)
     show.cli(parser)
@@ -237,6 +238,9 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     parser.add_argument('--extended-scale', default=False, action='store_true')
     parser.add_argument('--skip-existing', default=False, action='store_true',
                         help='skip if output eval file exists already')
+    parser.add_argument('--no-skip-epoch0', dest='skip_epoch0',
+                        default=True, action='store_false',
+                        help='do not skip eval for epoch 0')
     parser.add_argument('--disable-cuda', action='store_true',
                         help='disable CUDA')
     parser.add_argument('--write-predictions', default=False, action='store_true',
@@ -273,6 +277,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
         logging.getLogger('openpifpaf').setLevel(log_level)
         LOG.setLevel(log_level)
 
+    decoder.configure(args)
     network.configure(args)
     show.configure(args)
     visualizer.configure(args)
@@ -413,6 +418,10 @@ def main():
     args = cli()
 
     # skip existing?
+    if args.skip_epoch0:
+        if args.checkpoint.endswith('.epoch000'):
+            print('Not evaluating epoch 0.')
+            return
     if args.skip_existing:
         if os.path.exists(args.output + '.stats.json'):
             print('Output file {} exists already. Exiting.'
@@ -429,7 +438,9 @@ def main():
         model.base_net = model_cpu.base_net
         model.head_nets = model_cpu.head_nets
 
-    processor = decoder.factory_from_args(args, model)
+    head_metas = [hn.meta for hn in model.head_nets]
+    processor = decoder.factory(
+        head_metas, profile=args.profile_decoder, profile_device=args.device)[0]
     # processor.instance_scorer = decocder.instance_scorer.InstanceScoreRecorder()
     # processor.instance_scorer = torch.load('instance_scorer.pkl')
 

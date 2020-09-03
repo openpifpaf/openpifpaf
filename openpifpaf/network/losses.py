@@ -404,7 +404,7 @@ class CompositeLoss(torch.nn.Module):
     b_scale = 1.0
     margin = False
 
-    def __init__(self, head_net: heads.CompositeField, regression_loss):
+    def __init__(self, head_net: heads.CompositeField3, regression_loss):
         super().__init__()
         self.n_vectors = head_net.meta.n_vectors
         self.n_scales = head_net.meta.n_scales
@@ -428,13 +428,14 @@ class CompositeLoss(torch.nn.Module):
         self.bce_blackout = None
         self.previous_losses = None
 
-    def _confidence_loss(self, x_confidence, target_confidence):
-        bce_masks = torch.isnan(target_confidence).bitwise_not_()
-        if not torch.any(bce_masks):
-            return None
-
+    def _confidence_loss(self, x_confidence, t_confidence):
         # TODO assumes one confidence
         x_confidence = x_confidence[:, :, 0]
+        t_confidence = t_confidence[:, :, 0]
+
+        bce_masks = torch.isnan(t_confidence).bitwise_not_()
+        if not torch.any(bce_masks):
+            return None
 
         batch_size = x_confidence.shape[0]
         LOG.debug('batch size = %d', batch_size)
@@ -442,11 +443,11 @@ class CompositeLoss(torch.nn.Module):
         if self.bce_blackout:
             x_confidence = x_confidence[:, self.bce_blackout]
             bce_masks = bce_masks[:, self.bce_blackout]
-            target_confidence = target_confidence[:, self.bce_blackout]
+            t_confidence = t_confidence[:, self.bce_blackout]
 
         LOG.debug('BCE: x = %s, target = %s, mask = %s',
-                  x_confidence.shape, target_confidence.shape, bce_masks.shape)
-        bce_target = torch.masked_select(target_confidence, bce_masks)
+                  x_confidence.shape, t_confidence.shape, bce_masks.shape)
+        bce_target = torch.masked_select(t_confidence, bce_masks)
         x_confidence = torch.masked_select(x_confidence, bce_masks)
         ce_loss = self.confidence_loss(x_confidence, bce_target)
         if self.background_weight != 1.0:
@@ -458,38 +459,48 @@ class CompositeLoss(torch.nn.Module):
 
         return ce_loss
 
-    def _localization_loss(self, x_regs, x_logbs, target_regs):
-        batch_size = target_regs[0].shape[0]
+    def _localization_loss(self, x_regs, t_regs, *, weight=None):
+        assert x_regs.shape[2] == self.n_vectors * 3
+        assert t_regs.shape[2] == self.n_vectors * 2
+        batch_size = t_regs.shape[0]
 
         reg_losses = []
-        for i, target_reg in enumerate(target_regs):
-            reg_masks = torch.isnan(target_reg[:, :, 0]).bitwise_not_()
+        for i in range(self.n_vectors):
+            reg_masks = torch.isnan(t_regs[:, :, i * 2]).bitwise_not_()
             if not torch.any(reg_masks):
                 reg_losses.append(None)
                 continue
 
-            reg_losses.append(self.regression_loss(
-                torch.masked_select(x_regs[:, :, i, 0], reg_masks),
-                torch.masked_select(x_regs[:, :, i, 1], reg_masks),
-                torch.masked_select(x_logbs[:, :, i], reg_masks),
-                torch.masked_select(target_reg[:, :, 0], reg_masks),
-                torch.masked_select(target_reg[:, :, 1], reg_masks),
+            loss = self.regression_loss(
+                torch.masked_select(x_regs[:, :, i*2 + 0], reg_masks),
+                torch.masked_select(x_regs[:, :, i*2 + 1], reg_masks),
+                torch.masked_select(x_regs[:, :, self.n_vectors*2 + i], reg_masks),
+                torch.masked_select(t_regs[:, :, i*2 + 0], reg_masks),
+                torch.masked_select(t_regs[:, :, i*2 + 1], reg_masks),
                 norm_low_clip=0.0,
-            ).sum() / batch_size)
+            )
+            if weight is not None:
+                loss = loss * weight[:, :, 0][reg_masks]
+            reg_losses.append(loss.sum() / batch_size)
 
         return reg_losses
 
-    def _scale_losses(self, x_scales, target_scales):
-        assert x_scales.shape[2] == len(target_scales)
+    def _scale_losses(self, x_scales, t_scales, *, weight=None):
+        assert x_scales.shape[2] == t_scales.shape[2] == len(self.scale_losses)
 
         batch_size = x_scales.shape[0]
-        return [
-            sl(
-                torch.masked_select(x_scales[:, :, i], torch.isnan(target_scale).bitwise_not_()),
-                torch.masked_select(target_scale, torch.isnan(target_scale).bitwise_not_()),
-            ).sum() / batch_size
-            for i, (sl, target_scale) in enumerate(zip(self.scale_losses, target_scales))
-        ]
+        losses = []
+        for i, sl in enumerate(self.scale_losses):
+            mask = torch.isnan(t_scales[:, :, i]).bitwise_not_()
+            loss = sl(
+                torch.masked_select(x_scales[:, :, i], mask),
+                torch.masked_select(t_scales[:, :, i], mask),
+            )
+            if weight is not None:
+                loss = loss * weight[:, :, 0][mask]
+            losses.append(loss.sum() / batch_size)
+
+        return losses
 
     def _margin_losses(self, x_regs, target_regs, *, target_confidence):
         if not self.margin:
@@ -518,23 +529,24 @@ class CompositeLoss(torch.nn.Module):
         LOG.debug('loss for %s', self.field_names)
 
         x, t = args
+        assert x.shape[2] == 1 + self.n_vectors * 3 + self.n_scales
+        assert t.shape[2] == 1 + self.n_vectors * 2 + self.n_scales
 
-        x = [xx.double() for xx in x]
-        t = [tt.double() for tt in t]
+        x = x.double()
+        x_confidence = x[:, :, 0:1]
+        x_regs = x[:, :, 1:1 + self.n_vectors * 3]
+        x_scales = x[:, :, 1 + self.n_vectors * 3:]
 
-        x_confidence, x_regs, x_logbs, x_scales = x
+        t = t.double()
+        t_confidence = t[:, :, 0:1]
+        t_regs = t[:, :, 1:1 + self.n_vectors * 2]
+        t_scales = t[:, :, 1 + self.n_vectors * 2:]
 
-        assert len(t) == 1 + self.n_vectors + self.n_scales
-        running_t = iter(t)
-        target_confidence = next(running_t)
-        target_regs = [next(running_t) for _ in range(self.n_vectors)]
-        target_scales = [next(running_t) for _ in range(self.n_scales)]
-
-        ce_loss = self._confidence_loss(x_confidence, target_confidence)
-        reg_losses = self._localization_loss(x_regs, x_logbs, target_regs)
-        scale_losses = self._scale_losses(x_scales, target_scales)
-        margin_losses = self._margin_losses(x_regs, target_regs,
-                                            target_confidence=target_confidence)
+        ce_loss = self._confidence_loss(x_confidence, t_confidence)
+        reg_losses = self._localization_loss(x_regs, t_regs)
+        scale_losses = self._scale_losses(x_scales, t_scales)
+        margin_losses = self._margin_losses(x_regs, t_regs,
+                                            target_confidence=t_confidence)
 
         all_losses = [ce_loss] + reg_losses + scale_losses + margin_losses
         if not all(torch.isfinite(l).item() if l is not None else True for l in all_losses):
@@ -629,7 +641,7 @@ def factory(head_nets, lambdas, *,
         for head_net in head_nets:
             if getattr(head_net, 'sparse_task_parameters', None) is not None:
                 sparse_task_parameters += head_net.sparse_task_parameters
-            elif isinstance(head_net, heads.CompositeFieldFused):
+            elif isinstance(head_net, heads.CompositeField3):
                 sparse_task_parameters.append(head_net.conv.weight)
             else:
                 raise Exception('unknown l1 parameters for given head: {} ({})'

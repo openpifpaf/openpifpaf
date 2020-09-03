@@ -5,6 +5,7 @@ import torchvision
 from .annotations import AnnotationJitter, NormalizeAnnotations
 from .compose import Compose
 from .crop import Crop
+from .encoders import Encoders
 from .hflip import HFlip
 from .image import Blur, ImageTransform, JpegCompression
 from .minsize import MinSize

@@ -3,7 +3,7 @@ import logging
 
 from .base import BaseVisualizer
 from ..annotation import AnnotationDet
-from .. import show
+from .. import headmeta, show
 
 try:
     import matplotlib.cm
@@ -20,28 +20,26 @@ class CifDet(BaseVisualizer):
     show_regressions = False
     show_background = False
 
-    def __init__(self, head_name, *, stride=1, categories=None):
-        super().__init__(head_name)
+    def __init__(self, meta: headmeta.CifDet):
+        super().__init__(meta.name)
+        self.meta = meta
+        self.detection_painter = show.DetectionPainter()
 
-        self.stride = stride
-        self.categories = categories
-
-        self.detection_painter = show.DetectionPainter(xy_scale=stride)
-
-    def targets(self, field, detections):
-        assert self.categories is not None
+    def targets(self, field, *, annotation_dicts):
+        assert self.meta.categories is not None
 
         annotations = [
-            AnnotationDet(self.categories).set(det[0] - 1, None, det[1])
-            for det in detections
+            AnnotationDet(self.meta.categories).set(ann['category_id'] - 1, None, ann['bbox'])
+            for ann in annotation_dicts
         ]
 
-        self._confidences(field[0])
-        self._regressions(field[1], field[2], annotations=annotations)
+        self._confidences(field[:, 0])
+        self._regressions(field[:, 1:3], field[:, 3:5],
+                          annotations=annotations)
 
     def predicted(self, field, *, annotations=None):
         self._confidences(field[:, 0])
-        self._regressions(field[:, 1:3], field[:, 4:6],
+        self._regressions(field[:, 1:3], field[:, 3:5],
                           annotations=annotations,
                           confidence_fields=field[:, 0],
                           uv_is_offset=False)
@@ -51,10 +49,10 @@ class CifDet(BaseVisualizer):
             return
 
         for f in self.indices:
-            LOG.debug('%s', self.categories[f])
+            LOG.debug('%s', self.meta.categories[f])
 
             with self.image_canvas(self._processed_image, margin=[0.0, 0.01, 0.05, 0.01]) as ax:
-                im = ax.imshow(self.scale_scalar(confidences[f], self.stride),
+                im = ax.imshow(self.scale_scalar(confidences[f], self.meta.stride),
                                alpha=0.9, vmin=0.0, vmax=1.0, cmap=CMAP_GREENS_NAN)
                 self.colorbar(ax, im)
 
@@ -64,7 +62,7 @@ class CifDet(BaseVisualizer):
             return
 
         for f in self.indices:
-            LOG.debug('%s', self.categories[f])
+            LOG.debug('%s', self.meta.categories[f])
             confidence_field = confidence_fields[f] if confidence_fields is not None else None
 
             with self.image_canvas(self._processed_image, margin=[0.0, 0.01, 0.05, 0.01]) as ax:
@@ -74,14 +72,15 @@ class CifDet(BaseVisualizer):
                 q = show.quiver(ax,
                                 regression_fields[f, :2],
                                 confidence_field=confidence_field,
-                                xy_scale=self.stride, uv_is_offset=uv_is_offset,
+                                xy_scale=self.meta.stride, uv_is_offset=uv_is_offset,
                                 cmap='Greens', clim=(0.5, 1.0), width=0.001)
                 show.boxes_wh(ax, wh_fields[f, 0], wh_fields[f, 1],
                               confidence_field=confidence_field,
                               regression_field=regression_fields[f, :2],
-                              xy_scale=self.stride, cmap='Greens', fill=False,
+                              xy_scale=self.meta.stride, cmap='Greens',
+                              fill=False, linewidth=2,
                               regression_field_is_offset=uv_is_offset)
                 if self.show_margin:
-                    show.margins(ax, regression_fields[f, :6], xy_scale=self.stride)
+                    show.margins(ax, regression_fields[f, :6], xy_scale=self.meta.stride)
 
                 self.colorbar(ax, q)

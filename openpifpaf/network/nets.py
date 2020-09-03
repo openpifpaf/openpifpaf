@@ -9,20 +9,36 @@ LOG = logging.getLogger(__name__)
 
 class Shell(torch.nn.Module):
     def __init__(self, base_net, head_nets, *,
-                 process_heads=None, cross_talk=0.0):
+                 process_input=None, process_heads=None):
         super().__init__()
 
         self.base_net = base_net
-        self.head_nets = torch.nn.ModuleList(head_nets)
+        self._head_nets = None
+        self.process_input = process_input
         self.process_heads = process_heads
-        self.cross_talk = cross_talk
+
+        self.head_nets = head_nets
+
+    @property
+    def head_nets(self):
+        return self._head_nets
+
+    @head_nets.setter
+    def head_nets(self, head_nets):
+        if not isinstance(head_nets, torch.nn.ModuleList):
+            head_nets = torch.nn.ModuleList(head_nets)
+
+        for hn_i, hn in enumerate(head_nets):
+            hn.meta.head_index = hn_i
+            hn.meta.base_stride = self.base_net.stride
+
+        self._head_nets = head_nets
 
     def forward(self, *args):
         image_batch = args[0]
 
-        if self.training and self.cross_talk:
-            rolled_images = torch.cat((image_batch[-1:], image_batch[:-1]))
-            image_batch += rolled_images * self.cross_talk
+        if self.process_input is not None:
+            image_batch = self.process_input(image_batch)
 
         x = self.base_net(image_batch)
         head_outputs = [hn(x) for hn in self.head_nets]
@@ -31,6 +47,19 @@ class Shell(torch.nn.Module):
             head_outputs = self.process_heads(head_outputs)
 
         return head_outputs
+
+
+class CrossTalk(torch.nn.Module):
+    def __init__(self, strength=0.2):
+        super().__init__()
+        self.strength = strength
+
+    def forward(self, *args):
+        image_batch = args[0]
+        if self.training and self.strength:
+            rolled_images = torch.cat((image_batch[-1:], image_batch[:-1]))
+            image_batch += rolled_images * self.cross_talk
+        return image_batch
 
 
 class Shell2Scale(torch.nn.Module):
@@ -153,6 +182,12 @@ def model_migration(net_cpu):
     for m in net_cpu.modules():
         if not hasattr(m, '_non_persistent_buffers_set'):
             m._non_persistent_buffers_set = set()  # pylint: disable=protected-access
+
+    for hn_i, hn in enumerate(net_cpu.head_nets):
+        if not hn.meta.base_stride:
+            hn.meta.base_stride = net_cpu.base_net.stride
+        if hn.meta.head_index is None:
+            hn.meta.head_index = hn_i
 
 
 def model_defaults(net_cpu):

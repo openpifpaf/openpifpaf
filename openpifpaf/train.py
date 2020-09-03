@@ -3,33 +3,35 @@
 import argparse
 import datetime
 import logging
+import os
 import socket
 
 import torch
 
-from . import datasets, encoder, logs, network, optimize, show, visualizer
+from . import datasets, encoder, logs, network, optimize, plugins, show, visualizer
 from . import __version__
 
 LOG = logging.getLogger(__name__)
 
 
-def default_output_file(args, net_cpu):
-    base_name = net_cpu.base_net.shortname
-    head_names = [hn.meta.name for hn in net_cpu.head_nets]
+def default_output_file(args):
+    base_name = args.basenet
+    if not base_name:
+        base_name, _, __ = os.path.basename(args.checkpoint).partition('-')
 
     now = datetime.datetime.now().strftime('%y%m%d-%H%M%S')
-    out = 'outputs/{}-{}-{}'.format(base_name, now, '-'.join(head_names))
-    if args.square_edge != 385:
+    out = 'outputs/{}-{}-{}'.format(base_name, now, args.dataset)
+    if args.cocokp_square_edge != 385:
         out += '-edge{}'.format(args.square_edge)
     if args.regression_loss != 'laplace':
         out += '-{}'.format(args.regression_loss)
     if args.r_smooth != 0.0:
         out += '-rsmooth{}'.format(args.r_smooth)
-    if args.orientation_invariant or args.extended_scale:
+    if args.cocokp_orientation_invariant or args.cocokp_extended_scale:
         out += '-'
-        if args.orientation_invariant:
+        if args.cocokp_orientation_invariant:
             out += 'o{:02.0f}'.format(args.orientation_invariant * 100.0)
-        if args.extended_scale:
+        if args.cocokp_extended_scale:
             out += 's'
 
     return out + '.pkl'
@@ -44,12 +46,13 @@ def cli():
     parser.add_argument('--version', action='version',
                         version='OpenPifPaf {version}'.format(version=__version__))
 
+    plugins.register()
     logs.cli(parser)
     network.cli(parser)
     network.losses.cli(parser)
     encoder.cli(parser)
     optimize.cli(parser)
-    datasets.train_cli(parser)
+    datasets.cli(parser)
     show.cli(parser)
     visualizer.cli(parser)
 
@@ -63,9 +66,9 @@ def cli():
                         help='validation run every n epochs')
     parser.add_argument('--rescale-images', type=float, default=1.0,
                         help='overall image rescale factor')
-    parser.add_argument('--update-batchnorm-runningstatistics',
+    parser.add_argument('--fix-batch-norm',
                         default=False, action='store_true',
-                        help='update batch norm running statistics')
+                        help='fix batch norm running statistics')
     parser.add_argument('--ema', default=1e-2, type=float,
                         help='ema decay constant')
     parser.add_argument('--clip-grad-norm', default=0.0, type=float,
@@ -88,13 +91,6 @@ def cli():
     if args.debug_images:
         args.debug = True
 
-    network.configure(args)
-    network.losses.configure(args)
-    encoder.configure(args)
-    datasets.train_configure(args)
-    show.configure(args)
-    visualizer.configure(args)
-
     # add args.device
     args.device = torch.device('cpu')
     args.pin_memory = False
@@ -103,29 +99,39 @@ def cli():
         args.pin_memory = True
     LOG.debug('neural network device: %s', args.device)
 
-    return args
-
-
-def main():
-    args = cli()
-    net_cpu, start_epoch = network.factory_from_args(args)
-    net_cpu.process_heads = None
+    # output
     if args.output is None:
-        args.output = default_output_file(args, net_cpu)
+        args.output = default_output_file(args)
 
     log_level = logs.configure(args)
     LOG.setLevel(log_level)
     if args.log_stats:
         logging.getLogger('openpifpaf.stats').setLevel(logging.DEBUG)
 
+    network.configure(args)
+    network.losses.configure(args)
+    encoder.configure(args)
+    datasets.configure(args)
+    show.configure(args)
+    visualizer.configure(args)
+
+    return args
+
+
+def main():
+    args = cli()
+
+    datamodule = datasets.factory(args.dataset)
+
+    net_cpu, start_epoch = network.factory_from_args(args, head_metas=datamodule.head_metas)
     net = net_cpu.to(device=args.device)
     if not args.disable_cuda and torch.cuda.device_count() > 1:
         print('Using multiple GPUs: {}'.format(torch.cuda.device_count()))
         net = torch.nn.DataParallel(net)
 
     loss = network.losses.factory_from_args(args, net_cpu.head_nets)
-    target_transforms = encoder.factory(net_cpu.head_nets, net_cpu.base_net.stride)
-    train_loader, val_loader = datasets.train_factory(args, target_transforms)
+    train_loader = datamodule.train_loader()
+    val_loader = datamodule.val_loader()
 
     optimizer = optimize.factory_optimizer(
         args, list(net.parameters()) + list(loss.parameters()))
@@ -134,7 +140,7 @@ def main():
         net, loss, optimizer, args.output,
         lr_scheduler=lr_scheduler,
         device=args.device,
-        fix_batch_norm=not args.update_batchnorm_runningstatistics,
+        fix_batch_norm=args.fix_batch_norm,
         stride_apply=args.stride_apply,
         ema_decay=args.ema,
         log_interval=args.log_interval,
