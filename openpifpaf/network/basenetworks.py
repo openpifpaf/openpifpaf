@@ -222,6 +222,7 @@ class ShuffleNetV2K(BaseNetwork):
     """Based on torchvision.models.ShuffleNetV2 where
     the kernel size in stages 2,3,4 is 5 instead of 3."""
     input_conv2_stride = 0
+    input_conv2_outchannels = None
     layer_norm = None
 
     def __init__(self, name, stages_repeats, stages_out_channels):
@@ -249,15 +250,16 @@ class ShuffleNetV2K(BaseNetwork):
 
         # optional use a conv in place of the max pool
         if self.input_conv2_stride:
+            output_channels = self.input_conv2_outchannels or input_channels
             conv2 = torch.nn.Sequential(
-                torch.nn.Conv2d(input_channels, input_channels, 3, 2, 1, bias=False),
-                layer_norm(input_channels),
+                torch.nn.Conv2d(input_channels, output_channels, 3, 2, 1, bias=False),
+                layer_norm(output_channels),
                 torch.nn.ReLU(inplace=True),
             )
             input_modules.append(conv2)
             stride *= 2
-            LOG.debug('replaced max pool with [3x3 conv, bn, relu] with %d channels',
-                      input_channels)
+            input_channels = output_channels
+            LOG.debug('replaced max pool with [3x3 conv, bn, relu]')
 
         stages = []
         for repeats, output_channels in zip(
@@ -299,6 +301,9 @@ class ShuffleNetV2K(BaseNetwork):
         group.add_argument('--shufflenetv2k-input-conv2-stride',
                            default=cls.input_conv2_stride, type=int,
                            help='stride of the optional 2nd input convolution')
+        group.add_argument('--shufflenetv2k-input-conv2-outchannels',
+                           default=cls.input_conv2_outchannels, type=int,
+                           help='out channels of the optional 2nd input convolution')
         layer_norm_group = group.add_mutually_exclusive_group()
         layer_norm_group.add_argument('--shufflenetv2k-instance-norm',
                                       default=False, action='store_true')
@@ -308,6 +313,8 @@ class ShuffleNetV2K(BaseNetwork):
     @classmethod
     def configure(cls, args):
         cls.input_conv2_stride = args.shufflenetv2k_input_conv2_stride
+        cls.input_conv2_outchannels = args.shufflenetv2k_input_conv2_outchannels
+
         # layer norms
         if args.shufflenetv2k_instance_norm:
             cls.layer_norm = lambda x: torch.nn.InstanceNorm2d(
