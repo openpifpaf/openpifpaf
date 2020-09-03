@@ -7,7 +7,7 @@ import torch
 
 from .annrescaler import AnnRescaler
 from .cif import CifGenerator
-from ..network import headmeta
+from .. import headmeta
 from ..visualizer import Caf as CafVisualizer
 from ..utils import create_sink, mask_valid_area
 
@@ -16,7 +16,7 @@ LOG = logging.getLogger(__name__)
 
 @dataclasses.dataclass
 class Caf:
-    meta: headmeta.Association
+    meta: headmeta.Caf
     rescaler: AnnRescaler = None
     v_threshold: int = 0
     visualizer: CafVisualizer = None

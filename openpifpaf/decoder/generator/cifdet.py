@@ -7,10 +7,9 @@ from .generator import Generator
 from ...annotation import AnnotationDet
 from ..cif_hr import CifDetHr
 from ..cif_seeds import CifDetSeeds
-from ...network import headmeta
 from .. import nms
 from ..occupancy import Occupancy
-from ... import visualizer
+from ... import headmeta, visualizer
 
 LOG = logging.getLogger(__name__)
 
@@ -18,7 +17,7 @@ LOG = logging.getLogger(__name__)
 class CifDet(Generator):
     occupancy_visualizer = visualizer.Occupancy()
 
-    def __init__(self, head_metas: List[headmeta.Detection], *, visualizers=None):
+    def __init__(self, head_metas: List[headmeta.CifDet], *, visualizers=None):
         super().__init__()
         self.metas = head_metas
 
@@ -34,7 +33,7 @@ class CifDet(Generator):
         return [
             CifDet([meta])
             for meta in head_metas
-            if isinstance(meta, headmeta.Detection)
+            if isinstance(meta, headmeta.CifDet)
         ]
 
     def __call__(self, fields):

@@ -3,8 +3,7 @@ import logging
 
 from .base import BaseVisualizer
 from ..annotation import AnnotationDet
-from ..network import headmeta
-from .. import show
+from .. import headmeta, show
 
 try:
     import matplotlib.cm
@@ -21,7 +20,7 @@ class CifDet(BaseVisualizer):
     show_regressions = False
     show_background = False
 
-    def __init__(self, meta: headmeta.Detection):
+    def __init__(self, meta: headmeta.CifDet):
         super().__init__(meta.name)
         self.meta = meta
         self.detection_painter = show.DetectionPainter()

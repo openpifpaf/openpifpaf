@@ -4,7 +4,8 @@ import torch
 
 import torchvision
 
-from . import basenetworks, headmeta, heads, nets
+from .. import headmeta
+from . import basenetworks, heads, nets
 
 # generate hash values with: shasum -a 256 filename.pkl
 
@@ -42,9 +43,9 @@ BASE_FACTORIES = {
 
 HEAD_TYPES = (heads.CompositeField3,)
 HEAD_FACTORIES = {
-    headmeta.Intensity: heads.CompositeField3,
-    headmeta.Association: heads.CompositeField3,
-    headmeta.Detection: heads.CompositeField3,
+    headmeta.Cif: heads.CompositeField3,
+    headmeta.Caf: heads.CompositeField3,
+    headmeta.CifDet: heads.CompositeField3,
 }
 
 LOG = logging.getLogger(__name__)

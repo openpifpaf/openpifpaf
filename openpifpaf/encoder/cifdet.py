@@ -6,7 +6,7 @@ import numpy as np
 import torch
 
 from .annrescaler import AnnRescalerDet
-from ..network import headmeta
+from .. import headmeta
 from ..visualizer import CifDet as CifDetVisualizer
 from ..utils import create_sink, mask_valid_area
 
@@ -15,7 +15,7 @@ LOG = logging.getLogger(__name__)
 
 @dataclasses.dataclass
 class CifDet:
-    meta: headmeta.Detection
+    meta: headmeta.CifDet
     rescaler: AnnRescalerDet = None
     v_threshold: int = 0
     visualizer: CifDetVisualizer = None

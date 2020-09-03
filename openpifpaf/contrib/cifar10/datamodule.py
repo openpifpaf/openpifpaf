@@ -17,7 +17,7 @@ class Cifar10(openpifpaf.datasets.DataModule):
 
         categories = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog',
                       'horse', 'ship', 'truck')
-        self.head_metas = (openpifpaf.network.headmeta.Detection('cifdet', categories),)
+        self.head_metas = (openpifpaf.headmeta.CifDet('cifdet', 'cifar10', categories),)
 
     @classmethod
     def cli(cls, parser):

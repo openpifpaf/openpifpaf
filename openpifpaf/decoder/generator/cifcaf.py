@@ -11,10 +11,9 @@ from ...annotation import Annotation
 from ..cif_hr import CifHr
 from ..cif_seeds import CifSeeds
 from ..caf_scored import CafScored
-from ...network import headmeta
 from .. import nms as nms_module
 from ..occupancy import Occupancy
-from ... import visualizer
+from ... import headmeta, visualizer
 
 # pylint: disable=import-error
 from ...functional import caf_center_s, grow_connection_blend
@@ -35,8 +34,8 @@ class CifCaf(Generator):
     nms = True
 
     def __init__(self,
-                 cif_metas: List[headmeta.Intensity],
-                 caf_metas: List[headmeta.Association],
+                 cif_metas: List[headmeta.Cif],
+                 caf_metas: List[headmeta.Caf],
                  *,
                  cif_visualizers=None,
                  caf_visualizers=None):
@@ -76,8 +75,8 @@ class CifCaf(Generator):
         return [
             CifCaf([meta], [meta_next])
             for meta, meta_next in zip(head_metas[:-1], head_metas[1:])
-            if (isinstance(meta, headmeta.Intensity)
-                and isinstance(meta_next, headmeta.Association))
+            if (isinstance(meta, headmeta.Cif)
+                and isinstance(meta_next, headmeta.Caf))
         ]
 
     def __call__(self, fields, initial_annotations=None):

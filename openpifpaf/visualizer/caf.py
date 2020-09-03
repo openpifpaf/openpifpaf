@@ -3,8 +3,7 @@ import logging
 
 from .base import BaseVisualizer
 from ..annotation import Annotation
-from ..network import headmeta
-from .. import show
+from .. import headmeta, show
 
 try:
     import matplotlib.cm
@@ -21,7 +20,7 @@ class Caf(BaseVisualizer):
     show_confidences = False
     show_regressions = False
 
-    def __init__(self, meta: headmeta.Association):
+    def __init__(self, meta: headmeta.Caf):
         super().__init__(meta.name)
         self.meta = meta
         self.keypoint_painter = show.KeypointPainter()

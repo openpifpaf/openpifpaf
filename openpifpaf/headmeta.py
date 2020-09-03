@@ -13,6 +13,7 @@ from typing import Any, List, Tuple
 @dataclass
 class Base:
     name: str
+    dataset: str
 
     head_index: int = field(default=None, init=False)
     base_stride: int = field(default=None, init=False)
@@ -28,7 +29,7 @@ class Base:
 
 
 @dataclass
-class Intensity(Base):
+class Cif(Base):
     keypoints: List[str]
     sigmas: List[float]
     pose: Any
@@ -48,7 +49,7 @@ class Intensity(Base):
 
 
 @dataclass
-class Association(Base):
+class Caf(Base):
     keypoints: List[str]
     sigmas: List[float]
     pose: Any
@@ -74,7 +75,7 @@ class Association(Base):
     def concatenate(metas):
         # TODO: by keypoint name, update skeleton indices if meta.keypoints
         # is not the same for all metas.
-        concatenated = Association(
+        concatenated = Caf(
             name='_'.join(m.name for m in metas),
             keypoints=metas[0].keypoints,
             sigmas=metas[0].sigmas,
@@ -94,7 +95,7 @@ class Association(Base):
 
 
 @dataclass
-class Detection(Base):
+class CifDet(Base):
     categories: List[str]
 
     n_confidences: int = 1

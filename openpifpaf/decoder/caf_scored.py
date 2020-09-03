@@ -6,7 +6,7 @@ import numpy as np
 
 # pylint: disable=import-error
 from ..functional import scalar_values
-from ..network import headmeta
+from .. import headmeta
 
 LOG = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ class CafScored:
             nine[0] = nine[0] * (self.cif_floor + (1.0 - self.cif_floor) * cifhr_t)
         return nine[:, nine[0] > self.score_th]
 
-    def fill_single(self, caf, meta: headmeta.Association):
+    def fill_single(self, caf, meta: headmeta.Caf):
         start = time.perf_counter()
 
         if self.forward is None:
@@ -75,7 +75,7 @@ class CafScored:
                   time.perf_counter() - start)
         return self
 
-    def fill(self, cafs, metas: List[headmeta.Association]):
+    def fill(self, cafs, metas: List[headmeta.Caf]):
         for caf, meta in zip(cafs, metas):
             self.fill_single(caf, meta)
 

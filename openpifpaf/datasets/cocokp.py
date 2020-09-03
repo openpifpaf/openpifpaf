@@ -1,8 +1,7 @@
 import torch
 
 from .module import DataModule
-from ..network import headmeta
-from .. import encoder, transforms
+from .. import encoder, headmeta, transforms
 from .coco import Coco
 from .collate import collate_images_targets_meta
 from .constants import (
@@ -35,23 +34,23 @@ class CocoKp(DataModule):
     def __init__(self):
         super().__init__()
 
-        cif = headmeta.Intensity('cif',
-                                 COCO_KEYPOINTS,
-                                 COCO_PERSON_SIGMAS,
-                                 COCO_UPRIGHT_POSE,
-                                 COCO_PERSON_SKELETON)
-        caf = headmeta.Association('caf',
-                                   COCO_KEYPOINTS,
-                                   COCO_PERSON_SIGMAS,
-                                   COCO_UPRIGHT_POSE,
-                                   COCO_PERSON_SKELETON)
-        dcaf = headmeta.Association('caf25',
-                                    COCO_KEYPOINTS,
-                                    COCO_PERSON_SIGMAS,
-                                    COCO_UPRIGHT_POSE,
-                                    DENSER_COCO_PERSON_CONNECTIONS,
-                                    sparse_skeleton=COCO_PERSON_SKELETON,
-                                    only_in_field_of_view=True)
+        cif = headmeta.Cif('cif', 'cocokp',
+                           COCO_KEYPOINTS,
+                           COCO_PERSON_SIGMAS,
+                           COCO_UPRIGHT_POSE,
+                           COCO_PERSON_SKELETON)
+        caf = headmeta.Caf('caf', 'cocokp',
+                            COCO_KEYPOINTS,
+                            COCO_PERSON_SIGMAS,
+                            COCO_UPRIGHT_POSE,
+                            COCO_PERSON_SKELETON)
+        dcaf = headmeta.Caf('caf25', 'cocokp',
+                            COCO_KEYPOINTS,
+                            COCO_PERSON_SIGMAS,
+                            COCO_UPRIGHT_POSE,
+                            DENSER_COCO_PERSON_CONNECTIONS,
+                            sparse_skeleton=COCO_PERSON_SKELETON,
+                            only_in_field_of_view=True)
 
         cif.upsample_stride = self.upsample_stride
         caf.upsample_stride = self.upsample_stride

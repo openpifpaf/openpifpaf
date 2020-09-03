@@ -4,8 +4,7 @@ import time
 # pylint: disable=import-error
 from ..functional import scalar_values
 from .cif_hr import CifHr
-from ..network import headmeta
-from .. import visualizer
+from .. import headmeta, visualizer
 
 LOG = logging.getLogger(__name__)
 
@@ -24,7 +23,7 @@ class CifSeeds:
             self.fill_single(cif, meta)
         return self
 
-    def fill_single(self, cif, meta: headmeta.Intensity):
+    def fill_single(self, cif, meta: headmeta.Cif):
         start = time.perf_counter()
 
         sv = 0.0
@@ -59,7 +58,7 @@ class CifSeeds:
 
 
 class CifDetSeeds(CifSeeds):
-    def fill_single(self, cif, meta: headmeta.Detection):
+    def fill_single(self, cif, meta: headmeta.CifDet):
         start = time.perf_counter()
 
         for field_i, p in enumerate(cif):

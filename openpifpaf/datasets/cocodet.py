@@ -1,8 +1,7 @@
 import torch
 
 from .module import DataModule
-from ..network import headmeta
-from .. import encoder, transforms
+from .. import encoder, headmeta, transforms
 from .coco import Coco
 from .collate import collate_images_targets_meta
 from .constants import (
@@ -31,7 +30,7 @@ class CocoDet(DataModule):
 
     def __init__(self):
         super().__init__()
-        cifdet = headmeta.Detection('cifdet', COCO_CATEGORIES)
+        cifdet = headmeta.CifDet('cifdet', 'cocodet', COCO_CATEGORIES)
         cifdet.upsample_stride = self.upsample_stride
         self.head_metas = (cifdet,)
 

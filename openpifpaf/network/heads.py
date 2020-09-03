@@ -7,7 +7,7 @@ import math
 import numpy as np
 import torch
 
-from . import headmeta
+from .. import headmeta
 
 LOG = logging.getLogger(__name__)
 
@@ -99,7 +99,7 @@ class PafHFlip(torch.nn.Module):
         return out
 
 
-class BaseHead(torch.nn.Module):
+class HeadNetwork(torch.nn.Module):
     def __init__(self, meta: headmeta.Base, in_features):
         super().__init__()
         self.meta = meta
@@ -114,9 +114,9 @@ class BaseHead(torch.nn.Module):
         pass
 
 
-class CafConcatenate(BaseHead):
+class CafConcatenate(HeadNetwork):
     def __init__(self, parents):
-        meta = headmeta.Association.concatenate([p.meta for p in parents])
+        meta = headmeta.Caf.concatenate([p.meta for p in parents])
         super().__init__(meta, parents[0].in_features)
 
         self.parents = torch.nn.ModuleList(parents)
@@ -126,7 +126,7 @@ class CafConcatenate(BaseHead):
         return torch.cat([p(x) for p in self.parents], dim=1)
 
 
-class CompositeField3(BaseHead):
+class CompositeField3(HeadNetwork):
     dropout_p = 0.0
     inplace_ops = True
 
