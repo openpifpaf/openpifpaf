@@ -1,3 +1,4 @@
+import argparse
 import logging
 import torch
 import torchvision.models
@@ -16,11 +17,11 @@ class BaseNetwork(torch.nn.Module):
         LOG.info('%s: stride = %d, output features = %d', name, stride, out_features)
 
     @classmethod
-    def cli(cls, parser):
+    def cli(cls, parser: argparse.ArgumentParser):
         pass
 
     @classmethod
-    def configure(cls, args):
+    def configure(cls, args: argparse.Namespace):
         pass
 
 
@@ -48,7 +49,7 @@ class ShuffleNetV2(BaseNetwork):
         return x
 
     @classmethod
-    def cli(cls, parser):
+    def cli(cls, parser: argparse.ArgumentParser):
         group = parser.add_argument_group('ShuffleNetv2')
         assert cls.pretrained
         group.add_argument('--shufflenetv2-no-pretrain', dest='shufflenetv2_pretrained',
@@ -56,7 +57,7 @@ class ShuffleNetV2(BaseNetwork):
                            help='use randomly initialized models')
 
     @classmethod
-    def configure(cls, args):
+    def configure(cls, args: argparse.Namespace):
         cls.pretrained = args.shufflenetv2_pretrained
 
 
@@ -124,7 +125,7 @@ class Resnet(BaseNetwork):
         return x
 
     @classmethod
-    def cli(cls, parser):
+    def cli(cls, parser: argparse.ArgumentParser):
         group = parser.add_argument_group('ResNet')
         assert cls.pretrained
         group.add_argument('--resnet-no-pretrain', dest='resnet_pretrained',
@@ -145,7 +146,7 @@ class Resnet(BaseNetwork):
                            help='create a network without the last block')
 
     @classmethod
-    def configure(cls, args):
+    def configure(cls, args: argparse.Namespace):
         cls.pretrained = args.resnet_pretrained
         cls.pool0_stride = args.resnet_pool0_stride
         cls.input_conv_stride = args.resnet_input_conv_stride
@@ -294,7 +295,7 @@ class ShuffleNetV2K(BaseNetwork):
         return x
 
     @classmethod
-    def cli(cls, parser):
+    def cli(cls, parser: argparse.ArgumentParser):
         group = parser.add_argument_group('shufflenetv2k')
         group.add_argument('--shufflenetv2k-input-conv2-stride',
                            default=cls.input_conv2_stride, type=int,
@@ -313,7 +314,7 @@ class ShuffleNetV2K(BaseNetwork):
                                       default=False, action='store_true')
 
     @classmethod
-    def configure(cls, args):
+    def configure(cls, args: argparse.Namespace):
         cls.input_conv2_stride = args.shufflenetv2k_input_conv2_stride
         cls.input_conv2_outchannels = args.shufflenetv2k_input_conv2_outchannels
         cls.stage4_dilation = args.shufflenetv2k_stage4_dilation

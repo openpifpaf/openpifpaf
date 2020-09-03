@@ -1,3 +1,4 @@
+import argparse
 import torch
 
 from .module import DataModule
@@ -35,7 +36,7 @@ class CocoDet(DataModule):
         self.head_metas = (cifdet,)
 
     @classmethod
-    def cli(cls, parser):
+    def cli(cls, parser: argparse.ArgumentParser):
         group = parser.add_argument_group('data module CocoDet')
 
         group.add_argument('--cocodet-train-annotations',
@@ -74,7 +75,7 @@ class CocoDet(DataModule):
                            help='head upsample stride')
 
     @classmethod
-    def configure(cls, args):
+    def configure(cls, args: argparse.Namespace):
         # extract global information
         cls.debug = args.debug
         cls.pin_memory = args.pin_memory

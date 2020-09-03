@@ -1,3 +1,4 @@
+import argparse
 import numpy as np
 import torch
 import torchvision
@@ -20,7 +21,7 @@ class Cifar10(openpifpaf.datasets.DataModule):
         self.head_metas = (openpifpaf.headmeta.CifDet('cifdet', 'cifar10', categories),)
 
     @classmethod
-    def cli(cls, parser):
+    def cli(cls, parser: argparse.ArgumentParser):
         group = parser.add_argument_group('data module Cifar10')
 
         group.add_argument('--cifar10-root-dir',
@@ -39,7 +40,7 @@ class Cifar10(openpifpaf.datasets.DataModule):
                            help='do not apply data augmentation')
 
     @classmethod
-    def configure(cls, args):
+    def configure(cls, args: argparse.Namespace):
         # extract global information
         cls.debug = args.debug
         cls.pin_memory = args.pin_memory

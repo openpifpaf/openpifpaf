@@ -1,5 +1,6 @@
 """Head networks."""
 
+import argparse
 import functools
 import logging
 import math
@@ -106,11 +107,11 @@ class HeadNetwork(torch.nn.Module):
         self.in_features = in_features
 
     @classmethod
-    def cli(cls, parser):
+    def cli(cls, parser: argparse.ArgumentParser):
         pass
 
     @classmethod
-    def configure(cls, args):
+    def configure(cls, args: argparse.Namespace):
         pass
 
 
@@ -155,7 +156,7 @@ class CompositeField3(HeadNetwork):
             self.upsample_op = torch.nn.PixelShuffle(meta.upsample_stride)
 
     @classmethod
-    def cli(cls, parser):
+    def cli(cls, parser: argparse.ArgumentParser):
         group = parser.add_argument_group('CompositeField3')
         group.add_argument('--cf3-dropout', default=cls.dropout_p, type=float,
                            help='[experimental] zeroing probability of feature in head input')
@@ -165,7 +166,7 @@ class CompositeField3(HeadNetwork):
                            help='alternative graph without inplace ops')
 
     @classmethod
-    def configure(cls, args):
+    def configure(cls, args: argparse.Namespace):
         cls.dropout_p = args.cf3_dropout
         cls.inplace_ops = args.cf3_inplace_ops
 

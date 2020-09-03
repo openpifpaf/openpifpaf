@@ -1,3 +1,9 @@
+import argparse
+from typing import List
+
+from .. import headmeta
+
+
 class DataModule():
     """Interface for custom data.
 
@@ -5,18 +11,21 @@ class DataModule():
 
     Overwrite cli() and configure() to make your data module configureable
     from the command line.
+
+    Set `head_metas` in constructor.
     """
     batch_size = 8
     loader_workers = None
 
-    head_metas = None  # make instance(!) variable (not class variable) in derived classes
+    # make instance(!) variable (not class variable) in derived classes
+    head_metas: List[headmeta.Base] = None
 
     @classmethod
-    def cli(cls, parser):
+    def cli(cls, parser: argparse.ArgumentParser):
         pass
 
     @classmethod
-    def configure(cls, args):
+    def configure(cls, args: argparse.Namespace):
         pass
 
     def train_loader(self):

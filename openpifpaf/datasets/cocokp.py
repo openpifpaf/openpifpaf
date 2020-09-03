@@ -1,3 +1,4 @@
+import argparse
 import torch
 
 from .module import DataModule
@@ -58,7 +59,7 @@ class CocoKp(DataModule):
         self.head_metas = (cif, caf, dcaf)
 
     @classmethod
-    def cli(cls, parser):
+    def cli(cls, parser: argparse.ArgumentParser):
         group = parser.add_argument_group('data module CocoKp')
 
         group.add_argument('--cocokp-train-annotations',
@@ -97,7 +98,7 @@ class CocoKp(DataModule):
                            help='head upsample stride')
 
     @classmethod
-    def configure(cls, args):
+    def configure(cls, args: argparse.Namespace):
         # extract global information
         cls.debug = args.debug
         cls.pin_memory = args.pin_memory
