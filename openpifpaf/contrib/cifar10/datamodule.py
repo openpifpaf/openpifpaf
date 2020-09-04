@@ -94,6 +94,9 @@ class Cifar10(openpifpaf.datasets.DataModule):
             openpifpaf.transforms.Encoders([enc]),
         ])
 
+    def download_data(self):
+        torchvision.datasets.CIFAR10(self.root_dir, download=True)
+
     def train_loader(self):
         train_data = openpifpaf.datasets.TorchDataset(
             torchvision.datasets.CIFAR10(self.root_dir, train=True, download=self.download),
