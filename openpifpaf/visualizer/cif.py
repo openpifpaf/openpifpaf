@@ -7,7 +7,8 @@ from .. import headmeta, show
 
 try:
     import matplotlib.cm
-    CMAP_ORANGES_NAN = copy.copy(matplotlib.cm.get_cmap('Oranges')).set_bad('white', alpha=0.5)
+    CMAP_ORANGES_NAN = copy.copy(matplotlib.cm.get_cmap('Oranges'))
+    CMAP_ORANGES_NAN.set_bad('white', alpha=0.5)
 except ImportError:
     CMAP_ORANGES_NAN = None
 

@@ -7,7 +7,8 @@ from .. import headmeta, show
 
 try:
     import matplotlib.cm
-    CMAP_BLUES_NAN = copy.copy(matplotlib.cm.get_cmap('Blues')).set_bad('white', alpha=0.5)
+    CMAP_BLUES_NAN = copy.copy(matplotlib.cm.get_cmap('Blues'))
+    CMAP_BLUES_NAN.set_bad('white', alpha=0.5)
 except ImportError:
     CMAP_BLUES_NAN = None
 
