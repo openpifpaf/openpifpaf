@@ -7,7 +7,8 @@ from .. import show
 
 try:
     import matplotlib.cm
-    CMAP_GREENS_NAN = copy.copy(matplotlib.cm.get_cmap('Greens')).set_bad('white', alpha=0.5)
+    CMAP_GREENS_NAN = copy.copy(matplotlib.cm.get_cmap('Greens'))
+    CMAP_GREENS_NAN.set_bad('white', alpha=0.5)
 except ImportError:
     CMAP_GREENS_NAN = None
 
