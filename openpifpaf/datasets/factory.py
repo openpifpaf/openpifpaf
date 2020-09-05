@@ -18,11 +18,11 @@ def cli(parser):
     group = parser.add_argument_group('generic data module parameters')
     group.add_argument('--dataset')
     group.add_argument('--loader-workers',
-                        default=DataModule.loader_workers, type=int,
-                        help='number of workers for data loading')
+                       default=None, type=int,
+                       help='number of workers for data loading')
     group.add_argument('--batch-size',
-                        default=DataModule.batch_size, type=int,
-                        help='batch size')
+                       default=DataModule.batch_size, type=int,
+                       help='batch size')
 
     for dm in DATAMODULES.values():
         dm.cli(parser)
