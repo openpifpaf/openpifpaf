@@ -23,7 +23,7 @@ class AnnotationPainter:
                  detection_painter=None):
         self.painters = {
             'Annotation': keypoint_painter or KeypointPainter(xy_scale=xy_scale),
-            'AnnotationCrowd': crowd_painer or CrowdPainter(),  # TODO update
+            'AnnotationCrowd': crowd_painer or CrowdPainter(xy_scale=xy_scale),
             'AnnotationDet': detection_painter or DetectionPainter(xy_scale=xy_scale),
         }
 
