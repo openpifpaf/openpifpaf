@@ -1,4 +1,4 @@
-import openpifpaf
+import openpifpaf.contrib
 
 
 def main():
