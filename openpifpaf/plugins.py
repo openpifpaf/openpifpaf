@@ -8,17 +8,14 @@ https://packaging.python.org/guides/creating-and-discovering-plugins/
 """
 
 import importlib
-import logging
 import pkgutil
-
-from . import contrib
-
-LOG = logging.getLogger(__name__)
 
 REGISTERED = set()
 
 
 def register():
+    from . import contrib  # pylint: disable=import-outside-toplevel,cyclic-import
+
     contrib_plugins = {
         'openpifpaf.contrib.{}'.format(name):
             importlib.import_module('openpifpaf.contrib.{}'.format(name))
@@ -29,6 +26,8 @@ def register():
         for finder, name, ispkg in pkgutil.iter_modules()
         if name.startswith('openpifpaf_')
     }
+    # This function is called before logging levels are configured.
+    # Uncomment for debug:
     # print('{} contrib plugins. Discoverd {} plugins.'.format(
     #     len(contrib_plugins), len(discovered_plugins)))
 
