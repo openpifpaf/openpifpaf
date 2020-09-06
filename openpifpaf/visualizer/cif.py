@@ -24,7 +24,7 @@ class Cif(Base):
     def __init__(self, meta: headmeta.Cif):
         super().__init__(meta.name)
         self.meta = meta
-        self.keypoint_painter = show.KeypointPainter()
+        self.annotation_painter = show.AnnotationPainter()
 
     def targets(self, field, *, annotation_dicts):
         assert self.meta.keypoints is not None
@@ -39,10 +39,10 @@ class Cif(Base):
         self._confidences(field[:, 0])
         self._regressions(field[:, 1:3], field[:, 3], annotations=annotations)
 
-    def predicted(self, field, *, annotations=None):
+    def predicted(self, field):
         self._confidences(field[:, 0])
         self._regressions(field[:, 1:3], field[:, 4],
-                          annotations=annotations,
+                          annotations=self._ground_truth,
                           confidence_fields=field[:, 0],
                           uv_is_offset=False)
 
@@ -70,7 +70,7 @@ class Cif(Base):
             with self.image_canvas(self._processed_image, margin=[0.0, 0.01, 0.05, 0.01]) as ax:
                 show.white_screen(ax, alpha=0.5)
                 if annotations:
-                    self.keypoint_painter.annotations(ax, annotations)
+                    self.annotation_painter.annotations(ax, annotations, color='lightgray')
                 q = show.quiver(ax,
                                 regression_fields[f, :2],
                                 confidence_field=confidence_field,

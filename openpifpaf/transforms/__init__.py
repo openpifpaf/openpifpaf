@@ -15,6 +15,7 @@ from .preprocess import Preprocess
 from .random import DeterministicEqualChoice, RandomApply
 from .rotate import RotateBy90
 from .scale import RescaleAbsolute, RescaleRelative, ScaleMix
+from .toannotations import ToAnnotations, ToCrowdAnnotations, ToDetAnnotations, ToKpAnnotations
 from .unclipped import UnclippedArea, UnclippedSides
 
 

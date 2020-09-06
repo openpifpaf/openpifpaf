@@ -1,11 +1,13 @@
 import argparse
+
 import torch
 
 from .module import DataModule
-from .. import encoder, headmeta, transforms
+from .. import encoder, headmeta, metric, transforms
 from .coco import Coco
-from .collate import collate_images_targets_meta
+from .collate import collate_images_anns_meta, collate_images_targets_meta
 from .constants import (
+    COCO_CATEGORIES,
     COCO_KEYPOINTS,
     COCO_PERSON_SKELETON,
     COCO_PERSON_SIGMAS,
@@ -14,15 +16,26 @@ from .constants import (
     HFLIP,
 )
 
+try:
+    import pycocotools.coco
+    # monkey patch for Python 3 compat
+    pycocotools.coco.unicode = str
+except ImportError:
+    pass
+
 
 class CocoKp(DataModule):
-    description = 'COCO Keypoint data module.'
+    _test2017_annotations = 'data-mscoco/annotations/image_info_test2017.json'
+    _testdev2017_annotations = 'data-mscoco/annotations/image_info_test-dev2017.json'
+    _test2017_image_dir = 'data-mscoco/images/test2017/'
 
     # cli configurable
     train_annotations = 'data-mscoco/annotations/person_keypoints_train2017.json'
     val_annotations = 'data-mscoco/annotations/person_keypoints_val2017.json'
+    eval_annotations = val_annotations
     train_image_dir = 'data-mscoco/images/train2017/'
     val_image_dir = 'data-mscoco/images/val2017/'
+    eval_image_dir = val_image_dir
 
     n_images = None
     square_edge = 385
@@ -31,6 +44,11 @@ class CocoKp(DataModule):
     augmentation = True
     rescale_images = 1.0
     upsample_stride = 1
+    min_kp_anns = 1
+
+    eval_long_edge = None
+    eval_orientation_invariant = 0.0
+    eval_extended_scale = False
 
     def __init__(self):
         super().__init__()
@@ -92,10 +110,23 @@ class CocoKp(DataModule):
         group.add_argument('--cocokp-rescale-images',
                            default=cls.rescale_images, type=float,
                            help='overall rescale factor for images')
-
         group.add_argument('--cocokp-upsample',
                            default=cls.upsample_stride, type=int,
                            help='head upsample stride')
+        group.add_argument('--cocokp-min-kp-anns',
+                           default=cls.min_kp_anns, type=int,
+                           help='filter images with fewer keypoint annotations')
+
+        # evaluation
+        eval_set_group = group.add_mutually_exclusive_group()
+        eval_set_group.add_argument('--cocokp-eval-test2017', default=False, action='store_true')
+        eval_set_group.add_argument('--cocokp-eval-testdev2017', default=False, action='store_true')
+
+        group.add_argument('--coco-eval-long-edge', default=cls.eval_long_edge, type=int)
+        assert not cls.eval_extended_scale
+        group.add_argument('--coco-eval-extended-scale', default=False, action='store_true')
+        group.add_argument('--coco-eval-orientation-invariant',
+                           default=cls.eval_orientation_invariant, type=float)
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
@@ -116,6 +147,22 @@ class CocoKp(DataModule):
         cls.augmentation = args.cocokp_augmentation
         cls.rescale_images = args.cocokp_rescale_images
         cls.upsample_stride = args.cocokp_upsample
+        cls.min_kp_anns = args.cocokp_min_kp_anns
+
+        # evaluation
+        if args.cocokp_eval_test2017:
+            cls.eval_image_dir = cls._test2017_image_dir
+            cls.eval_annotations = cls._test2017_annotations
+        if args.cocokp_eval_testdev2017:
+            cls.eval_image_dir = cls._test2017_image_dir
+            cls.eval_annotations = cls._testdev2017_annotations
+        cls.eval_long_edge = args.coco_eval_long_edge
+        cls.eval_orientation_invariant = args.coco_eval_orientation_invariant
+        cls.eval_extended_scale = args.coco_eval_extended_scale
+
+        if (args.cocokp_eval_test2017 or args.cocokp_eval_testdev2017) \
+            and not args.write_predictions and not args.debug:
+            raise Exception('have to use --write-predictions for this dataset')
 
     def _preprocess(self):
         encoders = (encoder.Cif(self.head_metas[0]),
@@ -165,7 +212,8 @@ class CocoKp(DataModule):
             ann_file=self.train_annotations,
             preprocess=self._preprocess(),
             n_images=self.n_images,
-            image_filter='keypoint-annotations',
+            annotation_filter=True,
+            min_kp_anns=self.min_kp_anns,
             category_ids=[1],
         )
         return torch.utils.data.DataLoader(
@@ -179,10 +227,84 @@ class CocoKp(DataModule):
             ann_file=self.val_annotations,
             preprocess=self._preprocess(),
             n_images=self.n_images,
-            image_filter='keypoint-annotations',
+            annotation_filter=True,
+            min_kp_anns=self.min_kp_anns,
             category_ids=[1],
         )
         return torch.utils.data.DataLoader(
             val_data, batch_size=self.batch_size, shuffle=False,
             pin_memory=self.pin_memory, num_workers=self.loader_workers, drop_last=True,
             collate_fn=collate_images_targets_meta)
+
+    @classmethod
+    def common_eval_preprocess(cls):
+        rescale_t = None
+        if cls.eval_extended_scale:
+            assert cls.eval_long_edge
+            rescale_t = [
+                transforms.DeterministicEqualChoice([
+                    transforms.RescaleAbsolute(cls.eval_long_edge),
+                    transforms.RescaleAbsolute((cls.eval_long_edge - 1) // 2 + 1),
+                ], salt=1)
+            ]
+        elif cls.eval_long_edge:
+            rescale_t = transforms.RescaleAbsolute(cls.eval_long_edge)
+
+        if cls.batch_size == 1:
+            padding_t = transforms.CenterPadTight(16)
+        else:
+            assert cls.eval_long_edge
+            padding_t = transforms.CenterPad(cls.eval_long_edge)
+
+        orientation_t = None
+        if cls.eval_orientation_invariant:
+            orientation_t = transforms.DeterministicEqualChoice([
+                None,
+                transforms.RotateBy90(fixed_angle=90),
+                transforms.RotateBy90(fixed_angle=180),
+                transforms.RotateBy90(fixed_angle=270),
+            ], salt=3)
+
+        return [
+            transforms.NormalizeAnnotations(),
+            rescale_t,
+            padding_t,
+            orientation_t,
+        ]
+
+    def _eval_preprocess(self):
+        return transforms.Compose([
+            *self.common_eval_preprocess(),
+            transforms.ToAnnotations([
+                transforms.ToKpAnnotations(
+                    COCO_CATEGORIES,
+                    keypoints_by_category={1: self.head_metas[0].keypoints},
+                    skeleton_by_category={1: self.head_metas[1].skeleton},
+                ),
+                transforms.ToCrowdAnnotations(COCO_CATEGORIES),
+            ]),
+            transforms.EVAL_TRANSFORM,
+        ])
+
+    def eval_loader(self):
+        eval_data = Coco(
+            image_dir=self.eval_image_dir,
+            ann_file=self.eval_annotations,
+            preprocess=self._eval_preprocess(),
+            n_images=self.n_images,
+            annotation_filter=(self.eval_annotations == self.val_annotations),
+            min_kp_anns=self.min_kp_anns if self.eval_annotations == self.val_annotations else 0,
+            category_ids=[1],
+        )
+        return torch.utils.data.DataLoader(
+            eval_data, batch_size=self.batch_size, shuffle=False,
+            pin_memory=self.pin_memory, num_workers=self.loader_workers, drop_last=False,
+            collate_fn=collate_images_anns_meta)
+
+    def metrics(self):
+        return [metric.Coco(
+            pycocotools.coco.COCO(self.eval_annotations),
+            max_per_image=20,
+            category_ids=[1],
+            iou_type='keypoints',
+        )]

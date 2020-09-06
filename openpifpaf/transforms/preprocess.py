@@ -3,7 +3,7 @@ import copy
 import math
 import numpy as np
 
-from ..annotation import AnnotationDet
+from ..annotation import AnnotationCrowd, AnnotationDet
 from . import utils
 
 
@@ -45,6 +45,9 @@ class Preprocess(metaclass=ABCMeta):
         for ann in annotations:
             if isinstance(ann, AnnotationDet):
                 Preprocess.anndet_inverse(ann, meta)
+                continue
+            if isinstance(ann, AnnotationCrowd):
+                Preprocess.anncrowd_inverse(ann, meta)
                 continue
 
             # rotation
@@ -92,3 +95,23 @@ class Preprocess(metaclass=ABCMeta):
         ann.bbox[:2] += meta['offset']
         ann.bbox[:2] /= meta['scale']
         ann.bbox[2:] /= meta['scale']
+
+        if meta['hflip']:
+            w = meta['width_height'][0]
+            ann.bbox[0] = -(ann.bbox[0] + ann.bbox[2]) - 1.0 + w
+
+    @staticmethod
+    def anncrowd_inverse(ann, meta):
+        angle = -meta['rotation']['angle']
+        if angle != 0.0:
+            rw = meta['rotation']['width']
+            rh = meta['rotation']['height']
+            ann.bbox = utils.rotate_box(ann.bbox, rw - 1, rh - 1, angle)
+
+        ann.bbox[:2] += meta['offset']
+        ann.bbox[:2] /= meta['scale']
+        ann.bbox[2:] /= meta['scale']
+
+        if meta['hflip']:
+            w = meta['width_height'][0]
+            ann.bbox[0] = -(ann.bbox[0] + ann.bbox[2]) - 1.0 + w

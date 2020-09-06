@@ -1,38 +1,72 @@
 import argparse
 from typing import List
 
-from .. import headmeta
+import torch
+
+from .. import headmeta, metric
 
 
-class DataModule():
+class DataModule:
     """Interface for custom data.
 
-    Subclass this class to incorporate your custom dataset.
-
-    Overwrite cli() and configure() to make your data module configureable
-    from the command line.
-
-    Set `head_metas` in constructor.
+    This module handles datasets and is the class that you need to inherit
+    from for your custom dataset. This class gives you all the handles so that
+    you can train with a new `--dataset=mydataset`. The particular configuration
+    of keypoints and skeleton is specified in the `headmeta` instances.
     """
+
+    #: Data loader batch size.
     batch_size = 8
+
+    #: Data loader number of workers.
     loader_workers = 0
 
-    # make instance(!) variable (not class variable) in derived classes
+    #: A list of head metas for this dataset.
+    #: Set as instance variable (not class variable) in derived classes
+    #: so that different instances of head metas are created for different
+    #: instances of the data module. Head metas contain the base stride which
+    #: might be different for different data module instances.
     head_metas: List[headmeta.Base] = None
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
-        pass
+        """Commond line interface (CLI) to extend argument parser."""
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
-        pass
+        """Take the parsed argument parser output and configure class variables."""
 
-    def train_loader(self):
+    def metrics(self) -> List[metric.Base]:
+        """Define a list of metrics to be used for eval."""
         raise NotImplementedError
 
-    def val_loader(self):
+    def train_loader(self) -> torch.utils.data.DataLoader:
+        """Loader of the training dataset."""
         raise NotImplementedError
 
-    def test_loader(self):
+    def val_loader(self) -> torch.utils.data.DataLoader:
+        """Loader of the validation dataset.
+
+        The augmentation and preprocessing should be the same as for train_loader.
+        The only difference is the set of data. This allows to inspect the
+        train/val curves for overfitting.
+
+        As in the train_loader, the annotations should be encoded fields
+        so that the loss function can be computed.
+        """
+        raise NotImplementedError
+
+    def eval_loader(self) -> torch.utils.data.DataLoader:
+        """Loader of the evluation dataset.
+
+        For local runs, it is common that the validation dataset is also the
+        evaluation dataset. This is then changed to test datasets (without
+        ground truth) to produce predictions for submissions to a competition
+        server that holds the private ground truth.
+
+        This loader shouldn't have any data augmentation. The images should be
+        as close as possible to the real application.
+        The annotations should be the groud truth annotations similarly to
+        what the output of the decoder is expected to be.
+        """
         raise NotImplementedError

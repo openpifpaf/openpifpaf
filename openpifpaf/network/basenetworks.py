@@ -7,9 +7,14 @@ LOG = logging.getLogger(__name__)
 
 
 class BaseNetwork(torch.nn.Module):
-    """Common base network."""
+    """Common base network.
 
-    def __init__(self, name, *, stride, out_features):
+    :param name: a short name for the base network, e.g. resnet50
+    :param stride: total stride from input to output
+    :param out_features: number of output features
+    """
+
+    def __init__(self, name: str, *, stride: int, out_features: int):
         super().__init__()
         self.name = name
         self.stride = stride
@@ -18,11 +23,11 @@ class BaseNetwork(torch.nn.Module):
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
-        pass
+        """Commond line interface (CLI) to extend argument parser."""
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
-        pass
+        """Take the parsed argument parser output and configure class variables."""
 
 
 class ShuffleNetV2(BaseNetwork):

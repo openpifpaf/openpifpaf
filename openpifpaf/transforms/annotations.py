@@ -4,6 +4,7 @@ import logging
 import numpy as np
 import torch
 
+from .. import annotation
 from .preprocess import Preprocess
 
 LOG = logging.getLogger(__name__)
@@ -15,6 +16,10 @@ class NormalizeAnnotations(Preprocess):
         anns = copy.deepcopy(anns)
 
         for ann in anns:
+            if isinstance(ann, annotation.Base):
+                # already converted to an annotation type
+                continue
+
             if 'keypoints' not in ann:
                 ann['keypoints'] = []
             if 'iscrowd' not in ann:

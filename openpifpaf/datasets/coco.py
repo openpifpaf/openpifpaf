@@ -22,11 +22,11 @@ class Coco(torch.utils.data.Dataset):
     """
 
     def __init__(self, image_dir, ann_file, *,
-                 n_images=None, preprocess=None,
+                 n_images=None, preprocess=None, min_kp_anns=0,
                  category_ids=None,
-                 image_filter='keypoint-annotations'):
+                 annotation_filter=False):
         if category_ids is None:
-            category_ids = [1]
+            category_ids = []
 
         from pycocotools.coco import COCO  # pylint: disable=import-outside-toplevel
         self.image_dir = image_dir
@@ -34,16 +34,11 @@ class Coco(torch.utils.data.Dataset):
 
         self.category_ids = category_ids
 
-        if image_filter == 'all':
-            self.ids = self.coco.getImgIds()
-        elif image_filter == 'annotated':
-            self.ids = self.coco.getImgIds(catIds=self.category_ids)
-            self.filter_for_annotations()
-        elif image_filter == 'keypoint-annotations':
-            self.ids = self.coco.getImgIds(catIds=self.category_ids)
-            self.filter_for_keypoint_annotations()
-        else:
-            raise Exception('unknown value for image_filter: {}'.format(image_filter))
+        self.ids = self.coco.getImgIds(catIds=self.category_ids)
+        if annotation_filter:
+            self.filter_for_annotations(min_kp_anns=min_kp_anns)
+        elif min_kp_anns:
+            raise Exception('only set min_kp_anns with annotation_filter')
 
         if n_images:
             self.ids = self.ids[:n_images]
@@ -51,36 +46,19 @@ class Coco(torch.utils.data.Dataset):
 
         self.preprocess = preprocess or transforms.EVAL_TRANSFORM
 
-    def filter_for_keypoint_annotations(self):
-        LOG.info('filter for keypoint annotations ...')
-        def has_keypoint_annotation(image_id):
+    def filter_for_annotations(self, *, min_kp_anns=0):
+        LOG.info('filter for annotations (min kp=%d) ...', min_kp_anns)
+        def filter_image(image_id):
             ann_ids = self.coco.getAnnIds(imgIds=image_id, catIds=self.category_ids)
             anns = self.coco.loadAnns(ann_ids)
-            for ann in anns:
-                if 'keypoints' not in ann:
-                    continue
-                if any(v > 0.0 for v in ann['keypoints'][2::3]):
-                    return True
-            return False
+            anns = [ann for ann in anns if not ann.get('iscrowd')]
+            if not anns:
+                return False
+            kp_anns = [ann for ann in anns
+                       if 'keypoints' in ann and any(v > 0.0 for v in ann['keypoints'][2::3])]
+            return len(kp_anns) >= min_kp_anns
 
-        self.ids = [image_id for image_id in self.ids
-                    if has_keypoint_annotation(image_id)]
-        LOG.info('... done.')
-
-    def filter_for_annotations(self):
-        """removes images that only contain crowd annotations"""
-        LOG.info('filter for annotations ...')
-        def has_annotation(image_id):
-            ann_ids = self.coco.getAnnIds(imgIds=image_id, catIds=self.category_ids)
-            anns = self.coco.loadAnns(ann_ids)
-            for ann in anns:
-                if ann.get('iscrowd'):
-                    continue
-                return True
-            return False
-
-        self.ids = [image_id for image_id in self.ids
-                    if has_annotation(image_id)]
+        self.ids = [image_id for image_id in self.ids if filter_image(image_id)]
         LOG.info('... done.')
 
     def class_aware_sample_weights(self, max_multiple=10.0):
@@ -130,13 +108,15 @@ class Coco(torch.utils.data.Dataset):
 
         image_info = self.coco.loadImgs(image_id)[0]
         LOG.debug(image_info)
-        with open(os.path.join(self.image_dir, image_info['file_name']), 'rb') as f:
+        local_file_path = os.path.join(self.image_dir, image_info['file_name'])
+        with open(local_file_path, 'rb') as f:
             image = Image.open(f).convert('RGB')
 
         meta = {
             'dataset_index': index,
             'image_id': image_id,
             'file_name': image_info['file_name'],
+            'local_file_path': local_file_path,
         }
 
         if 'flickr_url' in image_info:

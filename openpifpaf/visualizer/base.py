@@ -1,8 +1,10 @@
 from contextlib import contextmanager
 import logging
+from typing import List
+
 import numpy as np
 
-from .. import show
+from .. import annotation, show
 
 try:
     import matplotlib.pyplot as plt
@@ -21,6 +23,7 @@ class Base:
 
     _image = None
     _processed_image = None
+    _ground_truth: List[annotation.Base] = None
 
     def __init__(self, head_name):
         self.head_name = head_name
@@ -47,9 +50,14 @@ class Base:
         Base._processed_image = image
 
     @staticmethod
+    def ground_truth(ground_truth):
+        Base._ground_truth = ground_truth
+
+    @staticmethod
     def reset():
         Base._image = None
         Base._processed_image = None
+        Base._ground_truth = None
 
     @property
     def indices(self):

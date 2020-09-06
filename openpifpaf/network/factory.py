@@ -9,14 +9,19 @@ from . import basenetworks, heads, nets
 
 # generate hash values with: shasum -a 256 filename.pkl
 
+PRETRAINED_UNAVAILABLE = object()
 
+# Dataset cocokp is implied. All other datasets need to be explicit.
 CHECKPOINT_URLS = {
-    'resnet50': ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
-                 'v0.11.2/resnet50-200527-171310-cif-caf-caf25-o10s-c0b7ae80.pkl'),
-    'shufflenetv2k16w': ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
-                         'v0.11.0/shufflenetv2k16w-200510-221334-cif-caf-caf25-o10s-604c5956.pkl'),
-    'shufflenetv2k30w': ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
-                         'v0.11.0/shufflenetv2k30w-200510-104256-cif-caf-caf25-o10s-0b5ba06f.pkl'),
+    'resnet18': PRETRAINED_UNAVAILABLE,
+    'resnet50': PRETRAINED_UNAVAILABLE,
+    'resnet101': PRETRAINED_UNAVAILABLE,
+    'resnet152': PRETRAINED_UNAVAILABLE,
+    'shufflenetv2x1': PRETRAINED_UNAVAILABLE,
+    'shufflenetv2x2': PRETRAINED_UNAVAILABLE,
+    'shufflenetv2k16w': PRETRAINED_UNAVAILABLE,
+    'shufflenetv2k30w': PRETRAINED_UNAVAILABLE,
+    'shufflenetv2k44w': PRETRAINED_UNAVAILABLE,
 }
 
 BASE_TYPES = set([basenetworks.Resnet, basenetworks.ShuffleNetV2, basenetworks.ShuffleNetV2K])
@@ -117,10 +122,9 @@ def factory(
         if not checkpoint:
             checkpoint = 'shufflenetv2k16w'
 
-        if checkpoint == 'resnet18':
-            raise Exception('this pretrained model is currently not available')
-        if checkpoint == 'resnet101':
-            raise Exception('this pretrained model is currently not available')
+        if CHECKPOINT_URLS.get(checkpoint, None) is PRETRAINED_UNAVAILABLE:
+            raise Exception('the pretrained model for {} is not available yet '
+                            'in this release cycle'.format(checkpoint))
         checkpoint = CHECKPOINT_URLS.get(checkpoint, checkpoint)
 
         if checkpoint.startswith('http'):

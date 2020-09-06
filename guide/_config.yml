@@ -20,3 +20,6 @@ repository:
 
 launch_buttons:
   binderhub_url             : "https://mybinder.org"  # The URL for your BinderHub (e.g., https://mybinder.org)
+
+sphinx:
+  extra_extensions: [sphinx.ext.autodoc]

@@ -93,27 +93,33 @@ class Generator:
         """For single image, from fields to annotations."""
         raise NotImplementedError()
 
-    def batch(self, model, image_batch, *, device=None):
+    def batch(self, model, image_batch, *, device=None, gt_anns_batch=None):
         """From image batch straight to annotations batch."""
         start_nn = time.perf_counter()
         fields_batch = self.fields_batch(model, image_batch, device=device)
         self.last_nn_time = time.perf_counter() - start_nn
 
+        if gt_anns_batch is None:
+            gt_anns_batch = [None for _ in fields_batch]
+
         if not isinstance(self.worker_pool, DummyPool):
             # remove debug_images to save time during pickle
             image_batch = [None for _ in fields_batch]
+            gt_anns_batch = [None for _ in fields_batch]
 
         LOG.debug('parallel execution with worker %s', self.worker_pool)
         start_decoder = time.perf_counter()
         result = self.worker_pool.starmap(
-            self._mappable_annotations, zip(fields_batch, image_batch))
+            self._mappable_annotations, zip(fields_batch, image_batch, gt_anns_batch))
         self.last_decoder_time = time.perf_counter() - start_decoder
 
         LOG.debug('time: nn = %.3fs, dec = %.3fs', self.last_nn_time, self.last_decoder_time)
         return result
 
-    def _mappable_annotations(self, fields, debug_image):
+    def _mappable_annotations(self, fields, debug_image, gt_anns):
         if debug_image is not None:
             visualizer.Base.processed_image(debug_image)
+        if gt_anns is not None:
+            visualizer.Base.ground_truth(gt_anns)
 
         return self(fields)

@@ -1,25 +1,34 @@
 import argparse
+
 import torch
 
 from .module import DataModule
-from .. import encoder, headmeta, transforms
+from .. import encoder, headmeta, metric, transforms
 from .coco import Coco
-from .collate import collate_images_targets_meta
+from .cocokp import CocoKp
+from .collate import collate_images_anns_meta, collate_images_targets_meta
 from .constants import (
     COCO_CATEGORIES,
     COCO_KEYPOINTS,
     HFLIP,
 )
 
+try:
+    import pycocotools.coco
+    # monkey patch for Python 3 compat
+    pycocotools.coco.unicode = str
+except ImportError:
+    pass
+
 
 class CocoDet(DataModule):
-    description = 'COCO Detection data module.'
-
     # cli configurable
     train_annotations = 'data-mscoco/annotations/instances_train2017.json'
     val_annotations = 'data-mscoco/annotations/instances_val2017.json'
+    eval_annotations = val_annotations
     train_image_dir = 'data-mscoco/images/train2017/'
     val_image_dir = 'data-mscoco/images/val2017/'
+    eval_image_dir = val_image_dir
 
     n_images = None
     square_edge = 513
@@ -80,7 +89,7 @@ class CocoDet(DataModule):
         cls.debug = args.debug
         cls.pin_memory = args.pin_memory
 
-        # cocokp specific
+        # cocodet specific
         cls.train_annotations = args.cocodet_train_annotations
         cls.val_annotations = args.cocodet_val_annotations
         cls.train_image_dir = args.cocodet_train_image_dir
@@ -143,7 +152,7 @@ class CocoDet(DataModule):
             ann_file=self.train_annotations,
             preprocess=self._preprocess(),
             n_images=self.n_images,
-            image_filter='annotated',
+            annotation_filter=True,
             category_ids=[],
         )
         return torch.utils.data.DataLoader(
@@ -157,10 +166,43 @@ class CocoDet(DataModule):
             ann_file=self.val_annotations,
             preprocess=self._preprocess(),
             n_images=self.n_images,
-            image_filter='annotated',
+            annotation_filter=True,
             category_ids=[],
         )
         return torch.utils.data.DataLoader(
             val_data, batch_size=self.batch_size, shuffle=False,
             pin_memory=self.pin_memory, num_workers=self.loader_workers, drop_last=True,
             collate_fn=collate_images_targets_meta)
+
+    @staticmethod
+    def _eval_preprocess():
+        return transforms.Compose([
+            *CocoKp.common_eval_preprocess(),
+            transforms.ToAnnotations([
+                transforms.ToDetAnnotations(COCO_CATEGORIES),
+                transforms.ToCrowdAnnotations(COCO_CATEGORIES),
+            ]),
+            transforms.EVAL_TRANSFORM,
+        ])
+
+    def eval_loader(self):
+        eval_data = Coco(
+            image_dir=self.eval_image_dir,
+            ann_file=self.eval_annotations,
+            preprocess=self._eval_preprocess(),
+            n_images=self.n_images,
+            annotation_filter=True,
+            category_ids=[],
+        )
+        return torch.utils.data.DataLoader(
+            eval_data, batch_size=self.batch_size, shuffle=False,
+            pin_memory=self.pin_memory, num_workers=self.loader_workers, drop_last=False,
+            collate_fn=collate_images_anns_meta)
+
+    def metrics(self):
+        return [metric.Coco(
+            pycocotools.coco.COCO(self.eval_annotations),
+            max_per_image=100,
+            category_ids=[],
+            iou_type='bbox',
+        )]

@@ -8,6 +8,7 @@ from .annotation import Annotation, AnnotationDet
 from . import datasets
 from . import decoder
 from . import headmeta
+from . import metric
 from . import network
 from . import optimize
 from . import plugins

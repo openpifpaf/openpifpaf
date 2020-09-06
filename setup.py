@@ -63,7 +63,7 @@ setup(
     extras_require={
         'dev': [
             'flameprof',
-            'jupyter-book>=0.7.4',
+            'jupyter-book>=0.8.0',
             'matplotlib',
             'nbdime',
             'nbstripout',

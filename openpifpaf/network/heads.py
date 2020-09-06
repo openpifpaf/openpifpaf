@@ -101,18 +101,24 @@ class PafHFlip(torch.nn.Module):
 
 
 class HeadNetwork(torch.nn.Module):
-    def __init__(self, meta: headmeta.Base, in_features):
+    """Base class for head networks.
+
+    :param meta: head meta instance to configure this head network
+    :param in_features: number of input features which should be equal to the
+        base network's output features
+    """
+    def __init__(self, meta: headmeta.Base, in_features: int):
         super().__init__()
         self.meta = meta
         self.in_features = in_features
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
-        pass
+        """Commond line interface (CLI) to extend argument parser."""
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
-        pass
+        """Take the parsed argument parser output and configure class variables."""
 
 
 class CafConcatenate(HeadNetwork):

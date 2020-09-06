@@ -7,7 +7,7 @@ get their location offset added during inference.
 """
 
 from dataclasses import dataclass, field
-from typing import Any, List, Tuple
+from typing import Any, ClassVar, List, Tuple
 
 
 @dataclass
@@ -35,9 +35,9 @@ class Cif(Base):
     pose: Any
     draw_skeleton: List[Tuple[int, int]] = None
 
-    n_confidences: int = 1
-    n_vectors: int = 1
-    n_scales: int = 1
+    n_confidences: ClassVar[int] = 1
+    n_vectors: ClassVar[int] = 1
+    n_scales: ClassVar[int] = 1
 
     vector_offsets = [True]
     decoder_min_scale = 0.0
@@ -58,9 +58,9 @@ class Caf(Base):
     dense_to_sparse_radius: float = 2.0
     only_in_field_of_view: bool = False
 
-    n_confidences: int = 1
-    n_vectors: int = 2
-    n_scales: int = 2
+    n_confidences: ClassVar[int] = 1
+    n_vectors: ClassVar[int] = 2
+    n_scales: ClassVar[int] = 2
 
     vector_offsets = [True, True]
     decoder_min_distance = 0.0
@@ -98,9 +98,9 @@ class Caf(Base):
 class CifDet(Base):
     categories: List[str]
 
-    n_confidences: int = 1
-    n_vectors: int = 2
-    n_scales: int = 0
+    n_confidences: ClassVar[int] = 1
+    n_vectors: ClassVar[int] = 2
+    n_scales: ClassVar[int] = 0
 
     vector_offsets = [True, False]
     decoder_min_scale = 0.0
