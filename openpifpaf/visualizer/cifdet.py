@@ -30,7 +30,7 @@ class CifDet(Base):
         assert self.meta.categories is not None
 
         annotations = [
-            AnnotationDet(self.meta.categories).set(ann['category_id'] - 1, None, ann['bbox'])
+            AnnotationDet(self.meta.categories).set(ann['category_id'], None, ann['bbox'])
             for ann in annotation_dicts
         ]
 
