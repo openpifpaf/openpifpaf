@@ -19,7 +19,8 @@ CHECKPOINT_URLS = {
     'resnet152': PRETRAINED_UNAVAILABLE,
     'shufflenetv2x1': PRETRAINED_UNAVAILABLE,
     'shufflenetv2x2': PRETRAINED_UNAVAILABLE,
-    'shufflenetv2k16w': PRETRAINED_UNAVAILABLE,
+    'shufflenetv2k16w': ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
+                         'v0.12a1/shufflenetv2k16w-200905-113300-cocokp-e7b371e6.pkl'),
     'shufflenetv2k30w': PRETRAINED_UNAVAILABLE,
     'shufflenetv2k44w': PRETRAINED_UNAVAILABLE,
 }
