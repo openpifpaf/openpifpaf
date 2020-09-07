@@ -92,5 +92,5 @@ script:
  - |
    if [ $PIFPAFTRAINING == "1" ]; then
      pytest --nbval-lax --current-env docs/predict.ipynb;
-     cd guide && pytest --nbval-lax --current-env *.ipynb;
+     cd guide && python download_data.py && pytest --nbval-lax --current-env *.ipynb;
    fi
