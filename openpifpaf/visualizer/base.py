@@ -67,10 +67,11 @@ class Base:
         return [f for hn, f in self.all_indices if hn in head_names]
 
     @staticmethod
-    def colorbar(ax, colored_element, size='3%', pad=0.05):
+    def colorbar(ax, colored_element, size='3%', pad=0.01):
         divider = make_axes_locatable(ax)
         cax = divider.append_axes('right', size=size, pad=pad)
-        plt.colorbar(colored_element, cax=cax)
+        cb = plt.colorbar(colored_element, cax=cax)
+        cb.outline.set_linewidth(0.1)
 
     @contextmanager
     def image_canvas(self, image, *args, **kwargs):
