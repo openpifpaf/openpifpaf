@@ -150,7 +150,7 @@ def factory(
         dcaf_meta.decoder_confidence_scales = [dense_coupling for _ in dcaf_meta.skeleton]
         concatenated_caf = heads.CafConcatenate(
             (net_cpu.head_nets[1], net_cpu.head_nets[2]))
-        net_cpu.head_nets = torch.nn.ModuleList([net_cpu.head_nets[0], concatenated_caf])
+        net_cpu.set_head_nets([net_cpu.head_nets[0], concatenated_caf])
     elif dense_coupling and multi_scale:
         # TODO: fix multi-scale
         # cif_indices = [v * 3 + 1 for v in range(10)]

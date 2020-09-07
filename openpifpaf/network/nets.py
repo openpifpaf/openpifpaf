@@ -13,18 +13,13 @@ class Shell(torch.nn.Module):
         super().__init__()
 
         self.base_net = base_net
-        self._head_nets = None
+        self.head_nets = None
         self.process_input = process_input
         self.process_heads = process_heads
 
-        self.head_nets = head_nets
+        self.set_head_nets(head_nets)
 
-    @property
-    def head_nets(self):
-        return self._head_nets
-
-    @head_nets.setter
-    def head_nets(self, head_nets):
+    def set_head_nets(self, head_nets):
         if not isinstance(head_nets, torch.nn.ModuleList):
             head_nets = torch.nn.ModuleList(head_nets)
 
@@ -32,7 +27,7 @@ class Shell(torch.nn.Module):
             hn.meta.head_index = hn_i
             hn.meta.base_stride = self.base_net.stride
 
-        self._head_nets = head_nets
+        self.head_nets = head_nets
 
     def forward(self, *args):
         image_batch = args[0]
@@ -172,7 +167,7 @@ class ShellMultiScale(torch.nn.Module):
         return head_outputs
 
 
-# pylint: disable=too-many-branches
+# pylint: disable=too-many-branches,protected-access
 def model_migration(net_cpu):
     model_defaults(net_cpu)
 
@@ -181,7 +176,10 @@ def model_migration(net_cpu):
 
     for m in net_cpu.modules():
         if not hasattr(m, '_non_persistent_buffers_set'):
-            m._non_persistent_buffers_set = set()  # pylint: disable=protected-access
+            m._non_persistent_buffers_set = set()
+
+    if not hasattr(net_cpu, 'head_nets') and hasattr(net_cpu, '_head_nets'):
+        net_cpu.head_nets = net_cpu._head_nets
 
     for hn_i, hn in enumerate(net_cpu.head_nets):
         if not hn.meta.base_stride:

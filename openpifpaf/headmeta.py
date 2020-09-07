@@ -77,6 +77,7 @@ class Caf(Base):
         # is not the same for all metas.
         concatenated = Caf(
             name='_'.join(m.name for m in metas),
+            dataset=metas[0].dataset,
             keypoints=metas[0].keypoints,
             sigmas=metas[0].sigmas,
             pose=metas[0].pose,
