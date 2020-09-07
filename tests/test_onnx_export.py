@@ -11,10 +11,10 @@ def test_onnx_exportable(tmpdir):
     outfile = str(tmpdir.join('openpifpaf-shufflenetv2k16w.onnx'))
     assert not os.path.exists(outfile)
 
+    datamodule = openpifpaf.datasets.factory('cocokp')
     model, _ = openpifpaf.network.factory(
         base_name='shufflenetv2k16w',
-        head_names=['cif', 'caf', 'caf25'],
-        pretrained=False,
+        head_metas=datamodule.head_metas,
     )
     openpifpaf.export_onnx.apply(model, outfile, verbose=False)
     assert os.path.exists(outfile)
