@@ -41,7 +41,7 @@ def canvas(fig_file=None, show=True, dpi=200, nomargin=False, **kwargs):
 
 @contextmanager
 def image_canvas(image, fig_file=None, *, show=True, dpi_factor=1.0,
-                 fig_width=10.0, margin=None, **kwargs):
+                 fig_width=7.0, margin=None, **kwargs):
     if plt is None:
         raise Exception('please install matplotlib')
 
