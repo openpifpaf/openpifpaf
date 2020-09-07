@@ -73,7 +73,7 @@ class Cifar10(openpifpaf.datasets.DataModule):
             return openpifpaf.transforms.Compose([
                 self._convert_data,
                 openpifpaf.transforms.NormalizeAnnotations(),
-                openpifpaf.transforms.RescaleAbsolute(33),
+                openpifpaf.transforms.CenterPadTight(16),
                 openpifpaf.transforms.ImageTransform(torchvision.transforms.ToTensor()),
                 openpifpaf.transforms.ImageTransform(
                     torchvision.transforms.Normalize(mean=[0.5, 0.5, 0.5],
@@ -85,7 +85,7 @@ class Cifar10(openpifpaf.datasets.DataModule):
         return openpifpaf.transforms.Compose([
             self._convert_data,
             openpifpaf.transforms.NormalizeAnnotations(),
-            openpifpaf.transforms.RescaleAbsolute(33),
+            openpifpaf.transforms.CenterPadTight(16),
             openpifpaf.transforms.ImageTransform(torchvision.transforms.ToTensor()),
             openpifpaf.transforms.ImageTransform(
                 torchvision.transforms.Normalize(mean=[0.5, 0.5, 0.5],
