@@ -33,10 +33,13 @@ def configure(args):
     DataModule.batch_size = args.batch_size
 
     if DataModule.loader_workers is None:
-        # Do not propose more than 16 loaders. More loaders use more
-        # shared memory. When shared memory is exceeded, all jobs
-        # on that machine crash.
-        DataModule.loader_workers = min(16, DataModule.batch_size)
+        if args.debug:
+            DataModule.loader_workers = 0
+        else:
+            # Do not propose more than 16 loaders. More loaders use more
+            # shared memory. When shared memory is exceeded, all jobs
+            # on that machine crash.
+            DataModule.loader_workers = min(16, DataModule.batch_size)
 
     for dm in DATAMODULES.values():
         dm.configure(args)
