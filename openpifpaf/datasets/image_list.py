@@ -16,12 +16,11 @@ class ImageList(torch.utils.data.Dataset):
             image = PIL.Image.open(f).convert('RGB')
 
         anns = []
-        image, anns, meta = self.preprocess(image, anns, None)
-        meta.update({
+        meta = {
             'dataset_index': index,
             'file_name': image_path,
-        })
-
+        }
+        image, anns, meta = self.preprocess(image, anns, meta)
         return image, anns, meta
 
     def __len__(self):
@@ -37,12 +36,10 @@ class PilImageList(torch.utils.data.Dataset):
         image = self.images[index].copy().convert('RGB')
 
         anns = []
-        image, anns, meta = self.preprocess(image, anns, None)
-        meta.update({
+        meta = {
             'dataset_index': index,
-            'file_name': 'pilimage{}'.format(index),
-        })
-
+        }
+        image, anns, meta = self.preprocess(image, anns, meta)
         return image, anns, meta
 
     def __len__(self):
