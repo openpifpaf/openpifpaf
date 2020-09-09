@@ -47,3 +47,4 @@ decoder_flame.svg
 debug.*.png
 test-clis-*/
 *.mlmodel
+guide/cifar10_*.predictions.json
