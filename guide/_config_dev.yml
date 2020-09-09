@@ -24,3 +24,6 @@ launch_buttons:
 
 sphinx:
   extra_extensions: [sphinx.ext.autodoc]
+
+execute:
+  timeout: 600
