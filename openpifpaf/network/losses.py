@@ -57,7 +57,7 @@ class ScaleLoss(torch.nn.Module):
         return loss
 
 
-def laplace_loss(x1, x2, logb, t1, t2, *, weight=None, norm_low_clip=0.0):
+def laplace_loss(x1, x2, logb, t1, t2, bmin, *, weight=None, norm_low_clip=0.0):
     """Loss based on Laplace Distribution.
 
     Loss for a single two-dimensional vector (x1, x2) with radial
@@ -77,7 +77,7 @@ def laplace_loss(x1, x2, logb, t1, t2, *, weight=None, norm_low_clip=0.0):
     logb = torch.clamp_min(logb, -3.0)
 
     # ln(2) = 0.694
-    losses = logb + (norm + 0.1) * torch.exp(-logb)
+    losses = logb + (norm + bmin) * torch.exp(-logb)
     if weight is not None:
         losses = losses * weight
     return losses
@@ -461,7 +461,7 @@ class CompositeLoss(torch.nn.Module):
 
     def _localization_loss(self, x_regs, t_regs, *, weight=None):
         assert x_regs.shape[2] == self.n_vectors * 3
-        assert t_regs.shape[2] == self.n_vectors * 2
+        assert t_regs.shape[2] == self.n_vectors * 3
         batch_size = t_regs.shape[0]
 
         reg_losses = []
@@ -477,6 +477,7 @@ class CompositeLoss(torch.nn.Module):
                 torch.masked_select(x_regs[:, :, self.n_vectors*2 + i], reg_masks),
                 torch.masked_select(t_regs[:, :, i*2 + 0], reg_masks),
                 torch.masked_select(t_regs[:, :, i*2 + 1], reg_masks),
+                torch.masked_select(t_regs[:, :, self.n_vectors*2 + i], reg_masks),
                 norm_low_clip=0.0,
             )
             if weight is not None:
@@ -530,7 +531,7 @@ class CompositeLoss(torch.nn.Module):
 
         x, t = args
         assert x.shape[2] == 1 + self.n_vectors * 3 + self.n_scales
-        assert t.shape[2] == 1 + self.n_vectors * 2 + self.n_scales
+        assert t.shape[2] == 1 + self.n_vectors * 3 + self.n_scales
 
         x = x.double()
         x_confidence = x[:, :, 0:1]
@@ -539,8 +540,8 @@ class CompositeLoss(torch.nn.Module):
 
         t = t.double()
         t_confidence = t[:, :, 0:1]
-        t_regs = t[:, :, 1:1 + self.n_vectors * 2]
-        t_scales = t[:, :, 1 + self.n_vectors * 2:]
+        t_regs = t[:, :, 1:1 + self.n_vectors * 3]
+        t_scales = t[:, :, 1 + self.n_vectors * 3:]
 
         ce_loss = self._confidence_loss(x_confidence, t_confidence)
         reg_losses = self._localization_loss(x_regs, t_regs)

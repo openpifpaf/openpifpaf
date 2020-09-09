@@ -53,6 +53,8 @@ class CafGenerator:
         self.intensities = None
         self.fields_reg1 = None
         self.fields_reg2 = None
+        self.fields_bmin1 = None
+        self.fields_bmin2 = None
         self.fields_scale1 = None
         self.fields_scale2 = None
         self.fields_reg_l = None
@@ -84,6 +86,8 @@ class CafGenerator:
         self.fields_reg2 = np.full((n_fields, 6, field_h, field_w), np.nan, dtype=np.float32)
         self.fields_reg1[:, 2:] = np.inf
         self.fields_reg2[:, 2:] = np.inf
+        self.fields_bmin1 = np.full((n_fields, field_h, field_w), np.nan, dtype=np.float32)
+        self.fields_bmin2 = np.full((n_fields, field_h, field_w), np.nan, dtype=np.float32)
         self.fields_scale1 = np.full((n_fields, field_h, field_w), np.nan, dtype=np.float32)
         self.fields_scale2 = np.full((n_fields, field_h, field_w), np.nan, dtype=np.float32)
         self.fields_reg_l = np.full((n_fields, field_h, field_w), np.inf, dtype=np.float32)
@@ -228,6 +232,10 @@ class CafGenerator:
             patch2[:2, mask] = sink2[:, mask]
             patch2[2:, mask] = np.expand_dims(max_r2, 1) * 0.5
 
+            # update bmin
+            self.fields_bmin1[paf_i, fminy:fmaxy, fminx:fmaxx][mask] = 0.1
+            self.fields_bmin2[paf_i, fminy:fmaxy, fminx:fmaxx][mask] = 0.1
+
             # update scale
             assert np.isnan(scale1) or 0.0 < scale1 < 100.0
             self.fields_scale1[paf_i, fminy:fmaxy, fminx:fmaxx][mask] = scale1
@@ -239,6 +247,8 @@ class CafGenerator:
         intensities = self.intensities[:, p:-p, p:-p]
         fields_reg1 = self.fields_reg1[:, :, p:-p, p:-p]
         fields_reg2 = self.fields_reg2[:, :, p:-p, p:-p]
+        fields_bmin1 = self.fields_bmin1[:, p:-p, p:-p]
+        fields_bmin2 = self.fields_bmin2[:, p:-p, p:-p]
         fields_scale1 = self.fields_scale1[:, p:-p, p:-p]
         fields_scale2 = self.fields_scale2[:, p:-p, p:-p]
 
@@ -247,6 +257,8 @@ class CafGenerator:
         mask_valid_area(fields_reg1[:, 1], valid_area, fill_value=np.nan)
         mask_valid_area(fields_reg2[:, 0], valid_area, fill_value=np.nan)
         mask_valid_area(fields_reg2[:, 1], valid_area, fill_value=np.nan)
+        mask_valid_area(fields_bmin1, valid_area, fill_value=np.nan)
+        mask_valid_area(fields_bmin2, valid_area, fill_value=np.nan)
         mask_valid_area(fields_scale1, valid_area, fill_value=np.nan)
         mask_valid_area(fields_scale2, valid_area, fill_value=np.nan)
 
@@ -254,6 +266,8 @@ class CafGenerator:
             np.expand_dims(intensities, 1),
             fields_reg1[:, :2],  # TODO dropped margin components for now
             fields_reg2[:, :2],
+            np.expand_dims(fields_bmin1, 1),
+            np.expand_dims(fields_bmin2, 1),
             np.expand_dims(fields_scale1, 1),
             np.expand_dims(fields_scale2, 1),
         ], axis=1))

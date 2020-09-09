@@ -38,6 +38,8 @@ class CifDetGenerator():
         self.intensities = None
         self.fields_reg = None
         self.fields_wh = None
+        self.fields_reg_bmin = None
+        self.fields_wh_bmin = None
         self.fields_reg_l = None
 
         self.sink = create_sink(config.side_length)
@@ -68,6 +70,8 @@ class CifDetGenerator():
         self.intensities = np.zeros((n_fields, field_h, field_w), dtype=np.float32)
         self.fields_reg = np.full((n_fields, 2, field_h, field_w), np.nan, dtype=np.float32)
         self.fields_wh = np.full((n_fields, 2, field_h, field_w), np.nan, dtype=np.float32)
+        self.fields_reg_bmin = np.full((n_fields, field_h, field_w), np.nan, dtype=np.float32)
+        self.fields_wh_bmin = np.full((n_fields, field_h, field_w), np.nan, dtype=np.float32)
         self.fields_reg_l = np.full((n_fields, field_h, field_w), np.inf, dtype=np.float32)
 
         # bg_mask
@@ -115,20 +119,30 @@ class CifDetGenerator():
         assert wh[1] > 0.0
         self.fields_wh[f, :, miny:maxy, minx:maxx][:, mask] = np.expand_dims(wh, 1)
 
+        # update bmin
+        self.fields_reg_bmin[f, miny:maxy, minx:maxx][mask] = 2.0
+        self.fields_wh_bmin[f, miny:maxy, minx:maxx][mask] = 2.0
+
     def fields(self, valid_area):
         p = self.config.padding
         intensities = self.intensities[:, p:-p, p:-p]
         fields_reg = self.fields_reg[:, :, p:-p, p:-p]
         fields_wh = self.fields_wh[:, :, p:-p, p:-p]
+        fields_reg_bmin = self.fields_reg_bmin[:, p:-p, p:-p]
+        fields_wh_bmin = self.fields_wh_bmin[:, p:-p, p:-p]
 
         mask_valid_area(intensities, valid_area)
         mask_valid_area(fields_reg[:, 0], valid_area, fill_value=np.nan)
         mask_valid_area(fields_reg[:, 1], valid_area, fill_value=np.nan)
         mask_valid_area(fields_wh[:, 0], valid_area, fill_value=np.nan)
         mask_valid_area(fields_wh[:, 1], valid_area, fill_value=np.nan)
+        mask_valid_area(fields_reg_bmin, valid_area, fill_value=np.nan)
+        mask_valid_area(fields_wh_bmin, valid_area, fill_value=np.nan)
 
         return torch.from_numpy(np.concatenate([
             np.expand_dims(intensities, 1),
             fields_reg,
-            fields_wh
+            fields_wh,
+            np.expand_dims(fields_reg_bmin, 1),
+            np.expand_dims(fields_wh_bmin, 1),
         ], axis=1))

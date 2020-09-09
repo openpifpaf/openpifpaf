@@ -37,6 +37,7 @@ class CifGenerator():
 
         self.intensities = None
         self.fields_reg = None
+        self.fields_bmin = None
         self.fields_scale = None
         self.fields_reg_l = None
 
@@ -68,6 +69,7 @@ class CifGenerator():
         self.intensities = np.zeros((n_fields, field_h, field_w), dtype=np.float32)
         self.fields_reg = np.full((n_fields, 6, field_h, field_w), np.nan, dtype=np.float32)
         self.fields_reg[:, 2:] = np.inf
+        self.fields_bmin = np.full((n_fields, field_h, field_w), np.nan, dtype=np.float32)
         self.fields_scale = np.full((n_fields, field_h, field_w), np.nan, dtype=np.float32)
         self.fields_reg_l = np.full((n_fields, field_h, field_w), np.inf, dtype=np.float32)
 
@@ -152,6 +154,9 @@ class CifGenerator():
         patch[:2, mask] = sink_reg[:, mask]
         patch[2:, mask] = np.expand_dims(max_r, 1) * 0.5
 
+        # update bmin
+        self.fields_bmin[f, miny:maxy, minx:maxx][mask] = 0.1
+
         # update scale
         assert np.isnan(scale) or 0.0 < scale < 100.0
         self.fields_scale[f, miny:maxy, minx:maxx][mask] = scale
@@ -160,15 +165,18 @@ class CifGenerator():
         p = self.config.padding
         intensities = self.intensities[:, p:-p, p:-p]
         fields_reg = self.fields_reg[:, :, p:-p, p:-p]
+        fields_bmin = self.fields_bmin[:, :, p:-p, p:-p]
         fields_scale = self.fields_scale[:, p:-p, p:-p]
 
         mask_valid_area(intensities, valid_area)
         mask_valid_area(fields_reg[:, 0], valid_area, fill_value=np.nan)
         mask_valid_area(fields_reg[:, 1], valid_area, fill_value=np.nan)
+        mask_valid_area(fields_bmin, valid_area, fill_value=np.nan)
         mask_valid_area(fields_scale, valid_area, fill_value=np.nan)
 
         return torch.from_numpy(np.concatenate([
             np.expand_dims(intensities, 1),
             fields_reg[:, :2],  # TODO dropped margin components for now
+            np.expand_dims(fields_bmin, 1),
             np.expand_dims(fields_scale, 1),
         ], axis=1))
