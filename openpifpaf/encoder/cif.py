@@ -165,7 +165,7 @@ class CifGenerator():
         p = self.config.padding
         intensities = self.intensities[:, p:-p, p:-p]
         fields_reg = self.fields_reg[:, :, p:-p, p:-p]
-        fields_bmin = self.fields_bmin[:, :, p:-p, p:-p]
+        fields_bmin = self.fields_bmin[:, p:-p, p:-p]
         fields_scale = self.fields_scale[:, p:-p, p:-p]
 
         mask_valid_area(intensities, valid_area)
