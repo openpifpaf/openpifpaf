@@ -64,8 +64,6 @@ def cli():
                         help='number of epochs to train')
     parser.add_argument('--val-interval', default=1, type=int,
                         help='validation run every n epochs')
-    parser.add_argument('--rescale-images', type=float, default=1.0,
-                        help='overall image rescale factor')
     parser.add_argument('--fix-batch-norm',
                         default=False, action='store_true',
                         help='fix batch norm running statistics')
