@@ -17,8 +17,7 @@ LOG = logging.getLogger(__name__)
 
 
 def default_output_name(args):
-    now = datetime.datetime.now().strftime('%y%m%d-%H%M%S')
-    output = '{}.eval-{}-{}'.format(args.checkpoint, args.dataset, now)
+    output = '{}.eval-{}'.format(args.checkpoint, args.dataset)
 
     if not args.force_complete_pose:
         output += '-noforcecompletepose'
@@ -30,6 +29,8 @@ def default_output_name(args):
             output += 'o'
         if args.coco_eval_extended_scale:
             output += 's'
+    if args.coco_eval_long_edge != 641:
+        output += '-edge{}'.format(args.coco_eval_long_edge)
 
     if args.two_scale:
         output += '-twoscale'
@@ -142,11 +143,11 @@ def main():
             print('Not evaluating epoch 0.')
             return
     if args.skip_existing:
-        if os.path.exists(args.output + '.stats.json'):
-            print('Output file {} exists already. Exiting.'
-                  ''.format(args.output + '.stats.json'))
+        stats_file = args.output + '.stats.json'
+        if os.path.exists(stats_file):
+            print('Output file {} exists already. Exiting.'.format(stats_file))
             return
-        print('Processing: {}'.format(args.checkpoint))
+        print('{} not found. Processing: {}'.format(stats_file, args.checkpoint))
 
     datamodule = datasets.factory(args.dataset)
     model_cpu, _ = network.factory_from_args(args)

@@ -392,13 +392,13 @@ class Plots():
 
 
 class EvalPlots():
-    def __init__(self, log_files, labels=None, output_prefix=None,
-                 edge=321, decoder=0, legend_last_ap=True,
-                 modifiers='', first_epoch=0.0):
-        self.edge = edge
+    def __init__(self, log_files, file_suffix, *,
+                 labels=None, output_prefix=None,
+                 decoder=0, legend_last_ap=True,
+                 first_epoch=0.0):
+        self.file_suffix = file_suffix
         self.decoder = decoder
         self.legend_last_ap = legend_last_ap
-        self.modifiers = modifiers
         self.first_epoch = first_epoch
 
         self.datas = [self.read_log(f) for f in log_files]
@@ -410,13 +410,10 @@ class EvalPlots():
 
         # modify individual file names and comma-seperated filenames
         files = path.split(',')
-        files = ','.join(
-            [
-                '{}.epoch???.evalcoco-edge{}{}.stats.json'
-                ''.format(f[:-4], self.edge, self.modifiers)
-                for f in files
-            ]
-        )
+        files = ','.join([
+            '{}.epoch???{}'.format(f[:-4], self.file_suffix)
+            for f in files
+        ])
 
         def epoch_from_filename(filename):
             i = filename.find('epoch')
@@ -428,7 +425,7 @@ class EvalPlots():
                     epoch_from_filename(k_c[0]),
                     json.loads(k_c[1]),
                 ))
-                .filter(lambda k_c: k_c[0] >= self.first_epoch and len(k_c[1]['stats']) == 10)
+                .filter(lambda k_c: k_c[0] >= self.first_epoch and len(k_c[1]['stats']) >= 10)
                 .sortByKey()
                 .collect())
 
@@ -468,7 +465,7 @@ class EvalPlots():
                 horizontalalignment='center', verticalalignment='top',
             )
 
-        ax.set_ylim(bottom=0.56)
+        # ax.set_ylim(bottom=0.56)
         ax.set_xlabel('GMACs' if entry == 0 else 'million parameters')
         ax.set_ylabel('AP')
         ax.grid(linestyle='dotted')
@@ -545,11 +542,11 @@ def main():
                         version='OpenPifPaf {version}'.format(version=__version__))
 
     parser.add_argument('log_file', nargs='+',
-                        help='path to log file')
+                        help='path to log file(s)')
     parser.add_argument('--label', nargs='+',
-                        help='labels in the same order as files')
-    parser.add_argument('--eval-edge', default=641, type=int,
-                        help='side length during eval')
+                        help='label(s) in the same order as files')
+    parser.add_argument('--eval-suffix', default='.eval-cocokp.stats.json',
+                        help='suffix of evaluation files to look for')
     parser.add_argument('--first-epoch', default=1e-6, type=float,
                         help='epoch (can be float) of first data point to plot')
     parser.add_argument('--no-share-y', dest='share_y',
@@ -563,11 +560,9 @@ def main():
     if args.output is None:
         args.output = args.log_file[-1] + '.'
 
-    EvalPlots(args.log_file, args.label, args.output,
-              edge=args.eval_edge, first_epoch=args.first_epoch,
-              ).show_all(share_y=args.share_y)
-    EvalPlots(args.log_file, args.label, args.output,
-              edge=args.eval_edge, modifiers='-os', first_epoch=args.first_epoch,
+    EvalPlots(args.log_file, args.eval_suffix,
+              labels=args.label, output_prefix=args.output,
+              first_epoch=args.first_epoch,
               ).show_all(share_y=args.share_y)
     Plots(args.log_file, args.label, args.output, first_epoch=args.first_epoch).show_all(
         share_y=args.share_y, show_mtl_sigmas=args.show_mtl_sigmas)
