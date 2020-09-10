@@ -1,7 +1,6 @@
 """Evaluation on COCO data."""
 
 import argparse
-import datetime
 import logging
 import os
 import sys
