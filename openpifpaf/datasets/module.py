@@ -26,6 +26,8 @@ class DataModule:
     #: so that different instances of head metas are created for different
     #: instances of the data module. Head metas contain the base stride which
     #: might be different for different data module instances.
+    #: When loading a checkpoint, entries in this list will be matched by
+    #: name and dataset to entries in the checkpoint and overwritten here.
     head_metas: List[headmeta.Base] = None
 
     @classmethod

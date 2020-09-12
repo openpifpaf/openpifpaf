@@ -42,7 +42,7 @@ class CocoDet(DataModule):
         super().__init__()
         cifdet = headmeta.CifDet('cifdet', 'cocodet', COCO_CATEGORIES)
         cifdet.upsample_stride = self.upsample_stride
-        self.head_metas = (cifdet,)
+        self.head_metas = [cifdet]
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):

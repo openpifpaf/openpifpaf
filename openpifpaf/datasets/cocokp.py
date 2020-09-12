@@ -74,7 +74,7 @@ class CocoKp(DataModule):
         cif.upsample_stride = self.upsample_stride
         caf.upsample_stride = self.upsample_stride
         dcaf.upsample_stride = self.upsample_stride
-        self.head_metas = (cif, caf, dcaf)
+        self.head_metas = [cif, caf, dcaf]
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
