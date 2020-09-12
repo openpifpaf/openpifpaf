@@ -43,7 +43,7 @@ class Coco(Base):
         LOG.debug('max = %d, category ids = %s, iou_type = %s',
                   self.max_per_image, self.category_ids, self.iou_type)
 
-    def stats(self, predictions=None, image_ids=None):
+    def _stats(self, predictions=None, image_ids=None):
         # from pycocotools.cocoeval import COCOeval
         if predictions is None:
             predictions = self.predictions
@@ -96,7 +96,7 @@ class Coco(Base):
             })
 
         if LOG.getEffectiveLevel() == logging.DEBUG:
-            self.stats(image_annotations, [image_id])
+            self._stats(image_annotations, [image_id])
             LOG.debug(image_meta)
 
         self.predictions += image_annotations
@@ -114,27 +114,14 @@ class Coco(Base):
             myzip.write(filename + '.pred.json', arcname='predictions.json')
         LOG.info('wrote %s.zip', filename)
 
-    def write_stats(self, filename, *, additional_data):
+    def stats(self):
         n_images = len(self.image_ids)
 
-        stats = self.stats()
-        outfile = filename + '.stats.json'
-        with open(outfile, 'w') as f:
-            data = {
-                'stats': stats.tolist(),
-                'n_images': n_images,
-                'decoder_time': self.decoder_time,
-                'nn_time': self.nn_time,
-            }
-            json.dump(dict(**data, **additional_data), f)
-        LOG.info('wrote %s', outfile)
-        # print('given dataset does not have ground truth, so no stats summary')
+        data = {
+            'stats': self._stats().tolist(),
+            'n_images': n_images,
+            'decoder_time': self.decoder_time,
+            'nn_time': self.nn_time,
+        }
 
-        print('n images = {}'.format(n_images))
-        print('decoder time = {:.1f}s ({:.0f}ms / image)'.format(
-            self.decoder_time, 1000 * self.decoder_time / n_images))
-        print('nn time = {:.1f}s ({:.0f}ms / image)'.format(
-            self.nn_time, 1000 * self.nn_time / n_images))
-        print('total time = {:.1f}s ({:.0f}ms / image)'.format(
-            additional_data.get('total_time', 0),
-            1000 * additional_data.get('total_time', 0) / n_images))
+        return data

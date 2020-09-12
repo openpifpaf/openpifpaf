@@ -1,6 +1,7 @@
 """Evaluation on COCO data."""
 
 import argparse
+import json
 import logging
 import os
 import sys
@@ -210,12 +211,24 @@ def main():
     for metric in metrics:
         if args.write_predictions:
             metric.write_predictions(args.output)
-        metric.write_stats(args.output, additional_data={
+
+        additional_data = {
             'total_time': total_time,
             'checkpoint': args.checkpoint,
             'count_ops': counted_ops,
             'file_size': file_size,
-        })
+        }
+        stats = dict(**metric.stats(), **additional_data)
+        with open(args.output + '.stats.json', 'w') as f:
+            json.dump(stats, f)
+
+        LOG.info('stats:\n%s', json.dumps(stats, indent=4))
+        LOG.info(
+            'time per image: decoder = %.0fms, nn = %.0fms, total = %.0fms',
+            1000 * stats['decoder_time'] / stats['n_images'],
+            1000 * stats['nn_time'] / stats['n_images'],
+            1000 * stats['total_time'] / stats['n_images'],
+        )
 
 
 if __name__ == '__main__':
