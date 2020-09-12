@@ -134,6 +134,7 @@ def count_ops(model, height=641, width=641):
     return gmacs, params
 
 
+# pylint: disable=too-many-statements
 def main():
     args = cli()
 
