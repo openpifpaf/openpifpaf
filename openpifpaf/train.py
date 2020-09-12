@@ -30,7 +30,7 @@ def default_output_file(args):
     if args.cocokp_orientation_invariant or args.cocokp_extended_scale:
         out += '-'
         if args.cocokp_orientation_invariant:
-            out += 'o{:02.0f}'.format(args.orientation_invariant * 100.0)
+            out += 'o{:02.0f}'.format(args.cocokp_orientation_invariant * 100.0)
         if args.cocokp_extended_scale:
             out += 's'
 
