@@ -138,16 +138,17 @@ def factory(
         net_cpu = checkpoint['model']
         epoch = checkpoint['epoch']
 
-        # Match head metas by name and overwrite with meta from checkpoint.
-        # This makes sure that the head metas have their head_index and
-        # base_stride attributes set.
-        input_head_meta_indices = {(meta.dataset, meta.name): i
-                                   for i, meta in enumerate(head_metas)}
-        for hn in net_cpu.head_nets:
-            input_index = input_head_meta_indices.get((hn.meta.dataset, hn.meta.name), None)
-            if input_index is None:
-                continue
-            head_metas[input_index] = hn.meta
+        if head_metas is not None:
+            # Match head metas by name and overwrite with meta from checkpoint.
+            # This makes sure that the head metas have their head_index and
+            # base_stride attributes set.
+            input_head_meta_indices = {(meta.dataset, meta.name): i
+                                       for i, meta in enumerate(head_metas)}
+            for hn in net_cpu.head_nets:
+                input_index = input_head_meta_indices.get((hn.meta.dataset, hn.meta.name), None)
+                if input_index is None:
+                    continue
+                head_metas[input_index] = hn.meta
 
         # normalize for backwards compatibility
         nets.model_migration(net_cpu)
