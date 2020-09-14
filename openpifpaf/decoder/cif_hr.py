@@ -71,7 +71,7 @@ class CifDetHr(CifHr):
             p = p[:, p[4] > min_scale / stride]
             p = p[:, p[5] > min_scale / stride]
 
-        v, x, y, _, w, h, _ = p
+        v, x, y, w, h, _, __ = p
         x = x * stride
         y = y * stride
         sigma = np.maximum(1.0, 0.1 * np.minimum(w, h) * stride)
