@@ -60,7 +60,7 @@ def image_canvas(image, fig_file=None, *, show=True, dpi_factor=1.0,
         image_area_ratio = (1.0 - margin[1] - margin[3]) / (1.0 - margin[0] - margin[2])
         kwargs['figsize'] = (fig_width, fig_width * image_ratio / image_area_ratio)
 
-    fig = plt.figure(dpi=image.shape[1] / kwargs['figsize'][0] * dpi_factor, **kwargs)
+    fig = plt.figure(dpi=max(50.0, image.shape[1] / kwargs['figsize'][0] * dpi_factor), **kwargs)
     ax = plt.Axes(fig, [0.0 + margin[0],
                         0.0 + margin[1],
                         1.0 - margin[2],
