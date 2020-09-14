@@ -121,7 +121,7 @@ def factory(head_metas, *, profile=False, profile_device=None):
         decode.fields_batch = ProfilerAutograd(
             decode.fields_batch, device=profile_device, out_name=profile)
 
-    return decoders
+    return generator.Multi(decoders)
 
     # TODO implement!
         # if multi_scale:

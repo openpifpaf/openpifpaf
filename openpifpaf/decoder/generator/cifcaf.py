@@ -90,11 +90,9 @@ class CifCaf(Generator):
         for vis, meta in zip(self.caf_visualizers, self.caf_metas):
             vis.predicted(fields[meta.head_index])
 
-        cif_fields = [fields[meta.head_index] for meta in self.cif_metas]
-        cifhr = CifHr().fill(cif_fields, self.cif_metas)
-        seeds = CifSeeds(cifhr.accumulated).fill(cif_fields, self.cif_metas)
-        caf_fields = [fields[meta.head_index] for meta in self.caf_metas]
-        caf_scored = CafScored(cifhr.accumulated).fill(caf_fields, self.caf_metas)
+        cifhr = CifHr().fill(fields, self.cif_metas)
+        seeds = CifSeeds(cifhr.accumulated).fill(fields, self.cif_metas)
+        caf_scored = CafScored(cifhr.accumulated).fill(fields, self.caf_metas)
 
         occupied = Occupancy(cifhr.accumulated.shape, 2, min_scale=4)
         annotations = []

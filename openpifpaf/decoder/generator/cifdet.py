@@ -38,14 +38,13 @@ class CifDet(Generator):
 
     def __call__(self, fields):
         start = time.perf_counter()
-        cifdet_fields = [fields[meta.head_index] for meta in self.metas]
 
         if self.visualizers:
             for vis, meta in zip(self.visualizers, self.metas):
                 vis.predicted(fields[meta.head_index])
 
-        cifhr = CifDetHr().fill(cifdet_fields, self.metas)
-        seeds = CifDetSeeds(cifhr.accumulated).fill(cifdet_fields, self.metas)
+        cifhr = CifDetHr().fill(fields, self.metas)
+        seeds = CifDetSeeds(cifhr.accumulated).fill(fields, self.metas)
         occupied = Occupancy(cifhr.accumulated.shape, 2, min_scale=2.0)
 
         annotations = []

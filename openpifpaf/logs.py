@@ -102,8 +102,14 @@ class Plots():
                 for data, label in zip(self.datas, self.labels)}
 
     def field_names(self):
-        placeholder = ['field {}'.format(i) for i in range(6)]
-        return {label: data['config'][0]['field_names'] if 'config' in data else placeholder
+        def migrate(field_name):
+            """to process older (pre v0.12) log files"""
+            if field_name.startswith(('cif.', 'caf.', 'caf25.')):
+                return 'cocokp.{}'.format(field_name)
+            if field_name.startswith('cifdet.'):
+                return 'cocodet.{}'.format(field_name)
+            return field_name
+        return {label: [migrate(f) for f in data['config'][0]['field_names']]
                 for data, label in zip(self.datas, self.labels)}
 
     def process_arguments(self):
@@ -335,17 +341,16 @@ class Plots():
     def show_all(self, *, share_y=True, show_mtl_sigmas=False):
         pprint(self.process_arguments())
 
+        all_field_names = [f for fs in self.field_names().values() for f in fs]
         rows = defaultdict(list)
-        for field_names in self.field_names().values():
-            for f in field_names:
-                row_name, _, _ = f.partition('.') if '.' in f else ('default', None, None)
-                if f not in rows[row_name]:
-                    rows[row_name].append(f)
+        for f in all_field_names:
+            dataset_name, head_name = f.split('.')[:2]
+            row_name = dataset_name + '.' + head_name
+            if f not in rows[row_name]:
+                rows[row_name].append(f)
         n_rows = len(rows)
         n_cols = max(len(r) for r in rows.values())
         multi_figsize = (5 * n_cols, 2.5 * n_rows)
-        # if multi_figsize[0] > 40.0:
-        #     multi_figsize = (40.0, multi_figsize[1] / multi_figsize[0] * 40.0)
 
         with show.canvas() as ax:
             self.time(ax)
@@ -357,8 +362,7 @@ class Plots():
             self.lr(ax)
 
         with show.canvas(nrows=n_rows, ncols=n_cols, squeeze=False,
-                         dpi=75,
-                         figsize=multi_figsize,
+                         figsize=multi_figsize, dpi=50,
                          sharey=share_y, sharex=True) as axs:
             for row_i, row in enumerate(rows.values()):
                 for col_i, field_name in enumerate(row):
@@ -371,7 +375,7 @@ class Plots():
             self.preprocess_time(ax)
 
         with show.canvas(nrows=n_rows, ncols=n_cols, squeeze=False,
-                         figsize=multi_figsize,
+                         figsize=multi_figsize, dpi=50,
                          sharey=share_y, sharex=True) as axs:
             for row_i, row in enumerate(rows.values()):
                 for col_i, field_name in enumerate(row):
@@ -379,7 +383,7 @@ class Plots():
 
         if show_mtl_sigmas:
             with show.canvas(nrows=n_rows, ncols=n_cols, squeeze=False,
-                             figsize=multi_figsize,
+                             figsize=multi_figsize, dpi=50,
                              sharey=share_y, sharex=True) as axs:
                 for row_i, row in enumerate(rows.values()):
                     for col_i, field_name in enumerate(row):

@@ -128,7 +128,7 @@ def processor_factory(args):
 
     head_metas = [hn.meta for hn in model.head_nets]
     processor = decoder.factory(
-        head_metas, profile=args.profile_decoder, profile_device=args.device)[0]
+        head_metas, profile=args.profile_decoder, profile_device=args.device)
 
     return processor, model
 

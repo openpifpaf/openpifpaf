@@ -161,7 +161,7 @@ def main():
 
     head_metas = [hn.meta for hn in model.head_nets]
     processor = decoder.factory(
-        head_metas, profile=args.profile_decoder, profile_device=args.device)[0]
+        head_metas, profile=args.profile_decoder, profile_device=args.device)
     # processor.instance_scorer = decocder.instance_scorer.InstanceScoreRecorder()
     # processor.instance_scorer = torch.load('instance_scorer.pkl')
 

@@ -18,8 +18,8 @@ class CifHr:
     def __init__(self):
         self.accumulated = None
 
-    def fill_single(self, cif, meta):
-        return self.fill([cif], [meta])
+    def fill_single(self, all_fields, meta):
+        return self.fill(all_fields, [meta])
 
     def accumulate(self, len_cifs, t, p, stride, min_scale):
         p = p[:, p[0] > self.v_threshold]
@@ -37,22 +37,23 @@ class CifHr:
         scalar_square_add_gauss_with_max(
             t, x, y, sigma, v / self.neighbors / len_cifs, truncate=1.0)
 
-    def fill(self, cifs, metas):
+    def fill(self, all_fields, metas):
         start = time.perf_counter()
 
         if self.accumulated is None:
+            field_shape = all_fields[metas[0].head_index].shape
             shape = (
-                cifs[0].shape[0],
-                int((cifs[0].shape[2] - 1) * metas[0].stride + 1),
-                int((cifs[0].shape[3] - 1) * metas[0].stride + 1),
+                field_shape[0],
+                int((field_shape[2] - 1) * metas[0].stride + 1),
+                int((field_shape[3] - 1) * metas[0].stride + 1),
             )
             ta = np.zeros(shape, dtype=np.float32)
         else:
             ta = np.zeros(self.accumulated.shape, dtype=np.float32)
 
-        for cif, meta in zip(cifs, metas):
-            for t, p in zip(ta, cif):
-                self.accumulate(len(cifs), t, p, meta.stride, meta.decoder_min_scale)
+        for meta in metas:
+            for t, p in zip(ta, all_fields[meta.head_index]):
+                self.accumulate(len(metas), t, p, meta.stride, meta.decoder_min_scale)
 
         if self.accumulated is None:
             self.accumulated = ta
