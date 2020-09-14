@@ -18,7 +18,7 @@ def localize(x):
         head_metas=datamodule.head_metas)
     model.eval()
 
-    decode = openpifpaf.decoder.factory(datamodule.head_metas)[0]
+    decode = openpifpaf.decoder.factory(datamodule.head_metas)
     cif_ref = decode.fields_batch(model, torch.unsqueeze(black, 0))[0][0]
     cif = decode.fields_batch(model, torch.unsqueeze(im, 0))[0][0]
 
