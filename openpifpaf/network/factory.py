@@ -14,7 +14,8 @@ PRETRAINED_UNAVAILABLE = object()
 # Dataset cocokp is implied. All other datasets need to be explicit.
 CHECKPOINT_URLS = {
     'resnet18': PRETRAINED_UNAVAILABLE,
-    'resnet50': PRETRAINED_UNAVAILABLE,
+    'resnet50': ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
+                 'v0.12a1/resnet50-200912-124649-cocokp-o10s-cda25db6.pkl'),
     'resnet101': PRETRAINED_UNAVAILABLE,
     'resnet152': PRETRAINED_UNAVAILABLE,
     'shufflenetv2x1': PRETRAINED_UNAVAILABLE,
@@ -109,7 +110,8 @@ def factory(
         two_scale=False,
         multi_scale=False,
         multi_scale_hflip=True,
-        download_progress=True):
+        download_progress=True,
+        head_strategy='extend'):
 
     if base_name:
         assert head_metas
@@ -138,7 +140,8 @@ def factory(
         net_cpu = checkpoint['model']
         epoch = checkpoint['epoch']
 
-        if head_metas is not None:
+        if head_metas is not None and head_strategy == 'keep':
+            LOG.info('keeping heads from loaded checkpoint')
             # Match head metas by name and overwrite with meta from checkpoint.
             # This makes sure that the head metas have their head_index and
             # base_stride attributes set.
@@ -149,6 +152,30 @@ def factory(
                 if input_index is None:
                     continue
                 head_metas[input_index] = hn.meta
+        elif head_metas is not None and head_strategy == 'create':
+            LOG.info('creating new heads')
+            headnets = [HEAD_FACTORIES[h.__class__](h, net_cpu.basenet.out_features)
+                        for h in head_metas]
+            net_cpu.set_head_nets(headnets)
+        elif head_metas is not None and head_strategy == 'extend':
+            LOG.info('extending existing heads')
+            existing_headnets = {(hn.meta.dataset, hn.meta.name): hn
+                                 for hn in net_cpu.headnets}
+            headnets = []
+            for meta_i, meta in enumerate(head_metas):
+                if (meta.dataset, meta.name) in existing_headnets:
+                    hn = existing_headnets[(meta.dataset, meta.name)]
+                    headnets.append(hn)
+                    # Match head metas by name and overwrite with meta from checkpoint.
+                    # This makes sure that the head metas have their head_index and
+                    # base_stride attributes set.
+                    head_metas[meta_i] = hn.meta
+                else:
+                    headnets.append(
+                        HEAD_FACTORIES[meta.__class__](meta, net_cpu.basenet.out_features))
+            net_cpu.set_head_nets(headnets)
+        elif head_metas is not None:
+            raise Exception('head strategy {} unknown'.format(head_strategy))
 
         # normalize for backwards compatibility
         nets.model_migration(net_cpu)

@@ -409,17 +409,19 @@ class CompositeLoss(torch.nn.Module):
         self.n_vectors = head_net.meta.n_vectors
         self.n_scales = head_net.meta.n_scales
 
-        LOG.debug('%s: n_vectors = %d, n_scales = %d, margin = %s',
-                  head_net.meta.name, self.n_vectors, self.n_scales, self.margin)
+        LOG.debug('%s: n_vectors = %d, n_scales = %d',
+                  head_net.meta.name, self.n_vectors, self.n_scales)
 
         self.confidence_loss = Bce(focal_gamma=self.focal_gamma, detach_focal=True)
         self.regression_loss = regression_loss or laplace_loss
         self.scale_losses = torch.nn.ModuleList([ScaleLoss(self.b_scale, low_clip=0.0)
                                                  for _ in range(self.n_scales)])
         self.field_names = (
-            ['{}.c'.format(head_net.meta.name)] +
-            ['{}.vec{}'.format(head_net.meta.name, i + 1) for i in range(self.n_vectors)] +
-            ['{}.scales{}'.format(head_net.meta.name, i + 1) for i in range(self.n_scales)]
+            ['{}.{}.c'.format(head_net.meta.dataset, head_net.meta.name)] +
+            ['{}.{}.vec{}'.format(head_net.meta.dataset, head_net.meta.name, i + 1)
+             for i in range(self.n_vectors)] +
+            ['{}.{}.scales{}'.format(head_net.meta.dataset, head_net.meta.name, i + 1)
+             for i in range(self.n_scales)]
         )
         if self.margin:
             self.field_names += ['{}.margin{}'.format(head_net.meta.name, i + 1)
@@ -530,6 +532,8 @@ class CompositeLoss(torch.nn.Module):
         LOG.debug('loss for %s', self.field_names)
 
         x, t = args
+        if t is None:
+            return [None for _ in range(1 + self.n_vectors + self.n_scales)]
         assert x.shape[2] == 1 + self.n_vectors * 3 + self.n_scales
         assert t.shape[2] == 1 + self.n_vectors * 3 + self.n_scales
 

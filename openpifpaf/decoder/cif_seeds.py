@@ -18,16 +18,17 @@ class CifSeeds:
         self.cifhr = cifhr
         self.seeds = []
 
-    def fill(self, cifs, metas):
-        for cif, meta in zip(cifs, metas):
-            self.fill_single(cif, meta)
+    def fill(self, all_fields, metas):
+        for meta in metas:
+            self.fill_single(all_fields, meta)
         return self
 
-    def fill_single(self, cif, meta: headmeta.Cif):
+    def fill_single(self, all_fields, meta: headmeta.Cif):
         start = time.perf_counter()
 
         sv = 0.0
 
+        cif = all_fields[meta.head_index]
         for field_i, p in enumerate(cif):
             if meta.decoder_seed_mask is not None and not meta.decoder_seed_mask[field_i]:
                 continue
@@ -58,9 +59,10 @@ class CifSeeds:
 
 
 class CifDetSeeds(CifSeeds):
-    def fill_single(self, cif, meta: headmeta.CifDet):
+    def fill_single(self, all_fields, meta: headmeta.CifDet):
         start = time.perf_counter()
 
+        cif = all_fields[meta.head_index]
         for field_i, p in enumerate(cif):
             p = p[:, p[0] > self.threshold]
             if meta.decoder_min_scale:

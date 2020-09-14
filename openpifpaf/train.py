@@ -71,7 +71,7 @@ def cli():
                         help='ema decay constant')
     parser.add_argument('--clip-grad-norm', default=0.0, type=float,
                         help='clip grad norm: specify largest change for single param')
-    parser.add_argument('--log-interval', default=10, type=int,
+    parser.add_argument('--log-interval', default=11, type=int,
                         help='log loss every n steps')
     parser.add_argument('--disable-cuda', action='store_true',
                         help='disable CUDA')

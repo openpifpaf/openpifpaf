@@ -119,7 +119,9 @@ class Trainer():
     def train_batch(self, data, targets, apply_gradients=True):  # pylint: disable=method-hidden
         if self.device:
             data = data.to(self.device, non_blocking=True)
-            targets = [head.to(self.device, non_blocking=True) for head in targets]
+            targets = [head.to(self.device, non_blocking=True)
+                       if head is not None else None
+                       for head in targets]
 
         # train encoder
         with torch.autograd.profiler.record_function('model'):
@@ -154,7 +156,9 @@ class Trainer():
     def val_batch(self, data, targets):
         if self.device:
             data = data.to(self.device, non_blocking=True)
-            targets = [head.to(self.device, non_blocking=True) for head in targets]
+            targets = [head.to(self.device, non_blocking=True)
+                       if head is not None else None
+                       for head in targets]
 
         with torch.no_grad():
             outputs = self.model(data)

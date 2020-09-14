@@ -34,8 +34,9 @@ class CafScored:
             nine[0] = nine[0] * (self.cif_floor + (1.0 - self.cif_floor) * cifhr_t)
         return nine[:, nine[0] > self.score_th]
 
-    def fill_single(self, caf, meta: headmeta.Caf):
+    def fill_single(self, all_fields, meta: headmeta.Caf):
         start = time.perf_counter()
+        caf = all_fields[meta.head_index]
 
         if self.forward is None:
             self.forward = [np.empty((9, 0), dtype=caf.dtype) for _ in caf]
@@ -75,8 +76,8 @@ class CafScored:
                   time.perf_counter() - start)
         return self
 
-    def fill(self, cafs, metas: List[headmeta.Caf]):
-        for caf, meta in zip(cafs, metas):
-            self.fill_single(caf, meta)
+    def fill(self, all_fields, metas: List[headmeta.Caf]):
+        for meta in metas:
+            self.fill_single(all_fields, meta)
 
         return self
