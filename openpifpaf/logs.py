@@ -396,6 +396,23 @@ class Plots():
 
 
 class EvalPlots():
+    #: Eval files come with text labels. This is a translation to prettier labels
+    #: for matplotlib axes.
+    text_to_latex_labels = {
+        'AP0.5': 'AP$^{0.50}$',
+        'AP0.75': 'AP$^{0.75}$',
+        'APS': 'AP$^{S}$',
+        'APM': 'AP$^{M}$',
+        'APL': 'AP$^{L}$',
+        'ART1': 'AR_{\textrm{Top1}}',
+        'ART10': 'AR_{\textrm{Top10}}',
+        'AR0.5': 'AR$^{0.50}$',
+        'AR0.75': 'AR$^{0.75}$',
+        'ARS': 'AR$^{S}$',
+        'ARM': 'AR$^{M}$',
+        'ARL': 'AR$^{L}$',
+    }
+
     def __init__(self, log_files, file_suffix, *,
                  labels=None, output_prefix=None,
                  decoder=0, legend_last_ap=True,
@@ -528,7 +545,7 @@ class EvalPlots():
         with show.canvas(nrows=2, ncols=5, figsize=(20, 10),
                          sharex=True, sharey=share_y) as axs:
             self.fill_all(axs)
-            axs[0, 4].legend(fontsize=5, loc='lower right')
+            axs.reshape(-1)[-1].legend(fontsize=5, loc='lower right')
 
         with show.canvas(nrows=1, ncols=2, figsize=(10, 5),
                          sharey=share_y) as axs:

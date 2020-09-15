@@ -214,6 +214,7 @@ def main():
             metric.write_predictions(args.output)
 
         additional_data = {
+            'dataset': args.dataset,
             'total_time': total_time,
             'checkpoint': args.checkpoint,
             'count_ops': counted_ops,

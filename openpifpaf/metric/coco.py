@@ -40,6 +40,15 @@ class Coco(Base):
         self.decoder_time = 0.0
         self.nn_time = 0.0
 
+        if self.iou_type == 'keypoints':
+            self.text_labels = ['AP', 'AP0.5', 'AP0.75', 'APM', 'APL',
+                                'AR', 'AR0.5', 'AR0.75', 'ARM', 'ARL']
+        elif self.iou_type == 'bbox':
+            self.text_labels = ['AP', 'AP0.5', 'AP0.75', 'APS', 'APM', 'APL',
+                                'ART1', 'ART10', 'AR', 'ARS', 'ARM', 'ARL']
+        else:
+            LOG.warning('Unknown iou type "%s". Specify text_labels yourself.', self.iou_type)
+
         LOG.debug('max = %d, category ids = %s, iou_type = %s',
                   self.max_per_image, self.category_ids, self.iou_type)
 
@@ -119,6 +128,7 @@ class Coco(Base):
 
         data = {
             'stats': self._stats().tolist(),
+            'text_labels': self.text_labels,
             'n_images': n_images,
             'decoder_time': self.decoder_time,
             'nn_time': self.nn_time,
