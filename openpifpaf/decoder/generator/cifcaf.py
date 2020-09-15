@@ -283,9 +283,7 @@ class CifCaf(Generator):
     def complete_annotations(self, cifhr, fields, annotations):
         start = time.perf_counter()
 
-        caf_fields = [fields[meta.head_index] for meta in self.caf_metas]
-        caf_scored = CafScored(cifhr.accumulated, score_th=0.0001).fill(caf_fields, self.caf_metas)
-
+        caf_scored = CafScored(cifhr.accumulated, score_th=0.0001).fill(fields, self.caf_metas)
         for ann in annotations:
             unfilled_mask = ann.data[:, 2] == 0.0
             self._grow(ann, caf_scored, reverse_match=False)
