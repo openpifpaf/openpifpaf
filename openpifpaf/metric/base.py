@@ -1,11 +1,4 @@
 class Base:
-    def __init__(self):
-        #: accumulated time spent processing the neural network part
-        self.nn_time = 0.0
-
-        #: accumulated time spent in the decoder
-        self.decoder_time = 0.0
-
     def accumulate(self, predictions, image_meta):
         """For every image, accumulate that image's predictions into this metric.
 
@@ -15,7 +8,18 @@ class Base:
         raise NotImplementedError
 
     def stats(self):
-        """Return a dictionary of summary statistics."""
+        """Return a dictionary of summary statistics.
+
+        The dictionary should be of the following form and can contain
+        an arbitrary number of entries with corresponding labels:
+
+        .. code-block::
+
+            {
+                'stats': [0.1234, 0.5134],
+                'text_labels': ['AP', 'AP0.50'],
+            }
+        """
         raise NotImplementedError
 
     def write_predictions(self, filename):

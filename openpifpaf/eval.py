@@ -168,6 +168,9 @@ def main():
     metrics = datamodule.metrics()
     total_start = time.time()
     loop_start = time.time()
+    nn_time = 0.0
+    decoder_time = 0.0
+    n_images = 0
     for batch_i, (image_tensors, anns_batch, meta_batch) in enumerate(datamodule.eval_loader()):
         LOG.info('batch %d, last loop: %.3fs, batches per second=%.1f',
                  batch_i, time.time() - loop_start,
@@ -176,9 +179,9 @@ def main():
 
         pred_batch = processor.batch(model, image_tensors,
                                      device=args.device, gt_anns_batch=anns_batch)
-        for metric in metrics:
-            metric.decoder_time += processor.last_decoder_time
-            metric.nn_time += processor.last_nn_time
+        n_images += len(image_tensors)
+        decoder_time += processor.last_decoder_time
+        nn_time += processor.last_nn_time
 
         # loop over batch
         assert len(image_tensors) == len(meta_batch)
@@ -219,6 +222,9 @@ def main():
             'checkpoint': args.checkpoint,
             'count_ops': counted_ops,
             'file_size': file_size,
+            'n_images': n_images,
+            'decoder_time': decoder_time,
+            'nn_time': nn_time,
         }
         stats = dict(**metric.stats(), **additional_data)
         with open(args.output + '.stats.json', 'w') as f:

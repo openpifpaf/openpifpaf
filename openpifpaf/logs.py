@@ -12,7 +12,7 @@ import sys
 import numpy as np
 import pysparkling
 
-from . import show, __version__
+from . import metric, show, __version__
 
 try:
     import matplotlib
@@ -404,8 +404,8 @@ class EvalPlots():
         'APS': 'AP$^{S}$',
         'APM': 'AP$^{M}$',
         'APL': 'AP$^{L}$',
-        'ART1': 'AR_{\textrm{Top1}}',
-        'ART10': 'AR_{\textrm{Top10}}',
+        'ART1': 'AR@1',
+        'ART10': 'AR@10',
         'AR0.5': 'AR$^{0.50}$',
         'AR0.75': 'AR$^{0.75}$',
         'ARS': 'AR$^{S}$',
@@ -440,28 +440,68 @@ class EvalPlots():
             i = filename.find('epoch')
             return int(filename[i+5:i+8])
 
+        def migrate(data):
+            # earlier versions did not contain 'dataset'
+            if 'dataset' not in data and len(data['stats']) == 10:
+                data['dataset'] = 'cocokp'
+            if 'dataset' not in data and len(data['stats']) == 12:
+                data['dataset'] = 'cocodet'
+
+            # earlier versions did not contain 'text_labels'
+            if 'text_labels' not in data and len(data['stats']) == 10:
+                data['text_labels'] = metric.Coco.text_labels_keypoints
+            if 'text_labels' not in data and len(data['stats']) == 12:
+                data['text_labels'] = metric.Coco.text_labels_bbox
+
+            return data
+
         return (sc
                 .wholeTextFiles(files)
                 .map(lambda k_c: (
                     epoch_from_filename(k_c[0]),
                     json.loads(k_c[1]),
                 ))
-                .filter(lambda k_c: k_c[0] >= self.first_epoch and len(k_c[1]['stats']) >= 10)
+                .filter(lambda k_c: k_c[0] >= self.first_epoch and k_c[1]['stats'])
+                .mapValues(migrate)
                 .sortByKey()
                 .collect())
 
-    def frame_stats(self, ax, entry):
+    def metrics(self):
+        all_metrics_by_datasets = defaultdict(list)
+        for data in self.datas:
+            if not data:
+                continue
+            dataset = data[0][1]['dataset']
+            for m in data[0][1]['text_labels']:
+                if m in all_metrics_by_datasets[dataset]:
+                    continue
+                all_metrics_by_datasets[dataset].append(m)
+        return all_metrics_by_datasets
+
+    def fill_metric(self, ax, dataset, metric_name):
         for data, label in zip(self.datas, self.labels):
             if not data:
                 continue
+            if data[0][1]['dataset'] != dataset:
+                continue
+            if metric_name not in data[0][1]['text_labels']:
+                continue
+
+            entry = data[0][1]['text_labels'].index(metric_name)
             if self.legend_last_ap:
-                last_ap = data[-1][1]['stats'][0]
-                label = '{} (AP={:.1%})'.format(label, last_ap)
+                last_main_value = data[-1][1]['stats'][0]
+                main_name = data[0][1]['text_labels'][0]
+                main_label = self.text_to_latex_labels.get(main_name, main_name)
+                label = '{} ({}={:.1%})'.format(label, main_label, last_main_value)
             x = np.array([e for e, _ in data])
             y = np.array([d['stats'][entry] for _, d in data])
             ax.plot(x, y, 'o-', label=label, markersize=2)
 
         ax.set_xlabel('epoch')
+        ax.set_ylabel('{} {}'.format(
+            dataset,
+            self.text_to_latex_labels.get(metric_name, metric_name),
+        ))
         ax.grid(linestyle='dotted')
         # ax.legend(loc='upper right')
 
@@ -492,60 +532,33 @@ class EvalPlots():
         ax.grid(linestyle='dotted')
         # ax.legend(loc='lower right')
 
-    def ap(self, ax):
-        self.frame_stats(ax, entry=0)
-        ax.set_ylabel('AP')
-
-    def ap050(self, ax):
-        self.frame_stats(ax, entry=1)
-        ax.set_ylabel('AP$^{0.50}$')
-
-    def ap075(self, ax):
-        self.frame_stats(ax, entry=2)
-        ax.set_ylabel('AP$^{0.75}$')
-
-    def apm(self, ax):
-        self.frame_stats(ax, entry=3)
-        ax.set_ylabel('AP$^{M}$')
-
-    def apl(self, ax):
-        self.frame_stats(ax, entry=4)
-        ax.set_ylabel('AP$^{L}$')
-
-    def ar(self, ax):
-        self.frame_stats(ax, entry=5)
-        ax.set_ylabel('AR')
-
-    def ar050(self, ax):
-        self.frame_stats(ax, entry=6)
-        ax.set_ylabel('AR$^{0.50}$')
-
-    def ar075(self, ax):
-        self.frame_stats(ax, entry=7)
-        ax.set_ylabel('AR$^{0.75}$')
-
-    def arm(self, ax):
-        self.frame_stats(ax, entry=8)
-        ax.set_ylabel('AR$^{M}$')
-
-    def arl(self, ax):
-        self.frame_stats(ax, entry=9)
-        ax.set_ylabel('AR$^{L}$')
-
-    def fill_all(self, axs):
-        for f, ax in zip((self.ap, self.ap050, self.ap075, self.apm, self.apl), axs[0]):
-            f(ax)
-
-        for f, ax in zip((self.ar, self.ar050, self.ar075, self.arm, self.arl), axs[1]):
-            f(ax)
-
-        return self
-
     def show_all(self, *, share_y=True):
-        with show.canvas(nrows=2, ncols=5, figsize=(20, 10),
+        # layouting: a dataset can span one or two rows
+        all_metrics = self.metrics()
+        all_rows_nested = {
+            dataset: (
+                [metrics]
+                if len(metrics) <= 6
+                else [metrics[:-len(metrics) // 2],
+                      metrics[-len(metrics) // 2:]]
+            )
+            for dataset, metrics in all_metrics.items()
+        }
+        all_rows = [
+            [(dataset, metric) for metric in row]
+            for dataset, rows in all_rows_nested.items()
+            for row in rows
+        ]
+        nrows = len(all_rows)
+        ncols = max(len(row) for row in all_rows)
+
+        # plot
+        with show.canvas(nrows=nrows, ncols=ncols, figsize=(4 * ncols, 3 * nrows),
                          sharex=True, sharey=share_y) as axs:
-            self.fill_all(axs)
-            axs.reshape(-1)[-1].legend(fontsize=5, loc='lower right')
+            for ax_row, metric_row in zip(axs, all_rows):
+                for ax, (dataset, metric_name) in zip(ax_row, metric_row):
+                    self.fill_metric(ax, dataset, metric_name)
+                ax_row[len(metric_row) - 1].legend(fontsize=5, loc='lower right')
 
         with show.canvas(nrows=1, ncols=2, figsize=(10, 5),
                          sharey=share_y) as axs:
