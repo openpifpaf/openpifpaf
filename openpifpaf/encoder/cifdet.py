@@ -120,10 +120,8 @@ class CifDetGenerator():
         self.fields_wh[f, :, miny:maxy, minx:maxx][:, mask] = np.expand_dims(wh, 1)
 
         # update bmin
-        bwh = 0.5 * np.sqrt(wh[0] * wh[1])
-        bmin = max(1.0, bwh / 3.0)  # 3.0: at bounding box, Laplace is at 3sigma
-        self.fields_reg_bmin[f, miny:maxy, minx:maxx][mask] = bmin
-        self.fields_wh_bmin[f, miny:maxy, minx:maxx][mask] = bmin
+        self.fields_reg_bmin[f, miny:maxy, minx:maxx][mask] = 1.0
+        self.fields_wh_bmin[f, miny:maxy, minx:maxx][mask] = 1.0
 
     def fields(self, valid_area):
         p = self.config.padding
