@@ -1,7 +1,8 @@
 import logging
 import os
-import torch
+from typing import Tuple
 
+import torch
 import torchvision
 
 from .. import headmeta
@@ -111,12 +112,13 @@ def factory(
         multi_scale=False,
         multi_scale_hflip=True,
         download_progress=True,
-        head_strategy='extend'):
+        head_strategy='extend',
+) -> Tuple[nets.Shell, int]:
 
     if base_name:
         assert head_metas
         assert checkpoint is None
-        net_cpu = factory_from_scratch(base_name, head_metas)
+        net_cpu: nets.Shell = factory_from_scratch(base_name, head_metas)
         epoch = 0
     else:
         assert base_name is None
@@ -137,7 +139,7 @@ def factory(
         else:
             checkpoint = torch.load(checkpoint)
 
-        net_cpu = checkpoint['model']
+        net_cpu: nets.Shell = checkpoint['model']
         epoch = checkpoint['epoch']
 
         if head_metas is not None and head_strategy == 'keep':
@@ -154,13 +156,13 @@ def factory(
                 head_metas[input_index] = hn.meta
         elif head_metas is not None and head_strategy == 'create':
             LOG.info('creating new heads')
-            headnets = [HEAD_FACTORIES[h.__class__](h, net_cpu.basenet.out_features)
+            headnets = [HEAD_FACTORIES[h.__class__](h, net_cpu.base_net.out_features)
                         for h in head_metas]
             net_cpu.set_head_nets(headnets)
         elif head_metas is not None and head_strategy == 'extend':
             LOG.info('extending existing heads')
             existing_headnets = {(hn.meta.dataset, hn.meta.name): hn
-                                 for hn in net_cpu.headnets}
+                                 for hn in net_cpu.head_nets}
             headnets = []
             for meta_i, meta in enumerate(head_metas):
                 if (meta.dataset, meta.name) in existing_headnets:
@@ -172,7 +174,7 @@ def factory(
                     head_metas[meta_i] = hn.meta
                 else:
                     headnets.append(
-                        HEAD_FACTORIES[meta.__class__](meta, net_cpu.basenet.out_features))
+                        HEAD_FACTORIES[meta.__class__](meta, net_cpu.base_net.out_features))
             net_cpu.set_head_nets(headnets)
         elif head_metas is not None:
             raise Exception('head strategy {} unknown'.format(head_strategy))
@@ -208,7 +210,7 @@ def factory(
     return net_cpu, epoch
 
 
-def factory_from_scratch(basename, head_metas):
+def factory_from_scratch(basename, head_metas) -> nets.Shell:
     if basename not in BASE_FACTORIES:
         raise Exception('basename {} unknown'.format(basename))
 
