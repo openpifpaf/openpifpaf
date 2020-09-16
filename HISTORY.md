@@ -4,7 +4,7 @@
 * [0.12.0]() ()
     * train on multiple datasets simultaneously
     * decode multiple types of data from one network (e.g. pose and detection)
-    * Plugins extendible: datamodules, base networks, head networks, decoders, encoders, transforms, metrics
+    * Plugins extendible: datamodules, base networks, head networks, decoders, encoders, transforms, metrics, visualizers
     * CompositeField3: fewer slicing/reshaping ops and single tensor output
     * Loss: introduced explicit bmin
     * ONNX: test with onnxruntime
