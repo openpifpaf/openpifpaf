@@ -42,11 +42,15 @@ def test_onnxruntime(tmpdir):
     assert not os.path.exists(onnx_model_file)
 
     # create model
+    openpifpaf.datasets.CocoKp.upsample_stride = 2  # create a model with PixelShuffle
     datamodule = openpifpaf.datasets.factory('cocokp')
     model, _ = openpifpaf.network.factory(
         base_name='shufflenetv2k16w',
         head_metas=datamodule.head_metas,
     )
+    print(model)
+
+    # export to onnx file
     openpifpaf.export_onnx.apply(model, onnx_model_file, verbose=False)
 
     # pytorch prediction
