@@ -151,7 +151,7 @@ def main():
         print('{} not found. Processing: {}'.format(stats_file, args.checkpoint))
 
     datamodule = datasets.factory(args.dataset)
-    model_cpu, _ = network.factory_from_args(args)
+    model_cpu, _ = network.factory_from_args(args, head_metas=datamodule.head_metas)
     model = model_cpu.to(args.device)
     if not args.disable_cuda and torch.cuda.device_count() > 1:
         LOG.info('Using multiple GPUs: %d', torch.cuda.device_count())
