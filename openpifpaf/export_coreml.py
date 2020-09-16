@@ -7,6 +7,8 @@ import torch
 
 import openpifpaf
 
+from .export_onnx import image_size_warning
+
 try:
     import coremltools
 except ImportError:
@@ -17,24 +19,7 @@ LOG = logging.getLogger(__name__)
 
 def apply(model, outfile, input_w=129, input_h=97):
     assert coremltools is not None
-
-    if input_w % model.base_net.stride != 1:
-        LOG.warning(
-            'input width (%d) should be a multiple of basenet '
-            'stride (%d) + 1: closest are %d and %d',
-            input_w, model.base_net.stride,
-            (input_w - 1) // model.base_net.stride * model.base_net.stride + 1,
-            ((input_w - 1) // model.base_net.stride + 1) * model.base_net.stride + 1,
-        )
-
-    if input_h % model.base_net.stride != 1:
-        LOG.warning(
-            'input height (%d) should be a multiple of basenet '
-            'stride (%d) + 1: closest are %d and %d',
-            input_h, model.base_net.stride,
-            (input_h - 1) // model.base_net.stride * model.base_net.stride + 1,
-            ((input_h - 1) // model.base_net.stride + 1) * model.base_net.stride + 1,
-        )
+    image_size_warning(model.base_net.stride, input_w, input_h)
 
     # configure: inplace-ops are not supported
     openpifpaf.network.heads.CompositeField3.inplace_ops = False
