@@ -70,6 +70,7 @@ setup(
         ],
         'onnx': [
             'onnx',
+            'onnxruntime',
             'onnx-simplifier>=0.2.9',
         ],
         'coreml': [
@@ -78,6 +79,7 @@ setup(
         'test': [
             'nbval',
             'onnx',
+            'onnxruntime',
             'onnx-simplifier>=0.2.9',
             'pylint',
             'pytest',

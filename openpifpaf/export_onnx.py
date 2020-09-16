@@ -27,6 +27,9 @@ except ImportError:
 
 
 def apply(model, outfile, verbose=True):
+    # configure
+    openpifpaf.network.heads.CompositeField3.inplace_ops = False
+
     # dummy_input = torch.randn(1, 3, 193, 257)
     dummy_input = torch.randn(1, 3, 97, 129)
 
