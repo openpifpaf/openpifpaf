@@ -17,6 +17,21 @@ except ImportError:
 LOG = logging.getLogger(__name__)
 
 
+# MonkeyPatch for CrowdPose (or any dataset where the ground truth does not
+# include 'area'):
+# The evaluate() function will call _prepare().
+# However, after _prepare(), we need to add an 'area' to all ground
+# truth instances if not already present based on bbox.
+COCOeval._original_prepare = COCOeval._prepare
+def new_prepare(instance):
+    instance._original_prepare()
+    for gts in instance._gts.values():
+        for gt in gts:
+            if 'area' not in gt:
+                gt['area'] = gt['bbox'][2] * gt['bbox'][3]
+COCOeval._prepare = new_prepare
+
+
 class Coco(Base):
     text_labels_keypoints = ['AP', 'AP0.5', 'AP0.75', 'APM', 'APL',
                              'AR', 'AR0.5', 'AR0.75', 'ARM', 'ARL']
@@ -101,10 +116,12 @@ class Coco(Base):
 
         # force at least one annotation per image (for pycocotools)
         if not image_annotations:
+            n_keypoints = (len(self.keypoint_oks_sigmas)
+                           if self.keypoint_oks_sigmas is not None else 17)
             image_annotations.append({
                 'image_id': image_id,
                 'category_id': 1,
-                'keypoints': np.zeros((17*3,)).tolist(),
+                'keypoints': np.zeros((n_keypoints * 3,)).tolist(),
                 'bbox': [0, 0, 1, 1],
                 'score': 0.001,
             })
