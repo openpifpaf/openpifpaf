@@ -100,6 +100,7 @@ def cli():
     # output
     if args.output is None:
         args.output = default_output_file(args)
+        os.makedirs('outputs', exist_ok=True)
 
     log_level = logs.configure(args)
     LOG.setLevel(log_level)
