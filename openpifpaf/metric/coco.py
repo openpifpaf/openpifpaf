@@ -27,7 +27,8 @@ class Coco(Base):
                  max_per_image=20,
                  category_ids=None,
                  iou_type='keypoints',
-                 small_threshold=0.0):
+                 small_threshold=0.0,
+                 keypoint_oks_sigmas=None):
         super().__init__()
 
         if category_ids is None:
@@ -38,6 +39,7 @@ class Coco(Base):
         self.category_ids = category_ids
         self.iou_type = iou_type
         self.small_threshold = small_threshold
+        self.keypoint_oks_sigmas = keypoint_oks_sigmas
 
         self.predictions = []
         self.image_ids = []
@@ -66,6 +68,8 @@ class Coco(Base):
         LOG.info('cat_ids: %s', self.category_ids)
         if self.category_ids:
             self.eval.params.catIds = self.category_ids
+        if self.keypoint_oks_sigmas is not None:
+            self.eval.params.kpt_oks_sigmas = np.asarray(self.keypoint_oks_sigmas)
 
         if image_ids is not None:
             print('image ids', image_ids)
