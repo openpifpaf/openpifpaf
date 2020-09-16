@@ -171,9 +171,11 @@ def main():
     nn_time = 0.0
     decoder_time = 0.0
     n_images = 0
-    for batch_i, (image_tensors, anns_batch, meta_batch) in enumerate(datamodule.eval_loader()):
-        LOG.info('batch %d, last loop: %.3fs, batches per second=%.1f',
-                 batch_i, time.time() - loop_start,
+
+    loader = datamodule.eval_loader()
+    for batch_i, (image_tensors, anns_batch, meta_batch) in enumerate(loader):
+        LOG.info('batch %d / %d, last loop: %.3fs, batches per second=%.1f',
+                 batch_i, len(loader), time.time() - loop_start,
                  batch_i / max(1, (time.time() - total_start)))
         loop_start = time.time()
 
