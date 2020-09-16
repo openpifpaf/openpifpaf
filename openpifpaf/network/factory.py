@@ -142,6 +142,9 @@ def factory(
         net_cpu: nets.Shell = checkpoint['model']
         epoch = checkpoint['epoch']
 
+        # normalize for backwards compatibility
+        nets.model_migration(net_cpu)
+
         if head_metas is not None and head_strategy == 'keep':
             LOG.info('keeping heads from loaded checkpoint')
             # Match head metas by name and overwrite with meta from checkpoint.
@@ -178,9 +181,6 @@ def factory(
             net_cpu.set_head_nets(headnets)
         elif head_metas is not None:
             raise Exception('head strategy {} unknown'.format(head_strategy))
-
-        # normalize for backwards compatibility
-        nets.model_migration(net_cpu)
 
         # initialize for eval
         net_cpu.eval()
