@@ -23,8 +23,8 @@ def test_onnx_exportable(tmpdir):
     assert os.path.exists(outfile)
     openpifpaf.export_onnx.check(outfile)
 
-    openpifpaf.export_onnx.polish(outfile, outfile + '.polished')
-    assert os.path.exists(outfile + '.polished')
+    # openpifpaf.export_onnx.polish(outfile, outfile + '.polished')
+    # assert os.path.exists(outfile + '.polished')
 
     openpifpaf.export_onnx.simplify(outfile, outfile + '.simplified')
     assert os.path.exists(outfile + '.simplified')
