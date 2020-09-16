@@ -12,24 +12,25 @@ try:
     # monkey patch for Python 3 compat
     pycocotools.coco.unicode = str
 except ImportError:
-    pass
+    COCOeval = None
 
 LOG = logging.getLogger(__name__)
 
 
-# MonkeyPatch for CrowdPose (or any dataset where the ground truth does not
-# include 'area'):
-# The evaluate() function will call _prepare().
-# However, after _prepare(), we need to add an 'area' to all ground
-# truth instances if not already present based on bbox.
-COCOeval._original_prepare = COCOeval._prepare
-def new_prepare(instance):
-    instance._original_prepare()
-    for gts in instance._gts.values():
-        for gt in gts:
-            if 'area' not in gt:
-                gt['area'] = gt['bbox'][2] * gt['bbox'][3]
-COCOeval._prepare = new_prepare
+if COCOeval is not None:
+    # MonkeyPatch for CrowdPose (or any dataset where the ground truth does not
+    # include 'area'):
+    # The evaluate() function will call _prepare().
+    # However, after _prepare(), we need to add an 'area' to all ground
+    # truth instances if not already present based on bbox.
+    COCOeval._original_prepare = COCOeval._prepare  # pylint: disable=protected-access
+    def new_prepare(instance):
+        instance._original_prepare()  # pylint: disable=protected-access
+        for gts in instance._gts.values():  # pylint: disable=protected-access
+            for gt in gts:
+                if 'area' not in gt:
+                    gt['area'] = gt['bbox'][2] * gt['bbox'][3]
+    COCOeval._prepare = new_prepare  # pylint: disable=protected-access
 
 
 class Coco(Base):
