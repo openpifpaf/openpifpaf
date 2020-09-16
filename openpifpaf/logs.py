@@ -113,6 +113,8 @@ class Plots():
                 for data, label in zip(self.datas, self.labels)}
 
     def process_arguments(self):
+        if not self.datas[0]:
+            raise Exception('no data')
         return {label: data['process'][0]['argv'][1:]
                 for data, label in zip(self.datas, self.labels)}
 
@@ -549,6 +551,8 @@ class EvalPlots():
             for dataset, rows in all_rows_nested.items()
             for row in rows
         ]
+        if not all_rows:
+            return
         nrows = len(all_rows)
         ncols = max(len(row) for row in all_rows)
 
