@@ -17,7 +17,7 @@ except ImportError:
 LOG = logging.getLogger(__name__)
 
 
-def apply(model, outfile, input_w=129, input_h=97):
+def apply(model, outfile, *, input_w=129, input_h=97, minimum_deployment_target='iOS14'):
     assert coremltools is not None
     image_size_warning(model.base_net.stride, input_w, input_h)
 
@@ -33,7 +33,7 @@ def apply(model, outfile, input_w=129, input_h=97):
         inputs=[coremltools.ImageType(name='image', shape=dummy_input.shape,
                                       bias=[-1.0, -1.0, -1.0], scale=1.0 / 127.0)],
         # classifier_config = ct.ClassifierConfig(class_labels)
-        minimum_deployment_target=coremltools.target.iOS13,
+        minimum_deployment_target=getattr(coremltools.target, minimum_deployment_target),
     )
 
     # pylint: disable=protected-access
@@ -81,12 +81,15 @@ def main():
     parser.add_argument('--outfile', default='openpifpaf-resnet50.mlmodel')
     parser.add_argument('--input-width', type=int, default=129)
     parser.add_argument('--input-height', type=int, default=97)
+    parser.add_argument('--minimum-deployment-target', choices=('iOS13', 'iOS14'), default='iOS14')
     args = parser.parse_args()
 
     model, _ = openpifpaf.network.factory(checkpoint=args.checkpoint)
 
     assert args.outfile.endswith('.mlmodel')
-    apply(model, args.outfile, input_w=args.input_width, input_h=args.input_height)
+    apply(model, args.outfile,
+          input_w=args.input_width, input_h=args.input_height,
+          minimum_deployment_target=args.minimum_deployment_target)
     print_preprocessing_spec(args.outfile)
 
 
