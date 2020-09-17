@@ -70,6 +70,7 @@ def factory_from_args(args, *, head_metas=None):
         multi_scale=args.multi_scale,
         multi_scale_hflip=args.multi_scale_hflip,
         download_progress=args.download_progress,
+        head_consolidation=args.head_consolidation,
     )
 
 
@@ -112,7 +113,7 @@ def factory(
         multi_scale=False,
         multi_scale_hflip=True,
         download_progress=True,
-        head_strategy='extend',
+        head_consolidation='filter_and_extend',
 ) -> Tuple[nets.Shell, int]:
 
     if base_name:
@@ -150,7 +151,7 @@ def factory(
         # normalize for backwards compatibility
         nets.model_migration(net_cpu)
 
-        if head_metas is not None and head_strategy == 'keep':
+        if head_metas is not None and head_consolidation == 'keep':
             LOG.info('keeping heads from loaded checkpoint')
             # Match head metas by name and overwrite with meta from checkpoint.
             # This makes sure that the head metas have their head_index and
@@ -162,13 +163,13 @@ def factory(
                 if input_index is None:
                     continue
                 head_metas[input_index] = hn.meta
-        elif head_metas is not None and head_strategy == 'create':
+        elif head_metas is not None and head_consolidation == 'create':
             LOG.info('creating new heads')
             headnets = [HEAD_FACTORIES[h.__class__](h, net_cpu.base_net.out_features)
                         for h in head_metas]
             net_cpu.set_head_nets(headnets)
-        elif head_metas is not None and head_strategy == 'extend':
-            LOG.info('extending existing heads')
+        elif head_metas is not None and head_consolidation == 'filter_and_extend':
+            LOG.info('filtering for dataset heads and extending existing heads')
             existing_headnets = {(hn.meta.dataset, hn.meta.name): hn
                                  for hn in net_cpu.head_nets}
             headnets = []
@@ -185,7 +186,7 @@ def factory(
                         HEAD_FACTORIES[meta.__class__](meta, net_cpu.base_net.out_features))
             net_cpu.set_head_nets(headnets)
         elif head_metas is not None:
-            raise Exception('head strategy {} unknown'.format(head_strategy))
+            raise Exception('head strategy {} unknown'.format(head_consolidation))
 
         # initialize for eval
         net_cpu.eval()
@@ -262,3 +263,8 @@ def cli(parser):
                        help='suppress model download progress bar')
     group.add_argument('--dense-coupling', default=0.0, type=float,
                        help='dense coupling')
+    group.add_argument('--head-consolidation',
+                       choices=('keep', 'create', 'filter_and_extend'),
+                       default='filter_and_extend',
+                       help=('consolidation strategy for a checkpoint\'s head '
+                             'networks and the heads specified by the datamodule'))
