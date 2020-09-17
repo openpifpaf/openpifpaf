@@ -24,13 +24,13 @@ def default_output_name(args):
 
     # coco
     if args.coco_eval_orientation_invariant or args.coco_eval_extended_scale:
-        output += '-'
+        output += '-coco'
         if args.coco_eval_orientation_invariant:
             output += 'o'
         if args.coco_eval_extended_scale:
             output += 's'
-    if args.coco_eval_long_edge != 641:
-        output += '-edge{}'.format(args.coco_eval_long_edge)
+    if args.coco_eval_long_edge is not None and args.coco_eval_long_edge != 641:
+        output += '-cocoedge{}'.format(args.coco_eval_long_edge)
 
     if args.two_scale:
         output += '-twoscale'
