@@ -127,8 +127,13 @@ def factory(
             checkpoint = 'shufflenetv2k16w'
 
         if CHECKPOINT_URLS.get(checkpoint, None) is PRETRAINED_UNAVAILABLE:
-            raise Exception('the pretrained model for {} is not available yet '
-                            'in this release cycle'.format(checkpoint))
+            raise Exception(
+                'The pretrained model for {} is not available yet '
+                'in this release cycle. Use one of {}.'.format(
+                    checkpoint,
+                    [k for k, v in CHECKPOINT_URLS.items() if v is not PRETRAINED_UNAVAILABLE],
+                )
+            )
         checkpoint = CHECKPOINT_URLS.get(checkpoint, checkpoint)
 
         if checkpoint.startswith('http'):
