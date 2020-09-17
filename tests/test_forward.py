@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 
 import openpifpaf
@@ -47,3 +48,28 @@ def test_forward_headquad():
     cif, caf, _ = model(dummy_image_batch)
     assert cif.shape == (1, 17, 5, 31, 41)
     assert caf.shape == (1, 19, 9, 31, 41)
+
+
+def test_forward_noinplace():
+    openpifpaf.datasets.CocoKp.upsample_stride = 2
+    datamodule = openpifpaf.datasets.factory('cocokp')
+    openpifpaf.network.basenetworks.Resnet.pretrained = False
+    model, _ = openpifpaf.network.factory(
+        base_name='resnet18',
+        head_metas=datamodule.head_metas,
+    )
+
+    dummy_image_batch = torch.zeros((1, 3, 241, 321))
+
+    with torch.no_grad():
+        openpifpaf.network.heads.CompositeField3.inplace_ops = True
+        ref_cif, ref_caf, _ = model(dummy_image_batch)
+
+        openpifpaf.network.heads.CompositeField3.inplace_ops = False
+        cif, caf, _ = model(dummy_image_batch)
+
+    np.testing.assert_allclose(ref_cif.numpy(), cif.numpy())
+    np.testing.assert_allclose(ref_caf.numpy(), caf.numpy())
+
+    # back to default
+    openpifpaf.network.heads.CompositeField3.inplace_ops = True
