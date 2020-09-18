@@ -79,11 +79,13 @@ def fractional_epoch(row, *, default=None):
 
 
 class Plots():
-    def __init__(self, log_files, labels=None, output_prefix=None, first_epoch=0.0):
+    def __init__(self, log_files, labels=None, *,
+                 output_prefix=None, first_epoch=0.0, share_y=True):
         self.log_files = log_files
         self.labels = labels or [lf.replace('outputs/', '') for lf in log_files]
         self.output_prefix = output_prefix or log_files[-1] + '.'
         self.first_epoch = first_epoch
+        self.share_y = share_y
 
         self.datas = [self.read_log(f) for f in log_files]
 
@@ -225,7 +227,7 @@ class Plots():
         ax.set_xlabel('epoch')
         ax.set_ylabel(field_name)
         last_five_y = np.concatenate(last_five_y)
-        if last_five_y.shape[0]:
+        if not self.share_y and last_five_y.shape[0]:
             ax.set_ylim(np.min(last_five_y), np.max(last_five_y))
         # ax.set_ylim(0.0, 1.0)
         # if min(y) > -0.1:
@@ -306,7 +308,7 @@ class Plots():
         ax.set_xlabel('epoch')
         ax.set_ylabel(format(field_name))
         # ax.set_ylim(3e-3, 3.0)
-        if min(y) > -0.1:
+        if not self.share_y and min(y) > -0.1:
             ax.set_yscale('log', nonposy='clip')
         ax.grid(linestyle='dotted')
         # ax.legend(loc='upper right')
@@ -340,7 +342,7 @@ class Plots():
             if 'train' in data:
                 print('{}: {}'.format(label, data['train'][-1]))
 
-    def show_all(self, *, share_y=True, show_mtl_sigmas=False):
+    def show_all(self, show_mtl_sigmas=False):
         pprint(self.process_arguments())
 
         all_field_names = [f for fs in self.field_names().values() for f in fs]
@@ -365,7 +367,7 @@ class Plots():
 
         with show.canvas(nrows=n_rows, ncols=n_cols, squeeze=False,
                          figsize=multi_figsize, dpi=50,
-                         sharey=share_y, sharex=True) as axs:
+                         sharey=self.share_y, sharex=True) as axs:
             for row_i, row in enumerate(rows.values()):
                 for col_i, field_name in enumerate(row):
                     self.epoch_head(axs[row_i, col_i], field_name)
@@ -378,7 +380,7 @@ class Plots():
 
         with show.canvas(nrows=n_rows, ncols=n_cols, squeeze=False,
                          figsize=multi_figsize, dpi=50,
-                         sharey=share_y, sharex=True) as axs:
+                         sharey=self.share_y, sharex=True) as axs:
             for row_i, row in enumerate(rows.values()):
                 for col_i, field_name in enumerate(row):
                     self.train_head(axs[row_i, col_i], field_name)
@@ -386,7 +388,7 @@ class Plots():
         if show_mtl_sigmas:
             with show.canvas(nrows=n_rows, ncols=n_cols, squeeze=False,
                              figsize=multi_figsize, dpi=50,
-                             sharey=share_y, sharex=True) as axs:
+                             sharey=self.share_y, sharex=True) as axs:
                 for row_i, row in enumerate(rows.values()):
                     for col_i, field_name in enumerate(row):
                         self.mtl_sigma(axs[row_i, col_i], field_name)
@@ -418,11 +420,12 @@ class EvalPlots():
     def __init__(self, log_files, file_suffix, *,
                  labels=None, output_prefix=None,
                  decoder=0, legend_last_ap=True,
-                 first_epoch=0.0):
+                 first_epoch=0.0, share_y=True):
         self.file_suffix = file_suffix
         self.decoder = decoder
         self.legend_last_ap = legend_last_ap
         self.first_epoch = first_epoch
+        self.share_y = share_y
 
         self.datas = [self.read_log(f) for f in log_files]
         self.labels = labels or [lf.replace('outputs/', '') for lf in log_files]
@@ -534,7 +537,7 @@ class EvalPlots():
         ax.grid(linestyle='dotted')
         # ax.legend(loc='lower right')
 
-    def show_all(self, *, share_y=True):
+    def show_all(self):
         # layouting: a dataset can span one or two rows
         all_metrics = self.metrics()
         all_rows_nested = {
@@ -558,14 +561,14 @@ class EvalPlots():
 
         # plot
         with show.canvas(nrows=nrows, ncols=ncols, figsize=(4 * ncols, 3 * nrows),
-                         sharex=True, sharey=share_y) as axs:
+                         sharex=True, sharey=self.share_y) as axs:
             for ax_row, metric_row in zip(axs, all_rows):
                 for ax, (dataset, metric_name) in zip(ax_row, metric_row):
                     self.fill_metric(ax, dataset, metric_name)
                 ax_row[len(metric_row) - 1].legend(fontsize=5, loc='lower right')
 
         with show.canvas(nrows=1, ncols=2, figsize=(10, 5),
-                         sharey=share_y) as axs:
+                         sharey=self.share_y) as axs:
             self.frame_ops(axs[0], 0)
             self.frame_ops(axs[1], 1)
 
@@ -599,11 +602,16 @@ def main():
         args.output = args.log_file[-1] + '.'
 
     EvalPlots(args.log_file, args.eval_suffix,
-              labels=args.label, output_prefix=args.output,
+              labels=args.label,
+              output_prefix=args.output,
               first_epoch=args.first_epoch,
-              ).show_all(share_y=args.share_y)
-    Plots(args.log_file, args.label, args.output, first_epoch=args.first_epoch).show_all(
-        share_y=args.share_y, show_mtl_sigmas=args.show_mtl_sigmas)
+              share_y=args.share_y,
+              ).show_all()
+    Plots(args.log_file, args.label,
+          output_prefix=args.output,
+          first_epoch=args.first_epoch,
+          share_y=args.share_y,
+          ).show_all(show_mtl_sigmas=args.show_mtl_sigmas)
 
 
 if __name__ == '__main__':
