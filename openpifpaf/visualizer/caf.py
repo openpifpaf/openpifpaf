@@ -28,10 +28,13 @@ class Caf(Base):
 
     def targets(self, field, *, annotation_dicts):
         assert self.meta.keypoints is not None
-        assert self.meta.skeleton is not None
+        skeleton = getattr(self.meta, 'skeleton', None)
+        if skeleton is None:
+            skeleton = getattr(self.meta, 'draw_skeleton', None)
+        assert skeleton is not None
 
         annotations = [
-            Annotation(keypoints=self.meta.keypoints, skeleton=self.meta.skeleton).set(
+            Annotation(keypoints=self.meta.keypoints, skeleton=skeleton).set(
                 ann['keypoints'], fixed_score=None, fixed_bbox=ann['bbox'])
             for ann in annotation_dicts
         ]
