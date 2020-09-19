@@ -136,4 +136,4 @@ Reference: {cite}`kreiss2019pifpaf`
 ## Commercial License
 
 This software is available for licensing via the EPFL Technology Transfer
-Office (https://tto.epfl.ch/, info.tto@epfl.ch).
+Office ([https://tto.epfl.ch/](https://tto.epfl.ch/), [info.tto@epfl.ch](mailto:info.tto@epfl.ch)).
