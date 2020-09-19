@@ -1,9 +1,12 @@
 class Base:
-    def accumulate(self, predictions, image_meta):
+    def accumulate(self, predictions, image_meta, *, ground_truth=None):
         """For every image, accumulate that image's predictions into this metric.
 
         :param predictions: List of predictions for one image.
         :param image_meta: Meta dictionary for this image as returned by the data loader.
+        :param ground_truth: Ground truth information as produced by the eval
+            loader. Optional because some metrics (i.e. pycocotools) read
+            ground truth separately.
         """
         raise NotImplementedError
 

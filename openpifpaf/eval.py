@@ -77,6 +77,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     parser.add_argument('--show-final-image', default=False, action='store_true')
 
     group = parser.add_argument_group('logging')
+    group.add_argument('-q', '--quiet', default=False, action='store_true')
     group.add_argument('--debug', default=False, action='store_true',
                        help='print debug messages')
     group.add_argument('--debug-images', default=False, action='store_true',
@@ -90,6 +91,9 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
         args.debug = True
 
     log_level = logging.INFO if not args.debug else logging.DEBUG
+    if args.quiet:
+        assert not args.debug
+        log_level = logging.WARNING
     if args.log_stats:
         # pylint: disable=import-outside-toplevel
         from pythonjsonlogger import jsonlogger
@@ -190,7 +194,7 @@ def main():
         for pred, gt_anns, image_meta in zip(pred_batch, anns_batch, meta_batch):
             pred = transforms.Preprocess.annotations_inverse(pred, image_meta)
             for metric in metrics:
-                metric.accumulate(pred, image_meta)
+                metric.accumulate(pred, image_meta, ground_truth=gt_anns)
 
             if args.show_final_image:
                 # show ground truth and predictions on original image

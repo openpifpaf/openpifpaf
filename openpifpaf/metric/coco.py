@@ -95,7 +95,8 @@ class Coco(Base):
         self.eval.summarize()
         return self.eval.stats
 
-    def accumulate(self, predictions, image_meta):
+    # pylint: disable=unused-argument
+    def accumulate(self, predictions, image_meta, *, ground_truth=None):
         image_id = int(image_meta['image_id'])
         self.image_ids.append(image_id)
 
