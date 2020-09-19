@@ -21,10 +21,12 @@ CHECKPOINT_URLS = {
     'resnet152': PRETRAINED_UNAVAILABLE,
     'shufflenetv2x1': PRETRAINED_UNAVAILABLE,
     'shufflenetv2x2': PRETRAINED_UNAVAILABLE,
+    'shufflenetv2k16': ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
+                        'v0.12a1/shufflenetv2k16w-200905-113300-cocokp-e7b371e6.pkl'),
     'shufflenetv2k16w': ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
                          'v0.12a1/shufflenetv2k16w-200905-113300-cocokp-e7b371e6.pkl'),
-    'shufflenetv2k30w': PRETRAINED_UNAVAILABLE,
-    'shufflenetv2k44w': PRETRAINED_UNAVAILABLE,
+    'shufflenetv2k30': PRETRAINED_UNAVAILABLE,
+    'shufflenetv2k44': PRETRAINED_UNAVAILABLE,
 }
 
 BASE_TYPES = set([basenetworks.Resnet, basenetworks.ShuffleNetV2, basenetworks.ShuffleNetV2K])
@@ -39,14 +41,16 @@ BASE_FACTORIES = {
         'shufflenetv2x1', torchvision.models.shufflenet_v2_x1_0, 1024),
     'shufflenetv2x2': lambda: basenetworks.ShuffleNetV2(
         'shufflenetv2x2', torchvision.models.shufflenet_v2_x2_0),
+    'shufflenetv2k16': lambda: basenetworks.ShuffleNetV2K(
+        'shufflenetv2k16', [4, 8, 4], [24, 348, 696, 1392, 1392]),
     'shufflenetv2k16w': lambda: basenetworks.ShuffleNetV2K(
-        'shufflenetv2k16w', [4, 8, 4], [24, 348, 696, 1392, 1392]),
-    'shufflenetv2k20w': lambda: basenetworks.ShuffleNetV2K(
-        'shufflenetv2k20w', [5, 10, 5], [32, 512, 1024, 2048, 2048]),
-    'shufflenetv2k30w': lambda: basenetworks.ShuffleNetV2K(
-        'shufflenetv2k30w', [8, 16, 6], [32, 512, 1024, 2048, 2048]),
-    'shufflenetv2k44w': lambda: basenetworks.ShuffleNetV2K(
-        'shufflenetv2k44w', [12, 24, 8], [32, 512, 1024, 2048, 2048]),
+        'shufflenetv2k16', [4, 8, 4], [24, 348, 696, 1392, 1392]),
+    'shufflenetv2k20': lambda: basenetworks.ShuffleNetV2K(
+        'shufflenetv2k20', [5, 10, 5], [32, 512, 1024, 2048, 2048]),
+    'shufflenetv2k30': lambda: basenetworks.ShuffleNetV2K(
+        'shufflenetv2k30', [8, 16, 6], [32, 512, 1024, 2048, 2048]),
+    'shufflenetv2k44': lambda: basenetworks.ShuffleNetV2K(
+        'shufflenetv2k44', [12, 24, 8], [32, 512, 1024, 2048, 2048]),
 }
 
 HEAD_TYPES = set([heads.CompositeField3])
