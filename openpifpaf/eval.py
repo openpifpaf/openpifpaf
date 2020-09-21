@@ -19,9 +19,6 @@ LOG = logging.getLogger(__name__)
 def default_output_name(args):
     output = '{}.eval-{}'.format(args.checkpoint, args.dataset)
 
-    if not args.force_complete_pose:
-        output += '-noforcecompletepose'
-
     # coco
     if args.coco_eval_orientation_invariant or args.coco_eval_extended_scale:
         output += '-coco'
@@ -58,7 +55,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
 
     plugins.register()
     datasets.cli(parser)
-    decoder.cli(parser, force_complete_pose=True)
+    decoder.cli(parser)
     network.cli(parser)
     show.cli(parser)
     visualizer.cli(parser)

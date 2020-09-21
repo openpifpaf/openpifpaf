@@ -49,7 +49,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
 
     plugins.register()
     network.cli(parser)
-    decoder.cli(parser, force_complete_pose=False, instance_threshold=0.1, seed_threshold=0.5)
+    decoder.cli(parser)
     show.cli(parser)
     visualizer.cli(parser)
 

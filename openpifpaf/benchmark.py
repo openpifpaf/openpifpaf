@@ -14,13 +14,10 @@ from . import __version__
 LOG = logging.getLogger(__name__)
 
 
-DEFAULT_BACKBONES = [
-    # 'shufflenetv2x1',
-    'shufflenetv2x2',
+DEFAULT_CHECKPOINTS = [
     'resnet50',
-    # 'resnext50',
-    'resnet101',
-    'resnet152',
+    'shufflenetv2k16',
+    'shufflenetv2k30',
 ]
 
 
@@ -40,8 +37,8 @@ def cli():
 
     parser.add_argument('--output', default=None,
                         help='output file name')
-    parser.add_argument('--backbones', default=DEFAULT_BACKBONES, nargs='+',
-                        help='backbones to evaluate')
+    parser.add_argument('--checkpoints', default=DEFAULT_CHECKPOINTS, nargs='+',
+                        help='checkpoints to evaluate')
     parser.add_argument('--iccv2019-ablation', default=False, action='store_true')
     parser.add_argument('--dense-ablation', default=False, action='store_true')
     group = parser.add_argument_group('logging')
@@ -53,15 +50,23 @@ def cli():
 
     # default eval_args
     if not eval_args:
-        eval_args = ['--all-images', '--loader-workers=8']
+        eval_args = ['--loader-workers=8']
 
-    if '--all-images' not in eval_args:
-        LOG.info('adding "--all-images" to the argument list')
-        eval_args.append('--all-images')
-
+    # default loader workers
     if not any(l.startswith('--loader-workers') for l in eval_args):
         LOG.info('adding "--loader-workers=8" to the argument list')
         eval_args.append('--loader-workers=8')
+
+    # default dataset
+    if not any(l.startswith('--dataset') for l in eval_args):
+        LOG.info('adding "--dataset=cocokp" to the argument list')
+        eval_args.append('--dataset=cocokp')
+        if not any(l.startswith('--coco-no-eval-annotation-filter') for l in eval_args):
+            LOG.info('adding "--coco-no-eval-annotation-filter" to the argument list')
+            eval_args.append('--coco-no-eval-annotation-filter')
+        if not any(l.startswith('--force-complete-pose') for l in eval_args):
+            LOG.info('adding "--force-complete-pose" to the argument list')
+            eval_args.append('--force-complete-pose')
 
     # generate a default output filename
     if args.output is None:
@@ -72,9 +77,9 @@ def cli():
     return args, eval_args
 
 
-def run_eval_coco(output_folder, backbone, eval_args, output_name=None):
+def run_eval_coco(output_folder, checkpoint, eval_args, output_name=None):
     if output_name is None:
-        output_name = backbone
+        output_name = checkpoint
     output_name = output_name.replace('/', '-')
 
     out_file = os.path.join(output_folder, output_name)
@@ -85,9 +90,11 @@ def run_eval_coco(output_folder, backbone, eval_args, output_name=None):
 
     LOG.debug('Launching eval for %s.', output_name)
     subprocess.run([
-        'python', '-m', 'openpifpaf.eval_coco',
+        'python', '-m', 'openpifpaf.eval',
         '--output', out_file,
-        '--checkpoint', backbone,
+        '--checkpoint', checkpoint,
+        '--force-complete-pose',
+        '--seed-threshold=0.2',
     ] + eval_args, check=True)
 
 
@@ -95,7 +102,7 @@ def main():
     args, eval_args = cli()
 
     if args.iccv2019_ablation:
-        assert len(args.backbones) == 1
+        assert len(args.checkpoints) == 1
         multi_eval_args = [
             eval_args,
             eval_args + ['--connection-method=blend'],
@@ -110,24 +117,24 @@ def main():
             'multiscale',
         ]
         for eval_args_i, name_i in zip(multi_eval_args, names):
-            run_eval_coco(args.output, args.backbones[0], eval_args_i, output_name=name_i)
+            run_eval_coco(args.output, args.checkpoints[0], eval_args_i, output_name=name_i)
     elif args.dense_ablation:
         multi_eval_args = [
             eval_args,
-            eval_args + ['--dense-connections', '--dense-coupling=1.0'],
-            eval_args + ['--dense-connections'],
+            eval_args + ['--dense-coupling=1.0'],
+            eval_args + ['--dense-coupling=0.1'],
         ]
-        for backbone in args.backbones:
+        for checkpoint in args.checkpoints:
             names = [
-                backbone,
-                '{}.wdense'.format(backbone),
-                '{}.wdense.whierarchy'.format(backbone),
+                checkpoint,
+                '{}.wdense'.format(checkpoint),
+                '{}.wdense.whierarchy'.format(checkpoint),
             ]
             for eval_args_i, name_i in zip(multi_eval_args, names):
-                run_eval_coco(args.output, backbone, eval_args_i, output_name=name_i)
+                run_eval_coco(args.output, checkpoint, eval_args_i, output_name=name_i)
     else:
-        for backbone in args.backbones:
-            run_eval_coco(args.output, backbone, eval_args)
+        for checkpoint in args.checkpoints:
+            run_eval_coco(args.output, checkpoint, eval_args)
 
     sc = pysparkling.Context()
     stats = (
@@ -141,11 +148,11 @@ def main():
 
     # pretty printing
     # pylint: disable=line-too-long
-    print('| Backbone                  | AP       | APM      | APL      | t_{total} [ms]  | t_{dec} [ms] |     size |')
+    print('| Checkpoint                | AP       | APM      | APL      | t_{total} [ms]  | t_{dec} [ms] |     size |')
     print('|--------------------------:|:--------:|:--------:|:--------:|:---------------:|:------------:|---------:|')
-    for backbone, data in sorted(stats.items(), key=lambda b_d: b_d[1]['stats'][0]):
+    for checkpoint, data in sorted(stats.items(), key=lambda b_d: b_d[1]['stats'][0]):
         print(
-            '| {backbone: <25} '
+            '| {checkpoint: <25} '
             '| __{AP:.1f}__ '
             '| {APM: <8.1f} '
             '| {APL: <8.1f} '
@@ -153,7 +160,7 @@ def main():
             '| {tdec: <12.0f} '
             '| {file_size: >6.1f}MB '
             '|'.format(
-                backbone='['+backbone+']',
+                checkpoint='['+checkpoint+']',
                 AP=100.0 * data['stats'][0],
                 APM=100.0 * data['stats'][3],
                 APL=100.0 * data['stats'][4],

@@ -1,4 +1,5 @@
 from abc import abstractmethod
+import argparse
 import logging
 import multiprocessing
 import sys
@@ -41,6 +42,14 @@ class Generator:
 
         self.last_decoder_time = 0.0
         self.last_nn_time = 0.0
+
+    @classmethod
+    def cli(cls, parser: argparse.ArgumentParser):
+        """Commond line interface (CLI) to extend argument parser."""
+
+    @classmethod
+    def configure(cls, args: argparse.Namespace):
+        """Take the parsed argument parser output and configure class variables."""
 
     def __getstate__(self):
         return {

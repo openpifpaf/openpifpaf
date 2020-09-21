@@ -10,7 +10,7 @@ LOG = logging.getLogger(__name__)
 
 
 class CifSeeds:
-    threshold = None
+    threshold = 0.5
     score_scale = 1.0
     debug_visualizer = visualizer.Seeds()
 

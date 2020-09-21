@@ -11,3 +11,5 @@ from . import nms
 from .occupancy import Occupancy
 from .profiler import Profiler
 from .profiler_autograd import ProfilerAutograd
+
+from .factory import DECODERS

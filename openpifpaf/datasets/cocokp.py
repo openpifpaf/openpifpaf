@@ -46,7 +46,8 @@ class CocoKp(DataModule):
     upsample_stride = 1
     min_kp_anns = 1
 
-    eval_long_edge = None
+    eval_annotation_filter = True
+    eval_long_edge = 641
     eval_orientation_invariant = 0.0
     eval_extended_scale = False
 
@@ -122,7 +123,12 @@ class CocoKp(DataModule):
         eval_set_group.add_argument('--cocokp-eval-test2017', default=False, action='store_true')
         eval_set_group.add_argument('--cocokp-eval-testdev2017', default=False, action='store_true')
 
-        group.add_argument('--coco-eval-long-edge', default=cls.eval_long_edge, type=int)
+        assert cls.eval_annotation_filter
+        group.add_argument('--coco-no-eval-annotation-filter',
+                           dest='coco_eval_annotation_filter',
+                           default=True, action='store_false')
+        group.add_argument('--coco-eval-long-edge', default=cls.eval_long_edge, type=int,
+                           help='set to zero to deactivate rescaling')
         assert not cls.eval_extended_scale
         group.add_argument('--coco-eval-extended-scale', default=False, action='store_true')
         group.add_argument('--coco-eval-orientation-invariant',
@@ -150,12 +156,15 @@ class CocoKp(DataModule):
         cls.min_kp_anns = args.cocokp_min_kp_anns
 
         # evaluation
+        cls.eval_annotation_filter = args.coco_eval_annotation_filter
         if args.cocokp_eval_test2017:
             cls.eval_image_dir = cls._test2017_image_dir
             cls.eval_annotations = cls._test2017_annotations
+            cls.annotation_filter = False
         if args.cocokp_eval_testdev2017:
             cls.eval_image_dir = cls._test2017_image_dir
             cls.eval_annotations = cls._testdev2017_annotations
+            cls.annotation_filter = False
         cls.eval_long_edge = args.coco_eval_long_edge
         cls.eval_orientation_invariant = args.coco_eval_orientation_invariant
         cls.eval_extended_scale = args.coco_eval_extended_scale
@@ -292,9 +301,9 @@ class CocoKp(DataModule):
             ann_file=self.eval_annotations,
             preprocess=self._eval_preprocess(),
             n_images=self.n_images,
-            annotation_filter=(self.eval_annotations == self.val_annotations),
-            min_kp_anns=self.min_kp_anns if self.eval_annotations == self.val_annotations else 0,
-            category_ids=[1],
+            annotation_filter=self.eval_annotation_filter,
+            min_kp_anns=self.min_kp_anns if self.eval_annotation_filter else 0,
+            category_ids=[1] if self.eval_annotation_filter else [],
         )
         return torch.utils.data.DataLoader(
             eval_data, batch_size=self.batch_size, shuffle=False,

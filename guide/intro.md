@@ -79,7 +79,7 @@ yourself without the exclamation point.
 
 Performance metrics with version 0.11 on the COCO val set obtained with a GTX1080Ti:
 
-| Backbone                  | AP       | APᴹ      | APᴸ      | t_{total} [ms]  | t_{dec} [ms] |     size |
+| Checkpoint                | AP       | APᴹ      | APᴸ      | t_{total} [ms]  | t_{dec} [ms] |     size |
 |--------------------------:|:--------:|:--------:|:--------:|:---------------:|:------------:|---------:|
 | [resnet50]                | __67.8__ | 65.3     | 72.6     | 70              | 28           |  105.0MB |
 | [shufflenetv2k16w]        | __67.3__ | 62.2     | 75.3     | 54              | 25           |   43.9MB |
@@ -89,21 +89,13 @@ Performance metrics with version 0.11 on the COCO val set obtained with a GTX108
 [shufflenetv2k16w]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.11.0/shufflenetv2k16w-200510-221334-cif-caf-caf25-o10s-604c5956.pkl
 [shufflenetv2k30w]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.11.0/shufflenetv2k30w-200510-104256-cif-caf-caf25-o10s-0b5ba06f.pkl
 
-Command to reproduce this table: `python -m openpifpaf.benchmark --backbones shufflenetv2k16w shufflenetv2k30w`.
+Command to reproduce this table: `python -m openpifpaf.benchmark --checkpoints resnet50 shufflenetv2k16 shufflenetv2k30`.
 
 Pretrained model files are shared in the
 __[openpifpaf-torchhub](https://github.com/vita-epfl/openpifpaf-torchhub/releases)__
-repository and linked from the backbone names in the table above.
+repository and linked from the checkpoint names in the table above.
 The pretrained models are downloaded automatically when
-using the command line option `--checkpoint backbonenameasintableabove`.
-
-For comparison, old v0.10:
-
-| Backbone               | AP       | APᴹ      | APᴸ      | t_{total} [ms]  | t_{dec} [ms] |
-|-----------------------:|:--------:|:--------:|:--------:|:---------------:|:------------:|
-| shufflenetv2x2 v0.10   | __60.4__ | 55.5     | 67.8     | 56              | 33           |
-| resnet50 v0.10         | __64.4__ | 61.1     | 69.9     | 76              | 32           |
-| resnet101 v0.10        | __67.8__ | 63.6     | 74.3     | 97              | 28           |
+using the command line option `--checkpoint checkpointasintableabove`.
 
 
 ## Related Projects

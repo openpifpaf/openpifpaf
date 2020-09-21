@@ -12,32 +12,18 @@ LOG = logging.getLogger(__name__)
 DECODERS = [generator.CifDet, generator.CifCaf]
 
 
-def cli(parser, *,
-        force_complete_pose=True,
-        seed_threshold=0.2,
-        instance_threshold=0.0,
-        keypoint_threshold=None,
-        workers=None):
+def cli(parser, *, workers=None):
     group = parser.add_argument_group('decoder configuration')
-    group.add_argument('--seed-threshold', default=seed_threshold, type=float,
+    group.add_argument('--seed-threshold', default=CifSeeds.threshold, type=float,
                        help='minimum threshold for seeds')
+    assert nms.Detection.instance_threshold == nms.Keypoints.instance_threshold
     group.add_argument('--instance-threshold', type=float,
-                       default=instance_threshold,
+                       default=nms.Keypoints.instance_threshold,
                        help='filter instances by score')
-    group.add_argument('--keypoint-threshold', type=float,
-                       default=keypoint_threshold,
-                       help='filter keypoints by score')
     group.add_argument('--decoder-workers', default=workers, type=int,
                        help='number of workers for pose decoding')
     group.add_argument('--caf-seeds', default=False, action='store_true',
                        help='[experimental]')
-
-    if force_complete_pose:
-        group.add_argument('--no-force-complete-pose', dest='force_complete_pose',
-                           default=True, action='store_false')
-    else:
-        group.add_argument('--force-complete-pose', dest='force_complete_pose',
-                           default=False, action='store_true')
 
     group.add_argument('--profile-decoder', nargs='?', const='profile_decoder.prof', default=None,
                        help='specify out .prof file or nothing for default file name')
@@ -47,23 +33,17 @@ def cli(parser, *,
                        help='cif threshold')
     group.add_argument('--caf-th', default=CafScored.default_score_th, type=float,
                        help='caf threshold')
-    group.add_argument('--connection-method',
-                       default=generator.CifCaf.connection_method,
-                       choices=('max', 'blend'),
-                       help='connection method to use, max is faster')
-    group.add_argument('--greedy', default=False, action='store_true',
-                       help='greedy decoding')
+
+    for dec in DECODERS:
+        dec.cli(parser)
 
 
 def configure(args):
-    # default value for keypoint filter depends on whether complete pose is forced
-    if args.keypoint_threshold is None:
-        args.keypoint_threshold = 0.001 if not args.force_complete_pose else 0.0
-
-    # check consistency
-    if args.force_complete_pose:
-        assert args.keypoint_threshold == 0.0
-    assert args.seed_threshold >= args.keypoint_threshold
+    # decoder workers
+    if args.decoder_workers is None and \
+       getattr(args, 'batch_size', 1) > 1 and \
+       not args.debug:
+        args.decoder_workers = args.batch_size
 
     # configure CifHr
     CifHr.v_threshold = args.cif_th
@@ -75,25 +55,19 @@ def configure(args):
     CafScored.default_score_th = args.caf_th
 
     # configure generators
-    generator.CifCaf.force_complete = args.force_complete_pose
-    generator.CifCaf.keypoint_threshold = args.keypoint_threshold
-    generator.CifCaf.greedy = args.greedy
-    generator.CifCaf.connection_method = args.connection_method
     generator.Generator.default_worker_pool = args.decoder_workers
 
     # configure nms
     nms.Detection.instance_threshold = args.instance_threshold
     nms.Keypoints.instance_threshold = args.instance_threshold
-    nms.Keypoints.keypoint_threshold = args.keypoint_threshold
-
-    # decoder workers
-    if args.decoder_workers is None and \
-       getattr(args, 'batch_size', 1) > 1 and \
-       not args.debug:
-        args.decoder_workers = args.batch_size
+    nms.Keypoints.keypoint_threshold = (args.keypoint_threshold
+                                        if not args.force_complete_pose else 0.0)
 
     # TODO: caf seeds
     assert not args.caf_seeds, 'not implemented'
+
+    for dec in DECODERS:
+        dec.configure(args)
 
 
 def factory(head_metas, *, profile=False, profile_device=None):

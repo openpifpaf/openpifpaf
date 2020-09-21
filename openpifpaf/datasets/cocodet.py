@@ -38,6 +38,8 @@ class CocoDet(DataModule):
     rescale_images = 1.0
     upsample_stride = 1
 
+    eval_annotation_filter = True
+
     def __init__(self):
         super().__init__()
         cifdet = headmeta.CifDet('cifdet', 'cocodet', COCO_CATEGORIES)
@@ -102,6 +104,8 @@ class CocoDet(DataModule):
         cls.augmentation = args.cocodet_augmentation
         cls.rescale_images = args.cocodet_rescale_images
         cls.upsample_stride = args.cocodet_upsample
+
+        cls.eval_annotation_filter = args.coco_eval_annotation_filter
 
     def _preprocess(self):
         enc = encoder.CifDet(self.head_metas[0])
@@ -191,7 +195,7 @@ class CocoDet(DataModule):
             ann_file=self.eval_annotations,
             preprocess=self._eval_preprocess(),
             n_images=self.n_images,
-            annotation_filter=True,
+            annotation_filter=self.eval_annotation_filter,
             category_ids=[],
         )
         return torch.utils.data.DataLoader(

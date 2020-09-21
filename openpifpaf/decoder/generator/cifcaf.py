@@ -1,3 +1,4 @@
+import argparse
 from collections import defaultdict
 import heapq
 import logging
@@ -30,7 +31,7 @@ class CifCaf(Generator):
     occupancy_visualizer = visualizer.Occupancy()
     force_complete = False
     greedy = False
-    keypoint_threshold = 0.0
+    keypoint_threshold = 0.001
     nms = True
 
     def __init__(self,
@@ -68,6 +69,43 @@ class CifCaf(Generator):
         for caf_i, (j1, j2) in enumerate(self.skeleton_m1):
             self.by_source[j1][j2] = (caf_i, True)
             self.by_source[j2][j1] = (caf_i, False)
+
+    @classmethod
+    def cli(cls, parser: argparse.ArgumentParser):
+        """Commond line interface (CLI) to extend argument parser."""
+        group = parser.add_argument_group('CifCaf decoder')
+        if cls.force_complete:
+            group.add_argument('--no-force-complete-pose',
+                               dest='force_complete_pose',
+                               default=True, action='store_false')
+        else:
+            group.add_argument('--force-complete-pose',
+                               dest='force_complete_pose',
+                               default=False, action='store_true')
+
+        group.add_argument('--keypoint-threshold', type=float,
+                           default=cls.keypoint_threshold,
+                           help='filter keypoints by score')
+
+        assert not cls.greedy
+        group.add_argument('--greedy', default=False, action='store_true',
+                           help='greedy decoding')
+        group.add_argument('--connection-method',
+                           default=cls.connection_method,
+                           choices=('max', 'blend'),
+                           help='connection method to use, max is faster')
+
+    @classmethod
+    def configure(cls, args: argparse.Namespace):
+        """Take the parsed argument parser output and configure class variables."""
+        # check consistency
+        assert args.seed_threshold >= args.keypoint_threshold
+
+        cls.force_complete = args.force_complete_pose
+        cls.keypoint_threshold = (args.keypoint_threshold
+                                  if not args.force_complete_pose else 0.0)
+        cls.greedy = args.greedy
+        cls.connection_method = args.connection_method
 
     @classmethod
     def factory(cls, head_metas):

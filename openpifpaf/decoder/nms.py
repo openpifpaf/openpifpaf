@@ -60,7 +60,7 @@ class Keypoints:
 class Detection:
     suppression = 0.1
     suppression_soft = 0.3
-    instance_threshold = 0.1
+    instance_threshold = 0.0
     iou_threshold = 0.7
     iou_threshold_soft = 0.5
 
