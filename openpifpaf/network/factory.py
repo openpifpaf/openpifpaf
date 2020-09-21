@@ -25,7 +25,8 @@ CHECKPOINT_URLS = {
                         'v0.12a1/shufflenetv2k16w-200905-113300-cocokp-e7b371e6.pkl'),
     'shufflenetv2k16w': ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
                          'v0.12a1/shufflenetv2k16w-200905-113300-cocokp-e7b371e6.pkl'),
-    'shufflenetv2k30': PRETRAINED_UNAVAILABLE,
+    'shufflenetv2k30': ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
+                        'v0.12a1/shufflenetv2k30w-200918-223448-cocokp-o10s-be714792.pkl'),
     'shufflenetv2k44': PRETRAINED_UNAVAILABLE,
 }
 
