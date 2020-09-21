@@ -13,7 +13,7 @@ html:
   favicon: favicon.png
   extra_footer: |
     &copy; Copyright 2020.
-    <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/80x15.png" /></a> Licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">CC-BY-NC-SA</a>.
+    <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/80x15.png" /></a> Licensed under <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">CC-BY-NC-SA</a>.
   extra_navbar: This is the dev version of the Guide. Here is the <a href="https://vita-epfl.github.io/openpifpaf/">stable version</a>.
 
 # Information about where the book exists on the web
