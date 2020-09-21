@@ -22,7 +22,7 @@ class Coco(torch.utils.data.Dataset):
     """
 
     def __init__(self, image_dir, ann_file, *,
-                 n_images=None, preprocess=None, min_kp_anns=0,
+                 preprocess=None, min_kp_anns=0,
                  category_ids=None,
                  annotation_filter=False):
         if category_ids is None:
@@ -39,9 +39,6 @@ class Coco(torch.utils.data.Dataset):
             self.filter_for_annotations(min_kp_anns=min_kp_anns)
         elif min_kp_anns:
             raise Exception('only set min_kp_anns with annotation_filter')
-
-        if n_images:
-            self.ids = self.ids[:n_images]
         LOG.info('Images: %d', len(self.ids))
 
         self.preprocess = preprocess or transforms.EVAL_TRANSFORM

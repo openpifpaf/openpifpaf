@@ -64,6 +64,10 @@ def cli():
                         help='number of epochs to train')
     parser.add_argument('--val-interval', default=1, type=int,
                         help='validation run every n epochs')
+    parser.add_argument('--train-batches', default=None, type=int,
+                        help='number of train batches')
+    parser.add_argument('--val-batches', default=None, type=int,
+                        help='number of val batches')
     parser.add_argument('--fix-batch-norm',
                         default=False, action='store_true',
                         help='fix batch norm running statistics')
@@ -151,6 +155,8 @@ def main():
         },
         clip_grad_norm=args.clip_grad_norm,
         val_interval=args.val_interval,
+        n_train_batches=args.train_batches,
+        n_val_batches=args.val_batches,
     )
     trainer.loop(train_loader, val_loader, args.epochs, start_epoch=start_epoch)
 

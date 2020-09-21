@@ -30,7 +30,6 @@ class CocoDet(DataModule):
     val_image_dir = 'data-mscoco/images/val2017/'
     eval_image_dir = val_image_dir
 
-    n_images = None
     square_edge = 513
     extended_scale = False
     orientation_invariant = 0.0
@@ -59,9 +58,6 @@ class CocoDet(DataModule):
         group.add_argument('--cocodet-val-image-dir',
                            default=cls.val_image_dir)
 
-        group.add_argument('--cocodet-n-images',
-                           default=cls.n_images, type=int,
-                           help='number of images to sample')
         group.add_argument('--cocodet-square-edge',
                            default=cls.square_edge, type=int,
                            help='square edge of input images')
@@ -97,7 +93,6 @@ class CocoDet(DataModule):
         cls.train_image_dir = args.cocodet_train_image_dir
         cls.val_image_dir = args.cocodet_val_image_dir
 
-        cls.n_images = args.cocodet_n_images
         cls.square_edge = args.cocodet_square_edge
         cls.extended_scale = args.cocodet_extended_scale
         cls.orientation_invariant = args.cocodet_orientation_invariant
@@ -155,7 +150,6 @@ class CocoDet(DataModule):
             image_dir=self.train_image_dir,
             ann_file=self.train_annotations,
             preprocess=self._preprocess(),
-            n_images=self.n_images,
             annotation_filter=True,
             category_ids=[],
         )
@@ -169,7 +163,6 @@ class CocoDet(DataModule):
             image_dir=self.val_image_dir,
             ann_file=self.val_annotations,
             preprocess=self._preprocess(),
-            n_images=self.n_images,
             annotation_filter=True,
             category_ids=[],
         )
@@ -194,7 +187,6 @@ class CocoDet(DataModule):
             image_dir=self.eval_image_dir,
             ann_file=self.eval_annotations,
             preprocess=self._eval_preprocess(),
-            n_images=self.n_images,
             annotation_filter=self.eval_annotation_filter,
             category_ids=[],
         )

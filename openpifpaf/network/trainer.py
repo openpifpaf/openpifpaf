@@ -23,7 +23,9 @@ class Trainer():
                  train_profile=None,
                  model_meta_data=None,
                  clip_grad_norm=0.0,
-                 val_interval=1):
+                 val_interval=1,
+                 n_train_batches=None,
+                 n_val_batches=None):
         self.model = model
         self.loss = loss
         self.optimizer = optimizer
@@ -44,6 +46,8 @@ class Trainer():
         self.max_norm = 0.0
 
         self.val_interval = val_interval
+        self.n_train_batches = n_train_batches
+        self.n_val_batches = n_val_batches
 
         self.model_meta_data = model_meta_data
 
@@ -170,6 +174,7 @@ class Trainer():
              for l in head_losses],
         )
 
+    # pylint: disable=too-many-branches
     def train(self, scenes, epoch):
         start_time = time.time()
         self.model.train()
@@ -235,6 +240,9 @@ class Trainer():
             if self.lr_scheduler is not None:
                 self.lr_scheduler.step()
 
+            if self.n_train_batches and batch_idx + 1 >= self.n_train_batches:
+                break
+
             last_batch_end = time.time()
 
         self.apply_ema()
@@ -268,7 +276,7 @@ class Trainer():
         epoch_loss = 0.0
         head_epoch_losses = None
         head_epoch_counts = None
-        for data, target, _ in scenes:
+        for batch_idx, (data, target, _) in enumerate(scenes):
             loss, head_losses = self.val_batch(data, target)
 
             # update epoch accumulates
@@ -282,6 +290,9 @@ class Trainer():
                     continue
                 head_epoch_losses[i] += head_loss
                 head_epoch_counts[i] += 1
+
+            if self.n_val_batches and batch_idx + 1 >= self.n_val_batches:
+                break
 
         eval_time = time.time() - start_time
 
