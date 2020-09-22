@@ -9,11 +9,16 @@ from .profiler_autograd import ProfilerAutograd
 
 LOG = logging.getLogger(__name__)
 
-DECODERS = [generator.CifDet, generator.CifCaf]
+DECODERS = {generator.CifDet, generator.CifCaf}
 
 
 def cli(parser, *, workers=None):
     group = parser.add_argument_group('decoder configuration')
+
+    available_decoders = [dec.__name__.lower() for dec in DECODERS]
+    group.add_argument('--decoder', default=None, nargs='+', choices=available_decoders,
+                       help='Decoders to be considered.')
+
     group.add_argument('--seed-threshold', default=CifSeeds.threshold, type=float,
                        help='minimum threshold for seeds')
     assert nms.Detection.instance_threshold == nms.Keypoints.instance_threshold
@@ -44,6 +49,18 @@ def configure(args):
        getattr(args, 'batch_size', 1) > 1 and \
        not args.debug:
         args.decoder_workers = args.batch_size
+
+    # filter decoders
+    if args.decoder is not None:
+        args.decoder = [dec.lower() for dec in args.decoder]
+        decoders_to_remove = []
+        for dec in DECODERS:
+            if dec.__name__.lower() in args.decoder:
+                continue
+            decoders_to_remove.append(dec)
+        for dec in decoders_to_remove:
+            LOG.debug('removing %s from consideration', dec.__name__)
+            DECODERS.remove(dec)
 
     # configure CifHr
     CifHr.v_threshold = args.cif_th
