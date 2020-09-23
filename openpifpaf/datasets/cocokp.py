@@ -40,6 +40,7 @@ class CocoKp(DataModule):
     square_edge = 385
     extended_scale = False
     orientation_invariant = 0.0
+    blur = 0.0
     augmentation = True
     rescale_images = 1.0
     upsample_stride = 1
@@ -99,6 +100,9 @@ class CocoKp(DataModule):
         group.add_argument('--cocokp-orientation-invariant',
                            default=cls.orientation_invariant, type=float,
                            help='augment with random orientations')
+        group.add_argument('--cocokp-blur',
+                           default=cls.blur, type=float,
+                           help='augment with blur')
         assert cls.augmentation
         group.add_argument('--cocokp-no-augmentation',
                            dest='cocokp_augmentation',
@@ -145,6 +149,7 @@ class CocoKp(DataModule):
         cls.square_edge = args.cocokp_square_edge
         cls.extended_scale = args.cocokp_extended_scale
         cls.orientation_invariant = args.cocokp_orientation_invariant
+        cls.blur = args.cocokp_blur
         cls.augmentation = args.cocokp_augmentation
         cls.rescale_images = args.cocokp_rescale_images
         cls.upsample_stride = args.cocokp_upsample
@@ -193,6 +198,10 @@ class CocoKp(DataModule):
                              2.0 * self.rescale_images),
                 power_law=True, stretch_range=(0.75, 1.33))
 
+        blur_t = None
+        if self.blur:
+            blur_t = transforms.RandomApply(transforms.Blur(), self.blur)
+
         orientation_t = None
         if self.orientation_invariant:
             orientation_t = transforms.RandomApply(
@@ -203,6 +212,7 @@ class CocoKp(DataModule):
             transforms.AnnotationJitter(),
             transforms.RandomApply(transforms.HFlip(COCO_KEYPOINTS, HFLIP), 0.5),
             rescale_t,
+            blur_t,
             transforms.Crop(self.square_edge, use_area_of_interest=True),
             transforms.CenterPad(self.square_edge),
             orientation_t,
