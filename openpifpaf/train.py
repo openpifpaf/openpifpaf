@@ -22,7 +22,7 @@ def default_output_file(args):
     now = datetime.datetime.now().strftime('%y%m%d-%H%M%S')
     out = 'outputs/{}-{}-{}'.format(base_name, now, args.dataset)
     if args.cocokp_square_edge != 385:
-        out += '-edge{}'.format(args.square_edge)
+        out += '-edge{}'.format(args.cocokp_square_edge)
     if args.regression_loss != 'laplace':
         out += '-{}'.format(args.regression_loss)
     if args.r_smooth != 0.0:
