@@ -6,6 +6,8 @@ from .. import datasets
 
 LOG = logging.getLogger(__name__)
 
+MODEL_MIGRATION = set()
+
 
 class Shell(torch.nn.Module):
     def __init__(self, base_net, head_nets, *,
@@ -167,7 +169,7 @@ class ShellMultiScale(torch.nn.Module):
         return head_outputs
 
 
-# pylint: disable=too-many-branches,protected-access
+# pylint: disable=protected-access
 def model_migration(net_cpu):
     model_defaults(net_cpu)
 
@@ -186,6 +188,9 @@ def model_migration(net_cpu):
             hn.meta.base_stride = net_cpu.base_net.stride
         if hn.meta.head_index is None:
             hn.meta.head_index = hn_i
+
+    for mm in MODEL_MIGRATION:
+        mm(net_cpu)
 
 
 def model_defaults(net_cpu):
