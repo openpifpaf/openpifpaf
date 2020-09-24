@@ -84,8 +84,6 @@ def cli():
     group = parser.add_argument_group('debug')
     group.add_argument('--profile', default=None,
                        help='enables profiling. specify path for chrome tracing file')
-    group.add_argument('--log-stats', default=False, action='store_true',
-                       help='enable stats logging')
 
     args = parser.parse_args()
 
