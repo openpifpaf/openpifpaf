@@ -11,7 +11,7 @@ import PIL
 import thop
 import torch
 
-from . import datasets, decoder, network, plugins, show, transforms, visualizer, __version__
+from . import datasets, decoder, logger, network, plugins, show, transforms, visualizer, __version__
 
 LOG = logging.getLogger(__name__)
 
@@ -45,6 +45,8 @@ class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
 
 
 def cli():  # pylint: disable=too-many-statements,too-many-branches
+    plugins.register()
+
     parser = argparse.ArgumentParser(
         prog='python3 -m openpifpaf.eval',
         description=__doc__,
@@ -53,9 +55,9 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     parser.add_argument('--version', action='version',
                         version='OpenPifPaf {version}'.format(version=__version__))
 
-    plugins.register()
     datasets.cli(parser)
     decoder.cli(parser)
+    logger.cli(parser)
     network.cli(parser)
     show.cli(parser)
     visualizer.cli(parser)
@@ -72,39 +74,10 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     parser.add_argument('--write-predictions', default=False, action='store_true',
                         help='write a json and a zip file of the predictions')
     parser.add_argument('--show-final-image', default=False, action='store_true')
-
-    group = parser.add_argument_group('logging')
-    group.add_argument('-q', '--quiet', default=False, action='store_true')
-    group.add_argument('--debug', default=False, action='store_true',
-                       help='print debug messages')
-    group.add_argument('--debug-images', default=False, action='store_true',
-                       help='print debug messages and enable all debug images')
-    group.add_argument('--log-stats', default=False, action='store_true',
-                       help='enable stats logging')
-
     args = parser.parse_args()
 
     if args.debug_images:
         args.debug = True
-
-    log_level = logging.INFO if not args.debug else logging.DEBUG
-    if args.quiet:
-        assert not args.debug
-        log_level = logging.WARNING
-    if args.log_stats:
-        # pylint: disable=import-outside-toplevel
-        from pythonjsonlogger import jsonlogger
-        stdout_handler = logging.StreamHandler(sys.stdout)
-        stdout_handler.setFormatter(
-            jsonlogger.JsonFormatter('(message) (levelname) (name)'))
-        logging.basicConfig(handlers=[stdout_handler])
-        logging.getLogger('openpifpaf').setLevel(log_level)
-        logging.getLogger('openpifpaf.stats').setLevel(logging.DEBUG)
-        LOG.setLevel(log_level)
-    else:
-        logging.basicConfig()
-        logging.getLogger('openpifpaf').setLevel(log_level)
-        LOG.setLevel(log_level)
 
     # add args.device
     args.device = torch.device('cpu')
@@ -118,6 +91,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     if args.output is None:
         args.output = default_output_name(args)
 
+    logger.configure(args, LOG)
     datasets.configure(args)
     decoder.configure(args)
     network.configure(args)

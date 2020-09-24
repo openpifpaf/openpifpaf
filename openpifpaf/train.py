@@ -8,7 +8,7 @@ import socket
 
 import torch
 
-from . import datasets, encoder, logs, network, optimize, plugins, show, visualizer
+from . import datasets, encoder, logger, network, optimize, plugins, show, visualizer
 from . import __version__
 
 LOG = logging.getLogger(__name__)
@@ -38,6 +38,8 @@ def default_output_file(args):
 
 
 def cli():
+    plugins.register()
+
     parser = argparse.ArgumentParser(
         prog='python3 -m openpifpaf.train',
         description=__doc__,
@@ -46,8 +48,7 @@ def cli():
     parser.add_argument('--version', action='version',
                         version='OpenPifPaf {version}'.format(version=__version__))
 
-    plugins.register()
-    logs.cli(parser)
+    logger.cli(parser)
     network.cli(parser)
     network.losses.cli(parser)
     encoder.cli(parser)
@@ -85,8 +86,6 @@ def cli():
                        help='enables profiling. specify path for chrome tracing file')
     group.add_argument('--log-stats', default=False, action='store_true',
                        help='enable stats logging')
-    group.add_argument('--debug-images', default=False, action='store_true',
-                       help='print debug messages and enable all debug images')
 
     args = parser.parse_args()
 
@@ -106,8 +105,7 @@ def cli():
         args.output = default_output_file(args)
         os.makedirs('outputs', exist_ok=True)
 
-    log_level = logs.configure(args)
-    LOG.setLevel(log_level)
+    logger.train_configure(args, LOG)
     if args.log_stats:
         logging.getLogger('openpifpaf.stats').setLevel(logging.DEBUG)
 

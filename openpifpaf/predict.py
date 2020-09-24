@@ -9,13 +9,15 @@ import os
 import PIL
 import torch
 
-from . import datasets, decoder, network, plugins, show, transforms, visualizer, __version__
+from . import datasets, decoder, logger, network, plugins, show, transforms, visualizer, __version__
 
 LOG = logging.getLogger(__name__)
 
 
 # pylint: disable=too-many-statements
 def cli():
+    plugins.register()
+
     parser = argparse.ArgumentParser(
         prog='python3 -m openpifpaf.predict',
         description=__doc__,
@@ -24,9 +26,9 @@ def cli():
     parser.add_argument('--version', action='version',
                         version='OpenPifPaf {version}'.format(version=__version__))
 
-    plugins.register()
-    network.cli(parser)
     decoder.cli(parser)
+    logger.cli(parser)
+    network.cli(parser)
     show.cli(parser)
     visualizer.cli(parser)
 
@@ -55,27 +57,12 @@ def cli():
                         help='figure width')
     parser.add_argument('--dpi-factor', default=1.0, type=float,
                         help='increase dpi of output image by this factor')
-    group = parser.add_argument_group('logging')
-    group.add_argument('-q', '--quiet', default=False, action='store_true',
-                       help='only show warning messages or above')
-    group.add_argument('--debug', default=False, action='store_true',
-                       help='print debug messages')
-    group.add_argument('--debug-images', default=False, action='store_true',
-                       help='print debug messages and enable all debug images')
     args = parser.parse_args()
 
     if args.debug_images:
         args.debug = True
 
-    log_level = logging.INFO
-    if args.quiet:
-        log_level = logging.WARNING
-    if args.debug:
-        log_level = logging.DEBUG
-    logging.basicConfig()
-    logging.getLogger('openpifpaf').setLevel(log_level)
-    LOG.setLevel(log_level)
-
+    logger.configure(args, LOG)  # logger first
     decoder.configure(args)
     network.configure(args)
     show.configure(args)

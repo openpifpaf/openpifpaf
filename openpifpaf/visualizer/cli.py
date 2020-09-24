@@ -20,6 +20,8 @@ def cli(parser):
     group.add_argument('--debug-indices', default=[], nargs='+',
                        help=('indices of fields to create debug plots for '
                              'of the form headname:fieldindex, e.g. cif:5'))
+    group.add_argument('--debug-images', default=False, action='store_true',
+                       help='print debug messages and enable all debug images')
 
 
 def enable_all_plots():

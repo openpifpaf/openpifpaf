@@ -6,8 +6,6 @@ import datetime
 import json
 import logging
 from pprint import pprint
-import socket
-import sys
 
 import numpy as np
 import pysparkling
@@ -20,33 +18,6 @@ except ImportError:
     matplotlib = None
 
 LOG = logging.getLogger(__name__)
-
-
-def cli(parser):
-    group = parser.add_argument_group('logging')
-    group.add_argument('--debug', default=False, action='store_true',
-                       help='print debug messages')
-
-
-def configure(args):
-    # pylint: disable=import-outside-toplevel
-    from pythonjsonlogger import jsonlogger
-
-    file_handler = logging.FileHandler(args.output + '.log', mode='w')
-    file_handler.setFormatter(
-        jsonlogger.JsonFormatter('%(message) %(levelname) %(name) %(asctime)'))
-    stdout_handler = logging.StreamHandler(sys.stdout)
-    logging.basicConfig(handlers=[stdout_handler, file_handler])
-    log_level = logging.INFO if not args.debug else logging.DEBUG
-    logging.getLogger('openpifpaf').setLevel(log_level)
-    LOG.info({
-        'type': 'process',
-        'argv': sys.argv,
-        'args': vars(args),
-        'version': __version__,
-        'hostname': socket.gethostname(),
-    })
-    return log_level
 
 
 def optionally_shaded(ax, x, y, *, color, label, **kwargs):
