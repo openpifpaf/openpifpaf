@@ -88,6 +88,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     parser.add_argument('--start-msec', type=float, default=None)
     parser.add_argument('--skip-frames', type=int, default=1)
     parser.add_argument('--max-frames', type=int, default=None)
+    parser.add_argument('--crop', type=int, nargs=4, default=None, help='left top right bottom')
     args = parser.parse_args()
 
     args.debug_images = False
@@ -200,6 +201,15 @@ def main():
             LOG.debug('resized image size: %s', image.shape)
         if args.horizontal_flip:
             image = image[:, ::-1]
+        if args.crop:
+            if args.crop[0]:
+                image = image[:, args.crop[0]:]
+            if args.crop[1]:
+                image = image[args.crop[1]:, :]
+            if args.crop[2]:
+                image = image[:, :-args.crop[2]]
+            if args.crop[3]:
+                image = image[:-args.crop[3], :]
 
         if ax is None:
             ax, ax_second = animation.frame_init(image)
