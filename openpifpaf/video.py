@@ -89,6 +89,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     parser.add_argument('--skip-frames', type=int, default=1)
     parser.add_argument('--max-frames', type=int, default=None)
     parser.add_argument('--crop', type=int, nargs=4, default=None, help='left top right bottom')
+    parser.add_argument('--rotate', default=None, choices=('left', 'right', '180'))
     args = parser.parse_args()
 
     args.debug_images = False
@@ -142,14 +143,16 @@ def main():
     args = cli()
     processor, model = processor_factory(args)
 
-    preprocess = []
+    # assemble preprocessing transforms
+    rescale_t = None
     if args.long_edge is not None:
-        preprocess.append(transforms.RescaleAbsolute(args.long_edge, fast=True))
-    preprocess += [
+        rescale_t = transforms.RescaleAbsolute(args.long_edge, fast=True)
+    preprocess = transforms.Compose([
+        transforms.NormalizeAnnotations(),
+        rescale_t,
         transforms.CenterPadTight(16),
         transforms.EVAL_TRANSFORM,
-    ]
-    preprocess = transforms.Compose(preprocess)
+    ])
 
     # create keypoint painter
     keypoint_painter = show.KeypointPainter(
@@ -210,6 +213,15 @@ def main():
                 image = image[:, :-args.crop[2]]
             if args.crop[3]:
                 image = image[:-args.crop[3], :]
+        if args.rotate == 'left':
+            image = np.swapaxes(image, 0, 1)
+            image = np.flip(image, axis=0)
+        elif args.rotate == 'right':
+            image = np.swapaxes(image, 0, 1)
+            image = np.flip(image, axis=1)
+        elif args.rotate == '180':
+            image = np.flip(image, axis=0)
+            image = np.flip(image, axis=1)
 
         if ax is None:
             ax, ax_second = animation.frame_init(image)
