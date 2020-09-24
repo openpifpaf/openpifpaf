@@ -77,16 +77,17 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     parser.add_argument('--horizontal-flip', default=False, action='store_true')
     parser.add_argument('--long-edge', default=None, type=int,
                         help='long edge of input images')
-    parser.add_argument('--no-colored-connections',
-                        dest='colored_connections', default=True, action='store_false',
-                        help='do not use colored connections to draw poses')
+    parser.add_argument('--line-width', default=6, type=int,
+                        help='line width for skeleton')
+    parser.add_argument('--monocolor-connections', default=False, action='store_true')
     parser.add_argument('--disable-cuda', action='store_true',
                         help='disable CUDA')
     parser.add_argument('--scale', default=1.0, type=float,
                         help='input image scale factor')
-    parser.add_argument('--start-frame', type=int, default=0)
+    parser.add_argument('--start-frame', type=int, default=None)
+    parser.add_argument('--start-msec', type=float, default=None)
     parser.add_argument('--skip-frames', type=int, default=1)
-    parser.add_argument('--max-frames', type=int)
+    parser.add_argument('--max-frames', type=int, default=None)
     args = parser.parse_args()
 
     args.debug_images = False
@@ -142,7 +143,6 @@ def main():
 
     preprocess = []
     if args.long_edge is not None:
-        assert args.scale is None
         preprocess.append(transforms.RescaleAbsolute(args.long_edge, fast=True))
     preprocess += [
         transforms.CenterPadTight(16),
@@ -151,7 +151,9 @@ def main():
     preprocess = transforms.Compose(preprocess)
 
     # create keypoint painter
-    keypoint_painter = show.KeypointPainter(color_connections=args.colored_connections, linewidth=6)
+    keypoint_painter = show.KeypointPainter(
+        color_connections=not args.monocolor_connections,
+        linewidth=args.line_width)
     annotation_painter = show.AnnotationPainter(keypoint_painter=keypoint_painter)
 
     if args.source == 'screen':
@@ -160,6 +162,10 @@ def main():
             print('!!!!!!!!!!! install mss (pip install mss) for faster screen grabs')
     else:
         capture = cv2.VideoCapture(args.source)
+        if args.start_frame:
+            capture.set(cv2.CAP_PROP_POS_FRAMES, args.start_frame)
+        if args.start_msec:
+            capture.set(cv2.CAP_PROP_POS_MSEC, args.start_msec)
 
     animation = show.AnimationFrame(
         show=args.show,
@@ -183,10 +189,6 @@ def main():
         if image is None:
             LOG.info('no more images captured')
             break
-
-        if frame_i < args.start_frame:
-            animation.skip_frame()
-            continue
 
         if frame_i % args.skip_frames != 0:
             animation.skip_frame()
@@ -238,7 +240,7 @@ def main():
                  1.0 / (time.time() - last_loop))
         last_loop = time.time()
 
-        if args.max_frames and frame_i >= args.start_frame + args.max_frames:
+        if args.max_frames and frame_i >= args.max_frames:
             break
 
 
