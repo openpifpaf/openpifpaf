@@ -135,6 +135,7 @@ def processor_factory(args):
     return processor, model
 
 
+# pylint: disable=too-many-branches,too-many-statements
 def main():
     args = cli()
     processor, model = processor_factory(args)
