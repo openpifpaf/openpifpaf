@@ -1,15 +1,16 @@
 import logging
 
-from .caf_scored import CafScored
-from .cif_hr import CifHr
-from .cif_seeds import CifSeeds
-from . import generator, nms
+from .cifcaf import CifCaf
+from .cifdet import CifDet
+from .decoder import Decoder
+from .multi import Multi
+from . import utils
 from .profiler import Profiler
 from .profiler_autograd import ProfilerAutograd
 
 LOG = logging.getLogger(__name__)
 
-DECODERS = {generator.CifDet, generator.CifCaf}
+DECODERS = {CifDet, CifCaf}
 
 
 def cli(parser, *, workers=None):
@@ -19,11 +20,11 @@ def cli(parser, *, workers=None):
     group.add_argument('--decoder', default=None, nargs='+', choices=available_decoders,
                        help='Decoders to be considered.')
 
-    group.add_argument('--seed-threshold', default=CifSeeds.threshold, type=float,
+    group.add_argument('--seed-threshold', default=utils.CifSeeds.threshold, type=float,
                        help='minimum threshold for seeds')
-    assert nms.Detection.instance_threshold == nms.Keypoints.instance_threshold
+    assert utils.nms.Detection.instance_threshold == utils.nms.Keypoints.instance_threshold
     group.add_argument('--instance-threshold', type=float,
-                       default=nms.Keypoints.instance_threshold,
+                       default=utils.nms.Keypoints.instance_threshold,
                        help='filter instances by score')
     group.add_argument('--decoder-workers', default=workers, type=int,
                        help='number of workers for pose decoding')
@@ -34,9 +35,9 @@ def cli(parser, *, workers=None):
                        help='specify out .prof file or nothing for default file name')
 
     group = parser.add_argument_group('CifCaf decoders')
-    group.add_argument('--cif-th', default=CifHr.v_threshold, type=float,
+    group.add_argument('--cif-th', default=utils.CifHr.v_threshold, type=float,
                        help='cif threshold')
-    group.add_argument('--caf-th', default=CafScored.default_score_th, type=float,
+    group.add_argument('--caf-th', default=utils.CafScored.default_score_th, type=float,
                        help='caf threshold')
 
     for dec in DECODERS:
@@ -63,22 +64,22 @@ def configure(args):
             DECODERS.remove(dec)
 
     # configure CifHr
-    CifHr.v_threshold = args.cif_th
+    utils.CifHr.v_threshold = args.cif_th
 
     # configure CifSeeds
-    CifSeeds.threshold = args.seed_threshold
+    utils.CifSeeds.threshold = args.seed_threshold
 
     # configure CafScored
-    CafScored.default_score_th = args.caf_th
+    utils.CafScored.default_score_th = args.caf_th
 
     # configure generators
-    generator.Generator.default_worker_pool = args.decoder_workers
+    Decoder.default_worker_pool = args.decoder_workers
 
     # configure nms
-    nms.Detection.instance_threshold = args.instance_threshold
-    nms.Keypoints.instance_threshold = args.instance_threshold
-    nms.Keypoints.keypoint_threshold = (args.keypoint_threshold
-                                        if not args.force_complete_pose else 0.0)
+    utils.nms.Detection.instance_threshold = args.instance_threshold
+    utils.nms.Keypoints.instance_threshold = args.instance_threshold
+    utils.nms.Keypoints.keypoint_threshold = (
+        args.keypoint_threshold if not args.force_complete_pose else 0.0)
 
     # TODO: caf seeds
     assert not args.caf_seeds, 'not implemented'
@@ -112,7 +113,7 @@ def factory(head_metas, *, profile=False, profile_device=None):
         decode.fields_batch = ProfilerAutograd(
             decode.fields_batch, device=profile_device, out_name=profile)
 
-    return generator.Multi(decoders)
+    return Multi(decoders)
 
     # TODO implement!
         # if multi_scale:

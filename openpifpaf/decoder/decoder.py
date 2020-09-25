@@ -8,7 +8,7 @@ from typing import List
 
 import torch
 
-from ... import annotation, visualizer
+from .. import annotation, visualizer
 
 LOG = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ class DummyPool():
         return [f(*i) for i in iterable]
 
 
-class Generator:
+class Decoder:
     """Generate predictions from image or field inputs.
 
     When creating a new generator, the main implementation goes into `__call__()`.

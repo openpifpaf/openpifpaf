@@ -3,18 +3,15 @@ import logging
 import time
 from typing import List
 
-from .generator import Generator
-from ...annotation import AnnotationDet
-from ..cif_hr import CifDetHr
-from ..cif_seeds import CifDetSeeds
-from .. import nms
-from ..occupancy import Occupancy
-from ... import headmeta, visualizer
+from .decoder import Decoder
+from . import utils
+from ..annotation import AnnotationDet
+from .. import headmeta, visualizer
 
 LOG = logging.getLogger(__name__)
 
 
-class CifDet(Generator):
+class CifDet(Decoder):
     occupancy_visualizer = visualizer.Occupancy()
 
     def __init__(self, head_metas: List[headmeta.CifDet], *, visualizers=None):
@@ -43,9 +40,9 @@ class CifDet(Generator):
             for vis, meta in zip(self.visualizers, self.metas):
                 vis.predicted(fields[meta.head_index])
 
-        cifhr = CifDetHr().fill(fields, self.metas)
-        seeds = CifDetSeeds(cifhr.accumulated).fill(fields, self.metas)
-        occupied = Occupancy(cifhr.accumulated.shape, 2, min_scale=2.0)
+        cifhr = utils.CifDetHr().fill(fields, self.metas)
+        seeds = utils.CifDetSeeds(cifhr.accumulated).fill(fields, self.metas)
+        occupied = utils.Occupancy(cifhr.accumulated.shape, 2, min_scale=2.0)
 
         annotations = []
         for v, f, x, y, w, h in seeds.get():
@@ -58,7 +55,7 @@ class CifDet(Generator):
 
         self.occupancy_visualizer.predicted(occupied)
 
-        annotations = nms.Detection().annotations(annotations)
+        annotations = utils.nms.Detection().annotations(annotations)
         # annotations = sorted(annotations, key=lambda a: -a.score)
 
         LOG.info('annotations %d, decoder = %.3fs', len(annotations), time.perf_counter() - start)
