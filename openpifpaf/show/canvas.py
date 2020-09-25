@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 import logging
+import os
 
 import numpy as np
 from PIL import Image
@@ -13,10 +14,28 @@ except ImportError:
 LOG = logging.getLogger(__name__)
 
 
+class SaveAll:
+    """Generates new file names for debug plots."""
+    directory = None
+    count = 0
+
+    @classmethod
+    def next(cls):
+        if cls.directory is None:
+            return None
+
+        os.makedirs(cls.directory, exist_ok=True)
+
+        cls.count += 1
+        return os.path.join(cls.directory, '{:04}.png'.format(cls.count))
+
+
 @contextmanager
 def canvas(fig_file=None, show=True, dpi=200, nomargin=False, **kwargs):
     if plt is None:
         raise Exception('please install matplotlib')
+    if fig_file is None:
+        fig_file = SaveAll.next()
 
     if 'figsize' not in kwargs:
         # kwargs['figsize'] = (15, 8)
@@ -33,6 +52,7 @@ def canvas(fig_file=None, show=True, dpi=200, nomargin=False, **kwargs):
 
     fig.set_tight_layout(not nomargin)
     if fig_file:
+        LOG.debug('writing image to %s', fig_file)
         fig.savefig(fig_file)
     if show:
         plt.show()
@@ -44,6 +64,8 @@ def image_canvas(image, fig_file=None, *, show=True, dpi_factor=1.0,
                  fig_width=7.0, margin=None, **kwargs):
     if plt is None:
         raise Exception('please install matplotlib')
+    if fig_file is None:
+        fig_file = SaveAll.next()
 
     image = np.asarray(image)
 
@@ -74,6 +96,7 @@ def image_canvas(image, fig_file=None, *, show=True, dpi_factor=1.0,
     yield ax
 
     if fig_file:
+        LOG.debug('writing image to %s', fig_file)
         fig.savefig(fig_file)
     if show:
         plt.show()
