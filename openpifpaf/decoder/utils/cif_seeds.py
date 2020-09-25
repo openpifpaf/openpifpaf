@@ -2,9 +2,9 @@ import logging
 import time
 
 # pylint: disable=import-error
-from ..functional import scalar_values
+from ...functional import scalar_values
 from .cif_hr import CifHr
-from .. import headmeta, visualizer
+from ... import headmeta, visualizer
 
 LOG = logging.getLogger(__name__)
 

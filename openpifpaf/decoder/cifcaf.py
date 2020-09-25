@@ -7,22 +7,18 @@ from typing import List
 
 import numpy as np
 
-from .generator import Generator
-from ...annotation import Annotation
-from ..cif_hr import CifHr
-from ..cif_seeds import CifSeeds
-from ..caf_scored import CafScored
-from .. import nms as nms_module
-from ..occupancy import Occupancy
-from ... import headmeta, visualizer
+from .decoder import Decoder
+from ..annotation import Annotation
+from . import utils
+from .. import headmeta, visualizer
 
 # pylint: disable=import-error
-from ...functional import caf_center_s, grow_connection_blend
+from ..functional import caf_center_s, grow_connection_blend
 
 LOG = logging.getLogger(__name__)
 
 
-class CifCaf(Generator):
+class CifCaf(Decoder):
     """Generate CifCaf poses from fields.
 
     :param: nms: set to None to switch off non-maximum suppression.
@@ -56,7 +52,7 @@ class CifCaf(Generator):
             self.caf_visualizers = [visualizer.Caf(meta) for meta in caf_metas]
 
         if self.nms is True:
-            self.nms = nms_module.Keypoints()
+            self.nms = utils.nms.Keypoints()
 
         self.timers = defaultdict(float)
 
@@ -128,11 +124,11 @@ class CifCaf(Generator):
         for vis, meta in zip(self.caf_visualizers, self.caf_metas):
             vis.predicted(fields[meta.head_index])
 
-        cifhr = CifHr().fill(fields, self.cif_metas)
-        seeds = CifSeeds(cifhr.accumulated).fill(fields, self.cif_metas)
-        caf_scored = CafScored(cifhr.accumulated).fill(fields, self.caf_metas)
+        cifhr = utils.CifHr().fill(fields, self.cif_metas)
+        seeds = utils.CifSeeds(cifhr.accumulated).fill(fields, self.cif_metas)
+        caf_scored = utils.CafScored(cifhr.accumulated).fill(fields, self.caf_metas)
 
-        occupied = Occupancy(cifhr.accumulated.shape, 2, min_scale=4)
+        occupied = utils.Occupancy(cifhr.accumulated.shape, 2, min_scale=4)
         annotations = []
 
         def mark_occupied(ann):
@@ -321,7 +317,8 @@ class CifCaf(Generator):
     def complete_annotations(self, cifhr, fields, annotations):
         start = time.perf_counter()
 
-        caf_scored = CafScored(cifhr.accumulated, score_th=0.0001).fill(fields, self.caf_metas)
+        caf_scored = utils.CafScored(cifhr.accumulated, score_th=0.0001).fill(
+            fields, self.caf_metas)
         for ann in annotations:
             unfilled_mask = ann.data[:, 2] == 0.0
             self._grow(ann, caf_scored, reverse_match=False)

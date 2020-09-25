@@ -1,10 +1,17 @@
 import logging
 import numpy as np
 
-from .utils import scalar_square_add_single
-from ..functional import scalar_nonzero_clipped_with_reduction
+from ...functional import scalar_nonzero_clipped_with_reduction
 
 LOG = logging.getLogger(__name__)
+
+
+def scalar_square_add_single(field, x, y, sigma, value):
+    minx = max(0, int(x - sigma))
+    miny = max(0, int(y - sigma))
+    maxx = max(minx + 1, min(field.shape[1], int(x + sigma) + 1))
+    maxy = max(miny + 1, min(field.shape[0], int(y + sigma) + 1))
+    field[miny:maxy, minx:maxx] += value
 
 
 class Occupancy():

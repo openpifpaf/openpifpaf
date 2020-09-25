@@ -4,7 +4,7 @@ import random
 import pysparkling
 import torch
 
-from .decoder.instance_scorer import InstanceScorer
+from .decoder.utils.instance_scorer import InstanceScorer
 from . import show
 
 DATA_FILE = ('outputs/resnet101block5-pif-paf-edge401-190412-151013.pkl'
