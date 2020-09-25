@@ -24,7 +24,7 @@ class CifDet(Base):
     def __init__(self, meta: headmeta.CifDet):
         super().__init__(meta.name)
         self.meta = meta
-        self.detection_painter = show.DetectionPainter()
+        self.annotation_painter = show.AnnotationPainter()
 
     def targets(self, field, *, annotation_dicts):
         assert self.meta.categories is not None
@@ -69,7 +69,7 @@ class CifDet(Base):
             with self.image_canvas(self._processed_image, margin=[0.0, 0.01, 0.05, 0.01]) as ax:
                 show.white_screen(ax, alpha=0.5)
                 if annotations:
-                    self.detection_painter.annotations(ax, annotations, color='lightgray')
+                    self.annotation_painter.annotations(ax, annotations, color='lightgray')
                 q = show.quiver(ax,
                                 regression_fields[f, :2],
                                 confidence_field=confidence_field,

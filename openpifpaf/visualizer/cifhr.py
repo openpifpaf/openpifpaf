@@ -9,7 +9,7 @@ class CifHr(Base):
     show = False
 
     def __init__(self, *, stride=1, field_names=None):
-        super().__init__(('cif', 'cifdet'))
+        super().__init__('cifhr')
 
         self.stride = stride
         self.field_names = field_names
