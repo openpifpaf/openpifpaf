@@ -1,7 +1,7 @@
 import logging
 
 from .animation_frame import AnimationFrame
-from .canvas import SaveAll
+from .canvas import Canvas
 from .painters import KeypointPainter
 
 LOG = logging.getLogger(__name__)
@@ -11,6 +11,14 @@ def cli(parser):
     group = parser.add_argument_group('show')
     group.add_argument('--save-all', nargs='?', default=None, const='all-images/',
                        help='every plot is saved (optional to specify directory)')
+    assert not Canvas.show
+    assert not AnimationFrame.show
+    group.add_argument('--show', default=False, action='store_true',
+                       help='show every plot, i.e., call matplotlib show()')
+    group.add_argument('--figure-width', default=Canvas.figure_width, type=float,
+                       help='figure width for matplotlib (in inches)')
+    group.add_argument('--image-dpi-factor', default=Canvas.image_dpi_factor, type=float,
+                       help='increase dpi of output image by this factor')
 
     group.add_argument('--show-box', default=False, action='store_true')
     group.add_argument('--show-joint-scales', default=False, action='store_true')
@@ -24,7 +32,10 @@ def cli(parser):
 
 
 def configure(args):
-    SaveAll.directory = args.save_all
+    Canvas.all_images_directory = args.save_all
+    Canvas.show = args.show
+    Canvas.figure_width = args.figure_width
+    Canvas.image_dpi_factor = args.image_dpi_factor
 
     KeypointPainter.show_box = args.show_box
     KeypointPainter.show_joint_scales = args.show_joint_scales
@@ -35,3 +46,4 @@ def configure(args):
 
     AnimationFrame.video_fps = args.video_fps
     AnimationFrame.video_dpi = args.video_dpi
+    AnimationFrame.show = args.show

@@ -36,8 +36,6 @@ def cli():
                         help='input images')
     parser.add_argument('--glob',
                         help='glob expression for input images (for many images)')
-    parser.add_argument('--show', default=False, action='store_true',
-                        help='show image of output overlay')
     parser.add_argument('--image-output', default=None, nargs='?', const=True,
                         help='image output file or directory')
     parser.add_argument('--json-output', default=None, nargs='?', const=True,
@@ -53,10 +51,6 @@ def cli():
     parser.add_argument('--line-width', default=6, type=int,
                         help='line width for skeleton')
     parser.add_argument('--monocolor-connections', default=False, action='store_true')
-    parser.add_argument('--figure-width', default=10.0, type=float,
-                        help='figure width')
-    parser.add_argument('--dpi-factor', default=1.0, type=float,
-                        help='increase dpi of output image by this factor')
     args = parser.parse_args()
 
     if args.debug_images:
@@ -189,11 +183,7 @@ def main():
                 image_out_name = out_name(
                     args.image_output, meta['file_name'], '.predictions.png')
                 LOG.debug('image output = %s', image_out_name)
-                with show.image_canvas(cpu_image,
-                                       image_out_name,
-                                       show=args.show,
-                                       fig_width=args.figure_width,
-                                       dpi_factor=args.dpi_factor) as ax:
+                with show.image_canvas(cpu_image, image_out_name) as ax:
                     annotation_painter.annotations(ax, pred)
 
 

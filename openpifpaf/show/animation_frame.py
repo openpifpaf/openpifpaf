@@ -17,16 +17,15 @@ LOG = logging.getLogger(__name__)
 class AnimationFrame:
     video_fps = 10
     video_dpi = 100
+    show=False
 
     def __init__(self, *,
                  fig_width=8.0,
                  fig_init_args=None,
-                 show=False,
                  video_output=None,
                  second_visual=False):
         self.fig_width = fig_width
         self.fig_init_args = fig_init_args or {}
-        self.show = show
         self.video_output = video_output
         self.video_writer = None
         if self.video_output:
