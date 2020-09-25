@@ -337,7 +337,7 @@ class Plots():
             self.lr(ax)
 
         with show.canvas(nrows=n_rows, ncols=n_cols, squeeze=False,
-                         figsize=multi_figsize, dpi=50,
+                         figsize=multi_figsize,
                          sharey=self.share_y, sharex=True) as axs:
             for row_i, row in enumerate(rows.values()):
                 for col_i, field_name in enumerate(row):
@@ -350,7 +350,7 @@ class Plots():
             self.preprocess_time(ax)
 
         with show.canvas(nrows=n_rows, ncols=n_cols, squeeze=False,
-                         figsize=multi_figsize, dpi=50,
+                         figsize=multi_figsize,
                          sharey=self.share_y, sharex=True) as axs:
             for row_i, row in enumerate(rows.values()):
                 for col_i, field_name in enumerate(row):
@@ -358,7 +358,7 @@ class Plots():
 
         if show_mtl_sigmas:
             with show.canvas(nrows=n_rows, ncols=n_cols, squeeze=False,
-                             figsize=multi_figsize, dpi=50,
+                             figsize=multi_figsize,
                              sharey=self.share_y, sharex=True) as axs:
                 for row_i, row in enumerate(rows.values()):
                     for col_i, field_name in enumerate(row):
@@ -553,6 +553,8 @@ def main():
     parser.add_argument('--version', action='version',
                         version='OpenPifPaf {version}'.format(version=__version__))
 
+    show.cli(parser)
+
     parser.add_argument('log_file', nargs='+',
                         help='path to log file(s)')
     parser.add_argument('--label', nargs='+',
@@ -568,6 +570,8 @@ def main():
                         help='output prefix (default is log_file + .)')
     parser.add_argument('--show-mtl-sigmas', default=False, action='store_true')
     args = parser.parse_args()
+
+    show.configure(args)
 
     if args.output is None:
         args.output = args.log_file[-1] + '.'

@@ -73,7 +73,6 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
                         help='video output file')
     parser.add_argument('--json-output', default=None, nargs='?', const=True,
                         help='json output file')
-    parser.add_argument('--show', default=False, action='store_true')
     parser.add_argument('--horizontal-flip', default=False, action='store_true')
     parser.add_argument('--long-edge', default=None, type=int,
                         help='long edge of input images')
@@ -172,7 +171,6 @@ def main():
             capture.set(cv2.CAP_PROP_POS_MSEC, args.start_msec)
 
     animation = show.AnimationFrame(
-        show=args.show,
         video_output=args.video_output,
         second_visual=args.debug or args.debug_indices,
     )
