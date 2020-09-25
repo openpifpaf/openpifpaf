@@ -40,6 +40,7 @@ data-mscoco
 *.log
 *.zip
 outputs/
+all-images/
 shared/
 decoder.prof
 decoder_flame.svg
