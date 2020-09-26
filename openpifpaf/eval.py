@@ -4,6 +4,7 @@ import argparse
 import json
 import logging
 import os
+import sys
 import time
 
 import PIL
@@ -189,10 +190,9 @@ def main():
 
     # write
     for metric in metrics:
-        if args.write_predictions:
-            metric.write_predictions(args.output)
-
         additional_data = {
+            'args': sys.argv,
+            'version': __version__,
             'dataset': args.dataset,
             'total_time': total_time,
             'checkpoint': args.checkpoint,
@@ -202,6 +202,10 @@ def main():
             'decoder_time': decoder_time,
             'nn_time': nn_time,
         }
+
+        if args.write_predictions:
+            metric.write_predictions(args.output, additional_data=additional_data)
+
         stats = dict(**metric.stats(), **additional_data)
         with open(args.output + '.stats.json', 'w') as f:
             json.dump(stats, f)

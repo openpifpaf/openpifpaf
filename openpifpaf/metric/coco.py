@@ -134,7 +134,7 @@ class Coco(Base):
 
         self.predictions += image_annotations
 
-    def write_predictions(self, filename):
+    def write_predictions(self, filename, *, additional_data=None):
         predictions = [
             {k: v for k, v in annotation.items()
              if k in ('image_id', 'category_id', 'keypoints', 'score')}
@@ -146,6 +146,11 @@ class Coco(Base):
         with zipfile.ZipFile(filename + '.zip', 'w') as myzip:
             myzip.write(filename + '.pred.json', arcname='predictions.json')
         LOG.info('wrote %s.zip', filename)
+
+        if additional_data:
+            with open(filename + '.pred_meta.json', 'w') as f:
+                json.dump(additional_data, f)
+            LOG.info('wrote %s.pred_meta.json', filename)
 
     def stats(self):
         data = {

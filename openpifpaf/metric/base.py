@@ -25,7 +25,7 @@ class Base:
         """
         raise NotImplementedError
 
-    def write_predictions(self, filename):
+    def write_predictions(self, filename, *, additional_data=None):
         """Write predictions to a file.
 
         This is used to produce a metric-compatible output of predictions.
@@ -33,5 +33,7 @@ class Base:
         holds the private test set.
 
         :param filename: Output filename of prediction file.
+        :param additional_data: Additional information that might be worth saving
+            along with the predictions.
         """
         raise NotImplementedError
