@@ -18,6 +18,7 @@ class CifDet:
     meta: headmeta.CifDet
     rescaler: AnnRescalerDet = None
     v_threshold: int = 0
+    bmin: float = 1.0
     visualizer: CifDetVisualizer = None
 
     side_length: ClassVar[int] = 5
@@ -120,8 +121,8 @@ class CifDetGenerator():
         self.fields_wh[f, :, miny:maxy, minx:maxx][:, mask] = np.expand_dims(wh, 1)
 
         # update bmin
-        self.fields_reg_bmin[f, miny:maxy, minx:maxx][mask] = 1.0
-        self.fields_wh_bmin[f, miny:maxy, minx:maxx][mask] = 1.0
+        self.fields_reg_bmin[f, miny:maxy, minx:maxx][mask] = self.config.bmin
+        self.fields_wh_bmin[f, miny:maxy, minx:maxx][mask] = self.config.bmin
 
     def fields(self, valid_area):
         p = self.config.padding

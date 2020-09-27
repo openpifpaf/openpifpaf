@@ -18,6 +18,7 @@ class Cif:
     meta: headmeta.Cif
     rescaler: AnnRescaler = None
     v_threshold: int = 0
+    bmin: float = 0.1
     visualizer: CifVisualizer = None
 
     side_length: ClassVar[int] = 4
@@ -155,7 +156,7 @@ class CifGenerator():
         patch[2:, mask] = np.expand_dims(max_r, 1) * 0.5
 
         # update bmin
-        self.fields_bmin[f, miny:maxy, minx:maxx][mask] = 0.1
+        self.fields_bmin[f, miny:maxy, minx:maxx][mask] = self.config.bmin
 
         # update scale
         assert np.isnan(scale) or 0.0 < scale < 100.0

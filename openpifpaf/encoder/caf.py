@@ -19,6 +19,7 @@ class Caf:
     meta: headmeta.Caf
     rescaler: AnnRescaler = None
     v_threshold: int = 0
+    bmin: float = 0.1
     visualizer: CafVisualizer = None
 
     min_size: ClassVar[int] = 3
@@ -233,8 +234,8 @@ class CafGenerator:
             patch2[2:, mask] = np.expand_dims(max_r2, 1) * 0.5
 
             # update bmin
-            self.fields_bmin1[paf_i, fminy:fmaxy, fminx:fmaxx][mask] = 0.1
-            self.fields_bmin2[paf_i, fminy:fmaxy, fminx:fmaxx][mask] = 0.1
+            self.fields_bmin1[paf_i, fminy:fmaxy, fminx:fmaxx][mask] = self.config.bmin
+            self.fields_bmin2[paf_i, fminy:fmaxy, fminx:fmaxx][mask] = self.config.bmin
 
             # update scale
             assert np.isnan(scale1) or 0.0 < scale1 < 100.0
