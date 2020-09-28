@@ -68,8 +68,7 @@ class CifGenerator():
         field_w = bg_mask.shape[1] + 2 * self.config.padding
         field_h = bg_mask.shape[0] + 2 * self.config.padding
         self.intensities = np.zeros((n_fields, field_h, field_w), dtype=np.float32)
-        self.fields_reg = np.full((n_fields, 6, field_h, field_w), np.nan, dtype=np.float32)
-        self.fields_reg[:, 2:] = np.inf
+        self.fields_reg = np.full((n_fields, 2, field_h, field_w), np.nan, dtype=np.float32)
         self.fields_bmin = np.full((n_fields, field_h, field_w), np.nan, dtype=np.float32)
         self.fields_scale = np.full((n_fields, field_h, field_w), np.nan, dtype=np.float32)
         self.fields_reg_l = np.full((n_fields, field_h, field_w), np.inf, dtype=np.float32)
@@ -80,55 +79,24 @@ class CifGenerator():
         self.intensities[:, p:-p, p:-p][:, bg_mask == 0] = np.nan
 
     def fill(self, keypoint_sets):
-        for kps_i, keypoints in enumerate(keypoint_sets):
-            self.fill_keypoints(
-                keypoints,
-                [kps for i, kps in enumerate(keypoint_sets) if i != kps_i],
-            )
+        for keypoints in keypoint_sets:
+            self.fill_keypoints(keypoints)
 
-    @staticmethod
-    def quadrant(xys):
-        q = np.zeros((xys.shape[0],), dtype=np.int)
-        q[xys[:, 0] < 0.0] += 1
-        q[xys[:, 1] < 0.0] += 2
-        return q
-
-    @classmethod
-    def max_r(cls, xyv, other_xyv):
-        out = np.array([np.inf, np.inf, np.inf, np.inf], dtype=np.float32)
-        if not other_xyv:
-            return out
-
-        other_xyv = np.asarray(other_xyv)
-        diffs = other_xyv[:, :2] - np.expand_dims(xyv[:2], 0)
-        qs = cls.quadrant(diffs)
-        for q in range(4):
-            if not np.any(qs == q):
-                continue
-            out[q] = np.min(np.linalg.norm(diffs[qs == q], axis=1))
-
-        return out
-
-    def fill_keypoints(self, keypoints, other_keypoints):
+    def fill_keypoints(self, keypoints):
         scale = self.rescaler.scale(keypoints)
         for f, xyv in enumerate(keypoints):
             if xyv[2] <= self.config.v_threshold:
                 continue
-
-            other_xyv = [other_kps[f] for other_kps in other_keypoints
-                         if other_kps[f, 2] > self.config.v_threshold]
-            max_r = self.max_r(xyv, other_xyv)
 
             joint_scale = (
                 scale
                 if self.config.meta.sigmas is None
                 else scale * self.config.meta.sigmas[f]
             )
-            # joint_scale = np.min([joint_scale, np.min(max_r) * 0.25])
 
-            self.fill_coordinate(f, xyv, joint_scale, max_r)
+            self.fill_coordinate(f, xyv, joint_scale)
 
-    def fill_coordinate(self, f, xyv, scale, max_r):
+    def fill_coordinate(self, f, xyv, scale):
         ij = np.round(xyv[:2] - self.s_offset).astype(np.int) + self.config.padding
         minx, miny = int(ij[0]), int(ij[1])
         maxx, maxy = minx + self.config.side_length, miny + self.config.side_length
@@ -152,8 +120,7 @@ class CifGenerator():
 
         # update regression
         patch = self.fields_reg[f, :, miny:maxy, minx:maxx]
-        patch[:2, mask] = sink_reg[:, mask]
-        patch[2:, mask] = np.expand_dims(max_r, 1) * 0.5
+        patch[:, mask] = sink_reg[:, mask]
 
         # update bmin
         self.fields_bmin[f, miny:maxy, minx:maxx][mask] = self.config.bmin
@@ -177,7 +144,7 @@ class CifGenerator():
 
         return torch.from_numpy(np.concatenate([
             np.expand_dims(intensities, 1),
-            fields_reg[:, :2],  # TODO dropped margin components for now
+            fields_reg,
             np.expand_dims(fields_bmin, 1),
             np.expand_dims(fields_scale, 1),
         ], axis=1))

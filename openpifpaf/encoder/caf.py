@@ -6,7 +6,6 @@ import numpy as np
 import torch
 
 from .annrescaler import AnnRescaler
-from .cif import CifGenerator
 from .. import headmeta
 from ..visualizer import Caf as CafVisualizer
 from ..utils import create_sink, mask_valid_area
@@ -83,10 +82,8 @@ class CafGenerator:
         field_w = bg_mask.shape[1] + 2 * self.config.padding
         field_h = bg_mask.shape[0] + 2 * self.config.padding
         self.intensities = np.zeros((n_fields, field_h, field_w), dtype=np.float32)
-        self.fields_reg1 = np.full((n_fields, 6, field_h, field_w), np.nan, dtype=np.float32)
-        self.fields_reg2 = np.full((n_fields, 6, field_h, field_w), np.nan, dtype=np.float32)
-        self.fields_reg1[:, 2:] = np.inf
-        self.fields_reg2[:, 2:] = np.inf
+        self.fields_reg1 = np.full((n_fields, 2, field_h, field_w), np.nan, dtype=np.float32)
+        self.fields_reg2 = np.full((n_fields, 2, field_h, field_w), np.nan, dtype=np.float32)
         self.fields_bmin1 = np.full((n_fields, field_h, field_w), np.nan, dtype=np.float32)
         self.fields_bmin2 = np.full((n_fields, field_h, field_w), np.nan, dtype=np.float32)
         self.fields_scale1 = np.full((n_fields, field_h, field_w), np.nan, dtype=np.float32)
@@ -99,11 +96,8 @@ class CafGenerator:
         self.intensities[:, p:-p, p:-p][:, bg_mask == 0] = np.nan
 
     def fill(self, keypoint_sets):
-        for kps_i, keypoints in enumerate(keypoint_sets):
-            self.fill_keypoints(
-                keypoints,
-                [kps for i, kps in enumerate(keypoint_sets) if i != kps_i],
-            )
+        for keypoints in keypoint_sets:
+            self.fill_keypoints(keypoints)
 
     def shortest_sparse(self, joint_i, keypoints):
         shortest = np.inf
@@ -121,7 +115,7 @@ class CafGenerator:
 
         return shortest
 
-    def fill_keypoints(self, keypoints, other_keypoints):
+    def fill_keypoints(self, keypoints):
         scale = self.rescaler.scale(keypoints)
         for paf_i, (joint1i, joint2i) in enumerate(self.skeleton_m1):
             joint1 = keypoints[joint1i]
@@ -158,23 +152,15 @@ class CafGenerator:
                 if out_field_of_view_1 or out_field_of_view_2:
                     continue
 
-            other_j1s = [other_kps[joint1i] for other_kps in other_keypoints
-                         if other_kps[joint1i, 2] > self.config.v_threshold]
-            other_j2s = [other_kps[joint2i] for other_kps in other_keypoints
-                         if other_kps[joint2i, 2] > self.config.v_threshold]
-            max_r1 = CifGenerator.max_r(joint1, other_j1s)
-            max_r2 = CifGenerator.max_r(joint2, other_j2s)
-
             if self.config.meta.sigmas is None:
                 scale1, scale2 = scale, scale
             else:
                 scale1 = scale * self.config.meta.sigmas[joint1i]
                 scale2 = scale * self.config.meta.sigmas[joint2i]
-            # scale1 = np.min([scale1, np.min(max_r1) * 0.25])
-            # scale2 = np.min([scale2, np.min(max_r2) * 0.25])
-            self.fill_association(paf_i, joint1, joint2, scale1, scale2, max_r1, max_r2)
 
-    def fill_association(self, paf_i, joint1, joint2, scale1, scale2, max_r1, max_r2):
+            self.fill_association(paf_i, joint1, joint2, scale1, scale2)
+
+    def fill_association(self, paf_i, joint1, joint2, scale1, scale2):
         # offset between joints
         offset = joint2[:2] - joint1[:2]
         offset_d = np.linalg.norm(offset)
@@ -227,11 +213,9 @@ class CafGenerator:
 
             # update regressions
             patch1 = self.fields_reg1[paf_i, :, fminy:fmaxy, fminx:fmaxx]
-            patch1[:2, mask] = sink1[:, mask]
-            patch1[2:, mask] = np.expand_dims(max_r1, 1) * 0.5
+            patch1[:, mask] = sink1[:, mask]
             patch2 = self.fields_reg2[paf_i, :, fminy:fmaxy, fminx:fmaxx]
-            patch2[:2, mask] = sink2[:, mask]
-            patch2[2:, mask] = np.expand_dims(max_r2, 1) * 0.5
+            patch2[:, mask] = sink2[:, mask]
 
             # update bmin
             self.fields_bmin1[paf_i, fminy:fmaxy, fminx:fmaxx][mask] = self.config.bmin
@@ -265,8 +249,8 @@ class CafGenerator:
 
         return torch.from_numpy(np.concatenate([
             np.expand_dims(intensities, 1),
-            fields_reg1[:, :2],  # TODO dropped margin components for now
-            fields_reg2[:, :2],
+            fields_reg1,
+            fields_reg2,
             np.expand_dims(fields_bmin1, 1),
             np.expand_dims(fields_bmin2, 1),
             np.expand_dims(fields_scale1, 1),

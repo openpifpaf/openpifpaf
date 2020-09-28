@@ -101,55 +101,6 @@ def logl1_loss(logx, t, **kwargs):
         logx, torch.log(t), **kwargs)
 
 
-def margin_loss(x1, x2, t1, t2, max_r1, max_r2, max_r3, max_r4):
-    x = torch.stack((x1, x2))
-    t = torch.stack((t1, t2))
-
-    max_r = torch.min((torch.stack(max_r1, max_r2, max_r3, max_r4)), axis=0)
-    m0 = torch.isfinite(max_r)
-    x = x[:, m0]
-    t = t[:, m0]
-    max_r = max_r[m0]
-
-    # m1 = (x - t).norm(p=1, dim=0) > max_r
-    # x = x[:, m1]
-    # t = t[:, m1]
-    # max_r = max_r[m1]
-
-    norm = (x - t).norm(dim=0)
-    m2 = norm > max_r
-
-    return torch.sum(norm[m2] - max_r[m2])
-
-
-def quadrant(xys):
-    q = torch.zeros((xys.shape[1],), dtype=torch.long)
-    q[xys[0, :] < 0.0] += 1
-    q[xys[1, :] < 0.0] += 2
-    return q
-
-
-def quadrant_margin_loss(x1, x2, t1, t2, max_r1, max_r2, max_r3, max_r4):
-    x = torch.stack((x1, x2))
-    t = torch.stack((t1, t2))
-
-    diffs = x - t
-    qs = quadrant(diffs)
-    norms = diffs.norm(dim=0)
-
-    m1 = norms[qs == 0] > max_r1[qs == 0]
-    m2 = norms[qs == 1] > max_r2[qs == 1]
-    m3 = norms[qs == 2] > max_r3[qs == 2]
-    m4 = norms[qs == 3] > max_r4[qs == 3]
-
-    return (
-        torch.sum(norms[qs == 0][m1] - max_r1[qs == 0][m1]) +
-        torch.sum(norms[qs == 1][m2] - max_r2[qs == 1][m2]) +
-        torch.sum(norms[qs == 2][m3] - max_r3[qs == 2][m3]) +
-        torch.sum(norms[qs == 3][m4] - max_r4[qs == 3][m4])
-    )
-
-
 class SmoothL1Loss():
     r_smooth = 0.0
 
@@ -402,7 +353,6 @@ class CompositeLoss(torch.nn.Module):
     background_weight = 1.0
     focal_gamma = 1.0
     b_scale = 1.0
-    margin = False
 
     def __init__(self, head_net: heads.CompositeField3, regression_loss):
         super().__init__()
@@ -423,9 +373,6 @@ class CompositeLoss(torch.nn.Module):
             ['{}.{}.scales{}'.format(head_net.meta.dataset, head_net.meta.name, i + 1)
              for i in range(self.n_scales)]
         )
-        if self.margin:
-            self.field_names += ['{}.margin{}'.format(head_net.meta.name, i + 1)
-                                 for i in range(self.n_vectors)]
 
         self.bce_blackout = None
         self.previous_losses = None
@@ -505,29 +452,6 @@ class CompositeLoss(torch.nn.Module):
 
         return losses
 
-    def _margin_losses(self, x_regs, target_regs, *, target_confidence):
-        if not self.margin:
-            return []
-
-        reg_masks = target_confidence > 0.5
-        if not torch.any(reg_masks):
-            return [None for _ in target_regs]
-
-        batch_size = reg_masks.shape[0]
-        margin_losses = []
-        for x_reg, target_reg in zip(x_regs, target_regs):
-            margin_losses.append(quadrant_margin_loss(
-                torch.masked_select(x_reg[:, :, 0], reg_masks),
-                torch.masked_select(x_reg[:, :, 1], reg_masks),
-                torch.masked_select(target_reg[:, :, 0], reg_masks),
-                torch.masked_select(target_reg[:, :, 1], reg_masks),
-                torch.masked_select(target_reg[:, :, 2], reg_masks),
-                torch.masked_select(target_reg[:, :, 3], reg_masks),
-                torch.masked_select(target_reg[:, :, 4], reg_masks),
-                torch.masked_select(target_reg[:, :, 5], reg_masks),
-            ) / (100.0 * batch_size))
-        return margin_losses
-
     def forward(self, *args):
         LOG.debug('loss for %s', self.field_names)
 
@@ -550,10 +474,8 @@ class CompositeLoss(torch.nn.Module):
         ce_loss = self._confidence_loss(x_confidence, t_confidence)
         reg_losses = self._localization_loss(x_regs, t_regs)
         scale_losses = self._scale_losses(x_scales, t_scales)
-        margin_losses = self._margin_losses(x_regs, t_regs,
-                                            target_confidence=t_confidence)
 
-        all_losses = [ce_loss] + reg_losses + scale_losses + margin_losses
+        all_losses = [ce_loss] + reg_losses + scale_losses
         if not all(torch.isfinite(l).item() if l is not None else True for l in all_losses):
             raise Exception('found a loss that is not finite: {}, prev: {}'
                             ''.format(all_losses, self.previous_losses))
@@ -577,8 +499,6 @@ def cli(parser):
                        help='Laplace width b for scale loss')
     group.add_argument('--focal-gamma', default=CompositeLoss.focal_gamma, type=float,
                        help='when > 0.0, use focal loss with the given gamma')
-    group.add_argument('--margin-loss', default=False, action='store_true',
-                       help='[experimental]')
     group.add_argument('--auto-tune-mtl', default=False, action='store_true',
                        help=('[experimental] use Kendall\'s prescription for '
                              'adjusting the multitask weight'))
@@ -597,7 +517,6 @@ def configure(args):
     CompositeLoss.background_weight = args.background_weight
     CompositeLoss.focal_gamma = args.focal_gamma
     CompositeLoss.b_scale = args.b_scale
-    CompositeLoss.margin = args.margin_loss
 
     # MultiHeadLoss
     MultiHeadLoss.task_sparsity_weight = args.task_sparsity_weight
