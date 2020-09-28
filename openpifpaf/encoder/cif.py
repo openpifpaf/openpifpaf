@@ -124,7 +124,7 @@ class CifGenerator():
                 if self.config.meta.sigmas is None
                 else scale * self.config.meta.sigmas[f]
             )
-            joint_scale = np.min([joint_scale, np.min(max_r) * 0.25])
+            # joint_scale = np.min([joint_scale, np.min(max_r) * 0.25])
 
             self.fill_coordinate(f, xyv, joint_scale, max_r)
 

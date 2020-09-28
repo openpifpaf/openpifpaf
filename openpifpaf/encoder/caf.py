@@ -170,8 +170,8 @@ class CafGenerator:
             else:
                 scale1 = scale * self.config.meta.sigmas[joint1i]
                 scale2 = scale * self.config.meta.sigmas[joint2i]
-            scale1 = np.min([scale1, np.min(max_r1) * 0.25])
-            scale2 = np.min([scale2, np.min(max_r2) * 0.25])
+            # scale1 = np.min([scale1, np.min(max_r1) * 0.25])
+            # scale2 = np.min([scale2, np.min(max_r2) * 0.25])
             self.fill_association(paf_i, joint1, joint2, scale1, scale2, max_r1, max_r2)
 
     def fill_association(self, paf_i, joint1, joint2, scale1, scale2, max_r1, max_r2):

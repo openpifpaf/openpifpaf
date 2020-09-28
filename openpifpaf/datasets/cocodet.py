@@ -33,6 +33,7 @@ class CocoDet(DataModule):
     square_edge = 513
     extended_scale = False
     orientation_invariant = 0.0
+    blur = 0.0
     augmentation = True
     rescale_images = 1.0
     upsample_stride = 1
@@ -68,6 +69,9 @@ class CocoDet(DataModule):
         group.add_argument('--cocodet-orientation-invariant',
                            default=cls.orientation_invariant, type=float,
                            help='augment with random orientations')
+        group.add_argument('--cocodet-blur',
+                           default=cls.blur, type=float,
+                           help='augment with blur')
         assert cls.augmentation
         group.add_argument('--cocodet-no-augmentation',
                            dest='cocodet_augmentation',
@@ -96,6 +100,7 @@ class CocoDet(DataModule):
         cls.square_edge = args.cocodet_square_edge
         cls.extended_scale = args.cocodet_extended_scale
         cls.orientation_invariant = args.cocodet_orientation_invariant
+        cls.blur = args.cocodet_blur
         cls.augmentation = args.cocodet_augmentation
         cls.rescale_images = args.cocodet_rescale_images
         cls.upsample_stride = args.cocodet_upsample
@@ -125,6 +130,10 @@ class CocoDet(DataModule):
                              1.5 * self.rescale_images),
                 power_law=True, stretch_range=(0.75, 1.33))
 
+        blur_t = None
+        if self.blur:
+            blur_t = transforms.RandomApply(transforms.Blur(), self.blur)
+
         orientation_t = None
         if self.orientation_invariant:
             orientation_t = transforms.RandomApply(
@@ -132,15 +141,14 @@ class CocoDet(DataModule):
 
         return transforms.Compose([
             transforms.NormalizeAnnotations(),
-            transforms.AnnotationJitter(),
             transforms.RandomApply(transforms.HFlip(COCO_KEYPOINTS, HFLIP), 0.5),
             rescale_t,
+            blur_t,
             transforms.Crop(self.square_edge, use_area_of_interest=True),
             transforms.CenterPad(self.square_edge),
             orientation_t,
             transforms.MinSize(min_side=4.0),
             transforms.UnclippedArea(threshold=0.75),
-            # transforms.UnclippedSides(),
             transforms.TRAIN_TRANSFORM,
             transforms.Encoders([enc]),
         ])

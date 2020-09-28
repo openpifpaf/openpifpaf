@@ -209,7 +209,6 @@ class CocoKp(DataModule):
 
         return transforms.Compose([
             transforms.NormalizeAnnotations(),
-            transforms.AnnotationJitter(),
             transforms.RandomApply(transforms.HFlip(COCO_KEYPOINTS, HFLIP), 0.5),
             rescale_t,
             blur_t,
