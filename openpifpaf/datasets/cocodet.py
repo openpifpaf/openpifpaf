@@ -110,15 +110,6 @@ class CocoDet(DataModule):
     def _preprocess(self):
         enc = encoder.CifDet(self.head_metas[0])
 
-        if not self.augmentation:
-            return transforms.Compose([
-                transforms.NormalizeAnnotations(),
-                transforms.RescaleAbsolute(self.square_edge),
-                transforms.CenterPad(self.square_edge),
-                transforms.EVAL_TRANSFORM,
-                transforms.Encoders([enc]),
-            ])
-
         if self.extended_scale:
             rescale_t = transforms.RescaleRelative(
                 scale_range=(0.5 * self.rescale_images,
@@ -130,23 +121,14 @@ class CocoDet(DataModule):
                              1.5 * self.rescale_images),
                 power_law=True, stretch_range=(0.75, 1.33))
 
-        blur_t = None
-        if self.blur:
-            blur_t = transforms.RandomApply(transforms.Blur(), self.blur)
-
-        orientation_t = None
-        if self.orientation_invariant:
-            orientation_t = transforms.RandomApply(
-                transforms.RotateBy90(), self.orientation_invariant)
-
         return transforms.Compose([
             transforms.NormalizeAnnotations(),
             transforms.RandomApply(transforms.HFlip(COCO_KEYPOINTS, HFLIP), 0.5),
             rescale_t,
-            blur_t,
+            transforms.RandomApply(transforms.Blur(), self.blur),
             transforms.Crop(self.square_edge, use_area_of_interest=True),
             transforms.CenterPad(self.square_edge),
-            orientation_t,
+            transforms.RandomApply(transforms.RotateBy90(), self.orientation_invariant),
             transforms.MinSize(min_side=4.0),
             transforms.UnclippedArea(threshold=0.75),
             transforms.TRAIN_TRANSFORM,

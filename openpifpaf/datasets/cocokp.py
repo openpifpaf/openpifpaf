@@ -198,23 +198,14 @@ class CocoKp(DataModule):
                              2.0 * self.rescale_images),
                 power_law=True, stretch_range=(0.75, 1.33))
 
-        blur_t = None
-        if self.blur:
-            blur_t = transforms.RandomApply(transforms.Blur(), self.blur)
-
-        orientation_t = None
-        if self.orientation_invariant:
-            orientation_t = transforms.RandomApply(
-                transforms.RotateBy90(), self.orientation_invariant)
-
         return transforms.Compose([
             transforms.NormalizeAnnotations(),
             transforms.RandomApply(transforms.HFlip(COCO_KEYPOINTS, HFLIP), 0.5),
             rescale_t,
-            blur_t,
+            transforms.RandomApply(transforms.Blur(), self.blur),
             transforms.Crop(self.square_edge, use_area_of_interest=True),
             transforms.CenterPad(self.square_edge),
-            orientation_t,
+            transforms.RandomApply(transforms.RotateBy90(), self.orientation_invariant),
             transforms.TRAIN_TRANSFORM,
             transforms.Encoders(encoders),
         ])
