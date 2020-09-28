@@ -34,7 +34,7 @@ def test_predict(batch_size, with_debug, with_dense, tmpdir):
     if with_debug:
         cmd.append('--debug')
     if with_dense:
-        cmd.append('--dense-coupling=1.0')
+        cmd.append('--dense-connections')
 
     subprocess.run(cmd, check=True)
     assert os.path.exists(os.path.join(tmpdir, '000000081988.jpg.predictions.json'))
