@@ -40,7 +40,7 @@ def cli():
     parser.add_argument('--checkpoints', default=DEFAULT_CHECKPOINTS, nargs='+',
                         help='checkpoints to evaluate')
     parser.add_argument('--iccv2019-ablation', default=False, action='store_true')
-    parser.add_argument('--dense-ablation', default=False, action='store_true')
+    parser.add_argument('--v012-ablation', default=False, action='store_true')
     group = parser.add_argument_group('logging')
     group.add_argument('--debug', default=False, action='store_true',
                        help='print debug messages')
@@ -118,17 +118,21 @@ def main():
         ]
         for eval_args_i, name_i in zip(multi_eval_args, names):
             run_eval_coco(args.output, args.checkpoints[0], eval_args_i, output_name=name_i)
-    elif args.dense_ablation:
+    elif args.v012_ablation:
         multi_eval_args = [
             eval_args,
+            eval_args + ['--greedy'],
+            eval_args + ['--greedy', '--dense-coupling=1.0'],
             eval_args + ['--dense-coupling=1.0'],
             eval_args + ['--dense-coupling=0.1'],
         ]
         for checkpoint in args.checkpoints:
             names = [
                 checkpoint,
-                '{}.wdense'.format(checkpoint),
-                '{}.wdense.whierarchy'.format(checkpoint),
+                '{}.greedy'.format(checkpoint),
+                '{}.greedy.dense'.format(checkpoint),
+                '{}.dense'.format(checkpoint),
+                '{}.dense.hierarchy'.format(checkpoint),
             ]
             for eval_args_i, name_i in zip(multi_eval_args, names):
                 run_eval_coco(args.output, checkpoint, eval_args_i, output_name=name_i)
