@@ -92,6 +92,9 @@ class Caf(Base):
                           else [1.0 for _ in meta.skeleton])
             ]
         )
+        concatenated.head_index = metas[0].head_index
+        concatenated.base_stride = metas[0].base_stride
+        concatenated.upsample_stride = metas[0].upsample_stride
         return concatenated
 
 

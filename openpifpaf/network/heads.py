@@ -121,18 +121,6 @@ class HeadNetwork(torch.nn.Module):
         """Take the parsed argument parser output and configure class variables."""
 
 
-class CafConcatenate(HeadNetwork):
-    def __init__(self, parents):
-        meta = headmeta.Caf.concatenate([p.meta for p in parents])
-        super().__init__(meta, parents[0].in_features)
-
-        self.parents = torch.nn.ModuleList(parents)
-
-    def forward(self, *args):
-        x = args[0]
-        return torch.cat([p(x) for p in self.parents], dim=1)
-
-
 class CompositeField3(HeadNetwork):
     dropout_p = 0.0
     inplace_ops = True

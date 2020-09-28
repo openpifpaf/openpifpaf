@@ -18,6 +18,44 @@ from ..functional import caf_center_s, grow_connection_blend
 LOG = logging.getLogger(__name__)
 
 
+class DenseAdapter:
+    def __init__(self, cif_meta, caf_meta, dense_caf_meta):
+        self.cif_meta = cif_meta
+        self.caf_meta = caf_meta
+        self.dense_caf_meta = dense_caf_meta
+
+        # overwrite confidence scale
+        self.dense_caf_meta.confidence_scales = [
+            CifCaf.dense_coupling for _ in self.dense_caf_meta.skeleton
+        ]
+
+        concatenated_caf_meta = headmeta.Caf.concatenate(
+            [caf_meta, dense_caf_meta])
+        self.cifcaf = CifCaf([cif_meta], [concatenated_caf_meta])
+
+    @classmethod
+    def factory(cls, head_metas):
+        if len(head_metas) < 3:
+            return []
+        return [
+            DenseAdapter(cif_meta, caf_meta, dense_meta)
+            for cif_meta, caf_meta, dense_meta in zip(head_metas, head_metas[1:], head_metas[2:])
+            if (isinstance(cif_meta, headmeta.Cif)
+                and isinstance(caf_meta, headmeta.Caf)
+                and isinstance(dense_meta, headmeta.Caf))
+        ]
+
+    def __call__(self, fields, initial_annotations=None):
+        cifcaf_fields = [
+            fields[self.cif_meta.head_index],
+            np.concatenate([
+                fields[self.caf_meta.head_index],
+                fields[self.dense_caf_meta.head_index],
+            ], axis=0)
+        ]
+        return self.cifcaf(cifcaf_fields)
+
+
 class CifCaf(Decoder):
     """Generate CifCaf poses from fields.
 
@@ -29,6 +67,7 @@ class CifCaf(Decoder):
     greedy = False
     keypoint_threshold = 0.001
     nms = True
+    dense_coupling = 0.0
 
     def __init__(self,
                  cif_metas: List[headmeta.Cif],
@@ -90,6 +129,8 @@ class CifCaf(Decoder):
                            default=cls.connection_method,
                            choices=('max', 'blend'),
                            help='connection method to use, max is faster')
+        group.add_argument('--dense-connections', nargs='?', type=float,
+                           default=0.0, const=1.0)
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
@@ -102,10 +143,13 @@ class CifCaf(Decoder):
                                   if not args.force_complete_pose else 0.0)
         cls.greedy = args.greedy
         cls.connection_method = args.connection_method
+        cls.dense_coupling = args.dense_connections
 
     @classmethod
     def factory(cls, head_metas):
         # TODO: multi-scale
+        if cls.dense_coupling:
+            return DenseAdapter.factory(head_metas)
         return [
             CifCaf([meta], [meta_next])
             for meta, meta_next in zip(head_metas[:-1], head_metas[1:])

@@ -123,9 +123,9 @@ def main():
         multi_eval_args = [
             eval_args,
             eval_args + ['--greedy'],
-            eval_args + ['--greedy', '--dense-coupling=1.0'],
-            eval_args + ['--dense-coupling=1.0'],
-            eval_args + ['--dense-coupling=0.1'],
+            eval_args + ['--greedy', '--dense-connections'],
+            eval_args + ['--dense-connections'],
+            eval_args + ['--dense-connections=0.1'],
         ]
         for checkpoint in args.checkpoints:
             names = [
