@@ -67,6 +67,9 @@ def cli():
         if not any(l.startswith('--force-complete-pose') for l in eval_args):
             LOG.info('adding "--force-complete-pose" to the argument list')
             eval_args.append('--force-complete-pose')
+        if not any(l.startswith('--seed-threshold') for l in eval_args):
+            LOG.info('adding "--seed-threshold=0.2" to the argument list')
+            eval_args.append('--seed-threshold=0.2')
 
     # generate a default output filename
     if args.output is None:
@@ -93,8 +96,6 @@ def run_eval_coco(output_folder, checkpoint, eval_args, output_name=None):
         'python', '-m', 'openpifpaf.eval',
         '--output', out_file,
         '--checkpoint', checkpoint,
-        '--force-complete-pose',
-        '--seed-threshold=0.2',
     ] + eval_args, check=True)
 
 
