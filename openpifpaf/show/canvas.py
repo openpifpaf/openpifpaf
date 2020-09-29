@@ -20,6 +20,7 @@ class Canvas:
     figure_width = 7.0
     blank_dpi = 200
     image_dpi_factor = 1.0
+    white_overlay = False
 
     @classmethod
     def generic_name(cls):
@@ -100,6 +101,8 @@ class Canvas:
         ax.set_ylim(image.shape[0] - 0.5, -0.5)
         fig.add_axes(ax)
         ax.imshow(image)
+        if cls.white_overlay:
+            white_screen(ax, cls.white_overlay)
 
         yield ax
 

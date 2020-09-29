@@ -21,6 +21,8 @@ def cli(parser):
                        help='increase dpi of output image by this factor')
 
     group.add_argument('--show-box', default=False, action='store_true')
+    group.add_argument('--white-overlay',
+                       nargs='?', default=False, const=0.8, type=float)
     group.add_argument('--show-joint-scales', default=False, action='store_true')
     group.add_argument('--show-joint-confidences', default=False, action='store_true')
     group.add_argument('--show-decoding-order', default=False, action='store_true')
@@ -36,6 +38,7 @@ def configure(args):
     Canvas.show = args.show
     Canvas.figure_width = args.figure_width
     Canvas.image_dpi_factor = args.image_dpi_factor
+    Canvas.white_overlay = args.white_overlay
 
     KeypointPainter.show_box = args.show_box
     KeypointPainter.show_joint_scales = args.show_joint_scales
