@@ -205,15 +205,21 @@ class Plots():
         #     ax.set_yscale('log', nonposy='clip')
         ax.grid(linestyle='dotted')
         # ax.legend(loc='upper right')
+        ax.text(0.01, 1.01, 'train (cross-dotted), val (dot-solid)',
+                transform=ax.transAxes, size='x-small')
 
     def preprocess_time(self, ax):
         for color_i, (data, label) in enumerate(zip(self.datas, self.labels)):
             color = matplotlib.cm.get_cmap('tab10')((color_i % 10 + 0.05) / 10)
 
             if 'train' in data:
-                x = np.array([fractional_epoch(row) for row in data['train']])
+                # skip batch 0 as it has corrupted data_time
+                x = np.array([fractional_epoch(row)
+                              for row in data['train']
+                              if row.get('batch', 1) > 0])
                 y = np.array([row.get('data_time') / row.get('time') * 100.0
-                              for row in data['train']], dtype=np.float)
+                              for row in data['train']
+                              if row.get('batch', 1) > 0], dtype=np.float)
                 stride = int(len(x) / (x[-1] - x[0]) / 30.0)  # 30 per epoch
                 if stride > 5 and len(x) / stride > 2:
                     x_binned = np.array([x[i] for i in range(0, len(x), stride)][:-1])
