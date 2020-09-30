@@ -31,7 +31,11 @@ class Caf(Base):
         assert self.meta.skeleton is not None
 
         annotations = [
-            Annotation(keypoints=self.meta.keypoints, skeleton=self.meta.skeleton).set(
+            Annotation(
+                keypoints=self.meta.keypoints,
+                skeleton=self.meta.skeleton,
+                sigmas=self.meta.sigmas,
+            ).set(
                 ann['keypoints'], fixed_score=None, fixed_bbox=ann['bbox'])
             for ann in annotation_dicts
         ]
