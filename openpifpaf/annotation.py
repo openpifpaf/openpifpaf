@@ -3,7 +3,7 @@ import numpy as np
 # pylint: disable=import-error
 from .functional import scalar_value_clipped
 
-NOTSET = object()
+NOTSET = '__notset__'
 
 
 class Base:
@@ -49,7 +49,7 @@ class Annotation(Base):
             self.joint_scales = joint_scales
         else:
             self.joint_scales[:] = 0.0
-            if self.sigmas is not None and fixed_bbox is not NOTSET:
+            if self.sigmas is not None and fixed_bbox != NOTSET:
                 area = fixed_bbox[2] * fixed_bbox[3]
                 self.joint_scales = np.sqrt(area) * np.asarray(self.sigmas)
         self.category_id = category_id
@@ -75,7 +75,7 @@ class Annotation(Base):
             self.joint_scales[xyv_i] = scale / hr_scale
 
     def score(self):
-        if self.fixed_score is not NOTSET:
+        if self.fixed_score != NOTSET:
             return self.fixed_score
 
         v = self.data[:, 2]
@@ -121,7 +121,7 @@ class Annotation(Base):
         return data
 
     def bbox(self):
-        if self.fixed_bbox is not NOTSET:
+        if self.fixed_bbox != NOTSET:
             return self.fixed_bbox
         return self.bbox_from_keypoints(self.data, self.joint_scales)
 
