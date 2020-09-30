@@ -166,6 +166,8 @@ class Plots():
         #     ax.set_yscale('log', nonposy='clip')
         ax.grid(linestyle='dotted')
         ax.legend(loc='upper right')
+        ax.text(0.01, 1.01, 'train (cross-dotted), val (dot-solid)',
+                transform=ax.transAxes, size='x-small')
 
     def epoch_head(self, ax, field_name):
         field_names = self.field_names()
