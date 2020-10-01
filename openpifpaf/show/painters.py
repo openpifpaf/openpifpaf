@@ -67,7 +67,7 @@ class DetectionPainter:
             subtext = None
             if subtexts is not None:
                 subtext = subtexts[i]
-            elif ann.score is not None:
+            elif ann.score:
                 subtext = '{:.0%}'.format(ann.score)
 
             self.annotation(ax, ann, color=this_color, text=text, subtext=subtext)
