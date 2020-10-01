@@ -3,8 +3,6 @@ import numpy as np
 # pylint: disable=import-error
 from .functional import scalar_value_clipped
 
-NOTSET = '__notset__'
-
 
 class Base:
     pass
@@ -22,8 +20,8 @@ class Annotation(Base):
         self.category_id = 1
         self.data = np.zeros((len(keypoints), 3), dtype=np.float32)
         self.joint_scales = np.zeros((len(keypoints),), dtype=np.float32)
-        self.fixed_score = NOTSET
-        self.fixed_bbox = NOTSET
+        self.fixed_score = None
+        self.fixed_bbox = None
         self.decoding_order = []
         self.frontier_order = []
 
@@ -43,13 +41,13 @@ class Annotation(Base):
         self.data[joint_i] = xyv
         return self
 
-    def set(self, data, joint_scales=None, *, category_id=1, fixed_score=NOTSET, fixed_bbox=NOTSET):
+    def set(self, data, joint_scales=None, *, category_id=1, fixed_score=None, fixed_bbox=None):
         self.data = data
         if joint_scales is not None:
             self.joint_scales = joint_scales
         else:
             self.joint_scales[:] = 0.0
-            if self.sigmas is not None and fixed_bbox != NOTSET:
+            if self.sigmas is not None and fixed_bbox is not None:
                 area = fixed_bbox[2] * fixed_bbox[3]
                 self.joint_scales = np.sqrt(area) * np.asarray(self.sigmas)
         self.category_id = category_id
@@ -75,7 +73,7 @@ class Annotation(Base):
             self.joint_scales[xyv_i] = scale / hr_scale
 
     def score(self):
-        if self.fixed_score != NOTSET:
+        if self.fixed_score is not None:
             return self.fixed_score
 
         v = self.data[:, 2]
@@ -121,7 +119,7 @@ class Annotation(Base):
         return data
 
     def bbox(self):
-        if self.fixed_bbox != NOTSET:
+        if self.fixed_bbox is not None:
             return self.fixed_bbox
         return self.bbox_from_keypoints(self.data, self.joint_scales)
 

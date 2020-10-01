@@ -36,7 +36,7 @@ class Caf(Base):
                 skeleton=self.meta.skeleton,
                 sigmas=self.meta.sigmas,
             ).set(
-                ann['keypoints'], fixed_score=None, fixed_bbox=ann['bbox'])
+                ann['keypoints'], fixed_score='', fixed_bbox=ann['bbox'])
             for ann in annotation_dicts
         ]
 
