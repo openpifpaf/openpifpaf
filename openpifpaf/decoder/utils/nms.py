@@ -24,11 +24,10 @@ class Keypoints:
         if not anns:
             return anns
 
-        occupied = Occupancy((
-            len(anns[0].data),
-            int(max(np.max(ann.data[:, 1]) for ann in anns) + 1),
-            int(max(np.max(ann.data[:, 0]) for ann in anns) + 1),
-        ), 2, min_scale=4)
+        max_y = int(max(np.max(ann.data[:, 1]) for ann in anns) + 1)
+        max_x = int(max(np.max(ann.data[:, 0]) for ann in anns) + 1)
+        shape = (len(anns[0].data), max(1, max_y), max(1, max_x))
+        occupied = Occupancy(shape, 2, min_scale=4)
 
         anns = sorted(anns, key=lambda a: -a.score())
         for ann in anns:
