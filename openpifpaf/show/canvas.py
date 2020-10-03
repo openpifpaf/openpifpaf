@@ -20,6 +20,8 @@ class Canvas:
     figure_width = 7.0
     blank_dpi = 200
     image_dpi_factor = 1.0
+    image_min_dpi = 50.0
+    out_file_extension = 'png'
     white_overlay = False
 
     @classmethod
@@ -31,7 +33,7 @@ class Canvas:
 
         cls.all_images_count += 1
         return os.path.join(cls.all_images_directory,
-                            '{:04}.png'.format(cls.all_images_count))
+                            '{:04}.{}'.format(cls.all_images_count, cls.out_file_extension))
 
     @classmethod
     @contextmanager
@@ -90,7 +92,7 @@ class Canvas:
                 cls.figure_width * image_ratio / image_area_ratio
             )
 
-        dpi = max(50.0, image.shape[1] / kwargs['figsize'][0] * cls.image_dpi_factor)
+        dpi = max(cls.image_min_dpi, image.shape[1] / kwargs['figsize'][0] * cls.image_dpi_factor)
         fig = plt.figure(dpi=dpi, **kwargs)
         ax = plt.Axes(fig, [0.0 + margin[0],
                             0.0 + margin[1],

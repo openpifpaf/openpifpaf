@@ -19,6 +19,10 @@ def cli(parser):
                        help='figure width for matplotlib (in inches)')
     group.add_argument('--image-dpi-factor', default=Canvas.image_dpi_factor, type=float,
                        help='increase dpi of output image by this factor')
+    group.add_argument('--image-min-dpi', default=Canvas.image_min_dpi, type=float,
+                       help='minimum dpi of image output')
+    group.add_argument('--show-file-extension', default=Canvas.out_file_extension,
+                       help='default file extension')
 
     group.add_argument('--show-box', default=False, action='store_true')
     group.add_argument('--white-overlay',
@@ -39,6 +43,8 @@ def configure(args):
     Canvas.figure_width = args.figure_width
     Canvas.image_dpi_factor = args.image_dpi_factor
     Canvas.white_overlay = args.white_overlay
+    Canvas.image_min_dpi = args.image_min_dpi
+    Canvas.out_file_extension = args.show_file_extension
 
     KeypointPainter.show_box = args.show_box
     KeypointPainter.show_joint_scales = args.show_joint_scales
