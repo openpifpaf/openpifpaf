@@ -74,6 +74,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     parser.add_argument('--write-predictions', default=False, action='store_true',
                         help='write a json and a zip file of the predictions')
     parser.add_argument('--show-final-image', default=False, action='store_true')
+    parser.add_argument('--show-final-ground-truth', default=False, action='store_true')
     args = parser.parse_args()
 
     if args.debug_images:
@@ -176,7 +177,8 @@ def main():
                     cpu_image = PIL.Image.open(f).convert('RGB')
 
                 with show.image_canvas(cpu_image) as ax:
-                    annotation_painter.annotations(ax, gt_anns, color='grey')
+                    if args.show_final_ground_truth:
+                        annotation_painter.annotations(ax, gt_anns, color='grey')
                     annotation_painter.annotations(ax, pred)
 
     total_time = time.time() - total_start
