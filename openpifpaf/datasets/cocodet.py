@@ -110,6 +110,15 @@ class CocoDet(DataModule):
     def _preprocess(self):
         enc = encoder.CifDet(self.head_metas[0])
 
+        if not self.augmentation:
+            return transforms.Compose([
+                transforms.NormalizeAnnotations(),
+                transforms.RescaleAbsolute(self.square_edge),
+                transforms.CenterPad(self.square_edge),
+                transforms.EVAL_TRANSFORM,
+                transforms.Encoders([enc]),
+            ])
+
         if self.extended_scale:
             rescale_t = transforms.RescaleRelative(
                 scale_range=(0.5 * self.rescale_images,
