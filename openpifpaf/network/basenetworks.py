@@ -246,6 +246,7 @@ class ShuffleNetV2K(BaseNetwork):
     input_conv2_outchannels = None
     layer_norm = None
     stage4_dilation = 1
+    kernel_width = 5
 
     def __init__(self, name, stages_repeats, stages_out_channels):
         layer_norm = self.layer_norm
@@ -288,12 +289,14 @@ class ShuffleNetV2K(BaseNetwork):
                 stages_repeats, _stage_out_channels[1:], [1, 1, self.stage4_dilation]):
             stage_stride = 2 if dilation == 1 else 1
             stride = int(stride * stage_stride / 2)
-            seq = [InvertedResidualK(input_channels, output_channels, True, stride=stage_stride,
-                                     layer_norm=layer_norm, dilation=dilation)]
+            seq = [InvertedResidualK(input_channels, output_channels, True,
+                                     kernel_size=self.kernel_width,
+                                     layer_norm=layer_norm, dilation=dilation,
+                                     stride=stage_stride)]
             for _ in range(repeats - 1):
                 seq.append(InvertedResidualK(output_channels, output_channels, False,
-                                             kernel_size=5, layer_norm=layer_norm,
-                                             dilation=dilation))
+                                             kernel_size=self.kernel_width,
+                                             layer_norm=layer_norm, dilation=dilation))
             stages.append(torch.nn.Sequential(*seq))
             input_channels = output_channels
 
@@ -332,6 +335,9 @@ class ShuffleNetV2K(BaseNetwork):
         group.add_argument('--shufflenetv2k-stage4-dilation',
                            default=cls.stage4_dilation, type=int,
                            help='dilation factor of stage 4')
+        group.add_argument('--shufflenetv2k-kernel',
+                           default=cls.kernel_width, type=int,
+                           help='kernel width')
 
         layer_norm_group = group.add_mutually_exclusive_group()
         layer_norm_group.add_argument('--shufflenetv2k-instance-norm',
@@ -344,6 +350,7 @@ class ShuffleNetV2K(BaseNetwork):
         cls.input_conv2_stride = args.shufflenetv2k_input_conv2_stride
         cls.input_conv2_outchannels = args.shufflenetv2k_input_conv2_outchannels
         cls.stage4_dilation = args.shufflenetv2k_stage4_dilation
+        cls.kernel_width = args.shufflenetv2k_kernel
 
         # layer norms
         if args.shufflenetv2k_instance_norm:
