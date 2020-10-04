@@ -19,6 +19,7 @@ class _HorizontalSwap():
             if target in self.hflip:
                 assert self.hflip[target] == source
             else:
+                LOG.warning('adding %s -> %s', target, source)
                 self.hflip[target] = source
 
     def __call__(self, keypoints):
