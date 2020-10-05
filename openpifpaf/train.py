@@ -147,6 +147,7 @@ def main():
         model_meta_data={
             'args': vars(args),
             'version': __version__,
+            'plugin_versions': plugins.versions(),
             'hostname': socket.gethostname(),
         },
         clip_grad_norm=args.clip_grad_norm,

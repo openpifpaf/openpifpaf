@@ -10,7 +10,7 @@ https://packaging.python.org/guides/creating-and-discovering-plugins/
 import importlib
 import pkgutil
 
-REGISTERED = set()
+REGISTERED = {}
 
 
 def register():
@@ -35,4 +35,10 @@ def register():
         if name in REGISTERED:
             continue
         module.register()
-        REGISTERED.add(name)
+        REGISTERED[name] = module
+
+
+def versions():
+    return {name: getattr(m, '__version__', 'unknown')
+            for name, m in REGISTERED.items()
+            if not name.startswith('openpifpaf.contrib.')}

@@ -4,6 +4,7 @@ import socket
 import sys
 
 from . import __version__
+from .plugins import versions as plugin_versions
 
 LOG = logging.getLogger(__name__)
 
@@ -64,5 +65,6 @@ def train_configure(args, local_logger=None):
         'argv': sys.argv,
         'args': vars(args),
         'version': __version__,
+        'plugin_versions': plugin_versions(),
         'hostname': socket.gethostname(),
     })
