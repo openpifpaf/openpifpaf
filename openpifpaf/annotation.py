@@ -30,7 +30,8 @@ class Annotation(Base):
         if not score_weights:
             self.score_weights = np.ones((len(keypoints),))
         else:
-            assert len(self.score_weights) == len(keypoints), "number of scores does not match keypoint ones"
+            assert len(self.score_weights) == len(keypoints), \
+                "number of scores does not match keypoint ones"
             self.score_weights = self.score_weights
         if self.suppress_score_index:
             self.score_weights[-1] = 0.0
