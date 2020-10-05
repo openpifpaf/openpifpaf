@@ -80,6 +80,7 @@ class CifCaf(Decoder):
         self.caf_metas = caf_metas
         self.skeleton_m1 = np.asarray(self.caf_metas[0].skeleton) - 1
         self.keypoints = cif_metas[0].keypoints
+        self.scores = cif_metas[0].score_weights
         self.out_skeleton = caf_metas[0].skeleton
         self.confidence_scales = caf_metas[0].decoder_confidence_scales
 

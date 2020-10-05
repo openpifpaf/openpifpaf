@@ -11,6 +11,7 @@ from .constants import (
     COCO_KEYPOINTS,
     COCO_PERSON_SKELETON,
     COCO_PERSON_SIGMAS,
+    COCO_PERSON_SCORE_WEIGHTS,
     COCO_UPRIGHT_POSE,
     DENSER_COCO_PERSON_CONNECTIONS,
     HFLIP,
@@ -58,7 +59,8 @@ class CocoKp(DataModule):
                            keypoints=COCO_KEYPOINTS,
                            sigmas=COCO_PERSON_SIGMAS,
                            pose=COCO_UPRIGHT_POSE,
-                           draw_skeleton=COCO_PERSON_SKELETON)
+                           draw_skeleton=COCO_PERSON_SKELETON,
+                           score_weights=COCO_PERSON_SCORE_WEIGHTS)
         caf = headmeta.Caf('caf', 'cocokp',
                            keypoints=COCO_KEYPOINTS,
                            sigmas=COCO_PERSON_SIGMAS,

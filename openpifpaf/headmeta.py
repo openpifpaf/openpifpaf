@@ -34,6 +34,7 @@ class Cif(Base):
     sigmas: List[float]
     pose: Any
     draw_skeleton: List[Tuple[int, int]] = None
+    score_weights: List[float] = None
 
     n_confidences: ClassVar[int] = 1
     n_vectors: ClassVar[int] = 1

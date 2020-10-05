@@ -10,11 +10,12 @@ class Base:
 
 class Annotation(Base):
     def __init__(self, keypoints, skeleton, sigmas=None, *,
-                 categories=None, suppress_score_index=None):
+                 categories=None, score_weights=None, suppress_score_index=None):
         self.keypoints = keypoints
         self.skeleton = skeleton
         self.sigmas = sigmas
         self.categories = categories
+        self.score_weights = score_weights
         self.suppress_score_index = suppress_score_index
 
         self.category_id = 1
@@ -26,11 +27,14 @@ class Annotation(Base):
         self.frontier_order = []
 
         self.skeleton_m1 = (np.asarray(skeleton) - 1).tolist()
-
-        self.score_weights = np.ones((len(keypoints),))
+        if not score_weights:
+            self.score_weights = np.ones((len(keypoints),))
+        else:
+            assert len(self.score_weights) == len(keypoints), "number of scores does not match keypoint ones"
+            self.score_weights = self.score_weights
         if self.suppress_score_index:
             self.score_weights[-1] = 0.0
-        self.score_weights[:3] = 3.0
+
         self.score_weights /= np.sum(self.score_weights)
 
     @property
