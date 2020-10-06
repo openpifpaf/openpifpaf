@@ -29,7 +29,6 @@ class Annotation(Base):
         self.skeleton_m1 = (np.asarray(skeleton) - 1).tolist()
         if not score_weights:
             self.score_weights = np.ones((len(keypoints),))
-            self.score_weights[:3] = 3.0
         else:
             assert len(self.score_weights) == len(keypoints), "wrong number of scores"
             self.score_weights = np.array(self.score_weights)
