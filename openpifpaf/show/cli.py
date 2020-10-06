@@ -15,8 +15,10 @@ def cli(parser):
     assert not AnimationFrame.show
     group.add_argument('--show', default=False, action='store_true',
                        help='show every plot, i.e., call matplotlib show()')
-    group.add_argument('--figure-width', default=Canvas.figure_width, type=float,
-                       help='figure width for matplotlib (in inches)')
+    group.add_argument('--image-width', default=None, type=float,
+                       help='image width for matplotlib (in inches)')
+    group.add_argument('--image-height', default=None, type=float,
+                       help='image height for matplotlib (in inches)')
     group.add_argument('--image-dpi-factor', default=Canvas.image_dpi_factor, type=float,
                        help='increase dpi of output image by this factor')
     group.add_argument('--image-min-dpi', default=Canvas.image_min_dpi, type=float,
@@ -40,7 +42,13 @@ def cli(parser):
 def configure(args):
     Canvas.all_images_directory = args.save_all
     Canvas.show = args.show
-    Canvas.figure_width = args.figure_width
+    if args.image_width is not None:
+        Canvas.image_width = args.image_width
+    if args.image_height is not None:
+        Canvas.image_height = args.image_height
+        if args.image_width is None:
+            # if only image height is provided, do not force image width
+            Canvas.image_width = None
     Canvas.image_dpi_factor = args.image_dpi_factor
     Canvas.white_overlay = args.white_overlay
     Canvas.image_min_dpi = args.image_min_dpi

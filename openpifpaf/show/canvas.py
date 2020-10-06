@@ -17,7 +17,8 @@ class Canvas:
     all_images_directory = None
     all_images_count = 0
     show = False
-    figure_width = 7.0
+    image_width = 7.0
+    image_height = None
     blank_dpi = 200
     image_dpi_factor = 1.0
     image_min_dpi = 50.0
@@ -87,10 +88,16 @@ class Canvas:
             # into account that is left after subtracting margins.
             image_ratio = image.shape[0] / image.shape[1]
             image_area_ratio = (1.0 - margin[1] - margin[3]) / (1.0 - margin[0] - margin[2])
-            kwargs['figsize'] = (
-                cls.figure_width,
-                cls.figure_width * image_ratio / image_area_ratio
-            )
+            if cls.image_width is not None:
+                kwargs['figsize'] = (
+                    cls.image_width,
+                    cls.image_width * image_ratio / image_area_ratio
+                )
+            elif cls.image_height:
+                kwargs['figsize'] = (
+                    cls.image_height * image_area_ratio / image_ratio,
+                    cls.image_height
+                )
 
         dpi = max(cls.image_min_dpi, image.shape[1] / kwargs['figsize'][0] * cls.image_dpi_factor)
         fig = plt.figure(dpi=dpi, **kwargs)
