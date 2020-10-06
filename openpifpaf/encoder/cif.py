@@ -33,7 +33,7 @@ class CifGenerator():
         self.config = config
 
         self.rescaler = config.rescaler or AnnRescaler(
-            config.meta.stride, len(config.meta.keypoints), config.meta.pose)
+            config.meta.stride, config.meta.pose)
         self.visualizer = config.visualizer or CifVisualizer(config.meta)
 
         self.intensities = None
@@ -54,7 +54,7 @@ class CifGenerator():
         valid_area = self.rescaler.valid_area(meta)
         LOG.debug('valid area: %s, pif side length = %d', valid_area, self.config.side_length)
 
-        n_fields = keypoint_sets.shape[1]
+        n_fields = len(self.config.meta.keypoints)
         self.init_fields(n_fields, bg_mask)
         self.fill(keypoint_sets)
         fields = self.fields(valid_area)

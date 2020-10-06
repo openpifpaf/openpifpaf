@@ -35,7 +35,7 @@ class CafGenerator:
         self.config = config
 
         self.rescaler = config.rescaler or AnnRescaler(
-            config.meta.stride, len(config.meta.keypoints), config.meta.pose)
+            config.meta.stride, config.meta.pose)
         self.visualizer = config.visualizer or CafVisualizer(config.meta)
 
         self.skeleton_m1 = np.asarray(config.meta.skeleton) - 1
