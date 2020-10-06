@@ -3,6 +3,7 @@ import torch
 
 from . import heads
 from .. import datasets
+from ..datasets.constants import COCO_PERSON_SCORE_WEIGHTS
 
 LOG = logging.getLogger(__name__)
 
@@ -188,7 +189,8 @@ def model_migration(net_cpu):
             hn.meta.base_stride = net_cpu.base_net.stride
         if hn.meta.head_index is None:
             hn.meta.head_index = hn_i
-
+        if hn.meta.name == 'cif' and hn.meta.score_weights is None:
+            hn.meta.score_weights = COCO_PERSON_SCORE_WEIGHTS
     for mm in MODEL_MIGRATION:
         mm(net_cpu)
 
