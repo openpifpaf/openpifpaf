@@ -189,7 +189,10 @@ class CifCaf(Decoder):
             if occupied.get(f, x, y):
                 continue
 
-            ann = Annotation(self.keypoints, self.out_skeleton, score_weights=self.score_weights).add(f, (x, y, v))
+            ann = Annotation(self.keypoints,
+                             self.out_skeleton,
+                             score_weights=self.score_weights
+                             ).add(f, (x, y, v))
             ann.joint_scales[f] = s
             self._grow(ann, caf_scored)
             annotations.append(ann)
