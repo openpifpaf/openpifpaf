@@ -220,7 +220,7 @@ class CocoKp(DataModule):
             category_ids=[1],
         )
         return torch.utils.data.DataLoader(
-            train_data, batch_size=self.batch_size, shuffle=not self.debug,
+            train_data, batch_size=self.batch_size, shuffle=not self.debug and self.augmentation,
             pin_memory=self.pin_memory, num_workers=self.loader_workers, drop_last=True,
             collate_fn=collate_images_targets_meta)
 
