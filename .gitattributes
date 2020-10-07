@@ -3,3 +3,4 @@
 *.ipynb	merge=jupyternotebook
 docs/** filter= diff=
 openpifpaf/_version.py export-subst
+cpp/examples/cifcafdecoder/sample_data* linguist-vendored
