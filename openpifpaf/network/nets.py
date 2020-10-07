@@ -190,7 +190,7 @@ def model_migration(net_cpu):
         if hn.meta.head_index is None:
             hn.meta.head_index = hn_i
         if hn.meta.name == 'cif' and hn.meta.score_weights is None:
-            hn.meta.score_weights = COCO_PERSON_SCORE_WEIGHTS
+            hn.meta.score_weights = [3.0] * 3 + [1.0] * (hn.meta.n_fields - 3)
     for mm in MODEL_MIGRATION:
         mm(net_cpu)
 
