@@ -80,7 +80,7 @@ class CifCaf(Decoder):
         self.caf_metas = caf_metas
         self.skeleton_m1 = np.asarray(self.caf_metas[0].skeleton) - 1
         self.keypoints = cif_metas[0].keypoints
-        self.scores = cif_metas[0].score_weights
+        self.score_weights = cif_metas[0].score_weights
         self.out_skeleton = caf_metas[0].skeleton
         self.confidence_scales = caf_metas[0].decoder_confidence_scales
 
@@ -189,7 +189,7 @@ class CifCaf(Decoder):
             if occupied.get(f, x, y):
                 continue
 
-            ann = Annotation(self.keypoints, self.out_skeleton).add(f, (x, y, v))
+            ann = Annotation(self.keypoints, self.out_skeleton, score_weights=self.score_weights).add(f, (x, y, v))
             ann.joint_scales[f] = s
             self._grow(ann, caf_scored)
             annotations.append(ann)
