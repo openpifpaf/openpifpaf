@@ -27,11 +27,11 @@ class Annotation(Base):
         self.frontier_order = []
 
         self.skeleton_m1 = (np.asarray(skeleton) - 1).tolist()
-        if not score_weights:
+        if score_weights is None:
             self.score_weights = np.ones((len(keypoints),))
         else:
             assert len(self.score_weights) == len(keypoints), "wrong number of scores"
-            self.score_weights = np.array(self.score_weights)
+            self.score_weights = np.asarray(self.score_weights)
         if self.suppress_score_index:
             self.score_weights[-1] = 0.0
         self.score_weights /= np.sum(self.score_weights)
