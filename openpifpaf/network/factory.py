@@ -1,6 +1,7 @@
 import logging
 import os
 from typing import Tuple
+import warnings
 
 import torch
 import torchvision
@@ -140,13 +141,16 @@ def factory(
             )
         checkpoint = CHECKPOINT_URLS.get(checkpoint, checkpoint)
 
-        if checkpoint.startswith('http'):
-            checkpoint = torch.hub.load_state_dict_from_url(
-                checkpoint,
-                check_hash=not checkpoint.startswith('https'),
-                progress=download_progress)
-        else:
-            checkpoint = torch.load(checkpoint)
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=torch.serialization.SourceChangeWarning)
+
+            if checkpoint.startswith('http'):
+                checkpoint = torch.hub.load_state_dict_from_url(
+                    checkpoint,
+                    check_hash=not checkpoint.startswith('https'),
+                    progress=download_progress)
+            else:
+                checkpoint = torch.load(checkpoint)
 
         net_cpu: nets.Shell = checkpoint['model']
         epoch = checkpoint['epoch']
