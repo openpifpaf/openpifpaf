@@ -3,9 +3,6 @@ import logging
 import socket
 import sys
 
-from . import __version__
-from .plugins import versions as plugin_versions
-
 LOG = logging.getLogger(__name__)
 
 
@@ -49,8 +46,10 @@ def configure(args: argparse.Namespace, local_logger=None):
 
 
 def train_configure(args, local_logger=None):
-    # pylint: disable=import-outside-toplevel
+    # pylint: disable=import-outside-toplevel,cyclic-import
     from pythonjsonlogger import jsonlogger
+    from . import __version__
+    from .plugins import versions as plugin_versions
 
     file_handler = logging.FileHandler(args.output + '.log', mode='w')
     file_handler.setFormatter(

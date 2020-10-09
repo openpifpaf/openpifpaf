@@ -19,16 +19,16 @@ def register():
     contrib_plugins = {
         'openpifpaf.contrib.{}'.format(name):
             importlib.import_module('openpifpaf.contrib.{}'.format(name))
-        for finder, name, ispkg in pkgutil.iter_modules(contrib.__path__)
+        for finder, name, is_pkg in pkgutil.iter_modules(contrib.__path__)
     }
     discovered_plugins = {
         name: importlib.import_module(name)
-        for finder, name, ispkg in pkgutil.iter_modules()
+        for finder, name, is_pkg in pkgutil.iter_modules()
         if name.startswith('openpifpaf_')
     }
     # This function is called before logging levels are configured.
     # Uncomment for debug:
-    # print('{} contrib plugins. Discoverd {} plugins.'.format(
+    # print('{} contrib plugins. Discovered {} plugins.'.format(
     #     len(contrib_plugins), len(discovered_plugins)))
 
     for name, module in dict(**contrib_plugins, **discovered_plugins).items():
