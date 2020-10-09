@@ -147,6 +147,9 @@ COCO_PERSON_SIGMAS = [
 ]
 
 
+COCO_PERSON_SCORE_WEIGHTS = [3.0] * 3 + [1.0] * (len(COCO_KEYPOINTS) - 3)
+
+
 COCO_CATEGORIES = [
     'person',
     'bicycle',
@@ -276,15 +279,21 @@ def draw_skeletons(pose):
     show.KeypointPainter.show_joint_scales = True
     keypoint_painter = show.KeypointPainter(color_connections=True, linewidth=6)
 
-    ann = Annotation(keypoints=COCO_KEYPOINTS, skeleton=COCO_PERSON_SKELETON)
+    ann = Annotation(keypoints=COCO_KEYPOINTS,
+                     skeleton=COCO_PERSON_SKELETON,
+                     score_weights=COCO_PERSON_SCORE_WEIGHTS)
     ann.set(pose, np.array(COCO_PERSON_SIGMAS) * scale)
     draw_ann(ann, filename='docs/skeleton_coco.png', keypoint_painter=keypoint_painter)
 
-    ann = Annotation(keypoints=COCO_KEYPOINTS, skeleton=KINEMATIC_TREE_SKELETON)
+    ann = Annotation(keypoints=COCO_KEYPOINTS,
+                     skeleton=KINEMATIC_TREE_SKELETON,
+                     score_weights=COCO_PERSON_SCORE_WEIGHTS)
     ann.set(pose, np.array(COCO_PERSON_SIGMAS) * scale)
     draw_ann(ann, filename='docs/skeleton_kinematic_tree.png', keypoint_painter=keypoint_painter)
 
-    ann = Annotation(keypoints=COCO_KEYPOINTS, skeleton=DENSER_COCO_PERSON_SKELETON)
+    ann = Annotation(keypoints=COCO_KEYPOINTS,
+                     skeleton=DENSER_COCO_PERSON_SKELETON,
+                     score_weights=COCO_PERSON_SCORE_WEIGHTS)
     ann.set(pose, np.array(COCO_PERSON_SIGMAS) * scale)
     draw_ann(ann, filename='docs/skeleton_dense.png', keypoint_painter=keypoint_painter)
 

@@ -19,11 +19,11 @@ class AnnotationPainter:
     def __init__(self, *,
                  xy_scale=1.0,
                  keypoint_painter=None,
-                 crowd_painer=None,
+                 crowd_painter=None,
                  detection_painter=None):
         self.painters = {
             'Annotation': keypoint_painter or KeypointPainter(xy_scale=xy_scale),
-            'AnnotationCrowd': crowd_painer or CrowdPainter(xy_scale=xy_scale),
+            'AnnotationCrowd': crowd_painter or CrowdPainter(xy_scale=xy_scale),
             'AnnotationDet': detection_painter or DetectionPainter(xy_scale=xy_scale),
         }
 
