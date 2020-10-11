@@ -42,7 +42,7 @@ class Cif(Base):
         ]
 
         self._confidences(field[:, 0])
-        self._regressions(field[:, 1:3], field[:, 3], annotations=annotations)
+        self._regressions(field[:, 1:3], field[:, 4], annotations=annotations)
 
     def predicted(self, field):
         self._confidences(field[:, 0])
