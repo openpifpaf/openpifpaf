@@ -22,7 +22,7 @@ LOG = logging.getLogger(__name__)
 
 def optionally_shaded(ax, x, y, *, color, label, **kwargs):
     stride = int(len(x) / (x[-1] - x[0]) / 30.0) if len(x) > 30 else 1  # 30 per epoch
-    if stride > 5 and len(x) / stride > 2:
+    if stride > 1:
         x_binned = np.array([x[i] for i in range(0, len(x), stride)][:-1])
         y_binned = np.stack([y[i:i + stride] for i in range(0, len(x), stride)][:-1])
         y_mean = np.mean(y_binned, axis=1)
@@ -31,6 +31,8 @@ def optionally_shaded(ax, x, y, *, color, label, **kwargs):
         ax.plot(x_binned, y_mean, color=color, label=label, **kwargs)
         ax.fill_between(x_binned, y_min, y_max, alpha=0.2, facecolor=color)
     else:
+        LOG.debug('not shading: entries = %d, epochs = %f, ratio = %f',
+                  len(x), x[-1] - x[0], len(x) / (x[-1] - x[0]))
         ax.plot(x, y, color=color, label=label, **kwargs)
 
 
