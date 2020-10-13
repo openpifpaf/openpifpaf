@@ -277,7 +277,7 @@ def draw_skeletons(pose):
     )
 
     show.KeypointPainter.show_joint_scales = True
-    keypoint_painter = show.KeypointPainter(color_connections=True, linewidth=6)
+    keypoint_painter = show.KeypointPainter()
 
     ann = Annotation(keypoints=COCO_KEYPOINTS,
                      skeleton=COCO_PERSON_SKELETON,
