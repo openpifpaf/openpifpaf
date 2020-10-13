@@ -25,6 +25,13 @@ def cli(parser):
                        help='minimum dpi of image output')
     group.add_argument('--show-file-extension', default=Canvas.out_file_extension,
                        help='default file extension')
+    group.add_argument('--textbox-alpha', default=KeypointPainter.textbox_alpha, type=float)
+    group.add_argument('--text-color', default=KeypointPainter.text_color)
+    assert not KeypointPainter.monocolor_connections
+    group.add_argument('--monocolor-connections', default=False, action='store_true')
+    group.add_argument('--line-width', default=None, type=int)
+    group.add_argument('--skeleton-solid-threshold',
+                       default=KeypointPainter.solid_threshold, type=float)
 
     group.add_argument('--show-box', default=False, action='store_true')
     group.add_argument('--white-overlay',
@@ -60,6 +67,12 @@ def configure(args):
     KeypointPainter.show_decoding_order = args.show_decoding_order
     KeypointPainter.show_frontier_order = args.show_frontier_order
     KeypointPainter.show_only_decoded_connections = args.show_only_decoded_connections
+
+    KeypointPainter.textbox_alpha = args.textbox_alpha
+    KeypointPainter.text_color = args.text_color
+    KeypointPainter.monocolor_connections = args.monocolor_connections
+    KeypointPainter.line_width = args.line_width
+    KeypointPainter.solid_threshold = args.skeleton_solid_threshold
 
     AnimationFrame.video_fps = args.video_fps
     AnimationFrame.video_dpi = args.video_dpi

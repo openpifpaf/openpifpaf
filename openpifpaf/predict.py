@@ -49,9 +49,6 @@ def cli():
                         help='number of workers for data loading')
     parser.add_argument('--disable-cuda', action='store_true',
                         help='disable CUDA')
-    parser.add_argument('--line-width', default=6, type=int,
-                        help='line width for skeleton')
-    parser.add_argument('--monocolor-connections', default=False, action='store_true')
     args = parser.parse_args()
 
     if args.debug_images:
@@ -100,15 +97,23 @@ def processor_factory(args):
 
 
 def preprocess_factory(args):
-    preprocess = [transforms.NormalizeAnnotations()]
+    rescale_t = None
     if args.long_edge:
-        preprocess.append(transforms.RescaleAbsolute(args.long_edge))
+        rescale_t = transforms.RescaleAbsolute(args.long_edge)
+
+    pad_t = None
     if args.batch_size > 1:
         assert args.long_edge, '--long-edge must be provided for batch size > 1'
-        preprocess.append(transforms.CenterPad(args.long_edge))
+        pad_t = transforms.CenterPad(args.long_edge)
     else:
-        preprocess.append(transforms.CenterPadTight(16))
-    return transforms.Compose(preprocess + [transforms.EVAL_TRANSFORM])
+        pad_t = transforms.CenterPadTight(16)
+
+    return transforms.Compose([
+        transforms.NormalizeAnnotations(),
+        rescale_t,
+        pad_t,
+        transforms.EVAL_TRANSFORM,
+    ])
 
 
 def out_name(arg, in_name, default_extension):
@@ -150,11 +155,7 @@ def main():
         collate_fn=datasets.collate_images_anns_meta)
 
     # visualizers
-    keypoint_painter = show.KeypointPainter(
-        color_connections=not args.monocolor_connections,
-        linewidth=args.line_width,
-    )
-    annotation_painter = show.AnnotationPainter(keypoint_painter=keypoint_painter)
+    annotation_painter = show.AnnotationPainter()
 
     for batch_i, (image_tensors_batch, _, meta_batch) in enumerate(data_loader):
         pred_batch = processor.batch(model, image_tensors_batch, device=args.device)
@@ -162,17 +163,16 @@ def main():
         # unbatch
         for pred, meta in zip(pred_batch, meta_batch):
             LOG.info('batch %d: %s', batch_i, meta['file_name'])
+            pred = preprocess.annotations_inverse(pred, meta)
 
             # load the original image if necessary
             cpu_image = None
             if args.debug or args.show or args.image_output is not None:
                 with open(meta['file_name'], 'rb') as f:
                     cpu_image = PIL.Image.open(f).convert('RGB')
-
             visualizer.Base.image(cpu_image)
-            if preprocess is not None:
-                pred = preprocess.annotations_inverse(pred, meta)
 
+            # json output
             if args.json_output is not None:
                 json_out_name = out_name(
                     args.json_output, meta['file_name'], '.predictions.json')
@@ -180,6 +180,7 @@ def main():
                 with open(json_out_name, 'w') as f:
                     json.dump([ann.json_data() for ann in pred], f)
 
+            # image output
             if args.show or args.image_output is not None:
                 image_out_name = out_name(
                     args.image_output, meta['file_name'], '.predictions.png')

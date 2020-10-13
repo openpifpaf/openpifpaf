@@ -77,9 +77,6 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     parser.add_argument('--horizontal-flip', default=False, action='store_true')
     parser.add_argument('--long-edge', default=None, type=int,
                         help='long edge of input images')
-    parser.add_argument('--line-width', default=6, type=int,
-                        help='line width for skeleton')
-    parser.add_argument('--monocolor-connections', default=False, action='store_true')
     parser.add_argument('--disable-cuda', action='store_true',
                         help='disable CUDA')
     parser.add_argument('--scale', default=1.0, type=float,
@@ -155,10 +152,7 @@ def main():
     ])
 
     # create keypoint painter
-    keypoint_painter = show.KeypointPainter(
-        color_connections=not args.monocolor_connections,
-        linewidth=args.line_width)
-    annotation_painter = show.AnnotationPainter(keypoint_painter=keypoint_painter)
+    annotation_painter = show.AnnotationPainter()
 
     if args.source == 'screen':
         capture = 'screen'
