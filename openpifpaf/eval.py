@@ -49,6 +49,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
 
     parser = argparse.ArgumentParser(
         prog='python3 -m openpifpaf.eval',
+        usage='%(prog)s [options]',
         description=__doc__,
         formatter_class=CustomFormatter,
     )

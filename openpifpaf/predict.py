@@ -20,6 +20,7 @@ def cli():
 
     parser = argparse.ArgumentParser(
         prog='python3 -m openpifpaf.predict',
+        usage='%(prog)s [options] images',
         description=__doc__,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )

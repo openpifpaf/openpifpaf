@@ -42,6 +42,7 @@ def cli():
 
     parser = argparse.ArgumentParser(
         prog='python3 -m openpifpaf.train',
+        usage='%(prog)s [options]',
         description=__doc__,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
