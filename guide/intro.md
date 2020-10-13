@@ -32,8 +32,8 @@ Created with
 
 More demos:
 * [openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo) project (best performance)
-* OpenPifPaf running in your browser: https://vita-epfl.github.io/openpifpafwebdemo/ (experimental)
-* the `openpifpaf.video` command (requires OpenCV)
+* OpenPifPaf [running in your browser: vita-epfl.github.io/openpifpafwebdemo](https://vita-epfl.github.io/openpifpafwebdemo/) (experimental)
+* the `python3 -m openpifpaf.video` command (requires OpenCV)
 * [Google Colab demo](https://colab.research.google.com/drive/1H8T4ZE6wc0A9xJE4oGnhgHpUpAH5HL7W)
 
 ```{image} ../docs/wave3.gif
