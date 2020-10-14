@@ -1,6 +1,11 @@
 dist: xenial
 language: python
 cache: pip
+env:
+  - CIBW_BUILD="cp3[7,8,9]-*"
+  - CIBW_MANYLINUX_X86_64_IMAGE=manylinux2014
+  - CIBW_MANYLINUX_I686_IMAGE=manylinux2014
+  # - CIBW_REPAIR_WHEEL_COMMAND_LINUX="auditwheel show {wheel}; auditwheel repair -w {dest_dir} {wheel}"
 matrix:
   fast_finish: true
   include:
@@ -9,10 +14,6 @@ matrix:
       services: docker
       env:
         - BUILD_WHEEL=1
-        - CIBW_BUILD="cp3[7,8,9]-*"
-        - CIBW_MANYLINUX_X86_64_IMAGE=manylinux2014
-        - CIBW_MANYLINUX_I686_IMAGE=manylinux2014
-        - CIBW_REPAIR_WHEEL_COMMAND_LINUX="auditwheel show {wheel}; auditwheel repair -w {dest_dir} {wheel}"
       before_install:
         - pip3 install --upgrade pip setuptools
         - pip3 install torch==1.4.0+cpu torchvision==0.5.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
