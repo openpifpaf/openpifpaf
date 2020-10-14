@@ -8,6 +8,7 @@ env:
     - CIBW_MANYLINUX_I686_IMAGE=manylinux2014
     - CIBW_BEFORE_BUILD_MACOS="brew install libomp openblas"
     - TWINE_USERNAME=__token__
+    - PYTHON=python3
 # CIBW_REPAIR_WHEEL_COMMAND_LINUX="auditwheel show {wheel}; auditwheel repair -w {dest_dir} {wheel}"
 
 matrix:
@@ -66,6 +67,7 @@ matrix:
       env:
         - PATH=/c/Python37:/c/Python37/Scripts:$PATH
         - BUILD_WHEEL=1
+        - PYTHON=python
       before_install:
         - choco install python --version 3.7.4
         - python --version
