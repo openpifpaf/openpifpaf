@@ -12,7 +12,7 @@ def main():
 
     # favicon
     keypoint_painter = openpifpaf.show.KeypointPainter(
-        color_connections=True, linewidth=48, markersize=0)
+        line_width=48, marker_size=0)
     openpifpaf.datasets.constants.draw_ann(
         ann,
         keypoint_painter=keypoint_painter,
@@ -24,7 +24,7 @@ def main():
 
     # logo
     keypoint_painter = openpifpaf.show.KeypointPainter(
-        color_connections=True, linewidth=12)
+        line_width=12)
     openpifpaf.datasets.constants.draw_ann(
         ann,
         keypoint_painter=keypoint_painter,

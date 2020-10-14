@@ -190,6 +190,15 @@ class CrowdPainter:
 
 
 class KeypointPainter:
+    """Paint poses.
+
+    The constructor can take any class attribute as parameter and
+    overwrite the global default for that instance.
+
+    Example to create a KeypointPainter with thick lines:
+    >>> kp = KeypointPainter(line_width=48)
+    """
+
     show_box = False
     show_joint_confidences = False
     show_joint_scales = False
@@ -206,15 +215,21 @@ class KeypointPainter:
 
     def __init__(self, *,
                  xy_scale=1.0,
-                 monocolor_connections=None,
-                 highlight=None, highlight_invisible=False):
+                 highlight=None,
+                 highlight_invisible=False,
+                 **kwargs):
         self.xy_scale = xy_scale
-        if monocolor_connections is not None:
-            self.monocolor_connections = monocolor_connections
-        if self.line_width is None:
-            self.line_width = 2 if self.monocolor_connections else 6
         self.highlight = highlight
         self.highlight_invisible = highlight_invisible
+
+        # use kwargs to set instance attributes to overwrite class attributes
+        for key, value in kwargs.items():
+            assert hasattr(self, key)
+            setattr(self, key, value)
+
+        # set defaults for line_width and marker_size depending on monocolor
+        if self.line_width is None:
+            self.line_width = 2 if self.monocolor_connections else 6
         if self.marker_size is None:
             if self.monocolor_connections:
                 self.marker_size = max(self.line_width + 1, int(self.line_width * 3.0))
