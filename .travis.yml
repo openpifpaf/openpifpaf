@@ -17,7 +17,6 @@ matrix:
       before_install:
         - pip3 install --upgrade pip setuptools
         - pip3 install torch==1.4.0+cpu torchvision==0.5.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
-        - pip3 install cibuildwheel
     - name: "Python 3.7 on Linux with training and wheel build"
       if: (branch = master) OR (tag IS present)
       python: 3.7
@@ -30,6 +29,7 @@ matrix:
         - pip3 install torch==1.4.0+cpu torchvision==0.5.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
         - pip3 install Cython numpy
         - "pip3 install --editable .[train]"
+        - pip3 install cibuildwheel
     - name: "Python 3.8 on Linux with training"
       python: 3.8
       env:
@@ -86,6 +86,7 @@ matrix:
         - brew install libomp  # required for onnxruntime
         - pip3 install --upgrade pip setuptools
         - pip3 install torch==1.4.0 torchvision==0.5.0 -f https://download.pytorch.org/whl/torch_stable.html
+        - pip3 install cibuildwheel
     - name: "Windows (PyTorch 1.4)"
       if: (branch = master) OR (tag IS present)
       os: windows
@@ -99,6 +100,7 @@ matrix:
         - python -m pip install --upgrade pip
         - pip3 install --upgrade pip setuptools
         - pip3 install torch==1.4.0+cpu torchvision==0.5.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
+        - pip3 install cibuildwheel
 
 install:
   - "pip3 install --editable .[test]"
