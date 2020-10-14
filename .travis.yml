@@ -3,10 +3,9 @@ language: python
 cache: pip
 env:
   global:
-    - CIBW_BUILD="cp3[7,8,9]-*"
+    - CIBW_BUILD="cp3[6,7,8,9]-manylinux* cp3[6,7,8]-macosx* cp3[6,7,8,9]-win*"
     - CIBW_MANYLINUX_X86_64_IMAGE=manylinux2014
     - CIBW_MANYLINUX_I686_IMAGE=manylinux2014
-    - CIBW_BEFORE_BUILD_MACOS="brew install libomp openblas"
     - TWINE_USERNAME=__token__
     - PYTHON=python3
 # CIBW_REPAIR_WHEEL_COMMAND_LINUX="auditwheel show {wheel}; auditwheel repair -w {dest_dir} {wheel}"
