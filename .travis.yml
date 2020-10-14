@@ -1,6 +1,14 @@
-dist: xenial
+dist: focal
 language: python
 cache: pip
+env:
+  global:
+    - CIBW_BUILD="cp3[7,8,9]-*"
+    - CIBW_MANYLINUX_X86_64_IMAGE=manylinux2014
+    - CIBW_MANYLINUX_I686_IMAGE=manylinux2014
+    - TWINE_USERNAME=__token__
+# CIBW_REPAIR_WHEEL_COMMAND_LINUX="auditwheel show {wheel}; auditwheel repair -w {dest_dir} {wheel}"
+
 matrix:
   fast_finish: true
   include:
@@ -9,90 +17,112 @@ matrix:
       before_install:
         - pip3 install --upgrade pip setuptools
         - pip3 install torch==1.4.0+cpu torchvision==0.5.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
-    - name: "Python 3.7 on Linux with training"
-      if: branch = master
+    - name: "Python 3.7 on Linux with training and wheel build"
+      if: (branch = master) OR (tag IS present)
       python: 3.7
+      services: docker
       env:
-        - PIFPAFTRAINING=1
+        - PIFPAF_TRAINING=1
+        - BUILD_WHEEL=1
       before_install:
         - pip3 install --upgrade pip setuptools
         - pip3 install torch==1.4.0+cpu torchvision==0.5.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
         - pip3 install Cython numpy
         - "pip3 install --editable .[train]"
+        - pip3 install cibuildwheel
     - name: "Python 3.8 on Linux with training"
       python: 3.8
       env:
-        - PIFPAFTRAINING=1
+        - PIFPAF_TRAINING=1
       before_install:
         - pip3 install --upgrade pip setuptools
         - pip3 install torch==1.5.1+cpu torchvision==0.6.1+cpu -f https://download.pytorch.org/whl/torch_stable.html
         - pip3 install Cython numpy
         - "pip3 install --editable .[train] --use-feature=2020-resolver"
     - name: "Python 3.6 on Linux (PyTorch 1.4)"
-      if: branch = master
+      if: (branch = master) OR (tag IS present)
       python: 3.6
       before_install:
         - pip3 install --upgrade pip setuptools
         - pip3 install torch==1.4.0+cpu torchvision==0.5.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
     - name: "Python 3.7 on Linux (PyTorch 1.3)"
-      if: branch = master
+      if: (branch = master) OR (tag IS present)
       python: 3.7
       before_install:
         - pip3 install --upgrade pip setuptools
         - pip3 install torch==1.3.1+cpu torchvision==0.4.1+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html
     - name: "Python 3.7 on Linux (PyTorch 1.5.1)"
-      if: branch = master
+      if: (branch = master) OR (tag IS present)
       python: 3.7
       before_install:
         - pip3 install --upgrade pip setuptools
         - pip3 install torch==1.5.1+cpu torchvision==0.6.1+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html
     - name: "Python 3.7 on Linux (PyTorch 1.6)"
-      if: branch = master
+      if: (branch = master) OR (tag IS present)
       python: 3.7
       before_install:
         - pip3 install --upgrade pip setuptools
         - pip3 install torch==1.6.0+cpu torchvision==0.7.0+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html
     - name: "Python 3.8 on Linux (PyTorch 1.5.1)"
-      if: branch = master
+      if: (branch = master) OR (tag IS present)
       python: 3.8
       before_install:
         - pip3 install --upgrade pip setuptools
         - pip3 install torch==1.5.1+cpu torchvision==0.6.1+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html
     - name: "Python 3.8-dev on Linux (PyTorch 1.5.1)"
-      if: branch = master
+      if: (branch = master) OR (tag IS present)
       python: 3.8-dev
       before_install:
         - pip3 install --upgrade pip setuptools
         - pip3 install torch==1.5.1+cpu torchvision==0.6.1+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html
     - name: "macOS (PyTorch 1.4)"
-      if: branch = master
+      if: (branch = master) OR (tag IS present)
       os: osx
       osx_image: xcode11
       language: shell       # 'language: python' is an error on Travis CI macOS
+      env:
+        - BUILD_WHEEL=1
       before_install:
         - brew install libomp  # required for onnxruntime
         - pip3 install --upgrade pip setuptools
         - pip3 install torch==1.4.0 torchvision==0.5.0 -f https://download.pytorch.org/whl/torch_stable.html
+        - pip3 install cibuildwheel
     - name: "Windows (PyTorch 1.4)"
-      if: branch = master
+      if: (branch = master) OR (tag IS present)
       os: windows
       language: shell       # 'language: python' is an error on Travis CI Windows
+      env:
+        - PATH=/c/Python37:/c/Python37/Scripts:$PATH
+        - BUILD_WHEEL=1
       before_install:
         - choco install python --version 3.7.4
         - python --version
         - python -m pip install --upgrade pip
         - pip3 install --upgrade pip setuptools
         - pip3 install torch==1.4.0+cpu torchvision==0.5.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
-      env: PATH=/c/Python37:/c/Python37/Scripts:$PATH
+        - pip3 install cibuildwheel
+
 install:
- - "pip3 install --editable .[test]"
- - pip freeze
+  - "pip3 install --editable .[test]"
+  - pip freeze
+
 script:
- - pylint openpifpaf --disable=fixme
- - pylint tests/*.py --disable=fixme
- - pytest -vv
- - |
-   if [ $PIFPAFTRAINING == "1" ]; then
-     pytest --nbval-lax --current-env docs/predict.ipynb;
-     cd guide && python download_data.py && pytest --nbval-lax --current-env *.ipynb;
-   fi
+  - pylint openpifpaf --disable=fixme
+  - pylint tests/*.py --disable=fixme
+  - pytest -vv
+  - |
+    if [[ $PIFPAF_TRAINING == "1" ]]; then
+      pytest --nbval-lax --current-env docs/predict.ipynb;
+      cd guide && python download_data.py && pytest --nbval-lax --current-env *.ipynb;
+    fi
+  - |
+    if [[ $BUILD_WHEEL == "1" ]]; then
+      python3 -m cibuildwheel --output-dir wheelhouse
+    fi
+
+after_success:
+  - |
+    if [[ $BUILD_WHEEL == "1" ]] && [[ $TRAVIS_TAG ]]; then
+      pip3 install twine
+      python3 -m twine upload wheelhouse/*.whl
+    fi
