@@ -98,6 +98,7 @@ script:
 after_success:
   - |
     if [[ $BUILD_WHEEL == "1" ]] && [[ $TRAVIS_TAG ]]; then
+      rm -f wheelhouse/*manylinux1*.whl
       pip3 install twine
       $PYTHON -m twine upload wheelhouse/*.whl
     fi
