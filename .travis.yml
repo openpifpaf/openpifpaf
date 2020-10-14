@@ -1,6 +1,9 @@
 dist: xenial
 language: python
 cache: pip
+global:
+  env:
+    - CIBW_BUILD: cp3[7,8,9]-*
 matrix:
   fast_finish: true
   include:
