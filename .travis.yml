@@ -6,9 +6,13 @@ matrix:
   include:
     - name: "Python 3.7 on Linux (PyTorch 1.4)"
       python: 3.7
+      services: docker
+      env:
+        - BUILD_WHEEL=1
       before_install:
         - pip3 install --upgrade pip setuptools
         - pip3 install torch==1.4.0+cpu torchvision==0.5.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
+        - pip3 install cibuildwheel
     - name: "Python 3.7 on Linux with training"
       if: branch = master
       python: 3.7
@@ -95,4 +99,8 @@ script:
    if [ $PIFPAFTRAINING == "1" ]; then
      pytest --nbval-lax --current-env docs/predict.ipynb;
      cd guide && python download_data.py && pytest --nbval-lax --current-env *.ipynb;
+   fi
+ - |
+   if [[ $BUILD_WHEEL == "1" ]]; then
+     python3 -m cibuildwheel --output-dir wheelhouse
    fi
