@@ -76,10 +76,12 @@ matrix:
         - pip3 install cibuildwheel
 
 install:
+  - git fetch --unshallow  # for versioneer to find release tags
   - "pip3 install --editable .[test]"
   - pip3 freeze
   - python --version
   - $PYTHON --version
+  - $PYTHON -c "import openpifpaf; print(openpifpaf.__version__)"
 
 script:
   - pylint openpifpaf --disable=fixme
