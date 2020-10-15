@@ -99,6 +99,7 @@ script:
     fi
   - |
     if [[ $BUILD_WHEEL == "1" ]]; then
+      $PYTHON setup.py sdist  # build sdist first to fix version for cibuildwheel
       $PYTHON -m cibuildwheel --output-dir wheelhouse
     fi
 
