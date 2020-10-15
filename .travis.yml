@@ -106,7 +106,7 @@ after_success:
   - |
     if [[ $BUILD_SDIST == "1" ]] && [[ $TRAVIS_TAG ]]; then
       pip3 install twine
-      $PYTHON -m twine upload build/*.tar.gz
+      $PYTHON -m twine upload dist/*.tar.gz
     fi
   - |
     if [[ $BUILD_WHEEL == "1" ]] && [[ $TRAVIS_TAG ]]; then
