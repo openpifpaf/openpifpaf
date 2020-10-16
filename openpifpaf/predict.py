@@ -37,14 +37,16 @@ def cli():
                         help='input images')
     parser.add_argument('--glob',
                         help='glob expression for input images (for many images)')
-    parser.add_argument('--image-output', default=None, nargs='?', const=True,
-                        help='image output file or directory')
+    parser.add_argument('-o', '--image-output', default=None, nargs='?', const=True,
+                        help='Whether to output an image, '
+                             'with the option to specify the output path or directory')
     parser.add_argument('--json-output', default=None, nargs='?', const=True,
-                        help='json output file or directory')
+                        help='Whether to output a json file, '
+                             'with the option to specify the output path or directory')
     parser.add_argument('--batch-size', default=1, type=int,
                         help='processing batch size')
     parser.add_argument('--long-edge', default=None, type=int,
-                        help='apply preprocessing to batch images')
+                        help='rescale the long side of the image (aspect ratio maintained)')
     parser.add_argument('--loader-workers', default=None, type=int,
                         help='number of workers for data loading')
     parser.add_argument('--disable-cuda', action='store_true',
