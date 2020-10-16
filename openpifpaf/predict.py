@@ -44,7 +44,7 @@ def cli():
     parser.add_argument('--batch-size', default=1, type=int,
                         help='processing batch size')
     parser.add_argument('--long-edge', default=None, type=int,
-                        help='apply preprocessing to batch images')
+                        help='rescale the long side of the image (aspect ratio maintained)')
     parser.add_argument('--loader-workers', default=None, type=int,
                         help='number of workers for data loading')
     parser.add_argument('--disable-cuda', action='store_true',
