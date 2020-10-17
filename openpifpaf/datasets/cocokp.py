@@ -121,7 +121,7 @@ class CocoKp(DataModule):
                            default=cls.min_kp_anns, type=int,
                            help='filter images with fewer keypoint annotations')
         group.add_argument('--cocokp-bmin',
-                           default=cls.bmin, type=int,
+                           default=cls.bmin, type=float,
                            help='bmin')
 
         # evaluation
