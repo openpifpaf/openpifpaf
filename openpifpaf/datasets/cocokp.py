@@ -46,6 +46,7 @@ class CocoKp(DataModule):
     rescale_images = 1.0
     upsample_stride = 1
     min_kp_anns = 1
+    bmin = 1.0
 
     eval_annotation_filter = True
     eval_long_edge = 641
@@ -119,6 +120,9 @@ class CocoKp(DataModule):
         group.add_argument('--cocokp-min-kp-anns',
                            default=cls.min_kp_anns, type=int,
                            help='filter images with fewer keypoint annotations')
+        group.add_argument('--cocokp-bmin',
+                           default=cls.bmin, type=int,
+                           help='bmin')
 
         # evaluation
         eval_set_group = group.add_mutually_exclusive_group()
@@ -156,6 +160,7 @@ class CocoKp(DataModule):
         cls.rescale_images = args.cocokp_rescale_images
         cls.upsample_stride = args.cocokp_upsample
         cls.min_kp_anns = args.cocokp_min_kp_anns
+        cls.bmin = args.cocokp_bmin
 
         # evaluation
         cls.eval_annotation_filter = args.coco_eval_annotation_filter
@@ -176,9 +181,9 @@ class CocoKp(DataModule):
             raise Exception('have to use --write-predictions for this dataset')
 
     def _preprocess(self):
-        encoders = (encoder.Cif(self.head_metas[0]),
-                    encoder.Caf(self.head_metas[1]),
-                    encoder.Caf(self.head_metas[2]))
+        encoders = (encoder.Cif(self.head_metas[0], bmin=self.bmin),
+                    encoder.Caf(self.head_metas[1], bmin=self.bmin),
+                    encoder.Caf(self.head_metas[2], bmin=self.bmin))
 
         if not self.augmentation:
             return transforms.Compose([
