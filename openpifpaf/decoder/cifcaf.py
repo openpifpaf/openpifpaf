@@ -66,6 +66,7 @@ class CifCaf(Decoder):
     force_complete = False
     greedy = False
     keypoint_threshold = 0.001
+    keypoint_threshold_rel = 0.0
     nms = True
     dense_coupling = 0.0
 
@@ -118,6 +119,9 @@ class CifCaf(Decoder):
         group.add_argument('--keypoint-threshold', type=float,
                            default=cls.keypoint_threshold,
                            help='filter keypoints by score')
+        group.add_argument('--keypoint-threshold-rel', type=float,
+                           default=cls.keypoint_threshold_rel,
+                           help='filter keypoint connections by relative score')
 
         assert not cls.greedy
         group.add_argument('--greedy', default=False, action='store_true',
@@ -138,6 +142,8 @@ class CifCaf(Decoder):
         cls.force_complete = args.force_complete_pose
         cls.keypoint_threshold = (args.keypoint_threshold
                                   if not args.force_complete_pose else 0.0)
+        cls.keypoint_threshold_rel = (args.keypoint_threshold_rel
+                                      if not args.force_complete_pose else 0.0)
         cls.greedy = args.greedy
         cls.connection_method = args.connection_method
         cls.dense_coupling = args.dense_connections
@@ -222,10 +228,12 @@ class CifCaf(Decoder):
 
         new_xysv = grow_connection_blend(
             caf_f, xyv[0], xyv[1], xy_scale_s, only_max)
+        if new_xysv[3] == 0.0:
+            return 0.0, 0.0, 0.0, 0.0
         keypoint_score = np.sqrt(new_xysv[3] * xyv[2])  # geometric mean
         if keypoint_score < self.keypoint_threshold:
             return 0.0, 0.0, 0.0, 0.0
-        if new_xysv[3] == 0.0:
+        if keypoint_score / max(0.01, xyv[2]) < self.keypoint_threshold_rel:
             return 0.0, 0.0, 0.0, 0.0
         xy_scale_t = max(0.0, new_xysv[2])
 
