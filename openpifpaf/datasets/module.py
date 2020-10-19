@@ -32,7 +32,7 @@ class DataModule:
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
-        """Commond line interface (CLI) to extend argument parser."""
+        """Command line interface (CLI) to extend argument parser."""
 
     @classmethod
     def configure(cls, args: argparse.Namespace):

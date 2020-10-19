@@ -108,7 +108,7 @@ class CifCaf(Decoder):
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
-        """Commond line interface (CLI) to extend argument parser."""
+        """Command line interface (CLI) to extend argument parser."""
         group = parser.add_argument_group('CifCaf decoder')
         assert not cls.force_complete
         group.add_argument('--force-complete-pose',
