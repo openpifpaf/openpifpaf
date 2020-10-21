@@ -14,35 +14,6 @@ except ImportError:
 
 LOG = logging.getLogger(__name__)
 
-PAINTERS = {
-    'Annotation': KeypointPainter,
-    'AnnotationCrowd': CrowdPainter,
-    'AnnotationDet': DetectionPainter,
-}
-
-class AnnotationPainter:
-    def __init__(self, *,
-                 xy_scale=1.0,
-                 painters={}):
-        self.painters = {}
-        for painter_key, painter in PAINTERS:
-            self.painters[painter_key] = painters.get(painter_key, None) or painter(painter_key)
-
-    def annotations(self, ax, annotations, *,
-                    color=None, colors=None, texts=None, subtexts=None):
-        by_classname = defaultdict(list)
-        for ann_i, ann in enumerate(annotations):
-            by_classname[ann.__class__.__name__].append((ann_i, ann))
-
-        for classname, i_anns in by_classname.items():
-            anns = [ann for _, ann in i_anns]
-            this_colors = [colors[i] for i, _ in i_anns] if colors else None
-            this_texts = [texts[i] for i, _ in i_anns] if texts else None
-            this_subtexts = [subtexts[i] for i, _ in i_anns] if subtexts else None
-            self.painters[classname].annotations(
-                ax, anns,
-                color=color, colors=this_colors, texts=this_texts, subtexts=this_subtexts)
-
 
 class DetectionPainter:
     def __init__(self, *, xy_scale=1.0):
@@ -480,3 +451,32 @@ class KeypointPainter:
             ax.text(0.5 * (jsxyv[0] + jtxyv[0]), 0.5 * (jsxyv[1] +jtxyv[1]),
                     '{}: {} -> {}'.format(step_i, jsi, jti), fontsize=8,
                     color='white', bbox={'facecolor': 'black', 'alpha': 0.5, 'linewidth': 0})
+
+PAINTERS = {
+    'Annotation': KeypointPainter,
+    'AnnotationCrowd': CrowdPainter,
+    'AnnotationDet': DetectionPainter,
+}
+
+class AnnotationPainter:
+    def __init__(self, *,
+                 xy_scale=1.0,
+                 painters={}):
+        self.painters = {}
+        for painter_key, painter in PAINTERS.items():
+            self.painters[painter_key] = painters.get(painter_key, None) or painter(xy_scale=xy_scale)
+
+    def annotations(self, ax, annotations, *,
+                    color=None, colors=None, texts=None, subtexts=None):
+        by_classname = defaultdict(list)
+        for ann_i, ann in enumerate(annotations):
+            by_classname[ann.__class__.__name__].append((ann_i, ann))
+
+        for classname, i_anns in by_classname.items():
+            anns = [ann for _, ann in i_anns]
+            this_colors = [colors[i] for i, _ in i_anns] if colors else None
+            this_texts = [texts[i] for i, _ in i_anns] if texts else None
+            this_subtexts = [subtexts[i] for i, _ in i_anns] if subtexts else None
+            self.painters[classname].annotations(
+                ax, anns,
+                color=color, colors=this_colors, texts=this_texts, subtexts=this_subtexts)
