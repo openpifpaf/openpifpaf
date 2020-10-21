@@ -14,18 +14,19 @@ except ImportError:
 
 LOG = logging.getLogger(__name__)
 
+PAINTERS = {
+    'Annotation': KeypointPainter,
+    'AnnotationCrowd': CrowdPainter,
+    'AnnotationDet': DetectionPainter,
+}
 
 class AnnotationPainter:
     def __init__(self, *,
                  xy_scale=1.0,
-                 keypoint_painter=None,
-                 crowd_painter=None,
-                 detection_painter=None):
-        self.painters = {
-            'Annotation': keypoint_painter or KeypointPainter(xy_scale=xy_scale),
-            'AnnotationCrowd': crowd_painter or CrowdPainter(xy_scale=xy_scale),
-            'AnnotationDet': detection_painter or DetectionPainter(xy_scale=xy_scale),
-        }
+                 painters={}):
+        self.painters = {}
+        for painter_key, painter in PAINTERS:
+            self.painters[painter_key] = painters.get(painter_key, None) or painter(painter_key)
 
     def annotations(self, ax, annotations, *,
                     color=None, colors=None, texts=None, subtexts=None):
