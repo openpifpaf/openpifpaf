@@ -249,7 +249,7 @@ class ShuffleNetV2K(BaseNetwork):
     kernel_width = 5
 
     def __init__(self, name, stages_repeats, stages_out_channels):
-        layer_norm = self.layer_norm
+        layer_norm = ShuffleNetV2K.layer_norm
         if layer_norm is None:
             layer_norm = torch.nn.BatchNorm2d
 
