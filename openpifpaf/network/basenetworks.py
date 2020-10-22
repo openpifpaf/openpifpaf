@@ -355,6 +355,6 @@ class ShuffleNetV2K(BaseNetwork):
         # layer norms
         if args.shufflenetv2k_instance_norm:
             cls.layer_norm = lambda x: torch.nn.InstanceNorm2d(
-                x, eps=1e-4, momentum=0.01, affine=True, track_running_stats=True)
+                x, momentum=0.01, affine=True, track_running_stats=True)
         if args.shufflenetv2k_group_norm:
             cls.layer_norm = lambda x: torch.nn.GroupNorm(32 if x > 100 else 4, x, eps=1e-4)
