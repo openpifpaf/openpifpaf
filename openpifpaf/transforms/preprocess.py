@@ -3,7 +3,7 @@ import copy
 import math
 import numpy as np
 
-from ..annotation import AnnotationCrowd, AnnotationDet
+from ..annotation import Annotation, AnnotationCrowd, AnnotationDet
 from . import utils
 
 
@@ -35,6 +35,13 @@ class Preprocess(metaclass=ABCMeta):
     def annotations_inverse(annotations, meta):
         annotations = copy.deepcopy(annotations)
 
+        for ann in annotations:
+            PREPROCESS_INVERSE[type(ann)](ann, meta)
+
+        return annotations
+
+    @staticmethod
+    def ann_inverse(ann, meta):
         # determine rotation parameters
         angle = -meta['rotation']['angle']
         rw = meta['rotation']['width']
@@ -42,47 +49,37 @@ class Preprocess(metaclass=ABCMeta):
         cangle = math.cos(angle / 180.0 * math.pi)
         sangle = math.sin(angle / 180.0 * math.pi)
 
-        for ann in annotations:
-            if isinstance(ann, AnnotationDet):
-                Preprocess.anndet_inverse(ann, meta)
-                continue
-            if isinstance(ann, AnnotationCrowd):
-                Preprocess.anncrowd_inverse(ann, meta)
-                continue
+        # rotation
+        if angle != 0.0:
+            xy = ann.data[:, :2]
+            x_old = xy[:, 0].copy() - (rw - 1)/2
+            y_old = xy[:, 1].copy() - (rh - 1)/2
+            xy[:, 0] = (rw - 1)/2 + cangle * x_old + sangle * y_old
+            xy[:, 1] = (rh - 1)/2 - sangle * x_old + cangle * y_old
 
-            # rotation
-            if angle != 0.0:
-                xy = ann.data[:, :2]
-                x_old = xy[:, 0].copy() - (rw - 1)/2
-                y_old = xy[:, 1].copy() - (rh - 1)/2
-                xy[:, 0] = (rw - 1)/2 + cangle * x_old + sangle * y_old
-                xy[:, 1] = (rh - 1)/2 - sangle * x_old + cangle * y_old
+        # offset
+        ann.data[:, 0] += meta['offset'][0]
+        ann.data[:, 1] += meta['offset'][1]
 
-            # offset
-            ann.data[:, 0] += meta['offset'][0]
-            ann.data[:, 1] += meta['offset'][1]
+        # scale
+        ann.data[:, 0] = ann.data[:, 0] / meta['scale'][0]
+        ann.data[:, 1] = ann.data[:, 1] / meta['scale'][1]
+        ann.joint_scales /= meta['scale'][0]
 
-            # scale
-            ann.data[:, 0] = ann.data[:, 0] / meta['scale'][0]
-            ann.data[:, 1] = ann.data[:, 1] / meta['scale'][1]
-            ann.joint_scales /= meta['scale'][0]
+        assert not np.any(np.isnan(ann.data))
 
-            assert not np.any(np.isnan(ann.data))
+        if meta['hflip']:
+            w = meta['width_height'][0]
+            ann.data[:, 0] = -ann.data[:, 0] + (w - 1)
+            if meta.get('horizontal_swap'):
+                ann.data[:] = meta['horizontal_swap'](ann.data)
 
-            if meta['hflip']:
-                w = meta['width_height'][0]
-                ann.data[:, 0] = -ann.data[:, 0] + (w - 1)
-                if meta.get('horizontal_swap'):
-                    ann.data[:] = meta['horizontal_swap'](ann.data)
+        for _, __, c1, c2 in ann.decoding_order:
+            c1[:2] += meta['offset']
+            c2[:2] += meta['offset']
 
-            for _, __, c1, c2 in ann.decoding_order:
-                c1[:2] += meta['offset']
-                c2[:2] += meta['offset']
-
-                c1[:2] /= meta['scale']
-                c2[:2] /= meta['scale']
-
-        return annotations
+            c1[:2] /= meta['scale']
+            c2[:2] /= meta['scale']
 
     @staticmethod
     def anndet_inverse(ann, meta):
@@ -115,3 +112,9 @@ class Preprocess(metaclass=ABCMeta):
         if meta['hflip']:
             w = meta['width_height'][0]
             ann.bbox[0] = -(ann.bbox[0] + ann.bbox[2]) - 1.0 + w
+
+PREPROCESS_INVERSE = {
+    Annotation: Preprocess.ann_inverse,
+    AnnotationDet: Preprocess.anndet_inverse,
+    AnnotationCrowd : Preprocess.anncrowd_inverse
+}
