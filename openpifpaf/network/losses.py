@@ -36,11 +36,12 @@ class Bce(torch.nn.Module):
 
 
 class ScaleLoss(torch.nn.Module):
-    def __init__(self, b, *, low_clip=0.0, relative=False):
+    def __init__(self, b, *, low_clip=0.0, relative=False, relative_eps=0.1):
         super().__init__()
         self.b = b
         self.low_clip = low_clip
         self.relative = relative
+        self.relative_eps = relative_eps
 
     def forward(self, logs, t):  # pylint: disable=arguments-differ
         loss = torch.nn.functional.l1_loss(
@@ -52,7 +53,7 @@ class ScaleLoss(torch.nn.Module):
 
         loss = loss / self.b
         if self.relative:
-            loss = loss / (1.0 + t)
+            loss = loss / (self.relative_eps + t)
 
         return loss
 
@@ -364,9 +365,11 @@ class CompositeLoss(torch.nn.Module):
 
         self.confidence_loss = Bce(focal_gamma=self.focal_gamma, detach_focal=True)
         self.regression_loss = regression_loss or laplace_loss
-        b_scale_fm = self.b_scale / head_net.meta.stride
-        self.scale_losses = torch.nn.ModuleList([ScaleLoss(b_scale_fm, low_clip=0.0)
-                                                 for _ in range(self.n_scales)])
+        # b_scale_fm = self.b_scale / head_net.meta.stride
+        self.scale_losses = torch.nn.ModuleList([
+            ScaleLoss(self.b_scale, low_clip=0.0, relative=True)
+            for _ in range(self.n_scales)
+        ])
         self.field_names = (
             ['{}.{}.c'.format(head_net.meta.dataset, head_net.meta.name)] +
             ['{}.{}.vec{}'.format(head_net.meta.dataset, head_net.meta.name, i + 1)
