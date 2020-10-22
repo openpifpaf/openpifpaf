@@ -13,6 +13,7 @@ LOG = logging.getLogger(__name__)
 
 class CafScored:
     default_score_th = 0.1
+    ablation_no_rescore = False
 
     def __init__(self, cifhr, *, score_th=None, cif_floor=0.1):
         self.cifhr = cifhr
@@ -29,7 +30,7 @@ class CafScored:
         return self.backward[caf_i], self.forward[caf_i]
 
     def rescore(self, nine, joint_t):
-        if self.cif_floor < 1.0 and joint_t < len(self.cifhr):
+        if self.cif_floor < 1.0 and joint_t < len(self.cifhr) and not self.ablation_no_rescore:
             cifhr_t = scalar_values(self.cifhr[joint_t], nine[3], nine[4], default=0.0)
             nine[0] = nine[0] * (self.cif_floor + (1.0 - self.cif_floor) * cifhr_t)
         return nine[:, nine[0] > self.score_th]

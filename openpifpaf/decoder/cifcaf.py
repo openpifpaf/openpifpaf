@@ -70,6 +70,8 @@ class CifCaf(Decoder):
     nms = True
     dense_coupling = 0.0
 
+    reverse_match = True
+
     def __init__(self,
                  cif_metas: List[headmeta.Cif],
                  caf_metas: List[headmeta.Caf],
@@ -113,8 +115,7 @@ class CifCaf(Decoder):
         group = parser.add_argument_group('CifCaf decoder')
         assert not cls.force_complete
         group.add_argument('--force-complete-pose',
-                            dest='force_complete_pose',
-                            default=False, action='store_true')
+                           default=False, action='store_true')
 
         group.add_argument('--keypoint-threshold', type=float,
                            default=cls.keypoint_threshold,
@@ -133,6 +134,16 @@ class CifCaf(Decoder):
         group.add_argument('--dense-connections', nargs='?', type=float,
                            default=0.0, const=1.0)
 
+        assert cls.reverse_match
+        group.add_argument('--no-reverse-match',
+                           default=True, dest='reverse_match', action='store_false')
+        group.add_argument('--ablation-cifseeds-nms',
+                           default=False, action='store_true')
+        group.add_argument('--ablation-cifseeds-no-rescore',
+                           default=False, action='store_true')
+        group.add_argument('--ablation-caf-no-rescore',
+                           default=False, action='store_true')
+
     @classmethod
     def configure(cls, args: argparse.Namespace):
         """Take the parsed argument parser output and configure class variables."""
@@ -147,6 +158,13 @@ class CifCaf(Decoder):
         cls.greedy = args.greedy
         cls.connection_method = args.connection_method
         cls.dense_coupling = args.dense_connections
+
+        cls.reverse_match = args.reverse_match
+        utils.CifSeeds.ablation_nms = args.ablation_cifseeds_nms
+        utils.CifSeeds.ablation_no_rescore = args.ablation_cifseeds_no_rescore
+        utils.CafScored.ablation_no_rescore = args.ablation_caf_no_rescore
+        if args.ablation_cifseeds_no_rescore and args.ablation_caf_no_rescore:
+            utils.CifHr.ablation_skip = True
 
     @classmethod
     def factory(cls, head_metas):
@@ -238,7 +256,7 @@ class CifCaf(Decoder):
         xy_scale_t = max(0.0, new_xysv[2])
 
         # reverse match
-        if reverse_match:
+        if self.reverse_match and reverse_match:
             reverse_xyv = grow_connection_blend(
                 caf_b, new_xysv[0], new_xysv[1], xy_scale_t, only_max)
             if reverse_xyv[2] == 0.0:
@@ -369,7 +387,7 @@ class CifCaf(Decoder):
     def complete_annotations(self, cifhr, fields, annotations):
         start = time.perf_counter()
 
-        caf_scored = utils.CafScored(cifhr.accumulated, score_th=0.0001).fill(
+        caf_scored = utils.CafScored(cifhr.accumulated, score_th=0.001).fill(
             fields, self.caf_metas)
         for ann in annotations:
             unfilled_mask = ann.data[:, 2] == 0.0

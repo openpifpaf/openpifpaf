@@ -15,6 +15,8 @@ class CifHr:
     v_threshold = 0.1
     debug_visualizer = visualizer.CifHr()
 
+    ablation_skip = False
+
     def __init__(self):
         self.accumulated = None
 
@@ -51,9 +53,10 @@ class CifHr:
         else:
             ta = np.zeros(self.accumulated.shape, dtype=np.float32)
 
-        for meta in metas:
-            for t, p in zip(ta, all_fields[meta.head_index]):
-                self.accumulate(len(metas), t, p, meta.stride, meta.decoder_min_scale)
+        if not self.ablation_skip:
+            for meta in metas:
+                for t, p in zip(ta, all_fields[meta.head_index]):
+                    self.accumulate(len(metas), t, p, meta.stride, meta.decoder_min_scale)
 
         if self.accumulated is None:
             self.accumulated = ta
