@@ -190,6 +190,7 @@ def model_migration(net_cpu):
             hn.meta.head_index = hn_i
         if hn.meta.name == 'cif' and 'score_weights' not in vars(hn.meta):
             hn.meta.score_weights = [3.0] * 3 + [1.0] * (hn.meta.n_fields - 3)
+
     for mm in MODEL_MIGRATION:
         mm(net_cpu)
 
@@ -201,9 +202,16 @@ def model_defaults(net_cpu):
             # (only seen sometimes when training with GPU)
             # Variances in pretrained models can be as low as 1e-17.
             # m.running_var.clamp_(min=1e-8)
-            m.eps = 1e-3  # tf default is 0.001
+            # m.eps = 1e-3  # tf default is 0.001
             # m.eps = 1e-5  # pytorch default
 
-            # less momentum for variance and expectation
+            # This epsilon only appears inside a sqrt in the denominator,
+            # i.e. the effective epsilon for division is much bigger than the
+            # given eps.
+            # See equation here:
+            # https://pytorch.org/docs/stable/generated/torch.nn.BatchNorm2d.html
+            m.eps = 1e-5
+
+            # smaller step size for running std and mean update
             m.momentum = 0.01  # tf default is 0.99
             # m.momentum = 0.1  # pytorch default
