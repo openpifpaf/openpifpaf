@@ -25,8 +25,7 @@ class Cif(Base):
         super().__init__(meta.name)
         self.meta = meta
         keypoint_painter = show.KeypointPainter(monocolor_connections=True)
-        self.annotation_painter = show.AnnotationPainter(
-                                    painters={'Annotation': keypoint_painter})
+        self.annotation_painter = show.AnnotationPainter(painters={'Annotation': keypoint_painter})
 
     def targets(self, field, *, annotation_dicts):
         assert self.meta.keypoints is not None
