@@ -90,11 +90,13 @@ class Shell2Scale(torch.nn.Module):
             if len(original_c.shape) == 4:
                 original_c[:, :,
                            :stride * reduced_c.shape[2]:stride,
-                           :stride * reduced_c.shape[3]:stride][mask] = reduced_c[mask]
+                           :stride * reduced_c.shape[3]:stride][mask] = \
+                    reduced_c[mask]
             elif len(original_c.shape) == 5:
                 original_c[:, :, :,
                            :stride * reduced_c.shape[3]:stride,
-                           :stride * reduced_c.shape[4]:stride][mask_vector] = reduced_c[mask_vector]
+                           :stride * reduced_c.shape[4]:stride][mask_vector] = \
+                    reduced_c[mask_vector]
             else:
                 raise Exception('cannot process component with shape {}'
                                 ''.format(original_c.shape))
