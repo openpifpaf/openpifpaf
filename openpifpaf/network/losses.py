@@ -234,6 +234,7 @@ class MultiHeadLossAutoTuneKendall(torch.nn.Module):
         assert len(self.lambdas) == len(flat_head_losses)
         assert len(self.log_sigmas) == len(flat_head_losses)
         constrained_log_sigmas = 3.0 * torch.tanh(self.log_sigmas / 3.0)
+
         def tuned_loss(tune, log_sigma, loss):
             if tune == 'none':
                 return loss
@@ -246,6 +247,7 @@ class MultiHeadLossAutoTuneKendall(torch.nn.Module):
                 # ln(sqrt(2pi)) = 0.919
                 return 0.919 + log_sigma + loss * 0.5 * torch.exp(-2.0 * log_sigma)
             raise Exception('unknown tune: {}'.format(tune))
+
         loss_values = [
             lam * tuned_loss(t, log_sigma, l)
             for lam, t, log_sigma, l in zip(
@@ -371,11 +373,11 @@ class CompositeLoss(torch.nn.Module):
             for _ in range(self.n_scales)
         ])
         self.field_names = (
-            ['{}.{}.c'.format(head_net.meta.dataset, head_net.meta.name)] +
-            ['{}.{}.vec{}'.format(head_net.meta.dataset, head_net.meta.name, i + 1)
-             for i in range(self.n_vectors)] +
-            ['{}.{}.scales{}'.format(head_net.meta.dataset, head_net.meta.name, i + 1)
-             for i in range(self.n_scales)]
+            ['{}.{}.c'.format(head_net.meta.dataset, head_net.meta.name)]
+            + ['{}.{}.vec{}'.format(head_net.meta.dataset, head_net.meta.name, i + 1)
+               for i in range(self.n_vectors)]
+            + ['{}.{}.scales{}'.format(head_net.meta.dataset, head_net.meta.name, i + 1)
+               for i in range(self.n_scales)]
         )
 
         self.bce_blackout = None
@@ -425,12 +427,12 @@ class CompositeLoss(torch.nn.Module):
                 continue
 
             loss = self.regression_loss(
-                torch.masked_select(x_regs[:, :, i*2 + 0], reg_masks),
-                torch.masked_select(x_regs[:, :, i*2 + 1], reg_masks),
-                torch.masked_select(x_regs[:, :, self.n_vectors*2 + i], reg_masks),
-                torch.masked_select(t_regs[:, :, i*2 + 0], reg_masks),
-                torch.masked_select(t_regs[:, :, i*2 + 1], reg_masks),
-                torch.masked_select(t_regs[:, :, self.n_vectors*2 + i], reg_masks),
+                torch.masked_select(x_regs[:, :, i * 2 + 0], reg_masks),
+                torch.masked_select(x_regs[:, :, i * 2 + 1], reg_masks),
+                torch.masked_select(x_regs[:, :, self.n_vectors * 2 + i], reg_masks),
+                torch.masked_select(t_regs[:, :, i * 2 + 0], reg_masks),
+                torch.masked_select(t_regs[:, :, i * 2 + 1], reg_masks),
+                torch.masked_select(t_regs[:, :, self.n_vectors * 2 + i], reg_masks),
                 norm_low_clip=0.0,
             )
             if weight is not None:

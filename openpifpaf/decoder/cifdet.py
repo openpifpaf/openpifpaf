@@ -49,7 +49,7 @@ class CifDet(Decoder):
             if occupied.get(f, x, y):
                 continue
             ann = AnnotationDet(self.metas[0].categories).set(
-                f + 1, v, (x - w/2.0, y - h/2.0, w, h))
+                f + 1, v, (x - w / 2.0, y - h / 2.0, w, h))
             annotations.append(ann)
             occupied.set(f, x, y, 0.1 * min(w, h))
 

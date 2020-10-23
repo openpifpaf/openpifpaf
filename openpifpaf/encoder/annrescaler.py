@@ -12,8 +12,8 @@ class AnnRescaler():
         self.stride = stride
         self.pose = pose
         self.pose_total_area = (
-            (np.max(self.pose[:, 0]) - np.min(self.pose[:, 0])) *
-            (np.max(self.pose[:, 1]) - np.min(self.pose[:, 1]))
+            (np.max(self.pose[:, 0]) - np.min(self.pose[:, 0]))
+            * (np.max(self.pose[:, 1]) - np.min(self.pose[:, 1]))
         )
 
         # rotate the davinci pose by 45 degrees
@@ -22,8 +22,8 @@ class AnnRescaler():
         self.pose_45 = np.copy(pose)
         self.pose_45[:, :2] = np.einsum('ij,kj->ki', rotate, self.pose_45[:, :2])
         self.pose_45_total_area = (
-            (np.max(self.pose_45[:, 0]) - np.min(self.pose_45[:, 0])) *
-            (np.max(self.pose_45[:, 1]) - np.min(self.pose_45[:, 1]))
+            (np.max(self.pose_45[:, 0]) - np.min(self.pose_45[:, 0]))
+            * (np.max(self.pose_45[:, 1]) - np.min(self.pose_45[:, 1]))
         )
 
     def valid_area(self, meta):
@@ -109,16 +109,16 @@ class AnnRescaler():
             return np.nan
 
         area = (
-            (np.max(keypoints[visible, 0]) - np.min(keypoints[visible, 0])) *
-            (np.max(keypoints[visible, 1]) - np.min(keypoints[visible, 1]))
+            (np.max(keypoints[visible, 0]) - np.min(keypoints[visible, 0]))
+            * (np.max(keypoints[visible, 1]) - np.min(keypoints[visible, 1]))
         )
         area_ref = (
-            (np.max(self.pose[visible, 0]) - np.min(self.pose[visible, 0])) *
-            (np.max(self.pose[visible, 1]) - np.min(self.pose[visible, 1]))
+            (np.max(self.pose[visible, 0]) - np.min(self.pose[visible, 0]))
+            * (np.max(self.pose[visible, 1]) - np.min(self.pose[visible, 1]))
         )
         area_ref_45 = (
-            (np.max(self.pose_45[visible, 0]) - np.min(self.pose_45[visible, 0])) *
-            (np.max(self.pose_45[visible, 1]) - np.min(self.pose_45[visible, 1]))
+            (np.max(self.pose_45[visible, 0]) - np.min(self.pose_45[visible, 0]))
+            * (np.max(self.pose_45[visible, 1]) - np.min(self.pose_45[visible, 1]))
         )
 
         factor = np.sqrt(min(

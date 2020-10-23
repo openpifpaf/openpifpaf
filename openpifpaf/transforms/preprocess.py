@@ -53,10 +53,10 @@ class Preprocess(metaclass=ABCMeta):
             # rotation
             if angle != 0.0:
                 xy = ann.data[:, :2]
-                x_old = xy[:, 0].copy() - (rw - 1)/2
-                y_old = xy[:, 1].copy() - (rh - 1)/2
-                xy[:, 0] = (rw - 1)/2 + cangle * x_old + sangle * y_old
-                xy[:, 1] = (rh - 1)/2 - sangle * x_old + cangle * y_old
+                x_old = xy[:, 0].copy() - (rw - 1) / 2
+                y_old = xy[:, 1].copy() - (rh - 1) / 2
+                xy[:, 0] = (rw - 1) / 2 + cangle * x_old + sangle * y_old
+                xy[:, 1] = (rh - 1) / 2 - sangle * x_old + cangle * y_old
 
             # offset
             ann.data[:, 0] += meta['offset'][0]

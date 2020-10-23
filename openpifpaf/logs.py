@@ -424,7 +424,7 @@ class EvalPlots():
 
         def epoch_from_filename(filename):
             i = filename.find('epoch')
-            return int(filename[i+5:i+8])
+            return int(filename[i + 5:i + 8])
 
         def migrate(data):
             # earlier versions did not contain 'dataset'

@@ -91,10 +91,10 @@ def configure(args):
 def factory(head_metas, *, profile=False, profile_device=None):
     """Instantiate decoders."""
     # TODO implement!
-                            # dense_coupling=args.dense_coupling,
-                            # dense_connections=args.dense_connections,
-                            # multi_scale=args.multi_scale,
-                            # multi_scale_hflip=args.multi_scale_hflip,
+    # dense_coupling=args.dense_coupling,
+    # dense_connections=args.dense_connections,
+    # multi_scale=args.multi_scale,
+    # multi_scale_hflip=args.multi_scale_hflip,
 
     LOG.debug('head names = %s', [meta.name for meta in head_metas])
     decoders = [
@@ -116,39 +116,39 @@ def factory(head_metas, *, profile=False, profile_device=None):
     return Multi(decoders)
 
     # TODO implement!
-        # if multi_scale:
-        #     if not dense_connections:
-        #         field_config.cif_indices = [v * 3 for v in range(5)]
-        #         field_config.caf_indices = [v * 3 + 1 for v in range(5)]
-        #     else:
-        #         field_config.cif_indices = [v * 2 for v in range(5)]
-        #         field_config.caf_indices = [v * 2 + 1 for v in range(5)]
-        #     field_config.cif_strides = [basenet_stride / head_nets[i].meta.upsample_stride
-        #                                 for i in field_config.cif_indices]
-        #     field_config.caf_strides = [basenet_stride / head_nets[i].meta.upsample_stride
-        #                                 for i in field_config.caf_indices]
-        #     field_config.cif_min_scales = [0.0, 12.0, 16.0, 24.0, 40.0]
-        #     field_config.caf_min_distances = [v * 3.0 for v in field_config.cif_min_scales]
-        #     field_config.caf_max_distances = [160.0, 240.0, 320.0, 480.0, None]
-        # if multi_scale and multi_scale_hflip:
-        #     if not dense_connections:
-        #         field_config.cif_indices = [v * 3 for v in range(10)]
-        #         field_config.caf_indices = [v * 3 + 1 for v in range(10)]
-        #     else:
-        #         field_config.cif_indices = [v * 2 for v in range(10)]
-        #         field_config.caf_indices = [v * 2 + 1 for v in range(10)]
-        #     field_config.cif_strides = [basenet_stride / head_nets[i].meta.upsample_stride
-        #                                 for i in field_config.cif_indices]
-        #     field_config.caf_strides = [basenet_stride / head_nets[i].meta.upsample_stride
-        #                                 for i in field_config.caf_indices]
-        #     field_config.cif_min_scales *= 2
-        #     field_config.caf_min_distances *= 2
-        #     field_config.caf_max_distances *= 2
+    # if multi_scale:
+    #     if not dense_connections:
+    #         field_config.cif_indices = [v * 3 for v in range(5)]
+    #         field_config.caf_indices = [v * 3 + 1 for v in range(5)]
+    #     else:
+    #         field_config.cif_indices = [v * 2 for v in range(5)]
+    #         field_config.caf_indices = [v * 2 + 1 for v in range(5)]
+    #     field_config.cif_strides = [basenet_stride / head_nets[i].meta.upsample_stride
+    #                                 for i in field_config.cif_indices]
+    #     field_config.caf_strides = [basenet_stride / head_nets[i].meta.upsample_stride
+    #                                 for i in field_config.caf_indices]
+    #     field_config.cif_min_scales = [0.0, 12.0, 16.0, 24.0, 40.0]
+    #     field_config.caf_min_distances = [v * 3.0 for v in field_config.cif_min_scales]
+    #     field_config.caf_max_distances = [160.0, 240.0, 320.0, 480.0, None]
+    # if multi_scale and multi_scale_hflip:
+    #     if not dense_connections:
+    #         field_config.cif_indices = [v * 3 for v in range(10)]
+    #         field_config.caf_indices = [v * 3 + 1 for v in range(10)]
+    #     else:
+    #         field_config.cif_indices = [v * 2 for v in range(10)]
+    #         field_config.caf_indices = [v * 2 + 1 for v in range(10)]
+    #     field_config.cif_strides = [basenet_stride / head_nets[i].meta.upsample_stride
+    #                                 for i in field_config.cif_indices]
+    #     field_config.caf_strides = [basenet_stride / head_nets[i].meta.upsample_stride
+    #                                 for i in field_config.caf_indices]
+    #     field_config.cif_min_scales *= 2
+    #     field_config.caf_min_distances *= 2
+    #     field_config.caf_max_distances *= 2
 
-        # skeleton = head_nets[1].meta.skeleton
-        # if dense_connections:
-        #     field_config.confidence_scales = (
-        #         [1.0 for _ in skeleton] +
-        #         [dense_coupling for _ in head_nets[2].meta.skeleton]
-        #     )
-        #     skeleton = skeleton + head_nets[2].meta.skeleton
+    # skeleton = head_nets[1].meta.skeleton
+    # if dense_connections:
+    #     field_config.confidence_scales = (
+    #         [1.0 for _ in skeleton] +
+    #         [dense_coupling for _ in head_nets[2].meta.skeleton]
+    #     )
+    #     skeleton = skeleton + head_nets[2].meta.skeleton

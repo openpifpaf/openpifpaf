@@ -13,6 +13,7 @@ except ImportError:
 
 LOG = logging.getLogger(__name__)
 
+
 class DetectionPainter:
     def __init__(self, *, xy_scale=1.0):
         self.xy_scale = xy_scale
@@ -446,6 +447,6 @@ class KeypointPainter:
     def _draw_decoding_order(ax, decoding_order):
         for step_i, (jsi, jti, jsxyv, jtxyv) in enumerate(decoding_order):
             ax.plot([jsxyv[0], jtxyv[0]], [jsxyv[1], jtxyv[1]], '--', color='black')
-            ax.text(0.5 * (jsxyv[0] + jtxyv[0]), 0.5 * (jsxyv[1] +jtxyv[1]),
+            ax.text(0.5 * (jsxyv[0] + jtxyv[0]), 0.5 * (jsxyv[1] + jtxyv[1]),
                     '{}: {} -> {}'.format(step_i, jsi, jti), fontsize=8,
                     color='white', bbox={'facecolor': 'black', 'alpha': 0.5, 'linewidth': 0})

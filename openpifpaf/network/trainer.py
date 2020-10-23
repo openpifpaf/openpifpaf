@@ -55,6 +55,7 @@ class Trainer():
             # monkey patch to profile self.train_batch()
             self.trace_counter = 0
             self.train_batch_without_profile = self.train_batch
+
             def train_batch_with_profile(*args, **kwargs):
                 with torch.autograd.profiler.profile(use_cuda=True) as prof:
                     result = self.train_batch_without_profile(*args, **kwargs)
@@ -65,6 +66,7 @@ class Trainer():
                 LOG.info('writing trace file %s', tracefilename)
                 prof.export_chrome_trace(tracefilename)
                 return result
+
             self.train_batch = train_batch_with_profile
 
         LOG.info({

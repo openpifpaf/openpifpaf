@@ -289,9 +289,9 @@ class CifCaf(Decoder):
         sigma_s = 0.5 * xy_scale_s
         sigma_t = 0.5 * xy_scale_t
         scores = (
-            np.exp(-0.5 * d_source**2 / sigma_s**2) *
-            np.exp(-0.5 * d_target**2 / sigma_t**2) *
-            caf_field[0]
+            np.exp(-0.5 * d_source**2 / sigma_s**2)
+            * np.exp(-0.5 * d_target**2 / sigma_t**2)
+            * caf_field[0]
         )
         return np.sqrt(source_xyv[2] * max(scores))
 

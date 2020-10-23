@@ -177,7 +177,7 @@ class CocoKp(DataModule):
         cls.eval_extended_scale = args.coco_eval_extended_scale
 
         if (args.cocokp_eval_test2017 or args.cocokp_eval_testdev2017) \
-            and not args.write_predictions and not args.debug:
+                and not args.write_predictions and not args.debug:
             raise Exception('have to use --write-predictions for this dataset')
 
     def _preprocess(self):

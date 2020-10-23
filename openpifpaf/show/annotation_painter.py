@@ -8,12 +8,13 @@ PAINTERS = {
     'AnnotationDet': DetectionPainter,
 }
 
+
 class AnnotationPainter:
     def __init__(self, *,
                  xy_scale=1.0,
                  painters=None):
-        self.painters = {annotation_type:painter(xy_scale=xy_scale)
-                        for annotation_type, painter in PAINTERS.items()}
+        self.painters = {annotation_type: painter(xy_scale=xy_scale)
+                         for annotation_type, painter in PAINTERS.items()}
 
         if painters:
             for annotation_type, painter in painters.items():
