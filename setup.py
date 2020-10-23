@@ -82,6 +82,7 @@ setup(
             'onnxruntime',
             'onnx-simplifier>=0.2.9',
             'pylint',
+            'pycodestyle',
             'pytest',
             'opencv-python',
             'thop',

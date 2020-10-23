@@ -83,7 +83,8 @@ class Resnet(BaseNetwork):
         # input pool
         if self.pool0_stride:
             if self.pool0_stride != 2:
-                input_modules[3].stride = torch.nn.modules.utils._pair(self.pool0_stride)  # pylint: disable=protected-access
+                # pylint: disable=protected-access
+                input_modules[3].stride = torch.nn.modules.utils._pair(self.pool0_stride)
                 stride = int(stride * 2 / self.pool0_stride)
         else:
             input_modules.pop(3)
@@ -91,7 +92,8 @@ class Resnet(BaseNetwork):
 
         # input conv
         if self.input_conv_stride != 2:
-            input_modules[0].stride = torch.nn.modules.utils._pair(self.input_conv_stride)  # pylint: disable=protected-access
+            # pylint: disable=protected-access
+            input_modules[0].stride = torch.nn.modules.utils._pair(self.input_conv_stride)
             stride = int(stride * 2 / self.input_conv_stride)
 
         # optional use a conv in place of the max pool

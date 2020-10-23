@@ -72,8 +72,8 @@ class Shell2Scale(torch.nn.Module):
                     logb_component_indices,
                     stride):
         mask = reduced_h[0] > original_h[0][:, :,
-                                            :stride*reduced_h[0].shape[2]:stride,
-                                            :stride*reduced_h[0].shape[3]:stride]
+                                            :stride * reduced_h[0].shape[2]:stride,
+                                            :stride * reduced_h[0].shape[3]:stride]
         mask_vector = torch.stack((mask, mask), dim=2)
 
         for ci, (original_c, reduced_c) in enumerate(zip(original_h, reduced_h)):
@@ -89,12 +89,12 @@ class Shell2Scale(torch.nn.Module):
 
             if len(original_c.shape) == 4:
                 original_c[:, :,
-                           :stride*reduced_c.shape[2]:stride,
-                           :stride*reduced_c.shape[3]:stride][mask] = reduced_c[mask]
+                           :stride * reduced_c.shape[2]:stride,
+                           :stride * reduced_c.shape[3]:stride][mask] = reduced_c[mask]
             elif len(original_c.shape) == 5:
                 original_c[:, :, :,
-                           :stride*reduced_c.shape[3]:stride,
-                           :stride*reduced_c.shape[4]:stride][mask_vector] = reduced_c[mask_vector]
+                           :stride * reduced_c.shape[3]:stride,
+                           :stride * reduced_c.shape[4]:stride][mask_vector] = reduced_c[mask_vector]
             else:
                 raise Exception('cannot process component with shape {}'
                                 ''.format(original_c.shape))

@@ -15,10 +15,10 @@ def rotate_box(bbox, width, height, angle_degrees):
         [bbox[0] + bbox[2], bbox[1] + bbox[3]],
     ])
 
-    x_old = four_corners[:, 0].copy() - width/2
-    y_old = four_corners[:, 1].copy() - height/2
-    four_corners[:, 0] = width/2 + cangle * x_old + sangle * y_old
-    four_corners[:, 1] = height/2 - sangle * x_old + cangle * y_old
+    x_old = four_corners[:, 0].copy() - width / 2
+    y_old = four_corners[:, 1].copy() - height / 2
+    four_corners[:, 0] = width / 2 + cangle * x_old + sangle * y_old
+    four_corners[:, 1] = height / 2 - sangle * x_old + cangle * y_old
 
     x = np.min(four_corners[:, 0])
     y = np.min(four_corners[:, 1])

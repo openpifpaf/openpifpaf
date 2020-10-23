@@ -102,4 +102,4 @@ class Base:
 
         # center (the result is technically still off by half a pixel)
         half_stride = stride // 2
-        return field[half_stride:-half_stride+1, half_stride:-half_stride+1]
+        return field[half_stride:-half_stride + 1, half_stride:-half_stride + 1]

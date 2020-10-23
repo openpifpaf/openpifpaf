@@ -28,7 +28,7 @@ import numpy as np
 import PIL
 try:
     import PIL.ImageGrab
-except:  # pylint: disable=bare-except
+except ImportError:
     pass
 import torch
 

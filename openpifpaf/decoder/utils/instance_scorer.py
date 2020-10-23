@@ -23,9 +23,9 @@ class InstanceScorer(torch.nn.Module):
         return self.compute_layers(x - 0.5)
 
     def from_annotation(self, ann):
-        v = torch.tensor([ann.scale()] +
-                         ann.data[:, 2].tolist() +
-                         ann.joint_scales.tolist()).float()
+        v = torch.tensor([ann.scale()]
+                         + ann.data[:, 2].tolist()
+                         + ann.joint_scales.tolist()).float()
         with torch.no_grad():
             return float(self.forward(v).item())
 

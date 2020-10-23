@@ -39,7 +39,6 @@ class PifHFlip(torch.nn.Module):
         LOG.debug('hflip indices: %s', flip_indices)
         self.register_buffer('flip_indices', flip_indices)
 
-
     def forward(self, *args):
         out = []
         for field in args:

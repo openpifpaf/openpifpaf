@@ -81,6 +81,7 @@ def train_epoch(model, loader, optimizer):
 
     return epoch_loss / len(loader)
 
+
 def val_epoch(model, loader):
     epoch_loss = 0.0
     with torch.no_grad():

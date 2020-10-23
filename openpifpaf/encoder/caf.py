@@ -135,16 +135,16 @@ class CafGenerator:
             # the field of view cannot be inferred
             # LOG.debug('fov check: j1 = %s, j2 = %s', joint1, joint2)
             out_field_of_view_1 = (
-                joint1[0] < 0 or \
-                joint1[1] < 0 or \
-                joint1[0] > self.intensities.shape[2] - 1 - 2 * self.config.padding or \
-                joint1[1] > self.intensities.shape[1] - 1 - 2 * self.config.padding
+                joint1[0] < 0
+                or joint1[1] < 0
+                or joint1[0] > self.intensities.shape[2] - 1 - 2 * self.config.padding
+                or joint1[1] > self.intensities.shape[1] - 1 - 2 * self.config.padding
             )
             out_field_of_view_2 = (
-                joint2[0] < 0 or \
-                joint2[1] < 0 or \
-                joint2[0] > self.intensities.shape[2] - 1 - 2 * self.config.padding or \
-                joint2[1] > self.intensities.shape[1] - 1 - 2 * self.config.padding
+                joint2[0] < 0
+                or joint2[1] < 0
+                or joint2[0] > self.intensities.shape[2] - 1 - 2 * self.config.padding
+                or joint2[1] > self.intensities.shape[1] - 1 - 2 * self.config.padding
             )
             if out_field_of_view_1 and out_field_of_view_2:
                 continue
@@ -176,7 +176,7 @@ class CafGenerator:
         fmargin = (s_offset + 1) / (offset_d + np.spacing(1))
         fmargin = np.clip(fmargin, 0.25, 0.4)
         # fmargin = 0.0
-        frange = np.linspace(fmargin, 1.0-fmargin, num=num)
+        frange = np.linspace(fmargin, 1.0 - fmargin, num=num)
         if self.config.fixed_size:
             frange = [0.5]
         for f in frange:

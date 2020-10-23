@@ -87,6 +87,8 @@ install:
 script:
   - pylint openpifpaf --disable=fixme
   - pylint tests/*.py --disable=fixme
+  - $PYTHON -m pycodestyle openpifpaf
+  - $PYTHON -m pycodestyle tests/*.py
   - pytest -vv
   - |
     if [[ $PIFPAF_TRAINING == "1" ]]; then
