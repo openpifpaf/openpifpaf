@@ -12,12 +12,12 @@ class AnnotationPainter:
     def __init__(self, *,
                  xy_scale=1.0,
                  painters=None):
-        self.painters = {}
-        for annotation_type, painter in PAINTERS.items():
-            if painters and annotation_type in painters:
-                self.painters[annotation_type] = painters[annotation_type]
-            else:
-                self.painters[annotation_type] = painter(xy_scale=xy_scale)
+        self.painters = {annotation_type:painter(xy_scale=xy_scale)
+                        for annotation_type, painter in PAINTERS.items()}
+
+        if painters:
+            for annotation_type, painter in painters.items():
+                self.painters[annotation_type] = painter
 
     def annotations(self, ax, annotations, *,
                     color=None, colors=None, texts=None, subtexts=None):
