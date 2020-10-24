@@ -31,8 +31,7 @@ def optionally_shaded(ax, x, y, *, color, label, **kwargs):
         ax.plot(x_binned, y_mean, color=color, label=label, **kwargs)
         ax.fill_between(x_binned, y_min, y_max, alpha=0.2, facecolor=color)
     else:
-        LOG.debug('not shading: entries = %d, epochs = %f, ratio = %f',
-                  len(x), x[-1] - x[0], len(x) / (x[-1] - x[0]))
+        LOG.debug('not shading: entries = %d, epochs = %f', len(x), x[-1] - x[0])
         ax.plot(x, y, color=color, label=label, **kwargs)
 
 
