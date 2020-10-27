@@ -36,10 +36,12 @@ class Bce(torch.nn.Module):
 
 
 class ScaleLoss(torch.nn.Module):
-    def __init__(self, b, *, low_clip=0.0, relative=False, relative_eps=0.1):
+    def __init__(self, b, *,
+                 clip=None,
+                 relative=False, relative_eps=0.1):
         super().__init__()
         self.b = b
-        self.low_clip = low_clip
+        self.clip = clip
         self.relative = relative
         self.relative_eps = relative_eps
 
@@ -49,7 +51,8 @@ class ScaleLoss(torch.nn.Module):
             t,
             reduction='none',
         )
-        loss = torch.clamp(loss, self.low_clip, 5.0)
+        if self.clip is not None:
+            loss = torch.clamp(loss, self.clip[0], self.clip[1])
 
         loss = loss / self.b
         if self.relative:
@@ -58,7 +61,7 @@ class ScaleLoss(torch.nn.Module):
         return loss
 
 
-def laplace_loss(x1, x2, logb, t1, t2, bmin, *, weight=None, norm_low_clip=0.0):
+def laplace_loss(x1, x2, logb, t1, t2, bmin, *, weight=None, norm_clip=None):
     """Loss based on Laplace Distribution.
 
     Loss for a single two-dimensional vector (x1, x2) with radial
@@ -69,7 +72,8 @@ def laplace_loss(x1, x2, logb, t1, t2, bmin, *, weight=None, norm_low_clip=0.0):
     # https://github.com/pytorch/pytorch/issues/2421
     # norm = torch.sqrt((x1 - t1)**2 + (x2 - t2)**2)
     norm = (torch.stack((x1, x2)) - torch.stack((t1, t2))).norm(dim=0)
-    norm = torch.clamp(norm, norm_low_clip, 5.0)
+    if norm_clip is not None:
+        norm = torch.clamp(norm, norm_clip[0], norm_clip[1])
 
     # constrain range of logb
     # low range constraint: prevent strong confidence when overfitting
@@ -369,7 +373,7 @@ class CompositeLoss(torch.nn.Module):
         self.regression_loss = regression_loss or laplace_loss
         # b_scale_fm = self.b_scale / head_net.meta.stride
         self.scale_losses = torch.nn.ModuleList([
-            ScaleLoss(self.b_scale, low_clip=0.0, relative=True)
+            ScaleLoss(self.b_scale, relative=True)
             for _ in range(self.n_scales)
         ])
         self.field_names = (
@@ -433,7 +437,6 @@ class CompositeLoss(torch.nn.Module):
                 torch.masked_select(t_regs[:, :, i * 2 + 0], reg_masks),
                 torch.masked_select(t_regs[:, :, i * 2 + 1], reg_masks),
                 torch.masked_select(t_regs[:, :, self.n_vectors * 2 + i], reg_masks),
-                norm_low_clip=0.0,
             )
             if weight is not None:
                 loss = loss * weight[:, :, 0][reg_masks]
