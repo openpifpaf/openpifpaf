@@ -479,12 +479,12 @@ class CompositeLoss(torch.nn.Module):
         assert x.shape[2] == 1 + self.n_vectors * 3 + self.n_scales
         assert t.shape[2] == 1 + self.n_vectors * 3 + self.n_scales
 
-        x = x.double()
+        # x = x.double()
         x_confidence = x[:, :, 0:1]
         x_regs = x[:, :, 1:1 + self.n_vectors * 3]
         x_scales = x[:, :, 1 + self.n_vectors * 3:]
 
-        t = t.double()
+        # t = t.double()
         t_confidence = t[:, :, 0:1]
         t_regs = t[:, :, 1:1 + self.n_vectors * 3]
         t_scales = t[:, :, 1 + self.n_vectors * 3:]
