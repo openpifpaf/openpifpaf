@@ -71,7 +71,16 @@ def laplace_loss(x1, x2, logb, t1, t2, bmin, *, weight=None, norm_clip=None):
     # left derivative of sqrt at zero is not defined, so prefer torch.norm():
     # https://github.com/pytorch/pytorch/issues/2421
     # norm = torch.sqrt((x1 - t1)**2 + (x2 - t2)**2)
-    norm = (torch.stack((x1, x2)) - torch.stack((t1, t2))).norm(dim=0)
+    # norm = (torch.stack((x1, x2)) - torch.stack((t1, t2))).norm(dim=0)
+    # norm = (
+    #     torch.nn.functional.l1_loss(x1, t1, reduction='none')
+    #     + torch.nn.functional.l1_loss(x2, t2, reduction='none')
+    # )
+    # While torch.norm is a special treatment at zero, it does produce
+    # large gradients for tiny values (as it should).
+    # Similar to BatchNorm, we introduce a physically irrelevant epsilon
+    # that stabilizes the gradients for small norms.
+    norm = torch.sqrt((x1 - t1)**2 + (x2 - t2)**2 + 0.0001)
     if norm_clip is not None:
         norm = torch.clamp(norm, norm_clip[0], norm_clip[1])
 
