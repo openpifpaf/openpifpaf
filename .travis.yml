@@ -80,7 +80,7 @@ matrix:
         - python -m pip install --upgrade pip
         - pip3 install --upgrade pip setuptools
         - pip3 install torch==1.4.0+cpu torchvision==0.5.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
-        - pip3 install cibuildwheel
+        - pip3 install cibuildwheel certifi
 
 install:
   - git fetch --unshallow  # for versioneer to find release tags
