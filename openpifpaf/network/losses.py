@@ -54,9 +54,10 @@ class ScaleLoss(torch.nn.Module):
         if self.clip is not None:
             loss = torch.clamp(loss, self.clip[0], self.clip[1])
 
-        loss = loss / self.b
+        denominator = self.b
         if self.relative:
-            loss = loss / (self.relative_eps + t)
+            denominator = self.b * (self.relative_eps + t)
+        loss = loss / denominator
 
         return loss
 
