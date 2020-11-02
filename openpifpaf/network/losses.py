@@ -81,7 +81,7 @@ def laplace_loss(x1, x2, logb, t1, t2, bmin, *, weight=None, norm_clip=None):
     # large gradients for tiny values (as it should).
     # Similar to BatchNorm, we introduce a physically irrelevant epsilon
     # that stabilizes the gradients for small norms.
-    norm = torch.sqrt((x1 - t1)**2 + (x2 - t2)**2 + 0.0001)
+    norm = torch.sqrt((x1 - t1)**2 + (x2 - t2)**2 + torch.clamp_min(bmin**2, 0.0001))
     if norm_clip is not None:
         norm = torch.clamp(norm, norm_clip[0], norm_clip[1])
 
@@ -92,7 +92,7 @@ def laplace_loss(x1, x2, logb, t1, t2, bmin, *, weight=None, norm_clip=None):
     logb = torch.clamp_min(logb, -3.0)
 
     # ln(2) = 0.694
-    losses = logb + (norm + bmin) * torch.exp(-logb)
+    losses = logb + norm * torch.exp(-logb)
     if weight is not None:
         losses = losses * weight
     return losses
