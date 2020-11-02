@@ -215,7 +215,7 @@ class CompositeField3(HeadNetwork):
             # scale
             first_scale_feature = self.meta.n_confidences + self.meta.n_vectors * 3
             scales_x = x[:, :, first_scale_feature:first_scale_feature + self.meta.n_scales]
-            torch.exp_(scales_x)
+            scales_x[:] = torch.nn.functional.softplus(scales_x)
         elif not self.training and not self.inplace_ops:
             # TODO: CoreMLv4 does not like strided slices.
             # Strides are avoided when switching the first and second dim
@@ -244,7 +244,7 @@ class CompositeField3(HeadNetwork):
             # scale
             first_scale_feature = self.meta.n_confidences + self.meta.n_vectors * 3
             scales_x = x[:, first_scale_feature:first_scale_feature + self.meta.n_scales]
-            scales_x = torch.exp(scales_x)
+            scales_x = torch.nn.functional.softplus(scales_x)
 
             # concat
             x = torch.cat([classes_x, *regs_x, regs_logb, scales_x], dim=1)
