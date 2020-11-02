@@ -47,7 +47,7 @@ class ScaleLoss(torch.nn.Module):
 
     def forward(self, logs, t):  # pylint: disable=arguments-differ
         loss = torch.nn.functional.l1_loss(
-            torch.exp(logs),
+            torch.nn.functional.softplus(logs),
             t,
             reduction='none',
         )
@@ -369,7 +369,7 @@ class MultiHeadLossAutoTuneVariance(torch.nn.Module):
 class CompositeLoss(torch.nn.Module):
     background_weight = 1.0
     focal_gamma = 1.0
-    b_scale = 1.0  #: in pixels
+    b_scale = 1.0
 
     def __init__(self, head_net: heads.CompositeField3, regression_loss):
         super().__init__()
@@ -381,7 +381,6 @@ class CompositeLoss(torch.nn.Module):
 
         self.confidence_loss = Bce(focal_gamma=self.focal_gamma, detach_focal=True)
         self.regression_loss = regression_loss or laplace_loss
-        # b_scale_fm = self.b_scale / head_net.meta.stride
         self.scale_losses = torch.nn.ModuleList([
             ScaleLoss(self.b_scale, relative=True)
             for _ in range(self.n_scales)
