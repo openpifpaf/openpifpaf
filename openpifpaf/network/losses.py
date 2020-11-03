@@ -90,7 +90,7 @@ def laplace_loss(x1, x2, b, t1, t2, bmin, *, weight=None, norm_clip=None):
     # high range constraint: force some data dependence
     # logb = 3.0 * torch.tanh(logb / 3.0)
     b = torch.nn.functional.softplus(b)
-    b = torch.maximum(b, bmin)
+    b = torch.max(b, bmin)
 
     # ln(2) = 0.694
     losses = torch.log(b) + norm / b
