@@ -1,6 +1,7 @@
 """Evaluation on COCO data."""
 
 import argparse
+import glob
 import json
 import logging
 import os
@@ -70,6 +71,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     parser.add_argument('--no-skip-epoch0', dest='skip_epoch0',
                         default=True, action='store_false',
                         help='do not skip eval for epoch 0')
+    parser.add_argument('--watch', default=False, const=60, nargs='?', type=int)
     parser.add_argument('--disable-cuda', action='store_true',
                         help='disable CUDA')
     parser.add_argument('--write-predictions', default=False, action='store_true',
@@ -89,10 +91,6 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
         args.pin_memory = True
     LOG.debug('neural network device: %s', args.device)
 
-    # generate a default output filename
-    if args.output is None:
-        args.output = default_output_name(args)
-
     logger.configure(args, LOG)
     datasets.configure(args)
     decoder.configure(args)
@@ -111,9 +109,11 @@ def count_ops(model, height=641, width=641):
     return gmacs, params
 
 
-# pylint: disable=too-many-statements
-def main():
-    args = cli()
+# pylint: disable=too-many-statements,too-many-branches
+def evaluate(args):
+    # generate a default output filename
+    if args.output is None:
+        args.output = default_output_name(args)
 
     # skip existing?
     if args.skip_epoch0:
@@ -220,6 +220,44 @@ def main():
             1000 * stats['nn_time'] / stats['n_images'],
             1000 * stats['total_time'] / stats['n_images'],
         )
+
+
+def watch(args):
+    assert args.output is None
+    pattern = args.checkpoint
+
+    while True:
+        # find checkpoints that have not been evaluated
+        all_checkpoints = glob.glob(pattern)
+        if args.skip_epoch0:
+            all_checkpoints = [c for c in all_checkpoints
+                               if not c.endswith('.epoch000')]
+        evaluated = {p.rstrip('.stats.json')
+                     for p in glob.glob(pattern + '*.stats.json')}
+        checkpoints = [c for c in all_checkpoints
+                       if not any(e.startswith(c) for e in evaluated)]
+        LOG.info('%d checkpoints, %d evaluated, %d todo: %s',
+                 len(all_checkpoints), len(evaluated), len(checkpoints), checkpoints)
+
+        # evaluate all checkpoints
+        for checkpoint in checkpoints:
+            # reset
+            args.output = None
+            args.checkpoint = checkpoint
+
+            evaluate(args)
+
+        # wait before looking for more work
+        time.sleep(args.watch)
+
+
+def main():
+    args = cli()
+
+    if args.watch:
+        watch(args)
+    else:
+        evaluate(args)
 
 
 if __name__ == '__main__':
