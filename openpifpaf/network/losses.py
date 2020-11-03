@@ -62,7 +62,7 @@ class ScaleLoss(torch.nn.Module):
         return loss
 
 
-def laplace_loss(x1, x2, logb, t1, t2, bmin, *, weight=None, norm_clip=None):
+def laplace_loss(x1, x2, b, t1, t2, bmin, *, weight=None, norm_clip=None):
     """Loss based on Laplace Distribution.
 
     Loss for a single two-dimensional vector (x1, x2) with radial
@@ -89,10 +89,11 @@ def laplace_loss(x1, x2, logb, t1, t2, bmin, *, weight=None, norm_clip=None):
     # low range constraint: prevent strong confidence when overfitting
     # high range constraint: force some data dependence
     # logb = 3.0 * torch.tanh(logb / 3.0)
-    logb = torch.clamp_min(logb, -3.0)
+    b = torch.nn.functional.softplus(b)
+    b = torch.maximum(b, bmin)
 
     # ln(2) = 0.694
-    losses = logb + norm * torch.exp(-logb)
+    losses = torch.log(b) + norm / b
     if weight is not None:
         losses = losses * weight
     return losses
