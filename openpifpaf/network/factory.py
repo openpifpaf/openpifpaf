@@ -86,20 +86,20 @@ def local_checkpoint_path(checkpoint):
     if checkpoint in CHECKPOINT_URLS:
         url = CHECKPOINT_URLS[checkpoint]
 
-        base_dir = os.path.join(
-            os.getenv('XDG_CACHE_HOME', os.path.join(os.getenv('HOME'), '.cache')),
-            'torch',
-        )
+        base_dir = None
         if hasattr(torch, 'hub') and hasattr(torch.hub, 'get_dir'):
             # new in pytorch 1.6.0
             base_dir = torch.hub.get_dir()
-        file_name = os.path.join(
-            base_dir,
-            'checkpoints',
-            os.path.basename(url),
-        )
-        print(file_name, url, os.path.basename(url))
+        elif os.getenv('TORCH_HOME'):
+            base_dir = os.path.join(os.getenv('TORCH_HOME'), 'hub')
+        elif os.getenv('XDG_CACHE_HOME'):
+            base_dir = os.path.join(os.getenv('XDG_CACHE_HOME'), 'torch', 'hub')
+        elif os.getenv('HOME'):
+            base_dir = os.path.join(os.getenv('HOME'), '.cache', 'torch')
+        else:
+            base_dir = '~/.cache/torch'
 
+        file_name = os.path.join(base_dir, 'checkpoints', os.path.basename(url))
         if os.path.exists(file_name):
             return file_name
 
