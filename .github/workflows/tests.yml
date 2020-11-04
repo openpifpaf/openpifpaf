@@ -53,7 +53,7 @@ jobs:
         python -m pip install torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }} -f ${{ matrix.torch-source }}
         python -m pip install -e ".[test]"
     - name: Install for training
-      if: ${{ matrix.train }}
+      if: matrix.train
       run: python -m pip install -e ".[train]"
     - name: Install for MacOSX
       if: matrix.os == 'macos-latest'
@@ -81,10 +81,10 @@ jobs:
       run: |
         pytest -vv
     - name: Test notebooks
-      if: ${{ matrix.train }} && matrix.os != 'windows-latest'  # because of path separator
+      if: matrix.train && matrix.os != 'windows-latest'  # because of path separator
       run: |
         pytest --nbval-lax --current-env docs/predict.ipynb
     - name: Test guide
-      if: ${{ matrix.train }}
+      if: matrix.train
       run: |
         cd guide && python download_data.py && pytest --nbval-lax --current-env *.ipynb && cd ..
