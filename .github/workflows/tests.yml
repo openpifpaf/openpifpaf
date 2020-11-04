@@ -51,10 +51,10 @@ jobs:
       run: |
         python -m pip install --upgrade pip setuptools
         python -m pip install torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }} -f ${{ matrix.torch-source }}
-        python -m pip install -e .[test]
+        python -m pip install -e ".[test]"
     - name: Install for training
       if: ${{ matrix.train }}
-      run: python -m pip install -e .[train]
+      run: python -m pip install -e ".[train]"
     - name: Print environment
       run: |
         python -m pip freeze
