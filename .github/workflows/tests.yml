@@ -67,19 +67,21 @@ jobs:
       run: |
         pylint openpifpaf --disable=fixme
     - name: Lint tests
+      if: matrix.os != 'windows-latest'  # because of path separator
       run: |
         pylint tests/*.py --disable=fixme
     - name: pycodestyle openpifpaf
       run: |
         python -m pycodestyle openpifpaf
     - name: pycodestyle tests
+      if: matrix.os != 'windows-latest'  # because of path separator
       run: |
         python -m pycodestyle tests/*.py
     - name: Test
       run: |
         pytest -vv
     - name: Test notebooks
-      if: ${{ matrix.train }}
+      if: ${{ matrix.train }} && matrix.os != 'windows-latest'  # because of path separator
       run: |
         pytest --nbval-lax --current-env docs/predict.ipynb
     - name: Test guide
