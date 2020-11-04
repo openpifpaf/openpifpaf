@@ -96,7 +96,6 @@ def local_checkpoint_path(checkpoint):
             base_dir = os.path.join(os.getenv('XDG_CACHE_HOME'), 'torch')
         else:
             base_dir = os.path.expanduser(os.path.join('~', '.cache', 'torch'))
-        print(os.getenv('TORCH_HOME'), os.getenv('XDG_CACHE_HOME'), base_dir)
 
         file_name = os.path.join(base_dir, 'checkpoints', os.path.basename(url))
         if os.path.exists(file_name):
