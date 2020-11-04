@@ -24,11 +24,6 @@ jobs:
             torch: 1.6.0+cpu
             torchvision: 0.7.0+cpu
             torch-source: https://download.pytorch.org/whl/cpu/torch_stable.html
-          - os: ubuntu-latest
-            python: 3.9
-            torch: 1.7.0+cpu
-            torchvision: 0.8.1+cpu
-            torch-source: https://download.pytorch.org/whl/torch_stable.html
           - os: macos-latest
             python: 3.7
             torch: 1.6.0+cpu
