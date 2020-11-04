@@ -91,9 +91,9 @@ def local_checkpoint_path(checkpoint):
             # new in pytorch 1.6.0
             base_dir = torch.hub.get_dir()
         elif os.getenv('TORCH_HOME'):
-            base_dir = os.path.join(os.getenv('TORCH_HOME'), 'hub')
+            base_dir = os.getenv('TORCH_HOME')
         elif os.getenv('XDG_CACHE_HOME'):
-            base_dir = os.path.join(os.getenv('XDG_CACHE_HOME'), 'torch', 'hub')
+            base_dir = os.path.join(os.getenv('XDG_CACHE_HOME'), 'torch')
         else:
             base_dir = os.path.expanduser(os.path.join('.cache', 'torch'))
 
