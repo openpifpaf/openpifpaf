@@ -56,7 +56,7 @@ jobs:
       if: ${{ matrix.train }}
       run: python -m pip install -e ".[train]"
     - name: Install for MacOSX
-      if: ${{ matrix.os }} == macos-latest
+      if: matrix.os == 'macos-latest'
       run: brew install libomp  # required for onnxruntime
     - name: Print environment
       run: |
