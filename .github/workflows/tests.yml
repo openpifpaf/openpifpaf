@@ -45,14 +45,18 @@ jobs:
     - name: Set up Python ${{ matrix.python }}
       uses: actions/setup-python@v2
       with:
-        python: ${{ matrix.python }}
+        python-version: ${{ matrix.python }}
+    - name: Python version
+      run: |
+        python --version
+        python3 --version
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip setuptools
-        pip install torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }} -f ${{ matrix.torch-source }}
+        python -m pip install torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }} -f ${{ matrix.torch-source }}
     - name: Print environment
       run: |
-        pip freeze
+        python -m pip freeze
         python --version
         python -c "import openpifpaf; print(openpifpaf.__version__)"
     - name: Lint openpifpaf
