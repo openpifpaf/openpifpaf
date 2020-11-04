@@ -26,14 +26,14 @@ jobs:
             torch-source: https://download.pytorch.org/whl/cpu/torch_stable.html
           - os: macos-latest
             python: 3.7
-            torch: 1.6.0+cpu
-            torchvision: 0.7.0+cpu
-            torch-source: https://download.pytorch.org/whl/cpu/torch_stable.html
+            torch: 1.4.0
+            torchvision: 0.5.0
+            torch-source: https://download.pytorch.org/whl/torch_stable.html
           - os: windows-latest
             python: 3.7
-            torch: 1.6.0+cpu
-            torchvision: 0.7.0+cpu
-            torch-source: https://download.pytorch.org/whl/cpu/torch_stable.html
+            torch: 1.4.0+cpu
+            torchvision: 0.5.0+cpu
+            torch-source: https://download.pytorch.org/whl/torch_stable.html
 
     steps:
     - uses: actions/checkout@v2
