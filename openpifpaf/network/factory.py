@@ -16,18 +16,16 @@ PRETRAINED_UNAVAILABLE = object()
 # Dataset cocokp is implied. All other datasets need to be explicit.
 CHECKPOINT_URLS = {
     'resnet18': PRETRAINED_UNAVAILABLE,
-    'resnet50': ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
-                 'v0.12a1/resnet50-200912-124649-cocokp-o10s-cda25db6.pkl'),
+    'resnet50': PRETRAINED_UNAVAILABLE,
     'resnet101': PRETRAINED_UNAVAILABLE,
     'resnet152': PRETRAINED_UNAVAILABLE,
     'shufflenetv2x1': PRETRAINED_UNAVAILABLE,
     'shufflenetv2x2': PRETRAINED_UNAVAILABLE,
     'shufflenetv2k16': ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
-                        'v0.12a1/shufflenetv2k16w-200905-113300-cocokp-e7b371e6.pkl'),
+                        'v0.12a5/shufflenetv2k16-201103-202759-cocokp-6a9ca7d9.pkl'),
     'shufflenetv2k16w': ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
-                         'v0.12a1/shufflenetv2k16w-200905-113300-cocokp-e7b371e6.pkl'),
-    'shufflenetv2k30': ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
-                        'v0.12a1/shufflenetv2k30w-200918-223448-cocokp-o10s-be714792.pkl'),
+                         'v0.12a5/shufflenetv2k16-201103-202759-cocokp-6a9ca7d9.pkl'),
+    'shufflenetv2k30': PRETRAINED_UNAVAILABLE,
     'shufflenetv2k44': PRETRAINED_UNAVAILABLE,
 }
 
