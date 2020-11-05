@@ -47,7 +47,7 @@ class ScaleLoss(torch.nn.Module):
 
     def forward(self, logs, t):  # pylint: disable=arguments-differ
         loss = torch.nn.functional.l1_loss(
-            torch.exp(logs),
+            torch.nn.functional.softplus(logs),
             t,
             reduction='none',
         )
@@ -62,7 +62,7 @@ class ScaleLoss(torch.nn.Module):
         return loss
 
 
-def laplace_loss(x1, x2, logb, t1, t2, bmin, *, weight=None, norm_clip=None):
+def laplace_loss(x1, x2, b, t1, t2, bmin, *, weight=None, norm_clip=None):
     """Loss based on Laplace Distribution.
 
     Loss for a single two-dimensional vector (x1, x2) with radial
@@ -89,10 +89,11 @@ def laplace_loss(x1, x2, logb, t1, t2, bmin, *, weight=None, norm_clip=None):
     # low range constraint: prevent strong confidence when overfitting
     # high range constraint: force some data dependence
     # logb = 3.0 * torch.tanh(logb / 3.0)
-    logb = torch.clamp_min(logb, -3.0)
+    b = torch.nn.functional.softplus(b)
+    b = torch.max(b, bmin)
 
     # ln(2) = 0.694
-    losses = logb + norm * torch.exp(-logb)
+    losses = torch.log(b) + norm / b
     if weight is not None:
         losses = losses * weight
     return losses
@@ -369,7 +370,7 @@ class MultiHeadLossAutoTuneVariance(torch.nn.Module):
 class CompositeLoss(torch.nn.Module):
     background_weight = 1.0
     focal_gamma = 1.0
-    b_scale = 1.0  #: in pixels
+    b_scale = 1.0
 
     def __init__(self, head_net: heads.CompositeField3, regression_loss):
         super().__init__()
@@ -381,7 +382,6 @@ class CompositeLoss(torch.nn.Module):
 
         self.confidence_loss = Bce(focal_gamma=self.focal_gamma, detach_focal=True)
         self.regression_loss = regression_loss or laplace_loss
-        # b_scale_fm = self.b_scale / head_net.meta.stride
         self.scale_losses = torch.nn.ModuleList([
             ScaleLoss(self.b_scale, relative=True)
             for _ in range(self.n_scales)

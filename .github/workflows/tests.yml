@@ -11,29 +11,29 @@ jobs:
         include:
           - os: ubuntu-latest
             python: 3.6
-            torch: 1.3.1+cpu
-            torchvision: 0.4.2+cpu
+            torch: 1.7.0+cpu
+            torchvision: 0.8.1+cpu
             torch-source: https://download.pytorch.org/whl/cpu/torch_stable.html
             train: True
           - os: ubuntu-latest
             python: 3.7
-            torch: 1.4.0+cpu
-            torchvision: 0.5.0+cpu
+            torch: 1.7.0+cpu
+            torchvision: 0.8.1+cpu
             torch-source: https://download.pytorch.org/whl/torch_stable.html
           - os: ubuntu-latest
             python: 3.8
-            torch: 1.6.0+cpu
-            torchvision: 0.7.0+cpu
+            torch: 1.7.0+cpu
+            torchvision: 0.8.1+cpu
             torch-source: https://download.pytorch.org/whl/cpu/torch_stable.html
           - os: macos-latest
             python: 3.7
-            torch: 1.4.0
-            torchvision: 0.5.0
+            torch: 1.7.0
+            torchvision: 0.8.1
             torch-source: https://download.pytorch.org/whl/torch_stable.html
           - os: windows-latest
             python: 3.7
-            torch: 1.4.0+cpu
-            torchvision: 0.5.0+cpu
+            torch: 1.7.0+cpu
+            torchvision: 0.8.1+cpu
             torch-source: https://download.pytorch.org/whl/torch_stable.html
 
     steps:
@@ -84,7 +84,11 @@ jobs:
       if: matrix.train && matrix.os != 'windows-latest'  # because of path separator
       run: |
         pytest --nbval-lax --current-env docs/predict.ipynb
+    - name: Test guide (download data)
+      if: matrix.train
+      run: |
+        cd guide && python download_data.py && cd ..
     - name: Test guide
       if: matrix.train
       run: |
-        cd guide && python download_data.py && pytest --nbval-lax --current-env *.ipynb && cd ..
+        cd guide && pytest --nbval-lax --current-env *.ipynb && cd ..

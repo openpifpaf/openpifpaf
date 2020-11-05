@@ -25,6 +25,8 @@ class Coco(torch.utils.data.Dataset):
                  preprocess=None, min_kp_anns=0,
                  category_ids=None,
                  annotation_filter=False):
+        super().__init__()
+
         if category_ids is None:
             category_ids = []
 

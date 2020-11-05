@@ -13,6 +13,7 @@ class TorchDataset(torch.utils.data.Dataset):
     """Wraps a torch-based parent dataset and applies OpenPifPaf transforms."""
 
     def __init__(self, parent, *, preprocess=None):
+        super().__init__()
         self.parent = parent
         self.preprocess = preprocess or transforms.EVAL_TRANSFORM
 

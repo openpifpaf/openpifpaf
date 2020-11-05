@@ -16,18 +16,14 @@ PRETRAINED_UNAVAILABLE = object()
 # Dataset cocokp is implied. All other datasets need to be explicit.
 CHECKPOINT_URLS = {
     'resnet18': PRETRAINED_UNAVAILABLE,
-    'resnet50': ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
-                 'v0.12a1/resnet50-200912-124649-cocokp-o10s-cda25db6.pkl'),
+    'resnet50': PRETRAINED_UNAVAILABLE,
     'resnet101': PRETRAINED_UNAVAILABLE,
     'resnet152': PRETRAINED_UNAVAILABLE,
     'shufflenetv2x1': PRETRAINED_UNAVAILABLE,
     'shufflenetv2x2': PRETRAINED_UNAVAILABLE,
     'shufflenetv2k16': ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
-                        'v0.12a1/shufflenetv2k16w-200905-113300-cocokp-e7b371e6.pkl'),
-    'shufflenetv2k16w': ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
-                         'v0.12a1/shufflenetv2k16w-200905-113300-cocokp-e7b371e6.pkl'),
-    'shufflenetv2k30': ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
-                        'v0.12a1/shufflenetv2k30w-200918-223448-cocokp-o10s-be714792.pkl'),
+                        'v0.12a5/shufflenetv2k16-201103-202759-cocokp-6a9ca7d9.pkl'),
+    'shufflenetv2k30': PRETRAINED_UNAVAILABLE,
     'shufflenetv2k44': PRETRAINED_UNAVAILABLE,
 }
 
@@ -44,8 +40,6 @@ BASE_FACTORIES = {
     'shufflenetv2x2': lambda: basenetworks.ShuffleNetV2(
         'shufflenetv2x2', torchvision.models.shufflenet_v2_x2_0),
     'shufflenetv2k16': lambda: basenetworks.ShuffleNetV2K(
-        'shufflenetv2k16', [4, 8, 4], [24, 348, 696, 1392, 1392]),
-    'shufflenetv2k16w': lambda: basenetworks.ShuffleNetV2K(
         'shufflenetv2k16', [4, 8, 4], [24, 348, 696, 1392, 1392]),
     'shufflenetv2k20': lambda: basenetworks.ShuffleNetV2K(
         'shufflenetv2k20', [5, 10, 5], [32, 512, 1024, 2048, 2048]),
@@ -127,7 +121,7 @@ def factory(
         assert base_name is None
 
         if not checkpoint:
-            checkpoint = 'shufflenetv2k16w'
+            checkpoint = 'shufflenetv2k16'
 
         if CHECKPOINT_URLS.get(checkpoint, None) is PRETRAINED_UNAVAILABLE:
             raise Exception(
@@ -237,10 +231,16 @@ def cli(parser):
         hn.cli(parser)
 
     group = parser.add_argument_group('network configuration')
-    group.add_argument('--checkpoint', default=None,
-                       help=('Load a model from a checkpoint. '
-                             'Use "resnet50", "shufflenetv2k16w" '
-                             'or "shufflenetv2k30w" for pretrained OpenPifPaf models.'))
+    available_checkpoints = ['"{}"'.format(n) for n, url in CHECKPOINT_URLS.items()
+                             if url is not PRETRAINED_UNAVAILABLE]
+    group.add_argument(
+        '--checkpoint', default=None,
+        help=(
+            'Path to a local checkpoint. '
+            'Or provide one of the following to download a pretrained model: {}'
+            ''.format(', '.join(available_checkpoints))
+        )
+    )
     group.add_argument('--basenet', default=None,
                        help='base network, e.g. resnet50')
     group.add_argument('--two-scale', default=False, action='store_true',

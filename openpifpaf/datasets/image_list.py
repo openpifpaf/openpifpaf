@@ -7,6 +7,7 @@ from .. import transforms
 
 class ImageList(torch.utils.data.Dataset):
     def __init__(self, image_paths, preprocess=None):
+        super().__init__()
         self.image_paths = image_paths
         self.preprocess = preprocess or transforms.EVAL_TRANSFORM
 
@@ -29,6 +30,7 @@ class ImageList(torch.utils.data.Dataset):
 
 class PilImageList(torch.utils.data.Dataset):
     def __init__(self, images, preprocess=None):
+        super().__init__()
         self.images = images
         self.preprocess = preprocess or transforms.EVAL_TRANSFORM
 
