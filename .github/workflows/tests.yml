@@ -84,7 +84,11 @@ jobs:
       if: matrix.train && matrix.os != 'windows-latest'  # because of path separator
       run: |
         pytest --nbval-lax --current-env docs/predict.ipynb
+    - name: Test guide (download data)
+      if: matrix.train
+      run: |
+        cd guide && python download_data.py && cd ..
     - name: Test guide
       if: matrix.train
       run: |
-        cd guide && python download_data.py && pytest --nbval-lax --current-env *.ipynb && cd ..
+        cd guide && pytest --nbval-lax --current-env *.ipynb && cd ..
