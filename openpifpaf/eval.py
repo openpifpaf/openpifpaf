@@ -225,15 +225,15 @@ def evaluate(args):
 def watch(args):
     assert args.output is None
     pattern = args.checkpoint
+    evaluated_pattern = '{}*eval-{}.stats.json'.format(pattern, args.dataset)
 
     while True:
         # find checkpoints that have not been evaluated
         all_checkpoints = glob.glob(pattern)
+        evaluated = glob.glob(evaluated_pattern)
         if args.skip_epoch0:
             all_checkpoints = [c for c in all_checkpoints
                                if not c.endswith('.epoch000')]
-        evaluated = {p.rstrip('.stats.json')
-                     for p in glob.glob(pattern + '*.stats.json')}
         checkpoints = [c for c in all_checkpoints
                        if not any(e.startswith(c) for e in evaluated)]
         LOG.info('%d checkpoints, %d evaluated, %d todo: %s',
