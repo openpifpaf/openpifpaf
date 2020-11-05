@@ -11,12 +11,12 @@ import openpifpaf.export_onnx
 
 @pytest.mark.skipif(not torch.__version__.startswith('1.5'), reason='only PyTorch 1.5')
 def test_onnx_exportable(tmpdir):
-    outfile = str(tmpdir.join('openpifpaf-shufflenetv2k16w.onnx'))
+    outfile = str(tmpdir.join('openpifpaf-shufflenetv2k16.onnx'))
     assert not os.path.exists(outfile)
 
     datamodule = openpifpaf.datasets.factory('cocokp')
     model, _ = openpifpaf.network.factory(
-        base_name='shufflenetv2k16w',
+        base_name='shufflenetv2k16',
         head_metas=datamodule.head_metas,
     )
     openpifpaf.export_onnx.apply(model, outfile, verbose=False)
@@ -38,14 +38,14 @@ def test_onnxruntime(tmpdir):
     and using onnxruntime from an exported ONNX graph.
     """
 
-    onnx_model_file = str(tmpdir.join('openpifpaf-shufflenetv2k16w.onnx'))
+    onnx_model_file = str(tmpdir.join('openpifpaf-shufflenetv2k16.onnx'))
     assert not os.path.exists(onnx_model_file)
 
     # create model
     openpifpaf.datasets.CocoKp.upsample_stride = 2  # create a model with PixelShuffle
     datamodule = openpifpaf.datasets.factory('cocokp')
     model, _ = openpifpaf.network.factory(
-        base_name='shufflenetv2k16w',
+        base_name='shufflenetv2k16',
         head_metas=datamodule.head_metas,
     )
     print(model)
