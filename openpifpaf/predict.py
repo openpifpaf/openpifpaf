@@ -184,8 +184,9 @@ def main():
 
             # image output
             if args.show or args.image_output is not None:
+                ext = show.Canvas.out_file_extension
                 image_out_name = out_name(
-                    args.image_output, meta['file_name'], '.predictions.png')
+                    args.image_output, meta['file_name'], '.predictions.' + ext)
                 LOG.debug('image output = %s', image_out_name)
                 with show.image_canvas(cpu_image, image_out_name) as ax:
                     annotation_painter.annotations(ax, pred)
