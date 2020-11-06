@@ -183,6 +183,7 @@ class KeypointPainter:
     line_width = None
     marker_size = None
     solid_threshold = 0.5
+    font_size = 8
 
     def __init__(self, *,
                  xy_scale=1.0,
@@ -306,6 +307,8 @@ class KeypointPainter:
 
     @classmethod
     def _draw_text(cls, ax, x, y, v, text, color, *, subtext=None):
+        if cls.font_size == 0:
+            return
         if not np.any(v > 0):
             return
 
@@ -323,7 +326,7 @@ class KeypointPainter:
         ax.annotate(
             text,
             (coord_x, coord_y),
-            fontsize=8,
+            fontsize=cls.font_size,
             xytext=(5.0, 5.0),
             textcoords='offset points',
             color=cls.text_color,
@@ -333,7 +336,7 @@ class KeypointPainter:
             ax.annotate(
                 subtext,
                 (coord_x, coord_y),
-                fontsize=5,
+                fontsize=cls.font_size * 5 // 8,
                 xytext=(5.0, 18.0 + 3.0),
                 textcoords='offset points',
                 color=cls.text_color,

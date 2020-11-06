@@ -27,6 +27,7 @@ def cli(parser):
                        help='default file extension')
     group.add_argument('--textbox-alpha', default=KeypointPainter.textbox_alpha, type=float)
     group.add_argument('--text-color', default=KeypointPainter.text_color)
+    group.add_argument('--font-size', default=KeypointPainter.font_size, type=int)
     assert not KeypointPainter.monocolor_connections
     group.add_argument('--monocolor-connections', default=False, action='store_true')
     group.add_argument('--line-width', default=None, type=int)
@@ -73,6 +74,7 @@ def configure(args):
     KeypointPainter.monocolor_connections = args.monocolor_connections
     KeypointPainter.line_width = args.line_width
     KeypointPainter.solid_threshold = args.skeleton_solid_threshold
+    KeypointPainter.font_size = args.font_size
 
     AnimationFrame.video_fps = args.video_fps
     AnimationFrame.video_dpi = args.video_dpi
