@@ -182,6 +182,7 @@ class Trainer():
         self.model.train()
         if self.fix_batch_norm is True \
            or (self.fix_batch_norm is not False and self.fix_batch_norm <= epoch):
+            LOG.info('fix batchnorm')
             for m in self.model.modules():
                 if isinstance(m, (torch.nn.BatchNorm1d, torch.nn.BatchNorm2d)):
                     LOG.debug('eval mode for: %s', m)
@@ -266,6 +267,7 @@ class Trainer():
         self.model.train()
         if self.fix_batch_norm is True \
            or (self.fix_batch_norm is not False and self.fix_batch_norm <= epoch - 1):
+            LOG.info('fix batchnorm')
             for m in self.model.modules():
                 if isinstance(m, (torch.nn.BatchNorm1d, torch.nn.BatchNorm2d)):
                     LOG.debug('eval mode for: %s', m)
