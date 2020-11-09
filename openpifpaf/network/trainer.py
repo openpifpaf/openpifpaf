@@ -181,14 +181,11 @@ class Trainer():
         start_time = time.time()
         self.model.train()
         if self.fix_batch_norm is True \
-           or self.fix_batch_norm >= epoch:
+           or (self.fix_batch_norm is not False and self.fix_batch_norm <= epoch):
             for m in self.model.modules():
                 if isinstance(m, (torch.nn.BatchNorm1d, torch.nn.BatchNorm2d)):
-                    # print('fixing parameters for {}. Min var = {}'.format(
-                    #     m, torch.min(m.running_var)))
+                    LOG.debug('eval mode for: %s', m)
                     m.eval()
-                    # m.weight.requires_grad = False
-                    # m.bias.requires_grad = False
 
         self.ema_restore()
         self.ema = None
@@ -268,14 +265,11 @@ class Trainer():
         # Train mode implies outputs are for losses, so have to use it here.
         self.model.train()
         if self.fix_batch_norm is True \
-           or self.fix_batch_norm >= epoch - 1:
+           or (self.fix_batch_norm is not False and self.fix_batch_norm <= epoch - 1):
             for m in self.model.modules():
                 if isinstance(m, (torch.nn.BatchNorm1d, torch.nn.BatchNorm2d)):
-                    # print('fixing parameters for {}. Min var = {}'.format(
-                    #     m, torch.min(m.running_var)))
+                    LOG.debug('eval mode for: %s', m)
                     m.eval()
-                    # m.weight.requires_grad = False
-                    # m.bias.requires_grad = False
 
         epoch_loss = 0.0
         head_epoch_losses = None
