@@ -71,8 +71,8 @@ def cli():
     parser.add_argument('--val-batches', default=None, type=int,
                         help='number of val batches')
     parser.add_argument('--fix-batch-norm',
-                        default=False, action='store_true',
-                        help='fix batch norm running statistics')
+                        default=False, const=True, type=int, nargs='?',
+                        help='fix batch norm running statistics (optionally specify epoch)')
     parser.add_argument('--ema', default=1e-2, type=float,
                         help='ema decay constant')
     parser.add_argument('--clip-grad-norm', default=0.0, type=float,

@@ -180,7 +180,8 @@ class Trainer():
     def train(self, scenes, epoch):
         start_time = time.time()
         self.model.train()
-        if self.fix_batch_norm:
+        if self.fix_batch_norm is True \
+           or self.fix_batch_norm >= epoch:
             for m in self.model.modules():
                 if isinstance(m, (torch.nn.BatchNorm1d, torch.nn.BatchNorm2d)):
                     # print('fixing parameters for {}. Min var = {}'.format(
@@ -266,7 +267,8 @@ class Trainer():
 
         # Train mode implies outputs are for losses, so have to use it here.
         self.model.train()
-        if self.fix_batch_norm:
+        if self.fix_batch_norm is True \
+           or self.fix_batch_norm >= epoch:
             for m in self.model.modules():
                 if isinstance(m, (torch.nn.BatchNorm1d, torch.nn.BatchNorm2d)):
                     # print('fixing parameters for {}. Min var = {}'.format(
