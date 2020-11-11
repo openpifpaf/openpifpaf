@@ -26,7 +26,7 @@ class Crop(Preprocess):
         LOG.debug('valid area before crop of %s: %s', ltrb, original_valid_area)
         # process crops from left and top
         meta['valid_area'][:2] = np.maximum(0.0, original_valid_area[:2] - ltrb[:2])
-        # process cropps from right and bottom
+        # process crops from right and bottom
         new_rb_corner = original_valid_area[:2] + original_valid_area[2:] - ltrb[:2]
         new_rb_corner = np.maximum(meta['valid_area'][:2], new_rb_corner)
         new_rb_corner = np.minimum(new_wh, new_rb_corner)
