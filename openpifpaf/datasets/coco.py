@@ -127,9 +127,9 @@ class Coco(torch.utils.data.Dataset):
         # preprocess image and annotations
         image, anns, meta = self.preprocess(image, anns, meta)
 
-        # mask valid TODO still necessary?
-        valid_area = meta['valid_area']
-        utils.mask_valid_area(image, valid_area)
+        # # mask valid TODO still necessary?
+        # valid_area = meta['valid_area']
+        # utils.mask_valid_area(image, valid_area)
 
         LOG.debug(meta)
 
