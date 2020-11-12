@@ -6,7 +6,7 @@ import os
 import torch.utils.data
 from PIL import Image
 
-from .. import transforms, utils
+from .. import transforms
 
 
 LOG = logging.getLogger(__name__)
@@ -126,10 +126,6 @@ class Coco(torch.utils.data.Dataset):
 
         # preprocess image and annotations
         image, anns, meta = self.preprocess(image, anns, meta)
-
-        # # mask valid TODO still necessary?
-        # valid_area = meta['valid_area']
-        # utils.mask_valid_area(image, valid_area)
 
         LOG.debug(meta)
 
