@@ -27,8 +27,15 @@ CHECKPOINT_URLS = {
     'shufflenetv2k44': PRETRAINED_UNAVAILABLE,
 }
 
-BASE_TYPES = set([basenetworks.Resnet, basenetworks.ShuffleNetV2, basenetworks.ShuffleNetV2K])
+BASE_TYPES = set([
+    basenetworks.MobileNetV2,
+    basenetworks.Resnet,
+    basenetworks.ShuffleNetV2,
+    basenetworks.ShuffleNetV2K,
+    basenetworks.SqueezeNet,
+])
 BASE_FACTORIES = {
+    'mobilenetv2': lambda: basenetworks.MobileNetV2('mobilenetv2', torchvision.models.mobilenet_v2),
     'resnet18': lambda: basenetworks.Resnet('resnet18', torchvision.models.resnet18, 512),
     'resnet50': lambda: basenetworks.Resnet('resnet50', torchvision.models.resnet50),
     'resnet101': lambda: basenetworks.Resnet('resnet101', torchvision.models.resnet101),
@@ -47,6 +54,7 @@ BASE_FACTORIES = {
         'shufflenetv2k30', [8, 16, 6], [32, 512, 1024, 2048, 2048]),
     'shufflenetv2k44': lambda: basenetworks.ShuffleNetV2K(
         'shufflenetv2k44', [12, 24, 8], [32, 512, 1024, 2048, 2048]),
+    'squeezenet': lambda: basenetworks.SqueezeNet('squeezenet', torchvision.models.squeezenet1_1),
 }
 
 HEAD_TYPES = set([heads.CompositeField3])

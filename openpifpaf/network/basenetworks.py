@@ -361,3 +361,71 @@ class ShuffleNetV2K(BaseNetwork):
         if args.shufflenetv2k_group_norm:
             cls.layer_norm = lambda x: torch.nn.GroupNorm(
                 (32 if x % 32 == 0 else 29) if x > 100 else 4, x)
+
+
+class MobileNetV2(BaseNetwork):
+    pretrained = True
+
+    def __init__(self, name, torchvision_mobilenetv2, out_features=1280):
+        super().__init__(name, stride=32, out_features=out_features)
+        base_vision = torchvision_mobilenetv2(self.pretrained)
+        self.backbone = list(base_vision.children())[0]  # remove output classifier
+
+    def forward(self, *args):
+        x = args[0]
+        x = self.backbone(x)
+        return x
+
+    @classmethod
+    def cli(cls, parser: argparse.ArgumentParser):
+        group = parser.add_argument_group('MobileNetV2')
+        assert cls.pretrained
+        group.add_argument('--mobilenetv2-no-pretrain', dest='mobilenetv2_pretrained',
+                           default=True, action='store_false',
+                           help='use randomly initialized models')
+
+    @classmethod
+    def configure(cls, args: argparse.Namespace):
+        cls.pretrained = args.mobilenetv2_pretrained
+
+
+class SqueezeNet(BaseNetwork):
+    pretrained = True
+
+    def __init__(self, name, torchvision_squeezenet, out_features=512):
+        super().__init__(name, stride=16, out_features=out_features)
+        base_vision = torchvision_squeezenet(self.pretrained)
+
+        for m in base_vision.modules():
+            # adjust padding on all maxpool layers
+            if isinstance(m, (torch.nn.MaxPool2d,)) and m.padding != 1:
+                LOG.debug('adjusting maxpool2d padding to 1 from padding=%d, kernel=%d, stride=%d',
+                          m.padding, m.kernel_size, m.stride)
+                m.padding = 1
+
+            # adjust padding on some conv2d (only the first one)
+            if isinstance(m, (torch.nn.Conv2d,)):
+                target_padding = (m.kernel_size[0] - 1) // 2
+                if m.padding[0] != target_padding:
+                    LOG.debug('adjusting conv2d padding to %d (kernel=%d, padding=%d)',
+                              target_padding, m.kernel_size, m.padding)
+                    m.padding = torch.nn.modules.utils._pair(target_padding)  # pylint: disable=protected-access
+
+        self.backbone = list(base_vision.children())[0]  # remove output classifier
+
+    def forward(self, *args):
+        x = args[0]
+        x = self.backbone(x)
+        return x
+
+    @classmethod
+    def cli(cls, parser: argparse.ArgumentParser):
+        group = parser.add_argument_group('SqueezeNet')
+        assert cls.pretrained
+        group.add_argument('--squeezenet-no-pretrain', dest='squeezenet_pretrained',
+                           default=True, action='store_false',
+                           help='use randomly initialized models')
+
+    @classmethod
+    def configure(cls, args: argparse.Namespace):
+        cls.pretrained = args.squeezenet_pretrained
