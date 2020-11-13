@@ -6,14 +6,14 @@ import os
 import torch.utils.data
 from PIL import Image
 
-from .. import transforms
+import openpifpaf
 
 
 LOG = logging.getLogger(__name__)
 STAT_LOG = logging.getLogger(__name__.replace('openpifpaf.', 'openpifpaf.stats.'))
 
 
-class Coco(torch.utils.data.Dataset):
+class CocoDataset(torch.utils.data.Dataset):
     """`MS Coco Detection <http://mscoco.org/dataset/#detections-challenge2016>`_ Dataset.
 
     Args:
@@ -43,7 +43,7 @@ class Coco(torch.utils.data.Dataset):
             raise Exception('only set min_kp_anns with annotation_filter')
         LOG.info('Images: %d', len(self.ids))
 
-        self.preprocess = preprocess or transforms.EVAL_TRANSFORM
+        self.preprocess = preprocess or openpifpaf.transforms.EVAL_TRANSFORM
 
     def filter_for_annotations(self, *, min_kp_anns=0):
         LOG.info('filter for annotations (min kp=%d) ...', min_kp_anns)

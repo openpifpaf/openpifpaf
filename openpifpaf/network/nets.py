@@ -1,9 +1,6 @@
 import logging
 import torch
 
-from . import heads
-from .. import datasets
-
 LOG = logging.getLogger(__name__)
 
 MODEL_MIGRATION = set()
@@ -118,57 +115,6 @@ class Shell2Scale(torch.nn.Module):
             self.merge_heads(original_h, reduced_h, lci, self.reduced_stride)
 
         return original_heads
-
-
-class ShellMultiScale(torch.nn.Module):
-    def __init__(self, base_net, head_nets, *,
-                 process_heads=None, include_hflip=True):
-        super().__init__()
-
-        self.base_net = base_net
-        self.head_nets = torch.nn.ModuleList(head_nets)
-        self.pif_hflip = heads.PifHFlip(
-            head_nets[0].meta.keypoints, datasets.constants.HFLIP)
-        self.paf_hflip = heads.PafHFlip(
-            head_nets[1].meta.keypoints, head_nets[1].meta.skeleton, datasets.constants.HFLIP)
-        self.paf_hflip_dense = heads.PafHFlip(
-            head_nets[2].meta.keypoints, head_nets[2].meta.skeleton, datasets.constants.HFLIP)
-        self.process_heads = process_heads
-        self.include_hflip = include_hflip
-
-    def forward(self, *args):
-        original_input = args[0]
-
-        head_outputs = []
-        for hflip in ([False, True] if self.include_hflip else [False]):
-            for reduction in [1, 1.5, 2, 3, 5]:
-                if reduction == 1.5:
-                    x_red = torch.ByteTensor(
-                        [i % 3 != 2 for i in range(original_input.shape[3])])
-                    y_red = torch.ByteTensor(
-                        [i % 3 != 2 for i in range(original_input.shape[2])])
-                    reduced_input = original_input[:, :, y_red, :]
-                    reduced_input = reduced_input[:, :, :, x_red]
-                else:
-                    reduced_input = original_input[:, :, ::reduction, ::reduction]
-
-                if hflip:
-                    reduced_input = torch.flip(reduced_input, dims=[3])
-
-                reduced_x = self.base_net(reduced_input)
-                head_outputs += [hn(reduced_x) for hn in self.head_nets]
-
-        if self.include_hflip:
-            for mscale_i in range(5, 10):
-                head_i = mscale_i * 3
-                head_outputs[head_i] = self.pif_hflip(*head_outputs[head_i])
-                head_outputs[head_i + 1] = self.paf_hflip(*head_outputs[head_i + 1])
-                head_outputs[head_i + 2] = self.paf_hflip_dense(*head_outputs[head_i + 2])
-
-        if self.process_heads is not None:
-            head_outputs = self.process_heads(*head_outputs)
-
-        return head_outputs
 
 
 # pylint: disable=protected-access

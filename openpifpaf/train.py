@@ -8,7 +8,7 @@ import socket
 
 import torch
 
-from . import datasets, encoder, logger, network, optimize, plugins, show, visualizer
+from . import datasets, encoder, logger, network, optimize, plugin, show, visualizer
 from . import __version__
 
 LOG = logging.getLogger(__name__)
@@ -38,7 +38,7 @@ def default_output_file(args):
 
 
 def cli():
-    plugins.register()
+    plugin.register()
 
     parser = argparse.ArgumentParser(
         prog='python3 -m openpifpaf.train',
@@ -148,7 +148,7 @@ def main():
         model_meta_data={
             'args': vars(args),
             'version': __version__,
-            'plugin_versions': plugins.versions(),
+            'plugin_versions': plugin.versions(),
             'hostname': socket.gethostname(),
         },
         clip_grad_norm=args.clip_grad_norm,

@@ -1,13 +1,8 @@
-from .cocodet import CocoDet
-from .cocokp import CocoKp
 from .module import DataModule
 from .multiloader import MultiLoader
 from .multimodule import MultiDataModule
 
-DATAMODULES = {
-    'cocodet': CocoDet,
-    'cocokp': CocoKp,
-}
+DATAMODULES = {}
 
 
 def factory(dataset):
