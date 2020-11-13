@@ -32,10 +32,6 @@ def default_output_name(args):
 
     if args.two_scale:
         output += '-twoscale'
-    if args.multi_scale:
-        output += '-multiscale'
-        if args.multi_scale_hflip:
-            output += 'whflip'
 
     return output
 

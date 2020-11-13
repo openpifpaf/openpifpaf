@@ -7,6 +7,7 @@ del get_versions
 from .annotation import Annotation, AnnotationDet
 from . import datasets
 from . import decoder
+from . import encoder
 from . import headmeta
 from . import logger
 from . import metric
