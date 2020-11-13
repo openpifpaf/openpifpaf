@@ -11,6 +11,8 @@ import openpifpaf.export_onnx
 
 @pytest.mark.skipif(not torch.__version__.startswith('1.5'), reason='only PyTorch 1.5')
 def test_onnx_exportable(tmpdir):
+    openpifpaf.plugin.register()
+
     outfile = str(tmpdir.join('openpifpaf-shufflenetv2k16.onnx'))
     assert not os.path.exists(outfile)
 
@@ -37,12 +39,13 @@ def test_onnxruntime(tmpdir):
     This test predicts the outputs of a model with standard OpenPifPaf
     and using onnxruntime from an exported ONNX graph.
     """
+    openpifpaf.plugin.register()
 
     onnx_model_file = str(tmpdir.join('openpifpaf-shufflenetv2k16.onnx'))
     assert not os.path.exists(onnx_model_file)
 
     # create model
-    openpifpaf.datasets.CocoKp.upsample_stride = 2  # create a model with PixelShuffle
+    openpifpaf.plugins.coco.CocoKp.upsample_stride = 2  # create a model with PixelShuffle
     datamodule = openpifpaf.datasets.factory('cocokp')
     model, _ = openpifpaf.network.factory(
         base_name='shufflenetv2k16',
