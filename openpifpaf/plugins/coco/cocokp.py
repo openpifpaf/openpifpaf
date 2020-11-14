@@ -243,7 +243,7 @@ class CocoKp(openpifpaf.datasets.DataModule):
             category_ids=[1],
         )
         return torch.utils.data.DataLoader(
-            val_data, batch_size=self.batch_size, shuffle=False,
+            val_data, batch_size=self.batch_size, shuffle=not self.debug and self.augmentation,
             pin_memory=self.pin_memory, num_workers=self.loader_workers, drop_last=True,
             collate_fn=openpifpaf.datasets.collate_images_targets_meta)
 
