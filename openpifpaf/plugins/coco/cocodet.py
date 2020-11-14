@@ -2,16 +2,15 @@ import argparse
 
 import torch
 
-from .module import DataModule
-from .. import encoder, headmeta, metric, transforms
-from .coco import Coco
+import openpifpaf
+
 from .cocokp import CocoKp
-from .collate import collate_images_anns_meta, collate_images_targets_meta
 from .constants import (
     COCO_CATEGORIES,
     COCO_KEYPOINTS,
     HFLIP,
 )
+from .dataset import CocoDataset
 
 try:
     import pycocotools.coco
@@ -21,7 +20,7 @@ except ImportError:
     pass
 
 
-class CocoDet(DataModule):
+class CocoDet(openpifpaf.datasets.DataModule):
     # cli configurable
     train_annotations = 'data-mscoco/annotations/instances_train2017.json'
     val_annotations = 'data-mscoco/annotations/instances_val2017.json'
@@ -42,7 +41,7 @@ class CocoDet(DataModule):
 
     def __init__(self):
         super().__init__()
-        cifdet = headmeta.CifDet('cifdet', 'cocodet', COCO_CATEGORIES)
+        cifdet = openpifpaf.headmeta.CifDet('cifdet', 'cocodet', COCO_CATEGORIES)
         cifdet.upsample_stride = self.upsample_stride
         self.head_metas = [cifdet]
 
@@ -108,44 +107,47 @@ class CocoDet(DataModule):
         cls.eval_annotation_filter = args.coco_eval_annotation_filter
 
     def _preprocess(self):
-        enc = encoder.CifDet(self.head_metas[0])
+        enc = openpifpaf.encoder.CifDet(self.head_metas[0])
 
         if not self.augmentation:
-            return transforms.Compose([
-                transforms.NormalizeAnnotations(),
-                transforms.RescaleAbsolute(self.square_edge),
-                transforms.CenterPad(self.square_edge),
-                transforms.EVAL_TRANSFORM,
-                transforms.Encoders([enc]),
+            return openpifpaf.transforms.Compose([
+                openpifpaf.transforms.NormalizeAnnotations(),
+                openpifpaf.transforms.RescaleAbsolute(self.square_edge),
+                openpifpaf.transforms.CenterPad(self.square_edge),
+                openpifpaf.transforms.EVAL_TRANSFORM,
+                openpifpaf.transforms.Encoders([enc]),
             ])
 
         if self.extended_scale:
-            rescale_t = transforms.RescaleRelative(
+            rescale_t = openpifpaf.transforms.RescaleRelative(
                 scale_range=(0.5 * self.rescale_images,
                              2.0 * self.rescale_images),
                 power_law=True, stretch_range=(0.75, 1.33))
         else:
-            rescale_t = transforms.RescaleRelative(
+            rescale_t = openpifpaf.transforms.RescaleRelative(
                 scale_range=(0.7 * self.rescale_images,
                              1.5 * self.rescale_images),
                 power_law=True, stretch_range=(0.75, 1.33))
 
-        return transforms.Compose([
-            transforms.NormalizeAnnotations(),
-            transforms.RandomApply(transforms.HFlip(COCO_KEYPOINTS, HFLIP), 0.5),
+        return openpifpaf.transforms.Compose([
+            openpifpaf.transforms.NormalizeAnnotations(),
+            openpifpaf.transforms.RandomApply(
+                openpifpaf.transforms.HFlip(COCO_KEYPOINTS, HFLIP), 0.5),
             rescale_t,
-            transforms.RandomApply(transforms.Blur(), self.blur),
-            transforms.Crop(self.square_edge, use_area_of_interest=True),
-            transforms.CenterPad(self.square_edge),
-            transforms.RandomApply(transforms.RotateBy90(), self.orientation_invariant),
-            transforms.MinSize(min_side=4.0),
-            transforms.UnclippedArea(threshold=0.75),
-            transforms.TRAIN_TRANSFORM,
-            transforms.Encoders([enc]),
+            openpifpaf.transforms.RandomApply(
+                openpifpaf.transforms.Blur(), self.blur),
+            openpifpaf.transforms.Crop(self.square_edge, use_area_of_interest=True),
+            openpifpaf.transforms.CenterPad(self.square_edge),
+            openpifpaf.transforms.RandomApply(
+                openpifpaf.transforms.RotateBy90(), self.orientation_invariant),
+            openpifpaf.transforms.MinSize(min_side=4.0),
+            openpifpaf.transforms.UnclippedArea(threshold=0.75),
+            openpifpaf.transforms.TRAIN_TRANSFORM,
+            openpifpaf.transforms.Encoders([enc]),
         ])
 
     def train_loader(self):
-        train_data = Coco(
+        train_data = CocoDataset(
             image_dir=self.train_image_dir,
             ann_file=self.train_annotations,
             preprocess=self._preprocess(),
@@ -155,10 +157,10 @@ class CocoDet(DataModule):
         return torch.utils.data.DataLoader(
             train_data, batch_size=self.batch_size, shuffle=not self.debug and self.augmentation,
             pin_memory=self.pin_memory, num_workers=self.loader_workers, drop_last=True,
-            collate_fn=collate_images_targets_meta)
+            collate_fn=openpifpaf.datasets.collate_images_targets_meta)
 
     def val_loader(self):
-        val_data = Coco(
+        val_data = CocoDataset(
             image_dir=self.val_image_dir,
             ann_file=self.val_annotations,
             preprocess=self._preprocess(),
@@ -168,21 +170,21 @@ class CocoDet(DataModule):
         return torch.utils.data.DataLoader(
             val_data, batch_size=self.batch_size, shuffle=False,
             pin_memory=self.pin_memory, num_workers=self.loader_workers, drop_last=True,
-            collate_fn=collate_images_targets_meta)
+            collate_fn=openpifpaf.datasets.collate_images_targets_meta)
 
     @staticmethod
     def _eval_preprocess():
-        return transforms.Compose([
+        return openpifpaf.transforms.Compose([
             *CocoKp.common_eval_preprocess(),
-            transforms.ToAnnotations([
-                transforms.ToDetAnnotations(COCO_CATEGORIES),
-                transforms.ToCrowdAnnotations(COCO_CATEGORIES),
+            openpifpaf.transforms.ToAnnotations([
+                openpifpaf.transforms.ToDetAnnotations(COCO_CATEGORIES),
+                openpifpaf.transforms.ToCrowdAnnotations(COCO_CATEGORIES),
             ]),
-            transforms.EVAL_TRANSFORM,
+            openpifpaf.transforms.EVAL_TRANSFORM,
         ])
 
     def eval_loader(self):
-        eval_data = Coco(
+        eval_data = CocoDataset(
             image_dir=self.eval_image_dir,
             ann_file=self.eval_annotations,
             preprocess=self._eval_preprocess(),
@@ -192,10 +194,10 @@ class CocoDet(DataModule):
         return torch.utils.data.DataLoader(
             eval_data, batch_size=self.batch_size, shuffle=False,
             pin_memory=self.pin_memory, num_workers=self.loader_workers, drop_last=False,
-            collate_fn=collate_images_anns_meta)
+            collate_fn=openpifpaf.datasets.collate_images_anns_meta)
 
     def metrics(self):
-        return [metric.Coco(
+        return [openpifpaf.metric.Coco(
             pycocotools.coco.COCO(self.eval_annotations),
             max_per_image=100,
             category_ids=[],

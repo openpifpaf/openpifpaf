@@ -2,10 +2,9 @@ import argparse
 
 import torch
 
-from .module import DataModule
-from .. import encoder, headmeta, metric, transforms
-from .coco import Coco
-from .collate import collate_images_anns_meta, collate_images_targets_meta
+import openpifpaf
+
+from .dataset import CocoDataset
 from .constants import (
     COCO_CATEGORIES,
     COCO_KEYPOINTS,
@@ -25,7 +24,7 @@ except ImportError:
     pass
 
 
-class CocoKp(DataModule):
+class CocoKp(openpifpaf.datasets.DataModule):
     _test2017_annotations = 'data-mscoco/annotations/image_info_test2017.json'
     _testdev2017_annotations = 'data-mscoco/annotations/image_info_test-dev2017.json'
     _test2017_image_dir = 'data-mscoco/images/test2017/'
@@ -56,24 +55,24 @@ class CocoKp(DataModule):
     def __init__(self):
         super().__init__()
 
-        cif = headmeta.Cif('cif', 'cocokp',
-                           keypoints=COCO_KEYPOINTS,
-                           sigmas=COCO_PERSON_SIGMAS,
-                           pose=COCO_UPRIGHT_POSE,
-                           draw_skeleton=COCO_PERSON_SKELETON,
-                           score_weights=COCO_PERSON_SCORE_WEIGHTS)
-        caf = headmeta.Caf('caf', 'cocokp',
-                           keypoints=COCO_KEYPOINTS,
-                           sigmas=COCO_PERSON_SIGMAS,
-                           pose=COCO_UPRIGHT_POSE,
-                           skeleton=COCO_PERSON_SKELETON)
-        dcaf = headmeta.Caf('caf25', 'cocokp',
-                            keypoints=COCO_KEYPOINTS,
-                            sigmas=COCO_PERSON_SIGMAS,
-                            pose=COCO_UPRIGHT_POSE,
-                            skeleton=DENSER_COCO_PERSON_CONNECTIONS,
-                            sparse_skeleton=COCO_PERSON_SKELETON,
-                            only_in_field_of_view=True)
+        cif = openpifpaf.headmeta.Cif('cif', 'cocokp',
+                                      keypoints=COCO_KEYPOINTS,
+                                      sigmas=COCO_PERSON_SIGMAS,
+                                      pose=COCO_UPRIGHT_POSE,
+                                      draw_skeleton=COCO_PERSON_SKELETON,
+                                      score_weights=COCO_PERSON_SCORE_WEIGHTS)
+        caf = openpifpaf.headmeta.Caf('caf', 'cocokp',
+                                      keypoints=COCO_KEYPOINTS,
+                                      sigmas=COCO_PERSON_SIGMAS,
+                                      pose=COCO_UPRIGHT_POSE,
+                                      skeleton=COCO_PERSON_SKELETON)
+        dcaf = openpifpaf.headmeta.Caf('caf25', 'cocokp',
+                                       keypoints=COCO_KEYPOINTS,
+                                       sigmas=COCO_PERSON_SIGMAS,
+                                       pose=COCO_UPRIGHT_POSE,
+                                       skeleton=DENSER_COCO_PERSON_CONNECTIONS,
+                                       sparse_skeleton=COCO_PERSON_SKELETON,
+                                       only_in_field_of_view=True)
 
         cif.upsample_stride = self.upsample_stride
         caf.upsample_stride = self.upsample_stride
@@ -181,44 +180,47 @@ class CocoKp(DataModule):
             raise Exception('have to use --write-predictions for this dataset')
 
     def _preprocess(self):
-        encoders = (encoder.Cif(self.head_metas[0], bmin=self.bmin),
-                    encoder.Caf(self.head_metas[1], bmin=self.bmin),
-                    encoder.Caf(self.head_metas[2], bmin=self.bmin))
+        encoders = (openpifpaf.encoder.Cif(self.head_metas[0], bmin=self.bmin),
+                    openpifpaf.encoder.Caf(self.head_metas[1], bmin=self.bmin),
+                    openpifpaf.encoder.Caf(self.head_metas[2], bmin=self.bmin))
 
         if not self.augmentation:
-            return transforms.Compose([
-                transforms.NormalizeAnnotations(),
-                transforms.RescaleAbsolute(self.square_edge),
-                transforms.CenterPad(self.square_edge),
-                transforms.EVAL_TRANSFORM,
-                transforms.Encoders(encoders),
+            return openpifpaf.transforms.Compose([
+                openpifpaf.transforms.NormalizeAnnotations(),
+                openpifpaf.transforms.RescaleAbsolute(self.square_edge),
+                openpifpaf.transforms.CenterPad(self.square_edge),
+                openpifpaf.transforms.EVAL_TRANSFORM,
+                openpifpaf.transforms.Encoders(encoders),
             ])
 
         if self.extended_scale:
-            rescale_t = transforms.RescaleRelative(
+            rescale_t = openpifpaf.transforms.RescaleRelative(
                 scale_range=(0.25 * self.rescale_images,
                              2.0 * self.rescale_images),
                 power_law=True, stretch_range=(0.75, 1.33))
         else:
-            rescale_t = transforms.RescaleRelative(
+            rescale_t = openpifpaf.transforms.RescaleRelative(
                 scale_range=(0.4 * self.rescale_images,
                              2.0 * self.rescale_images),
                 power_law=True, stretch_range=(0.75, 1.33))
 
-        return transforms.Compose([
-            transforms.NormalizeAnnotations(),
-            transforms.RandomApply(transforms.HFlip(COCO_KEYPOINTS, HFLIP), 0.5),
+        return openpifpaf.transforms.Compose([
+            openpifpaf.transforms.NormalizeAnnotations(),
+            openpifpaf.transforms.RandomApply(
+                openpifpaf.transforms.HFlip(COCO_KEYPOINTS, HFLIP), 0.5),
             rescale_t,
-            transforms.RandomApply(transforms.Blur(), self.blur),
-            transforms.Crop(self.square_edge, use_area_of_interest=True),
-            transforms.CenterPad(self.square_edge),
-            transforms.RandomApply(transforms.RotateBy90(), self.orientation_invariant),
-            transforms.TRAIN_TRANSFORM,
-            transforms.Encoders(encoders),
+            openpifpaf.transforms.RandomApply(
+                openpifpaf.transforms.Blur(), self.blur),
+            openpifpaf.transforms.Crop(self.square_edge, use_area_of_interest=True),
+            openpifpaf.transforms.CenterPad(self.square_edge),
+            openpifpaf.transforms.RandomApply(
+                openpifpaf.transforms.RotateBy90(), self.orientation_invariant),
+            openpifpaf.transforms.TRAIN_TRANSFORM,
+            openpifpaf.transforms.Encoders(encoders),
         ])
 
     def train_loader(self):
-        train_data = Coco(
+        train_data = CocoDataset(
             image_dir=self.train_image_dir,
             ann_file=self.train_annotations,
             preprocess=self._preprocess(),
@@ -229,10 +231,10 @@ class CocoKp(DataModule):
         return torch.utils.data.DataLoader(
             train_data, batch_size=self.batch_size, shuffle=not self.debug and self.augmentation,
             pin_memory=self.pin_memory, num_workers=self.loader_workers, drop_last=True,
-            collate_fn=collate_images_targets_meta)
+            collate_fn=openpifpaf.datasets.collate_images_targets_meta)
 
     def val_loader(self):
-        val_data = Coco(
+        val_data = CocoDataset(
             image_dir=self.val_image_dir,
             ann_file=self.val_annotations,
             preprocess=self._preprocess(),
@@ -243,7 +245,7 @@ class CocoKp(DataModule):
         return torch.utils.data.DataLoader(
             val_data, batch_size=self.batch_size, shuffle=False,
             pin_memory=self.pin_memory, num_workers=self.loader_workers, drop_last=True,
-            collate_fn=collate_images_targets_meta)
+            collate_fn=openpifpaf.datasets.collate_images_targets_meta)
 
     @classmethod
     def common_eval_preprocess(cls):
@@ -251,52 +253,52 @@ class CocoKp(DataModule):
         if cls.eval_extended_scale:
             assert cls.eval_long_edge
             rescale_t = [
-                transforms.DeterministicEqualChoice([
-                    transforms.RescaleAbsolute(cls.eval_long_edge),
-                    transforms.RescaleAbsolute((cls.eval_long_edge - 1) // 2 + 1),
+                openpifpaf.transforms.DeterministicEqualChoice([
+                    openpifpaf.transforms.RescaleAbsolute(cls.eval_long_edge),
+                    openpifpaf.transforms.RescaleAbsolute((cls.eval_long_edge - 1) // 2 + 1),
                 ], salt=1)
             ]
         elif cls.eval_long_edge:
-            rescale_t = transforms.RescaleAbsolute(cls.eval_long_edge)
+            rescale_t = openpifpaf.transforms.RescaleAbsolute(cls.eval_long_edge)
 
         if cls.batch_size == 1:
-            padding_t = transforms.CenterPadTight(16)
+            padding_t = openpifpaf.transforms.CenterPadTight(16)
         else:
             assert cls.eval_long_edge
-            padding_t = transforms.CenterPad(cls.eval_long_edge)
+            padding_t = openpifpaf.transforms.CenterPad(cls.eval_long_edge)
 
         orientation_t = None
         if cls.eval_orientation_invariant:
-            orientation_t = transforms.DeterministicEqualChoice([
+            orientation_t = openpifpaf.transforms.DeterministicEqualChoice([
                 None,
-                transforms.RotateBy90(fixed_angle=90),
-                transforms.RotateBy90(fixed_angle=180),
-                transforms.RotateBy90(fixed_angle=270),
+                openpifpaf.transforms.RotateBy90(fixed_angle=90),
+                openpifpaf.transforms.RotateBy90(fixed_angle=180),
+                openpifpaf.transforms.RotateBy90(fixed_angle=270),
             ], salt=3)
 
         return [
-            transforms.NormalizeAnnotations(),
+            openpifpaf.transforms.NormalizeAnnotations(),
             rescale_t,
             padding_t,
             orientation_t,
         ]
 
     def _eval_preprocess(self):
-        return transforms.Compose([
+        return openpifpaf.transforms.Compose([
             *self.common_eval_preprocess(),
-            transforms.ToAnnotations([
-                transforms.ToKpAnnotations(
+            openpifpaf.transforms.ToAnnotations([
+                openpifpaf.transforms.ToKpAnnotations(
                     COCO_CATEGORIES,
                     keypoints_by_category={1: self.head_metas[0].keypoints},
                     skeleton_by_category={1: self.head_metas[1].skeleton},
                 ),
-                transforms.ToCrowdAnnotations(COCO_CATEGORIES),
+                openpifpaf.transforms.ToCrowdAnnotations(COCO_CATEGORIES),
             ]),
-            transforms.EVAL_TRANSFORM,
+            openpifpaf.transforms.EVAL_TRANSFORM,
         ])
 
     def eval_loader(self):
-        eval_data = Coco(
+        eval_data = CocoDataset(
             image_dir=self.eval_image_dir,
             ann_file=self.eval_annotations,
             preprocess=self._eval_preprocess(),
@@ -307,10 +309,10 @@ class CocoKp(DataModule):
         return torch.utils.data.DataLoader(
             eval_data, batch_size=self.batch_size, shuffle=False,
             pin_memory=self.pin_memory, num_workers=self.loader_workers, drop_last=False,
-            collate_fn=collate_images_anns_meta)
+            collate_fn=openpifpaf.datasets.collate_images_anns_meta)
 
     def metrics(self):
-        return [metric.Coco(
+        return [openpifpaf.metric.Coco(
             pycocotools.coco.COCO(self.eval_annotations),
             max_per_image=20,
             category_ids=[1],

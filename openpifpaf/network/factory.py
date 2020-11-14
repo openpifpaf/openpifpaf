@@ -74,8 +74,6 @@ def factory_from_args(args, *, head_metas=None):
         head_metas=head_metas,
         cross_talk=args.cross_talk,
         two_scale=args.two_scale,
-        multi_scale=args.multi_scale,
-        multi_scale_hflip=args.multi_scale_hflip,
         download_progress=args.download_progress,
         head_consolidation=args.head_consolidation,
     )
@@ -114,8 +112,6 @@ def factory(
         head_metas=None,
         cross_talk=0.0,
         two_scale=False,
-        multi_scale=False,
-        multi_scale_hflip=True,
         download_progress=True,
         head_consolidation='filter_and_extend',
 ) -> Tuple[nets.Shell, int]:
@@ -204,11 +200,6 @@ def factory(
     if two_scale:
         net_cpu = nets.Shell2Scale(net_cpu.base_net, net_cpu.head_nets)
 
-    if multi_scale:
-        net_cpu = nets.ShellMultiScale(net_cpu.base_net, net_cpu.head_nets,
-                                       process_heads=net_cpu.process_heads,
-                                       include_hflip=multi_scale_hflip)
-
     return net_cpu, epoch
 
 
@@ -252,11 +243,6 @@ def cli(parser):
     group.add_argument('--basenet', default=None,
                        help='base network, e.g. resnet50')
     group.add_argument('--two-scale', default=False, action='store_true',
-                       help='[experimental]')
-    group.add_argument('--multi-scale', default=False, action='store_true',
-                       help='[experimental]')
-    group.add_argument('--no-multi-scale-hflip',
-                       dest='multi_scale_hflip', default=True, action='store_false',
                        help='[experimental]')
     group.add_argument('--cross-talk', default=0.0, type=float,
                        help='[experimental]')

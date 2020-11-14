@@ -7,12 +7,13 @@ del get_versions
 from .annotation import Annotation, AnnotationDet
 from . import datasets
 from . import decoder
+from . import encoder
 from . import headmeta
 from . import logger
 from . import metric
 from . import network
 from . import optimize
-from . import plugins
+from . import plugin
 
 from .datasets import DATAMODULES
 from .decoder import DECODERS

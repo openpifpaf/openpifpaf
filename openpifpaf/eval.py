@@ -12,7 +12,7 @@ import PIL
 import thop
 import torch
 
-from . import datasets, decoder, logger, network, plugins, show, transforms, visualizer, __version__
+from . import datasets, decoder, logger, network, plugin, show, transforms, visualizer, __version__
 
 LOG = logging.getLogger(__name__)
 
@@ -32,10 +32,6 @@ def default_output_name(args):
 
     if args.two_scale:
         output += '-twoscale'
-    if args.multi_scale:
-        output += '-multiscale'
-        if args.multi_scale_hflip:
-            output += 'whflip'
 
     return output
 
@@ -46,7 +42,7 @@ class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
 
 
 def cli():  # pylint: disable=too-many-statements,too-many-branches
-    plugins.register()
+    plugin.register()
 
     parser = argparse.ArgumentParser(
         prog='python3 -m openpifpaf.eval',

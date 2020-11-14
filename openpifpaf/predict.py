@@ -9,14 +9,14 @@ import os
 import PIL
 import torch
 
-from . import datasets, decoder, logger, network, plugins, show, transforms, visualizer, __version__
+from . import datasets, decoder, logger, network, plugin, show, transforms, visualizer, __version__
 
 LOG = logging.getLogger(__name__)
 
 
 # pylint: disable=too-many-statements
 def cli():
-    plugins.register()
+    plugin.register()
 
     parser = argparse.ArgumentParser(
         prog='python3 -m openpifpaf.predict',
