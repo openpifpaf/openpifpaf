@@ -5,7 +5,7 @@ import os
 import numpy as np
 
 try:
-    import matplotlib.pyplot as plt
+    import matplotlib.pyplot as plt  # pylint: disable=import-error
 except ModuleNotFoundError as err:
     if err.name != 'matplotlib':
         raise err

@@ -245,7 +245,7 @@ COCO_CATEGORIES = [
 ]
 
 
-def draw_ann(ann, *, filename=None, margin=0.5, aspect=None, **kwargs):
+def draw_ann(ann, *, filename=None, margin=0.5, aspect=None, keypoint_painter=None, **kwargs):
     import openpifpaf  # pylint: disable=import-outside-toplevel
 
     bbox = ann.bbox()
@@ -256,7 +256,8 @@ def draw_ann(ann, *, filename=None, margin=0.5, aspect=None, **kwargs):
     else:
         fig_w = 5.0 / (ylim[1] - ylim[0]) * (xlim[1] - xlim[0])
 
-    annotation_painter = openpifpaf.show.AnnotationPainter()
+    if keypoint_painter is None:
+        keypoint_painter = openpifpaf.show.KeypointPainter()
     with openpifpaf.show.canvas(filename, figsize=(fig_w, 5), nomargin=True, **kwargs) as ax:
         ax.set_axis_off()
         ax.set_xlim(*xlim)
@@ -265,7 +266,7 @@ def draw_ann(ann, *, filename=None, margin=0.5, aspect=None, **kwargs):
         if aspect is not None:
             ax.set_aspect(aspect)
 
-        annotation_painter.annotations(ax, [ann])
+        keypoint_painter.annotation(ax, ann)
 
 
 def draw_skeletons(pose):
