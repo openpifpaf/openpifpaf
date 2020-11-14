@@ -7,7 +7,7 @@ import numpy as np
 try:
     import matplotlib.pyplot as plt
 except ModuleNotFoundError as err:
-    if err.name != 'matplotlib':
+    if err.name not in ('matplotlib', 'matplotlib.pyplot'):
         raise err
     plt = None
 
