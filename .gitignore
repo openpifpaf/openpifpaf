@@ -6,6 +6,7 @@
 openpifpaf/.idea
 
 # Python
+*.pyc
 build/
 venv*/
 *.egg-info
