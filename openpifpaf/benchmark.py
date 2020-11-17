@@ -2,11 +2,13 @@
 
 import argparse
 from collections import namedtuple
+from dataclasses import dataclass
 import datetime
 import json
 import logging
 import os
 import subprocess
+from typing import List
 
 import pysparkling
 
@@ -86,34 +88,135 @@ def cli():
     return args, eval_args
 
 
-def run_eval_coco(output_folder, checkpoint, eval_args, output_name=None):
-    if output_name is None:
-        output_name = checkpoint
-    output_name = output_name.replace('/', '-')
+@dataclass
+class Config:
+    checkpoint: str
+    suffix: str
+    args: List[str]
 
-    out_file = os.path.join(output_folder, output_name)
-    if os.path.exists(out_file + '.stats.json'):
-        LOG.warning('Output file %s exists already. Skipping.',
-                    out_file + '.stats.json')
-        return
+    @property
+    def name(self):
+        return (self.checkpoint + self.suffix).replace('/', '-')
 
-    LOG.debug('Launching eval for %s.', output_name)
-    cmd = [
-        'python', '-m', 'openpifpaf.eval',
-        '--output', out_file,
-        '--checkpoint', checkpoint,
-    ] + eval_args
-    LOG.info('eval command: %s', ' '.join(cmd))
-    subprocess.run(cmd, check=True)
+
+class Benchmark:
+    def __init__(self, configs, output_folder, *,
+                 reference_config=None, stat_filter=None, stat_scale=1.0):
+        self.configs = configs
+        self.output_folder = output_folder
+        self.reference_config = reference_config
+        self.stat_filter = stat_filter
+        self.stat_scale = stat_scale
+
+    def run(self):
+        for config in self.configs:
+            self.run_config(config)
+        return self
+
+    def run_config(self, config: Config):
+        out_file = os.path.join(self.output_folder, config.name)
+        if os.path.exists(out_file + '.stats.json'):
+            LOG.warning('Output file %s exists already. Skipping.',
+                        out_file + '.stats.json')
+            return
+
+        LOG.debug('Launching eval for %s.', config.name)
+        cmd = [
+            'python', '-m', 'openpifpaf.eval',
+            '--output', out_file,
+            '--checkpoint', config.checkpoint,
+        ] + config.args
+        LOG.info('eval command: %s', ' '.join(cmd))
+        subprocess.run(cmd, check=True)
+
+        # print intermediate output
+        self.print_md()
+
+    def stats(self):
+        sc = pysparkling.Context()
+        stats = (
+            sc
+            .wholeTextFiles(self.output_folder + '*.stats.json')
+            .mapValues(json.loads)
+            .map(lambda d: (d[0].replace('.stats.json', '').replace(self.output_folder, ''), d[1]))
+            .collectAsMap()
+        )
+        LOG.debug('all data: %s', stats)
+        return stats
+
+    def stat_values(self, stat):
+        return [
+            v * self.stat_scale
+            for l, v in zip(stat['text_labels'], stat['stats'])
+            if self.stat_filter is None or l in self.stat_filter
+        ]
+
+    def stat_text_labels(self, stat):
+        return [
+            l
+            for l in stat['text_labels']
+            if self.stat_filter is None or l in self.stat_filter
+        ]
+
+    def print_md(self):
+        """Pretty printing markdown"""
+        stats = self.stats()
+
+        first_stats = list(stats.values())[0]
+        name_w = max(len(c) for c in stats.keys()) + 2
+        name_title = 'Name'
+        labels = ''.join(['{0: <8} | '.format(l) for l in self.stat_text_labels(first_stats)])
+        print(
+            f'| {name_title: <{name_w}} | {labels}'
+            't_{total} [ms]  | t_{dec} [ms] |     size |'
+        )
+
+        reference_values = None
+        if self.reference_config is not None:
+            reference = stats.get(self.reference_config.name)
+            if reference is not None:
+                reference_values = self.stat_values(reference)
+
+        for name, data in sorted(stats.items(), key=lambda b_d: self.stat_values(b_d[1])[0]):
+            values = self.stat_values(data)
+            t = 1000.0 * data['total_time'] / data['n_images']
+            tdec = 1000.0 * data['decoder_time'] / data['n_images']
+            file_size = data['file_size'] / 1024 / 1024
+
+            name_link = '[' + name + ']'
+
+            if reference_values is not None and self.reference_config.name != name:
+                values = [v - r for v, r in zip(values, reference_values)]
+                t -= 1000.0 * reference['total_time'] / reference['n_images']
+                tdec -= 1000.0 * reference['decoder_time'] / reference['n_images']
+                file_size -= reference['file_size'] / 1024 / 1024
+
+                values_serialized = '__{0: <+2.1f}__ | '.format(values[0])
+                if len(values) > 1:
+                    values_serialized += ''.join(['{0: <+8.1f} | '.format(v) for v in values[1:]])
+                print(
+                    f'| {name_link: <{name_w}} | {values_serialized}'
+                    f'{t: <+15.0f} | {tdec: <+12.0f} | {file_size: >+6.1f}MB |'
+                )
+            else:
+                values_serialized = '__{0: <2.1f}__ | '.format(values[0])
+                if len(values) > 1:
+                    values_serialized += ''.join(['{0: <8.1f} | '.format(v) for v in values[1:]])
+                print(
+                    f'| {name_link: <{name_w}} | {values_serialized}'
+                    f'{t: <15.0f} | {tdec: <12.0f} | {file_size: >6.1f}MB |'
+                )
+
+        return self
 
 
 def main():
     args, eval_args = cli()
     Ablation = namedtuple('Ablation', ['suffix', 'args'])
-    configs = [Ablation('', eval_args)]
+    ablations = [Ablation('', eval_args)]
 
     if args.iccv2019_ablation:
-        configs += [
+        ablations += [
             Ablation('.singlescale-max', eval_args + ['--connection-method=max']),
             Ablation('.singlescale', eval_args + ['--connection-method=blend']),
             Ablation('.multiscale-nohflip', eval_args + ['--connection-method=blend',
@@ -125,7 +228,7 @@ def main():
                                                  '--multi-scale']),
         ]
     if args.v012_ablation_1:
-        configs += [
+        ablations += [
             Ablation('.greedy', eval_args + ['--greedy']),
             Ablation('.greedy.dense', eval_args + ['--greedy', '--dense-connections']),
             Ablation('.dense', eval_args + ['--dense-connections']),
@@ -133,7 +236,7 @@ def main():
         ]
     if args.v012_ablation_2:
         eval_args_nofc = [a for a in eval_args if not a.startswith('--force-complete')]
-        configs += [
+        ablations += [
             Ablation('.cifnr', eval_args + ['--ablation-cifseeds-no-rescore']),
             Ablation('.cifnr.nms', eval_args + ['--ablation-cifseeds-no-rescore',
                                                 '--ablation-cifseeds-nms']),
@@ -144,57 +247,24 @@ def main():
         ]
     if args.v012_ablation_3:
         eval_args_nofc = [a for a in eval_args if not a.startswith('--force-complete')]
-        configs += [
+        ablations += [
             Ablation('.nofc', eval_args_nofc),
             Ablation('.nr.nms.nofc', eval_args_nofc + ['--ablation-cifseeds-no-rescore',
                                                        '--ablation-cifseeds-nms',
                                                        '--ablation-caf-no-rescore']),
         ]
 
-    for checkpoint in args.checkpoints:
-        for config in configs:
-            run_eval_coco(args.output, checkpoint, config.args,
-                          output_name=checkpoint + config.suffix)
-
-    sc = pysparkling.Context()
-    stats = (
-        sc
-        .wholeTextFiles(args.output + '*.stats.json')
-        .mapValues(json.loads)
-        .map(lambda d: (d[0].replace('.stats.json', '').replace(args.output, ''), d[1]))
-        .collectAsMap()
-    )
-    LOG.debug('all data: %s', stats)
-
-    # pretty printing
-    checkpoint_w = max(len(c) for c in stats.keys()) + 2
-    table_divider = '-'
-    checkpoint_title = 'Checkpoint'
-    print(f'| {checkpoint_title: <{checkpoint_w}} |'
-          ' AP       | APM      | APL      |'
-          ' t_{total} [ms]  | t_{dec} [ms] |'
-          '     size |')
-    print(f'|-{table_divider:{table_divider}<{checkpoint_w}}:|'
-          ':--------:|:--------:|:--------:|'
-          ':---------------:|:------------:|'
-          '---------:|')
-    for checkpoint, data in sorted(stats.items(), key=lambda b_d: b_d[1]['stats'][0]):
-        AP = 100.0 * data['stats'][0]
-        APM = 100.0 * data['stats'][3]
-        APL = 100.0 * data['stats'][4]
-        t = 1000.0 * data['total_time'] / data['n_images']
-        tdec = 1000.0 * data['decoder_time'] / data['n_images']
-        file_size = data['file_size'] / 1024 / 1024
-        checkpoint_link = '[' + checkpoint + ']'
-        print(
-            f'| {checkpoint_link: <{checkpoint_w}} '
-            f'| __{AP: <2.1f}__ '
-            f'| {APM: <8.1f} '
-            f'| {APL: <8.1f} '
-            f'| {t: <15.0f} '
-            f'| {tdec: <12.0f} '
-            f'| {file_size: >6.1f}MB |'
-        )
+    configs = [
+        Config(checkpoint, ablation.suffix, ablation.args)
+        for checkpoint in args.checkpoints
+        for ablation in ablations
+    ]
+    Benchmark(
+        configs, args.output,
+        reference_config=configs[0],
+        stat_filter=('AP', 'APM', 'APL'),
+        stat_scale=100.0,
+    ).run()
 
 
 if __name__ == '__main__':
