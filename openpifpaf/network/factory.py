@@ -15,6 +15,8 @@ PRETRAINED_UNAVAILABLE = object()
 
 # Dataset cocokp is implied. All other datasets need to be explicit.
 CHECKPOINT_URLS = {
+    'mobilenetv2': ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
+                    'v0.12a5/mobilenetv2-201112-193315-cocokp-1728a9f5.pkl'),
     'resnet18': PRETRAINED_UNAVAILABLE,
     'resnet50': PRETRAINED_UNAVAILABLE,
     'resnet101': PRETRAINED_UNAVAILABLE,
@@ -23,7 +25,8 @@ CHECKPOINT_URLS = {
     'shufflenetv2x2': PRETRAINED_UNAVAILABLE,
     'shufflenetv2k16': ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
                         'v0.12a5/shufflenetv2k16-201103-202759-cocokp-6a9ca7d9.pkl'),
-    'shufflenetv2k30': PRETRAINED_UNAVAILABLE,
+    'shufflenetv2k30': ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
+                        'v0.12a5/shufflenetv2k30-201104-224654-cocokp-d75ed641.pkl'),
     'shufflenetv2k44': PRETRAINED_UNAVAILABLE,
 }
 
