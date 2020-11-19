@@ -1,4 +1,6 @@
+from collections import defaultdict
 import logging
+from typing import Optional
 
 from .cifcaf import CifCaf
 from .cifdet import CifDet
@@ -17,8 +19,8 @@ def cli(parser, *, workers=None):
     group = parser.add_argument_group('decoder configuration')
 
     available_decoders = [dec.__name__.lower() for dec in DECODERS]
-    group.add_argument('--decoder', default=None, nargs='+', choices=available_decoders,
-                       help='Decoders to be considered.')
+    group.add_argument('--decoder', default=None, nargs='+',
+                       help='Decoders to be considered: {}.'.format(available_decoders))
 
     group.add_argument('--seed-threshold', default=utils.CifSeeds.threshold, type=float,
                        help='minimum threshold for seeds')
@@ -51,17 +53,10 @@ def configure(args):
        not args.debug:
         args.decoder_workers = args.batch_size
 
-    # filter decoders
-    if args.decoder is not None:
-        args.decoder = [dec.lower() for dec in args.decoder]
-        decoders_to_remove = []
-        for dec in DECODERS:
-            if dec.__name__.lower() in args.decoder:
-                continue
-            decoders_to_remove.append(dec)
-        for dec in decoders_to_remove:
-            LOG.debug('removing %s from consideration', dec.__name__)
-            DECODERS.remove(dec)
+    # configure Factory
+    Factory.decoder_filter_from_args(args.decoder)
+    Factory.profile = args.profile_decoder
+    Factory.profile_device = args.device
 
     # configure CifHr
     utils.CifHr.v_threshold = args.cif_th
@@ -88,36 +83,84 @@ def configure(args):
         dec.configure(args)
 
 
-def factory(head_metas, *, profile=False, profile_device=None):
-    """Instantiate decoders."""
-    # TODO implement!
-    # dense_coupling=args.dense_coupling,
-    # dense_connections=args.dense_connections,
+class Factory:
+    decoder_filter: Optional[dict] = None
+    profile = False
+    profile_device = None
 
-    LOG.debug('head names = %s', [meta.name for meta in head_metas])
-    decoders = [
-        dec
-        for dec_classes in DECODERS
-        for dec in dec_classes.factory(head_metas)
-    ]
-    LOG.debug('matched %d decoders', len(decoders))
-    if not decoders:
-        LOG.warning('no decoders found for heads %s', [meta.name for meta in head_metas])
+    @classmethod
+    def decoder_filter_from_args(cls, list_str):
+        if list_str is None:
+            cls.decoder_filter = None
+            return
 
-    if profile:
-        decode = decoders[0]
-        decode.__class__.__call__ = Profiler(
-            decode.__call__, out_name=profile)
-        decode.fields_batch = ProfilerAutograd(
-            decode.fields_batch, device=profile_device, out_name=profile)
+        cls.decoder_filter = defaultdict(list)
+        for dec_str in list_str:
+            # pylint: disable=unsupported-assignment-operation,unsupported-membership-test,unsubscriptable-object
+            if ':' not in dec_str:
+                if dec_str not in cls.decoder_filter:
+                    cls.decoder_filter[dec_str] = []
+                continue
 
-    return Multi(decoders)
+            dec_str, _, index = dec_str.partition(':')
+            index = int(index)
+            cls.decoder_filter[dec_str].append(index)
 
-    # TODO implement!
-    # skeleton = head_nets[1].meta.skeleton
-    # if dense_connections:
-    #     field_config.confidence_scales = (
-    #         [1.0 for _ in skeleton] +
-    #         [dense_coupling for _ in head_nets[2].meta.skeleton]
-    #     )
-    #     skeleton = skeleton + head_nets[2].meta.skeleton
+        LOG.debug('setup decoder filter: %s', cls.decoder_filter)
+
+    @classmethod
+    def decoders(cls, head_metas):
+        decoders_by_class = {
+            dec_class.__name__.lower(): dec_class.factory(head_metas)
+            for dec_class in DECODERS
+        }
+        LOG.debug('matched %d decoders', sum(len(d) for d in decoders_by_class.values()))
+
+        if cls.decoder_filter is not None:
+            # pylint: disable=unsupported-membership-test,unsubscriptable-object
+            decoders_by_class = {c: ds
+                                 for c, ds in decoders_by_class.items()
+                                 if c in cls.decoder_filter}
+            decoders_by_class = {c: [d
+                                     for i, d in enumerate(ds)
+                                     if (not cls.decoder_filter[c]
+                                         or i in cls.decoder_filter[c])]
+                                 for c, ds in decoders_by_class.items()}
+            LOG.debug('filtered to %d decoders', sum(len(d) for d in decoders_by_class.values()))
+
+        decoders = [d for ds in decoders_by_class.values() for d in ds]
+        if not decoders:
+            LOG.warning('no decoders found for heads %s', [meta.name for meta in head_metas])
+
+        return decoders
+
+    @classmethod
+    def __call__(cls, head_metas):
+        """Instantiate decoders."""
+        # TODO implement!
+        # dense_coupling=args.dense_coupling,
+        # dense_connections=args.dense_connections,
+
+        LOG.debug('head names = %s', [meta.name for meta in head_metas])
+        decoders = cls.decoders(head_metas)
+
+        if cls.profile:
+            decode = decoders[0]
+            decode.__class__.__call__ = Profiler(
+                decode.__call__, out_name=cls.profile)
+            decode.fields_batch = ProfilerAutograd(
+                decode.fields_batch, device=cls.profile_device, out_name=cls.profile)
+
+        return Multi(decoders)
+
+        # TODO implement!
+        # skeleton = head_nets[1].meta.skeleton
+        # if dense_connections:
+        #     field_config.confidence_scales = (
+        #         [1.0 for _ in skeleton] +
+        #         [dense_coupling for _ in head_nets[2].meta.skeleton]
+        #     )
+        #     skeleton = skeleton + head_nets[2].meta.skeleton
+
+
+factory = Factory.__call__

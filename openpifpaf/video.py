@@ -88,14 +88,9 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     parser.add_argument('--crop', type=int, nargs=4, default=None, help='left top right bottom')
     parser.add_argument('--rotate', default=None, choices=('left', 'right', '180'))
     args = parser.parse_args()
-
     args.debug_images = False
 
     logger.configure(args, LOG)  # logger first
-    decoder.configure(args)
-    network.configure(args)
-    show.configure(args)
-    visualizer.configure(args)
 
     # add args.device
     args.device = torch.device('cpu')
@@ -104,6 +99,11 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
         args.device = torch.device('cuda')
         args.pin_memory = True
     LOG.debug('neural network device: %s', args.device)
+
+    decoder.configure(args)
+    network.configure(args)
+    show.configure(args)
+    visualizer.configure(args)
 
     # check whether source should be an int
     if len(args.source) == 1:
@@ -129,8 +129,7 @@ def processor_factory(args):
     model = model.to(args.device)
 
     head_metas = [hn.meta for hn in model.head_nets]
-    processor = decoder.factory(
-        head_metas, profile=args.profile_decoder, profile_device=args.device)
+    processor = decoder.factory(head_metas)
 
     return processor, model
 
