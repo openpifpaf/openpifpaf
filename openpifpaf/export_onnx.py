@@ -27,8 +27,8 @@ except ImportError:
 
 
 def apply(model, outfile, verbose=True):
-    # dummy_input = torch.randn(1, 3, 193, 257)
-    dummy_input = torch.randn(1, 3, 97, 129)
+    dummy_input = torch.randn(1, 3, 427, 640)
+    # dummy_input = torch.randn(1, 3, 97, 129)
 
     # Providing input and output names sets the display names for values
     # within the model's graph. Setting these does not change the semantics
@@ -39,7 +39,7 @@ def apply(model, outfile, verbose=True):
     # flat list of parameters. You can partially specify names, i.e. provide
     # a list here shorter than the number of inputs to the model, and we will
     # only set that subset of names, starting from the beginning.
-    input_names = ['input_batch']
+    input_names = ['input']
     # output_names = [
     #     'pif_c',
     #     'pif_r',
@@ -57,22 +57,13 @@ def apply(model, outfile, verbose=True):
         model, dummy_input, outfile, verbose=verbose,
         input_names=input_names, output_names=output_names,
         keep_initializers_as_inputs=True,
-        # opset_version=10,
+        opset_version=11,
         do_constant_folding=True,
-        export_params=True,
-        # dynamic_axes={  # TODO: gives warnings
-        #     'input_batch': {0: 'batch', 2: 'height', 3: 'width'},
-        #     'pif_c': {0: 'batch', 2: 'fheight', 3: 'fwidth'},
-        #     'pif_r': {0: 'batch', 3: 'fheight', 4: 'fwidth'},
-        #     'pif_b': {0: 'batch', 2: 'fheight', 3: 'fwidth'},
-        #     'pif_s': {0: 'batch', 2: 'fheight', 3: 'fwidth'},
-
-        #     'paf_c': {0: 'batch', 2: 'fheight', 3: 'fwidth'},
-        #     'paf_r1': {0: 'batch', 3: 'fheight', 4: 'fwidth'},
-        #     'paf_b1': {0: 'batch', 2: 'fheight', 3: 'fwidth'},
-        #     'paf_r2': {0: 'batch', 3: 'fheight', 4: 'fwidth'},
-        #     'paf_b2': {0: 'batch', 2: 'fheight', 3: 'fwidth'},
-        # },
+        dynamic_axes={
+            "input": {0: 'dynamic'}, 
+            "cif": {0: 'dynamic'}, 
+            "caf": {0: 'dynamic'}}
+        # TODO: Test dynamic shape; Test the correctness of dynamic batch;
     )
 
 
@@ -154,3 +145,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

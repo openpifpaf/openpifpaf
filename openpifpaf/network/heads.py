@@ -13,10 +13,11 @@ LOG = logging.getLogger(__name__)
 
 @functools.lru_cache(maxsize=16)
 def index_field_torch(shape, *, device=None, n_unsqueeze=2):
-    yx = np.indices(shape, dtype=np.float32)
-    xy = np.flip(yx, axis=0)
+    assert len(shape) == 2
+    fliprow = torch.arange(shape[1]).repeat(shape[0], 1)
+    flipcol = torch.arange(shape[0]).repeat(shape[1], 1).t()
+    xy = torch.cat([fliprow.unsqueeze(0), flipcol.unsqueeze(0)])
 
-    xy = torch.from_numpy(xy.copy())
     if device is not None:
         xy = xy.to(device, non_blocking=True)
 
@@ -152,7 +153,6 @@ class PifHFlip(torch.nn.Module):
         ])
         LOG.debug('hflip indices: %s', flip_indices)
         self.register_buffer('flip_indices', flip_indices)
-
 
     def forward(self, *args):
         out = []
@@ -446,3 +446,4 @@ class CompositeFieldFused(torch.nn.Module):
             scales_x = torch.exp(scales_x)
 
         return classes_x, regs_x, regs_logb, scales_x
+
