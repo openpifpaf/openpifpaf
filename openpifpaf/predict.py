@@ -55,8 +55,16 @@ def cli():
 
     if args.debug_images:
         args.debug = True
-
     logger.configure(args, LOG)  # logger first
+
+    # add args.device
+    args.device = torch.device('cpu')
+    args.pin_memory = False
+    if not args.disable_cuda and torch.cuda.is_available():
+        args.device = torch.device('cuda')
+        args.pin_memory = True
+    LOG.debug('neural network device: %s', args.device)
+
     decoder.configure(args)
     network.configure(args)
     show.configure(args)
@@ -70,14 +78,6 @@ def cli():
         args.images += glob.glob(args.glob)
     if not args.images:
         raise Exception("no image files given")
-
-    # add args.device
-    args.device = torch.device('cpu')
-    args.pin_memory = False
-    if not args.disable_cuda and torch.cuda.is_available():
-        args.device = torch.device('cuda')
-        args.pin_memory = True
-    LOG.debug('neural network device: %s', args.device)
 
     return args
 
@@ -93,8 +93,7 @@ def processor_factory(args):
         model.head_nets = model_cpu.head_nets
 
     head_metas = [hn.meta for hn in model.head_nets]
-    processor = decoder.factory(
-        head_metas, profile=args.profile_decoder, profile_device=args.device)
+    processor = decoder.factory(head_metas)
     return processor, model
 
 
