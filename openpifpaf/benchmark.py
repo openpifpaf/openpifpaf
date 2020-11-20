@@ -75,9 +75,6 @@ def cli():
         if not any(l.startswith('--seed-threshold') for l in eval_args):
             LOG.info('adding "--seed-threshold=0.2" to the argument list')
             eval_args.append('--seed-threshold=0.2')
-        if not any(l.startswith('--no-reverse-match') for l in eval_args):
-            LOG.info('adding "--no-reverse-match" to the argument list')
-            eval_args.append('--no-reverse-match')
 
     # generate a default output filename
     if args.output is None:
@@ -230,12 +227,15 @@ def main():
     if args.v012_ablation_1:
         ablations += [
             Ablation('.greedy', eval_args + ['--greedy']),
+            Ablation('.no-reverse', eval_args + ['--no-reverse-match']),
+            Ablation('.greedy.no-reverse', eval_args + ['--greedy', '--no-reverse-match']),
             Ablation('.greedy.dense', eval_args + ['--greedy', '--dense-connections']),
             Ablation('.dense', eval_args + ['--dense-connections']),
             Ablation('.dense.hierarchy', eval_args + ['--dense-connections=0.1']),
         ]
     if args.v012_ablation_2:
-        eval_args_nofc = [a for a in eval_args if not a.startswith('--force-complete')]
+        eval_args_nofc = [a for a in eval_args
+                          if not a.startswith(('--force-complete', '--seed-threshold'))]
         ablations += [
             Ablation('.cifnr', eval_args + ['--ablation-cifseeds-no-rescore']),
             Ablation('.cifnr.nms', eval_args + ['--ablation-cifseeds-no-rescore',
