@@ -67,7 +67,7 @@ class CifCaf(Decoder):
     greedy = False
     keypoint_threshold = 0.001
     keypoint_threshold_rel = 0.0
-    nms = True
+    nms = utils.nms.Keypoints()
     dense_coupling = 0.0
 
     reverse_match = True
@@ -93,9 +93,6 @@ class CifCaf(Decoder):
         self.caf_visualizers = caf_visualizers
         if self.caf_visualizers is None:
             self.caf_visualizers = [visualizer.Caf(meta) for meta in caf_metas]
-
-        if self.nms is True:
-            self.nms = utils.nms.Keypoints()
 
         self.timers = defaultdict(float)
 
