@@ -110,15 +110,11 @@ class Factory:
 
     @classmethod
     def decoders(cls, head_metas):
-        decoders_by_class = {
-            dec_class.__name__.lower(): dec_class.factory(head_metas)
-            for dec_class in DECODERS
-        }
-        LOG.debug('matched %d decoders', sum(len(d) for d in decoders_by_class.values()))
-
         if cls.decoder_filter is not None:
             # pylint: disable=unsupported-membership-test,unsubscriptable-object
-            decoders_by_class = {c: ds
+            decoders_by_class = {dec_class.__name__.lower(): dec_class
+                                 for dec_class in DECODERS}
+            decoders_by_class = {c: ds.factory(head_metas)
                                  for c, ds in decoders_by_class.items()
                                  if c in cls.decoder_filter}
             decoders_by_class = {c: [d
@@ -126,9 +122,16 @@ class Factory:
                                      if (not cls.decoder_filter[c]
                                          or i in cls.decoder_filter[c])]
                                  for c, ds in decoders_by_class.items()}
-            LOG.debug('filtered to %d decoders', sum(len(d) for d in decoders_by_class.values()))
+            decoders = [d for ds in decoders_by_class.values() for d in ds]
+            LOG.debug('filtered to %d decoders', len(decoders))
+        else:
+            decoders = [
+                d
+                for dec_class in DECODERS
+                for d in dec_class.factory(head_metas)
+            ]
+            LOG.debug('created %d decoders', len(decoders))
 
-        decoders = [d for ds in decoders_by_class.values() for d in ds]
         if not decoders:
             LOG.warning('no decoders found for heads %s', [meta.name for meta in head_metas])
 
