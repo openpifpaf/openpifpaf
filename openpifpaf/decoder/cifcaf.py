@@ -65,8 +65,8 @@ class CifCaf(Decoder):
     occupancy_visualizer = visualizer.Occupancy()
     force_complete = False
     greedy = False
-    keypoint_threshold = 0.001
-    keypoint_threshold_rel = 0.0
+    keypoint_threshold = 0.15
+    keypoint_threshold_rel = 0.5
     nms = utils.nms.Keypoints()
     dense_coupling = 0.0
 
