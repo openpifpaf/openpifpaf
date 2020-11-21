@@ -1,4 +1,4 @@
 {
-  "contributors": ["svenkreiss", "bertoni9", "george-adaimi", "junedgar", "mdenna-nviso", "thancaocuong"],
+  "contributors": ["svenkreiss", "bertoni9", "george-adaimi", "junedgar", "mdenna-nviso", "thancaocuong", "ganler"],
   "message": "Thanks for your Pull Request. We require contributors to sign our Contributor License Agreement (CLA), and we do not have {{usersWithoutCLA}} on file. You retain the copyright to your contribution and this will allow us to use it, too. In order for us to review and merge your code, please follow the short steps in CONTRIBUTING.md to get yourself added as a CLA'ed contributor."
 }
