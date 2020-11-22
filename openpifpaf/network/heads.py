@@ -14,7 +14,7 @@ LOG = logging.getLogger(__name__)
 
 
 @functools.lru_cache(maxsize=16)
-def index_field_torch(shape, *, device=None, n_unsqueeze=2):
+def index_field_torch(shape, *, device=None, unsqueeze=(0, 0)):
     assert len(shape) == 2
     fliprow = torch.arange(shape[1]).repeat(shape[0], 1)
     flipcol = torch.arange(shape[0]).repeat(shape[1], 1).t()
