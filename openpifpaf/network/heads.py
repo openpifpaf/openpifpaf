@@ -5,7 +5,6 @@ import functools
 import logging
 import math
 
-import numpy as np
 import torch
 
 from .. import headmeta
