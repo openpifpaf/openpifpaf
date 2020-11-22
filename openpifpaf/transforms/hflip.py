@@ -14,6 +14,14 @@ class _HorizontalSwap():
         self.keypoints = keypoints
         self.hflip = hflip
 
+        # guarantee hflip is symmetric (left -> right implies right -> left)
+        for source, target in list(self.hflip.items()):
+            if target in self.hflip:
+                assert self.hflip[target] == source
+            else:
+                LOG.warning('adding %s -> %s', target, source)
+                self.hflip[target] = source
+
     def __call__(self, keypoints):
         target = np.zeros(keypoints.shape)
 

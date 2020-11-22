@@ -8,6 +8,7 @@ https://github.com/daquexian/onnx-simplifier
 """
 
 import argparse
+import logging
 import shutil
 
 import torch
@@ -25,38 +26,41 @@ try:
 except ImportError:
     onnxsim = None
 
+LOG = logging.getLogger(__name__)
 
-def apply(model, outfile, verbose=True):
-    dummy_input = torch.randn(1, 3, 427, 640)
-    # dummy_input = torch.randn(1, 3, 97, 129)
 
-    # Providing input and output names sets the display names for values
-    # within the model's graph. Setting these does not change the semantics
-    # of the graph; it is only for readability.
-    #
-    # The inputs to the network consist of the flat list of inputs (i.e.
-    # the values you would pass to the forward() method) followed by the
-    # flat list of parameters. You can partially specify names, i.e. provide
-    # a list here shorter than the number of inputs to the model, and we will
-    # only set that subset of names, starting from the beginning.
-    input_names = ['input']
-    # output_names = [
-    #     'pif_c',
-    #     'pif_r',
-    #     'pif_b',
-    #     'pif_s',
-    #     'paf_c',
-    #     'paf_r1',
-    #     'paf_r2',
-    #     'paf_b1',
-    #     'paf_b2',
-    # ]
-    output_names = ['cif', 'caf']
+def image_size_warning(basenet_stride, input_w, input_h):
+    if input_w % basenet_stride != 1:
+        LOG.warning(
+            'input width (%d) should be a multiple of basenet '
+            'stride (%d) + 1: closest are %d and %d',
+            input_w, basenet_stride,
+            (input_w - 1) // basenet_stride * basenet_stride + 1,
+            ((input_w - 1) // basenet_stride + 1) * basenet_stride + 1,
+        )
+
+    if input_h % basenet_stride != 1:
+        LOG.warning(
+            'input height (%d) should be a multiple of basenet '
+            'stride (%d) + 1: closest are %d and %d',
+            input_h, basenet_stride,
+            (input_h - 1) // basenet_stride * basenet_stride + 1,
+            ((input_h - 1) // basenet_stride + 1) * basenet_stride + 1,
+        )
+
+
+def apply(model, outfile, verbose=True, input_w=129, input_h=97):
+    image_size_warning(model.base_net.stride, input_w, input_h)
+
+    # configure
+    openpifpaf.network.heads.CompositeField3.inplace_ops = False
+
+    dummy_input = torch.randn(1, 3, input_h, input_w)
 
     torch.onnx.export(
         model, dummy_input, outfile, verbose=verbose,
-        input_names=input_names, output_names=output_names,
-        keep_initializers_as_inputs=True,
+        input_names=['input_batch'], output_names=['cif', 'caf'],
+        # keep_initializers_as_inputs=True,
         opset_version=11,
         do_constant_folding=True,
         dynamic_axes={
@@ -129,10 +133,12 @@ def main():
                         help='runs checker, optimizer and shape inference')
     parser.add_argument('--optimize', dest='optimize', default=False, action='store_true')
     parser.add_argument('--check', dest='check', default=False, action='store_true')
+    parser.add_argument('--input-width', type=int, default=129)
+    parser.add_argument('--input-height', type=int, default=97)
     args = parser.parse_args()
 
     model, _ = openpifpaf.network.factory(checkpoint=args.checkpoint)
-    apply(model, args.outfile)
+    apply(model, args.outfile, input_w=args.input_width, input_h=args.input_height)
     if args.simplify:
         simplify(args.outfile)
     if args.optimize:

@@ -13,7 +13,7 @@ MODULE_NAMES = [
     'predict',
     'train',
     'logs',
-    'eval_coco',
+    'eval',
     'export_onnx',
     'migrate',
     'count_ops',

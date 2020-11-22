@@ -1,6 +1,14 @@
 # History
 
 * [master](https://github.com/vita-epfl/openpifpaf/compare/v0.11.9...master)
+* [0.12.0]() ()
+    * train on multiple datasets simultaneously
+    * decode multiple types of data from one network (e.g. pose and detection)
+    * Plugins extendible: datamodules, base networks, head networks, decoders, encoders, transforms, metrics, visualizers
+    * CompositeField3: fewer slicing/reshaping ops and single tensor output
+    * Loss: introduced explicit bmin
+    * ONNX: test with onnxruntime
+    * CoreML: new export function via coremltools
 * [0.11.9](https://github.com/vita-epfl/openpifpaf/compare/v0.11.8...v0.11.9) (2020-08-25)
     * new `--val-interval` which replaces the use-cases for previous `--duplicate-data`
     * extended ColorJitter ranges for training: brightness=0.4, saturation=0.4, hue=0.1

@@ -23,7 +23,9 @@ class Trainer():
                  train_profile=None,
                  model_meta_data=None,
                  clip_grad_norm=0.0,
-                 val_interval=1):
+                 val_interval=1,
+                 n_train_batches=None,
+                 n_val_batches=None):
         self.model = model
         self.loss = loss
         self.optimizer = optimizer
@@ -44,6 +46,8 @@ class Trainer():
         self.max_norm = 0.0
 
         self.val_interval = val_interval
+        self.n_train_batches = n_train_batches
+        self.n_val_batches = n_val_batches
 
         self.model_meta_data = model_meta_data
 
@@ -51,6 +55,7 @@ class Trainer():
             # monkey patch to profile self.train_batch()
             self.trace_counter = 0
             self.train_batch_without_profile = self.train_batch
+
             def train_batch_with_profile(*args, **kwargs):
                 with torch.autograd.profiler.profile(use_cuda=True) as prof:
                     result = self.train_batch_without_profile(*args, **kwargs)
@@ -61,6 +66,7 @@ class Trainer():
                 LOG.info('writing trace file %s', tracefilename)
                 prof.export_chrome_trace(tracefilename)
                 return result
+
             self.train_batch = train_batch_with_profile
 
         LOG.info({
@@ -119,7 +125,9 @@ class Trainer():
     def train_batch(self, data, targets, apply_gradients=True):  # pylint: disable=method-hidden
         if self.device:
             data = data.to(self.device, non_blocking=True)
-            targets = [[t.to(self.device, non_blocking=True) for t in head] for head in targets]
+            targets = [head.to(self.device, non_blocking=True)
+                       if head is not None else None
+                       for head in targets]
 
         # train encoder
         with torch.autograd.profiler.record_function('model'):
@@ -154,7 +162,9 @@ class Trainer():
     def val_batch(self, data, targets):
         if self.device:
             data = data.to(self.device, non_blocking=True)
-            targets = [[t.to(self.device, non_blocking=True) for t in head] for head in targets]
+            targets = [head.to(self.device, non_blocking=True)
+                       if head is not None else None
+                       for head in targets]
 
         with torch.no_grad():
             outputs = self.model(data)
@@ -166,17 +176,17 @@ class Trainer():
              for l in head_losses],
         )
 
+    # pylint: disable=too-many-branches
     def train(self, scenes, epoch):
         start_time = time.time()
         self.model.train()
-        if self.fix_batch_norm:
+        if self.fix_batch_norm is True \
+           or (self.fix_batch_norm is not False and self.fix_batch_norm <= epoch):
+            LOG.info('fix batchnorm')
             for m in self.model.modules():
                 if isinstance(m, (torch.nn.BatchNorm1d, torch.nn.BatchNorm2d)):
-                    # print('fixing parameters for {}. Min var = {}'.format(
-                    #     m, torch.min(m.running_var)))
+                    LOG.debug('eval mode for: %s', m)
                     m.eval()
-                    # m.weight.requires_grad = False
-                    # m.bias.requires_grad = False
 
         self.ema_restore()
         self.ema = None
@@ -231,6 +241,9 @@ class Trainer():
             if self.lr_scheduler is not None:
                 self.lr_scheduler.step()
 
+            if self.n_train_batches and batch_idx + 1 >= self.n_train_batches:
+                break
+
             last_batch_end = time.time()
 
         self.apply_ema()
@@ -252,19 +265,18 @@ class Trainer():
 
         # Train mode implies outputs are for losses, so have to use it here.
         self.model.train()
-        if self.fix_batch_norm:
+        if self.fix_batch_norm is True \
+           or (self.fix_batch_norm is not False and self.fix_batch_norm <= epoch - 1):
+            LOG.info('fix batchnorm')
             for m in self.model.modules():
                 if isinstance(m, (torch.nn.BatchNorm1d, torch.nn.BatchNorm2d)):
-                    # print('fixing parameters for {}. Min var = {}'.format(
-                    #     m, torch.min(m.running_var)))
+                    LOG.debug('eval mode for: %s', m)
                     m.eval()
-                    # m.weight.requires_grad = False
-                    # m.bias.requires_grad = False
 
         epoch_loss = 0.0
         head_epoch_losses = None
         head_epoch_counts = None
-        for data, target, _ in scenes:
+        for batch_idx, (data, target, _) in enumerate(scenes):
             loss, head_losses = self.val_batch(data, target)
 
             # update epoch accumulates
@@ -278,6 +290,9 @@ class Trainer():
                     continue
                 head_epoch_losses[i] += head_loss
                 head_epoch_counts[i] += 1
+
+            if self.n_val_batches and batch_idx + 1 >= self.n_val_batches:
+                break
 
         eval_time = time.time() - start_time
 

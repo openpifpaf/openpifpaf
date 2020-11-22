@@ -24,11 +24,12 @@ class Keypoints:
         if not anns:
             return anns
 
-        occupied = Occupancy((
-            len(anns[0].data),
-            int(max(np.max(ann.data[:, 1]) for ann in anns) + 1),
-            int(max(np.max(ann.data[:, 0]) for ann in anns) + 1),
-        ), 2, min_scale=4)
+        # +1 for rounding up
+        max_y = int(max(np.max(ann.data[:, 1]) for ann in anns) + 1)
+        max_x = int(max(np.max(ann.data[:, 0]) for ann in anns) + 1)
+        # +1 because non-inclusive boundary
+        shape = (len(anns[0].data), max(1, max_y + 1), max(1, max_x + 1))
+        occupied = Occupancy(shape, 2, min_scale=4)
 
         anns = sorted(anns, key=lambda a: -a.score())
         for ann in anns:
@@ -60,7 +61,7 @@ class Keypoints:
 class Detection:
     suppression = 0.1
     suppression_soft = 0.3
-    instance_threshold = 0.1
+    instance_threshold = 0.0
     iou_threshold = 0.7
     iou_threshold_soft = 0.5
 

@@ -6,13 +6,14 @@ LOG = logging.getLogger(__name__)
 
 
 class AnnRescaler():
-    def __init__(self, stride, n_keypoints, pose):
+    suppress_selfhidden = True
+
+    def __init__(self, stride, pose):
         self.stride = stride
-        self.n_keypoints = n_keypoints
         self.pose = pose
         self.pose_total_area = (
-            (np.max(self.pose[:, 0]) - np.min(self.pose[:, 0])) *
-            (np.max(self.pose[:, 1]) - np.min(self.pose[:, 1]))
+            (np.max(self.pose[:, 0]) - np.min(self.pose[:, 0]))
+            * (np.max(self.pose[:, 1]) - np.min(self.pose[:, 1]))
         )
 
         # rotate the davinci pose by 45 degrees
@@ -21,8 +22,8 @@ class AnnRescaler():
         self.pose_45 = np.copy(pose)
         self.pose_45[:, :2] = np.einsum('ij,kj->ki', rotate, self.pose_45[:, :2])
         self.pose_45_total_area = (
-            (np.max(self.pose_45[:, 0]) - np.min(self.pose_45[:, 0])) *
-            (np.max(self.pose_45[:, 1]) - np.min(self.pose_45[:, 1]))
+            (np.max(self.pose_45[:, 0]) - np.min(self.pose_45[:, 0]))
+            * (np.max(self.pose_45[:, 1]) - np.min(self.pose_45[:, 1]))
         )
 
     def valid_area(self, meta):
@@ -38,12 +39,31 @@ class AnnRescaler():
 
     def keypoint_sets(self, anns):
         """Ignore annotations of crowds."""
-        keypoint_sets = [ann['keypoints'] for ann in anns if not ann['iscrowd']]
+        keypoint_sets = [np.copy(ann['keypoints']) for ann in anns if not ann['iscrowd']]
         if not keypoint_sets:
-            return np.zeros((0, self.n_keypoints, 3))
+            return []
 
-        keypoint_sets = np.stack(keypoint_sets)
-        keypoint_sets[:, :, :2] /= self.stride
+        if self.suppress_selfhidden:
+            for kpi in range(len(keypoint_sets[0])):
+                all_xyv = sorted([keypoints[kpi] for keypoints in keypoint_sets],
+                                 key=lambda xyv: xyv[2], reverse=True)
+                for i, xyv in enumerate(all_xyv[1:], start=1):
+                    if xyv[2] > 1.0:  # is visible
+                        continue
+                    if xyv[2] == 0.0:  # does not exist
+                        break
+                    for prev_xyv in all_xyv[:i]:
+                        if prev_xyv[2] == xyv[2]:  # do not suppress if both hidden
+                            break
+                        if np.abs(prev_xyv[0] - xyv[0]) > 32.0 \
+                           or np.abs(prev_xyv[1] - xyv[1]) > 32.0:
+                            continue
+                        LOG.debug('suppressing %s for %s (kp %d)', xyv, prev_xyv, i)
+                        xyv[2] = 0.0
+                        break  # only need to suppress a keypoint once
+
+        for keypoints in keypoint_sets:
+            keypoints[:, :2] /= self.stride
         return keypoint_sets
 
     def bg_mask(self, anns, width_height, *, crowd_margin):
@@ -89,16 +109,16 @@ class AnnRescaler():
             return np.nan
 
         area = (
-            (np.max(keypoints[visible, 0]) - np.min(keypoints[visible, 0])) *
-            (np.max(keypoints[visible, 1]) - np.min(keypoints[visible, 1]))
+            (np.max(keypoints[visible, 0]) - np.min(keypoints[visible, 0]))
+            * (np.max(keypoints[visible, 1]) - np.min(keypoints[visible, 1]))
         )
         area_ref = (
-            (np.max(self.pose[visible, 0]) - np.min(self.pose[visible, 0])) *
-            (np.max(self.pose[visible, 1]) - np.min(self.pose[visible, 1]))
+            (np.max(self.pose[visible, 0]) - np.min(self.pose[visible, 0]))
+            * (np.max(self.pose[visible, 1]) - np.min(self.pose[visible, 1]))
         )
         area_ref_45 = (
-            (np.max(self.pose_45[visible, 0]) - np.min(self.pose_45[visible, 0])) *
-            (np.max(self.pose_45[visible, 1]) - np.min(self.pose_45[visible, 1]))
+            (np.max(self.pose_45[visible, 0]) - np.min(self.pose_45[visible, 0]))
+            * (np.max(self.pose_45[visible, 1]) - np.min(self.pose_45[visible, 1]))
         )
 
         factor = np.sqrt(min(

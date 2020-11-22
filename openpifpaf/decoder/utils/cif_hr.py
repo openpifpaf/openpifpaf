@@ -4,9 +4,8 @@ import time
 import numpy as np
 
 # pylint: disable=import-error
-from ..functional import scalar_square_add_gauss_with_max
-from .field_config import FieldConfig
-from .. import visualizer
+from ...functional import scalar_square_add_gauss_with_max
+from ... import visualizer
 
 LOG = logging.getLogger(__name__)
 
@@ -16,12 +15,13 @@ class CifHr:
     v_threshold = 0.1
     debug_visualizer = visualizer.CifHr()
 
-    def __init__(self, config: FieldConfig):
-        self.config = config
+    ablation_skip = False
+
+    def __init__(self):
         self.accumulated = None
 
-    def fill_cif(self, cif, stride, min_scale=0.0):
-        return self.fill_multiple([cif], stride, min_scale)
+    def fill_single(self, all_fields, meta):
+        return self.fill(all_fields, [meta])
 
     def accumulate(self, len_cifs, t, p, stride, min_scale):
         p = p[:, p[0] > self.v_threshold]
@@ -39,22 +39,24 @@ class CifHr:
         scalar_square_add_gauss_with_max(
             t, x, y, sigma, v / self.neighbors / len_cifs, truncate=1.0)
 
-    def fill_multiple(self, cifs, stride, min_scale=0.0):
+    def fill(self, all_fields, metas):
         start = time.perf_counter()
 
         if self.accumulated is None:
+            field_shape = all_fields[metas[0].head_index].shape
             shape = (
-                cifs[0].shape[0],
-                int((cifs[0].shape[2] - 1) * stride + 1),
-                int((cifs[0].shape[3] - 1) * stride + 1),
+                field_shape[0],
+                int((field_shape[2] - 1) * metas[0].stride + 1),
+                int((field_shape[3] - 1) * metas[0].stride + 1),
             )
             ta = np.zeros(shape, dtype=np.float32)
         else:
             ta = np.zeros(self.accumulated.shape, dtype=np.float32)
 
-        for cif in cifs:
-            for t, p in zip(ta, cif):
-                self.accumulate(len(cifs), t, p, stride, min_scale)
+        if not self.ablation_skip:
+            for meta in metas:
+                for t, p in zip(ta, all_fields[meta.head_index]):
+                    self.accumulate(len(metas), t, p, meta.stride, meta.decoder_min_scale)
 
         if self.accumulated is None:
             self.accumulated = ta
@@ -62,21 +64,6 @@ class CifHr:
             self.accumulated = np.maximum(ta, self.accumulated)
 
         LOG.debug('target_intensities %.3fs', time.perf_counter() - start)
-        return self
-
-    def fill(self, fields):
-        if len(self.config.cif_indices) == 10:
-            for cif_i1, cif_i2, stride, min_scale in zip(self.config.cif_indices[:5],
-                                                         self.config.cif_indices[5:],
-                                                         self.config.cif_strides[:5],
-                                                         self.config.cif_min_scales[:5]):
-                self.fill_multiple([fields[cif_i1], fields[cif_i2]], stride, min_scale=min_scale)
-        else:
-            for cif_i, stride, min_scale in zip(self.config.cif_indices,
-                                                self.config.cif_strides,
-                                                self.config.cif_min_scales):
-                self.fill_cif(fields[cif_i], stride, min_scale=min_scale)
-
         self.debug_visualizer.predicted(self.accumulated)
         return self
 
@@ -88,7 +75,7 @@ class CifDetHr(CifHr):
             p = p[:, p[4] > min_scale / stride]
             p = p[:, p[5] > min_scale / stride]
 
-        v, x, y, _, w, h, _ = p
+        v, x, y, w, h, _, __ = p
         x = x * stride
         y = y * stride
         sigma = np.maximum(1.0, 0.1 * np.minimum(w, h) * stride)

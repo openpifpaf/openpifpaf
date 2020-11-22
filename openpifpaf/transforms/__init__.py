@@ -5,6 +5,7 @@ import torchvision
 from .annotations import AnnotationJitter, NormalizeAnnotations
 from .compose import Compose
 from .crop import Crop
+from .encoders import Encoders
 from .hflip import HFlip
 from .image import Blur, ImageTransform, JpegCompression
 from .minsize import MinSize
@@ -14,6 +15,7 @@ from .preprocess import Preprocess
 from .random import DeterministicEqualChoice, RandomApply
 from .rotate import RotateBy90
 from .scale import RescaleAbsolute, RescaleRelative, ScaleMix
+from .toannotations import ToAnnotations, ToCrowdAnnotations, ToDetAnnotations, ToKpAnnotations
 from .unclipped import UnclippedArea, UnclippedSides
 
 

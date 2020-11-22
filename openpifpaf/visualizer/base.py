@@ -1,8 +1,10 @@
 from contextlib import contextmanager
 import logging
+from typing import List
+
 import numpy as np
 
-from .. import show
+from .. import annotation, show
 
 try:
     import matplotlib.pyplot as plt
@@ -14,11 +16,14 @@ except ImportError:
 LOG = logging.getLogger(__name__)
 
 
-class BaseVisualizer:
+class Base:
     all_indices = []
     common_ax = None
+    processed_image_intensity_spread = 2.0
+
     _image = None
     _processed_image = None
+    _ground_truth: List[annotation.Base] = None
 
     def __init__(self, head_name):
         self.head_name = head_name
@@ -29,25 +34,30 @@ class BaseVisualizer:
     @staticmethod
     def image(image):
         if image is None:
-            BaseVisualizer._image = None
+            Base._image = None
             return
 
-        BaseVisualizer._image = np.asarray(image)
+        Base._image = np.asarray(image)
 
-    @staticmethod
-    def processed_image(image):
+    @classmethod
+    def processed_image(cls, image):
         if image is None:
-            BaseVisualizer._processed_image = None
+            Base._processed_image = None
             return
 
         image = np.moveaxis(np.asarray(image), 0, -1)
-        image = np.clip(image * 0.25 + 0.5, 0.0, 1.0)
-        BaseVisualizer._processed_image = image
+        image = np.clip(image / cls.processed_image_intensity_spread * 0.5 + 0.5, 0.0, 1.0)
+        Base._processed_image = image
+
+    @staticmethod
+    def ground_truth(ground_truth):
+        Base._ground_truth = ground_truth
 
     @staticmethod
     def reset():
-        BaseVisualizer._image = None
-        BaseVisualizer._processed_image = None
+        Base._image = None
+        Base._processed_image = None
+        Base._ground_truth = None
 
     @property
     def indices(self):
@@ -57,10 +67,11 @@ class BaseVisualizer:
         return [f for hn, f in self.all_indices if hn in head_names]
 
     @staticmethod
-    def colorbar(ax, colored_element, size='3%', pad=0.05):
+    def colorbar(ax, colored_element, size='3%', pad=0.01):
         divider = make_axes_locatable(ax)
         cax = divider.append_axes('right', size=size, pad=pad)
-        plt.colorbar(colored_element, cax=cax)
+        cb = plt.colorbar(colored_element, cax=cax)
+        cb.outline.set_linewidth(0.1)
 
     @contextmanager
     def image_canvas(self, image, *args, **kwargs):
@@ -91,4 +102,4 @@ class BaseVisualizer:
 
         # center (the result is technically still off by half a pixel)
         half_stride = stride // 2
-        return field[half_stride:-half_stride+1, half_stride:-half_stride+1]
+        return field[half_stride:-half_stride + 1, half_stride:-half_stride + 1]

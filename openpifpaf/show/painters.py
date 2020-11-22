@@ -1,4 +1,3 @@
-from collections import defaultdict
 import logging
 
 import numpy as np
@@ -15,34 +14,6 @@ except ImportError:
 LOG = logging.getLogger(__name__)
 
 
-class AnnotationPainter:
-    def __init__(self, *,
-                 xy_scale=1.0,
-                 keypoint_painter=None,
-                 crowd_painer=None,
-                 detection_painter=None):
-        self.painters = {
-            'Annotation': keypoint_painter or KeypointPainter(xy_scale=xy_scale),
-            'AnnotationCrowd': crowd_painer or CrowdPainter(),  # TODO update
-            'AnnotationDet': detection_painter or DetectionPainter(xy_scale=xy_scale),
-        }
-
-    def annotations(self, ax, annotations, *,
-                    color=None, colors=None, texts=None, subtexts=None):
-        by_classname = defaultdict(list)
-        for ann_i, ann in enumerate(annotations):
-            by_classname[ann.__class__.__name__].append((ann_i, ann))
-
-        for classname, i_anns in by_classname.items():
-            anns = [ann for _, ann in i_anns]
-            this_colors = [colors[i] for i, _ in i_anns] if colors else None
-            this_texts = [texts[i] for i, _ in i_anns] if texts else None
-            this_subtexts = [subtexts[i] for i, _ in i_anns] if subtexts else None
-            self.painters[classname].annotations(
-                ax, anns,
-                color=color, colors=this_colors, texts=this_texts, subtexts=this_subtexts)
-
-
 class DetectionPainter:
     def __init__(self, *, xy_scale=1.0):
         self.xy_scale = xy_scale
@@ -50,7 +21,7 @@ class DetectionPainter:
     def annotations(self, ax, annotations, *,
                     color=None, colors=None, texts=None, subtexts=None):
         for i, ann in reversed(list(enumerate(annotations))):
-            this_color = ann.field_i
+            this_color = ann.category_id - 1
             if colors is not None:
                 this_color = colors[i]
             elif color is not None:
@@ -67,7 +38,7 @@ class DetectionPainter:
             subtext = None
             if subtexts is not None:
                 subtext = subtexts[i]
-            elif ann.score is not None:
+            elif ann.score:
                 subtext = '{:.0%}'.format(ann.score)
 
             self.annotation(ax, ann, color=this_color, text=text, subtext=subtext)
@@ -112,23 +83,93 @@ class DetectionPainter:
 
 
 class CrowdPainter:
-    def __init__(self, *, alpha=0.5, color='orange'):
-        self.alpha = alpha
-        self.color = color
+    def __init__(self, *, xy_scale=1.0):
+        self.xy_scale = xy_scale
 
-    def draw(self, ax, outlines):
+    @staticmethod
+    def draw_polygon(ax, outlines, *, alpha=0.5, color='orange'):
         for outline in outlines:
             assert outline.shape[1] == 2
 
         patches = []
         for outline in outlines:
             polygon = matplotlib.patches.Polygon(
-                outline[:, :2], color=self.color, facecolor=self.color, alpha=self.alpha)
+                outline[:, :2], color=color, facecolor=color, alpha=alpha)
             patches.append(polygon)
         ax.add_collection(matplotlib.collections.PatchCollection(patches, match_original=True))
 
+    def annotations(self, ax, annotations, *,
+                    color=None, colors=None, texts=None, subtexts=None):
+        for i, ann in reversed(list(enumerate(annotations))):
+            this_color = ann.category_id - 1
+            if colors is not None:
+                this_color = colors[i]
+            elif color is not None:
+                this_color = color
+            elif hasattr(ann, 'id_'):
+                this_color = ann.id_
+
+            text = '{} (crowd)'.format(ann.category)
+            if texts is not None:
+                text = texts[i]
+            elif hasattr(ann, 'id_'):
+                text = '{}'.format(ann.id_)
+
+            subtext = None
+            if subtexts is not None:
+                subtext = subtexts[i]
+
+            self.annotation(ax, ann, color=this_color, text=text, subtext=subtext)
+
+    def annotation(self, ax, ann, *, color=None, text=None, subtext=None):
+        if color is None:
+            color = 0
+        if isinstance(color, (int, np.integer)):
+            color = matplotlib.cm.get_cmap('tab20')((color % 20 + 0.05) / 20)
+
+        x, y, w, h = ann.bbox * self.xy_scale
+        if w < 5.0:
+            x -= 2.0
+            w += 4.0
+        if h < 5.0:
+            y -= 2.0
+            h += 4.0
+
+        # draw box
+        ax.add_patch(
+            matplotlib.patches.Rectangle(
+                (x, y), w, h, fill=False, color=color, linewidth=1.0, linestyle='dotted'))
+
+        # draw text
+        ax.annotate(
+            text,
+            (x, y),
+            fontsize=8,
+            xytext=(5.0, 5.0),
+            textcoords='offset points',
+            color='white', bbox={'facecolor': color, 'alpha': 0.5, 'linewidth': 0},
+        )
+        if subtext is not None:
+            ax.annotate(
+                subtext,
+                (x, y),
+                fontsize=5,
+                xytext=(5.0, 18.0 + 3.0),
+                textcoords='offset points',
+                color='white', bbox={'facecolor': color, 'alpha': 0.5, 'linewidth': 0},
+            )
+
 
 class KeypointPainter:
+    """Paint poses.
+
+    The constructor can take any class attribute as parameter and
+    overwrite the global default for that instance.
+
+    Example to create a KeypointPainter with thick lines:
+    >>> kp = KeypointPainter(line_width=48)
+    """
+
     show_box = False
     show_joint_confidences = False
     show_joint_scales = False
@@ -136,37 +177,56 @@ class KeypointPainter:
     show_frontier_order = False
     show_only_decoded_connections = False
 
+    textbox_alpha = 0.5
+    text_color = 'white'
+    monocolor_connections = False
+    line_width = None
+    marker_size = None
+    solid_threshold = 0.5
+    font_size = 8
+
     def __init__(self, *,
-                 xy_scale=1.0, highlight=None, highlight_invisible=False,
-                 linewidth=2, markersize=None,
-                 color_connections=False,
-                 solid_threshold=0.5):
+                 xy_scale=1.0,
+                 highlight=None,
+                 highlight_invisible=False,
+                 **kwargs):
         self.xy_scale = xy_scale
         self.highlight = highlight
         self.highlight_invisible = highlight_invisible
-        self.linewidth = linewidth
-        self.markersize = markersize
-        if self.markersize is None:
-            if color_connections:
-                self.markersize = max(1, int(linewidth * 0.5))
+
+        # use kwargs to set instance attributes to overwrite class attributes
+        for key, value in kwargs.items():
+            assert hasattr(self, key)
+            setattr(self, key, value)
+
+        # set defaults for line_width and marker_size depending on monocolor
+        if self.line_width is None:
+            self.line_width = 2 if self.monocolor_connections else 6
+        if self.marker_size is None:
+            if self.monocolor_connections:
+                self.marker_size = max(self.line_width + 1, int(self.line_width * 3.0))
             else:
-                self.markersize = max(linewidth + 1, int(linewidth * 3.0))
-        self.color_connections = color_connections
-        self.solid_threshold = solid_threshold
+                self.marker_size = max(1, int(self.line_width * 0.5))
 
         LOG.debug('color connections = %s, lw = %d, marker = %d',
-                  self.color_connections, self.linewidth, self.markersize)
+                  self.monocolor_connections, self.line_width, self.marker_size)
 
-    def _draw_skeleton(self, ax, x, y, v, *, skeleton, color=None, **kwargs):
+    def _draw_skeleton(self, ax, x, y, v, *, skeleton, skeleton_mask=None, color=None, **kwargs):
         if not np.any(v > 0):
             return
 
+        if skeleton_mask is None:
+            skeleton_mask = [True for _ in skeleton]
+        assert len(skeleton) == len(skeleton_mask)
+
         # connections
         lines, line_colors, line_styles = [], [], []
-        for ci, (j1i, j2i) in enumerate(np.array(skeleton) - 1):
+        for ci, ((j1i, j2i), mask) in enumerate(zip(np.array(skeleton) - 1, skeleton_mask)):
+            if not mask:
+                continue
             c = color
-            if self.color_connections:
-                c = matplotlib.cm.get_cmap('tab20')(ci / len(skeleton))
+            if not self.monocolor_connections:
+                c = matplotlib.cm.get_cmap('tab20')((ci % 20 + 0.05) / 20)
             if v[j1i] > 0 and v[j2i] > 0:
                 lines.append([(x[j1i], y[j1i]), (x[j2i], y[j2i])])
                 line_colors.append(c)
@@ -176,15 +236,15 @@ class KeypointPainter:
                     line_styles.append('dashed')
         ax.add_collection(matplotlib.collections.LineCollection(
             lines, colors=line_colors,
-            linewidths=kwargs.get('linewidth', self.linewidth),
+            linewidths=kwargs.get('linewidth', self.line_width),
             linestyles=kwargs.get('linestyle', line_styles),
             capstyle='round',
         ))
 
         # joints
         ax.scatter(
-            x[v > 0.0], y[v > 0.0], s=self.markersize**2, marker='.',
-            color='white' if self.color_connections else color,
+            x[v > 0.0], y[v > 0.0], s=self.marker_size**2, marker='.',
+            color=color if self.monocolor_connections else 'white',
             edgecolor='k' if self.highlight_invisible else None,
             zorder=2,
         )
@@ -196,8 +256,8 @@ class KeypointPainter:
             highlight_v = np.logical_and(v, highlight_v)
 
             ax.scatter(
-                x[highlight_v], y[highlight_v], s=self.markersize**2, marker='.',
-                color='white' if self.color_connections else color,
+                x[highlight_v], y[highlight_v], s=self.marker_size**2, marker='.',
+                color=color if self.monocolor_connections else 'white',
                 edgecolor='k' if self.highlight_invisible else None,
                 zorder=2,
             )
@@ -245,8 +305,10 @@ class KeypointPainter:
         if score:
             ax.text(x, y - linewidth, '{:.4f}'.format(score), fontsize=8, color=color)
 
-    @staticmethod
-    def _draw_text(ax, x, y, v, text, color, *, subtext=None):
+    @classmethod
+    def _draw_text(cls, ax, x, y, v, text, color, *, subtext=None):
+        if cls.font_size == 0:
+            return
         if not np.any(v > 0):
             return
 
@@ -260,22 +322,25 @@ class KeypointPainter:
             coord_y = y[v > 0][coord_i[0]]
             coord_x = x[v > 0][coord_i[0]]
 
+        bbox_config = {'facecolor': color, 'alpha': cls.textbox_alpha, 'linewidth': 0}
         ax.annotate(
             text,
             (coord_x, coord_y),
-            fontsize=8,
+            fontsize=cls.font_size,
             xytext=(5.0, 5.0),
             textcoords='offset points',
-            color='white', bbox={'facecolor': color, 'alpha': 0.5, 'linewidth': 0},
+            color=cls.text_color,
+            bbox=bbox_config,
         )
         if subtext is not None:
             ax.annotate(
                 subtext,
                 (coord_x, coord_y),
-                fontsize=5,
+                fontsize=cls.font_size * 5 // 8,
                 xytext=(5.0, 18.0 + 3.0),
                 textcoords='offset points',
-                color='white', bbox={'facecolor': color, 'alpha': 0.5, 'linewidth': 0},
+                color=cls.text_color,
+                bbox=bbox_config,
             )
 
     @staticmethod
@@ -287,8 +352,8 @@ class KeypointPainter:
                 matplotlib.patches.Rectangle(
                     (x - scale / 2, y - scale / 2), scale, scale, fill=False, color=color))
 
-    @staticmethod
-    def _draw_joint_confidences(ax, xs, ys, vs, color):
+    @classmethod
+    def _draw_joint_confidences(cls, ax, xs, ys, vs, color):
         for x, y, v in zip(xs, ys, vs):
             if v == 0.0:
                 continue
@@ -299,17 +364,20 @@ class KeypointPainter:
                 xytext=(0.0, 0.0),
                 textcoords='offset points',
                 verticalalignment='top',
-                color='white', bbox={'facecolor': color, 'alpha': 0.2, 'linewidth': 0, 'pad': 0.0},
+                color=cls.text_color,
+                bbox={'facecolor': color, 'alpha': 0.2, 'linewidth': 0, 'pad': 0.0},
             )
 
     def annotations(self, ax, annotations, *,
                     color=None, colors=None, texts=None, subtexts=None):
         for i, ann in enumerate(annotations):
-            color = i
+            this_color = color
+            if this_color is None:
+                this_color = i
             if colors is not None:
-                color = colors[i]
+                this_color = colors[i]
             elif hasattr(ann, 'id_'):
-                color = ann.id_
+                this_color = ann.id_
 
             text = None
             text_is_score = False
@@ -327,7 +395,7 @@ class KeypointPainter:
             elif not text_is_score and ann.score():
                 subtext = '{:.0%}'.format(ann.score())
 
-            self.annotation(ax, ann, color=color, text=text, subtext=subtext)
+            self.annotation(ax, ann, color=this_color, text=text, subtext=subtext)
 
     def annotation(self, ax, ann, *, color=None, text=None, subtext=None):
         if color is None:
@@ -351,16 +419,16 @@ class KeypointPainter:
             self._draw_skeleton(ax, x, y, v, color='black', skeleton=frontier_skeleton,
                                 linestyle='dotted', linewidth=1)
 
-        skeleton = ann.skeleton
+        skeleton_mask = None
         if self.show_only_decoded_connections:
             decoded_connections = set((jsi, jti) for jsi, jti, _, __ in ann.decoding_order)
             skeleton_mask = [
                 (s - 1, e - 1) in decoded_connections or (e - 1, s - 1) in decoded_connections
-                for s, e in skeleton
+                for s, e in ann.skeleton
             ]
-            skeleton = [se for se, m in zip(skeleton, skeleton_mask) if m]
 
-        self._draw_skeleton(ax, x, y, v, color=color, skeleton=skeleton)
+        self._draw_skeleton(ax, x, y, v, color=color,
+                            skeleton=ann.skeleton, skeleton_mask=skeleton_mask)
 
         if self.show_joint_scales and ann.joint_scales is not None:
             self._draw_scales(ax, x, y, v, color, ann.joint_scales)
@@ -382,6 +450,6 @@ class KeypointPainter:
     def _draw_decoding_order(ax, decoding_order):
         for step_i, (jsi, jti, jsxyv, jtxyv) in enumerate(decoding_order):
             ax.plot([jsxyv[0], jtxyv[0]], [jsxyv[1], jtxyv[1]], '--', color='black')
-            ax.text(0.5 * (jsxyv[0] + jtxyv[0]), 0.5 * (jsxyv[1] +jtxyv[1]),
+            ax.text(0.5 * (jsxyv[0] + jtxyv[0]), 0.5 * (jsxyv[1] + jtxyv[1]),
                     '{}: {} -> {}'.format(step_i, jsi, jti), fontsize=8,
                     color='white', bbox={'facecolor': 'black', 'alpha': 0.5, 'linewidth': 0})

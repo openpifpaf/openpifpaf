@@ -7,6 +7,7 @@ from .. import transforms
 
 class ImageList(torch.utils.data.Dataset):
     def __init__(self, image_paths, preprocess=None):
+        super().__init__()
         self.image_paths = image_paths
         self.preprocess = preprocess or transforms.EVAL_TRANSFORM
 
@@ -16,12 +17,11 @@ class ImageList(torch.utils.data.Dataset):
             image = PIL.Image.open(f).convert('RGB')
 
         anns = []
-        image, anns, meta = self.preprocess(image, anns, None)
-        meta.update({
+        meta = {
             'dataset_index': index,
             'file_name': image_path,
-        })
-
+        }
+        image, anns, meta = self.preprocess(image, anns, meta)
         return image, anns, meta
 
     def __len__(self):
@@ -30,6 +30,7 @@ class ImageList(torch.utils.data.Dataset):
 
 class PilImageList(torch.utils.data.Dataset):
     def __init__(self, images, preprocess=None):
+        super().__init__()
         self.images = images
         self.preprocess = preprocess or transforms.EVAL_TRANSFORM
 
@@ -37,12 +38,10 @@ class PilImageList(torch.utils.data.Dataset):
         image = self.images[index].copy().convert('RGB')
 
         anns = []
-        image, anns, meta = self.preprocess(image, anns, None)
-        meta.update({
+        meta = {
             'dataset_index': index,
-            'file_name': 'pilimage{}'.format(index),
-        })
-
+        }
+        image, anns, meta = self.preprocess(image, anns, meta)
         return image, anns, meta
 
     def __len__(self):

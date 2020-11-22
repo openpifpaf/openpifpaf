@@ -1,11 +1,11 @@
 import logging
 
-from .base import BaseVisualizer
+from .base import Base
 
 LOG = logging.getLogger(__name__)
 
 
-class Occupancy(BaseVisualizer):
+class Occupancy(Base):
     show = False
 
     def __init__(self, *, field_names=None):

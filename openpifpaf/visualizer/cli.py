@@ -1,4 +1,4 @@
-from .base import BaseVisualizer
+from .base import Base
 from .caf import Caf
 from .cif import Cif
 from .cifdet import CifDet
@@ -20,6 +20,8 @@ def cli(parser):
     group.add_argument('--debug-indices', default=[], nargs='+',
                        help=('indices of fields to create debug plots for '
                              'of the form headname:fieldindex, e.g. cif:5'))
+    group.add_argument('--debug-images', default=False, action='store_true',
+                       help='print debug messages and enable all debug images')
 
 
 def enable_all_plots():
@@ -41,7 +43,7 @@ def configure(args):
     # configure visualizer
     args.debug_indices = [di.partition(':') for di in args.debug_indices]
     args.debug_indices = [(di[0], int(di[2])) for di in args.debug_indices]
-    BaseVisualizer.all_indices = args.debug_indices
+    Base.all_indices = args.debug_indices
 
     Caf.show_confidences = args.debug_caf_c
     Caf.show_regressions = args.debug_caf_v

@@ -5,7 +5,8 @@ from typing import ClassVar
 import numpy as np
 import torch
 
-from .annrescaler import AnnRescaler
+from .annrescaler import AnnRescalerDet
+from .. import headmeta
 from ..visualizer import CifDet as CifDetVisualizer
 from ..utils import create_sink, mask_valid_area
 
@@ -14,9 +15,10 @@ LOG = logging.getLogger(__name__)
 
 @dataclasses.dataclass
 class CifDet:
-    n_categories: int
-    rescaler: AnnRescaler
+    meta: headmeta.CifDet
+    rescaler: AnnRescalerDet = None
     v_threshold: int = 0
+    bmin: float = 10.0  #: in pixels
     visualizer: CifDetVisualizer = None
 
     side_length: ClassVar[int] = 5
@@ -30,9 +32,15 @@ class CifDetGenerator():
     def __init__(self, config: CifDet):
         self.config = config
 
+        self.rescaler = config.rescaler or AnnRescalerDet(
+            config.meta.stride, len(config.meta.categories))
+        self.visualizer = config.visualizer or CifDetVisualizer(config.meta)
+
         self.intensities = None
         self.fields_reg = None
         self.fields_wh = None
+        self.fields_reg_bmin = None
+        self.fields_wh_bmin = None
         self.fields_reg_l = None
 
         self.sink = create_sink(config.side_length)
@@ -41,19 +49,19 @@ class CifDetGenerator():
     def __call__(self, image, anns, meta):
         width_height_original = image.shape[2:0:-1]
 
-        detections = self.config.rescaler.detections(anns)
-        bg_mask = self.config.rescaler.bg_mask(anns, width_height_original,
-                                               crowd_margin=(self.config.side_length - 1) / 2)
-        valid_area = self.config.rescaler.valid_area(meta)
+        detections = self.rescaler.detections(anns)
+        bg_mask = self.rescaler.bg_mask(anns, width_height_original,
+                                        crowd_margin=(self.config.side_length - 1) / 2)
+        valid_area = self.rescaler.valid_area(meta)
         LOG.debug('valid area: %s, pif side length = %d', valid_area, self.config.side_length)
 
-        n_fields = self.config.n_categories
+        n_fields = len(self.config.meta.categories)
         self.init_fields(n_fields, bg_mask)
         self.fill(detections)
         fields = self.fields(valid_area)
 
-        self.config.visualizer.processed_image(image)
-        self.config.visualizer.targets(fields, detections=detections)
+        self.visualizer.processed_image(image)
+        self.visualizer.targets(fields, annotation_dicts=anns)
 
         return fields
 
@@ -63,6 +71,8 @@ class CifDetGenerator():
         self.intensities = np.zeros((n_fields, field_h, field_w), dtype=np.float32)
         self.fields_reg = np.full((n_fields, 2, field_h, field_w), np.nan, dtype=np.float32)
         self.fields_wh = np.full((n_fields, 2, field_h, field_w), np.nan, dtype=np.float32)
+        self.fields_reg_bmin = np.full((n_fields, field_h, field_w), np.nan, dtype=np.float32)
+        self.fields_wh_bmin = np.full((n_fields, field_h, field_w), np.nan, dtype=np.float32)
         self.fields_reg_l = np.full((n_fields, field_h, field_w), np.inf, dtype=np.float32)
 
         # bg_mask
@@ -110,20 +120,31 @@ class CifDetGenerator():
         assert wh[1] > 0.0
         self.fields_wh[f, :, miny:maxy, minx:maxx][:, mask] = np.expand_dims(wh, 1)
 
+        # update bmin
+        bmin = self.config.bmin / self.config.meta.stride
+        self.fields_reg_bmin[f, miny:maxy, minx:maxx][mask] = bmin
+        self.fields_wh_bmin[f, miny:maxy, minx:maxx][mask] = bmin
+
     def fields(self, valid_area):
         p = self.config.padding
         intensities = self.intensities[:, p:-p, p:-p]
         fields_reg = self.fields_reg[:, :, p:-p, p:-p]
         fields_wh = self.fields_wh[:, :, p:-p, p:-p]
+        fields_reg_bmin = self.fields_reg_bmin[:, p:-p, p:-p]
+        fields_wh_bmin = self.fields_wh_bmin[:, p:-p, p:-p]
 
         mask_valid_area(intensities, valid_area)
         mask_valid_area(fields_reg[:, 0], valid_area, fill_value=np.nan)
         mask_valid_area(fields_reg[:, 1], valid_area, fill_value=np.nan)
         mask_valid_area(fields_wh[:, 0], valid_area, fill_value=np.nan)
         mask_valid_area(fields_wh[:, 1], valid_area, fill_value=np.nan)
+        mask_valid_area(fields_reg_bmin, valid_area, fill_value=np.nan)
+        mask_valid_area(fields_wh_bmin, valid_area, fill_value=np.nan)
 
-        return (
-            torch.from_numpy(intensities),
-            torch.from_numpy(fields_reg),
-            torch.from_numpy(fields_wh),
-        )
+        return torch.from_numpy(np.concatenate([
+            np.expand_dims(intensities, 1),
+            fields_reg,
+            fields_wh,
+            np.expand_dims(fields_reg_bmin, 1),
+            np.expand_dims(fields_wh_bmin, 1),
+        ], axis=1))

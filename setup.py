@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 from setuptools.extension import Extension
 
 try:
@@ -38,17 +38,7 @@ setup(
     name='openpifpaf',
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),
-    packages=[
-        'openpifpaf',
-        'openpifpaf.datasets',
-        'openpifpaf.decoder',
-        'openpifpaf.decoder.generator',
-        'openpifpaf.encoder',
-        'openpifpaf.network',
-        'openpifpaf.show',
-        'openpifpaf.transforms',
-        'openpifpaf.visualizer',
-    ],
+    packages=find_packages(),
     license='GNU AGPLv3',
     description='PifPaf: Composite Fields for Human Pose Estimation',
     long_description=open('README.md', encoding='utf-8').read(),
@@ -65,35 +55,41 @@ setup(
         'pysparkling',  # for log analysis
         'python-json-logger',
         'scipy',
-        'torch>=1.3.1',
-        'torchvision>=0.4',
+        'torch>=1.7',
+        'torchvision>=0.8.1',
         'pillow',
         'dataclasses; python_version<"3.7"',
     ],
     extras_require={
         'dev': [
             'flameprof',
-            'jupyter-book>=0.7.4',
+            'jupyter-book>=0.8.0',
             'matplotlib',
             'nbdime',
             'nbstripout',
         ],
         'onnx': [
             'onnx',
+            'onnxruntime',
             'onnx-simplifier>=0.2.9',
+        ],
+        'coreml': [
+            'coremltools==4.0b3',
         ],
         'test': [
             'nbval',
             'onnx',
+            'onnxruntime',
             'onnx-simplifier>=0.2.9',
             'pylint',
+            'pycodestyle',
             'pytest',
             'opencv-python',
             'thop',
         ],
         'train': [
             'matplotlib',  # required by pycocotools
-            'pycocotools',  # pre-install cython (currently incompatible with numpy 1.18 or above)
+            'pycocotools>=2.0.1',  # pre-install cython (currently incompatible with numpy 1.18 or above)
         ],
     },
 )

@@ -6,13 +6,11 @@ import datetime
 import json
 import logging
 from pprint import pprint
-import socket
-import sys
 
 import numpy as np
 import pysparkling
 
-from . import show, __version__
+from . import metric, show, __version__
 
 try:
     import matplotlib
@@ -22,36 +20,9 @@ except ImportError:
 LOG = logging.getLogger(__name__)
 
 
-def cli(parser):
-    group = parser.add_argument_group('logging')
-    group.add_argument('--debug', default=False, action='store_true',
-                       help='print debug messages')
-
-
-def configure(args):
-    # pylint: disable=import-outside-toplevel
-    from pythonjsonlogger import jsonlogger
-
-    file_handler = logging.FileHandler(args.output + '.log', mode='w')
-    file_handler.setFormatter(
-        jsonlogger.JsonFormatter('%(message) %(levelname) %(name) %(asctime)'))
-    stdout_handler = logging.StreamHandler(sys.stdout)
-    logging.basicConfig(handlers=[stdout_handler, file_handler])
-    log_level = logging.INFO if not args.debug else logging.DEBUG
-    logging.getLogger('openpifpaf').setLevel(log_level)
-    LOG.info({
-        'type': 'process',
-        'argv': sys.argv,
-        'args': vars(args),
-        'version': __version__,
-        'hostname': socket.gethostname(),
-    })
-    return log_level
-
-
 def optionally_shaded(ax, x, y, *, color, label, **kwargs):
     stride = int(len(x) / (x[-1] - x[0]) / 30.0) if len(x) > 30 else 1  # 30 per epoch
-    if stride > 5 and len(x) / stride > 2:
+    if stride > 1:
         x_binned = np.array([x[i] for i in range(0, len(x), stride)][:-1])
         y_binned = np.stack([y[i:i + stride] for i in range(0, len(x), stride)][:-1])
         y_mean = np.mean(y_binned, axis=1)
@@ -60,6 +31,7 @@ def optionally_shaded(ax, x, y, *, color, label, **kwargs):
         ax.plot(x_binned, y_mean, color=color, label=label, **kwargs)
         ax.fill_between(x_binned, y_min, y_max, alpha=0.2, facecolor=color)
     else:
+        LOG.debug('not shading: entries = %d, epochs = %f', len(x), x[-1] - x[0])
         ax.plot(x, y, color=color, label=label, **kwargs)
 
 
@@ -79,11 +51,13 @@ def fractional_epoch(row, *, default=None):
 
 
 class Plots():
-    def __init__(self, log_files, labels=None, output_prefix=None, first_epoch=0.0):
+    def __init__(self, log_files, labels=None, *,
+                 output_prefix=None, first_epoch=0.0, share_y=True):
         self.log_files = log_files
         self.labels = labels or [lf.replace('outputs/', '') for lf in log_files]
         self.output_prefix = output_prefix or log_files[-1] + '.'
         self.first_epoch = first_epoch
+        self.share_y = share_y
 
         self.datas = [self.read_log(f) for f in log_files]
 
@@ -102,11 +76,19 @@ class Plots():
                 for data, label in zip(self.datas, self.labels)}
 
     def field_names(self):
-        placeholder = ['field {}'.format(i) for i in range(6)]
-        return {label: data['config'][0]['field_names'] if 'config' in data else placeholder
+        def migrate(field_name):
+            """to process older (pre v0.12) log files"""
+            if field_name.startswith(('cif.', 'caf.', 'caf25.')):
+                return 'cocokp.{}'.format(field_name)
+            if field_name.startswith('cifdet.'):
+                return 'cocodet.{}'.format(field_name)
+            return field_name
+        return {label: [migrate(f) for f in data['config'][0]['field_names']]
                 for data, label in zip(self.datas, self.labels)}
 
     def process_arguments(self):
+        if not self.datas[0]:
+            raise Exception('no data')
         return {label: data['process'][0]['argv'][1:]
                 for data, label in zip(self.datas, self.labels)}
 
@@ -185,6 +167,8 @@ class Plots():
         #     ax.set_yscale('log', nonposy='clip')
         ax.grid(linestyle='dotted')
         ax.legend(loc='upper right')
+        ax.text(0.01, 1.01, 'train (cross-dotted), val (dot-solid)',
+                transform=ax.transAxes, size='x-small')
 
     def epoch_head(self, ax, field_name):
         field_names = self.field_names()
@@ -217,33 +201,29 @@ class Plots():
         ax.set_xlabel('epoch')
         ax.set_ylabel(field_name)
         last_five_y = np.concatenate(last_five_y)
-        if last_five_y.shape[0]:
+        if not self.share_y and last_five_y.shape[0]:
             ax.set_ylim(np.min(last_five_y), np.max(last_five_y))
         # ax.set_ylim(0.0, 1.0)
         # if min(y) > -0.1:
         #     ax.set_yscale('log', nonposy='clip')
         ax.grid(linestyle='dotted')
         # ax.legend(loc='upper right')
+        ax.text(0.01, 1.01, 'train (cross-dotted), val (dot-solid)',
+                transform=ax.transAxes, size='x-small')
 
     def preprocess_time(self, ax):
         for color_i, (data, label) in enumerate(zip(self.datas, self.labels)):
             color = matplotlib.cm.get_cmap('tab10')((color_i % 10 + 0.05) / 10)
 
             if 'train' in data:
-                x = np.array([fractional_epoch(row) for row in data['train']])
+                # skip batch 0 as it has corrupted data_time
+                x = np.array([fractional_epoch(row)
+                              for row in data['train']
+                              if row.get('batch', 1) > 0])
                 y = np.array([row.get('data_time') / row.get('time') * 100.0
-                              for row in data['train']], dtype=np.float)
-                stride = int(len(x) / (x[-1] - x[0]) / 30.0)  # 30 per epoch
-                if stride > 5 and len(x) / stride > 2:
-                    x_binned = np.array([x[i] for i in range(0, len(x), stride)][:-1])
-                    y_binned = np.stack([y[i:i + stride] for i in range(0, len(x), stride)][:-1])
-                    y_mean = np.mean(y_binned, axis=1)
-                    y_min = np.min(y_binned, axis=1)
-                    y_max = np.max(y_binned, axis=1)
-                    ax.plot(x_binned, y_mean, color=color, label=label)
-                    ax.fill_between(x_binned, y_min, y_max, alpha=0.2, facecolor=color)
-                else:
-                    ax.plot(x, y, color=color, label=label)
+                              for row in data['train']
+                              if row.get('batch', 1) > 0], dtype=np.float)
+                optionally_shaded(ax, x, y, color=color, label=label)
 
         ax.set_xlabel('epoch')
         ax.set_ylabel('data preprocessing time [%]')
@@ -298,7 +278,7 @@ class Plots():
         ax.set_xlabel('epoch')
         ax.set_ylabel(format(field_name))
         # ax.set_ylim(3e-3, 3.0)
-        if min(y) > -0.1:
+        if not self.share_y and min(y) > -0.1:
             ax.set_yscale('log', nonposy='clip')
         ax.grid(linestyle='dotted')
         # ax.legend(loc='upper right')
@@ -332,20 +312,19 @@ class Plots():
             if 'train' in data:
                 print('{}: {}'.format(label, data['train'][-1]))
 
-    def show_all(self, *, share_y=True, show_mtl_sigmas=False):
+    def show_all(self, show_mtl_sigmas=False):
         pprint(self.process_arguments())
 
+        all_field_names = [f for fs in self.field_names().values() for f in fs]
         rows = defaultdict(list)
-        for field_names in self.field_names().values():
-            for f in field_names:
-                row_name, _, _ = f.partition('.') if '.' in f else ('default', None, None)
-                if f not in rows[row_name]:
-                    rows[row_name].append(f)
+        for f in all_field_names:
+            dataset_name, head_name = f.split('.')[:2]
+            row_name = dataset_name + '.' + head_name
+            if f not in rows[row_name]:
+                rows[row_name].append(f)
         n_rows = len(rows)
         n_cols = max(len(r) for r in rows.values())
         multi_figsize = (5 * n_cols, 2.5 * n_rows)
-        # if multi_figsize[0] > 40.0:
-        #     multi_figsize = (40.0, multi_figsize[1] / multi_figsize[0] * 40.0)
 
         with show.canvas() as ax:
             self.time(ax)
@@ -357,9 +336,8 @@ class Plots():
             self.lr(ax)
 
         with show.canvas(nrows=n_rows, ncols=n_cols, squeeze=False,
-                         dpi=75,
                          figsize=multi_figsize,
-                         sharey=share_y, sharex=True) as axs:
+                         sharey=self.share_y, sharex=True) as axs:
             for row_i, row in enumerate(rows.values()):
                 for col_i, field_name in enumerate(row):
                     self.epoch_head(axs[row_i, col_i], field_name)
@@ -372,7 +350,7 @@ class Plots():
 
         with show.canvas(nrows=n_rows, ncols=n_cols, squeeze=False,
                          figsize=multi_figsize,
-                         sharey=share_y, sharex=True) as axs:
+                         sharey=self.share_y, sharex=True) as axs:
             for row_i, row in enumerate(rows.values()):
                 for col_i, field_name in enumerate(row):
                     self.train_head(axs[row_i, col_i], field_name)
@@ -380,7 +358,7 @@ class Plots():
         if show_mtl_sigmas:
             with show.canvas(nrows=n_rows, ncols=n_cols, squeeze=False,
                              figsize=multi_figsize,
-                             sharey=share_y, sharex=True) as axs:
+                             sharey=self.share_y, sharex=True) as axs:
                 for row_i, row in enumerate(rows.values()):
                     for col_i, field_name in enumerate(row):
                         self.mtl_sigma(axs[row_i, col_i], field_name)
@@ -392,14 +370,32 @@ class Plots():
 
 
 class EvalPlots():
-    def __init__(self, log_files, labels=None, output_prefix=None,
-                 edge=321, decoder=0, legend_last_ap=True,
-                 modifiers='', first_epoch=0.0):
-        self.edge = edge
+    #: Eval files come with text labels. This is a translation to prettier labels
+    #: for matplotlib axes.
+    text_to_latex_labels = {
+        'AP0.5': 'AP$^{0.50}$',
+        'AP0.75': 'AP$^{0.75}$',
+        'APS': 'AP$^{S}$',
+        'APM': 'AP$^{M}$',
+        'APL': 'AP$^{L}$',
+        'ART1': 'AR@1',
+        'ART10': 'AR@10',
+        'AR0.5': 'AR$^{0.50}$',
+        'AR0.75': 'AR$^{0.75}$',
+        'ARS': 'AR$^{S}$',
+        'ARM': 'AR$^{M}$',
+        'ARL': 'AR$^{L}$',
+    }
+
+    def __init__(self, log_files, file_suffix, *,
+                 labels=None, output_prefix=None,
+                 decoder=0, legend_last_ap=True,
+                 first_epoch=0.0, share_y=True):
+        self.file_suffix = file_suffix
         self.decoder = decoder
         self.legend_last_ap = legend_last_ap
-        self.modifiers = modifiers
         self.first_epoch = first_epoch
+        self.share_y = share_y
 
         self.datas = [self.read_log(f) for f in log_files]
         self.labels = labels or [lf.replace('outputs/', '') for lf in log_files]
@@ -410,17 +406,29 @@ class EvalPlots():
 
         # modify individual file names and comma-seperated filenames
         files = path.split(',')
-        files = ','.join(
-            [
-                '{}.epoch???.evalcoco-edge{}{}.stats.json'
-                ''.format(f[:-4], self.edge, self.modifiers)
-                for f in files
-            ]
-        )
+        files = ','.join([
+            '{}.epoch???{}'.format(f[:-4], self.file_suffix)
+            for f in files
+        ])
 
         def epoch_from_filename(filename):
             i = filename.find('epoch')
-            return int(filename[i+5:i+8])
+            return int(filename[i + 5:i + 8])
+
+        def migrate(data):
+            # earlier versions did not contain 'dataset'
+            if 'dataset' not in data and len(data['stats']) == 10:
+                data['dataset'] = 'cocokp'
+            if 'dataset' not in data and len(data['stats']) == 12:
+                data['dataset'] = 'cocodet'
+
+            # earlier versions did not contain 'text_labels'
+            if 'text_labels' not in data and len(data['stats']) == 10:
+                data['text_labels'] = metric.Coco.text_labels_keypoints
+            if 'text_labels' not in data and len(data['stats']) == 12:
+                data['text_labels'] = metric.Coco.text_labels_bbox
+
+            return data
 
         return (sc
                 .wholeTextFiles(files)
@@ -428,22 +436,47 @@ class EvalPlots():
                     epoch_from_filename(k_c[0]),
                     json.loads(k_c[1]),
                 ))
-                .filter(lambda k_c: k_c[0] >= self.first_epoch and len(k_c[1]['stats']) == 10)
+                .filter(lambda k_c: k_c[0] >= self.first_epoch and k_c[1]['stats'])
+                .mapValues(migrate)
                 .sortByKey()
                 .collect())
 
-    def frame_stats(self, ax, entry):
+    def metrics(self):
+        all_metrics_by_datasets = defaultdict(list)
+        for data in self.datas:
+            if not data:
+                continue
+            dataset = data[0][1]['dataset']
+            for m in data[0][1]['text_labels']:
+                if m in all_metrics_by_datasets[dataset]:
+                    continue
+                all_metrics_by_datasets[dataset].append(m)
+        return all_metrics_by_datasets
+
+    def fill_metric(self, ax, dataset, metric_name):
         for data, label in zip(self.datas, self.labels):
             if not data:
                 continue
+            if data[0][1]['dataset'] != dataset:
+                continue
+            if metric_name not in data[0][1]['text_labels']:
+                continue
+
+            entry = data[0][1]['text_labels'].index(metric_name)
             if self.legend_last_ap:
-                last_ap = data[-1][1]['stats'][0]
-                label = '{} (AP={:.1%})'.format(label, last_ap)
+                last_main_value = data[-1][1]['stats'][0]
+                main_name = data[0][1]['text_labels'][0]
+                main_label = self.text_to_latex_labels.get(main_name, main_name)
+                label = '{} ({}={:.1%})'.format(label, main_label, last_main_value)
             x = np.array([e for e, _ in data])
             y = np.array([d['stats'][entry] for _, d in data])
             ax.plot(x, y, 'o-', label=label, markersize=2)
 
         ax.set_xlabel('epoch')
+        ax.set_ylabel('{} {}'.format(
+            dataset,
+            self.text_to_latex_labels.get(metric_name, metric_name),
+        ))
         ax.grid(linestyle='dotted')
         # ax.legend(loc='upper right')
 
@@ -468,69 +501,44 @@ class EvalPlots():
                 horizontalalignment='center', verticalalignment='top',
             )
 
-        ax.set_ylim(bottom=0.56)
+        # ax.set_ylim(bottom=0.56)
         ax.set_xlabel('GMACs' if entry == 0 else 'million parameters')
         ax.set_ylabel('AP')
         ax.grid(linestyle='dotted')
         # ax.legend(loc='lower right')
 
-    def ap(self, ax):
-        self.frame_stats(ax, entry=0)
-        ax.set_ylabel('AP')
+    def show_all(self):
+        # layouting: a dataset can span one or two rows
+        all_metrics = self.metrics()
+        all_rows_nested = {
+            dataset: (
+                [metrics]
+                if len(metrics) <= 6
+                else [metrics[:-len(metrics) // 2],
+                      metrics[-len(metrics) // 2:]]
+            )
+            for dataset, metrics in all_metrics.items()
+        }
+        all_rows = [
+            [(dataset, metric) for metric in row]
+            for dataset, rows in all_rows_nested.items()
+            for row in rows
+        ]
+        if not all_rows:
+            return
+        nrows = len(all_rows)
+        ncols = max(len(row) for row in all_rows)
 
-    def ap050(self, ax):
-        self.frame_stats(ax, entry=1)
-        ax.set_ylabel('AP$^{0.50}$')
-
-    def ap075(self, ax):
-        self.frame_stats(ax, entry=2)
-        ax.set_ylabel('AP$^{0.75}$')
-
-    def apm(self, ax):
-        self.frame_stats(ax, entry=3)
-        ax.set_ylabel('AP$^{M}$')
-
-    def apl(self, ax):
-        self.frame_stats(ax, entry=4)
-        ax.set_ylabel('AP$^{L}$')
-
-    def ar(self, ax):
-        self.frame_stats(ax, entry=5)
-        ax.set_ylabel('AR')
-
-    def ar050(self, ax):
-        self.frame_stats(ax, entry=6)
-        ax.set_ylabel('AR$^{0.50}$')
-
-    def ar075(self, ax):
-        self.frame_stats(ax, entry=7)
-        ax.set_ylabel('AR$^{0.75}$')
-
-    def arm(self, ax):
-        self.frame_stats(ax, entry=8)
-        ax.set_ylabel('AR$^{M}$')
-
-    def arl(self, ax):
-        self.frame_stats(ax, entry=9)
-        ax.set_ylabel('AR$^{L}$')
-
-    def fill_all(self, axs):
-        for f, ax in zip((self.ap, self.ap050, self.ap075, self.apm, self.apl), axs[0]):
-            f(ax)
-
-        for f, ax in zip((self.ar, self.ar050, self.ar075, self.arm, self.arl), axs[1]):
-            f(ax)
-
-        return self
-
-    def show_all(self, *, share_y=True):
-        with show.canvas(nrows=2, ncols=5, figsize=(20, 10),
-                         sharex=True, sharey=share_y) as axs:
-            self.fill_all(axs)
-            axs[0, 4].legend(fontsize=5, loc='lower right')
+        # plot
+        with show.canvas(nrows=nrows, ncols=ncols, figsize=(4 * ncols, 3 * nrows),
+                         sharex=True, sharey=self.share_y) as axs:
+            for ax_row, metric_row in zip(axs, all_rows):
+                for ax, (dataset, metric_name) in zip(ax_row, metric_row):
+                    self.fill_metric(ax, dataset, metric_name)
+                ax_row[len(metric_row) - 1].legend(fontsize=5, loc='lower right')
 
         with show.canvas(nrows=1, ncols=2, figsize=(10, 5),
-                         sharey=share_y) as axs:
+                         sharey=self.share_y) as axs:
             self.frame_ops(axs[0], 0)
             self.frame_ops(axs[1], 1)
 
@@ -538,18 +546,21 @@ class EvalPlots():
 def main():
     parser = argparse.ArgumentParser(
         prog='python3 -m openpifpaf.logs',
+        usage='%(prog)s [options] log_files',
         description=__doc__,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument('--version', action='version',
                         version='OpenPifPaf {version}'.format(version=__version__))
 
+    show.cli(parser)
+
     parser.add_argument('log_file', nargs='+',
-                        help='path to log file')
+                        help='path to log file(s)')
     parser.add_argument('--label', nargs='+',
-                        help='labels in the same order as files')
-    parser.add_argument('--eval-edge', default=641, type=int,
-                        help='side length during eval')
+                        help='label(s) in the same order as files')
+    parser.add_argument('--eval-suffix', default='.eval-cocokp.stats.json',
+                        help='suffix of evaluation files to look for')
     parser.add_argument('--first-epoch', default=1e-6, type=float,
                         help='epoch (can be float) of first data point to plot')
     parser.add_argument('--no-share-y', dest='share_y',
@@ -560,17 +571,22 @@ def main():
     parser.add_argument('--show-mtl-sigmas', default=False, action='store_true')
     args = parser.parse_args()
 
+    show.configure(args)
+
     if args.output is None:
         args.output = args.log_file[-1] + '.'
 
-    EvalPlots(args.log_file, args.label, args.output,
-              edge=args.eval_edge, first_epoch=args.first_epoch,
-              ).show_all(share_y=args.share_y)
-    EvalPlots(args.log_file, args.label, args.output,
-              edge=args.eval_edge, modifiers='-os', first_epoch=args.first_epoch,
-              ).show_all(share_y=args.share_y)
-    Plots(args.log_file, args.label, args.output, first_epoch=args.first_epoch).show_all(
-        share_y=args.share_y, show_mtl_sigmas=args.show_mtl_sigmas)
+    EvalPlots(args.log_file, args.eval_suffix,
+              labels=args.label,
+              output_prefix=args.output,
+              first_epoch=args.first_epoch,
+              share_y=args.share_y,
+              ).show_all()
+    Plots(args.log_file, args.label,
+          output_prefix=args.output,
+          first_epoch=args.first_epoch,
+          share_y=args.share_y,
+          ).show_all(show_mtl_sigmas=args.show_mtl_sigmas)
 
 
 if __name__ == '__main__':

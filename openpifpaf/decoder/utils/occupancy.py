@@ -1,10 +1,18 @@
 import logging
 import numpy as np
 
-from .utils import scalar_square_add_single
-from ..functional import scalar_nonzero_clipped_with_reduction
+from ...functional import scalar_nonzero_clipped_with_reduction
 
 LOG = logging.getLogger(__name__)
+
+
+def scalar_square_add_single(field, x, y, sigma, value):
+    minx = max(0, int(x - sigma))
+    miny = max(0, int(y - sigma))
+    # +2: +1 for rounding up and another +1 for non-inclusive boundary
+    maxx = max(minx + 1, min(field.shape[1], int(x + sigma) + 2))
+    maxy = max(miny + 1, min(field.shape[0], int(y + sigma) + 2))
+    field[miny:maxy, minx:maxx] += value
 
 
 class Occupancy():
@@ -20,8 +28,8 @@ class Occupancy():
 
         self.occupancy = np.zeros((
             shape[0],
-            int(shape[1] / reduction),
-            int(shape[2] / reduction),
+            int(shape[1] / reduction) + 1,
+            int(shape[2] / reduction) + 1,
         ), dtype=np.uint8)
         LOG.debug('shape = %s, min_scale = %d', self.occupancy.shape, self.min_scale_reduced)
 

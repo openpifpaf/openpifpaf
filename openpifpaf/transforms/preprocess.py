@@ -3,7 +3,7 @@ import copy
 import math
 import numpy as np
 
-from ..annotation import AnnotationDet
+from ..annotation import AnnotationCrowd, AnnotationDet
 from . import utils
 
 
@@ -46,14 +46,17 @@ class Preprocess(metaclass=ABCMeta):
             if isinstance(ann, AnnotationDet):
                 Preprocess.anndet_inverse(ann, meta)
                 continue
+            if isinstance(ann, AnnotationCrowd):
+                Preprocess.anncrowd_inverse(ann, meta)
+                continue
 
             # rotation
             if angle != 0.0:
                 xy = ann.data[:, :2]
-                x_old = xy[:, 0].copy() - (rw - 1)/2
-                y_old = xy[:, 1].copy() - (rh - 1)/2
-                xy[:, 0] = (rw - 1)/2 + cangle * x_old + sangle * y_old
-                xy[:, 1] = (rh - 1)/2 - sangle * x_old + cangle * y_old
+                x_old = xy[:, 0].copy() - (rw - 1) / 2
+                y_old = xy[:, 1].copy() - (rh - 1) / 2
+                xy[:, 0] = (rw - 1) / 2 + cangle * x_old + sangle * y_old
+                xy[:, 1] = (rh - 1) / 2 - sangle * x_old + cangle * y_old
 
             # offset
             ann.data[:, 0] += meta['offset'][0]
@@ -92,3 +95,23 @@ class Preprocess(metaclass=ABCMeta):
         ann.bbox[:2] += meta['offset']
         ann.bbox[:2] /= meta['scale']
         ann.bbox[2:] /= meta['scale']
+
+        if meta['hflip']:
+            w = meta['width_height'][0]
+            ann.bbox[0] = -(ann.bbox[0] + ann.bbox[2]) - 1.0 + w
+
+    @staticmethod
+    def anncrowd_inverse(ann, meta):
+        angle = -meta['rotation']['angle']
+        if angle != 0.0:
+            rw = meta['rotation']['width']
+            rh = meta['rotation']['height']
+            ann.bbox = utils.rotate_box(ann.bbox, rw - 1, rh - 1, angle)
+
+        ann.bbox[:2] += meta['offset']
+        ann.bbox[:2] /= meta['scale']
+        ann.bbox[2:] /= meta['scale']
+
+        if meta['hflip']:
+            w = meta['width_height'][0]
+            ann.bbox[0] = -(ann.bbox[0] + ann.bbox[2]) - 1.0 + w

@@ -14,6 +14,11 @@
   - file: predict_api
   - file: moduledocs
 
+- part: Plugins
+  chapters:
+  - file: plugins_overview
+  - file: plugins_cifar10
+
 - part: Development
   chapters:
   - file: dev

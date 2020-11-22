@@ -1,5 +1,5 @@
 import openpifpaf
-from openpifpaf.datasets.constants import (
+from openpifpaf.plugins.coco.constants import (
     COCO_KEYPOINTS,
     COCO_PERSON_SKELETON,
     COCO_UPRIGHT_POSE,
@@ -12,8 +12,8 @@ def main():
 
     # favicon
     keypoint_painter = openpifpaf.show.KeypointPainter(
-        color_connections=True, linewidth=48, markersize=0)
-    openpifpaf.datasets.constants.draw_ann(
+        line_width=48, marker_size=0)
+    openpifpaf.plugins.coco.constants.draw_ann(
         ann,
         keypoint_painter=keypoint_painter,
         aspect='equal',
@@ -24,8 +24,8 @@ def main():
 
     # logo
     keypoint_painter = openpifpaf.show.KeypointPainter(
-        color_connections=True, linewidth=12)
-    openpifpaf.datasets.constants.draw_ann(
+        line_width=12)
+    openpifpaf.plugins.coco.constants.draw_ann(
         ann,
         keypoint_painter=keypoint_painter,
         frameon=False,

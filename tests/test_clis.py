@@ -24,7 +24,7 @@ def test_predict(batch_size, with_debug, with_dense, tmpdir):
 
     cmd = [
         PYTHON, '-m', 'openpifpaf.predict',
-        '--checkpoint=shufflenetv2k16w',
+        '--checkpoint=shufflenetv2k16',
         '--batch-size={}'.format(batch_size),
         '--loader-workers=0',
         '--json-output', str(tmpdir),
@@ -45,7 +45,7 @@ def test_predict_realistic_resolution(tmpdir):
 
     cmd = [
         PYTHON, '-m', 'openpifpaf.predict',
-        '--checkpoint=shufflenetv2k16w',
+        '--checkpoint=shufflenetv2k16',
         '--batch-size=1',
         '--loader-workers=0',
         '--json-output', str(tmpdir),
@@ -68,7 +68,7 @@ def test_predict_realistic_resolution(tmpdir):
 def test_video(with_debug, tmpdir):
     cmd = [
         PYTHON, '-m', 'openpifpaf.video',
-        '--checkpoint=shufflenetv2k16w',
+        '--checkpoint=shufflenetv2k16',
         '--source=docs/coco/000000081988.jpg',
         '--json-output={}'.format(os.path.join(tmpdir, 'video.json')),
     ]

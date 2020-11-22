@@ -1,7 +1,7 @@
 [BASIC]
 
 variable-rgx=[a-z0-9_]{1,30}$
-good-names=ap,ar,ax,b,d,f,g,gt,h,i,im,lr,n,p,r,s,t,t1,t2,th,v,vs,w,wh,x,x1,x2,xs,y,ys,xy
+good-names=ap,AP,APM,APL,ar,ax,b,d,f,g,gt,h,i,im,lr,n,p,plt,r,s,t,t1,t2,th,v,vs,w,wh,x,x1,x2,xs,y,ys,xy
 
 
 [IMPORTS]

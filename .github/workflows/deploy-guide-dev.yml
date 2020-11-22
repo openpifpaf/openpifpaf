@@ -32,9 +32,11 @@ jobs:
           mv ${fn}_ ${fn}
         done
 
-    # Build the guide
     - name: Build the artwork for guide
       run: cd guide && python artwork.py
+
+    - name: Download data
+      run: cd guide && python download_data.py
 
     - name: Build the guide
       run: cd guide && cp _config_dev.yml _config.yml && jupyter-book build .
