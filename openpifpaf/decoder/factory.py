@@ -25,9 +25,9 @@ def cli(parser, *, workers=None):
     group.add_argument('--seed-threshold', default=utils.CifSeeds.threshold, type=float,
                        help='minimum threshold for seeds')
     assert utils.nms.Detection.instance_threshold == utils.nms.Keypoints.instance_threshold
-    group.add_argument('--instance-threshold', type=float,
-                       default=utils.nms.Keypoints.instance_threshold,
-                       help='filter instances by score')
+    group.add_argument('--instance-threshold', type=float, default=None,
+                       help=('filter instances by score (0.0 with --force-complete-pose '
+                             'else {})'.format(utils.nms.Keypoints.instance_threshold)))
     group.add_argument('--decoder-workers', default=workers, type=int,
                        help='number of workers for pose decoding')
     group.add_argument('--caf-seeds', default=False, action='store_true',
@@ -52,6 +52,15 @@ def configure(args):
        getattr(args, 'batch_size', 1) > 1 and \
        not args.debug:
         args.decoder_workers = args.batch_size
+    # force complete
+    if args.force_complete_pose:
+        args.keypoint_threshold = 0.0
+        args.keypoint_threshold_rel = 0.0
+    if args.instance_threshold is None:
+        if args.force_complete_pose:
+            args.instance_threshold = 0.0
+        else:
+            args.instance_threshold = utils.nms.Keypoints.instance_threshold
 
     # configure Factory
     Factory.decoder_filter_from_args(args.decoder)
@@ -73,8 +82,6 @@ def configure(args):
     # configure nms
     utils.nms.Detection.instance_threshold = args.instance_threshold
     utils.nms.Keypoints.instance_threshold = args.instance_threshold
-    utils.nms.Keypoints.keypoint_threshold = (
-        args.keypoint_threshold if not args.force_complete_pose else 0.0)
 
     # TODO: caf seeds
     assert not args.caf_seeds, 'not implemented'

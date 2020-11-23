@@ -114,6 +114,7 @@ class CifCaf(Decoder):
         group.add_argument('--force-complete-pose',
                            default=False, action='store_true')
 
+        assert utils.nms.Keypoints.keypoint_threshold == cls.keypoint_threshold
         group.add_argument('--keypoint-threshold', type=float,
                            default=cls.keypoint_threshold,
                            help='filter keypoints by score')
@@ -148,10 +149,10 @@ class CifCaf(Decoder):
         assert args.seed_threshold >= args.keypoint_threshold
 
         cls.force_complete = args.force_complete_pose
-        cls.keypoint_threshold = (args.keypoint_threshold
-                                  if not args.force_complete_pose else 0.0)
-        cls.keypoint_threshold_rel = (args.keypoint_threshold_rel
-                                      if not args.force_complete_pose else 0.0)
+        cls.keypoint_threshold = args.keypoint_threshold
+        utils.nms.Keypoints.keypoint_threshold = args.keypoint_threshold
+        cls.keypoint_threshold_rel = args.keypoint_threshold_rel
+
         cls.greedy = args.greedy
         cls.connection_method = args.connection_method
         cls.dense_coupling = args.dense_connections
