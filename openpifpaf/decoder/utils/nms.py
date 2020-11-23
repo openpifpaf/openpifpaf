@@ -10,8 +10,8 @@ LOG = logging.getLogger(__name__)
 
 class Keypoints:
     suppression = 0.0
-    instance_threshold = 0.0
-    keypoint_threshold = 0.0
+    instance_threshold = 0.15
+    keypoint_threshold = 0.15
     occupancy_visualizer = None
 
     def annotations(self, anns):
@@ -61,7 +61,7 @@ class Keypoints:
 class Detection:
     suppression = 0.1
     suppression_soft = 0.3
-    instance_threshold = 0.0
+    instance_threshold = 0.15
     iou_threshold = 0.7
     iou_threshold_soft = 0.5
 
