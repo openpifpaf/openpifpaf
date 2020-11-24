@@ -61,22 +61,12 @@ def apply(model, outfile, verbose=True, input_w=129, input_h=97):
         model, dummy_input, outfile, verbose=verbose,
         input_names=['input_batch'], output_names=['cif', 'caf'],
         # keep_initializers_as_inputs=True,
-        # opset_version=10,
+        opset_version=11,
         do_constant_folding=True,
-        export_params=True,
-        # dynamic_axes={  # TODO: gives warnings
-        #     'input_batch': {0: 'batch', 2: 'height', 3: 'width'},
-        #     'pif_c': {0: 'batch', 2: 'fheight', 3: 'fwidth'},
-        #     'pif_r': {0: 'batch', 3: 'fheight', 4: 'fwidth'},
-        #     'pif_b': {0: 'batch', 2: 'fheight', 3: 'fwidth'},
-        #     'pif_s': {0: 'batch', 2: 'fheight', 3: 'fwidth'},
-
-        #     'paf_c': {0: 'batch', 2: 'fheight', 3: 'fwidth'},
-        #     'paf_r1': {0: 'batch', 3: 'fheight', 4: 'fwidth'},
-        #     'paf_b1': {0: 'batch', 2: 'fheight', 3: 'fwidth'},
-        #     'paf_r2': {0: 'batch', 3: 'fheight', 4: 'fwidth'},
-        #     'paf_b2': {0: 'batch', 2: 'fheight', 3: 'fwidth'},
-        # },
+        dynamic_axes={
+            "input": {0: 'dynamic'},
+            "cif": {0: 'dynamic'},
+            "caf": {0: 'dynamic'}}
     )
 
 

@@ -5,7 +5,6 @@ import functools
 import logging
 import math
 
-import numpy as np
 import torch
 
 from .. import headmeta
@@ -15,10 +14,11 @@ LOG = logging.getLogger(__name__)
 
 @functools.lru_cache(maxsize=16)
 def index_field_torch(shape, *, device=None, unsqueeze=(0, 0)):
-    yx = np.indices(shape, dtype=np.float32)
-    xy = np.flip(yx, axis=0)
+    assert len(shape) == 2
+    fliprow = torch.arange(shape[1]).repeat(shape[0], 1)
+    flipcol = torch.arange(shape[0]).repeat(shape[1], 1).t()
+    xy = torch.cat([fliprow.unsqueeze(0), flipcol.unsqueeze(0)])
 
-    xy = torch.from_numpy(xy.copy())
     if device is not None:
         xy = xy.to(device, non_blocking=True)
 
