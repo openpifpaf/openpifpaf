@@ -146,7 +146,12 @@ class CifCaf(Decoder):
     def configure(cls, args: argparse.Namespace):
         """Take the parsed argument parser output and configure class variables."""
         # check consistency
-        assert args.seed_threshold >= args.keypoint_threshold
+        if args.seed_threshold < args.keypoint_threshold:
+            LOG.warning(
+                'consistency: decreasing keypoint threshold to seed threshold of %f',
+                args.seed_threshold,
+            )
+            args.keypoint_threshold = args.seed_threshold
 
         cls.force_complete = args.force_complete_pose
         cls.keypoint_threshold = args.keypoint_threshold
