@@ -21,7 +21,9 @@ openpifpaf/functional.html
 # guide
 guide/_build/
 guide/coco/*.predictions.png
+guide/coco/*.predictions.jpeg
 guide/coco/*.predictions.json
+guide/coco_debug_example
 guide/logo.png
 guide/favicon.png
 guide/profile_decoder.1.json
