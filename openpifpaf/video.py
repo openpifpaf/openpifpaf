@@ -218,8 +218,6 @@ def main():
 
         if ax is None:
             ax, ax_second = animation.frame_init(image)
-        visualizer.Base.image(image)
-        visualizer.Base.common_ax = ax_second if args.separate_debug_ax else ax
 
         image_pil = PIL.Image.fromarray(image)
         meta = {
@@ -229,7 +227,9 @@ def main():
             'valid_area': np.array([0.0, 0.0, image_pil.size[0], image_pil.size[1]]),
         }
         processed_image, _, meta = preprocess(image_pil, [], meta)
+        visualizer.Base.image(image, meta=meta)
         visualizer.Base.processed_image(processed_image)
+        visualizer.Base.common_ax = ax_second if args.separate_debug_ax else ax
         LOG.debug('preprocessing time %.3fs', time.time() - start)
 
         preds = processor.batch(model, torch.unsqueeze(processed_image, 0), device=args.device)[0]

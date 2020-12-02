@@ -23,6 +23,7 @@ class Base:
 
     _image = None
     _processed_image = None
+    _image_meta = None
     _ground_truth: List[annotation.Base] = None
 
     def __init__(self, head_name):
@@ -32,12 +33,14 @@ class Base:
         LOG.debug('%s: indices = %s', head_name, self.indices)
 
     @staticmethod
-    def image(image):
+    def image(image, meta=None):
         if image is None:
             Base._image = None
+            Base._image_meta = None
             return
 
         Base._image = np.asarray(image)
+        Base._image_meta = meta
 
     @classmethod
     def processed_image(cls, image):
@@ -56,6 +59,7 @@ class Base:
     @staticmethod
     def reset():
         Base._image = None
+        Base._image_meta = None
         Base._processed_image = None
         Base._ground_truth = None
 
