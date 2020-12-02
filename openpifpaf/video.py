@@ -244,7 +244,7 @@ def main():
                     'predictions': [ann.json_data() for ann in preds]
                 }, f, separators=(',', ':'))
                 f.write('\n')
-        if not args.json_output or args.video_output \
+        if (not args.json_output or args.video_output) \
            and (args.separate_debug_ax or not (args.debug or args.debug_indices)):
             ax.imshow(image)
             annotation_painter.annotations(ax, preds)
