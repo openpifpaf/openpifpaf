@@ -211,7 +211,7 @@ class KeypointPainter:
         LOG.debug('color connections = %s, lw = %d, marker = %d',
                   self.monocolor_connections, self.line_width, self.marker_size)
 
-    def _draw_skeleton(self, ax, x, y, v, *, skeleton, skeleton_mask=None, color=None, **kwargs):
+    def _draw_skeleton(self, ax, x, y, v, *, skeleton, skeleton_mask=None, color=None, alpha=1.0, **kwargs):
         if not np.any(v > 0):
             return
 
@@ -239,6 +239,7 @@ class KeypointPainter:
             linewidths=kwargs.get('linewidth', self.line_width),
             linestyles=kwargs.get('linestyle', line_styles),
             capstyle='round',
+            alpha=alpha,
         ))
 
         # joints
@@ -247,6 +248,7 @@ class KeypointPainter:
             color=color if self.monocolor_connections else 'white',
             edgecolor='k' if self.highlight_invisible else None,
             zorder=2,
+            alpha=alpha,
         )
 
         # highlight joints
@@ -260,6 +262,7 @@ class KeypointPainter:
                 color=color if self.monocolor_connections else 'white',
                 edgecolor='k' if self.highlight_invisible else None,
                 zorder=2,
+                alpha=alpha,
             )
 
     def keypoints(self, ax, keypoint_sets, *,
@@ -306,7 +309,7 @@ class KeypointPainter:
             ax.text(x, y - linewidth, '{:.4f}'.format(score), fontsize=8, color=color)
 
     @classmethod
-    def _draw_text(cls, ax, x, y, v, text, color, *, subtext=None):
+    def _draw_text(cls, ax, x, y, v, text, color, *, subtext=None, alpha=1.0):
         if cls.font_size == 0:
             return
         if not np.any(v > 0):
@@ -322,7 +325,7 @@ class KeypointPainter:
             coord_y = y[v > 0][coord_i[0]]
             coord_x = x[v > 0][coord_i[0]]
 
-        bbox_config = {'facecolor': color, 'alpha': cls.textbox_alpha, 'linewidth': 0}
+        bbox_config = {'facecolor': color, 'alpha': alpha * cls.textbox_alpha, 'linewidth': 0}
         ax.annotate(
             text,
             (coord_x, coord_y),
@@ -331,6 +334,7 @@ class KeypointPainter:
             textcoords='offset points',
             color=cls.text_color,
             bbox=bbox_config,
+            alpha=alpha,
         )
         if subtext is not None:
             ax.annotate(
@@ -341,6 +345,7 @@ class KeypointPainter:
                 textcoords='offset points',
                 color=cls.text_color,
                 bbox=bbox_config,
+                alpha=alpha,
             )
 
     @staticmethod
@@ -369,7 +374,7 @@ class KeypointPainter:
             )
 
     def annotations(self, ax, annotations, *,
-                    color=None, colors=None, texts=None, subtexts=None):
+                    color=None, colors=None, texts=None, subtexts=None, **kwargs):
         for i, ann in enumerate(annotations):
             this_color = color
             if this_color is None:
@@ -395,9 +400,9 @@ class KeypointPainter:
             elif not text_is_score and ann.score():
                 subtext = '{:.0%}'.format(ann.score())
 
-            self.annotation(ax, ann, color=this_color, text=text, subtext=subtext)
+            self.annotation(ax, ann, color=this_color, text=text, subtext=subtext, **kwargs)
 
-    def annotation(self, ax, ann, *, color=None, text=None, subtext=None):
+    def annotation(self, ax, ann, *, color=None, text=None, subtext=None, alpha=1.0):
         if color is None:
             color = 0
         if isinstance(color, (int, np.integer)):
@@ -428,7 +433,7 @@ class KeypointPainter:
             ]
 
         self._draw_skeleton(ax, x, y, v, color=color,
-                            skeleton=ann.skeleton, skeleton_mask=skeleton_mask)
+                            skeleton=ann.skeleton, skeleton_mask=skeleton_mask, alpha=alpha)
 
         if self.show_joint_scales and ann.joint_scales is not None:
             self._draw_scales(ax, x, y, v, color, ann.joint_scales)
@@ -441,7 +446,7 @@ class KeypointPainter:
             self._draw_box(ax, x_, y_, w_, h_, color, ann.score())
 
         if text is not None:
-            self._draw_text(ax, x, y, v, text, color, subtext=subtext)
+            self._draw_text(ax, x, y, v, text, color, subtext=subtext, alpha=alpha)
 
         if self.show_decoding_order and hasattr(ann, 'decoding_order'):
             self._draw_decoding_order(ax, ann.decoding_order)
