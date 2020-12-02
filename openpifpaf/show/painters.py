@@ -349,13 +349,14 @@ class KeypointPainter:
             )
 
     @staticmethod
-    def _draw_scales(ax, xs, ys, vs, color, scales):
+    def _draw_scales(ax, xs, ys, vs, color, scales, alpha=1.0):
         for x, y, v, scale in zip(xs, ys, vs, scales):
             if v == 0.0:
                 continue
             ax.add_patch(
                 matplotlib.patches.Rectangle(
-                    (x - scale / 2, y - scale / 2), scale, scale, fill=False, color=color))
+                    (x - scale / 2, y - scale / 2), scale, scale,
+                    fill=False, color=color, alpha=alpha))
 
     @classmethod
     def _draw_joint_confidences(cls, ax, xs, ys, vs, color):
@@ -436,7 +437,7 @@ class KeypointPainter:
                             skeleton=ann.skeleton, skeleton_mask=skeleton_mask, alpha=alpha)
 
         if self.show_joint_scales and ann.joint_scales is not None:
-            self._draw_scales(ax, x, y, v, color, ann.joint_scales)
+            self._draw_scales(ax, x, y, v, color, ann.joint_scales, alpha=alpha)
 
         if self.show_joint_confidences:
             self._draw_joint_confidences(ax, x, y, v, color)
