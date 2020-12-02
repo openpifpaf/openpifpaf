@@ -87,6 +87,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     parser.add_argument('--max-frames', type=int, default=None)
     parser.add_argument('--crop', type=int, nargs=4, default=None, help='left top right bottom')
     parser.add_argument('--rotate', default=None, choices=('left', 'right', '180'))
+    parser.add_argument('--separate-debug-ax', default=False, action='store_true')
     args = parser.parse_args()
     args.debug_images = False
 
@@ -166,7 +167,7 @@ def main():
 
     animation = show.AnimationFrame(
         video_output=args.video_output,
-        second_visual=args.debug or args.debug_indices,
+        second_visual=args.separate_debug_ax,
     )
     last_loop = time.time()
     for frame_i, (ax, ax_second) in enumerate(animation.iter()):
@@ -218,7 +219,7 @@ def main():
         if ax is None:
             ax, ax_second = animation.frame_init(image)
         visualizer.Base.image(image)
-        visualizer.Base.common_ax = ax_second
+        visualizer.Base.common_ax = ax_second if args.separate_debug_ax else ax
 
         image_pil = PIL.Image.fromarray(image)
         meta = {
@@ -243,7 +244,8 @@ def main():
                     'predictions': [ann.json_data() for ann in preds]
                 }, f, separators=(',', ':'))
                 f.write('\n')
-        if not args.json_output or args.video_output:
+        if not args.json_output or args.video_output \
+           and (args.separate_debug_ax or not (args.debug or args.debug_indices)):
             ax.imshow(image)
             annotation_painter.annotations(ax, preds)
 
