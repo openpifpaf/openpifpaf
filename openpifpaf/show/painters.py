@@ -211,7 +211,8 @@ class KeypointPainter:
         LOG.debug('color connections = %s, lw = %d, marker = %d',
                   self.monocolor_connections, self.line_width, self.marker_size)
 
-    def _draw_skeleton(self, ax, x, y, v, *, skeleton, skeleton_mask=None, color=None, alpha=1.0, **kwargs):
+    def _draw_skeleton(self, ax, x, y, v, *,
+                       skeleton, skeleton_mask=None, color=None, alpha=1.0, **kwargs):
         if not np.any(v > 0):
             return
 
