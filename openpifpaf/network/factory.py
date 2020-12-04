@@ -53,6 +53,8 @@ BASE_FACTORIES = {
         'shufflenetv2k16', [4, 8, 4], [24, 348, 696, 1392, 1392]),
     'shufflenetv2k20': lambda: basenetworks.ShuffleNetV2K(
         'shufflenetv2k20', [5, 10, 5], [32, 512, 1024, 2048, 2048]),
+    'shufflenetv2k25': lambda: basenetworks.ShuffleNetV2K(
+        'shufflenetv2k25', [6, 14, 5], [32, 512, 1024, 2048, 2048]),
     'shufflenetv2k30': lambda: basenetworks.ShuffleNetV2K(
         'shufflenetv2k30', [8, 16, 6], [32, 512, 1024, 2048, 2048]),
     'shufflenetv2k44': lambda: basenetworks.ShuffleNetV2K(
