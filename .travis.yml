@@ -39,7 +39,7 @@ matrix:
       python: 3.7
       before_install:
         - pip3 install --upgrade pip setuptools
-        - pip3 install torch==1.3.1+cpu torchvision==0.4.1+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html
+        - pip3 install torch==1.3.1+cpu torchvision==0.4.2+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html
     - name: "Python 3.7 on Linux (PyTorch 1.5.1)"
       if: branch = master
       python: 3.7
