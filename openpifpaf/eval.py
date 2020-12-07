@@ -30,6 +30,12 @@ def default_output_name(args):
     if args.coco_eval_long_edge is not None and args.coco_eval_long_edge != 641:
         output += '-cocoedge{}'.format(args.coco_eval_long_edge)
 
+    # dense
+    if args.dense_connections:
+        output += '-dense'
+        if args.dense_connections != 1.0:
+            output += '{}'.format(args.dense_connections)
+
     if args.two_scale:
         output += '-twoscale'
 
