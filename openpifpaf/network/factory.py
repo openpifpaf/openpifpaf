@@ -18,7 +18,8 @@ CHECKPOINT_URLS = {
     'mobilenetv2': ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
                     'v0.12a5/mobilenetv2-201112-193315-cocokp-1728a9f5.pkl'),
     'resnet18': PRETRAINED_UNAVAILABLE,
-    'resnet50': PRETRAINED_UNAVAILABLE,
+    'resnet50': ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
+                 'v0.12a7/resnet50-201123-175351-cocokp-o10s-127f7fdf.pkl'),
     'resnet101': PRETRAINED_UNAVAILABLE,
     'resnet152': PRETRAINED_UNAVAILABLE,
     'shufflenetv2x1': PRETRAINED_UNAVAILABLE,
