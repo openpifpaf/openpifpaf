@@ -49,13 +49,14 @@ BASE_FACTORIES = {
     'shufflenetv2x1': lambda: basenetworks.ShuffleNetV2(
         'shufflenetv2x1', torchvision.models.shufflenet_v2_x1_0, 1024),
     'shufflenetv2x2': lambda: basenetworks.ShuffleNetV2(
+        # defined in torchvision as [4, 8, 4], [24, 244, 488, 976, 2048]
         'shufflenetv2x2', torchvision.models.shufflenet_v2_x2_0),
     'shufflenetv2k16': lambda: basenetworks.ShuffleNetV2K(
         'shufflenetv2k16', [4, 8, 4], [24, 348, 696, 1392, 1392]),
     'shufflenetv2k20': lambda: basenetworks.ShuffleNetV2K(
         'shufflenetv2k20', [5, 10, 5], [32, 512, 1024, 2048, 2048]),
-    'shufflenetv2k25': lambda: basenetworks.ShuffleNetV2K(
-        'shufflenetv2k25', [6, 13, 6], [42, 640, 1280, 2560, 2560]),
+    'shufflenetv2kx5': lambda: basenetworks.ShuffleNetV2K(
+        'shufflenetv2kx5', [6, 13, 6], [42, 640, 1280, 2560, 2560]),
     'shufflenetv2k30': lambda: basenetworks.ShuffleNetV2K(
         'shufflenetv2k30', [8, 16, 6], [32, 512, 1024, 2048, 2048]),
     'shufflenetv2k44': lambda: basenetworks.ShuffleNetV2K(
