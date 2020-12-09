@@ -1,5 +1,6 @@
 """Train a neural net."""
 
+import argparse
 import copy
 import hashlib
 import logging
@@ -13,45 +14,38 @@ LOG = logging.getLogger(__name__)
 
 
 class Trainer():
+    epochs = None
+    n_train_batches = None
+    n_val_batches = None
+
+    clip_grad_norm = 0.0
+    log_interval = 11
+    val_interval = 1
+
+    fix_batch_norm = False
+    stride_apply = 1
+    ema_decay = 0.01
+    train_profile = None
+
     def __init__(self, model, loss, optimizer, out, *,
                  lr_scheduler=None,
-                 log_interval=10,
                  device=None,
-                 fix_batch_norm=False,
-                 stride_apply=1,
-                 ema_decay=None,
-                 train_profile=None,
-                 model_meta_data=None,
-                 clip_grad_norm=0.0,
-                 val_interval=1,
-                 n_train_batches=None,
-                 n_val_batches=None):
+                 model_meta_data=None):
         self.model = model
         self.loss = loss
         self.optimizer = optimizer
         self.out = out
         self.lr_scheduler = lr_scheduler
-
-        self.log_interval = log_interval
         self.device = device
-        self.fix_batch_norm = fix_batch_norm
-        self.stride_apply = stride_apply
+        self.model_meta_data = model_meta_data
 
-        self.ema_decay = ema_decay
         self.ema = None
         self.ema_restore_params = None
 
-        self.clip_grad_norm = clip_grad_norm
         self.n_clipped_grad = 0
         self.max_norm = 0.0
 
-        self.val_interval = val_interval
-        self.n_train_batches = n_train_batches
-        self.n_val_batches = n_val_batches
-
-        self.model_meta_data = model_meta_data
-
-        if train_profile:
+        if self.train_profile:
             # monkey patch to profile self.train_batch()
             self.trace_counter = 0
             self.train_batch_without_profile = self.train_batch
@@ -61,7 +55,7 @@ class Trainer():
                     result = self.train_batch_without_profile(*args, **kwargs)
                 print(prof.key_averages())
                 self.trace_counter += 1
-                tracefilename = train_profile.replace(
+                tracefilename = self.train_profile.replace(
                     '.json', '.{}.json'.format(self.trace_counter))
                 LOG.info('writing trace file %s', tracefilename)
                 prof.export_chrome_trace(tracefilename)
@@ -73,6 +67,49 @@ class Trainer():
             'type': 'config',
             'field_names': self.loss.field_names,
         })
+
+    @classmethod
+    def cli(cls, parser: argparse.ArgumentParser):
+        group = parser.add_argument_group('trainer')
+        group.add_argument('--epochs', type=int,
+                           help='number of epochs to train')
+        group.add_argument('--train-batches', default=None, type=int,
+                           help='number of train batches')
+        group.add_argument('--val-batches', default=None, type=int,
+                           help='number of val batches')
+
+        group.add_argument('--clip-grad-norm', default=cls.clip_grad_norm, type=float,
+                           help='clip grad norm: specify largest change for single param')
+        group.add_argument('--log-interval', default=cls.log_interval, type=int,
+                           help='log loss every n steps')
+        group.add_argument('--val-interval', default=cls.val_interval, type=int,
+                           help='validation run every n epochs')
+
+        group.add_argument('--stride-apply', default=cls.stride_apply, type=int,
+                           help='apply and reset gradients every n batches')
+        assert not cls.fix_batch_norm
+        group.add_argument('--fix-batch-norm',
+                           default=False, const=True, type=int, nargs='?',
+                           help='fix batch norm running statistics (optionally specify epoch)')
+        group.add_argument('--ema', default=cls.ema_decay, type=float,
+                           help='ema decay constant')
+        group.add_argument('--profile', default=cls.train_profile,
+                           help='enables profiling. specify path for chrome tracing file')
+
+    @classmethod
+    def configure(cls, args: argparse.Namespace):
+        cls.epochs = args.epochs
+        cls.n_train_batches = args.train_batches
+        cls.n_val_batches = args.val_batches
+
+        cls.clip_grad_norm = args.clip_grad_norm
+        cls.log_interval = args.log_interval
+        cls.val_interval = args.val_interval
+
+        cls.fix_batch_norm = args.fix_batch_norm
+        cls.stride_apply = args.stride_apply
+        cls.ema_decay = args.ema
+        cls.train_profile = args.profile
 
     def lr(self):
         for param_group in self.optimizer.param_groups:
@@ -104,10 +141,10 @@ class Trainer():
             p.data.copy_(ema_p)
         self.ema_restore_params = None
 
-    def loop(self, train_scenes, val_scenes, epochs, start_epoch=0):
-        if epochs >= start_epoch:
+    def loop(self, train_scenes, val_scenes, start_epoch=0):
+        if start_epoch >= self.epochs:
             raise Exception('start epoch ({}) >= total epochs ({})'
-                            ''.format(start_epoch, epochs))
+                            ''.format(start_epoch, self.epochs))
 
         if self.lr_scheduler is not None:
             with warnings.catch_warnings():
@@ -115,15 +152,15 @@ class Trainer():
                 for _ in range(start_epoch * len(train_scenes)):
                     self.lr_scheduler.step()
 
-        for epoch in range(start_epoch, epochs):
+        for epoch in range(start_epoch, self.epochs):
             if epoch == 0:
                 self.write_model(0, final=False)
 
             self.train(train_scenes, epoch)
 
             if (epoch + 1) % self.val_interval == 0 \
-               or epoch + 1 == epochs:
-                self.write_model(epoch + 1, epoch + 1 == epochs)
+               or epoch + 1 == self.epochs:
+                self.write_model(epoch + 1, epoch + 1 == self.epochs)
                 self.val(val_scenes, epoch + 1)
 
     def train_batch(self, data, targets, apply_gradients=True):  # pylint: disable=method-hidden
