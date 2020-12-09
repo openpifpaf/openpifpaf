@@ -126,7 +126,7 @@ def main():
             'hostname': socket.gethostname(),
         },
     )
-    trainer.loop(train_loader, val_loader, args.epochs, start_epoch=start_epoch)
+    trainer.loop(train_loader, val_loader, start_epoch=start_epoch)
 
 
 if __name__ == '__main__':
