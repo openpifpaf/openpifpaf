@@ -105,6 +105,10 @@ class Trainer():
         self.ema_restore_params = None
 
     def loop(self, train_scenes, val_scenes, epochs, start_epoch=0):
+        if epochs >= start_epoch:
+            raise Exception('start epoch ({}) >= total epochs ({})'
+                            ''.format(start_epoch, epochs))
+
         if self.lr_scheduler is not None:
             with warnings.catch_warnings():
                 warnings.simplefilter('ignore')
