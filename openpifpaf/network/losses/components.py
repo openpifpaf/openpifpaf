@@ -8,7 +8,7 @@ LOG = logging.getLogger(__name__)
 
 class Bce(torch.nn.Module):
     background_weight = 1.0
-    focal_gamma = 0.0
+    focal_gamma = 1.0
 
     def __init__(self, *, detach_focal=False):
         super().__init__()
