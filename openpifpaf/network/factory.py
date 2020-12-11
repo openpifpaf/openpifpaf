@@ -64,8 +64,8 @@ BASE_FACTORIES = {
     'squeezenet': lambda: basenetworks.SqueezeNet('squeezenet', torchvision.models.squeezenet1_1),
 }
 
-HEAD_TYPES = set([heads.CompositeField3])
-HEAD_FACTORIES = {
+#: headmeta class to head class
+HEADS = {
     headmeta.Cif: heads.CompositeField3,
     headmeta.Caf: heads.CompositeField3,
     headmeta.CifDet: heads.CompositeField3,
@@ -175,7 +175,7 @@ def factory(
                 head_metas[input_index] = hn.meta
         elif head_metas is not None and head_consolidation == 'create':
             LOG.info('creating new heads')
-            headnets = [HEAD_FACTORIES[h.__class__](h, net_cpu.base_net.out_features)
+            headnets = [HEADS[h.__class__](h, net_cpu.base_net.out_features)
                         for h in head_metas]
             net_cpu.set_head_nets(headnets)
         elif head_metas is not None and head_consolidation == 'filter_and_extend':
@@ -193,7 +193,7 @@ def factory(
                     head_metas[meta_i] = hn.meta
                 else:
                     headnets.append(
-                        HEAD_FACTORIES[meta.__class__](meta, net_cpu.base_net.out_features))
+                        HEADS[meta.__class__](meta, net_cpu.base_net.out_features))
             net_cpu.set_head_nets(headnets)
         elif head_metas is not None:
             raise Exception('head strategy {} unknown'.format(head_consolidation))
@@ -215,7 +215,7 @@ def factory_from_scratch(basename, head_metas) -> nets.Shell:
         raise Exception('basename {} unknown'.format(basename))
 
     basenet = BASE_FACTORIES[basename]()
-    headnets = [HEAD_FACTORIES[h.__class__](h, basenet.out_features) for h in head_metas]
+    headnets = [HEADS[h.__class__](h, basenet.out_features) for h in head_metas]
 
     net_cpu = nets.Shell(basenet, headnets)
     nets.model_defaults(net_cpu)
@@ -226,14 +226,14 @@ def factory_from_scratch(basename, head_metas) -> nets.Shell:
 def configure(args):
     for bn in BASE_TYPES:
         bn.configure(args)
-    for hn in HEAD_TYPES:
+    for hn in set(HEADS.values()):
         hn.configure(args)
 
 
 def cli(parser):
     for bn in BASE_TYPES:
         bn.cli(parser)
-    for hn in HEAD_TYPES:
+    for hn in set(HEADS.values()):
         hn.cli(parser)
 
     group = parser.add_argument_group('network configuration')
