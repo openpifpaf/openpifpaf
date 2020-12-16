@@ -141,10 +141,19 @@ class CifCaf(Decoder):
                            default=False, action='store_true')
         group.add_argument('--ablation-caf-no-rescore',
                            default=False, action='store_true')
+        group.add_argument('--ablation-independent-kp',
+                           default=False, action='store_true')
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
         """Take the parsed argument parser output and configure class variables."""
+        # force complete
+        keypoint_threshold_nms = args.keypoint_threshold
+        if args.force_complete_pose:
+            if not args.ablation_independent_kp:
+                args.keypoint_threshold = 0.0
+            args.keypoint_threshold_rel = 0.0
+            keypoint_threshold_nms = 0.0
         # check consistency
         if args.seed_threshold < args.keypoint_threshold:
             LOG.warning(
@@ -155,7 +164,7 @@ class CifCaf(Decoder):
 
         cls.force_complete = args.force_complete_pose
         cls.keypoint_threshold = args.keypoint_threshold
-        utils.nms.Keypoints.keypoint_threshold = args.keypoint_threshold
+        utils.nms.Keypoints.keypoint_threshold = keypoint_threshold_nms
         cls.keypoint_threshold_rel = args.keypoint_threshold_rel
 
         cls.greedy = args.greedy
@@ -171,7 +180,6 @@ class CifCaf(Decoder):
 
     @classmethod
     def factory(cls, head_metas):
-        # TODO: multi-scale
         if cls.dense_coupling:
             return DenseAdapter.factory(head_metas)
         return [

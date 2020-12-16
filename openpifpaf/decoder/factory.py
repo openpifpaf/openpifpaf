@@ -52,10 +52,6 @@ def configure(args):
        getattr(args, 'batch_size', 1) > 1 and \
        not args.debug:
         args.decoder_workers = args.batch_size
-    # force complete
-    if args.force_complete_pose:
-        args.keypoint_threshold = 0.0
-        args.keypoint_threshold_rel = 0.0
     if args.instance_threshold is None:
         if args.force_complete_pose:
             args.instance_threshold = 0.0

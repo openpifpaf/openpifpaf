@@ -46,6 +46,7 @@ def cli():
     parser.add_argument('--v012-ablation-1', default=False, action='store_true')
     parser.add_argument('--v012-ablation-2', default=False, action='store_true')
     parser.add_argument('--v012-ablation-3', default=False, action='store_true')
+    parser.add_argument('--v012-ablation-4', default=False, action='store_true')
     group = parser.add_argument_group('logging')
     group.add_argument('--debug', default=False, action='store_true',
                        help='print debug messages')
@@ -75,6 +76,9 @@ def cli():
         if not any(l.startswith('--seed-threshold') for l in eval_args):
             LOG.info('adding "--seed-threshold=0.2" to the argument list')
             eval_args.append('--seed-threshold=0.2')
+        if not any(l.startswith('--decoder') for l in eval_args):
+            LOG.info('adding "--decoder=cifcaf:0" to the argument list')
+            eval_args.append('--decoder=cifcaf:0')
 
     # generate a default output filename
     if args.output is None:
@@ -252,6 +256,11 @@ def main():
             Ablation('.nr.nms.nofc', eval_args_nofc + ['--ablation-cifseeds-no-rescore',
                                                        '--ablation-cifseeds-nms',
                                                        '--ablation-caf-no-rescore']),
+        ]
+    if args.v012_ablation_4:
+        ablations += [
+            Ablation('.indkp', eval_args + ['--ablation-independent-kp',
+                                            '--keypoint-threshold=0.2']),
         ]
 
     configs = [
