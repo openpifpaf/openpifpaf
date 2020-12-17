@@ -43,8 +43,10 @@ def cli(parser):
     group.add_argument('--show-frontier-order', default=False, action='store_true')
     group.add_argument('--show-only-decoded-connections', default=False, action='store_true')
 
-    group.add_argument('--video-fps', default=AnimationFrame.video_fps, type=float)
-    group.add_argument('--video-dpi', default=AnimationFrame.video_dpi, type=float)
+    group.add_argument('--video-fps', default=AnimationFrame.video_fps, type=float,
+                       help='output video frame rate (frames per second)')
+    group.add_argument('--video-dpi', default=AnimationFrame.video_dpi, type=float,
+                       help='output video resolution (dots per inch)')
 
 
 def configure(args):
