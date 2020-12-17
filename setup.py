@@ -64,6 +64,7 @@ setup(
         'dev': [
             'flameprof',
             'jupyter-book>=0.8.0',
+            'sphinxcontrib-bibtex<2.0.0',
             'matplotlib',
             'nbdime',
             'nbstripout',
