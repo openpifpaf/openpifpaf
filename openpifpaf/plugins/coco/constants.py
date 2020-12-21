@@ -245,7 +245,7 @@ COCO_CATEGORIES = [
 ]
 
 
-def draw_ann(ann, *, filename=None, margin=0.5, aspect=None, keypoint_painter=None, **kwargs):
+def draw_ann(ann, *, filename=None, margin=0.5, aspect=None, keypoint_painter=None, ann_bg=None, **kwargs):
     import openpifpaf  # pylint: disable=import-outside-toplevel
 
     bbox = ann.bbox()
@@ -266,6 +266,9 @@ def draw_ann(ann, *, filename=None, margin=0.5, aspect=None, keypoint_painter=No
         if aspect is not None:
             ax.set_aspect(aspect)
 
+        if ann_bg is not None:
+            keypoint_painter.annotation(ax, ann_bg, alpha=0.2)
+
         keypoint_painter.annotation(ax, ann)
 
 
@@ -285,17 +288,17 @@ def draw_skeletons(pose):
     ann.set(pose, np.array(COCO_PERSON_SIGMAS) * scale)
     draw_ann(ann, filename='docs/skeleton_coco.png')
 
-    ann = openpifpaf.Annotation(keypoints=COCO_KEYPOINTS,
-                                skeleton=KINEMATIC_TREE_SKELETON,
-                                score_weights=COCO_PERSON_SCORE_WEIGHTS)
-    ann.set(pose, np.array(COCO_PERSON_SIGMAS) * scale)
-    draw_ann(ann, filename='docs/skeleton_kinematic_tree.png')
+    ann_kin = openpifpaf.Annotation(keypoints=COCO_KEYPOINTS,
+                                    skeleton=KINEMATIC_TREE_SKELETON,
+                                    score_weights=COCO_PERSON_SCORE_WEIGHTS)
+    ann_kin.set(pose, np.array(COCO_PERSON_SIGMAS) * scale)
+    draw_ann(ann_kin, filename='docs/skeleton_kinematic_tree.png')
 
-    ann = openpifpaf.Annotation(keypoints=COCO_KEYPOINTS,
-                                skeleton=DENSER_COCO_PERSON_SKELETON,
-                                score_weights=COCO_PERSON_SCORE_WEIGHTS)
-    ann.set(pose, np.array(COCO_PERSON_SIGMAS) * scale)
-    draw_ann(ann, filename='docs/skeleton_dense.png')
+    ann_dense = openpifpaf.Annotation(keypoints=COCO_KEYPOINTS,
+                                      skeleton=DENSER_COCO_PERSON_SKELETON,
+                                      score_weights=COCO_PERSON_SCORE_WEIGHTS)
+    ann_dense.set(pose, np.array(COCO_PERSON_SIGMAS) * scale)
+    draw_ann(ann, ann_bg=ann_dense, filename='docs/skeleton_dense.png')
 
 
 def print_associations():
