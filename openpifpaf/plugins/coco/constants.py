@@ -245,7 +245,13 @@ COCO_CATEGORIES = [
 ]
 
 
-def draw_ann(ann, *, filename=None, margin=0.5, aspect=None, keypoint_painter=None, ann_bg=None, **kwargs):
+def draw_ann(ann, *,
+             filename=None,
+             margin=0.5,
+             aspect=None,
+             keypoint_painter=None,
+             ann_bg=None,
+             **kwargs):
     import openpifpaf  # pylint: disable=import-outside-toplevel
 
     bbox = ann.bbox()
