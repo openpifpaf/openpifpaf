@@ -531,7 +531,7 @@ class EvalPlots():
 
         # plot
         with show.canvas(nrows=nrows, ncols=ncols, figsize=(4 * ncols, 3 * nrows),
-                         sharex=True, sharey=self.share_y) as axs:
+                         sharex=True, sharey=self.share_y, squeeze=False) as axs:
             for ax_row, metric_row in zip(axs, all_rows):
                 for ax, (dataset, metric_name) in zip(ax_row, metric_row):
                     self.fill_metric(ax, dataset, metric_name)
