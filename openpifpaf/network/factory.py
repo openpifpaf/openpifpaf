@@ -14,19 +14,20 @@ from . import basenetworks, heads, nets
 PRETRAINED_UNAVAILABLE = object()
 
 # Dataset cocokp is implied. All other datasets need to be explicit.
+# Use http instead of https to avoid SSL certificate issues on Windows.
 CHECKPOINT_URLS = {
-    'mobilenetv2': ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
+    'mobilenetv2': ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
                     'v0.12a5/mobilenetv2-201112-193315-cocokp-1728a9f5.pkl'),
     'resnet18': PRETRAINED_UNAVAILABLE,
-    'resnet50': ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
+    'resnet50': ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
                  'v0.12a7/resnet50-201123-175351-cocokp-o10s-127f7fdf.pkl'),
     'resnet101': PRETRAINED_UNAVAILABLE,
     'resnet152': PRETRAINED_UNAVAILABLE,
     'shufflenetv2x1': PRETRAINED_UNAVAILABLE,
     'shufflenetv2x2': PRETRAINED_UNAVAILABLE,
-    'shufflenetv2k16': ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
+    'shufflenetv2k16': ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
                         'v0.12a7/shufflenetv2k16-201123-174947-cocokp-o10s-bdd04c8f.pkl'),
-    'shufflenetv2k30': ('https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
+    'shufflenetv2k30': ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
                         'v0.12a7/shufflenetv2k30-201123-174748-cocokp-o10s-bc89e3d5.pkl'),
     'shufflenetv2k44': PRETRAINED_UNAVAILABLE,
 }
