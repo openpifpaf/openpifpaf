@@ -262,7 +262,7 @@ class CifCaf(Decoder):
         keypoint_score = np.sqrt(new_xysv[3] * xyv[2])  # geometric mean
         if keypoint_score < self.keypoint_threshold:
             return 0.0, 0.0, 0.0, 0.0
-        if keypoint_score / max(0.01, xyv[2]) < self.keypoint_threshold_rel:
+        if keypoint_score < xyv[2] * self.keypoint_threshold_rel:
             return 0.0, 0.0, 0.0, 0.0
         xy_scale_t = max(0.0, new_xysv[2])
 
