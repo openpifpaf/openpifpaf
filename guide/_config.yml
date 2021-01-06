@@ -1,9 +1,9 @@
 # Book settings
 title: OpenPifPaf Guide
-author: Sven Kreiss
+author: <a href="https://www.svenkreiss.com">Sven Kreiss</a> and <a href="https://github.com/vita-epfl/openpifpaf/graphs/contributors">contributors</a>
+copyright: "2020-2021"
 email: research@svenkreiss.com
 logo: logo.png
-discription: Guide for OpenPifPaf.
 
 # latex:
 #   latex_documents:
@@ -11,9 +11,7 @@ discription: Guide for OpenPifPaf.
 
 html:
   favicon: favicon.png
-  extra_footer: |
-    &copy; Copyright 2020.
-    <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/80x15.png" /></a> Licensed under <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">CC-BY-NC-SA</a>.
+  extra_navbar: ""
 
 # Information about where the book exists on the web
 repository:
@@ -28,7 +26,6 @@ sphinx:
   extra_extensions: [sphinx.ext.autodoc]
   config:
     autodoc_member_order: bysource
-    html_show_copyright: false
 
 execute:
   timeout: 600

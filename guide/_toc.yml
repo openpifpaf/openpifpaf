@@ -2,22 +2,25 @@
 
 - part: Getting Started
   chapters:
-  - file: datasets
-  - file: train
   - file: predict_cli
-  - file: cli_help
   - file: examples
   - file: faq
 
-- part: API
+- part: Custom Models
   chapters:
-  - file: predict_api
-  - file: moduledocs
+  - file: datasets
+  - file: train
+  - file: cli_help
 
 - part: Plugins
   chapters:
   - file: plugins_overview
   - file: plugins_cifar10
+
+- part: API
+  chapters:
+  - file: predict_api
+  - file: moduledocs
 
 - part: Development
   chapters:
