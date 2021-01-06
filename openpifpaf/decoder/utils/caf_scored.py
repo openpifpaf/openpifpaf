@@ -12,7 +12,7 @@ LOG = logging.getLogger(__name__)
 
 
 class CafScored:
-    default_score_th = 0.1
+    default_score_th = 0.2
     ablation_no_rescore = False
 
     def __init__(self, cifhr, *, score_th=None, cif_floor=0.1):
