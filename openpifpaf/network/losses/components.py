@@ -8,7 +8,8 @@ LOG = logging.getLogger(__name__)
 
 class Bce(torch.nn.Module):
     background_weight = 1.0
-    focal_gamma = 1.0
+    focal_alpha = 1.0
+    focal_gamma = 0.0
 
     def __init__(self, *, detach_focal=False):
         super().__init__()
@@ -19,12 +20,15 @@ class Bce(torch.nn.Module):
         group = parser.add_argument_group('Bce Loss')
         group.add_argument('--background-weight', default=cls.background_weight, type=float,
                            help='BCE weight where ground truth is background')
+        group.add_argument('--focal-alpha', default=cls.focal_alpha, type=float,
+                           help='scale parameter of focal loss')
         group.add_argument('--focal-gamma', default=cls.focal_gamma, type=float,
                            help='when > 0.0, use focal loss with the given gamma')
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
         cls.background_weight = args.background_weight
+        cls.focal_alpha = args.focal_alpha
         cls.focal_gamma = args.focal_gamma
 
     def forward(self, x, t):  # pylint: disable=arguments-differ
@@ -42,6 +46,8 @@ class Bce(torch.nn.Module):
             if self.detach_focal:
                 focal = focal.detach()
             bce = focal * bce
+        if self.focal_alpha != 1.0:
+            bce = self.focal_alpha * bce
 
         weight_mask = t_zeroone != t
         bce[weight_mask] = bce[weight_mask] * t[weight_mask]
