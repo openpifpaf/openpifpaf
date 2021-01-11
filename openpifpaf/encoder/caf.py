@@ -1,6 +1,6 @@
 import dataclasses
 import logging
-from typing import ClassVar
+from typing import ClassVar, List, Tuple
 
 import numpy as np
 import torch
@@ -20,28 +20,41 @@ class Caf:
     v_threshold: int = 0
     bmin: float = 1.0  #: in pixels
     visualizer: CafVisualizer = None
+    fill_plan: List[Tuple[int, int, int]] = None
 
     min_size: ClassVar[int] = 3
     fixed_size: ClassVar[bool] = False
     aspect_ratio: ClassVar[float] = 0.0
     padding: ClassVar[int] = 10
 
+    def __post_init__(self):
+        if self.rescaler is None:
+            self.rescaler = AnnRescaler(self.meta.stride, self.meta.pose)
+
+        if self.visualizer is None:
+            self.visualizer = CafVisualizer(self.meta)
+
+        if self.fill_plan is None:
+            self.fill_plan = [
+                (caf_i, joint1i - 1, joint2i - 1)
+                for caf_i, (joint1i, joint2i) in enumerate(self.meta.skeleton)
+            ]
+
     def __call__(self, image, anns, meta):
         return CafGenerator(self)(image, anns, meta)
 
 
-class CafGenerator:
+class AssociationFiller:
     def __init__(self, config: Caf):
         self.config = config
+        self.rescaler = config.rescaler
+        self.visualizer = config.visualizer
 
-        self.rescaler = config.rescaler or AnnRescaler(
-            config.meta.stride, config.meta.pose)
-        self.visualizer = config.visualizer or CafVisualizer(config.meta)
-
-        self.skeleton_m1 = np.asarray(config.meta.skeleton) - 1
         self.sparse_skeleton_m1 = (
             np.asarray(config.meta.sparse_skeleton) - 1
-            if config.meta.sparse_skeleton else None)
+            if getattr(config.meta, 'sparse_skeleton', None) is not None
+            else None
+        )
 
         if self.config.fixed_size:
             assert self.config.aspect_ratio == 0.0
@@ -50,14 +63,17 @@ class CafGenerator:
                   config.meta.only_in_field_of_view,
                   self.config.min_size)
 
-        self.intensities = None
-        self.fields_reg1 = None
-        self.fields_reg2 = None
-        self.fields_bmin1 = None
-        self.fields_bmin2 = None
-        self.fields_scale1 = None
-        self.fields_scale2 = None
+        self.field_shape = None
         self.fields_reg_l = None
+
+    def init_fields(self, bg_mask):
+        raise NotImplementedError
+
+    def fill_field_values(self, field_i, fij, fxy, scale, fill_values):
+        raise NotImplementedError
+
+    def fields(self, valid_area):
+        raise NotImplementedError
 
     def __call__(self, image, anns, meta):
         width_height_original = image.shape[2:0:-1]
@@ -66,10 +82,19 @@ class CafGenerator:
         fill_values = self.rescaler.fill_values(anns)
         bg_mask = self.rescaler.bg_mask(anns, width_height_original,
                                         crowd_margin=(self.config.min_size - 1) / 2)
+        self.field_shape = (
+            self.config.meta.n_fields,
+            bg_mask.shape[0] + 2 * self.config.padding,
+            bg_mask.shape[1] + 2 * self.config.padding,
+        )
         valid_area = self.rescaler.valid_area(meta)
         LOG.debug('valid area: %s', valid_area)
 
         self.init_fields(bg_mask)
+        self.fields_reg_l = np.full(self.field_shape, np.inf, dtype=np.float32)
+        p = self.config.padding
+        self.fields_reg_l[:, p:-p, p:-p][:, bg_mask == 0] = 1.0
+
         self.fill(keypoint_sets, fill_values)
         fields = self.fields(valid_area)
 
@@ -77,24 +102,6 @@ class CafGenerator:
         self.visualizer.targets(fields, annotation_dicts=anns)
 
         return fields
-
-    def init_fields(self, bg_mask):
-        n_fields = len(self.skeleton_m1)
-        field_w = bg_mask.shape[1] + 2 * self.config.padding
-        field_h = bg_mask.shape[0] + 2 * self.config.padding
-        self.intensities = np.zeros((n_fields, field_h, field_w), dtype=np.float32)
-        self.fields_reg1 = np.full((n_fields, 2, field_h, field_w), np.nan, dtype=np.float32)
-        self.fields_reg2 = np.full((n_fields, 2, field_h, field_w), np.nan, dtype=np.float32)
-        self.fields_bmin1 = np.full((n_fields, field_h, field_w), np.nan, dtype=np.float32)
-        self.fields_bmin2 = np.full((n_fields, field_h, field_w), np.nan, dtype=np.float32)
-        self.fields_scale1 = np.full((n_fields, field_h, field_w), np.nan, dtype=np.float32)
-        self.fields_scale2 = np.full((n_fields, field_h, field_w), np.nan, dtype=np.float32)
-        self.fields_reg_l = np.full((n_fields, field_h, field_w), np.inf, dtype=np.float32)
-
-        # bg_mask
-        p = self.config.padding
-        self.fields_reg_l[:, p:-p, p:-p][:, bg_mask == 0] = 1.0
-        self.intensities[:, p:-p, p:-p][:, bg_mask == 0] = np.nan
 
     def fill(self, keypoint_sets, fill_values):
         for keypoints, fill_value in zip(keypoint_sets, fill_values):
@@ -118,7 +125,7 @@ class CafGenerator:
 
     def fill_keypoints(self, keypoints, fill_values):
         scale = self.rescaler.scale(keypoints)
-        for paf_i, (joint1i, joint2i) in enumerate(self.skeleton_m1):
+        for field_i, joint1i, joint2i in self.config.fill_plan:
             joint1 = keypoints[joint1i]
             joint2 = keypoints[joint2i]
             if joint1[2] <= self.config.v_threshold or joint2[2] <= self.config.v_threshold:
@@ -138,14 +145,14 @@ class CafGenerator:
             out_field_of_view_1 = (
                 joint1[0] < 0
                 or joint1[1] < 0
-                or joint1[0] > self.intensities.shape[2] - 1 - 2 * self.config.padding
-                or joint1[1] > self.intensities.shape[1] - 1 - 2 * self.config.padding
+                or joint1[0] > self.field_shape[2] - 1 - 2 * self.config.padding
+                or joint1[1] > self.field_shape[1] - 1 - 2 * self.config.padding
             )
             out_field_of_view_2 = (
                 joint2[0] < 0
                 or joint2[1] < 0
-                or joint2[0] > self.intensities.shape[2] - 1 - 2 * self.config.padding
-                or joint2[1] > self.intensities.shape[1] - 1 - 2 * self.config.padding
+                or joint2[0] > self.field_shape[2] - 1 - 2 * self.config.padding
+                or joint2[1] > self.field_shape[1] - 1 - 2 * self.config.padding
             )
             if out_field_of_view_1 and out_field_of_view_2:
                 continue
@@ -153,9 +160,9 @@ class CafGenerator:
                 if out_field_of_view_1 or out_field_of_view_2:
                     continue
 
-            self.fill_association(paf_i, joint1, joint2, scale, fill_values)
+            self.fill_association(field_i, joint1, joint2, scale, fill_values)
 
-    def fill_association(self, paf_i, joint1, joint2, scale, fill_values):
+    def fill_association(self, field_i, joint1, joint2, scale, fill_values):
         # offset between joints
         offset = joint2[:2] - joint1[:2]
         offset_d = np.linalg.norm(offset)
@@ -181,8 +188,8 @@ class CafGenerator:
         for f in frange:
             for xyo in xyv:
                 fij = np.round(joint1[:2] + f * offset + xyo).astype(np.int) + self.config.padding
-                if fij[0] < 0 or fij[0] >= self.intensities.shape[2] or \
-                   fij[1] < 0 or fij[1] >= self.intensities.shape[1]:
+                if fij[0] < 0 or fij[0] >= self.field_shape[2] or \
+                   fij[1] < 0 or fij[1] >= self.field_shape[1]:
                     continue
 
                 # convert to hashable coordinate and check whether
@@ -204,26 +211,56 @@ class CafGenerator:
                     offset[1] * f_offset[0]
                     - offset[0] * f_offset[1]
                 ) / (offset_d + 0.01)
-                if sink_l > self.fields_reg_l[paf_i, fij[1], fij[0]]:
+                if sink_l > self.fields_reg_l[field_i, fij[1], fij[0]]:
                     continue
-                self.fields_reg_l[paf_i, fij[1], fij[0]] = sink_l
+                self.fields_reg_l[field_i, fij[1], fij[0]] = sink_l
 
-                self.fill_field_values(paf_i, fij, fxy, scale, fill_values)
+                self.fill_field_values(field_i, fij, fxy, scale, fill_values)
 
-    def fill_field_values(self, paf_i, fij, fxy, scale, fill_values):
-        joint1i, joint2i = self.skeleton_m1[paf_i]
+
+class CafGenerator(AssociationFiller):
+    def __init__(self, config: Caf):
+        super().__init__(config)
+
+        self.skeleton_m1 = np.asarray(config.meta.skeleton) - 1
+
+        self.intensities = None
+        self.fields_reg1 = None
+        self.fields_reg2 = None
+        self.fields_bmin1 = None
+        self.fields_bmin2 = None
+        self.fields_scale1 = None
+        self.fields_scale2 = None
+
+    def init_fields(self, bg_mask):
+        reg_field_shape = (self.field_shape[0], 2, self.field_shape[1], self.field_shape[2])
+
+        self.intensities = np.zeros(self.field_shape, dtype=np.float32)
+        self.fields_reg1 = np.full(reg_field_shape, np.nan, dtype=np.float32)
+        self.fields_reg2 = np.full(reg_field_shape, np.nan, dtype=np.float32)
+        self.fields_bmin1 = np.full(self.field_shape, np.nan, dtype=np.float32)
+        self.fields_bmin2 = np.full(self.field_shape, np.nan, dtype=np.float32)
+        self.fields_scale1 = np.full(self.field_shape, np.nan, dtype=np.float32)
+        self.fields_scale2 = np.full(self.field_shape, np.nan, dtype=np.float32)
+
+        # bg_mask
+        p = self.config.padding
+        self.intensities[:, p:-p, p:-p][:, bg_mask == 0] = np.nan
+
+    def fill_field_values(self, field_i, fij, fxy, scale, fill_values):
+        joint1i, joint2i = self.skeleton_m1[field_i]
 
         # update intensity
-        self.intensities[paf_i, fij[1], fij[0]] = 1.0
+        self.intensities[field_i, fij[1], fij[0]] = 1.0
 
         # update regressions
-        self.fields_reg1[paf_i, :, fij[1], fij[0]] = fill_values[joint1i][:2] - fxy
-        self.fields_reg2[paf_i, :, fij[1], fij[0]] = fill_values[joint2i][:2] - fxy
+        self.fields_reg1[field_i, :, fij[1], fij[0]] = fill_values[joint1i][:2] - fxy
+        self.fields_reg2[field_i, :, fij[1], fij[0]] = fill_values[joint2i][:2] - fxy
 
         # update bmin
         bmin = self.config.bmin / self.config.meta.stride
-        self.fields_bmin1[paf_i, fij[1], fij[0]] = bmin
-        self.fields_bmin2[paf_i, fij[1], fij[0]] = bmin
+        self.fields_bmin1[field_i, fij[1], fij[0]] = bmin
+        self.fields_bmin2[field_i, fij[1], fij[0]] = bmin
 
         # update scale
         if self.config.meta.sigmas is None:
@@ -232,9 +269,9 @@ class CafGenerator:
             scale1 = scale * self.config.meta.sigmas[joint1i]
             scale2 = scale * self.config.meta.sigmas[joint2i]
         assert np.isnan(scale1) or 0.0 < scale1 < 100.0
-        self.fields_scale1[paf_i, fij[1], fij[0]] = scale1
+        self.fields_scale1[field_i, fij[1], fij[0]] = scale1
         assert np.isnan(scale2) or 0.0 < scale2 < 100.0
-        self.fields_scale2[paf_i, fij[1], fij[0]] = scale2
+        self.fields_scale2[field_i, fij[1], fij[0]] = scale2
 
     def fields(self, valid_area):
         p = self.config.padding
