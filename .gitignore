@@ -31,10 +31,9 @@ guide/profile_decoder.prof
 guide/profile_decoder_flame.svg
 
 # data
-data-*/
-data_*/
+data-*
+data_*
 docs-private/
-data-mscoco
 data/
 *debug.png
 *.pl
