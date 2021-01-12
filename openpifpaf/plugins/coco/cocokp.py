@@ -38,6 +38,7 @@ class CocoKp(openpifpaf.datasets.DataModule):
     eval_image_dir = val_image_dir
 
     square_edge = 385
+    with_dense = False
     extended_scale = False
     orientation_invariant = 0.0
     blur = 0.0
@@ -77,7 +78,7 @@ class CocoKp(openpifpaf.datasets.DataModule):
         cif.upsample_stride = self.upsample_stride
         caf.upsample_stride = self.upsample_stride
         dcaf.upsample_stride = self.upsample_stride
-        self.head_metas = [cif, caf, dcaf]
+        self.head_metas = [cif, caf, dcaf] if self.with_dense else [cif, caf]
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
@@ -95,6 +96,10 @@ class CocoKp(openpifpaf.datasets.DataModule):
         group.add_argument('--cocokp-square-edge',
                            default=cls.square_edge, type=int,
                            help='square edge of input images')
+        assert not cls.with_dense
+        group.add_argument('--cocokp-with-dense',
+                           default=False, action='store_true',
+                           help='train with dense connections')
         assert not cls.extended_scale
         group.add_argument('--cocokp-extended-scale',
                            default=False, action='store_true',
@@ -152,6 +157,7 @@ class CocoKp(openpifpaf.datasets.DataModule):
         cls.val_image_dir = args.cocokp_val_image_dir
 
         cls.square_edge = args.cocokp_square_edge
+        cls.with_dense = args.cocokp_with_dense
         cls.extended_scale = args.cocokp_extended_scale
         cls.orientation_invariant = args.cocokp_orientation_invariant
         cls.blur = args.cocokp_blur
@@ -180,9 +186,10 @@ class CocoKp(openpifpaf.datasets.DataModule):
             raise Exception('have to use --write-predictions for this dataset')
 
     def _preprocess(self):
-        encoders = (openpifpaf.encoder.Cif(self.head_metas[0], bmin=self.bmin),
-                    openpifpaf.encoder.Caf(self.head_metas[1], bmin=self.bmin),
-                    openpifpaf.encoder.Caf(self.head_metas[2], bmin=self.bmin))
+        encoders = [openpifpaf.encoder.Cif(self.head_metas[0], bmin=self.bmin),
+                    openpifpaf.encoder.Caf(self.head_metas[1], bmin=self.bmin)]
+        if len(self.head_metas) > 2:
+            encoders.append(openpifpaf.encoder.Caf(self.head_metas[2], bmin=self.bmin))
 
         if not self.augmentation:
             return openpifpaf.transforms.Compose([
