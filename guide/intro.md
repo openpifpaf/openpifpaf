@@ -1,3 +1,4 @@
+(introduction)=
 # Introduction
 
 Continuously tested on Linux, MacOS and Windows: ![Tests](https://github.com/vita-epfl/openpifpaf/workflows/Tests/badge.svg?branch=dev)<br />
