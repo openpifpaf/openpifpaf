@@ -4,22 +4,20 @@
   chapters:
   - file: predict_cli
   - file: examples
-  - file: faq
 
-- part: Custom Models
+- part: Chapters
   chapters:
+  - file: predict_api
+  - file: models
   - file: datasets
   - file: train
   - file: cli_help
-
-- part: Plugins
-  chapters:
   - file: plugins_overview
   - file: plugins_cifar10
+  - file: faq
 
-- part: API
+- part: Reference
   chapters:
-  - file: predict_api
   - file: moduledocs
 
 - part: Development
