@@ -33,7 +33,7 @@ class Annotation(Base):
             assert len(self.score_weights) == len(keypoints), "wrong number of scores"
             self.score_weights = np.asarray(self.score_weights)
         if self.suppress_score_index:
-            self.score_weights[-1] = 0.0
+            self.score_weights[-len(self.suppress_score_index):] = 0.0
         self.score_weights /= np.sum(self.score_weights)
 
     @property
