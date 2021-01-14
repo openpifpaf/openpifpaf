@@ -69,17 +69,20 @@ class AssociationFiller:
     def init_fields(self, bg_mask):
         raise NotImplementedError
 
-    def fill_field_values(self, field_i, fij, fxy, scale, fill_values):
+    def all_fill_values(self, keypoint_sets, anns):
+        """Values in the same order and length as keypoint_sets."""
         raise NotImplementedError
 
-    def fields(self, valid_area):
+    def fill_field_values(self, field_i, fij, fill_values):
+        raise NotImplementedError
+
+    def fields_as_tensor(self, valid_area):
         raise NotImplementedError
 
     def __call__(self, image, anns, meta):
         width_height_original = image.shape[2:0:-1]
 
         keypoint_sets = self.rescaler.keypoint_sets(anns)
-        fill_values = self.rescaler.fill_values(anns)
         bg_mask = self.rescaler.bg_mask(anns, width_height_original,
                                         crowd_margin=(self.config.min_size - 1) / 2)
         self.field_shape = (
@@ -95,8 +98,9 @@ class AssociationFiller:
         p = self.config.padding
         self.fields_reg_l[:, p:-p, p:-p][:, bg_mask == 0] = 1.0
 
+        fill_values = self.all_fill_values(keypoint_sets, anns)
         self.fill(keypoint_sets, fill_values)
-        fields = self.fields(valid_area)
+        fields = self.fields_as_tensor(valid_area)
 
         self.visualizer.processed_image(image)
         self.visualizer.targets(fields, annotation_dicts=anns)
@@ -124,7 +128,6 @@ class AssociationFiller:
         return shortest
 
     def fill_keypoints(self, keypoints, fill_values):
-        scale = self.rescaler.scale(keypoints)
         for field_i, joint1i, joint2i in self.config.fill_plan:
             joint1 = keypoints[joint1i]
             joint2 = keypoints[joint2i]
@@ -160,9 +163,9 @@ class AssociationFiller:
                 if out_field_of_view_1 or out_field_of_view_2:
                     continue
 
-            self.fill_association(field_i, joint1, joint2, scale, fill_values)
+            self.fill_association(field_i, joint1, joint2, fill_values)
 
-    def fill_association(self, field_i, joint1, joint2, scale, fill_values):
+    def fill_association(self, field_i, joint1, joint2, fill_values):
         # offset between joints
         offset = joint2[:2] - joint1[:2]
         offset_d = np.linalg.norm(offset)
@@ -199,13 +202,12 @@ class AssociationFiller:
                     continue
                 filled_ij.add(fij_int)
 
-                fxy = fij - self.config.padding
-
                 # mask
                 # perpendicular distance computation:
                 # https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
                 # Coordinate systems for this computation is such that
                 # joint1 is at (0, 0).
+                fxy = fij - self.config.padding
                 f_offset = fxy - joint1[:2]
                 sink_l = np.fabs(
                     offset[1] * f_offset[0]
@@ -215,7 +217,7 @@ class AssociationFiller:
                     continue
                 self.fields_reg_l[field_i, fij[1], fij[0]] = sink_l
 
-                self.fill_field_values(field_i, fij, fxy, scale, fill_values)
+                self.fill_field_values(field_i, fij, fill_values)
 
 
 class CafGenerator(AssociationFiller):
@@ -247,15 +249,20 @@ class CafGenerator(AssociationFiller):
         p = self.config.padding
         self.intensities[:, p:-p, p:-p][:, bg_mask == 0] = np.nan
 
-    def fill_field_values(self, field_i, fij, fxy, scale, fill_values):
+    def all_fill_values(self, keypoint_sets, anns):
+        return [(kps, self.rescaler.scale(kps)) for kps in keypoint_sets]
+
+    def fill_field_values(self, field_i, fij, fill_values):
         joint1i, joint2i = self.skeleton_m1[field_i]
+        keypoints, scale = fill_values
 
         # update intensity
         self.intensities[field_i, fij[1], fij[0]] = 1.0
 
         # update regressions
-        self.fields_reg1[field_i, :, fij[1], fij[0]] = fill_values[joint1i][:2] - fxy
-        self.fields_reg2[field_i, :, fij[1], fij[0]] = fill_values[joint2i][:2] - fxy
+        fxy = fij - self.config.padding
+        self.fields_reg1[field_i, :, fij[1], fij[0]] = keypoints[joint1i][:2] - fxy
+        self.fields_reg2[field_i, :, fij[1], fij[0]] = keypoints[joint2i][:2] - fxy
 
         # update bmin
         bmin = self.config.bmin / self.config.meta.stride
@@ -273,7 +280,7 @@ class CafGenerator(AssociationFiller):
         assert np.isnan(scale2) or 0.0 < scale2 < 100.0
         self.fields_scale2[field_i, fij[1], fij[0]] = scale2
 
-    def fields(self, valid_area):
+    def fields_as_tensor(self, valid_area):
         p = self.config.padding
         intensities = self.intensities[:, p:-p, p:-p]
         fields_reg1 = self.fields_reg1[:, :, p:-p, p:-p]

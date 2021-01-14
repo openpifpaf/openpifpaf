@@ -66,9 +66,6 @@ class AnnRescaler():
             keypoints[:, :2] /= self.stride
         return keypoint_sets
 
-    def fill_values(self, anns):
-        return self.keypoint_sets(anns)
-
     def bg_mask(self, anns, width_height, *, crowd_margin):
         """Create background mask taking crowd annotations into account."""
         mask = np.ones((
