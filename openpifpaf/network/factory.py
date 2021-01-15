@@ -208,6 +208,7 @@ def factory(
     if two_scale:
         net_cpu = nets.Shell2Scale(net_cpu.base_net, net_cpu.head_nets)
 
+    LOG.debug(net_cpu)
     return net_cpu, epoch
 
 
@@ -220,7 +221,6 @@ def factory_from_scratch(basename, head_metas) -> nets.Shell:
 
     net_cpu = nets.Shell(basenet, headnets)
     nets.model_defaults(net_cpu)
-    LOG.debug(net_cpu)
     return net_cpu
 
 
