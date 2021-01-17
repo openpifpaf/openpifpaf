@@ -10,6 +10,7 @@ class Bce(torch.nn.Module):
     background_weight = 1.0
     focal_alpha = 0.5
     focal_gamma = 1.0
+    min_bce = 0.02
 
     def __init__(self, *, detach_focal=False):
         super().__init__()
@@ -24,12 +25,15 @@ class Bce(torch.nn.Module):
                            help='scale parameter of focal loss')
         group.add_argument('--focal-gamma', default=cls.focal_gamma, type=float,
                            help='when > 0.0, use focal loss with the given gamma')
+        group.add_argument('--bce-min', default=cls.min_bce, type=float,
+                           help='gradient clipped below')
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
         cls.background_weight = args.background_weight
         cls.focal_alpha = args.focal_alpha
         cls.focal_gamma = args.focal_gamma
+        cls.min_bce = args.bce_min
 
     def forward(self, x, t):  # pylint: disable=arguments-differ
         t_zeroone = t.clone()
@@ -37,8 +41,10 @@ class Bce(torch.nn.Module):
         # x = torch.clamp(x, -20.0, 20.0)
         bce = torch.nn.functional.binary_cross_entropy_with_logits(
             x, t_zeroone, reduction='none')
-        # bce = torch.clamp(bce, 0.02, 5.0)  # 0.02 -> -3.9, 0.01 -> -4.6, 0.001 -> -7, 0.0001 -> -9
-        bce = torch.clamp_min(bce, 0.02)
+        if self.min_bce > 0.0:
+            # 0.02 -> -3.9, 0.01 -> -4.6, 0.001 -> -7, 0.0001 -> -9
+            # bce = torch.clamp(bce, 0.02, 5.0)
+            bce = torch.clamp_min(bce, self.min_bce)
 
         if self.focal_gamma != 0.0:
             pt = torch.exp(-bce)
