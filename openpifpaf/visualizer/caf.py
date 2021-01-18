@@ -16,10 +16,6 @@ LOG = logging.getLogger(__name__)
 
 
 class Caf(Base):
-    show_background = False
-    show_confidences = False
-    show_regressions = False
-
     def __init__(self, meta: headmeta.Caf):
         super().__init__(meta.name)
         self.meta = meta
@@ -52,10 +48,7 @@ class Caf(Base):
                           uv_is_offset=False)
 
     def _confidences(self, confidences):
-        if not self.show_confidences:
-            return
-
-        for f in self.indices:
+        for f in self.indices('confidence'):
             LOG.debug('%s,%s',
                       self.meta.keypoints[self.meta.skeleton[f][0] - 1],
                       self.meta.keypoints[self.meta.skeleton[f][1] - 1])
@@ -68,10 +61,7 @@ class Caf(Base):
     def _regressions(self, regression_fields1, regression_fields2,
                      scale_fields1, scale_fields2, *,
                      annotations=None, confidence_fields=None, uv_is_offset=True):
-        if not self.show_regressions:
-            return
-
-        for f in self.indices:
+        for f in self.indices('regression'):
             LOG.debug('%s,%s',
                       self.meta.keypoints[self.meta.skeleton[f][0] - 1],
                       self.meta.keypoints[self.meta.skeleton[f][1] - 1])

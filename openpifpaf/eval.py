@@ -82,9 +82,6 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     parser.add_argument('--show-final-ground-truth', default=False, action='store_true')
     args = parser.parse_args()
 
-    if args.debug_images:
-        args.debug = True
-
     logger.configure(args, LOG)
 
     # add args.device
