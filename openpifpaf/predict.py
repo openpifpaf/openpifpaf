@@ -164,7 +164,7 @@ def main():
         # unbatch
         for pred, meta in zip(pred_batch, meta_batch):
             LOG.info('batch %d: %s', batch_i, meta['file_name'])
-            pred = [ann.inverse(meta) for ann in pred]
+            pred = [ann.inverse_transform(meta) for ann in pred]
 
             # load the original image if necessary
             cpu_image = None
