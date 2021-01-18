@@ -1,5 +1,3 @@
-from collections import defaultdict
-
 from .painters import KeypointPainter, CrowdPainter, DetectionPainter
 
 PAINTERS = {
@@ -22,15 +20,30 @@ class AnnotationPainter:
 
     def annotations(self, ax, annotations, *,
                     color=None, colors=None, texts=None, subtexts=None, **kwargs):
-        by_classname = defaultdict(list)
-        for ann_i, ann in enumerate(annotations):
-            by_classname[ann.__class__.__name__].append((ann_i, ann))
+        for i, ann in enumerate(annotations):
+            this_color = color
+            if this_color is None:
+                this_color = i
+            if colors is not None:
+                this_color = colors[i]
+            elif hasattr(ann, 'id_'):
+                this_color = ann.id_
 
-        for classname, i_anns in by_classname.items():
-            anns = [ann for _, ann in i_anns]
-            this_colors = [colors[i] for i, _ in i_anns] if colors else None
-            this_texts = [texts[i] for i, _ in i_anns] if texts else None
-            this_subtexts = [subtexts[i] for i, _ in i_anns] if subtexts else None
-            self.painters[classname].annotations(
-                ax, anns,
-                color=color, colors=this_colors, texts=this_texts, subtexts=this_subtexts, **kwargs)
+            text = None
+            text_is_score = False
+            if texts is not None:
+                text = texts[i]
+            elif hasattr(ann, 'id_'):
+                text = '{}'.format(ann.id_)
+            elif hasattr(ann, 'score'):
+                text = '{:.0%}'.format(ann.score())
+                text_is_score = True
+
+            subtext = None
+            if subtexts is not None:
+                subtext = subtexts[i]
+            elif not text_is_score and hasattr(ann, 'score'):
+                subtext = '{:.0%}'.format(ann.score())
+
+            painter = self.painters[ann.__class__.__name__]
+            painter.annotation(ax, ann, color=this_color, text=text, subtext=subtext, **kwargs)

@@ -8,7 +8,11 @@ from . import utils
 
 
 class Base:
-    pass
+    def inverse_transform(self, meta):
+        raise NotImplementedError
+
+    def json_data(self):
+        raise NotImplementedError
 
 
 class Annotation(Base):
