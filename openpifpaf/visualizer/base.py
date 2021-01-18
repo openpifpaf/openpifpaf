@@ -85,7 +85,6 @@ class Base:
         if len(data) >= 2 and len(data[1]) == 0:
             data[1] = -1
 
-        print(data)
         if len(data) == 3:
             return [(data[0], int(data[1]), data[2])]
         if len(data) == 2:
