@@ -35,14 +35,14 @@ class AnnotationPainter:
                 text = texts[i]
             elif hasattr(ann, 'id_'):
                 text = '{}'.format(ann.id_)
-            elif hasattr(ann, 'score') and ann.score != '':
+            elif getattr(ann, 'score', None):
                 text = '{:.0%}'.format(ann.score)
                 text_is_score = True
 
             subtext = None
             if subtexts is not None:
                 subtext = subtexts[i]
-            elif not text_is_score and hasattr(ann, 'score') and ann.score != '':
+            elif not text_is_score and getattr(ann, 'score', None):
                 subtext = '{:.0%}'.format(ann.score)
 
             painter = self.painters[ann.__class__.__name__]
