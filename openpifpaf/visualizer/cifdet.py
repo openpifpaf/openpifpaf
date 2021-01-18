@@ -16,11 +16,6 @@ LOG = logging.getLogger(__name__)
 
 
 class CifDet(Base):
-    show_margin = False
-    show_confidences = False
-    show_regressions = False
-    show_background = False
-
     def __init__(self, meta: headmeta.CifDet):
         super().__init__(meta.name)
         self.meta = meta
@@ -46,10 +41,7 @@ class CifDet(Base):
                           uv_is_offset=False)
 
     def _confidences(self, confidences):
-        if not self.show_confidences:
-            return
-
-        for f in self.indices:
+        for f in self.indices('confidence'):
             LOG.debug('%s', self.meta.categories[f])
 
             with self.image_canvas(self._processed_image, margin=[0.0, 0.01, 0.05, 0.01]) as ax:
@@ -59,10 +51,7 @@ class CifDet(Base):
 
     def _regressions(self, regression_fields, wh_fields, *,
                      annotations=None, confidence_fields=None, uv_is_offset=True):
-        if not self.show_regressions:
-            return
-
-        for f in self.indices:
+        for f in self.indices('regression'):
             LOG.debug('%s', self.meta.categories[f])
             confidence_field = confidence_fields[f] if confidence_fields is not None else None
 
@@ -81,7 +70,7 @@ class CifDet(Base):
                               xy_scale=self.meta.stride, cmap='Greens',
                               fill=False, linewidth=2,
                               regression_field_is_offset=uv_is_offset)
-                if self.show_margin:
+                if f in self.indices('margin', with_all=False):
                     show.margins(ax, regression_fields[f, :6], xy_scale=self.meta.stride)
 
                 self.colorbar(ax, q)

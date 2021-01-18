@@ -89,7 +89,6 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     parser.add_argument('--rotate', default=None, choices=('left', 'right', '180'))
     parser.add_argument('--separate-debug-ax', default=False, action='store_true')
     args = parser.parse_args()
-    args.debug_images = False
 
     logger.configure(args, LOG)  # logger first
 

@@ -53,8 +53,6 @@ def cli():
                         help='disable CUDA')
     args = parser.parse_args()
 
-    if args.debug_images:
-        args.debug = True
     logger.configure(args, LOG)  # logger first
 
     # add args.device

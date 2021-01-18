@@ -66,9 +66,6 @@ def cli():
 
     args = parser.parse_args()
 
-    if args.debug_images:
-        args.debug = True
-
     # add args.device
     args.device = torch.device('cpu')
     args.pin_memory = False
