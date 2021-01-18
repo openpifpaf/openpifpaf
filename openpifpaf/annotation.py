@@ -82,6 +82,7 @@ class Annotation(Base):
             scale = scalar_value_clipped(scales[xyv_i], xyv[0] * hr_scale, xyv[1] * hr_scale)
             self.joint_scales[xyv_i] = scale / hr_scale
 
+    @property
     def score(self):
         if self.fixed_score is not None:
             return self.fixed_score
@@ -118,7 +119,7 @@ class Annotation(Base):
         data = {
             'keypoints': keypoints.reshape(-1).tolist(),
             'bbox': [round(float(c), 2) for c in self.bbox()],
-            'score': max(0.001, round(self.score(), 3)),
+            'score': max(0.001, round(self.score, 3)),
             'category_id': self.category_id,
         }
 
@@ -196,16 +197,13 @@ class AnnotationDet(Base):
     def __init__(self, categories):
         self.categories = categories
         self.category_id = None
-        self._score = None
+        self.score = None
         self.bbox = None
-
-    def score(self):
-        return self._score
 
     def set(self, category_id, score, bbox):
         """Set score to None for a ground truth annotation."""
         self.category_id = category_id
-        self._score = score
+        self.score = score
         self.bbox = np.asarray(bbox)
         return self
 
@@ -217,7 +215,7 @@ class AnnotationDet(Base):
         return {
             'category_id': self.category_id,
             'category': self.category,
-            'score': max(0.001, round(float(self._score), 3)),
+            'score': max(0.001, round(float(self.score), 3)),
             'bbox': [round(float(c), 2) for c in self.bbox],
         }
 

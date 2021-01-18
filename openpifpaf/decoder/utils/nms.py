@@ -19,7 +19,7 @@ class Keypoints:
 
         for ann in anns:
             ann.data[ann.data[:, 2] < self.keypoint_threshold] = 0.0
-        anns = [ann for ann in anns if ann.score() >= self.instance_threshold]
+        anns = [ann for ann in anns if ann.score >= self.instance_threshold]
 
         if not anns:
             return anns
@@ -31,7 +31,7 @@ class Keypoints:
         shape = (len(anns[0].data), max(1, max_y + 1), max(1, max_x + 1))
         occupied = Occupancy(shape, 2, min_scale=4)
 
-        anns = sorted(anns, key=lambda a: -a.score())
+        anns = sorted(anns, key=lambda a: -a.score)
         for ann in anns:
             assert ann.joint_scales is not None
             assert len(occupied) == len(ann.data)
@@ -51,8 +51,8 @@ class Keypoints:
 
         for ann in anns:
             ann.data[ann.data[:, 2] < self.keypoint_threshold] = 0.0
-        anns = [ann for ann in anns if ann.score() >= self.instance_threshold]
-        anns = sorted(anns, key=lambda a: -a.score())
+        anns = [ann for ann in anns if ann.score >= self.instance_threshold]
+        anns = sorted(anns, key=lambda a: -a.score)
 
         LOG.debug('nms = %.3fs', time.perf_counter() - start)
         return anns
