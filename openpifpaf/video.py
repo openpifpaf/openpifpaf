@@ -235,7 +235,7 @@ def main():
         preds = processor.batch(model, torch.unsqueeze(processed_image, 0), device=args.device)[0]
 
         start_post = time.perf_counter()
-        preds = preprocess.annotations_inverse(preds, meta)
+        preds = [ann.inverse_transform(meta) for ann in preds]
 
         if args.json_output:
             with open(args.json_output, 'a+') as f:

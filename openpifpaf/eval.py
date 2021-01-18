@@ -12,7 +12,7 @@ import PIL
 import thop
 import torch
 
-from . import datasets, decoder, logger, network, plugin, show, transforms, visualizer, __version__
+from . import datasets, decoder, logger, network, plugin, show, visualizer, __version__
 
 LOG = logging.getLogger(__name__)
 
@@ -167,13 +167,13 @@ def evaluate(args):
         # loop over batch
         assert len(image_tensors) == len(meta_batch)
         for pred, gt_anns, image_meta in zip(pred_batch, anns_batch, meta_batch):
-            pred = transforms.Preprocess.annotations_inverse(pred, image_meta)
+            pred = [ann.inverse_transform(image_meta) for ann in pred]
             for metric in metrics:
                 metric.accumulate(pred, image_meta, ground_truth=gt_anns)
 
             if args.show_final_image:
                 # show ground truth and predictions on original image
-                gt_anns = transforms.Preprocess.annotations_inverse(gt_anns, image_meta)
+                gt_anns = [ann.inverse_transform(image_meta) for ann in gt_anns]
 
                 annotation_painter = show.AnnotationPainter()
                 with open(image_meta['local_file_path'], 'rb') as f:

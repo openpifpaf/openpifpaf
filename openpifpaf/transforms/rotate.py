@@ -8,7 +8,7 @@ import scipy
 import torch
 
 from .preprocess import Preprocess
-from . import utils
+from .. import utils
 
 LOG = logging.getLogger(__name__)
 
