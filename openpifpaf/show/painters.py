@@ -18,36 +18,18 @@ class DetectionPainter:
     def __init__(self, *, xy_scale=1.0):
         self.xy_scale = xy_scale
 
-    def annotations(self, ax, annotations, *,
-                    color=None, colors=None, texts=None, subtexts=None):
-        for i, ann in reversed(list(enumerate(annotations))):
-            this_color = ann.category_id - 1
-            if colors is not None:
-                this_color = colors[i]
-            elif color is not None:
-                this_color = color
-            elif hasattr(ann, 'id_'):
-                this_color = ann.id_
-
-            text = ann.category
-            if texts is not None:
-                text = texts[i]
-            elif hasattr(ann, 'id_'):
-                text = '{}'.format(ann.id_)
-
-            subtext = None
-            if subtexts is not None:
-                subtext = subtexts[i]
-            elif ann.score:
-                subtext = '{:.0%}'.format(ann.score)
-
-            self.annotation(ax, ann, color=this_color, text=text, subtext=subtext)
-
     def annotation(self, ax, ann, *, color=None, text=None, subtext=None):
         if color is None:
             color = 0
         if isinstance(color, (int, np.integer)):
             color = matplotlib.cm.get_cmap('tab20')((color % 20 + 0.05) / 20)
+
+        if text is None:
+            text = ann.category
+            if getattr(ann, 'id_', None):
+                text += ' ({})'.format(ann.id_)
+        if subtext is None and ann.score:
+            subtext = '{:.0%}'.format(ann.score)
 
         x, y, w, h = ann.bbox * self.xy_scale
         if w < 5.0:
@@ -98,34 +80,16 @@ class CrowdPainter:
             patches.append(polygon)
         ax.add_collection(matplotlib.collections.PatchCollection(patches, match_original=True))
 
-    def annotations(self, ax, annotations, *,
-                    color=None, colors=None, texts=None, subtexts=None):
-        for i, ann in reversed(list(enumerate(annotations))):
-            this_color = ann.category_id - 1
-            if colors is not None:
-                this_color = colors[i]
-            elif color is not None:
-                this_color = color
-            elif hasattr(ann, 'id_'):
-                this_color = ann.id_
-
-            text = '{} (crowd)'.format(ann.category)
-            if texts is not None:
-                text = texts[i]
-            elif hasattr(ann, 'id_'):
-                text = '{}'.format(ann.id_)
-
-            subtext = None
-            if subtexts is not None:
-                subtext = subtexts[i]
-
-            self.annotation(ax, ann, color=this_color, text=text, subtext=subtext)
-
     def annotation(self, ax, ann, *, color=None, text=None, subtext=None):
         if color is None:
             color = 0
         if isinstance(color, (int, np.integer)):
             color = matplotlib.cm.get_cmap('tab20')((color % 20 + 0.05) / 20)
+
+        if text is None:
+            text = '{} (crowd)'.format(ann.category)
+            if getattr(ann, 'id_', None):
+                text += ' ({})'.format(ann.id_)
 
         x, y, w, h = ann.bbox * self.xy_scale
         if w < 5.0:
@@ -375,40 +339,20 @@ class KeypointPainter:
                 bbox={'facecolor': color, 'alpha': 0.2, 'linewidth': 0, 'pad': 0.0},
             )
 
-    def annotations(self, ax, annotations, *,
-                    color=None, colors=None, texts=None, subtexts=None, **kwargs):
-        for i, ann in enumerate(annotations):
-            this_color = color
-            if this_color is None:
-                this_color = i
-            if colors is not None:
-                this_color = colors[i]
-            elif hasattr(ann, 'id_'):
-                this_color = ann.id_
-
-            text = None
-            text_is_score = False
-            if texts is not None:
-                text = texts[i]
-            elif hasattr(ann, 'id_'):
-                text = '{}'.format(ann.id_)
-            elif ann.score():
-                text = '{:.0%}'.format(ann.score())
-                text_is_score = True
-
-            subtext = None
-            if subtexts is not None:
-                subtext = subtexts[i]
-            elif not text_is_score and ann.score():
-                subtext = '{:.0%}'.format(ann.score())
-
-            self.annotation(ax, ann, color=this_color, text=text, subtext=subtext, **kwargs)
-
     def annotation(self, ax, ann, *, color=None, text=None, subtext=None, alpha=1.0):
         if color is None:
             color = 0
         if isinstance(color, (int, np.integer)):
             color = matplotlib.cm.get_cmap('tab20')((color % 20 + 0.05) / 20)
+
+        text_is_score = False
+        if text is None and hasattr(ann, 'id_'):
+            text = '{}'.format(ann.id_)
+        if text is None and getattr(ann, 'score', None):
+            text = '{:.0%}'.format(ann.score)
+            text_is_score = True
+        if subtext is None and not text_is_score and getattr(ann, 'score', None):
+            subtext = '{:.0%}'.format(ann.score)
 
         kps = ann.data
         assert kps.shape[1] == 3

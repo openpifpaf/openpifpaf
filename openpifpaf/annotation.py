@@ -8,7 +8,11 @@ from . import utils
 
 
 class Base:
-    pass
+    def inverse_transform(self, meta):
+        raise NotImplementedError
+
+    def json_data(self):
+        raise NotImplementedError
 
 
 class Annotation(Base):
@@ -78,6 +82,7 @@ class Annotation(Base):
             scale = scalar_value_clipped(scales[xyv_i], xyv[0] * hr_scale, xyv[1] * hr_scale)
             self.joint_scales[xyv_i] = scale / hr_scale
 
+    @property
     def score(self):
         if self.fixed_score is not None:
             return self.fixed_score
@@ -114,7 +119,7 @@ class Annotation(Base):
         data = {
             'keypoints': keypoints.reshape(-1).tolist(),
             'bbox': [round(float(c), 2) for c in self.bbox()],
-            'score': max(0.001, round(self.score(), 3)),
+            'score': max(0.001, round(self.score, 3)),
             'category_id': self.category_id,
         }
 
