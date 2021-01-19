@@ -24,13 +24,11 @@ class DetectionPainter:
         if isinstance(color, (int, np.integer)):
             color = matplotlib.cm.get_cmap('tab20')((color % 20 + 0.05) / 20)
 
-        text_is_score = False
-        if text is None and hasattr(ann, 'id_'):
-            text = '{}'.format(ann.id_)
-        if text is None and getattr(ann, 'score', None):
-            text = '{:.0%}'.format(ann.score)
-            text_is_score = True
-        if subtext is None and not text_is_score and getattr(ann, 'score', None):
+        if text is None:
+            text = ann.category
+            if getattr(ann, 'id_', None):
+                text += ' ({})'.format(ann.id_)
+        if subtext is None and ann.score:
             subtext = '{:.0%}'.format(ann.score)
 
         x, y, w, h = ann.bbox * self.xy_scale
@@ -88,10 +86,10 @@ class CrowdPainter:
         if isinstance(color, (int, np.integer)):
             color = matplotlib.cm.get_cmap('tab20')((color % 20 + 0.05) / 20)
 
-        if text is None and hasattr(ann, 'id_'):
-            text = '{} (crowd)'.format(ann.id_)
         if text is None:
-            text = 'crowd'
+            text = '{} (crowd)'.format(ann.category)
+            if getattr(ann, 'id_', None):
+                text += ' ({})'.format(ann.id_)
 
         x, y, w, h = ann.bbox * self.xy_scale
         if w < 5.0:
