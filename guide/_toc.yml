@@ -13,8 +13,11 @@
   - file: train
   - file: cli_help
   - file: plugins_overview
-  - file: plugins_cifar10
   - file: faq
+
+- part: Tutorials
+  chapters:
+  - file: plugins_cifar10
 
 - part: Reference
   chapters:

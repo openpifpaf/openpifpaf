@@ -8,7 +8,7 @@ from openpifpaf.plugins.coco.constants import (
 
 def main():
     ann = openpifpaf.Annotation(keypoints=COCO_KEYPOINTS, skeleton=COCO_PERSON_SKELETON)
-    ann.set(COCO_UPRIGHT_POSE)
+    ann.set(COCO_UPRIGHT_POSE, fixed_score='')
 
     # favicon
     keypoint_painter = openpifpaf.show.KeypointPainter(
