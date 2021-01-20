@@ -11,11 +11,11 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        ref: master
+        ref: main
         fetch-depth: 0
     - name: Push to stable branch
       run: |
         git pull
         git checkout stable
-        git merge master -m "merge master"
+        git merge main -m "merge main"
         git push
