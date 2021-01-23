@@ -10,11 +10,8 @@ class Bce(torch.nn.Module):
     background_weight = 1.0
     focal_alpha = 0.5
     focal_gamma = 1.0
+    focal_detach = False
     min_bce = 0.02
-
-    def __init__(self, *, detach_focal=False):
-        super().__init__()
-        self.detach_focal = detach_focal
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
@@ -24,7 +21,9 @@ class Bce(torch.nn.Module):
         group.add_argument('--focal-alpha', default=cls.focal_alpha, type=float,
                            help='scale parameter of focal loss')
         group.add_argument('--focal-gamma', default=cls.focal_gamma, type=float,
-                           help='when > 0.0, use focal loss with the given gamma')
+                           help='use focal loss with the given gamma')
+        assert not cls.focal_detach
+        group.add_argument('--focal-detach', default=False, action='store_true')
         group.add_argument('--bce-min', default=cls.min_bce, type=float,
                            help='gradient clipped below')
 
@@ -33,6 +32,7 @@ class Bce(torch.nn.Module):
         cls.background_weight = args.background_weight
         cls.focal_alpha = args.focal_alpha
         cls.focal_gamma = args.focal_gamma
+        cls.focal_detach = args.focal_detach
         cls.min_bce = args.bce_min
 
     def forward(self, x, t):  # pylint: disable=arguments-differ
@@ -47,13 +47,18 @@ class Bce(torch.nn.Module):
             bce = torch.clamp_min(bce, self.min_bce)
 
         if self.focal_gamma != 0.0:
-            pt = torch.exp(-bce)
-            focal = (1.0 - pt)**self.focal_gamma
-            if self.detach_focal:
+            p = torch.sigmoid(x)
+            pt = p * t_zeroone + (1 - p) * (1 - t_zeroone)
+            focal = (1.0 - pt + 1e-4)**self.focal_gamma
+            if self.focal_detach:
                 focal = focal.detach()
             bce = focal * bce
-        if self.focal_alpha != 1.0:
-            bce = self.focal_alpha * bce
+
+        if self.focal_alpha == 0.5:
+            bce = 0.5 * bce
+        elif self.focal_alpha >= 0.0:
+            alphat = self.focal_alpha * t_zeroone + (1 - self.focal_alpha) * (1 - t_zeroone)
+            bce = alphat * bce
 
         weight_mask = t_zeroone != t
         bce[weight_mask] = bce[weight_mask] * t[weight_mask]
