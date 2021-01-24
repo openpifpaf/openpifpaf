@@ -204,7 +204,7 @@ class CifCaf(Decoder):
         seeds = utils.CifSeeds(cifhr.accumulated).fill(fields, self.cif_metas)
         caf_scored = utils.CafScored(cifhr.accumulated).fill(fields, self.caf_metas)
 
-        occupied = utils.Occupancy(cifhr.accumulated.shape, 2, min_scale=4)
+        occupied = utils.Occupancy(cifhr.accumulated.shape, 2)
         annotations = []
 
         def mark_occupied(ann):

@@ -6,13 +6,16 @@ from ...functional import scalar_nonzero_clipped_with_reduction
 LOG = logging.getLogger(__name__)
 
 
-def scalar_square_add_single(field, x, y, sigma, value):
+def scalar_square_set(field, x, y, sigma):
     minx = max(0, int(x - sigma))
     miny = max(0, int(y - sigma))
-    # +2: +1 for rounding up and another +1 for non-inclusive boundary
-    maxx = max(minx + 1, min(field.shape[1], int(x + sigma) + 2))
-    maxy = max(miny + 1, min(field.shape[0], int(y + sigma) + 2))
-    field[miny:maxy, minx:maxx] += value
+    # +1: for non-inclusive boundary
+    # There is __not__ another plus one for rounding up:
+    # The query in occupancy does not round to nearest integer but only
+    # rounds down.
+    maxx = max(minx + 1, min(field.shape[1], int(x + sigma) + 1))
+    maxy = max(miny + 1, min(field.shape[0], int(y + sigma) + 1))
+    field[miny:maxy, minx:maxx] = 1
 
 
 class Occupancy():
@@ -23,7 +26,6 @@ class Occupancy():
         assert min_scale >= reduction
 
         self.reduction = reduction
-        self.min_scale = min_scale
         self.min_scale_reduced = min_scale / reduction
 
         self.occupancy = np.zeros((
@@ -41,10 +43,10 @@ class Occupancy():
         if f >= len(self.occupancy):
             return
 
-        xi = round(x / self.reduction)
-        yi = round(y / self.reduction)
-        si = round(max(self.min_scale_reduced, sigma / self.reduction))
-        scalar_square_add_single(self.occupancy[f], xi, yi, si, 1)
+        xi = x / self.reduction
+        yi = y / self.reduction
+        si = max(self.min_scale_reduced, sigma / self.reduction)
+        scalar_square_set(self.occupancy[f], xi, yi, si)
 
     def get(self, f, x, y):
         """Getting needs to be done at the floor of (x, y)."""
