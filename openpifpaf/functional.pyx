@@ -111,24 +111,27 @@ cpdef void scalar_square_add_gauss_with_max(float[:, :] field, float[:] x, float
     cdef float cv, cx, cy, csigma, csigma2
     cdef long minx, miny, maxx, maxy
     cdef float truncate2 = truncate * truncate
+    cdef float truncate_csigma, truncate2_csigma2
 
     for i in range(x.shape[0]):
         csigma = sigma[i]
         csigma2 = csigma * csigma
+        truncate_csigma = truncate * csigma
+        truncate2_csigma2 = truncate2 * csigma2
         cx = x[i]
         cy = y[i]
         cv = v[i]
 
-        minx = (<long>clip(cx - truncate * csigma, 0, field.shape[1] - 1))
-        maxx = (<long>clip(cx + truncate * csigma + 1, minx + 1, field.shape[1]))
-        miny = (<long>clip(cy - truncate * csigma, 0, field.shape[0] - 1))
-        maxy = (<long>clip(cy + truncate * csigma + 1, miny + 1, field.shape[0]))
+        minx = (<long>clip(cx - truncate_csigma, 0, field.shape[1] - 1))
+        maxx = (<long>clip(cx + truncate_csigma + 1, minx + 1, field.shape[1]))
+        miny = (<long>clip(cy - truncate_csigma, 0, field.shape[0] - 1))
+        maxy = (<long>clip(cy + truncate_csigma + 1, miny + 1, field.shape[0]))
         for xx in range(minx, maxx):
             deltax2 = (xx - cx)**2
             for yy in range(miny, maxy):
                 deltay2 = (yy - cy)**2
 
-                if deltax2 + deltay2 > truncate2 * csigma2:
+                if deltax2 + deltay2 > truncate2_csigma2:
                     continue
 
                 if deltax2 < 0.25 and deltay2 < 0.25:
