@@ -393,7 +393,7 @@ def grow_connection_blend(float[:, :] caf_field, float x, float y, float xy_scal
         # combined value and source distance
         score = exp(-0.5 * d2 / sigma2) * caf_field[0, i]
 
-        if score > score_1:
+        if score >= score_1:  # if score is equal to score_1, make sure score_2 is filled
             score_2_i = score_1_i
             score_2 = score_1
             score_1_i = i
@@ -405,25 +405,24 @@ def grow_connection_blend(float[:, :] caf_field, float x, float y, float xy_scal
     if score_1 == 0.0:
         return 0.0, 0.0, 0.0, 0.0
 
-    # only max
-    cdef float[4] entry_1 = [
+    cdef float[4] entry_1 = [  # xybs
         caf_field[3, score_1_i], caf_field[4, score_1_i],
         caf_field[6, score_1_i], caf_field[8, score_1_i]]
     if only_max:
         return entry_1[0], entry_1[1], entry_1[3], score_1
-
-    # blend
-    cdef float[4] entry_2 = [
-        caf_field[3, score_2_i], caf_field[4, score_2_i],
-        caf_field[6, score_2_i], caf_field[8, score_2_i]]
     if score_2 < 0.01 or score_2 < 0.5 * score_1:
         return entry_1[0], entry_1[1], entry_1[3], score_1 * 0.5
+
+    # blend
+    cdef float[4] entry_2 = [  # xybs
+        caf_field[3, score_2_i], caf_field[4, score_2_i],
+        caf_field[6, score_2_i], caf_field[8, score_2_i]]
 
     cdef float blend_d2 = (entry_1[0] - entry_2[0])**2 + (entry_1[1] - entry_2[1])**2
     if blend_d2 > entry_1[3]**2 / 4.0:
         return entry_1[0], entry_1[1], entry_1[3], score_1 * 0.5
 
-    return (
+    return (  # xysv
         (score_1 * entry_1[0] + score_2 * entry_2[0]) / (score_1 + score_2),
         (score_1 * entry_1[1] + score_2 * entry_2[1]) / (score_1 + score_2),
         (score_1 * entry_1[3] + score_2 * entry_2[3]) / (score_1 + score_2),
