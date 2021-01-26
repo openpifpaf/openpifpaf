@@ -10,7 +10,6 @@ LOG = logging.getLogger(__name__)
 
 
 class CompositeLoss(torch.nn.Module):
-    b_scale = 1.0
     prescale = 1.0
 
     def __init__(self, head_net: heads.CompositeField3, regression_loss):
@@ -24,9 +23,7 @@ class CompositeLoss(torch.nn.Module):
         self.confidence_loss = components.Bce()
         self.regression_loss = regression_loss or components.laplace_loss
         self.scale_losses = torch.nn.ModuleList([
-            components.ScaleLoss(self.b_scale, relative=True)
-            for _ in range(self.n_scales)
-        ])
+            components.Scale() for _ in range(self.n_scales)])
         self.field_names = (
             ['{}.{}.c'.format(head_net.meta.dataset, head_net.meta.name)]
             + ['{}.{}.vec{}'.format(head_net.meta.dataset, head_net.meta.name, i + 1)
@@ -41,13 +38,10 @@ class CompositeLoss(torch.nn.Module):
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
         group = parser.add_argument_group('Composite Loss')
-        group.add_argument('--b-scale', default=cls.b_scale, type=float,
-                           help='Laplace width b for scale loss')
         group.add_argument('--loss-prescale', default=cls.prescale, type=float)
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
-        cls.b_scale = args.b_scale
         cls.prescale = args.loss_prescale
 
     def _confidence_loss(self, x_confidence, t_confidence):

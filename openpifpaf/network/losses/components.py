@@ -100,20 +100,35 @@ class Bce(torch.nn.Module):
         return bce
 
 
-class ScaleLoss(torch.nn.Module):
-    def __init__(self, b, *,
-                 clip=None,
-                 relative=False, relative_eps=0.1):
-        super().__init__()
-        self.b = b
-        self.clip = clip
-        self.relative = relative
-        self.relative_eps = relative_eps
+class Scale(torch.nn.Module):
+    b = 1.0
+    log_space = False
+    relative = True
+    relative_eps = 0.1
+    clip = None
+
+    @classmethod
+    def cli(cls, parser: argparse.ArgumentParser):
+        group = parser.add_argument_group('Scale Loss')
+        group.add_argument('--b-scale', default=cls.b, type=float,
+                           help='Laplace width b for scale loss')
+        assert not cls.log_space
+        group.add_argument('--scale-log', default=False, action='store_true')
+
+    @classmethod
+    def configure(cls, args: argparse.Namespace):
+        cls.b = args.b_scale
+        cls.log_space = args.scale_log
+        if args.scale_log:
+            cls.relative = False
 
     def forward(self, logs, t):  # pylint: disable=arguments-differ
+        assert not (self.log_space and self.relative)
+
+        s = torch.nn.functional.softplus(logs)
         loss = torch.nn.functional.l1_loss(
-            torch.nn.functional.softplus(logs),
-            t,
+            s if not self.log_space else torch.log(s),
+            t if not self.log_space else torch.log(t),
             reduction='none',
         )
         if self.clip is not None:
