@@ -12,6 +12,13 @@ class Bce(torch.nn.Module):
     focal_gamma = 1.0
     focal_detach = False
     min_bce = 0.02
+    min_slope = 0.1
+
+    def __init__(self, **kwargs):
+        super().__init__()
+        for n, v in kwargs.items():
+            assert hasattr(self, n)
+            setattr(self, n, v)
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
@@ -26,6 +33,8 @@ class Bce(torch.nn.Module):
         group.add_argument('--focal-detach', default=False, action='store_true')
         group.add_argument('--bce-min', default=cls.min_bce, type=float,
                            help='gradient clipped below')
+        group.add_argument('--bce-min-slope', default=cls.min_slope, type=float,
+                           help='slope of soft clamp')
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
@@ -34,6 +43,7 @@ class Bce(torch.nn.Module):
         cls.focal_gamma = args.focal_gamma
         cls.focal_detach = args.focal_detach
         cls.min_bce = args.bce_min
+        cls.min_slope = args.bce_min_slope
 
     def forward(self, x, t):  # pylint: disable=arguments-differ
         t_zeroone = t.clone()
@@ -41,17 +51,36 @@ class Bce(torch.nn.Module):
         # x = torch.clamp(x, -20.0, 20.0)
         bce = torch.nn.functional.binary_cross_entropy_with_logits(
             x, t_zeroone, reduction='none')
+        min_bce_mask = None
         if self.min_bce > 0.0:
             # 0.02 -> -3.9, 0.01 -> -4.6, 0.001 -> -7, 0.0001 -> -9
             # bce = torch.clamp(bce, 0.02, 5.0)
+            min_bce_mask = bce < self.min_bce
             bce = torch.clamp_min(bce, self.min_bce)
+            # soft gradient instead of clamp (also reduces pre-factor for focal):
+            # bce[min_bce_mask] *= self.min_slope
+        torch.clamp_min_(bce, 1e-6)  # 1e-6 corresponds to x~=14
 
         if self.focal_gamma != 0.0:
             p = torch.sigmoid(x)
             pt = p * t_zeroone + (1 - p) * (1 - t_zeroone)
-            focal = (1.0 - pt + 1e-4)**self.focal_gamma
+            torch.clamp_max_(pt, 0.9999)
+            # The above code would still propagate gradients for
+            # clamped bce.
+            # Therefore, derive pt from bce.
+            # pt = torch.exp(-bce)
+            # Or apply mask separately here:
+            # pt[min_bce_mask] = 1.0
+            focal = 1.0 - pt
+            if self.focal_gamma != 1.0:
+                focal = focal**self.focal_gamma
+
+            if min_bce_mask is not None:
+                focal[min_bce_mask] *= self.min_slope
+
             if self.focal_detach:
                 focal = focal.detach()
+
             bce = focal * bce
 
         if self.focal_alpha == 0.5:
@@ -98,7 +127,7 @@ class ScaleLoss(torch.nn.Module):
         return loss
 
 
-def laplace_loss(x1, x2, b, t1, t2, bmin, *, weight=None, norm_clip=None):
+def laplace_loss(x1, x2, logb, t1, t2, bmin, *, weight=None, norm_clip=None):
     """Loss based on Laplace Distribution.
 
     Loss for a single two-dimensional vector (x1, x2) with radial
@@ -118,19 +147,26 @@ def laplace_loss(x1, x2, b, t1, t2, bmin, *, weight=None, norm_clip=None):
     # Similar to BatchNorm, we introduce a physically irrelevant epsilon
     # that stabilizes the gradients for small norms.
     # norm = torch.sqrt((x1 - t1)**2 + (x2 - t2)**2 + torch.clamp_min(bmin**2, 0.0001))
-    norm = torch.stack((x1 - t1, x2 - t2, torch.clamp_min(bmin, 0.01))).norm(dim=0)
+    # norm = torch.stack((x1 - t1, x2 - t2, torch.clamp_min(bmin, 0.01))).norm(dim=0)
+    norm = torch.stack((x1 - t1, x2 - t2, bmin)).norm(dim=0)
     if norm_clip is not None:
         norm = torch.clamp(norm, norm_clip[0], norm_clip[1])
 
     # constrain range of logb
     # low range constraint: prevent strong confidence when overfitting
     # high range constraint: force some data dependence
-    # logb = 3.0 * torch.tanh(logb / 3.0)
-    b = torch.nn.functional.softplus(b)
-    b = torch.max(b, bmin)
+    logb = 3.0 * torch.tanh(logb / 3.0)
+    # b = torch.nn.functional.softplus(b)
+    # b = torch.max(b, bmin)
+    # b_plus_bmin = torch.nn.functional.softplus(b) + bmin
+    # b_plus_bmin = 20.0 * torch.sigmoid(b / 20.0) + bmin
+    # logb = -3.0 + torch.nn.functional.softplus(logb + 3.0)
+    # log_bmin = torch.log(bmin)
+    # logb = log_bmin + torch.nn.functional.softplus(logb - log_bmin)
 
     # ln(2) = 0.694
-    losses = torch.log(b) + norm / b
+    # losses = torch.log(b_plus_bmin) + norm / b_plus_bmin
+    losses = logb + norm * torch.exp(-logb)
     if weight is not None:
         losses = losses * weight
     return losses
