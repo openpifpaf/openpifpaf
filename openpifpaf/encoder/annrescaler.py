@@ -50,10 +50,10 @@ class AnnRescaler():
                 for i, xyv in enumerate(all_xyv[1:], start=1):
                     if xyv[2] > 1.0:  # is visible
                         continue
-                    if xyv[2] == 0.0:  # does not exist
+                    if xyv[2] < 1.0:  # does not exist
                         break
                     for prev_xyv in all_xyv[:i]:
-                        if prev_xyv[2] == xyv[2]:  # do not suppress if both hidden
+                        if prev_xyv[2] <= 1.0:  # do not suppress if both hidden
                             break
                         if np.abs(prev_xyv[0] - xyv[0]) > 32.0 \
                            or np.abs(prev_xyv[1] - xyv[1]) > 32.0:
