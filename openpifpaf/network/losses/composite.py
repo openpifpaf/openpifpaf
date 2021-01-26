@@ -11,6 +11,7 @@ LOG = logging.getLogger(__name__)
 
 class CompositeLoss(torch.nn.Module):
     b_scale = 1.0
+    prescale = 1.0
 
     def __init__(self, head_net: heads.CompositeField3, regression_loss):
         super().__init__()
@@ -40,12 +41,14 @@ class CompositeLoss(torch.nn.Module):
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
         group = parser.add_argument_group('Composite Loss')
-        group.add_argument('--b-scale', default=CompositeLoss.b_scale, type=float,
+        group.add_argument('--b-scale', default=cls.b_scale, type=float,
                            help='Laplace width b for scale loss')
+        group.add_argument('--loss-prescale', default=cls.prescale, type=float)
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
         cls.b_scale = args.b_scale
+        cls.prescale = args.loss_prescale
 
     def _confidence_loss(self, x_confidence, t_confidence):
         # TODO assumes one confidence
@@ -69,11 +72,13 @@ class CompositeLoss(torch.nn.Module):
         bce_target = torch.masked_select(t_confidence, bce_masks)
         x_confidence = torch.masked_select(x_confidence, bce_masks)
         ce_loss = self.confidence_loss(x_confidence, bce_target)
+        if self.prescale != 1.0:
+            ce_loss = ce_loss * self.prescale
         ce_loss = ce_loss.sum() / batch_size
 
         return ce_loss
 
-    def _localization_loss(self, x_regs, t_regs, *, weight=None):
+    def _localization_loss(self, x_regs, t_regs):
         assert x_regs.shape[2] == self.n_vectors * 3
         assert t_regs.shape[2] == self.n_vectors * 3
         batch_size = t_regs.shape[0]
@@ -93,13 +98,13 @@ class CompositeLoss(torch.nn.Module):
                 torch.masked_select(t_regs[:, :, i * 2 + 1], reg_masks),
                 torch.masked_select(t_regs[:, :, self.n_vectors * 2 + i], reg_masks),
             )
-            if weight is not None:
-                loss = loss * weight[:, :, 0][reg_masks]
+            if self.prescale != 1.0:
+                loss = loss * self.prescale
             reg_losses.append(loss.sum() / batch_size)
 
         return reg_losses
 
-    def _scale_losses(self, x_scales, t_scales, *, weight=None):
+    def _scale_losses(self, x_scales, t_scales):
         assert x_scales.shape[2] == t_scales.shape[2] == len(self.scale_losses)
 
         batch_size = x_scales.shape[0]
@@ -110,8 +115,8 @@ class CompositeLoss(torch.nn.Module):
                 torch.masked_select(x_scales[:, :, i], mask),
                 torch.masked_select(t_scales[:, :, i], mask),
             )
-            if weight is not None:
-                loss = loss * weight[:, :, 0][mask]
+            if self.prescale != 1.0:
+                loss = loss * self.prescale
             losses.append(loss.sum() / batch_size)
 
         return losses
