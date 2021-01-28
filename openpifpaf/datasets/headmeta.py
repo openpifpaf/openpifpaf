@@ -9,6 +9,7 @@ from .constants import (
     KINEMATIC_TREE_SKELETON,
 )
 
+from .factory import dataset_meta
 
 def factory(head_names):
     if head_names is None:
@@ -18,7 +19,7 @@ def factory(head_names):
 
 def factory_single(head_name):
     if 'cifdet' in head_name:
-        return DetectionMeta(head_name, COCO_CATEGORIES)
+        return DetectionMeta(head_name, dataset_meta['categories'])
     if 'pif' in head_name or 'cif' in head_name:
         return IntensityMeta(head_name,
                              COCO_KEYPOINTS,
