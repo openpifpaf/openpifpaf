@@ -26,20 +26,9 @@ except ImportError:
     onnxsim = None
 
 
-class GetPif(torch.nn.Module):
-    def forward(self, heads):  # pylint: disable=arguments-differ
-        return heads[0]
-
-
-class GetPifC(torch.nn.Module):
-    def forward(self, heads):  # pylint: disable=arguments-differ
-        return heads[0][0]
-
-
 def apply(model, outfile, verbose=True):
     # dummy_input = torch.randn(1, 3, 193, 257)
     dummy_input = torch.randn(1, 3, 97, 129)
-    # model = torch.nn.Sequential(model, GetPifC())
 
     # Providing input and output names sets the display names for values
     # within the model's graph. Setting these does not change the semantics

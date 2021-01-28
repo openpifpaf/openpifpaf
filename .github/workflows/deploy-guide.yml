@@ -8,7 +8,7 @@ on:
   #   - guide
   release:
     types:
-      - created
+      - released
 
 # This job installs dependencies, build the guide, and pushes it to `gh-pages`
 jobs:

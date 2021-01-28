@@ -10,14 +10,10 @@ try:
 except ImportError:
     numpy = None
 
-
-# extract version from __init__.py
-with open('openpifpaf/__init__.py', 'r') as f:
-    VERSION_LINE = [l for l in f if l.startswith('__version__')][0]
-    VERSION = VERSION_LINE.split('=')[1].strip()[1:-1]
+import versioneer
 
 
-class NumpyIncludePath(object):
+class NumpyIncludePath():
     """Lazy import of numpy to get include path."""
     @staticmethod
     def __str__():
@@ -40,7 +36,8 @@ else:
 
 setup(
     name='openpifpaf',
-    version=VERSION,
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
     packages=[
         'openpifpaf',
         'openpifpaf.datasets',
@@ -76,7 +73,7 @@ setup(
     extras_require={
         'dev': [
             'flameprof',
-            'jupyter-book>=0.7.0b',
+            'jupyter-book>=0.7.4',
             'matplotlib',
             'nbdime',
             'nbstripout',

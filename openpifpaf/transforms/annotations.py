@@ -17,6 +17,8 @@ class NormalizeAnnotations(Preprocess):
         for ann in anns:
             if 'keypoints' not in ann:
                 ann['keypoints'] = []
+            if 'iscrowd' not in ann:
+                ann['iscrowd'] = False
 
             ann['keypoints'] = np.asarray(ann['keypoints'], dtype=np.float32).reshape(-1, 3)
             ann['bbox'] = np.asarray(ann['bbox'], dtype=np.float32)

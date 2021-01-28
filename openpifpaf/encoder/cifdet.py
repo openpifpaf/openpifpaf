@@ -26,7 +26,7 @@ class CifDet:
         return CifDetGenerator(self)(image, anns, meta)
 
 
-class CifDetGenerator(object):
+class CifDetGenerator():
     def __init__(self, config: CifDet):
         self.config = config
 
@@ -42,7 +42,8 @@ class CifDetGenerator(object):
         width_height_original = image.shape[2:0:-1]
 
         detections = self.config.rescaler.detections(anns)
-        bg_mask = self.config.rescaler.bg_mask(anns, width_height_original)
+        bg_mask = self.config.rescaler.bg_mask(anns, width_height_original,
+                                               crowd_margin=(self.config.side_length - 1) / 2)
         valid_area = self.config.rescaler.valid_area(meta)
         LOG.debug('valid area: %s, pif side length = %d', valid_area, self.config.side_length)
 

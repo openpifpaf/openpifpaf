@@ -1,6 +1,24 @@
 # History
 
-* [master](https://github.com/vita-epfl/openpifpaf/compare/v0.11.6...master)
+* [main](https://github.com/vita-epfl/openpifpaf/compare/v0.11.9...main)
+* [0.11.9](https://github.com/vita-epfl/openpifpaf/compare/v0.11.8...v0.11.9) (2020-08-25)
+    * new `--val-interval` which replaces the use-cases for previous `--duplicate-data`
+    * extended ColorJitter ranges for training: brightness=0.4, saturation=0.4, hue=0.1
+    * PyLint 2.6 compatibility
+    * matplotlib 3.3 compatibility
+    * Cython 0.29.21
+* [0.11.8](https://github.com/vita-epfl/openpifpaf/compare/v0.11.7...v0.11.8) (2020-08-19)
+    * PyTorch 1.6 compatibility
+    * modified loss recommendation to avoid autotune
+    * use versioneer to create dynamic version numbers
+    * use stretch augmentation [#262](https://github.com/vita-epfl/openpifpaf/pull/262)
+    * improved decoding performance [#252](https://github.com/vita-epfl/openpifpaf/pull/252)
+    * add v0.8 cpp decoder [#249](https://github.com/vita-epfl/openpifpaf/pull/249)
+* [0.11.7](https://github.com/vita-epfl/openpifpaf/compare/v0.11.6...v0.11.7) (2020-07-14)
+    * fix predict with multiple GPUs
+    * fix ONNX optimization
+    * fix dense connection option and add a test for it
+    * suppress a warning during training that doesn't apply
 * [0.11.6](https://github.com/vita-epfl/openpifpaf/compare/v0.11.4...v0.11.6) (2020-06-15)
     * circular truncation for CifHr
     * extend Guide
@@ -40,7 +58,7 @@
     * make image transforms part of preprocessing [#100](https://github.com/vita-epfl/openpifpaf/pull/100)
     * field-based two-scale implementation [#101](https://github.com/vita-epfl/openpifpaf/pull/101), also modifies single-scale decoder
     * added a `show.CrowdPainter` to visualize crowd annotations
-    * new benchmark script and updated performance numbers in [README.md](https://github.com/vita-epfl/openpifpaf/blob/master/README.md), [#104](https://github.com/vita-epfl/openpifpaf/pull/104)
+    * new benchmark script and updated performance numbers in README.md, [#104](https://github.com/vita-epfl/openpifpaf/pull/104)
 * [0.8.0](https://github.com/vita-epfl/openpifpaf/compare/v0.7.0...v0.8.0) (2019-07-08)
     * add support for `resnext50`, `shufflenetv2x1` and `shufflenetv2x2`
     * new pretrained models

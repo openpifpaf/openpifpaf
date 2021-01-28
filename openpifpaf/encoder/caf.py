@@ -59,7 +59,8 @@ class CafGenerator:
         width_height_original = image.shape[2:0:-1]
 
         keypoint_sets = self.config.rescaler.keypoint_sets(anns)
-        bg_mask = self.config.rescaler.bg_mask(anns, width_height_original)
+        bg_mask = self.config.rescaler.bg_mask(anns, width_height_original,
+                                               crowd_margin=(self.config.min_size - 1) / 2)
         valid_area = self.config.rescaler.valid_area(meta)
         LOG.debug('valid area: %s', valid_area)
 
@@ -130,17 +131,23 @@ class CafGenerator:
 
             # if there is no continuous visual connection, endpoints outside
             # the field of view cannot be inferred
+            # LOG.debug('fov check: j1 = %s, j2 = %s', joint1, joint2)
+            out_field_of_view_1 = (
+                joint1[0] < 0 or \
+                joint1[1] < 0 or \
+                joint1[0] > self.intensities.shape[2] - 1 - 2 * self.config.padding or \
+                joint1[1] > self.intensities.shape[1] - 1 - 2 * self.config.padding
+            )
+            out_field_of_view_2 = (
+                joint2[0] < 0 or \
+                joint2[1] < 0 or \
+                joint2[0] > self.intensities.shape[2] - 1 - 2 * self.config.padding or \
+                joint2[1] > self.intensities.shape[1] - 1 - 2 * self.config.padding
+            )
+            if out_field_of_view_1 and out_field_of_view_2:
+                continue
             if self.config.only_in_field_of_view:
-                # LOG.debug('fov check: j1 = %s, j2 = %s', joint1, joint2)
-                if joint1[0] < 0 or \
-                   joint2[0] < 0 or \
-                   joint1[0] > self.intensities.shape[2] - 1 - 2 * self.config.padding or \
-                   joint2[0] > self.intensities.shape[2] - 1 - 2 * self.config.padding:
-                    continue
-                if joint1[1] < 0 or \
-                   joint2[1] < 0 or \
-                   joint1[1] > self.intensities.shape[1] - 1 - 2 * self.config.padding or \
-                   joint2[1] > self.intensities.shape[1] - 1 - 2 * self.config.padding:
+                if out_field_of_view_1 or out_field_of_view_2:
                     continue
 
             other_j1s = [other_kps[joint1i] for other_kps in other_keypoints
@@ -172,7 +179,8 @@ class CafGenerator:
 
         # set fields
         num = max(2, int(np.ceil(offset_d)))
-        fmargin = min(0.4, (s_offset + 1) / (offset_d + np.spacing(1)))
+        fmargin = (s_offset + 1) / (offset_d + np.spacing(1))
+        fmargin = np.clip(fmargin, 0.25, 0.4)
         # fmargin = 0.0
         frange = np.linspace(fmargin, 1.0-fmargin, num=num)
         if self.config.fixed_size:
@@ -202,10 +210,12 @@ class CafGenerator:
                 - offset[0] * sink1[1]
             ) / (offset_d + 0.01)
             mask = sink_l < self.fields_reg_l[paf_i, fminy:fmaxy, fminx:fmaxx]
+            mask_peak = np.logical_and(mask, np.linalg.norm(sink1 + sink2, axis=0) < 0.7)
             self.fields_reg_l[paf_i, fminy:fmaxy, fminx:fmaxx][mask] = sink_l[mask]
 
             # update intensity
             self.intensities[paf_i, fminy:fmaxy, fminx:fmaxx][mask] = 1.0
+            self.intensities[paf_i, fminy:fmaxy, fminx:fmaxx][mask_peak] = 1.0
 
             # update regressions
             patch1 = self.fields_reg1[paf_i, :, fminy:fmaxy, fminx:fmaxx]
@@ -216,9 +226,9 @@ class CafGenerator:
             patch2[2:, mask] = np.expand_dims(max_r2, 1) * 0.5
 
             # update scale
-            assert np.isnan(scale1) or scale1 > 0.0
+            assert np.isnan(scale1) or 0.0 < scale1 < 100.0
             self.fields_scale1[paf_i, fminy:fmaxy, fminx:fmaxx][mask] = scale1
-            assert np.isnan(scale2) or scale2 > 0.0
+            assert np.isnan(scale2) or 0.0 < scale2 < 100.0
             self.fields_scale2[paf_i, fminy:fmaxy, fminx:fmaxx][mask] = scale2
 
     def fields(self, valid_area):

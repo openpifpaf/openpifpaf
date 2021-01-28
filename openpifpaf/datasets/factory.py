@@ -92,8 +92,6 @@ def train_cli(parser):
                         choices=dataset_list.keys())
     group.add_argument('--n-images', default=None, type=int,
                        help='number of images to sample')
-    group.add_argument('--duplicate-data', default=None, type=int,
-                       help='duplicate data')
     group.add_argument('--loader-workers', default=None, type=int,
                        help='number of workers for data loading')
     group.add_argument('--batch-size', default=8, type=int,
@@ -139,11 +137,11 @@ def train_cocokp_preprocess_factory(
     if extended_scale:
         rescale_t = transforms.RescaleRelative(
             scale_range=(0.25 * rescale_images, 2.0 * rescale_images),
-            power_law=True)
+            power_law=True, stretch_range=(0.75, 1.33))
     else:
         rescale_t = transforms.RescaleRelative(
             scale_range=(0.4 * rescale_images, 2.0 * rescale_images),
-            power_law=True)
+            power_law=True, stretch_range=(0.75, 1.33))
 
     orientation_t = None
     if orientation_invariant:
@@ -182,11 +180,11 @@ def train_cocodet_preprocess_factory(
     if extended_scale:
         rescale_t = transforms.RescaleRelative(
             scale_range=(0.5 * rescale_images, 2.0 * rescale_images),
-            power_law=True)
+            power_law=True, stretch_range=(0.75, 1.33))
     else:
         rescale_t = transforms.RescaleRelative(
             scale_range=(0.7 * rescale_images, 1.5 * rescale_images),
-            power_law=True)
+            power_law=True, stretch_range=(0.75, 1.33))
 
     orientation_t = None
     if orientation_invariant:
@@ -271,9 +269,6 @@ def train_cocokp_factory(args, target_transforms):
         image_filter='keypoint-annotations',
         category_ids=[1],
     )
-    if args.duplicate_data:
-        train_data = torch.utils.data.ConcatDataset(
-            [train_data for _ in range(args.duplicate_data)])
     train_loader = torch.utils.data.DataLoader(
         train_data, batch_size=args.batch_size, shuffle=not args.debug,
         pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
@@ -288,9 +283,6 @@ def train_cocokp_factory(args, target_transforms):
         image_filter='keypoint-annotations',
         category_ids=[1],
     )
-    if args.duplicate_data:
-        val_data = torch.utils.data.ConcatDataset(
-            [val_data for _ in range(args.duplicate_data)])
     val_loader = torch.utils.data.DataLoader(
         val_data, batch_size=args.batch_size, shuffle=False,
         pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
@@ -319,9 +311,6 @@ def train_cocodet_factory(args, target_transforms):
         image_filter='annotated',
         category_ids=[],
     )
-    if args.duplicate_data:
-        train_data = torch.utils.data.ConcatDataset(
-            [train_data for _ in range(args.duplicate_data)])
     train_loader = torch.utils.data.DataLoader(
         train_data, batch_size=args.batch_size, shuffle=False,
         sampler=torch.utils.data.WeightedRandomSampler(
@@ -338,9 +327,6 @@ def train_cocodet_factory(args, target_transforms):
         image_filter='annotated',
         category_ids=[],
     )
-    if args.duplicate_data:
-        val_data = torch.utils.data.ConcatDataset(
-            [val_data for _ in range(args.duplicate_data)])
     val_loader = torch.utils.data.DataLoader(
         val_data, batch_size=args.batch_size, shuffle=False,
         sampler=torch.utils.data.WeightedRandomSampler(

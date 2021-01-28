@@ -1,0 +1,48 @@
+name: deploy-guide-dev
+
+# Only run this when the master branch changes
+on:
+  push:
+    branches:
+    - dev
+
+# This job installs dependencies, build the guide, and pushes it to `gh-pages`
+jobs:
+  deploy-guide-dev:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    # Install dependencies
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.7
+
+    - name: Install dependencies
+      run: |
+        pip install .[dev,test]
+        sudo apt install jq
+
+    # make sure KernelSpec in all notebooks is python3
+    - name: Normalize KernelSpec
+      run: |
+        for fn in guide/*.ipynb; do
+          jq '(.metadata.kernelspec.name,.metadata.kernelspec.display_name)="python3"' ${fn} > ${fn}_
+          mv ${fn}_ ${fn}
+        done
+
+    # Build the guide
+    - name: Build the artwork for guide
+      run: cd guide && python artwork.py
+
+    - name: Build the guide
+      run: cd guide && cp _config_dev.yml _config.yml && jupyter-book build .
+
+    # Push the book's HTML to gh-pages
+    - name: GitHub Pages action
+      uses: peaceiris/actions-gh-pages@v3.7.0-8
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./guide/_build/html
+        destination_dir: dev

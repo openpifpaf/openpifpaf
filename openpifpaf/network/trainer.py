@@ -1,16 +1,18 @@
-"""Train a pifpaf net."""
+"""Train a neural net."""
 
 import copy
 import hashlib
 import logging
 import shutil
 import time
+import warnings
+
 import torch
 
 LOG = logging.getLogger(__name__)
 
 
-class Trainer(object):
+class Trainer():
     def __init__(self, model, loss, optimizer, out, *,
                  lr_scheduler=None,
                  log_interval=10,
@@ -19,7 +21,9 @@ class Trainer(object):
                  stride_apply=1,
                  ema_decay=None,
                  train_profile=None,
-                 model_meta_data=None):
+                 model_meta_data=None,
+                 clip_grad_norm=0.0,
+                 val_interval=1):
         self.model = model
         self.loss = loss
         self.optimizer = optimizer
@@ -34,6 +38,12 @@ class Trainer(object):
         self.ema_decay = ema_decay
         self.ema = None
         self.ema_restore_params = None
+
+        self.clip_grad_norm = clip_grad_norm
+        self.n_clipped_grad = 0
+        self.max_norm = 0.0
+
+        self.val_interval = val_interval
 
         self.model_meta_data = model_meta_data
 
@@ -67,7 +77,7 @@ class Trainer(object):
             return
 
         for p, ema_p in zip(self.model.parameters(), self.ema):
-            ema_p.mul_(1.0 - self.ema_decay).add_(self.ema_decay, p.data)
+            ema_p.mul_(1.0 - self.ema_decay).add_(p.data, alpha=self.ema_decay)
 
     def apply_ema(self):
         if self.ema is None:
@@ -90,14 +100,21 @@ class Trainer(object):
 
     def loop(self, train_scenes, val_scenes, epochs, start_epoch=0):
         if self.lr_scheduler is not None:
-            for _ in range(start_epoch * len(train_scenes)):
-                self.lr_scheduler.step()
+            with warnings.catch_warnings():
+                warnings.simplefilter('ignore')
+                for _ in range(start_epoch * len(train_scenes)):
+                    self.lr_scheduler.step()
 
         for epoch in range(start_epoch, epochs):
+            if epoch == 0:
+                self.write_model(0, final=False)
+
             self.train(train_scenes, epoch)
 
-            self.write_model(epoch + 1, epoch == epochs - 1)
-            self.val(val_scenes, epoch + 1)
+            if (epoch + 1) % self.val_interval == 0 \
+               or epoch + 1 == epochs:
+                self.write_model(epoch + 1, epoch + 1 == epochs)
+                self.val(val_scenes, epoch + 1)
 
     def train_batch(self, data, targets, apply_gradients=True):  # pylint: disable=method-hidden
         if self.device:
@@ -112,6 +129,15 @@ class Trainer(object):
         if loss is not None:
             with torch.autograd.profiler.record_function('backward'):
                 loss.backward()
+        if self.clip_grad_norm:
+            max_norm = self.clip_grad_norm / self.lr()
+            total_norm = torch.nn.utils.clip_grad_norm_(
+                self.model.parameters(), max_norm, norm_type=float('inf'))
+            self.max_norm = max(float(total_norm), self.max_norm)
+            if total_norm > max_norm:
+                self.n_clipped_grad += 1
+                print('CLIPPED GRAD NORM: total norm before clip: {}, max norm: {}'
+                      ''.format(total_norm, max_norm))
         if apply_gradients:
             with torch.autograd.profiler.record_function('step'):
                 self.optimizer.step()
@@ -215,7 +241,11 @@ class Trainer(object):
             'head_losses': [round(l / max(1, c), 5)
                             for l, c in zip(head_epoch_losses, head_epoch_counts)],
             'time': round(time.time() - start_time, 1),
+            'n_clipped_grad': self.n_clipped_grad,
+            'max_norm': self.max_norm,
         })
+        self.n_clipped_grad = 0
+        self.max_norm = 0.0
 
     def val(self, scenes, epoch):
         start_time = time.time()

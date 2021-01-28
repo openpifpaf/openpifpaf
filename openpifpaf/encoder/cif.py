@@ -26,7 +26,7 @@ class Cif:
         return CifGenerator(self)(image, anns, meta)
 
 
-class CifGenerator(object):
+class CifGenerator():
     def __init__(self, config: Cif):
         self.config = config
 
@@ -42,7 +42,8 @@ class CifGenerator(object):
         width_height_original = image.shape[2:0:-1]
 
         keypoint_sets = self.config.rescaler.keypoint_sets(anns)
-        bg_mask = self.config.rescaler.bg_mask(anns, width_height_original)
+        bg_mask = self.config.rescaler.bg_mask(anns, width_height_original,
+                                               crowd_margin=(self.config.side_length - 1) / 2)
         valid_area = self.config.rescaler.valid_area(meta)
         LOG.debug('valid area: %s, pif side length = %d', valid_area, self.config.side_length)
 
@@ -52,7 +53,7 @@ class CifGenerator(object):
         fields = self.fields(valid_area)
 
         self.config.visualizer.processed_image(image)
-        self.config.visualizer.targets(fields, keypoint_sets=keypoint_sets)
+        self.config.visualizer.targets(fields, annotation_dicts=anns)
 
         return fields
 
@@ -130,10 +131,12 @@ class CifGenerator(object):
         sink_reg = self.sink + offset
         sink_l = np.linalg.norm(sink_reg, axis=0)
         mask = sink_l < self.fields_reg_l[f, miny:maxy, minx:maxx]
+        mask_peak = np.logical_and(mask, sink_l < 0.7)
         self.fields_reg_l[f, miny:maxy, minx:maxx][mask] = sink_l[mask]
 
         # update intensity
         self.intensities[f, miny:maxy, minx:maxx][mask] = 1.0
+        self.intensities[f, miny:maxy, minx:maxx][mask_peak] = 1.0
 
         # update regression
         patch = self.fields_reg[f, :, miny:maxy, minx:maxx]
@@ -141,7 +144,7 @@ class CifGenerator(object):
         patch[2:, mask] = np.expand_dims(max_r, 1) * 0.5
 
         # update scale
-        assert np.isnan(scale) or scale > 0.0
+        assert np.isnan(scale) or 0.0 < scale < 100.0
         self.fields_scale[f, miny:maxy, minx:maxx][mask] = scale
 
     def fields(self, valid_area):
