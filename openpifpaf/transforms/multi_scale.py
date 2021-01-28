@@ -10,12 +10,13 @@ class MultiScale(Preprocess):
         """
         self.preprocess_list = preprocess_list
 
-    def __call__(self, image, anns, meta):
-        image_list, anns_list, meta_list = [], [], []
+    def __call__(self, image, anns, mask, meta):
+        image_list, anns_list, mask_list, meta_list = [], [], [], []
         for p in self.preprocess_list:
-            this_image, this_anns, this_meta = p(image, anns, meta)
+            this_image, this_anns, this_mask, this_meta = p(image, anns, mask, meta)
             image_list.append(this_image)
             anns_list.append(this_anns)
+            mask_list.append(this_mask)
             meta_list.append(this_meta)
 
-        return image_list, anns_list, meta_list
+        return image_list, anns_list, mask_list, meta_list

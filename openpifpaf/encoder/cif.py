@@ -22,11 +22,11 @@ class Cif:
     side_length: ClassVar[int] = 4
     padding: ClassVar[int] = 10
 
-    def __call__(self, image, anns, meta):
-        return CifGenerator(self)(image, anns, meta)
+    def __call__(self, image, anns, mask, meta):
+        return CifGenerator(self)(image, anns, mask, meta)
 
 
-class CifGenerator():
+class CifGenerator(object):
     def __init__(self, config: Cif):
         self.config = config
 
@@ -38,22 +38,35 @@ class CifGenerator():
         self.sink = create_sink(config.side_length)
         self.s_offset = (config.side_length - 1.0) / 2.0
 
-    def __call__(self, image, anns, meta):
+    def __call__(self, image, anns, mask, meta):
         width_height_original = image.shape[2:0:-1]
 
+        # print('777777777777777777777in cif')
+        # print(image.shape)
+        # print(width_height_original)
+
         keypoint_sets = self.config.rescaler.keypoint_sets(anns)
-        bg_mask = self.config.rescaler.bg_mask(anns, width_height_original,
-                                               crowd_margin=(self.config.side_length - 1) / 2)
+        bg_mask = self.config.rescaler.bg_mask(anns, width_height_original)
         valid_area = self.config.rescaler.valid_area(meta)
+        # print(valid_area)
         LOG.debug('valid area: %s, pif side length = %d', valid_area, self.config.side_length)
 
         n_fields = keypoint_sets.shape[1]
         self.init_fields(n_fields, bg_mask)
         self.fill(keypoint_sets)
+        
         fields = self.fields(valid_area)
-
+        # print('fields')
+        # print(len(fields))
+        # print(len(fields[0]))
+        # print(len(fields[0][0]))
+        
+        # print(len(fields[1]))
+        # print(len(fields[1][0]))
+        # print(len(fields[2]))
+        # print(len(fields[2][0]))
         self.config.visualizer.processed_image(image)
-        self.config.visualizer.targets(fields, annotation_dicts=anns)
+        self.config.visualizer.targets(fields, keypoint_sets=keypoint_sets)
 
         return fields
 
@@ -131,12 +144,10 @@ class CifGenerator():
         sink_reg = self.sink + offset
         sink_l = np.linalg.norm(sink_reg, axis=0)
         mask = sink_l < self.fields_reg_l[f, miny:maxy, minx:maxx]
-        mask_peak = np.logical_and(mask, sink_l < 0.7)
         self.fields_reg_l[f, miny:maxy, minx:maxx][mask] = sink_l[mask]
 
         # update intensity
         self.intensities[f, miny:maxy, minx:maxx][mask] = 1.0
-        self.intensities[f, miny:maxy, minx:maxx][mask_peak] = 1.0
 
         # update regression
         patch = self.fields_reg[f, :, miny:maxy, minx:maxx]
@@ -144,7 +155,7 @@ class CifGenerator():
         patch[2:, mask] = np.expand_dims(max_r, 1) * 0.5
 
         # update scale
-        assert np.isnan(scale) or 0.0 < scale < 100.0
+        assert np.isnan(scale) or scale > 0.0
         self.fields_scale[f, miny:maxy, minx:maxx][mask] = scale
 
     def fields(self, valid_area):
@@ -157,6 +168,11 @@ class CifGenerator():
         mask_valid_area(fields_reg[:, 0], valid_area, fill_value=np.nan)
         mask_valid_area(fields_reg[:, 1], valid_area, fill_value=np.nan)
         mask_valid_area(fields_scale, valid_area, fill_value=np.nan)
+        
+        # print("_____________cif_____________")
+        # print(intensities.shape)
+        # print(fields_reg.shape)
+        # print(fields_scale.shape)
 
         return (
             torch.from_numpy(intensities),

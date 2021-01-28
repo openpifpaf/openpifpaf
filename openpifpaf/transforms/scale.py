@@ -11,8 +11,8 @@ from .preprocess import Preprocess
 
 LOG = logging.getLogger(__name__)
 
-
-def _scale(image, anns, meta, target_w, target_h, resample, *, fast=False):
+### AMA
+def _scale(image, anns, mask, meta, target_w, target_h, resample, *, fast=False):
     """target_w and target_h as integers
 
     Internally, resample in Pillow are aliases:
@@ -21,6 +21,7 @@ def _scale(image, anns, meta, target_w, target_h, resample, *, fast=False):
     """
     meta = copy.deepcopy(meta)
     anns = copy.deepcopy(anns)
+    mask = copy.deepcopy(mask)
     w, h = image.size
 
     assert resample in (0, 2, 3)
@@ -37,6 +38,9 @@ def _scale(image, anns, meta, target_w, target_h, resample, *, fast=False):
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
             im_np = scipy.ndimage.zoom(im_np, (target_h / h, target_w / w, 1), order=order)
+            ### AMA rescle masks
+            for mask_idx in range(len(mask)):
+                mask[mask_idx] = scipy.ndimage.zoom(mask[mask_idx], (target_h / h, target_w / w), order=order)
         image = PIL.Image.fromarray(im_np)
 
     LOG.debug('before resize = (%f, %f), after = %s', w, h, image.size)
@@ -63,7 +67,7 @@ def _scale(image, anns, meta, target_w, target_h, resample, *, fast=False):
     meta['valid_area'][2:] *= scale_factors
     LOG.debug('meta after: %s', meta)
 
-    return image, anns, meta
+    return image, anns, mask, meta
 
 
 class RescaleRelative(Preprocess):
@@ -71,16 +75,16 @@ class RescaleRelative(Preprocess):
                  resample=PIL.Image.BILINEAR,
                  absolute_reference=None,
                  fast=False,
-                 power_law=False,
-                 stretch_range=None):
+                 power_law=False):
         self.scale_range = scale_range
         self.resample = resample
         self.absolute_reference = absolute_reference
         self.fast = fast
         self.power_law = power_law
-        self.stretch_range = stretch_range
 
-    def __call__(self, image, anns, meta):
+    # def __call__(self, image, anns, meta):
+    ### AMA
+    def __call__(self, image, anns, mask, meta):
         if isinstance(self.scale_range, tuple):
             if self.power_law:
                 rnd_range = np.log2(self.scale_range[0]), np.log2(self.scale_range[1])
@@ -108,16 +112,8 @@ class RescaleRelative(Preprocess):
             else:
                 w *= self.absolute_reference / h
                 h = self.absolute_reference
-
-        stretch_factor = 1.0
-        if self.stretch_range is not None:
-            stretch_factor = (
-                self.stretch_range[0] +
-                torch.rand(1).item() * (self.stretch_range[1] - self.stretch_range[0])
-            )
-
-        target_w, target_h = int(w * scale_factor * stretch_factor), int(h * scale_factor)
-        return _scale(image, anns, meta, target_w, target_h, self.resample, fast=self.fast)
+        target_w, target_h = int(w * scale_factor), int(h * scale_factor)
+        return _scale(image, anns, mask, meta, target_w, target_h, self.resample, fast=self.fast)
 
 
 class RescaleAbsolute(Preprocess):
@@ -126,7 +122,7 @@ class RescaleAbsolute(Preprocess):
         self.fast = fast
         self.resample = resample
 
-    def __call__(self, image, anns, meta):
+    def __call__(self, image, anns, mask, meta):
         w, h = image.size
 
         this_long_edge = self.long_edge
@@ -141,7 +137,7 @@ class RescaleAbsolute(Preprocess):
             target_w, target_h = int(w * s), int(this_long_edge)
         else:
             target_w, target_h = int(this_long_edge), int(h * s)
-        return _scale(image, anns, meta, target_w, target_h, self.resample, fast=self.fast)
+        return _scale(image, anns, mask, meta, target_w, target_h, self.resample, fast=self.fast)
 
 
 class ScaleMix(Preprocess):
@@ -154,7 +150,7 @@ class ScaleMix(Preprocess):
         self.downscale_factor = downscale_factor
         self.resample = resample
 
-    def __call__(self, image, anns, meta):
+    def __call__(self, image, anns, mask, meta):
         scales = np.array([
             np.sqrt(ann['bbox'][2] * ann['bbox'][3])
             for ann in anns if (not getattr(ann, 'iscrowd', False) and
@@ -176,4 +172,4 @@ class ScaleMix(Preprocess):
         else:
             target_w, target_h = int(w * 2), int(h * 2)
         LOG.debug('scale mix from (%d, %d) to (%d, %d)', w, h, target_w, target_h)
-        return _scale(image, anns, meta, target_w, target_h, self.resample)
+        return _scale(image, anns, mask, meta, target_w, target_h, self.resample)

@@ -17,8 +17,6 @@ class NormalizeAnnotations(Preprocess):
         for ann in anns:
             if 'keypoints' not in ann:
                 ann['keypoints'] = []
-            if 'iscrowd' not in ann:
-                ann['iscrowd'] = False
 
             ann['keypoints'] = np.asarray(ann['keypoints'], dtype=np.float32).reshape(-1, 3)
             ann['bbox'] = np.asarray(ann['bbox'], dtype=np.float32)
@@ -29,8 +27,13 @@ class NormalizeAnnotations(Preprocess):
 
         return anns
 
-    def __call__(self, image, anns, meta):
+    # def __call__(self, image, anns, meta):
+    ### AMA
+    def __call__(self, image, anns, mask, meta):
+        # print('in annotations')
+        # print(anns)
         anns = self.normalize_annotations(anns)
+        # print(anns)
 
         if meta is None:
             meta = {}
@@ -49,14 +52,18 @@ class NormalizeAnnotations(Preprocess):
             if k not in meta:
                 meta[k] = v
 
-        return image, anns, meta
+        # return image, anns, meta
+        ### AMA
+        return image, anns, mask, meta
 
 
 class AnnotationJitter(Preprocess):
     def __init__(self, epsilon=0.5):
         self.epsilon = epsilon
 
-    def __call__(self, image, anns, meta):
+    # def __call__(self, image, anns, meta):
+    ### AMA
+    def __call__(self, image, anns, mask, meta):
         meta = copy.deepcopy(meta)
         anns = copy.deepcopy(anns)
 
@@ -68,4 +75,4 @@ class AnnotationJitter(Preprocess):
             sym_rnd_bbox = (torch.rand((4,)).numpy() - 0.5) * 2.0
             ann['bbox'] += 0.5 * self.epsilon * sym_rnd_bbox
 
-        return image, anns, meta
+        return image, anns, mask, meta

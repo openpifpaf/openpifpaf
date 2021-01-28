@@ -16,13 +16,14 @@ class ImageList(torch.utils.data.Dataset):
             image = PIL.Image.open(f).convert('RGB')
 
         anns = []
-        image, anns, meta = self.preprocess(image, anns, None)
+        mask = []
+        image, anns, mask, meta = self.preprocess(image, anns, mask, None)
         meta.update({
             'dataset_index': index,
             'file_name': image_path,
         })
 
-        return image, anns, meta
+        return image, [anns, mask], meta
 
     def __len__(self):
         return len(self.image_paths)

@@ -1,8 +1,6 @@
 """An open implementation of PifPaf."""
 
-from ._version import get_versions
-__version__ = get_versions()['version']
-del get_versions
+__version__ = '0.11.6'
 
 from .annotation import Annotation, AnnotationDet
 from . import datasets

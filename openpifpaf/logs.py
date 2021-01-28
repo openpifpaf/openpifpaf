@@ -34,7 +34,7 @@ def configure(args):
 
     file_handler = logging.FileHandler(args.output + '.log', mode='w')
     file_handler.setFormatter(
-        jsonlogger.JsonFormatter('%(message) %(levelname) %(name) %(asctime)'))
+        jsonlogger.JsonFormatter('(message) (levelname) (name) (asctime)'))
     stdout_handler = logging.StreamHandler(sys.stdout)
     logging.basicConfig(handlers=[stdout_handler, file_handler])
     log_level = logging.INFO if not args.debug else logging.DEBUG
@@ -63,37 +63,20 @@ def optionally_shaded(ax, x, y, *, color, label, **kwargs):
         ax.plot(x, y, color=color, label=label, **kwargs)
 
 
-def fractional_epoch(row, *, default=None):
-    """Given a data row, compute the fractional epoch taking batch into account.
-
-    Example:
-        Epoch 1 at batch 30 out of 100 batches per epoch would return
-        epoch 1.3.
-    """
-
-    if 'epoch' not in row:
-        return default
-    if 'batch' not in row:
-        return row.get('epoch')
-    return row.get('epoch') + row.get('batch') / row.get('n_batches')
-
-
-class Plots():
-    def __init__(self, log_files, labels=None, output_prefix=None, first_epoch=0.0):
+class Plots(object):
+    def __init__(self, log_files, labels=None, output_prefix=None):
         self.log_files = log_files
+        self.datas = [self.read_log(f) for f in log_files]
         self.labels = labels or [lf.replace('outputs/', '') for lf in log_files]
         self.output_prefix = output_prefix or log_files[-1] + '.'
-        self.first_epoch = first_epoch
 
-        self.datas = [self.read_log(f) for f in log_files]
-
-    def read_log(self, path):
+    @staticmethod
+    def read_log(path):
         sc = pysparkling.Context()
         return (sc
                 .textFile(path)
                 .filter(lambda line: line.startswith(('{', 'json:')) and line.endswith('}'))
                 .map(lambda line: json.loads(line.strip('json:')))
-                .filter(lambda data: fractional_epoch(data, default=np.inf) >= self.first_epoch)
                 .groupBy(lambda data: data.get('type'))
                 .collectAsMap())
 
@@ -115,7 +98,8 @@ class Plots():
             color = matplotlib.cm.get_cmap('tab10')((color_i % 10 + 0.05) / 10)
 
             if 'train' in data:
-                x = np.array([fractional_epoch(row) for row in data['train']])
+                x = np.array([row.get('epoch') + row.get('batch') / row.get('n_batches')
+                              for row in data['train']])
                 y = [datetime.datetime.strptime(row.get('asctime')[:-4], '%Y-%m-%d %H:%M:%S')
                      for row in data['train']]
                 y = [(yi - y[0]).total_seconds() / 3600.0 for yi in y]
@@ -154,7 +138,8 @@ class Plots():
             color = matplotlib.cm.get_cmap('tab10')((color_i % 10 + 0.05) / 10)
 
             if 'train' in data:
-                x = [fractional_epoch(row) for row in data['train']]
+                x = [row.get('epoch') + row.get('batch') / row.get('n_batches')
+                     for row in data['train']]
                 y = [row.get('lr') for row in data['train']]
                 ax.plot(x, y, color=color, label=label)
 
@@ -230,7 +215,8 @@ class Plots():
             color = matplotlib.cm.get_cmap('tab10')((color_i % 10 + 0.05) / 10)
 
             if 'train' in data:
-                x = np.array([fractional_epoch(row) for row in data['train']])
+                x = np.array([row.get('epoch') + row.get('batch') / row.get('n_batches')
+                              for row in data['train']])
                 y = np.array([row.get('data_time') / row.get('time') * 100.0
                               for row in data['train']], dtype=np.float)
                 stride = int(len(x) / (x[-1] - x[0]) / 30.0)  # 30 per epoch
@@ -258,7 +244,8 @@ class Plots():
                 xy_all = defaultdict(list)
                 for row in data['train']:
                     xy_all[row.get('loss_index', 0)].append(
-                        (fractional_epoch(row), row.get('loss'))
+                        (row.get('epoch') + row.get('batch') / row.get('n_batches'),
+                         row.get('loss'))
                     )
                 for loss_index, xy in xy_all.items():
                     x = np.array([x for x, _ in xy])
@@ -289,7 +276,8 @@ class Plots():
             field_i = field_names[label].index(field_name)
 
             if 'train' in data:
-                x = np.array([fractional_epoch(row) for row in data['train']])
+                x = np.array([row.get('epoch') + row.get('batch') / row.get('n_batches')
+                              for row in data['train']])
                 y = np.array([row.get('head_losses')[field_i]
                               for row in data['train']], dtype=np.float)
                 m = np.logical_not(np.isnan(y))
@@ -297,7 +285,7 @@ class Plots():
 
         ax.set_xlabel('epoch')
         ax.set_ylabel(format(field_name))
-        # ax.set_ylim(3e-3, 3.0)
+        ax.set_ylim(3e-3, 3.0)
         if min(y) > -0.1:
             ax.set_yscale('log', nonposy='clip')
         ax.grid(linestyle='dotted')
@@ -312,7 +300,8 @@ class Plots():
             field_i = field_names[label].index(field_name)
 
             if 'train' in data:
-                x = np.array([fractional_epoch(row) for row in data['train']])
+                x = np.array([row.get('epoch') + row.get('batch') / row.get('n_batches')
+                              for row in data['train']])
                 y = np.array([row['mtl_sigmas'][field_i] if 'mtl_sigmas' in row else np.nan
                               for row in data['train']], dtype=np.float)
                 m = np.logical_not(np.isnan(y))
@@ -391,15 +380,14 @@ class Plots():
         self.print_last_line()
 
 
-class EvalPlots():
+class EvalPlots(object):
     def __init__(self, log_files, labels=None, output_prefix=None,
                  edge=321, decoder=0, legend_last_ap=True,
-                 modifiers='', first_epoch=0.0):
+                 modifiers=''):
         self.edge = edge
         self.decoder = decoder
         self.legend_last_ap = legend_last_ap
         self.modifiers = modifiers
-        self.first_epoch = first_epoch
 
         self.datas = [self.read_log(f) for f in log_files]
         self.labels = labels or [lf.replace('outputs/', '') for lf in log_files]
@@ -428,7 +416,7 @@ class EvalPlots():
                     epoch_from_filename(k_c[0]),
                     json.loads(k_c[1]),
                 ))
-                .filter(lambda k_c: k_c[0] >= self.first_epoch and len(k_c[1]['stats']) == 10)
+                .filter(lambda k_c: len(k_c[1]['stats']) == 10)
                 .sortByKey()
                 .collect())
 
@@ -548,10 +536,8 @@ def main():
                         help='path to log file')
     parser.add_argument('--label', nargs='+',
                         help='labels in the same order as files')
-    parser.add_argument('--eval-edge', default=641, type=int,
+    parser.add_argument('--eval-edge', default=593, type=int,
                         help='side length during eval')
-    parser.add_argument('--first-epoch', default=1e-6, type=float,
-                        help='epoch (can be float) of first data point to plot')
     parser.add_argument('--no-share-y', dest='share_y',
                         default=True, action='store_false',
                         help='dont share y access')
@@ -564,12 +550,10 @@ def main():
         args.output = args.log_file[-1] + '.'
 
     EvalPlots(args.log_file, args.label, args.output,
-              edge=args.eval_edge, first_epoch=args.first_epoch,
-              ).show_all(share_y=args.share_y)
+              edge=args.eval_edge).show_all(share_y=args.share_y)
     EvalPlots(args.log_file, args.label, args.output,
-              edge=args.eval_edge, modifiers='-os', first_epoch=args.first_epoch,
-              ).show_all(share_y=args.share_y)
-    Plots(args.log_file, args.label, args.output, first_epoch=args.first_epoch).show_all(
+              edge=args.eval_edge, modifiers='-os').show_all(share_y=args.share_y)
+    Plots(args.log_file, args.label, args.output).show_all(
         share_y=args.share_y, show_mtl_sigmas=args.show_mtl_sigmas)
 
 

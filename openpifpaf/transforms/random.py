@@ -11,10 +11,12 @@ class RandomApply(Preprocess):
         self.transform = transform
         self.probability = probability
 
-    def __call__(self, image, anns, meta):
+    # def __call__(self, image, anns, meta):
+    #AMA
+    def __call__(self, image, anns, mask, meta):
         if float(torch.rand(1).item()) > self.probability:
-            return image, anns, meta
-        return self.transform(image, anns, meta)
+            return image, anns, mask, meta
+        return self.transform(image, anns, mask, meta)
 
 
 class DeterministicEqualChoice(Preprocess):

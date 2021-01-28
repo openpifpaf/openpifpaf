@@ -1,4 +1,4 @@
-from ..network.heads import AssociationMeta, DetectionMeta, IntensityMeta
+from ..network.heads import AssociationMeta, DetectionMeta, IntensityMeta, SegmentationMeta
 from .constants import (
     COCO_CATEGORIES,
     COCO_KEYPOINTS,
@@ -9,17 +9,17 @@ from .constants import (
     KINEMATIC_TREE_SKELETON,
 )
 
-from .factory import dataset_meta
 
 def factory(head_names):
     if head_names is None:
         return None
+    
     return [factory_single(hn) for hn in head_names]
 
 
 def factory_single(head_name):
     if 'cifdet' in head_name:
-        return DetectionMeta(head_name, dataset_meta['categories'])
+        return DetectionMeta(head_name, COCO_CATEGORIES)
     if 'pif' in head_name or 'cif' in head_name:
         return IntensityMeta(head_name,
                              COCO_KEYPOINTS,
@@ -46,4 +46,13 @@ def factory_single(head_name):
                                COCO_PERSON_SIGMAS,
                                COCO_UPRIGHT_POSE,
                                COCO_PERSON_SKELETON)
+
+    ### AMA add meta name
+    if 'seg' in head_name:
+        return SegmentationMeta(head_name,
+                                COCO_KEYPOINTS,
+                                ['people'],
+                                COCO_PERSON_SKELETON)
+
+
     raise NotImplementedError

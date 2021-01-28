@@ -21,7 +21,6 @@ class Occupancy(BaseVisualizer):
                       f, self.field_names[f] if self.field_names else 'unknown')
 
             # occupancy maps are at a reduced scale wrt the processed image
-            # pylint: disable=unsubscriptable-object
             reduced_image = self._processed_image[::occupancy.reduction, ::occupancy.reduction]
 
             with self.image_canvas(reduced_image) as ax:

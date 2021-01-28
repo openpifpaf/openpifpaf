@@ -1,16 +1,8 @@
-import copy
 import logging
 
 from .base import BaseVisualizer
 from ..annotation import AnnotationDet
 from .. import show
-
-try:
-    import matplotlib.cm
-    CMAP_GREENS_NAN = copy.copy(matplotlib.cm.get_cmap('Greens'))
-    CMAP_GREENS_NAN.set_bad('white', alpha=0.5)
-except ImportError:
-    CMAP_GREENS_NAN = None
 
 LOG = logging.getLogger(__name__)
 
@@ -54,9 +46,9 @@ class CifDet(BaseVisualizer):
         for f in self.indices:
             LOG.debug('%s', self.categories[f])
 
-            with self.image_canvas(self._processed_image, margin=[0.0, 0.01, 0.05, 0.01]) as ax:
+            with self.image_canvas(self._processed_image) as ax:
                 im = ax.imshow(self.scale_scalar(confidences[f], self.stride),
-                               alpha=0.9, vmin=0.0, vmax=1.0, cmap=CMAP_GREENS_NAN)
+                               alpha=0.9, vmin=0.0, vmax=1.0, cmap='Greens')
                 self.colorbar(ax, im)
 
     def _regressions(self, regression_fields, wh_fields, *,
@@ -68,7 +60,7 @@ class CifDet(BaseVisualizer):
             LOG.debug('%s', self.categories[f])
             confidence_field = confidence_fields[f] if confidence_fields is not None else None
 
-            with self.image_canvas(self._processed_image, margin=[0.0, 0.01, 0.05, 0.01]) as ax:
+            with self.image_canvas(self._processed_image) as ax:
                 show.white_screen(ax, alpha=0.5)
                 if annotations:
                     self.detection_painter.annotations(ax, annotations, color='gray')

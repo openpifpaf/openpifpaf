@@ -20,9 +20,11 @@ class RotateBy90(Preprocess):
         self.angle_perturbation = angle_perturbation
         self.fixed_angle = fixed_angle
 
-    def __call__(self, image, anns, meta):
+    ### AMA
+    def __call__(self, image, anns, mask, meta):
         meta = copy.deepcopy(meta)
         anns = copy.deepcopy(anns)
+        mask = copy.deepcopy(mask)
 
         w, h = image.size
         if self.fixed_angle is not None:
@@ -55,6 +57,23 @@ class RotateBy90(Preprocess):
             image = PIL.Image.fromarray(im_np)
         LOG.debug('rotated by = %f degrees', angle)
 
+        ### AMA rotate masks
+
+        if angle != 0.0:
+            for mask_idx in range(len(mask)):
+                
+                if mask[mask_idx].shape[0] == mask[mask_idx].shape[1] and angle == 90:
+                    mask[mask_idx] = np.swapaxes(mask[mask_idx], 0, 1)
+                    mask[mask_idx] = np.flip(mask[mask_idx], axis=0)
+                elif mask[mask_idx].shape[0] == mask[mask_idx].shape[1] and angle == 270:
+                    mask[mask_idx] = np.swapaxes(mask[mask_idx], 0, 1)
+                    mask[mask_idx] = np.flip(mask[mask_idx], axis=1)
+                elif mask[mask_idx].shape[0] == mask[mask_idx].shape[1] and angle == 180:
+                    mask[mask_idx] = np.flip(mask[mask_idx], axis=0)
+                    mask[mask_idx] = np.flip(mask[mask_idx], axis=1)
+                else:
+                    mask[mask_idx] = scipy.ndimage.rotate(mask[mask_idx], angle=angle, cval=127, reshape=False)
+
         # rotate keypoints
         cangle = math.cos(angle / 180.0 * math.pi)
         sangle = math.sin(angle / 180.0 * math.pi)
@@ -78,4 +97,4 @@ class RotateBy90(Preprocess):
         meta['valid_area'][2:] = new_rb_corner - meta['valid_area'][:2]
         LOG.debug('meta after: %s', meta)
 
-        return image, anns, meta
+        return image, anns, mask, meta

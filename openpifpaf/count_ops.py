@@ -15,8 +15,8 @@ import openpifpaf
 
 try:
     import thop
-except ImportError as e:
-    raise Exception('need to install thop (pip install thop) for this script') from e
+except ImportError:
+    raise Exception('need to install thop (pip install thop) for this script')
 
 
 def count(checkpoint):

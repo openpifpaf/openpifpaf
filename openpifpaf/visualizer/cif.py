@@ -1,16 +1,8 @@
-import copy
 import logging
 
 from .base import BaseVisualizer
 from ..annotation import Annotation
 from .. import show
-
-try:
-    import matplotlib.cm
-    CMAP_ORANGES_NAN = copy.copy(matplotlib.cm.get_cmap('Oranges'))
-    CMAP_ORANGES_NAN.set_bad('white', alpha=0.5)
-except ImportError:
-    CMAP_ORANGES_NAN = None
 
 LOG = logging.getLogger(__name__)
 
@@ -28,16 +20,15 @@ class Cif(BaseVisualizer):
         self.keypoints = keypoints
         self.skeleton = skeleton
 
-        self.keypoint_painter = show.KeypointPainter()  #xy_scale=self.stride)
+        self.keypoint_painter = show.KeypointPainter(xy_scale=self.stride)
 
-    def targets(self, field, *, annotation_dicts):
+    def targets(self, field, keypoint_sets):
         assert self.keypoints is not None
         assert self.skeleton is not None
 
         annotations = [
-            Annotation(keypoints=self.keypoints, skeleton=self.skeleton).set(
-                ann['keypoints'], fixed_score=None, fixed_bbox=ann['bbox'])
-            for ann in annotation_dicts
+            Annotation(keypoints=self.keypoints, skeleton=self.skeleton).set(kps, fixed_score=None)
+            for kps in keypoint_sets
         ]
 
         self._confidences(field[0])
@@ -57,9 +48,9 @@ class Cif(BaseVisualizer):
         for f in self.indices:
             LOG.debug('%s', self.keypoints[f])
 
-            with self.image_canvas(self._processed_image, margin=[0.0, 0.01, 0.05, 0.01]) as ax:
+            with self.image_canvas(self._processed_image) as ax:
                 im = ax.imshow(self.scale_scalar(confidences[f], self.stride),
-                               alpha=0.9, vmin=0.0, vmax=1.0, cmap=CMAP_ORANGES_NAN)
+                               alpha=0.9, vmin=0.0, vmax=1.0, cmap='Oranges')
                 self.colorbar(ax, im)
 
     def _regressions(self, regression_fields, scale_fields, *,
@@ -71,7 +62,7 @@ class Cif(BaseVisualizer):
             LOG.debug('%s', self.keypoints[f])
             confidence_field = confidence_fields[f] if confidence_fields is not None else None
 
-            with self.image_canvas(self._processed_image, margin=[0.0, 0.01, 0.05, 0.01]) as ax:
+            with self.image_canvas(self._processed_image) as ax:
                 show.white_screen(ax, alpha=0.5)
                 if annotations:
                     self.keypoint_painter.annotations(ax, annotations)

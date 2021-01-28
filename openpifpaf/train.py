@@ -6,8 +6,9 @@ import logging
 import socket
 
 import torch
-
-from . import datasets, encoder, logs, network, optimize, show, visualizer
+# import os
+# print(os.getcwd())
+from . import datasets, encoder, logs, network, optimize, visualizer
 from . import __version__
 
 LOG = logging.getLogger(__name__)
@@ -50,7 +51,6 @@ def cli():
     encoder.cli(parser)
     optimize.cli(parser)
     datasets.train_cli(parser)
-    show.cli(parser)
     visualizer.cli(parser)
 
     parser.add_argument('-o', '--output', default=None,
@@ -59,8 +59,6 @@ def cli():
                         help='apply and reset gradients every n batches')
     parser.add_argument('--epochs', default=75, type=int,
                         help='number of epochs to train')
-    parser.add_argument('--val-interval', default=1, type=int,
-                        help='validation run every n epochs')
     parser.add_argument('--rescale-images', type=float, default=1.0,
                         help='overall image rescale factor')
     parser.add_argument('--update-batchnorm-runningstatistics',
@@ -68,10 +66,6 @@ def cli():
                         help='update batch norm running statistics')
     parser.add_argument('--ema', default=1e-2, type=float,
                         help='ema decay constant')
-    parser.add_argument('--clip-grad-norm', default=0.0, type=float,
-                        help='clip grad norm: specify largest change for single param')
-    parser.add_argument('--log-interval', default=10, type=int,
-                        help='log loss every n steps')
     parser.add_argument('--disable-cuda', action='store_true',
                         help='disable CUDA')
 
@@ -92,7 +86,6 @@ def cli():
     network.losses.configure(args)
     encoder.configure(args)
     datasets.train_configure(args)
-    show.configure(args)
     visualizer.configure(args)
 
     # add args.device
@@ -112,9 +105,7 @@ def main():
     net_cpu.process_heads = None
     if args.output is None:
         args.output = default_output_file(args, net_cpu)
-
-    log_level = logs.configure(args)
-    LOG.setLevel(log_level)
+    logs.configure(args)
     if args.log_stats:
         logging.getLogger('openpifpaf.stats').setLevel(logging.DEBUG)
 
@@ -137,15 +128,12 @@ def main():
         fix_batch_norm=not args.update_batchnorm_runningstatistics,
         stride_apply=args.stride_apply,
         ema_decay=args.ema,
-        log_interval=args.log_interval,
         train_profile=args.profile,
         model_meta_data={
             'args': vars(args),
             'version': __version__,
             'hostname': socket.gethostname(),
         },
-        clip_grad_norm=args.clip_grad_norm,
-        val_interval=args.val_interval,
     )
     trainer.loop(train_loader, val_loader, args.epochs, start_epoch=start_epoch)
 

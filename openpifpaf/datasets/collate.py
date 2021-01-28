@@ -13,3 +13,11 @@ def collate_images_targets_meta(batch):
     targets = torch.utils.data.dataloader.default_collate([b[1] for b in batch])
     metas = [b[2] for b in batch]
     return images, targets, metas
+
+### AMA
+def collate_images_targets_inst_meta(batch):
+    images = torch.utils.data.dataloader.default_collate([b[0] for b in batch])
+    targets = torch.utils.data.dataloader.default_collate([b[1] for b in batch])
+    # masks = [b[2] for b in batch]
+    metas = [b[2] for b in batch]
+    return images,targets, metas

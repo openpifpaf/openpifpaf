@@ -33,9 +33,11 @@ class HFlip(Preprocess):
     def __init__(self, keypoints, hflip):
         self.swap = _HorizontalSwap(keypoints, hflip)
 
-    def __call__(self, image, anns, meta):
+    ### AMA
+    def __call__(self, image, anns, mask, meta):
         meta = copy.deepcopy(meta)
         anns = copy.deepcopy(anns)
+        mask = copy.deepcopy(mask)
 
         w, _ = image.size
         image = image.transpose(PIL.Image.FLIP_LEFT_RIGHT)
@@ -46,9 +48,13 @@ class HFlip(Preprocess):
                 meta['horizontal_swap'] = self.swap
             ann['bbox'][0] = -(ann['bbox'][0] + ann['bbox'][2]) - 1.0 + w
 
+        ### AMA
+        for mask_idx in range(len(mask)):
+            mask[mask_idx] = np.flip(mask[mask_idx], axis=1)
+
         assert meta['hflip'] is False
         meta['hflip'] = True
 
         meta['valid_area'][0] = -(meta['valid_area'][0] + meta['valid_area'][2]) + w
 
-        return image, anns, meta
+        return image, anns, mask, meta

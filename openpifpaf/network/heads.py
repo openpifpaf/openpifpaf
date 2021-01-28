@@ -28,7 +28,7 @@ def index_field_torch(shape, *, device=None, n_unsqueeze=2):
 
 class CifCafCollector(torch.nn.Module):
     def __init__(self, cif_indices, caf_indices):
-        super().__init__()
+        super(CifCafCollector, self).__init__()
         self.cif_indices = cif_indices
         self.caf_indices = caf_indices
         LOG.debug('cif = %s, caf = %s', cif_indices, caf_indices)
@@ -90,7 +90,7 @@ class CifCafCollector(torch.nn.Module):
 
 class CifdetCollector(torch.nn.Module):
     def __init__(self, indices):
-        super().__init__()
+        super(CifdetCollector, self).__init__()
         self.indices = indices
         LOG.debug('cifdet = %s', indices)
 
@@ -144,7 +144,7 @@ class CifdetCollector(torch.nn.Module):
 
 class PifHFlip(torch.nn.Module):
     def __init__(self, keypoints, hflip):
-        super().__init__()
+        super(PifHFlip, self).__init__()
 
         flip_indices = torch.LongTensor([
             keypoints.index(hflip[kp_name]) if kp_name in hflip else kp_i
@@ -169,7 +169,7 @@ class PifHFlip(torch.nn.Module):
 
 class PafHFlip(torch.nn.Module):
     def __init__(self, keypoints, skeleton, hflip):
-        super().__init__()
+        super(PafHFlip, self).__init__()
         skeleton_names = [
             (keypoints[j1 - 1], keypoints[j2 - 1])
             for j1, j2 in skeleton
@@ -264,6 +264,25 @@ class DetectionMeta:
         return len(self.categories)
 
 
+### AMA
+@dataclass
+class SegmentationMeta:
+    name: str
+    keypoints: List[str]
+    objects: List[str]
+    # draw_skeleton: List[Tuple[int, int]] = None
+    skeleton: List[Tuple[int, int]]
+    sparse_skeleton: List[Tuple[int, int]] = None
+
+    n_confidences: int = 1
+    n_vectors: int = 1
+    n_sigmas: int = 2
+
+    @property
+    def n_fields(self):
+        return len(self.objects)
+
+
 class CompositeField(torch.nn.Module):
     dropout_p = 0.0
     quad = 1
@@ -272,7 +291,7 @@ class CompositeField(torch.nn.Module):
                  meta: Union[IntensityMeta, AssociationMeta, DetectionMeta],
                  in_features, *,
                  kernel_size=1, padding=0, dilation=1):
-        super().__init__()
+        super(CompositeField, self).__init__()
 
         LOG.debug('%s config: fields = %d, confidences = %d, vectors = %d, scales = %d '
                   'kernel = %d, padding = %d, dilation = %d',
@@ -356,6 +375,9 @@ class CompositeField(torch.nn.Module):
                           reg_x.shape[3])
             for reg_x in regs_x
         ]
+        # print('pif head')
+        # print(regs_x.shape[2])
+        # print(regs_x.shape[3])
 
         return classes_x + regs_x + regs_logb + scales_x
 
@@ -445,4 +467,97 @@ class CompositeFieldFused(torch.nn.Module):
         if not self.training:
             scales_x = torch.exp(scales_x)
 
+        # print('pif head')
+        # print(regs_x.shape[-1])
+        # print(regs_x.shape[-2])
+
         return classes_x, regs_x, regs_logb, scales_x
+
+
+### AMA
+class InstanceSegHead(torch.nn.Module):
+    dropout_p = 0.0
+    quad = 1
+
+    def __init__(self,
+                 meta: SegmentationMeta,
+                 in_features, *,
+                 kernel_size=1, padding=0, dilation=1):
+        super().__init__()
+
+        # LOG.debug('%s config: fields = %d, confidences = %d, vectors = %d, scales = %d '
+        #           'kernel = %d, padding = %d, dilation = %d',
+        #           meta.name, meta.n_fields, meta.n_confidences, meta.n_vectors, meta.n_scales,
+        #           kernel_size, padding, dilation)
+
+        self.meta = meta
+        self.dropout = torch.nn.Dropout2d(p=self.dropout_p)
+        self._quad = self.quad
+
+        feature_groups = [
+            meta.n_confidences * meta.n_fields,
+            meta.n_vectors * 2 * meta.n_fields,
+            meta.n_sigmas * meta.n_fields,
+        ]
+
+        self.out_features = []  # the cumulative of the feature_groups above
+        for fg in feature_groups:
+            self.out_features.append(
+                (self.out_features[-1] if self.out_features else 0) + fg)
+        self.conv = torch.nn.Conv2d(in_features, self.out_features[-1] * (4 ** self._quad),
+                                    kernel_size, padding=padding, dilation=dilation)
+
+        # dequad
+        self.dequad_op = torch.nn.PixelShuffle(2)
+
+    @property
+    def sparse_task_parameters(self):
+        return [self.conv.weight]
+
+    def stride(self, basenet_stride):
+        return basenet_stride // (2 ** self._quad)
+
+    def forward(self, x):  # pylint: disable=arguments-differ
+        x = self.dropout(x)
+        x = self.conv(x)
+        # upscale
+        for _ in range(self._quad):
+            x = self.dequad_op(x)[:, :, :-1, :-1]
+
+        # seed
+        seed_x = x[:, 0:self.out_features[0]]
+        seed_x = seed_x.view(seed_x.shape[0],
+                                   self.meta.n_fields,
+                                   self.meta.n_confidences,
+                                   seed_x.shape[2],
+                                   seed_x.shape[3])
+        if not self.training:
+            seed_x = torch.sigmoid(seed_x)
+
+        # embedding
+        regs_x = x[:, self.out_features[0]:self.out_features[1]]
+        regs_x = regs_x.view(regs_x.shape[0],
+                             self.meta.n_fields,
+                             self.meta.n_vectors,
+                             2,
+                             regs_x.shape[2],
+                             regs_x.shape[3])
+
+
+        # sigma
+        sigma_x = x[:, self.out_features[1]:self.out_features[2]]
+        sigma_x = sigma_x.view(sigma_x.shape[0],
+                                self.meta.n_fields,
+                                self.meta.n_sigmas,
+                                sigma_x.shape[2],
+                                sigma_x.shape[3])
+        if not self.training:
+            sigma_x = torch.tanh(sigma_x)
+
+        # print('seg head factory')
+        # print(seed_x.shape)
+        # print(regs_x.shape)
+        # print(sigma_x.shape)
+
+        return seed_x, regs_x, sigma_x
+

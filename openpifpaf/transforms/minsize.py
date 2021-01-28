@@ -10,7 +10,7 @@ class MinSize(Preprocess):
     def __init__(self, min_side=1.0):
         self.min_side = min_side
 
-    def __call__(self, image, anns, meta):
+    def __call__(self, image, anns, mask, meta):
         anns = copy.deepcopy(anns)
         for ann in anns:
             if ann['bbox'][2] > self.min_side \
@@ -18,4 +18,4 @@ class MinSize(Preprocess):
                 continue
             ann['iscrowd'] = True
 
-        return image, anns, meta
+        return image, anns, mask, meta

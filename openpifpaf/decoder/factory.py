@@ -6,6 +6,7 @@ from .cif_seeds import CifSeeds
 from .field_config import FieldConfig
 from .generator.cifcaf import CifCaf
 from .generator.cifdet import CifDet
+from .generator.cifseg import CifSeg
 from . import nms
 from .profiler import Profiler
 from .profiler_autograd import ProfilerAutograd
@@ -135,7 +136,6 @@ def factory_decode(head_nets, *,
 
     if isinstance(head_nets[0].meta, network.heads.DetectionMeta):
         field_config = FieldConfig()
-        field_config.cif_strides = [head_nets[0].stride(basenet_stride)]
         field_config.cif_visualizers = [
             visualizer.CifDet(head_nets[0].meta.name,
                               stride=head_nets[0].stride(basenet_stride),
@@ -147,11 +147,51 @@ def factory_decode(head_nets, *,
             worker_pool=worker_pool,
         )
 
+    ### AMA
+    # print(' AMMMMMMA')
+    # print(type(head_nets[0].meta))
+    # print(type(head_nets[1].meta))
+    if isinstance(head_nets[0].meta, network.heads.IntensityMeta) \
+       and isinstance(head_nets[1].meta, network.heads.SegmentationMeta):
+        field_config = FieldConfig()
+    
+
+        skeleton = head_nets[1].meta.skeleton
+        # print(skeleton)
+        if dense_connections:
+            field_config.confidence_scales = (
+                [1.0 for _ in skeleton] +
+                [dense_coupling for _ in head_nets[2].meta.skeleton]
+            )
+            skeleton += head_nets[2].meta.skeleton
+
+        field_config.cif_visualizers = [
+            visualizer.Cif(head_nets[i].meta.name,
+                           stride=head_nets[i].stride(basenet_stride),
+                           keypoints=head_nets[0].meta.keypoints,
+                           skeleton=head_nets[0].meta.draw_skeleton)
+            for i in field_config.cif_indices
+        ]
+        field_config.caf_visualizers = [
+            visualizer.Caf(head_nets[i].meta.name,
+                           stride=head_nets[i].stride(basenet_stride),
+                           keypoints=head_nets[1].meta.keypoints,
+                           skeleton=skeleton)
+            for i in field_config.caf_indices
+        ]
+
+        return CifSeg(
+            field_config,
+            keypoints=head_nets[0].meta.keypoints,
+            skeleton=skeleton,
+            out_skeleton=head_nets[1].meta.skeleton,
+            worker_pool=worker_pool,
+        )
+
+
     if isinstance(head_nets[0].meta, network.heads.IntensityMeta) \
        and isinstance(head_nets[1].meta, network.heads.AssociationMeta):
         field_config = FieldConfig()
-        field_config.cif_strides = [head_nets[0].stride(basenet_stride)]
-        field_config.caf_strides = [head_nets[1].stride(basenet_stride)]
 
         if multi_scale:
             if not dense_connections:
@@ -188,7 +228,7 @@ def factory_decode(head_nets, *,
                 [1.0 for _ in skeleton] +
                 [dense_coupling for _ in head_nets[2].meta.skeleton]
             )
-            skeleton = skeleton + head_nets[2].meta.skeleton
+            skeleton += head_nets[2].meta.skeleton
 
         field_config.cif_visualizers = [
             visualizer.Cif(head_nets[i].meta.name,
@@ -197,6 +237,7 @@ def factory_decode(head_nets, *,
                            skeleton=head_nets[0].meta.draw_skeleton)
             for i in field_config.cif_indices
         ]
+        
         field_config.caf_visualizers = [
             visualizer.Caf(head_nets[i].meta.name,
                            stride=head_nets[i].stride(basenet_stride),

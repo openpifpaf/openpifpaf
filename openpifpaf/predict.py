@@ -101,9 +101,13 @@ def processor_factory(args):
     # load model
     model_cpu, _ = network.factory_from_args(args)
     model = model_cpu.to(args.device)
+    # print('Head nets')
+    # print(model.head_nets)
     if not args.disable_cuda and torch.cuda.device_count() > 1:
         LOG.info('Using multiple GPUs: %d', torch.cuda.device_count())
         model = torch.nn.DataParallel(model)
+        # print('in if processor')
+        # print(model_cpu)
         model.base_net = model_cpu.base_net
         model.head_nets = model_cpu.head_nets
     processor = decoder.factory_from_args(args, model)
@@ -155,10 +159,16 @@ def main():
 
     # data
     data = datasets.ImageList(args.images, preprocess=preprocess)
+    # data_loader = torch.utils.data.DataLoader(
+    #     data, batch_size=args.batch_size, shuffle=False,
+    #     pin_memory=args.pin_memory, num_workers=args.loader_workers,
+    #     collate_fn=datasets.collate_images_anns_meta)
+
+    ### AMA
     data_loader = torch.utils.data.DataLoader(
         data, batch_size=args.batch_size, shuffle=False,
         pin_memory=args.pin_memory, num_workers=args.loader_workers,
-        collate_fn=datasets.collate_images_anns_meta)
+        collate_fn=datasets.collate_images_targets_inst_meta)
 
     # visualizers
     keypoint_painter = show.KeypointPainter(
@@ -172,6 +182,8 @@ def main():
 
         # unbatch
         for pred, meta in zip(pred_batch, meta_batch):
+            print('meta')
+            print(meta)
             LOG.info('batch %d: %s', batch_i, meta['file_name'])
 
             # load the original image if necessary

@@ -14,12 +14,15 @@ class Crop(Preprocess):
         self.long_edge = long_edge
         self.use_area_of_interest = use_area_of_interest
 
-    def __call__(self, image, anns, meta):
+    ### AMA
+    def __call__(self, image, anns, mask, meta):
         meta = copy.deepcopy(meta)
         anns = copy.deepcopy(anns)
+        mask = copy.deepcopy(mask)
+
         original_valid_area = meta['valid_area'].copy()
 
-        image, anns, ltrb = self.crop(image, anns, meta['valid_area'])
+        image, anns, mask, ltrb = self.crop(image, anns, mask, meta['valid_area'])
         meta['offset'] += ltrb[:2]
 
         new_wh = image.size
@@ -43,7 +46,7 @@ class Crop(Preprocess):
             ann['bbox'][2:] = new_rb - ann['bbox'][:2]
         anns = [ann for ann in anns if ann['bbox'][2] > 0.0 and ann['bbox'][3] > 0.0]
 
-        return image, anns, meta
+        return image, anns, mask, meta
 
     @staticmethod
     def area_of_interest(anns, valid_area, edge_length):
@@ -80,7 +83,8 @@ class Crop(Preprocess):
 
         return (left, top, right - left, bottom - top)
 
-    def crop(self, image, anns, valid_area):
+    ### AMA
+    def crop(self, image, anns, mask, valid_area):
         if self.use_area_of_interest:
             area_of_interest = self.area_of_interest(anns, valid_area, self.long_edge)
         else:
@@ -116,6 +120,11 @@ class Crop(Preprocess):
         ltrb = (x_offset, y_offset, x_offset + new_w, y_offset + new_h)
         image = image.crop(ltrb)
 
+        ### AMA crop masks
+
+        for mask_idx in range(len(mask)):
+            mask[mask_idx] = mask[mask_idx][y_offset:y_offset + new_h, x_offset:x_offset+new_w]
+
         # crop keypoints
         for ann in anns:
             ann['keypoints'][:, 0] -= x_offset
@@ -123,4 +132,4 @@ class Crop(Preprocess):
             ann['bbox'][0] -= x_offset
             ann['bbox'][1] -= y_offset
 
-        return image, anns, np.array(ltrb)
+        return image, anns, mask, np.array(ltrb)

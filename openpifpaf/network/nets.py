@@ -10,7 +10,7 @@ LOG = logging.getLogger(__name__)
 class Shell(torch.nn.Module):
     def __init__(self, base_net, head_nets, *,
                  process_heads=None, cross_talk=0.0):
-        super().__init__()
+        super(Shell, self).__init__()
 
         self.base_net = base_net
         self.head_nets = torch.nn.ModuleList(head_nets)
@@ -35,7 +35,7 @@ class Shell(torch.nn.Module):
 
 class Shell2Scale(torch.nn.Module):
     def __init__(self, base_net, head_nets, *, reduced_stride=3):
-        super().__init__()
+        super(Shell2Scale, self).__init__()
 
         self.base_net = base_net
         self.head_nets = torch.nn.ModuleList(head_nets)
@@ -95,7 +95,7 @@ class Shell2Scale(torch.nn.Module):
 class ShellMultiScale(torch.nn.Module):
     def __init__(self, base_net, head_nets, *,
                  process_heads=None, include_hflip=True):
-        super().__init__()
+        super(ShellMultiScale, self).__init__()
 
         self.base_net = base_net
         self.head_nets = torch.nn.ModuleList(head_nets)
@@ -149,10 +149,6 @@ def model_migration(net_cpu):
 
     if not hasattr(net_cpu, 'process_heads'):
         net_cpu.process_heads = None
-
-    for m in net_cpu.modules():
-        if not hasattr(m, '_non_persistent_buffers_set'):
-            m._non_persistent_buffers_set = set()  # pylint: disable=protected-access
 
 
 def model_defaults(net_cpu):
