@@ -245,66 +245,39 @@ COCO_CATEGORIES = [
 ]
 
 
-def draw_ann(ann, *,
-             filename=None,
-             margin=0.5,
-             aspect=None,
-             keypoint_painter=None,
-             ann_bg=None,
-             **kwargs):
-    import openpifpaf  # pylint: disable=import-outside-toplevel
-
-    bbox = ann.bbox()
-    xlim = bbox[0] - margin, bbox[0] + bbox[2] + margin
-    ylim = bbox[1] - margin, bbox[1] + bbox[3] + margin
-    if aspect == 'equal':
-        fig_w = 5.0
-    else:
-        fig_w = 5.0 / (ylim[1] - ylim[0]) * (xlim[1] - xlim[0])
-
-    if keypoint_painter is None:
-        keypoint_painter = openpifpaf.show.KeypointPainter()
-    with openpifpaf.show.canvas(filename, figsize=(fig_w, 5), nomargin=True, **kwargs) as ax:
-        ax.set_axis_off()
-        ax.set_xlim(*xlim)
-        ax.set_ylim(*ylim)
-
-        if aspect is not None:
-            ax.set_aspect(aspect)
-
-        if ann_bg is not None:
-            keypoint_painter.annotation(ax, ann_bg, alpha=0.2)
-
-        keypoint_painter.annotation(ax, ann)
-
-
 def draw_skeletons(pose):
     import openpifpaf  # pylint: disable=import-outside-toplevel
+    openpifpaf.show.KeypointPainter.show_joint_scales = True
+    keypoint_painter = openpifpaf.show.KeypointPainter()
 
     scale = np.sqrt(
         (np.max(pose[:, 0]) - np.min(pose[:, 0]))
         * (np.max(pose[:, 1]) - np.min(pose[:, 1]))
     )
 
-    openpifpaf.show.KeypointPainter.show_joint_scales = True
-
     ann = openpifpaf.Annotation(keypoints=COCO_KEYPOINTS,
                                 skeleton=COCO_PERSON_SKELETON,
                                 score_weights=COCO_PERSON_SCORE_WEIGHTS)
     ann.set(pose, np.array(COCO_PERSON_SIGMAS) * scale)
-    draw_ann(ann, filename='docs/skeleton_coco.png')
+    with openpifpaf.show.Canvas.annotation(
+            ann, filename='docs/skeleton_coco.png') as ax:
+        keypoint_painter.annotation(ax, ann)
 
     ann_kin = openpifpaf.Annotation(keypoints=COCO_KEYPOINTS,
                                     skeleton=KINEMATIC_TREE_SKELETON,
                                     score_weights=COCO_PERSON_SCORE_WEIGHTS)
     ann_kin.set(pose, np.array(COCO_PERSON_SIGMAS) * scale)
-    draw_ann(ann_kin, filename='docs/skeleton_kinematic_tree.png')
+    with openpifpaf.show.Canvas.annotation(
+            ann_kin, filename='docs/skeleton_kinematic_tree.png') as ax:
+        keypoint_painter.annotation(ax, ann_kin)
 
     ann_dense = openpifpaf.Annotation(keypoints=COCO_KEYPOINTS,
                                       skeleton=DENSER_COCO_PERSON_SKELETON,
                                       score_weights=COCO_PERSON_SCORE_WEIGHTS)
     ann_dense.set(pose, np.array(COCO_PERSON_SIGMAS) * scale)
-    draw_ann(ann, ann_bg=ann_dense, filename='docs/skeleton_dense.png')
+    with openpifpaf.show.Canvas.annotation(
+            ann, ann_bg=ann_dense, filename='docs/skeleton_dense.png') as ax:
+        keypoint_painter.annotation(ax, ann_dense)
 
 
 def print_associations():

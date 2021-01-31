@@ -124,10 +124,32 @@ class Canvas:
             plt.show()
         plt.close(fig)
 
+    @classmethod
+    @contextmanager
+    def annotation(cls, ann, *,
+                   filename=None,
+                   margin=0.5,
+                   fig_w=None,
+                   fig_h=5.0,
+                   **kwargs):
+        bbox = ann.bbox()
+        xlim = bbox[0] - margin, bbox[0] + bbox[2] + margin
+        ylim = bbox[1] - margin, bbox[1] + bbox[3] + margin
+        if fig_w is None:
+            fig_w = fig_h / (ylim[1] - ylim[0]) * (xlim[1] - xlim[0])
+
+        with cls.blank(filename, figsize=(fig_w, fig_h), nomargin=True, **kwargs) as ax:
+            ax.set_axis_off()
+            ax.set_xlim(*xlim)
+            ax.set_ylim(*ylim)
+
+            yield ax
+
 
 # keep previous interface for now:
 canvas = Canvas.blank
 image_canvas = Canvas.image
+annotation_canvas = Canvas.annotation
 
 
 def white_screen(ax, alpha=0.9):
