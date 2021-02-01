@@ -142,7 +142,7 @@ class Coco(torch.utils.data.Dataset):
                 continue
             image_categories[image].add(category)
             category_image_counts[category] += 1
-        print(category_image_counts)
+        # print(category_image_counts)
         weights = [
             sum(
                 1.0 / category_image_counts[category_id]
@@ -159,6 +159,43 @@ class Coco(torch.utils.data.Dataset):
         # print(min_w)
         # print(max_w)
         return weights
+
+    def add_center(self, image, anns, mask):
+        # print(len(anns))
+        # print(len(mask))
+        
+        for id_m, msk in enumerate(mask):
+            meshgrid = np.indices(msk.shape)
+            meshgrid[0] *= msk
+            meshgrid[1] *= msk
+            center = (meshgrid[0].sum()/msk.sum(),
+                    meshgrid[1].sum()/msk.sum())
+
+            # print(len(anns))
+            keypoints = anns[id_m]['keypoints']
+            # print('start of process')
+            # print(sum(keypoints))
+            if sum(keypoints) == 0:
+                import pickle
+                import os.path
+                from os import path
+                if path.isfile('keypoints_emp.pickle') is not True:
+                    print('file saved')
+                    with open('keypoints_emp.pickle','wb') as f:
+                        pickle.dump((image,anns,mask), f)
+                # torch.save((image,anns,mask),'keypoints_emp_coco.pt')
+            # print(sum(sum(msk)))
+            anns[id_m]['keypoints'].append(int(center[1]))      # add center for x
+            anns[id_m]['keypoints'].append(int(center[0]))      # add center for y
+            anns[id_m]['keypoints'].append(2)
+            keypoints = anns[id_m]['keypoints']
+            # if anns[id_m]['keypoints']
+            # print(type(keypoints))
+            # print(keypoints)
+            
+
+        return anns
+
 
     def __getitem__(self, index):
         image_id = self.ids[index]
@@ -228,6 +265,8 @@ class Coco(torch.utils.data.Dataset):
         # print(anns[0].shape)
         # print(mask) # a list of masks of people in image
         # print(meta)
+
+        anns = self.add_center(image,anns, mask)
         image, anns, mask, meta = self.preprocess(image, anns, mask, meta)
         # print('222')
         # print(len(anns))

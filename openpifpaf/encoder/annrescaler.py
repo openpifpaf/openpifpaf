@@ -83,6 +83,9 @@ class AnnRescaler(object):
             (np.max(keypoints[visible, 0]) - np.min(keypoints[visible, 0])) *
             (np.max(keypoints[visible, 1]) - np.min(keypoints[visible, 1]))
         )
+        # print('in annresaler')
+        # print(self.pose.shape)
+        # print(visible.shape)
         area_ref = (
             (np.max(self.pose[visible, 0]) - np.min(self.pose[visible, 0])) *
             (np.max(self.pose[visible, 1]) - np.min(self.pose[visible, 1]))

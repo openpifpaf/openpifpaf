@@ -175,6 +175,15 @@ def main():
         color_connections=not args.monocolor_connections,
         linewidth=args.line_width,
     )
+    # print('HERERERER',processor)
+    if isinstance(processor, decoder.CifCent):  # Check if cifcent decoder
+        # print('yyyyyyyyyyyyyyyyyyyyyyy')
+        # show.A
+        keypoint_painter = show.KeypointCentPainter(
+            color_connections=not args.monocolor_connections,
+            linewidth=args.line_width,
+        )
+    
     annotation_painter = show.AnnotationPainter(keypoint_painter=keypoint_painter)
 
     for batch_i, (image_tensors_batch, _, meta_batch) in enumerate(data_loader):
@@ -202,6 +211,7 @@ def main():
                 LOG.debug('json output = %s', json_out_name)
                 with open(json_out_name, 'w') as f:
                     json.dump([ann.json_data() for ann in pred], f)
+                    # print('PRED',[ann.json_data() for ann in pred])
 
             if args.show or args.image_output is not None:
                 image_out_name = out_name(

@@ -18,6 +18,7 @@ class _HorizontalSwap():
         target = np.zeros(keypoints.shape)
 
         for source_i, xyv in enumerate(keypoints):
+            
             source_name = self.keypoints[source_i]
             target_name = self.hflip.get(source_name)
             if target_name:

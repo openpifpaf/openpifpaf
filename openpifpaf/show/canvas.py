@@ -42,6 +42,10 @@ def image_canvas(image, fig_file=None, show=True, dpi_factor=1.0, fig_width=10.0
     if 'figsize' not in kwargs:
         kwargs['figsize'] = (fig_width, fig_width * image.shape[0] / image.shape[1])
 
+    ### to solve the problem with ssh showing
+    import matplotlib
+    matplotlib.use('Agg')
+
     fig = plt.figure(**kwargs)
     ax = plt.Axes(fig, [0.0, 0.0, 1.0, 1.0])
     ax.set_axis_off()

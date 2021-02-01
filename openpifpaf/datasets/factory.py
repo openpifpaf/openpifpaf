@@ -299,6 +299,7 @@ def train_cocokpinst_factory(args, target_transforms):
         preprocess=preprocess,
         target_transforms=target_transforms,
         n_images=args.n_images,
+        # n_images=16,
         category_ids=[1],
         image_filter='kp_inst',
     )

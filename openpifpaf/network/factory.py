@@ -44,9 +44,15 @@ def local_checkpoint_path(checkpoint):
     if checkpoint in CHECKPOINT_URLS:
         url = CHECKPOINT_URLS[checkpoint]
 
-        file_name = os.path.join(
+        base_dir = os.path.join(
             os.getenv('XDG_CACHE_HOME', os.path.join(os.getenv('HOME'), '.cache')),
             'torch',
+        )
+        if hasattr(torch, 'hub') and hasattr(torch.hub, 'get_dir'):
+            # new in pytorch 1.6.0
+            base_dir = torch.hub.get_dir()
+        file_name = os.path.join(
+            base_dir,
             'checkpoints',
             os.path.basename(url),
         )
@@ -305,9 +311,12 @@ def resnet_factory_from_scratch(basename, base_vision, out_features, head_metas)
     # headnets = [heads.CompositeFieldFused(h, basenet.out_features) for h in head_metas]
 
     headnets = [heads.CompositeFieldFused(head_metas[0], basenet.out_features)]
+
     # h = heads.SegmentationMeta('seg', ['person'])
     # #### AMA
-    headnets.append(heads.InstanceSegHead(head_metas[1], basenet.out_features))
+    if len(head_metas) > 1 and isinstance(head_metas[1], heads.SegmentationMeta):
+        headnets.append(heads.InstanceSegHead(head_metas[1], basenet.out_features))
+        # print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Hey Segmentation')
     # print('hereeeeeeeeeeeeeee')
     # print(headnets)
 

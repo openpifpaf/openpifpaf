@@ -409,6 +409,7 @@ class CompositeFieldFused(torch.nn.Module):
             meta.n_scales * meta.n_fields,
         ]
         self.out_features = []  # the cumulative of the feature_groups above
+        
         for fg in feature_groups:
             self.out_features.append(
                 (self.out_features[-1] if self.out_features else 0) + fg)

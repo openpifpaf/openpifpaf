@@ -38,6 +38,7 @@ COCO_KEYPOINTS = [
     'right_knee',      # 15
     'left_ankle',      # 16
     'right_ankle',     # 17
+    'center',           # 18 CENTER (Abolfazl)
 ]
 
 
@@ -59,7 +60,10 @@ COCO_UPRIGHT_POSE = np.array([
     [1.4, 2.1, 2.0],  # 'right_knee',      # 15
     [-1.4, 0.0, 2.0],  # 'left_ankle',      # 16
     [1.4, 0.1, 2.0],  # 'right_ankle',     # 17
+    [0.0,5.0, 2.0],   # 'center',           # 18
 ])
+
+
 
 
 COCO_DAVINCI_POSE = np.array([
@@ -80,6 +84,7 @@ COCO_DAVINCI_POSE = np.array([
     [2.0, 2.1, 2.0],  # 'right_knee',      # 15
     [-2.4, 0.0, 2.0],  # 'left_ankle',      # 16
     [2.4, 0.1, 2.0],  # 'right_ankle',     # 17
+    [0.0,5.0, 2.0],   # 'center',           # 18
 ])
 
 
@@ -144,6 +149,7 @@ COCO_PERSON_SIGMAS = [
     0.087,  # knees
     0.089,  # ankles
     0.089,  # ankles
+    0.025,  # center
 ]
 
 

@@ -7,6 +7,7 @@ from .field_config import FieldConfig
 from .generator.cifcaf import CifCaf
 from .generator.cifdet import CifDet
 from .generator.cifseg import CifSeg
+from .generator.cifcent import CifCent
 from . import nms
 from .profiler import Profiler
 from .profiler_autograd import ProfilerAutograd
@@ -148,9 +149,44 @@ def factory_decode(head_nets, *,
         )
 
     ### AMA
-    # print(' AMMMMMMA')
-    # print(type(head_nets[0].meta))
-    # print(type(head_nets[1].meta))
+    if isinstance(head_nets[0].meta, network.heads.IntensityMeta) \
+       and len(head_nets) == 1:
+        field_config = FieldConfig()
+    
+
+        # skeleton = head_nets[1].meta.skeleton
+        # print(skeleton)
+        # if dense_connections:
+        #     field_config.confidence_scales = (
+        #         [1.0 for _ in skeleton] +
+        #         [dense_coupling for _ in head_nets[2].meta.skeleton]
+        #     )
+        #     skeleton += head_nets[2].meta.skeleton
+
+        # print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+        # print('decoder fact', head_nets[0].meta.keypoints)
+        field_config.cif_visualizers = [
+            visualizer.Cif(head_nets[i].meta.name,
+                           stride=head_nets[i].stride(basenet_stride),
+                           keypoints=head_nets[0].meta.keypoints,
+                           skeleton=head_nets[0].meta.draw_skeleton)
+            for i in field_config.cif_indices
+        ]
+        # field_config.caf_visualizers = [
+        #     visualizer.Caf(head_nets[i].meta.name,
+        #                    stride=head_nets[i].stride(basenet_stride),
+        #                    keypoints=head_nets[1].meta.keypoints,
+        #                    skeleton=skeleton)
+        #     for i in field_config.caf_indices
+        # ]
+
+        return CifCent(
+            field_config,
+            keypoints=head_nets[0].meta.keypoints,
+            worker_pool=worker_pool,
+        )
+
+
     if isinstance(head_nets[0].meta, network.heads.IntensityMeta) \
        and isinstance(head_nets[1].meta, network.heads.SegmentationMeta):
         field_config = FieldConfig()

@@ -196,10 +196,6 @@ class MultiHeadLoss(torch.nn.Module):
                             for l, f, t in zip(self.losses, head_fields, head_targets)
                             for ll in l(f, t)]
 
-        # print('222222222222222222222222')
-        # print(len(self.lambdas))
-        # print('333333333333333333333333')
-        # print(len(flat_head_losses))
         assert len(self.lambdas) == len(flat_head_losses)
         loss_values = [lam * l
                        for lam, l in zip(self.lambdas, flat_head_losses)
@@ -435,12 +431,23 @@ class CompositeLoss(torch.nn.Module):
         # print(t.shape)
 
         x_confidence, x_regs, x_logbs, x_scales = x
+        # print(x_confidence.shape)
+        # print(x_regs.shape)
+        # print(x_logbs.shape)
+        # print(x_scales.shape)
+
 
         assert len(t) == 1 + self.n_vectors + self.n_scales
         running_t = iter(t)
         target_confidence = next(running_t)
         target_regs = [next(running_t) for _ in range(self.n_vectors)]
         target_scales = [next(running_t) for _ in range(self.n_scales)]
+
+        # print('targets')
+        # print(target_confidence.shape)
+        # print(target_regs[0].shape)
+        # print(target_scales[0].shape)
+        
 
         ce_loss = self._confidence_loss(x_confidence, target_confidence)
         reg_losses = self._localization_loss(x_regs, x_logbs, target_regs)
@@ -974,7 +981,8 @@ def factory(head_nets, lambdas, *,
     # losses = [CompositeLoss(head_net, reg_loss) for head_net in head_nets]
     ### AMA
     losses = [CompositeLoss(head_nets[0], reg_loss)]
-    losses.append(SegmantationLoss(head_nets[1],device))
+    if len(head_nets) > 1 and isinstance(head_nets[1], heads.InstanceSegHead):
+        losses.append(SegmantationLoss(head_nets[1],device))
     if auto_tune_mtl:
         loss = MultiHeadLossAutoTune(losses, lambdas,
                                      sparse_task_parameters=sparse_task_parameters)
