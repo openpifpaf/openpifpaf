@@ -13,7 +13,8 @@ def main():
     # favicon
     keypoint_painter = openpifpaf.show.KeypointPainter(
         line_width=48, marker_size=0)
-    with openpifpaf.show.Canvas.annotation(ann, filename='favicon.png', margin=0.8) as ax:
+    with openpifpaf.show.Canvas.annotation(ann, filename='favicon.png',
+                                           margin=0.8, frameon=False, fig_w=5) as ax:
         ax.set_aspect('equal')
         keypoint_painter.annotation(ax, ann)
 
