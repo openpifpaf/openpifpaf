@@ -1,5 +1,6 @@
 import argparse
 import logging
+import math
 
 import torch
 
@@ -11,8 +12,9 @@ class Bce(torch.nn.Module):
     focal_alpha = 0.5
     focal_gamma = 1.0
     focal_detach = False
-    min_bce = 0.02
-    min_slope = 0.1
+
+    # 0.02 -> -3.9, 0.01 -> -4.6, 0.001 -> -7, 0.0001 -> -9
+    min_bce = 1e-6  # 1e-6 corresponds to x~=14
 
     def __init__(self, **kwargs):
         super().__init__()
@@ -33,8 +35,6 @@ class Bce(torch.nn.Module):
         group.add_argument('--focal-detach', default=False, action='store_true')
         group.add_argument('--bce-min', default=cls.min_bce, type=float,
                            help='gradient clipped below')
-        group.add_argument('--bce-min-slope', default=cls.min_slope, type=float,
-                           help='slope of soft clamp')
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
@@ -43,7 +43,6 @@ class Bce(torch.nn.Module):
         cls.focal_gamma = args.focal_gamma
         cls.focal_detach = args.focal_detach
         cls.min_bce = args.bce_min
-        cls.min_slope = args.bce_min_slope
 
     def forward(self, x, t):  # pylint: disable=arguments-differ
         t_zeroone = t.clone()
@@ -51,32 +50,19 @@ class Bce(torch.nn.Module):
         # x = torch.clamp(x, -20.0, 20.0)
         bce = torch.nn.functional.binary_cross_entropy_with_logits(
             x, t_zeroone, reduction='none')
-        min_bce_mask = None
-        if self.min_bce > 0.0:
-            # 0.02 -> -3.9, 0.01 -> -4.6, 0.001 -> -7, 0.0001 -> -9
-            # bce = torch.clamp(bce, 0.02, 5.0)
-            min_bce_mask = bce < self.min_bce
-            bce = torch.clamp_min(bce, self.min_bce)
-            # soft gradient instead of clamp (also reduces pre-factor for focal):
-            # bce[min_bce_mask] *= self.min_slope
-        torch.clamp_min_(bce, 1e-6)  # 1e-6 corresponds to x~=14
+        torch.clamp_min_(bce, self.min_bce)
 
         if self.focal_gamma != 0.0:
             p = torch.sigmoid(x)
             pt = p * t_zeroone + (1 - p) * (1 - t_zeroone)
-            torch.clamp_max_(pt, 0.9999)
-            # The above code would still propagate gradients for
-            # clamped bce.
-            # Therefore, derive pt from bce.
-            # pt = torch.exp(-bce)
-            # Or apply mask separately here:
-            # pt[min_bce_mask] = 1.0
+            # Above code is more stable than deriving pt from bce: pt = torch.exp(-bce)
+
+            pt_threshold = math.exp(-self.min_bce)
+            torch.clamp_max_(pt, pt_threshold)
+
             focal = 1.0 - pt
             if self.focal_gamma != 1.0:
                 focal = focal**self.focal_gamma
-
-            if min_bce_mask is not None:
-                focal[min_bce_mask] *= self.min_slope
 
             if self.focal_detach:
                 focal = focal.detach()
