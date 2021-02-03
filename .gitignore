@@ -1,3 +1,5 @@
+/env
+
 # system
 .DS_Store
 .vscode

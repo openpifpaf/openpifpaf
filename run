@@ -1,0 +1,10 @@
+#!/bin/bash
+
+ENVDIR=${ENVDIR:-`dirname $0`/env}
+
+source $ENVDIR/bin/activate
+if [[ $# -eq 0 ]] ; then
+  $BASH --noprofile --norc -i
+else
+  "$@"
+fi
