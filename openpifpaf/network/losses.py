@@ -443,6 +443,12 @@ class CompositeLoss(torch.nn.Module):
         target_regs = [next(running_t) for _ in range(self.n_vectors)]
         target_scales = [next(running_t) for _ in range(self.n_scales)]
 
+        # import os
+        # import pickle
+        # if not os.path.isfile('targets.pickle'):
+        #     with open('targets.pickle','wb') as f:
+        #         pickle.dump((target_confidence, target_regs, target_scales),f)
+
         # print('targets')
         # print(target_confidence.shape)
         # print(target_regs[0].shape)

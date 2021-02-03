@@ -22,8 +22,8 @@ class CifDet:
     side_length: ClassVar[int] = 5
     padding: ClassVar[int] = 10
 
-    def __call__(self, image, anns, meta):
-        return CifDetGenerator(self)(image, anns, meta)
+    def __call__(self, image, anns, mask ,meta):
+        return CifDetGenerator(self)(image, anns, mask, meta)
 
 
 class CifDetGenerator(object):
@@ -38,7 +38,7 @@ class CifDetGenerator(object):
         self.sink = create_sink(config.side_length)
         self.s_offset = (config.side_length - 1.0) / 2.0
 
-    def __call__(self, image, anns, meta):
+    def __call__(self, image, anns, emp_mask, meta):
         width_height_original = image.shape[2:0:-1]
 
         detections = self.config.rescaler.detections(anns)
@@ -73,7 +73,8 @@ class CifDetGenerator(object):
         for category_id, bbox in detections:
             xy = bbox[:2] + 0.5 * bbox[2:]
             wh = bbox[2:]
-            self.fill_detection(category_id - 1, xy, wh)
+            # self.fill_detection(category_id - 1, xy, wh)
+            self.fill_detection(0, xy, wh)          # if we have only one category to detect (BALL)
 
     def fill_detection(self, f, xy, wh):
         ij = np.round(xy - self.s_offset).astype(np.int) + self.config.padding

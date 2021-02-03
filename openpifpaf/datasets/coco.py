@@ -37,6 +37,7 @@ class Coco(torch.utils.data.Dataset):
             self.coco_inst = COCO(ann_inst_file)
 
         self.category_ids = category_ids
+        self.ann_inst_file = ann_inst_file
 
         if image_filter == 'all':
             self.ids = self.coco.getImgIds()
@@ -49,6 +50,8 @@ class Coco(torch.utils.data.Dataset):
         elif image_filter == 'kp_inst':
             self.ids = self.coco.getImgIds(catIds=self.category_ids)
             self.ids_inst = self.coco_inst.getImgIds(catIds=self.category_ids)
+            print(len(self.ids))
+            print(len(self.ids_inst))
             # self.filter_for_annotations()
             ### AMA union of kp and inst annotations
             self.ids_ = []
@@ -106,15 +109,15 @@ class Coco(torch.utils.data.Dataset):
         """removes images that only contain crowd annotations"""
         LOG.info('filter for annotations ...')
         def has_annotation(image_id):
-            ann_ids = self.coco_inst.getAnnIds(imgIds=image_id, catIds=self.category_ids)
-            anns = self.coco_inst.loadAnns(ann_ids)
+            ann_ids = self.coco.getAnnIds(imgIds=image_id, catIds=self.category_ids)
+            anns = self.coco.loadAnns(ann_ids)
             for ann in anns:
                 if ann.get('iscrowd'):
                     continue
                 return True
             return False
 
-        self.ids_inst = [image_id for image_id in self.ids_inst
+        self.ids = [image_id for image_id in self.ids
                     if has_annotation(image_id)]
         LOG.info('... done.')
 
@@ -175,20 +178,28 @@ class Coco(torch.utils.data.Dataset):
             keypoints = anns[id_m]['keypoints']
             # print('start of process')
             # print(sum(keypoints))
-            if sum(keypoints) == 0:
-                import pickle
-                import os.path
-                from os import path
-                if path.isfile('keypoints_emp.pickle') is not True:
-                    print('file saved')
-                    with open('keypoints_emp.pickle','wb') as f:
-                        pickle.dump((image,anns,mask), f)
+            # if sum(keypoints) == 0:
+            #     import pickle
+            #     import os.path
+            #     from os import path
+            #     if path.isfile('keypoints_emp.pickle') is not True:
+            #         print('file saved')
+            #         with open('keypoints_emp.pickle','wb') as f:
+            #             pickle.dump((image,anns,mask), f)
                 # torch.save((image,anns,mask),'keypoints_emp_coco.pt')
             # print(sum(sum(msk)))
             anns[id_m]['keypoints'].append(int(center[1]))      # add center for x
             anns[id_m]['keypoints'].append(int(center[0]))      # add center for y
             anns[id_m]['keypoints'].append(2)
-            keypoints = anns[id_m]['keypoints']
+
+            # print(int(center[1]))
+            # print(int(center[0]))
+            # print(2)
+
+            anns[id_m]['keypoints'].append(int(center[1]))      # add center for x
+            anns[id_m]['keypoints'].append(int(center[0]))      # add center for y
+            anns[id_m]['keypoints'].append(2)
+            # keypoints = anns[id_m]['keypoints']
             # if anns[id_m]['keypoints']
             # print(type(keypoints))
             # print(keypoints)
@@ -200,12 +211,21 @@ class Coco(torch.utils.data.Dataset):
     def __getitem__(self, index):
         image_id = self.ids[index]
         ann_ids = self.coco.getAnnIds(imgIds=image_id, catIds=self.category_ids)
-        ann_ids_inst = self.coco_inst.getAnnIds(imgIds=image_id, catIds=self.category_ids)
         anns = self.coco.loadAnns(ann_ids)
-        anns_inst = self.coco_inst.loadAnns(ann_ids_inst)
+
+
         mask = []
-        for i in anns_inst:
-            mask.append(self.coco_inst.annToMask(i))
+        if self.ann_inst_file is not None:
+            ann_ids_inst = self.coco_inst.getAnnIds(imgIds=image_id, catIds=self.category_ids)
+            anns_inst = self.coco_inst.loadAnns(ann_ids_inst)
+            
+            for i in anns_inst:
+                mask.append(self.coco_inst.annToMask(i))
+                
+            assert len(anns) == len(mask)
+        
+        
+
         # print('mask')
         # print(mask[0].shape)
         # anns.append(mask)
@@ -266,7 +286,9 @@ class Coco(torch.utils.data.Dataset):
         # print(mask) # a list of masks of people in image
         # print(meta)
 
-        anns = self.add_center(image,anns, mask)
+        if self.ann_inst_file is not None:
+            anns = self.add_center(image,anns, mask)
+        
         image, anns, mask, meta = self.preprocess(image, anns, mask, meta)
         # print('222')
         # print(len(anns))

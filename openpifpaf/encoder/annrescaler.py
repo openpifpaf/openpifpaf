@@ -75,6 +75,8 @@ class AnnRescaler(object):
         return mask
 
     def scale(self, keypoints):
+        # print('in annrescaler', keypoints)
+        keypoints = keypoints[:-1]  ## remove ball from keypoints
         visible = keypoints[:, 2] > 0
         if np.sum(visible) < 3:
             return np.nan
@@ -145,7 +147,8 @@ class AnnRescalerDet(object):
                 continue
 
             if 'mask' not in ann:
-                field_i = ann['category_id'] - 1
+                # field_i = ann['category_id'] - 1
+                field_i = 0     # if we only have 1 category    (BALL)
                 bb = ann['bbox'].copy()
                 bb /= self.stride
                 bb[2:] += bb[:2]  # convert width and height to x2 and y2

@@ -3,7 +3,7 @@ import torch
 from .coco import Coco
 from .collate import collate_images_targets_meta
 from .collate import collate_images_targets_inst_meta
-from .constants import COCO_KEYPOINTS, HFLIP
+from .constants import COCO_KEYPOINTS, HFLIP, COCO_CATEGORIES
 from .. import transforms
 
 COCOKP_ANNOTATIONS_TRAIN = 'data-mscoco/annotations/person_keypoints_train2017.json'
@@ -242,11 +242,12 @@ def train_cocodet_factory(args, target_transforms):
     train_data = Coco(
         image_dir=args.coco_train_image_dir,
         ann_file=args.cocodet_train_annotations,
+        ann_inst_file=None,
         preprocess=preprocess,
         target_transforms=target_transforms,
         n_images=args.n_images,
         image_filter='annotated',
-        category_ids=[],
+        category_ids=[37],  ## sports ball
     )
     if args.duplicate_data:
         train_data = torch.utils.data.ConcatDataset(

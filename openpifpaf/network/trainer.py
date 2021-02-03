@@ -171,6 +171,11 @@ class Trainer(object):
         last_batch_end = time.time()
         self.optimizer.zero_grad()
         # torch.save(scenes, 'tensor.pt')
+        # import os
+        # import pickle
+        # if not os.path.isfile('scenes.pickle'):
+        #     with open('scenes.pickle','wb') as f:
+        #         pickle.dump(scenes,f)
         # print('data')
         for batch_idx, (data, target, _) in enumerate(scenes):
             # print('__________________________________________')
@@ -183,7 +188,7 @@ class Trainer(object):
             # print(len(target))
             # print(len(mask))
             
-            filename = 'in_target_{}.pt'.format(batch_idx)
+            # filename = 'in_target_{}.pt'.format(batch_idx)
             # torch.save(target, filename)
             # print('filename is')
             # print(filename)

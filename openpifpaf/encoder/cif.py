@@ -117,6 +117,7 @@ class CifGenerator(object):
 
     def fill_keypoints(self, keypoints, other_keypoints):
         scale = self.config.rescaler.scale(keypoints)
+        # print('CIF; scale',scale)
         for f, xyv in enumerate(keypoints):
             if xyv[2] <= self.config.v_threshold:
                 continue
@@ -125,6 +126,7 @@ class CifGenerator(object):
                          if other_kps[f, 2] > self.config.v_threshold]
             max_r = self.max_r(xyv, other_xyv)
 
+            # print('CIF; scale', f, scale * self.config.sigmas[f])
             joint_scale = scale if self.config.sigmas is None else scale * self.config.sigmas[f]
             joint_scale = np.min([joint_scale, np.min(max_r) * 0.25])
 
@@ -164,6 +166,7 @@ class CifGenerator(object):
         intensities = self.intensities[:, p:-p, p:-p]
         fields_reg = self.fields_reg[:, :, p:-p, p:-p]
         fields_scale = self.fields_scale[:, p:-p, p:-p]
+        # print(fields_scale.shape)
 
         mask_valid_area(intensities, valid_area)
         mask_valid_area(fields_reg[:, 0], valid_area, fill_value=np.nan)

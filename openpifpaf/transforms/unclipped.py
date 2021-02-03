@@ -13,7 +13,7 @@ class UnclippedSides(Preprocess):
         self.margin = margin
         self.clipped_sides_okay = clipped_sides_okay
 
-    def __call__(self, image, anns, meta):
+    def __call__(self, image, anns, mask, meta):
         anns = copy.deepcopy(anns)
         meta_rb = (meta['valid_area'][0] + meta['valid_area'][2],
                    meta['valid_area'][1] + meta['valid_area'][3])
@@ -34,14 +34,14 @@ class UnclippedSides(Preprocess):
                 continue
             ann['iscrowd'] = True
 
-        return image, anns, meta
+        return image, anns, mask, meta
 
 
 class UnclippedArea(Preprocess):
     def __init__(self, *, threshold=0.5):
         self.threshold = threshold
 
-    def __call__(self, image, anns, meta):
+    def __call__(self, image, anns, mask, meta):
         anns = copy.deepcopy(anns)
         for ann in anns:
             area_original = np.prod(ann['bbox_original'][2:])
@@ -53,4 +53,4 @@ class UnclippedArea(Preprocess):
 
             ann['iscrowd'] = True
 
-        return image, anns, meta
+        return image, anns, mask, meta

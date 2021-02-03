@@ -24,11 +24,11 @@ class DeterministicEqualChoice(Preprocess):
         self.transforms = transforms
         self.salt = salt
 
-    def __call__(self, image, anns, meta):
+    def __call__(self, image, anns, mask, meta):
         assert meta['image_id'] > 0
         LOG.debug('image id = %d', meta['image_id'])
         choice = hash(meta['image_id'] + self.salt) % len(self.transforms)
         t = self.transforms[choice]
         if t is None:
-            return image, anns, meta
-        return t(image, anns, meta)
+            return image, anns, mask, meta
+        return t(image, anns, mask, meta)
