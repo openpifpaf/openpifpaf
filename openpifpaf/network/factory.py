@@ -320,6 +320,9 @@ def resnet_factory_from_scratch(basename, base_vision, out_features, head_metas)
     # print('hereeeeeeeeeeeeeee')
     # print(headnets)
 
+    # if len(head_metas) > 1 and isinstance(head_metas[1], panoptic_deeplab.PanopticMeta):
+    #     headnets.append(panoptic_deeplab.PanopticDeepLabDecoder())
+
 
     net_cpu = nets.Shell(basenet, headnets)
     nets.model_defaults(net_cpu)

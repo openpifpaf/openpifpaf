@@ -20,11 +20,40 @@ def factory(head_names):
 def factory_single(head_name):
     if 'cifdet' in head_name:
         return DetectionMeta(head_name, COCO_CATEGORIES)
-    if 'pif' in head_name or 'cif' in head_name:
+
+    ### 4 options for cif head
+    ''' 1) normal cif
+        2) cif + center
+        3) cif + ball
+        4) cif + center + ball
+    '''
+    ## 4
+    if 'cifcentball' in head_name:
         return IntensityMeta(head_name,
                              COCO_KEYPOINTS,
                              COCO_PERSON_SIGMAS,
                              COCO_UPRIGHT_POSE,
+                             COCO_PERSON_SKELETON)
+    ## 2
+    if 'cifcent' in head_name:
+        return IntensityMeta(head_name,
+                             COCO_KEYPOINTS[:-1],
+                             COCO_PERSON_SIGMAS[:-1],
+                             COCO_UPRIGHT_POSE,
+                             COCO_PERSON_SKELETON)
+    ## 3
+    if 'cifball' in head_name:
+        return IntensityMeta(head_name,
+                             COCO_KEYPOINTS[:-2]+[COCO_KEYPOINTS[-1]],
+                             COCO_PERSON_SIGMAS[:-2]+[COCO_PERSON_SIGMAS[-1]],
+                             COCO_UPRIGHT_POSE[:-1],
+                             COCO_PERSON_SKELETON)
+    ## 1
+    if 'pif' in head_name or 'cif' in head_name:
+        return IntensityMeta(head_name,
+                             COCO_KEYPOINTS[:-2],
+                             COCO_PERSON_SIGMAS[:-2],
+                             COCO_UPRIGHT_POSE[:-1],
                              COCO_PERSON_SKELETON)
     if 'caf25' in head_name:
         return AssociationMeta(head_name,

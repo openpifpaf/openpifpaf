@@ -196,9 +196,9 @@ class Coco(torch.utils.data.Dataset):
             # print(int(center[0]))
             # print(2)
 
-            anns[id_m]['keypoints'].append(int(center[1]))      # add center for x
-            anns[id_m]['keypoints'].append(int(center[0]))      # add center for y
-            anns[id_m]['keypoints'].append(2)
+            # anns[id_m]['keypoints'].append(int(center[1]))      # add center for x
+            # anns[id_m]['keypoints'].append(int(center[0]))      # add center for y
+            # anns[id_m]['keypoints'].append(2)
             # keypoints = anns[id_m]['keypoints']
             # if anns[id_m]['keypoints']
             # print(type(keypoints))

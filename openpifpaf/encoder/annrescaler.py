@@ -75,8 +75,9 @@ class AnnRescaler(object):
         return mask
 
     def scale(self, keypoints):
-        # print('in annrescaler', keypoints)
-        keypoints = keypoints[:-1]  ## remove ball from keypoints
+        print('in annrescaler', len(keypoints))
+        # if keypoints[-1] == 'ball':
+        #     keypoints = keypoints[:-1]  ## remove ball from keypoints
         visible = keypoints[:, 2] > 0
         if np.sum(visible) < 3:
             return np.nan

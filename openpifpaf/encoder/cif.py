@@ -126,7 +126,9 @@ class CifGenerator(object):
                          if other_kps[f, 2] > self.config.v_threshold]
             max_r = self.max_r(xyv, other_xyv)
 
-            # print('CIF; scale', f, scale * self.config.sigmas[f])
+            print('CIF; scale', f)
+            print(self.config.sigmas[f-1])
+            print(self.config.sigmas[f])
             joint_scale = scale if self.config.sigmas is None else scale * self.config.sigmas[f]
             joint_scale = np.min([joint_scale, np.min(max_r) * 0.25])
 
