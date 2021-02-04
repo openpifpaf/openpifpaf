@@ -15,7 +15,7 @@ class Bce(torch.nn.Module):
     focal_clamp = True
 
     # 0.02 -> -3.9, 0.01 -> -4.6, 0.001 -> -7, 0.0001 -> -9
-    min_bce = 1e-6  # 1e-6 corresponds to x~=14
+    min_bce = 0.0  # 1e-6 corresponds to x~=14, 1e-10 -> 20
 
     def __init__(self, **kwargs):
         super().__init__()
@@ -55,19 +55,21 @@ class Bce(torch.nn.Module):
         # x = torch.clamp(x, -20.0, 20.0)
         bce = torch.nn.functional.binary_cross_entropy_with_logits(
             x, t_zeroone, reduction='none')
-        torch.clamp_min_(bce, self.min_bce)
+        if self.min_bce > 0.0:
+            torch.clamp_min_(bce, self.min_bce)
 
         if self.focal_gamma != 0.0:
             p = torch.sigmoid(x)
             pt = p * t_zeroone + (1 - p) * (1 - t_zeroone)
             # Above code is more stable than deriving pt from bce: pt = torch.exp(-bce)
 
-            pt_threshold = math.exp(-self.min_bce) if self.focal_clamp else 0.999999
-            torch.clamp_max_(pt, pt_threshold)
+            if self.focal_clamp and self.min_bce > 0.0:
+                pt_threshold = math.exp(-self.min_bce)
+                torch.clamp_max_(pt, pt_threshold)
 
             focal = 1.0 - pt
             if self.focal_gamma != 1.0:
-                focal = focal**self.focal_gamma
+                focal = (focal + 1e-4)**self.focal_gamma
 
             if self.focal_detach:
                 focal = focal.detach()
