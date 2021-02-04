@@ -12,6 +12,7 @@ class Bce(torch.nn.Module):
     focal_alpha = 0.5
     focal_gamma = 1.0
     focal_detach = False
+    focal_clamp = True
 
     # 0.02 -> -3.9, 0.01 -> -4.6, 0.001 -> -7, 0.0001 -> -9
     min_bce = 1e-6  # 1e-6 corresponds to x~=14
@@ -33,6 +34,9 @@ class Bce(torch.nn.Module):
                            help='use focal loss with the given gamma')
         assert not cls.focal_detach
         group.add_argument('--focal-detach', default=False, action='store_true')
+        assert cls.focal_clamp
+        group.add_argument('--no-focal-clamp', dest='focal_clamp',
+                           default=True, action='store_false')
         group.add_argument('--bce-min', default=cls.min_bce, type=float,
                            help='gradient clipped below')
 
@@ -42,6 +46,7 @@ class Bce(torch.nn.Module):
         cls.focal_alpha = args.focal_alpha
         cls.focal_gamma = args.focal_gamma
         cls.focal_detach = args.focal_detach
+        cls.focal_clamp = args.focal_clamp
         cls.min_bce = args.bce_min
 
     def forward(self, x, t):  # pylint: disable=arguments-differ
@@ -57,7 +62,7 @@ class Bce(torch.nn.Module):
             pt = p * t_zeroone + (1 - p) * (1 - t_zeroone)
             # Above code is more stable than deriving pt from bce: pt = torch.exp(-bce)
 
-            pt_threshold = math.exp(-self.min_bce)
+            pt_threshold = math.exp(-self.min_bce) if self.focal_clamp else 0.999999
             torch.clamp_max_(pt, pt_threshold)
 
             focal = 1.0 - pt
