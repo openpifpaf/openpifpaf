@@ -24,6 +24,33 @@ class BaseNetwork(torch.nn.Module):
         return self.net(*args)
 
 
+class BaseNetworkWithSkips(torch.nn.Module):
+    """Common base network."""
+
+    def __init__(self, net, shortname, stride, out_features):
+        super(BaseNetworkWithSkips, self).__init__()
+
+        assert isinstance(net, torch.nn.Sequential)
+        self.net = net
+        self.shortname = shortname
+        self.stride = stride
+        self.out_features = out_features
+
+        # print(list(net.children()))
+        LOG.info('stride = %d', self.stride)
+        LOG.info('output features = %d', self.out_features)
+
+    def forward(self, *args):
+        assert len(args) == 1
+        x = args[0]
+        outputs = {'input': x}
+        for i, module in enumerate(self.net):
+            x =  module(x)
+            outputs["res%d"%(i+1)] = x
+        x.all_outputs = outputs
+        return x
+
+
 class ResnetBlocks(object):
     def __init__(self, resnet):
         self.modules = list(resnet.children())
