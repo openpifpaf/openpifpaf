@@ -1,0 +1,12 @@
+#!/bin/bash
+_ENVDIR=${ENVDIR}
+ENVDIR=${ENVDIR:-`dirname $0`/env}
+
+git submodule update --init --recursive
+python -m venv $ENVDIR
+source $ENVDIR/bin/activate
+pip install -r requirements.txt
+if [[ -z $_ENVDIR ]] ; then
+	pip install nbstripout
+	nbstripout --install
+fi

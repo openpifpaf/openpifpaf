@@ -1,4 +1,4 @@
-from ..network.heads import AssociationMeta, DetectionMeta, IntensityMeta, SegmentationMeta
+from ..network.heads import AssociationMeta, DetectionMeta, IntensityMeta, SegmentationMeta, PanopticDeeplabMeta
 from .constants import (
     COCO_CATEGORIES,
     COCO_KEYPOINTS,
@@ -82,6 +82,9 @@ def factory_single(head_name):
                                 COCO_KEYPOINTS,
                                 ['people'],
                                 COCO_PERSON_SKELETON)
+
+    if 'pan' in head_name:
+        return PanopticDeeplabMeta(head_name)
 
 
     raise NotImplementedError

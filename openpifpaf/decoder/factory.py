@@ -1,4 +1,5 @@
 import logging
+from openpifpaf.decoder.generator.cifpan import CifPan
 
 from .caf_scored import CafScored
 from .cif_hr import CifHr
@@ -185,6 +186,11 @@ def factory_decode(head_nets, *,
             keypoints=head_nets[0].meta.keypoints,
             worker_pool=worker_pool,
         )
+
+
+    if isinstance(head_nets[0].meta, network.heads.IntensityMeta) \
+       and isinstance(head_nets[1].meta, network.heads.PanopticDeeplabMeta):
+        return CifPan(FieldConfig())
 
 
     if isinstance(head_nets[0].meta, network.heads.IntensityMeta) \

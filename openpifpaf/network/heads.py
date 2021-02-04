@@ -8,6 +8,8 @@ from typing import Any, List, Tuple, Union
 import numpy as np
 import torch
 
+from ..panoptic_deeplab.decoder import panoptic_deeplab
+
 LOG = logging.getLogger(__name__)
 
 
@@ -264,6 +266,42 @@ class DetectionMeta:
         return len(self.categories)
 
 
+@dataclass
+class PanopticDeeplabMeta:
+    """Inspired by the following Panoptic-Deeplab configuration (resnet50)
+
+    DECODER:
+        ~IN_CHANNELS: 2048~
+        FEATURE_KEY: "res5"
+        DECODER_CHANNELS: 256
+        ATROUS_RATES: (3, 6, 9)
+    PANOPTIC_DEEPLAB:
+        LOW_LEVEL_CHANNELS: (1024, 512, 256)
+        LOW_LEVEL_KEY: ["res4", "res3", "res2"]
+        LOW_LEVEL_CHANNELS_PROJECT: (128, 64, 32)
+        INSTANCE:
+            ENABLE: True
+            LOW_LEVEL_CHANNELS_PROJECT: (64, 32, 16)
+            DECODER_CHANNELS: 128
+            HEAD_CHANNELS: 32
+            ASPP_CHANNELS: 256
+            NUM_CLASSES: (1, 2)
+            CLASS_KEY: ["center", "offset"]
+    """
+
+    name: str
+    feature_key: str = 'res5'
+    decoder_channels: int = 256
+    atrous_rates: Tuple[int] = (3,6,9)
+
+    low_level_channels: Tuple[int] = (1024, 512, 256)
+    low_level_key: Tuple[str] = ('res4', 'res3', 'res2')
+    low_level_channels_project: Tuple[int] = (128, 64, 32)
+
+    num_classes: Tuple[int] = (2, 2)
+    class_key: Tuple[str] = ('semantic', 'offset')
+
+
 ### AMA
 @dataclass
 class SegmentationMeta:
@@ -281,6 +319,28 @@ class SegmentationMeta:
     @property
     def n_fields(self):
         return len(self.objects)
+
+
+class PanopticDeeplabHead(torch.nn.Module):
+    def __init__(self, meta:PanopticDeeplabMeta, in_channels):
+        super().__init__()
+        self.meta = meta
+
+        self.decoder = panoptic_deeplab.SinglePanopticDeepLabDecoder(
+            in_channels, meta.feature_key, meta.low_level_channels, meta.low_level_key,
+            meta.low_level_channels_project, meta.decoder_channels, meta.atrous_rates,
+            aspp_channels=None)
+        self.head = panoptic_deeplab.SinglePanopticDeepLabHead(
+            meta.decoder_channels, meta.decoder_channels, meta.num_classes, meta.class_key)
+
+    def forward(self, x):
+        # Use intermediate outputs as well
+        features = x.all_outputs
+
+        instance = self.decoder(features)
+        instance = self.head(instance)
+
+        return instance
 
 
 class CompositeField(torch.nn.Module):

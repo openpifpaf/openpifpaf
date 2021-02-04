@@ -122,8 +122,11 @@ def factory(
     elif dense_connections and multi_scale:
         cif_indices = [v * 3 + 1 for v in range(10)]
         caf_indices = [v * 3 + 2 for v in range(10)]
+    
     if isinstance(net_cpu.head_nets[0].meta, heads.DetectionMeta):
         net_cpu.process_heads = heads.CifdetCollector(cif_indices)
+    elif isinstance(net_cpu.head_nets[1].meta, heads.PanopticDeeplabMeta):
+        pass
     else:
         net_cpu.process_heads = heads.CifCafCollector(cif_indices, caf_indices)
     net_cpu.cross_talk = cross_talk
@@ -136,7 +139,6 @@ def factory(
                                        process_heads=net_cpu.process_heads,
                                        include_hflip=multi_scale_hflip)
 
-    
     return net_cpu, epoch
 
 
@@ -147,6 +149,9 @@ def factory_from_scratch(basename, head_names, *, pretrained=True):
     if 'resnet18' in basename:
         base_vision = torchvision.models.resnet18(pretrained)
         return resnet_factory_from_scratch(basename, base_vision, 512, head_metas)
+    if 'resnet50pan' in basename:
+        base_vision = torchvision.models.resnet50(pretrained)
+        return resnet_factory_from_scratch(basename, base_vision, 2048, head_metas)
     if 'resnet50' in basename:
         base_vision = torchvision.models.resnet50(pretrained)
         return resnet_factory_from_scratch(basename, base_vision, 2048, head_metas)
@@ -301,12 +306,16 @@ def resnet_factory_from_scratch(basename, base_vision, out_features, head_metas)
     else:
         out_features //= 2
 
-    basenet = basenetworks.BaseNetwork(
+    panoptic = len(head_metas) > 1 and isinstance(head_metas[1], heads.PanopticDeeplabMeta)
+
+    BaseNetwork = basenetworks.BaseNetworkWithSkips if panoptic else basenetworks.BaseNetwork
+    basenet = BaseNetwork(
         torch.nn.Sequential(*blocks),
         basename,
         stride=output_stride,
         out_features=out_features,
     )
+
 
     # headnets = [heads.CompositeFieldFused(h, basenet.out_features) for h in head_metas]
 
@@ -320,8 +329,9 @@ def resnet_factory_from_scratch(basename, base_vision, out_features, head_metas)
     # print('hereeeeeeeeeeeeeee')
     # print(headnets)
 
-    # if len(head_metas) > 1 and isinstance(head_metas[1], panoptic_deeplab.PanopticMeta):
-    #     headnets.append(panoptic_deeplab.PanopticDeepLabDecoder())
+
+    if panoptic:  # Integrate a panoptic-deeplab decoder
+        headnets.append(heads.PanopticDeeplabHead(head_metas[1], basenet.out_features))
 
 
     net_cpu = nets.Shell(basenet, headnets)

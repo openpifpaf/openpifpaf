@@ -51,6 +51,8 @@ class Generator:
                 return None
             if isinstance(items, (list, tuple)):
                 return [apply(f, i) for i in items]
+            if isinstance(items, dict):
+                return {k: apply(f, v) for k, v in items.items()}
             return f(items)
 
         with torch.no_grad():
