@@ -19,7 +19,7 @@ class Cif:
     v_threshold: int = 0
     visualizer: CifVisualizer = None
 
-    side_length: ClassVar[int] = 4
+    side_length: ClassVar[int] = 4      # area around the keypoint to be supervised
     padding: ClassVar[int] = 10
 
     def __call__(self, image, anns, mask, meta):
@@ -126,9 +126,13 @@ class CifGenerator(object):
                          if other_kps[f, 2] > self.config.v_threshold]
             max_r = self.max_r(xyv, other_xyv)
 
-            print('CIF; scale', f)
-            print(self.config.sigmas[f-1])
-            print(self.config.sigmas[f])
+            # print('CIF; scale', f)
+            # print(self.config.sigmas[f-1])
+            # print(self.config.sigmas[f])
+
+            # if isinstance(self.config.sigmas, float):    # when only ball
+            #     joint_scale = scale if self.config.sigmas is None else scale * self.config.sigmas
+            # else:    
             joint_scale = scale if self.config.sigmas is None else scale * self.config.sigmas[f]
             joint_scale = np.min([joint_scale, np.min(max_r) * 0.25])
 
@@ -137,9 +141,13 @@ class CifGenerator(object):
     def fill_coordinate(self, f, xyv, scale, max_r):
         ij = np.round(xyv[:2] - self.s_offset).astype(np.int) + self.config.padding
         minx, miny = int(ij[0]), int(ij[1])
+        
         maxx, maxy = minx + self.config.side_length, miny + self.config.side_length
+        # print('in cif', minx, maxx, miny, maxy)
+
         if minx < 0 or maxx > self.intensities.shape[2] or \
            miny < 0 or maxy > self.intensities.shape[1]:
+
             return
 
         offset = xyv[:2] - (ij + self.s_offset - self.config.padding)
@@ -152,6 +160,7 @@ class CifGenerator(object):
         self.fields_reg_l[f, miny:maxy, minx:maxx][mask] = sink_l[mask]
 
         # update intensity
+        # print('in cif intensities', f,mask)
         self.intensities[f, miny:maxy, minx:maxx][mask] = 1.0
 
         # update regression
@@ -165,10 +174,21 @@ class CifGenerator(object):
 
     def fields(self, valid_area):
         p = self.config.padding
+        # print(p)
+
+        # import os
+        # import pickle
+        # if not os.path.isfile('cif.pickle'):
+        #     with open('cif.pickle','wb') as f:
+        #         pickle.dump((self.intensities, self.fields_reg, self.fields_scale),f)
         intensities = self.intensities[:, p:-p, p:-p]
         fields_reg = self.fields_reg[:, :, p:-p, p:-p]
         fields_scale = self.fields_scale[:, p:-p, p:-p]
         # print(fields_scale.shape)
+
+        # if not os.path.isfile('cif_2.pickle'):
+        #     with open('cif_2.pickle','wb') as f:
+        #         pickle.dump((intensities, fields_reg, fields_scale),f)
 
         mask_valid_area(intensities, valid_area)
         mask_valid_area(fields_reg[:, 0], valid_area, fill_value=np.nan)
@@ -179,6 +199,10 @@ class CifGenerator(object):
         # print(intensities.shape)
         # print(fields_reg.shape)
         # print(fields_scale.shape)
+
+        # if not os.path.isfile('cif_3.pickle'):
+        #     with open('cif_3.pickle','wb') as f:
+        #         pickle.dump((intensities, fields_reg, fields_scale),f)
 
         return (
             torch.from_numpy(intensities),

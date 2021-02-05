@@ -16,7 +16,7 @@ class _HorizontalSwap():
 
     def __call__(self, keypoints):
         target = np.zeros(keypoints.shape)
-
+        # print('hflip',len(keypoints))
         for source_i, xyv in enumerate(keypoints):
             
             source_name = self.keypoints[source_i]
@@ -25,6 +25,7 @@ class _HorizontalSwap():
                 target_i = self.keypoints.index(target_name)
             else:
                 target_i = source_i
+            
             target[target_i] = xyv
 
         return target

@@ -293,6 +293,26 @@ def train_cocokpinst_factory(args, target_transforms):
     if args.loader_workers is None:
         args.loader_workers = args.batch_size
 
+    # category_ids = [1, 37] if 'cifball' in args.headnets or 'cifcentball' in args.headnets else [1]
+
+    config = 'cif'
+    category_ids = [1]
+
+    if 'cifball' in args.headnets:
+        config = 'cifball'
+        category_ids = [1, 37]    
+    elif 'cifcentball' in args.headnets:
+        config = 'cifcentball'
+        category_ids = [1, 37]
+    elif 'cifcent' in args.headnets:
+        config = 'cifcent'
+        category_ids = [1]
+    elif 'ball' in args.headnets:
+        config = 'ball'
+        category_ids = [37]
+    # else:
+    #     raise Exception('Error in dataset facrtory!')
+    
     train_data = Coco(
         image_dir=args.coco_train_image_dir,
         ann_file=args.cocokp_train_annotations,
@@ -301,17 +321,16 @@ def train_cocokpinst_factory(args, target_transforms):
         target_transforms=target_transforms,
         n_images=args.n_images,
         # n_images=16,
-        category_ids=[1],
+        category_ids=category_ids,
         image_filter='kp_inst',
+        config=config
     )
     # return train_data
     if args.duplicate_data:
         train_data = torch.utils.data.ConcatDataset(
             [train_data for _ in range(args.duplicate_data)])
     train_loader = torch.utils.data.DataLoader(
-        train_data, batch_size=args.batch_size, shuffle=False,
-        sampler=torch.utils.data.WeightedRandomSampler(
-            train_data.class_aware_sample_weights(), len(train_data), replacement=True),
+        train_data, batch_size=args.batch_size, shuffle=not args.debug,
         pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
         collate_fn=collate_images_targets_inst_meta)
 
@@ -323,15 +342,14 @@ def train_cocokpinst_factory(args, target_transforms):
         target_transforms=target_transforms,
         n_images=args.n_images,
         image_filter='kp_inst',
-        category_ids=[1],
+        category_ids=category_ids,
+        config=config
     )
     if args.duplicate_data:
         val_data = torch.utils.data.ConcatDataset(
             [val_data for _ in range(args.duplicate_data)])
     val_loader = torch.utils.data.DataLoader(
         val_data, batch_size=args.batch_size, shuffle=False,
-        sampler=torch.utils.data.WeightedRandomSampler(
-            val_data.class_aware_sample_weights(), len(val_data), replacement=True),
         pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
         collate_fn=collate_images_targets_inst_meta)
 

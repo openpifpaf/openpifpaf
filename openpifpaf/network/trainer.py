@@ -180,6 +180,9 @@ class Trainer(object):
         for batch_idx, (data, target, _) in enumerate(scenes):
             # print('__________________________________________')
             
+            # if not os.path.isfile('in_enumerate.pickle'):
+            #     with open('in_enumerate.pickle','wb') as f:
+            #         pickle.dump((data, target),f)
             preprocess_time = time.time() - last_batch_end
 
             batch_start = time.time()

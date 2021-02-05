@@ -8,7 +8,7 @@ from .constants import (
     DENSER_COCO_PERSON_CONNECTIONS,
     KINEMATIC_TREE_SKELETON,
 )
-
+import numpy as np
 
 def factory(head_names):
     if head_names is None:
@@ -44,8 +44,8 @@ def factory_single(head_name):
     ## 3
     if 'cifball' in head_name:
         return IntensityMeta(head_name,
-                             COCO_KEYPOINTS[:-2]+[COCO_KEYPOINTS[-1]],
-                             COCO_PERSON_SIGMAS[:-2]+[COCO_PERSON_SIGMAS[-1]],
+                             np.concatenate((COCO_KEYPOINTS[:-2],np.expand_dims(COCO_KEYPOINTS[-1],axis=0))),
+                             np.concatenate((COCO_PERSON_SIGMAS[:-2],np.expand_dims(COCO_PERSON_SIGMAS[-1],axis=0))),
                              COCO_UPRIGHT_POSE[:-1],
                              COCO_PERSON_SKELETON)
     ## 1
@@ -55,6 +55,13 @@ def factory_single(head_name):
                              COCO_PERSON_SIGMAS[:-2],
                              COCO_UPRIGHT_POSE[:-1],
                              COCO_PERSON_SKELETON)
+
+    # if 'ball' in head_name:
+    #     return IntensityMeta(head_name,
+    #                         COCO_KEYPOINTS[-2:],
+    #                         COCO_PERSON_SIGMAS[-2:],
+    #                         COCO_UPRIGHT_POSE[:-1],
+    #                         COCO_PERSON_SKELETON)
     if 'caf25' in head_name:
         return AssociationMeta(head_name,
                                COCO_KEYPOINTS,

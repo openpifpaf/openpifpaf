@@ -6,7 +6,9 @@ LOG = logging.getLogger(__name__)
 
 
 class AnnRescaler(object):
-    def __init__(self, stride, n_keypoints, pose):
+    def __init__(self, stride, n_keypoints, pose, ball=False):
+
+        self.ball = ball
         self.stride = stride
         self.n_keypoints = n_keypoints
         self.pose = pose
@@ -42,6 +44,11 @@ class AnnRescaler(object):
         if not keypoint_sets:
             return np.zeros((0, self.n_keypoints, 3))
 
+        # print(len(keypoint_sets))
+        # for i in range(len(keypoint_sets)):
+        #     print(keypoint_sets[i].shape)
+        # print(keypoint_sets[0].shape)
+        # print(keypoint_sets[1].shape)
         keypoint_sets = np.stack(keypoint_sets)
         keypoint_sets[:, :, :2] /= self.stride
         return keypoint_sets
@@ -75,11 +82,20 @@ class AnnRescaler(object):
         return mask
 
     def scale(self, keypoints):
-        print('in annrescaler', len(keypoints))
-        # if keypoints[-1] == 'ball':
-        #     keypoints = keypoints[:-1]  ## remove ball from keypoints
+        # print('in annrescaler', len(keypoints))
+        # print(self.pose.shape)
+        if self.ball == True:
+            keypoints = keypoints[:-1]  ## remove ball from keypoints
         visible = keypoints[:, 2] > 0
-        if np.sum(visible) < 3:
+        # print('in annrescaler', np.sum(visible))
+        # print(self.n_keypoints)
+        if np.sum(visible) < 3 and self.n_keypoints > 17:   # for ball detection
+            # print('in annrescaler', np.sum(visible))
+            return 1    # return 1 as scale
+
+        if self.n_keypoints == 2:   # when only ball as keypoint
+            return 1
+        elif np.sum(visible) < 3:
             return np.nan
 
         area = (

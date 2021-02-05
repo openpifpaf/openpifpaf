@@ -125,8 +125,8 @@ def factory(
     
     if isinstance(net_cpu.head_nets[0].meta, heads.DetectionMeta):
         net_cpu.process_heads = heads.CifdetCollector(cif_indices)
-    elif isinstance(net_cpu.head_nets[1].meta, heads.PanopticDeeplabMeta):
-        pass
+    # elif isinstance(net_cpu.head_nets[1].meta, heads.PanopticDeeplabMeta):
+    #     pass
     else:
         net_cpu.process_heads = heads.CifCafCollector(cif_indices, caf_indices)
     net_cpu.cross_talk = cross_talk

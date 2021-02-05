@@ -26,9 +26,13 @@ class Coco(torch.utils.data.Dataset):
     def __init__(self, image_dir, ann_file, *, ann_inst_file=None, target_transforms=None,
                  n_images=None, preprocess=None,
                  category_ids=None,
-                 image_filter='keypoint-annotations'):
+                 image_filter='keypoint-annotations',
+                 config='cif'):
         if category_ids is None:
             category_ids = [1]
+
+        self.config = config
+        print(self.config)
 
         from pycocotools.coco import COCO  # pylint: disable=import-outside-toplevel
         self.image_dir = image_dir
@@ -48,19 +52,45 @@ class Coco(torch.utils.data.Dataset):
             self.ids_kp = self.coco_kp.getImgIds(catIds=self.category_ids)
             self.filter_for_keypoint_annotations()
         elif image_filter == 'kp_inst':
-            self.ids = self.coco.getImgIds(catIds=self.category_ids)
-            self.ids_inst = self.coco_inst.getImgIds(catIds=self.category_ids)
-            print(len(self.ids))
-            print(len(self.ids_inst))
+            # print(self.category_ids)
+            if self.category_ids == [1]:
+                self.ids = self.coco.getImgIds(catIds=self.category_ids)
+                # self.ids_inst = self.coco_inst.getImgIds(catIds=self.category_ids)
+                self.filter_for_keypoint_annotations()
+            elif self.category_ids == [37]:
+                self.ids_ball = self.coco_inst.getImgIds(catIds=self.category_ids)
+                self.ids = self.ids_ball
+            else:
+                self.ids = self.coco.getImgIds(catIds=self.category_ids[0])
+                # self.ids_inst = self.coco_inst.getImgIds(catIds=self.category_ids[0])
+                self.ids_ball = self.coco_inst.getImgIds(catIds=self.category_ids[1])
+                # self.filter_for_keypoint_annotations()
+                self.ids += self.ids_ball
+                # for i in self.ids_ball:
+                #     if i not in self.ids:
+                #         self.ids.append(i) 
+                
+                self.ids = list(dict.fromkeys(self.ids))        ## remove duplicate image Ids
+            # print(self.category_ids)
+            # print(len(self.ids))
+            
+            # print(len(self.ids_inst))
             # self.filter_for_annotations()
             ### AMA union of kp and inst annotations
-            self.ids_ = []
-            for idx in self.ids:
-                if idx in self.ids_inst:
-                    self.ids_.append(idx)
-            self.ids = self.ids_
-            self.filter_for_keypoint_annotations()
-            self.filter_for_keypoint_annotations_inst()
+            # self.ids_ = []
+            # for idx in self.ids:
+            #     if idx in self.ids_inst:
+            #         self.ids_.append(idx)
+            # self.ids = self.ids_
+            
+
+            # if self.category_ids != [1]:
+                
+            #     self.ids += self.ids_ball
+                
+            #     self.ids = list(dict.fromkeys(self.ids))        ## remove duplicate image Ids
+                
+            # self.filter_for_keypoint_annotations_inst()
         else:
             raise Exception('unknown value for image_filter: {}'.format(image_filter))
 
@@ -76,7 +106,7 @@ class Coco(torch.utils.data.Dataset):
     def filter_for_keypoint_annotations(self):
         LOG.info('filter for keypoint annotations ...')
         def has_keypoint_annotation(image_id):
-            ann_ids = self.coco.getAnnIds(imgIds=image_id, catIds=self.category_ids)
+            ann_ids = self.coco.getAnnIds(imgIds=image_id)
             anns = self.coco.loadAnns(ann_ids)
             for ann in anns:
                 if 'keypoints' not in ann:
@@ -163,7 +193,7 @@ class Coco(torch.utils.data.Dataset):
         # print(max_w)
         return weights
 
-    def add_center(self, image, anns, mask):
+    def add_center(self, image, anns, mask, visiblity=2):
         # print(len(anns))
         # print(len(mask))
         
@@ -190,7 +220,7 @@ class Coco(torch.utils.data.Dataset):
             # print(sum(sum(msk)))
             anns[id_m]['keypoints'].append(int(center[1]))      # add center for x
             anns[id_m]['keypoints'].append(int(center[0]))      # add center for y
-            anns[id_m]['keypoints'].append(2)
+            anns[id_m]['keypoints'].append(visiblity)
 
             # print(int(center[1]))
             # print(int(center[0]))
@@ -207,37 +237,29 @@ class Coco(torch.utils.data.Dataset):
 
         return anns
 
+    def empty_person_keypoint(self, mask, image_id, n_keypoints=17, category_id=1):
+        
+        anns = []
+        keypoints = []
+        for _ in range(3*n_keypoints):
+            keypoints.append(0)
+        
+        for _ in mask:
+            anns.append({'num_keypoints': 0,
+                'area': 21985.8665,
+                'iscrowd': 0,
+                'keypoints': keypoints,
+                'image_id': image_id,
+                'bbox': [231.34, 160.47, 152.42, 319.53],
+                'category_id': category_id,
+                'id': image_id})
+        
+        return anns
+
 
     def __getitem__(self, index):
+
         image_id = self.ids[index]
-        ann_ids = self.coco.getAnnIds(imgIds=image_id, catIds=self.category_ids)
-        anns = self.coco.loadAnns(ann_ids)
-
-
-        mask = []
-        if self.ann_inst_file is not None:
-            ann_ids_inst = self.coco_inst.getAnnIds(imgIds=image_id, catIds=self.category_ids)
-            anns_inst = self.coco_inst.loadAnns(ann_ids_inst)
-            
-            for i in anns_inst:
-                mask.append(self.coco_inst.annToMask(i))
-                
-            assert len(anns) == len(mask)
-        
-        
-
-        # print('mask')
-        # print(mask[0].shape)
-        # anns.append(mask)
-        # anns[0]['mask'] = mask
-        # anns.append(dict(mask = mask))
-        anns = copy.deepcopy(anns)
-        mask = copy.deepcopy(mask)
-        # anns_inst = copy.deepcopy(anns_inst)
-
-        # anns.append(np.squeeze(anns_inst)[0])
-        # return anns
-        
 
         image_info = self.coco.loadImgs(image_id)[0]
         LOG.debug(image_info)
@@ -254,6 +276,65 @@ class Coco(torch.utils.data.Dataset):
             _, flickr_file_name = image_info['flickr_url'].rsplit('/', maxsplit=1)
             flickr_id, _ = flickr_file_name.split('_', maxsplit=1)
             meta['flickr_full_page'] = 'http://flickr.com/photo.gne?id={}'.format(flickr_id)
+
+        anns = []
+        mask = []
+        
+
+        if self.config in ['cif', 'cifcent', 'cifcentball', 'cifball']:
+
+            ann_ids = self.coco.getAnnIds(imgIds=image_id)
+            anns = self.coco.loadAnns(ann_ids)
+
+            mask = []
+            if self.ann_inst_file is not None:
+                ann_ids_inst = self.coco_inst.getAnnIds(imgIds=image_id, catIds=[1])
+                anns_inst = self.coco_inst.loadAnns(ann_ids_inst)
+                
+                for i in anns_inst:
+                    mask.append(self.coco_inst.annToMask(i))
+                        
+            if anns == [] and mask != []:
+                anns = self.empty_person_keypoint(mask, image_id)     # add empty keypoints (when we only have instanse segmentation annotation)
+        
+            if self.config == 'cifcent' or self.config == 'cifcentball':   # add center when cifcent is called
+                anns = self.add_center(image, anns, mask)
+                if self.config == 'cifcentball':
+                    anns = self.add_center(image, anns, mask, visiblity=0)      ## add fake ball keypoint
+
+            assert len(anns) == len(mask)
+
+        if self.config in ['cifcentball', 'cifball', 'ball']:
+            ann_ids_inst = self.coco_inst.getAnnIds(imgIds=image_id, catIds=[37])
+            anns_inst = self.coco_inst.loadAnns(ann_ids_inst)
+            mask_ball = []
+            for i in anns_inst:
+                    mask_ball.append(self.coco_inst.annToMask(i))
+            if self.config in ['cifcentball', 'cifball']:
+                anns_ball = self.empty_person_keypoint(mask_ball, image_id)     # add empty keypoints (when we only have instanse segmentation annotation)
+
+                if self.config == 'cifcentball':
+                    anns_ball = self.add_center(image, anns_ball, mask_ball, visiblity=0)    # add center (dummy)
+
+            if self.config == 'ball':
+                anns_ball = self.empty_person_keypoint(mask_ball, image_id, n_keypoints=1, category_id=37)
+
+            anns_ball = self.add_center(image, anns_ball, mask_ball) # add ball keypoint
+
+            anns += anns_ball
+
+        # print(len(anns))
+        # print(len(mask))
+        
+
+        anns = copy.deepcopy(anns)
+        mask = copy.deepcopy(mask)
+        # anns_inst = copy.deepcopy(anns_inst)
+
+        # anns.append(np.squeeze(anns_inst)[0])
+        # return anns
+        
+
         
 
         
@@ -286,8 +367,8 @@ class Coco(torch.utils.data.Dataset):
         # print(mask) # a list of masks of people in image
         # print(meta)
 
-        if self.ann_inst_file is not None:
-            anns = self.add_center(image,anns, mask)
+        # if self.ann_inst_file is not None:
+        #     anns = self.add_center(image,anns, mask)
         
         image, anns, mask, meta = self.preprocess(image, anns, mask, meta)
         # print('222')
@@ -345,7 +426,17 @@ class Coco(torch.utils.data.Dataset):
         # print(len(anns[1]))
         # # print(anns[1].shape)
         # print(len(anns[1][0]))
+        # print(anns)
+        # print(meta)
+        # import os
+        
+        
+        # import pickle
+        # if not os.path.isfile('coco.pickle'):
+        #     with open('coco.pickle','wb') as f:
+        #         pickle.dump((image, anns, meta),f)
         return image, anns, meta
 
     def __len__(self):
         return len(self.ids)
+        
