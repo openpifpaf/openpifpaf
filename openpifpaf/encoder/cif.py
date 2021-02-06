@@ -18,7 +18,7 @@ class Cif:
     meta: headmeta.Cif
     rescaler: AnnRescaler = None
     v_threshold: int = 0
-    bmin: float = 1.0  #: in pixels
+    bmin: float = 0.1  #: in pixels
     visualizer: CifVisualizer = None
 
     side_length: ClassVar[int] = 4

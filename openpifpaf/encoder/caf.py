@@ -18,7 +18,7 @@ class Caf:
     meta: headmeta.Caf
     rescaler: AnnRescaler = None
     v_threshold: int = 0
-    bmin: float = 1.0  #: in pixels
+    bmin: float = 0.1  #: in pixels
     visualizer: CafVisualizer = None
     fill_plan: List[Tuple[int, int, int]] = None
 
