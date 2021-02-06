@@ -16,6 +16,7 @@ LOSSES = {
 LOSS_COMPONENTS = {
     components.Bce,
     components.SmoothL1,
+    components.Scale,
 }
 
 

@@ -46,7 +46,7 @@ class CocoKp(openpifpaf.datasets.DataModule):
     rescale_images = 1.0
     upsample_stride = 1
     min_kp_anns = 1
-    bmin = 1.0
+    bmin = 0.1
 
     eval_annotation_filter = True
     eval_long_edge = 641

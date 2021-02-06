@@ -55,8 +55,8 @@ setup(
         'pysparkling',  # for log analysis
         'python-json-logger',
         'scipy',
-        'torch>=1.7',
-        'torchvision>=0.8.1',
+        'torch>=1.7.1',
+        'torchvision>=0.8.2',
         'pillow',
         'dataclasses; python_version<"3.7"',
     ],
