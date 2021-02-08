@@ -106,7 +106,7 @@ using the command line option `--checkpoint checkpointasintableabove`.
 * [physio pose](https://medium.com/@_samkitjain/physio-pose-a-virtual-physiotherapy-assistant-7d1c17db3159): "A virtual physiotherapy assistant".
 * [monstereo](https://github.com/vita-epfl/monstereo): "MonStereo: When Monocular and Stereo Meet at the Tail of 3D Human Localization".
 * [monoloco](https://github.com/vita-epfl/monoloco): "Monocular 3D Pedestrian Localization and Uncertainty Estimation".
-* [openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo): web front-end.
+* [openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo): Web server and frontend. Docker image. Kubernetes config.
 * [GitHub dependency graph](https://github.com/vita-epfl/openpifpaf/network/dependents): auto-detected Github repositories that use OpenPifPaf.
 
 Open an issue to suggest more projects.
