@@ -11,7 +11,7 @@ class Base:
     def inverse_transform(self, meta):
         raise NotImplementedError
 
-    def json_data(self):
+    def json_data(self, coordinate_digits=2):
         raise NotImplementedError
 
 
@@ -221,12 +221,12 @@ class AnnotationDet(Base):
     def category(self):
         return self.categories[self.category_id - 1]
 
-    def json_data(self):
+    def json_data(self, coordinate_digits=2):
         return {
             'category_id': self.category_id,
             'category': self.category,
             'score': max(0.001, round(float(self.score), 3)),
-            'bbox': [round(float(c), 2) for c in self.bbox],
+            'bbox': [round(float(c), coordinate_digits) for c in self.bbox],
         }
 
     def inverse_transform(self, meta):
@@ -265,11 +265,11 @@ class AnnotationCrowd(Base):
     def category(self):
         return self.categories[self.category_id - 1]
 
-    def json_data(self):
+    def json_data(self, coordinate_digits=2):
         return {
             'category_id': self.category_id,
             'category': self.category,
-            'bbox': [round(float(c), 2) for c in self.bbox],
+            'bbox': [round(float(c), coordinate_digits) for c in self.bbox],
         }
 
     def inverse_transform(self, meta):
