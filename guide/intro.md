@@ -1,7 +1,11 @@
 (introduction)=
 # Introduction
 
-Continuously tested on Linux, MacOS and Windows: ![Tests](https://github.com/vita-epfl/openpifpaf/workflows/Tests/badge.svg?branch=dev)<br />
+Continuously tested on Linux, MacOS and Windows:
+[![Tests](https://github.com/vita-epfl/openpifpaf/workflows/Tests/badge.svg?branch=dev)](https://github.com/vita-epfl/openpifpaf/actions?query=workflow%3ATests)
+[![deploy-guide](https://github.com/vita-epfl/openpifpaf/workflows/deploy-guide/badge.svg)](https://github.com/vita-epfl/openpifpaf/actions?query=workflow%3Adeploy-guide)
+[![Downloads](https://pepy.tech/badge/openpifpaf)](https://pepy.tech/project/openpifpaf)
+<br />
 [CVPR 2019 paper](http://openaccess.thecvf.com/content_CVPR_2019/html/Kreiss_PifPaf_Composite_Fields_for_Human_Pose_Estimation_CVPR_2019_paper.html)
 <!-- [arxiv.org/abs/1903.06593](https://arxiv.org/abs/1903.06593) -->
 
