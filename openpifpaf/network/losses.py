@@ -4,7 +4,7 @@ import logging
 import torch
 
 from . import heads
-# from . import RegularCE, OhemCE, DeepLabCE, L1Loss, MSELoss, CrossEntropyLoss
+
 
 from torch.autograd import Variable
 import torch.nn.functional as F
@@ -1006,25 +1006,25 @@ def factory(head_nets, lambdas, *,
     return loss
 
 
-# ### panoptic deeplab loss build
-# def build_loss_from_cfg(pan_loss):
-#     """Builds loss function with specific configuration.
-#     Args:
-#         pan_loss: the configuration.
+### panoptic deeplab loss build
+def build_loss_from_cfg(pan_loss):
+    """Builds loss function with specific configuration.
+    Args:
+        pan_loss: the configuration.
 
-#     Returns:
-#         A nn.Module loss.
-#     """
-#     if pan_loss == 'cross_entropy':
-#         # return CrossEntropyLoss(ignore_index=config.IGNORE, reduction='mean')
-#         return RegularCE(ignore_label=config.IGNORE)
-#     elif pan_loss == 'ohem':
-#         return OhemCE(ignore_label=config.IGNORE, threshold=config.THRESHOLD, min_kept=config.MIN_KEPT)
-#     elif pan_loss == 'hard_pixel_mining':
-#         return DeepLabCE(ignore_label=config.IGNORE, top_k_percent_pixels=config.TOP_K_PERCENT)
-#     elif pan_loss == 'mse':
-#         return MSELoss(reduction=config.REDUCTION)
-#     elif pan_loss == 'l1':
-#         return L1Loss(reduction=config.REDUCTION)
-#     else:
-#         raise ValueError('Unknown loss type: {}'.format(pan_loss))
+    Returns:
+        A nn.Module loss.
+    """
+    if pan_loss == 'cross_entropy':
+        # return CrossEntropyLoss(ignore_index=config.IGNORE, reduction='mean')
+        return RegularCE(ignore_label=config.IGNORE)
+    elif pan_loss == 'ohem':
+        return OhemCE(ignore_label=config.IGNORE, threshold=config.THRESHOLD, min_kept=config.MIN_KEPT)
+    elif pan_loss == 'hard_pixel_mining':
+        return DeepLabCE(ignore_label=config.IGNORE, top_k_percent_pixels=config.TOP_K_PERCENT)
+    elif pan_loss == 'mse':
+        return MSELoss(reduction=config.REDUCTION)
+    elif pan_loss == 'l1':
+        return L1Loss(reduction=config.REDUCTION)
+    else:
+        raise ValueError('Unknown loss type: {}'.format(pan_loss))

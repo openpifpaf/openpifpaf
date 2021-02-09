@@ -5,6 +5,7 @@ from .caf import Caf
 from .cif import Cif
 from .cifdet import CifDet
 from .seg import Seg
+from .pan import Pan
 from .. import network, visualizer
 
 LOG = logging.getLogger(__name__)
@@ -78,6 +79,9 @@ def factory_head(head_net: network.heads.CompositeField, basenet_stride):
                    sparse_skeleton=meta.sparse_skeleton,
                    only_in_field_of_view=meta.only_in_field_of_view,
                    visualizer=vis)
+
+    if isinstance(met, network.heads.PanopticDeeplabMeta):
+        return Pan()
 
     ### AMA
     if isinstance(meta, network.heads.SegmentationMeta):
