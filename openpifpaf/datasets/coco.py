@@ -237,7 +237,7 @@ class Coco(torch.utils.data.Dataset):
 
         return anns
 
-    def empty_person_keypoint(self, mask, image_id, n_keypoints=17, category_id=1):
+    def empty_person_keypoint(mask, image_id, n_keypoints=17, category_id=1):
         
         anns = []
         keypoints = []
@@ -279,53 +279,57 @@ class Coco(torch.utils.data.Dataset):
 
         anns = []
         mask = []
-        
 
-        if self.config in ['cif', 'cifcent', 'cifcentball', 'cifball']:
+        ann_ids = self.coco.getAnnIds(imgIds=image_id)
+        anns = self.coco.loadAnns(ann_ids)
 
-            ann_ids = self.coco.getAnnIds(imgIds=image_id)
-            anns = self.coco.loadAnns(ann_ids)
+        # mask = []
 
-            mask = []
-            if self.ann_inst_file is not None:
-                ann_ids_inst = self.coco_inst.getAnnIds(imgIds=image_id, catIds=[1])
-                anns_inst = self.coco_inst.loadAnns(ann_ids_inst)
-                
-                for i in anns_inst:
-                    mask.append(self.coco_inst.annToMask(i))
-                        
-            if anns == [] and mask != []:
-                anns = self.empty_person_keypoint(mask, image_id)     # add empty keypoints (when we only have instanse segmentation annotation)
-        
-            if self.config == 'cifcent' or self.config == 'cifcentball':   # add center when cifcent is called
-                anns = self.add_center(image, anns, mask)
-                if self.config == 'cifcentball':
-                    anns = self.add_center(image, anns, mask, visiblity=0)      ## add fake ball keypoint
-
-            assert len(anns) == len(mask)
-
-        if self.config in ['cifcentball', 'cifball', 'ball']:
-            ann_ids_inst = self.coco_inst.getAnnIds(imgIds=image_id, catIds=[37])
+        if self.ann_inst_file is not None:
+            ann_ids_inst = self.coco_inst.getAnnIds(imgIds=image_id, catIds=[1])
             anns_inst = self.coco_inst.loadAnns(ann_ids_inst)
-            mask_ball = []
+            
             for i in anns_inst:
-                    mask_ball.append(self.coco_inst.annToMask(i))
-            if self.config in ['cifcentball', 'cifball']:
-                anns_ball = self.empty_person_keypoint(mask_ball, image_id)     # add empty keypoints (when we only have instanse segmentation annotation)
+                mask.append(self.coco_inst.annToMask(i))
 
-                if self.config == 'cifcentball':
-                    anns_ball = self.add_center(image, anns_ball, mask_ball, visiblity=0)    # add center (dummy)
+        # if self.config == 'cif':
+        #     pass
 
-            if self.config == 'ball':
-                anns_ball = self.empty_person_keypoint(mask_ball, image_id, n_keypoints=1, category_id=37)
+        # elif self.config == 'cifcent':
+        #     anns = self.add_center(image, anns, mask)
 
-            anns_ball = self.add_center(image, anns_ball, mask_ball) # add ball keypoint
+        # elif self.config == 'cifball':
+        #     # anns = self.add_center(image, anns, mask, visiblity=0)        # add fake ball keypoint
+        #     mask_ball = []
+        #     ann_ids_inst = self.coco_inst.getAnnIds(imgIds=image_id, catIds=[37])
+        #     anns_inst = self.coco_inst.loadAnns(ann_ids_inst)
+        #     for i in anns_inst:
+        #         mask_ball.append(self.coco_inst.annToMask(i))
 
-            anns += anns_ball
+        #     anns_ball = self.empty_person_keypoint(mask_ball, image_id)     # add fake people
+        #     anns_ball = self.add_center(image, anns_ball, mask_ball)        # add ball keypoint
+        #     anns += anns_ball
 
+        # elif self.config == 'cifcentball':
+        #     anns = self.add_center(image, anns, mask)
+        #     anns = self.add_center(image, anns, mask, visiblity=0)        # add fake ball keypoint
+        #     mask_ball = []
+        #     ann_ids_inst = self.coco_inst.getAnnIds(imgIds=image_id, catIds=[37])
+        #     anns_inst = self.coco_inst.loadAnns(ann_ids_inst)
+        #     for i in anns_inst:
+        #         mask_ball.append(self.coco_inst.annToMask(i))
+
+        #     anns_ball = self.empty_person_keypoint(mask_ball, image_id)     # add fake people
+        #     anns_ball = self.add_center(image, anns_ball, mask_ball)        # add ball keypoint
+        #     anns += anns_ball
+
+        # else:
+        #     raise NotImplementedError
+
+        
         # print(len(anns))
         # print(len(mask))
-        
+        # anns = self.empty_person_keypoint(mask, image_id)
 
         anns = copy.deepcopy(anns)
         mask = copy.deepcopy(mask)

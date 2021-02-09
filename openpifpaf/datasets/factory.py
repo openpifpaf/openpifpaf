@@ -141,6 +141,7 @@ def train_cocodet_preprocess_factory(
 def train_cocokpinst_preprocess_factory(
         *,
         square_edge,
+        args,
         augmentation=False,
         extended_scale=False,
         orientation_invariant=0.0,
@@ -166,11 +167,20 @@ def train_cocokpinst_preprocess_factory(
     orientation_t = None
     if orientation_invariant:
         orientation_t = transforms.RandomApply(transforms.RotateBy90(), orientation_invariant)
+
+
+    coco_keypoints_ = COCO_KEYPOINTS[:-2]
+    if 'cifball' in args.headnets:
+        coco_keypoints_ = COCO_KEYPOINTS[:-2] + [COCO_KEYPOINTS[-1]]
+    elif 'cifcentball' in args.headnets:
+        coco_keypoints_ = COCO_KEYPOINTS
+    elif 'cifcent' in args.headnets:
+        coco_keypoints_ = COCO_KEYPOINTS[:-1]
         
     return transforms.Compose([
         transforms.NormalizeAnnotations(),
         transforms.AnnotationJitter(),
-        transforms.RandomApply(transforms.HFlip(COCO_KEYPOINTS, HFLIP), 0.5),
+        transforms.RandomApply(transforms.HFlip(coco_keypoints_, HFLIP), 0.5),
         rescale_t,
         transforms.Crop(square_edge, use_area_of_interest=True),
         transforms.CenterPad(square_edge),
@@ -288,7 +298,8 @@ def train_cocokpinst_factory(args, target_transforms):
         augmentation=args.augmentation,
         extended_scale=args.extended_scale,
         orientation_invariant=args.orientation_invariant,
-        rescale_images=args.rescale_images)
+        rescale_images=args.rescale_images,
+        args=args)
 
     if args.loader_workers is None:
         args.loader_workers = args.batch_size
