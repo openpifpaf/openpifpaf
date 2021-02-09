@@ -322,6 +322,9 @@ class SegmentationMeta:
 
 
 class PanopticDeeplabHead(torch.nn.Module):
+    # TODO: Check configuration (dilation rates for os 16?)
+    # TODO: What is the stride function of other heads?
+
     def __init__(self, meta:PanopticDeeplabMeta, in_channels):
         super().__init__()
         self.meta = meta
@@ -333,14 +336,26 @@ class PanopticDeeplabHead(torch.nn.Module):
         self.head = panoptic_deeplab.SinglePanopticDeepLabHead(
             meta.decoder_channels, meta.decoder_channels, meta.num_classes, meta.class_key)
 
+    def _upsample_predictions(self, pred, input_shape):
+        # Override upsample method to correctly handle `offset`
+        result = {}
+        for key in pred.keys():
+            out = torch.nn.functional.interpolate(pred[key], size=input_shape, mode='bilinear', align_corners=True)
+            if 'offset' in key:
+                scale = (input_shape[0] - 1) // (pred[key].shape[2] - 1)
+                out *= scale
+            result[key] = out
+        return result
+
     def forward(self, x):
         # Use intermediate outputs as well
         features = x.all_outputs
 
-        instance = self.decoder(features)
-        instance = self.head(instance)
+        x = self.decoder(features)
+        x = self.head(x)
+        x = self._upsample_predictions(x, features['input'].shape[-2:])
 
-        return instance
+        return x
 
 
 class CompositeField(torch.nn.Module):
@@ -469,7 +484,7 @@ class CompositeFieldFused(torch.nn.Module):
             meta.n_scales * meta.n_fields,
         ]
         self.out_features = []  # the cumulative of the feature_groups above
-        
+
         for fg in feature_groups:
             self.out_features.append(
                 (self.out_features[-1] if self.out_features else 0) + fg)
