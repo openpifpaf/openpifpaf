@@ -133,7 +133,7 @@ Reference: {cite}`kreiss2019pifpaf`
 
 
 
-```{bibliography} references.bib
+```{bibliography}
 ```
 
 

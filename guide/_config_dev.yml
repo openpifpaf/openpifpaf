@@ -29,3 +29,6 @@ sphinx:
 
 execute:
   timeout: 600
+
+bibtex_bibfiles:
+  - references.bib
