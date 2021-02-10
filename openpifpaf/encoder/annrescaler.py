@@ -8,23 +8,28 @@ LOG = logging.getLogger(__name__)
 class AnnRescaler():
     suppress_selfhidden = True
 
-    def __init__(self, stride, pose):
+    def __init__(self, stride, pose=None):
         self.stride = stride
         self.pose = pose
-        self.pose_total_area = (
-            (np.max(self.pose[:, 0]) - np.min(self.pose[:, 0]))
-            * (np.max(self.pose[:, 1]) - np.min(self.pose[:, 1]))
-        )
 
-        # rotate the davinci pose by 45 degrees
-        c, s = np.cos(np.deg2rad(45)), np.sin(np.deg2rad(45))
-        rotate = np.array(((c, -s), (s, c)))
-        self.pose_45 = np.copy(pose)
-        self.pose_45[:, :2] = np.einsum('ij,kj->ki', rotate, self.pose_45[:, :2])
-        self.pose_45_total_area = (
-            (np.max(self.pose_45[:, 0]) - np.min(self.pose_45[:, 0]))
-            * (np.max(self.pose_45[:, 1]) - np.min(self.pose_45[:, 1]))
-        )
+        self.pose_total_area = None
+        self.pose_45 = None
+        self.pose_45_total_area = None
+        if pose is not None:
+            self.pose_total_area = (
+                (np.max(self.pose[:, 0]) - np.min(self.pose[:, 0]))
+                * (np.max(self.pose[:, 1]) - np.min(self.pose[:, 1]))
+            )
+
+            # rotate the davinci pose by 45 degrees
+            c, s = np.cos(np.deg2rad(45)), np.sin(np.deg2rad(45))
+            rotate = np.array(((c, -s), (s, c)))
+            self.pose_45 = np.copy(self.pose)
+            self.pose_45[:, :2] = np.einsum('ij,kj->ki', rotate, self.pose_45[:, :2])
+            self.pose_45_total_area = (
+                (np.max(self.pose_45[:, 0]) - np.min(self.pose_45[:, 0]))
+                * (np.max(self.pose_45[:, 1]) - np.min(self.pose_45[:, 1]))
+            )
 
     def valid_area(self, meta):
         if 'valid_area' not in meta:
@@ -112,21 +117,24 @@ class AnnRescaler():
             (np.max(keypoints[visible, 0]) - np.min(keypoints[visible, 0]))
             * (np.max(keypoints[visible, 1]) - np.min(keypoints[visible, 1]))
         )
-        area_ref = (
-            (np.max(self.pose[visible, 0]) - np.min(self.pose[visible, 0]))
-            * (np.max(self.pose[visible, 1]) - np.min(self.pose[visible, 1]))
-        )
-        area_ref_45 = (
-            (np.max(self.pose_45[visible, 0]) - np.min(self.pose_45[visible, 0]))
-            * (np.max(self.pose_45[visible, 1]) - np.min(self.pose_45[visible, 1]))
-        )
+        factor = 1.0
 
-        factor = np.sqrt(min(
-            self.pose_total_area / area_ref if area_ref > 0.1 else np.inf,
-            self.pose_45_total_area / area_ref_45 if area_ref_45 > 0.1 else np.inf,
-        ))
-        if np.isinf(factor):
-            return np.nan
+        if self.pose is not None:
+            area_ref = (
+                (np.max(self.pose[visible, 0]) - np.min(self.pose[visible, 0]))
+                * (np.max(self.pose[visible, 1]) - np.min(self.pose[visible, 1]))
+            )
+            area_ref_45 = (
+                (np.max(self.pose_45[visible, 0]) - np.min(self.pose_45[visible, 0]))
+                * (np.max(self.pose_45[visible, 1]) - np.min(self.pose_45[visible, 1]))
+            )
+
+            factor = np.sqrt(min(
+                self.pose_total_area / area_ref if area_ref > 0.1 else np.inf,
+                self.pose_45_total_area / area_ref_45 if area_ref_45 > 0.1 else np.inf,
+            ))
+            if np.isinf(factor):
+                return np.nan
 
         factor_clipped = min(5.0, factor)
         scale = np.sqrt(area) * factor_clipped

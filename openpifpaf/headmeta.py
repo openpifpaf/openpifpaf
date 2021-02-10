@@ -32,7 +32,7 @@ class Base:
 class Cif(Base):
     keypoints: List[str]
     sigmas: List[float]
-    pose: Any
+    pose: Any = None
     draw_skeleton: List[Tuple[int, int]] = None
     score_weights: List[float] = None
 
@@ -53,8 +53,8 @@ class Cif(Base):
 class Caf(Base):
     keypoints: List[str]
     sigmas: List[float]
-    pose: Any
     skeleton: List[Tuple[int, int]]
+    pose: Any = None
     sparse_skeleton: List[Tuple[int, int]] = None
     dense_to_sparse_radius: float = 2.0
     only_in_field_of_view: bool = False
