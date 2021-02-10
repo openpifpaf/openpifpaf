@@ -50,7 +50,7 @@ def cli():
                         version='OpenPifPaf {version}'.format(version=__version__))
 
     logger.cli(parser)
-    network.cli(parser)
+    network.Factory.cli(parser)
     network.losses.cli(parser)
     network.Trainer.cli(parser)
     encoder.cli(parser)
@@ -83,7 +83,7 @@ def cli():
     if args.log_stats:
         logging.getLogger('openpifpaf.stats').setLevel(logging.DEBUG)
 
-    network.configure(args)
+    network.Factory.configure(args)
     network.losses.configure(args)
     network.Trainer.configure(args)
     encoder.configure(args)
@@ -99,7 +99,7 @@ def main():
 
     datamodule = datasets.factory(args.dataset)
 
-    net_cpu, start_epoch = network.factory_from_args(args, head_metas=datamodule.head_metas)
+    net_cpu, start_epoch = network.Factory().factory(head_metas=datamodule.head_metas)
     net = net_cpu.to(device=args.device)
     if not args.disable_cuda and torch.cuda.device_count() > 1:
         print('Using multiple GPUs: {}'.format(torch.cuda.device_count()))

@@ -60,7 +60,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     parser.add_argument('--version', action='version',
                         version='OpenPifPaf {version}'.format(version=__version__))
 
-    network.cli(parser)
+    network.Factory.cli(parser)
     decoder.cli(parser)
     logger.cli(parser)
     show.cli(parser)
@@ -101,7 +101,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     LOG.debug('neural network device: %s', args.device)
 
     decoder.configure(args)
-    network.configure(args)
+    network.Factory.configure(args)
     show.configure(args)
     visualizer.configure(args)
 
@@ -125,7 +125,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
 
 
 def processor_factory(args):
-    model, _ = network.factory_from_args(args)
+    model, _ = network.Factory().factory()
     model = model.to(args.device)
 
     head_metas = [hn.meta for hn in model.head_nets]

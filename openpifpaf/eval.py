@@ -62,7 +62,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     datasets.cli(parser)
     decoder.cli(parser)
     logger.cli(parser)
-    network.cli(parser)
+    network.Factory.cli(parser)
     show.cli(parser)
     visualizer.cli(parser)
 
@@ -94,7 +94,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
 
     datasets.configure(args)
     decoder.configure(args)
-    network.configure(args)
+    network.Factory.configure(args)
     show.configure(args)
     visualizer.configure(args)
 
@@ -128,7 +128,7 @@ def evaluate(args):
         print('{} not found. Processing: {}'.format(stats_file, args.checkpoint))
 
     datamodule = datasets.factory(args.dataset)
-    model_cpu, _ = network.factory_from_args(args, head_metas=datamodule.head_metas)
+    model_cpu, _ = network.Factory().factory(head_metas=datamodule.head_metas)
     model = model_cpu.to(args.device)
     if not args.disable_cuda and torch.cuda.device_count() > 1:
         LOG.info('Using multiple GPUs: %d', torch.cuda.device_count())

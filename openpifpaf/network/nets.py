@@ -56,67 +56,6 @@ class CrossTalk(torch.nn.Module):
         return image_batch
 
 
-class Shell2Scale(torch.nn.Module):
-    def __init__(self, base_net, head_nets, *, reduced_stride=3):
-        super().__init__()
-
-        self.base_net = base_net
-        self.head_nets = torch.nn.ModuleList(head_nets)
-        self.reduced_stride = reduced_stride
-
-    @staticmethod
-    def merge_heads(original_h, reduced_h,
-                    logb_component_indices,
-                    stride):
-        mask = reduced_h[0] > original_h[0][:, :,
-                                            :stride * reduced_h[0].shape[2]:stride,
-                                            :stride * reduced_h[0].shape[3]:stride]
-        mask_vector = torch.stack((mask, mask), dim=2)
-
-        for ci, (original_c, reduced_c) in enumerate(zip(original_h, reduced_h)):
-            if ci == 0:
-                # confidence component
-                reduced_c = reduced_c * 0.5
-            elif ci in logb_component_indices:
-                # log(b) components
-                reduced_c = torch.log(torch.exp(reduced_c) * stride)
-            else:
-                # vectorial and scale components
-                reduced_c = reduced_c * stride
-
-            if len(original_c.shape) == 4:
-                original_c[:, :,
-                           :stride * reduced_c.shape[2]:stride,
-                           :stride * reduced_c.shape[3]:stride][mask] = \
-                    reduced_c[mask]
-            elif len(original_c.shape) == 5:
-                original_c[:, :, :,
-                           :stride * reduced_c.shape[3]:stride,
-                           :stride * reduced_c.shape[4]:stride][mask_vector] = \
-                    reduced_c[mask_vector]
-            else:
-                raise Exception('cannot process component with shape {}'
-                                ''.format(original_c.shape))
-
-    def forward(self, *args):
-        original_input = args[0]
-        original_x = self.base_net(original_input)
-        original_heads = [hn(original_x) for hn in self.head_nets]
-
-        reduced_input = original_input[:, :, ::self.reduced_stride, ::self.reduced_stride]
-        reduced_x = self.base_net(reduced_input)
-        reduced_heads = [hn(reduced_x) for hn in self.head_nets]
-
-        logb_component_indices = [(2,), (3, 4)]
-
-        for original_h, reduced_h, lci in zip(original_heads,
-                                              reduced_heads,
-                                              logb_component_indices):
-            self.merge_heads(original_h, reduced_h, lci, self.reduced_stride)
-
-        return original_heads
-
-
 # pylint: disable=protected-access
 def model_migration(net_cpu):
     model_defaults(net_cpu)

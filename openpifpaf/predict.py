@@ -29,7 +29,7 @@ def cli():
 
     decoder.cli(parser)
     logger.cli(parser)
-    network.cli(parser)
+    network.Factory.cli(parser)
     show.cli(parser)
     visualizer.cli(parser)
 
@@ -64,7 +64,7 @@ def cli():
     LOG.debug('neural network device: %s', args.device)
 
     decoder.configure(args)
-    network.configure(args)
+    network.Factory.configure(args)
     show.configure(args)
     visualizer.configure(args)
 
@@ -82,7 +82,7 @@ def cli():
 
 def processor_factory(args):
     # load model
-    model_cpu, _ = network.factory_from_args(args)
+    model_cpu, _ = network.Factory().factory()
     model = model_cpu.to(args.device)
     if not args.disable_cuda and torch.cuda.device_count() > 1:
         LOG.info('Using multiple GPUs: %d', torch.cuda.device_count())
