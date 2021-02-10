@@ -108,11 +108,16 @@ class Factory:
     download_progress = True
     head_consolidation = 'filter_and_extend'
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         if self.base_name is not None:
             assert self.checkpoint is None
         if self.checkpoint is not None:
             assert self.base_name is None
+
+        # use kwargs to set instance attributes to overwrite class attributes
+        for key, value in kwargs.items():
+            assert hasattr(self, key)
+            setattr(self, key, value)
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
@@ -214,6 +219,7 @@ class Factory:
             raise Exception('head strategy {} unknown'.format(self.head_consolidation))
 
     def from_checkpoint(self) -> Tuple[nets.Shell, int]:
+        checkpoint = self.checkpoint
         if not checkpoint:
             checkpoint = 'shufflenetv2k16'
 

@@ -9,10 +9,8 @@ def test_forward():
     openpifpaf.plugins.coco.CocoKp.upsample_stride = 1
     datamodule = openpifpaf.datasets.factory('cocokp')
     openpifpaf.network.basenetworks.Resnet.pretrained = False
-    model, _ = openpifpaf.network.factory(
-        base_name='resnet18',
-        head_metas=datamodule.head_metas,
-    )
+    model, _ = openpifpaf.network.Factory(base_name='resnet18').factory(
+        head_metas=datamodule.head_metas)
 
     dummy_image_batch = torch.zeros((1, 3, 241, 321))
     cif, caf = model(dummy_image_batch)
@@ -25,10 +23,8 @@ def test_forward_upsample():
     openpifpaf.plugins.coco.CocoKp.upsample_stride = 2
     datamodule = openpifpaf.datasets.factory('cocokp')
     openpifpaf.network.basenetworks.Resnet.pretrained = False
-    model, _ = openpifpaf.network.factory(
-        base_name='resnet18',
-        head_metas=datamodule.head_metas,
-    )
+    model, _ = openpifpaf.network.Factory(base_name='resnet18').factory(
+        head_metas=datamodule.head_metas)
 
     dummy_image_batch = torch.zeros((1, 3, 241, 321))
     cif, caf = model(dummy_image_batch)
@@ -41,10 +37,8 @@ def test_forward_noinplace():
     openpifpaf.plugins.coco.CocoKp.upsample_stride = 2
     datamodule = openpifpaf.datasets.factory('cocokp')
     openpifpaf.network.basenetworks.Resnet.pretrained = False
-    model, _ = openpifpaf.network.factory(
-        base_name='resnet18',
-        head_metas=datamodule.head_metas,
-    )
+    model, _ = openpifpaf.network.Factory(base_name='resnet18').factory(
+        head_metas=datamodule.head_metas)
 
     dummy_image_batch = torch.zeros((1, 3, 241, 321))
 
