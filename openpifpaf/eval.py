@@ -36,9 +36,6 @@ def default_output_name(args):
         if args.dense_connections != 1.0:
             output += '{}'.format(args.dense_connections)
 
-    if args.two_scale:
-        output += '-twoscale'
-
     return output
 
 
