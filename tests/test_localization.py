@@ -13,8 +13,7 @@ def localize(x):
     im = black.clone()
     im[:, 0, x] = 1000.0
 
-    model, _ = openpifpaf.network.factory(
-        base_name='resnet18',
+    model, _ = openpifpaf.network.Factory(base_name='resnet18').factory(
         head_metas=datamodule.head_metas)
     model.eval()
 
