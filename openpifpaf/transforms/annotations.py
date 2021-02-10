@@ -11,8 +11,8 @@ LOG = logging.getLogger(__name__)
 
 
 class NormalizeAnnotations(Preprocess):
-    @staticmethod
-    def normalize_annotations(anns):
+    @classmethod
+    def normalize_annotations(cls, anns):
         anns = copy.deepcopy(anns)
 
         for ann in anns:
@@ -26,6 +26,8 @@ class NormalizeAnnotations(Preprocess):
                 ann['iscrowd'] = False
 
             ann['keypoints'] = np.asarray(ann['keypoints'], dtype=np.float32).reshape(-1, 3)
+            if 'bbox' not in ann:
+                ann['bbox'] = cls.bbox_from_keypoints(ann['keypoints'])
             ann['bbox'] = np.asarray(ann['bbox'], dtype=np.float32)
             if 'bbox_original' not in ann:
                 ann['bbox_original'] = np.copy(ann['bbox'])
@@ -33,6 +35,18 @@ class NormalizeAnnotations(Preprocess):
                 del ann['segmentation']
 
         return anns
+
+    @staticmethod
+    def bbox_from_keypoints(keypoints):
+        visible_keypoints = keypoints[keypoints[:, 2] > 0.0]
+        if not visible_keypoints.shape[0]:
+            return [0, 0, 0, 0]
+
+        x1 = np.min(visible_keypoints[:, 0])
+        y1 = np.min(visible_keypoints[:, 1])
+        x2 = np.max(visible_keypoints[:, 0])
+        y2 = np.max(visible_keypoints[:, 1])
+        return [x1, y1, x2 - x2, y2 - y1]
 
     def __call__(self, image, anns, meta):
         anns = self.normalize_annotations(anns)
