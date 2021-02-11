@@ -18,7 +18,7 @@ LOG = logging.getLogger(__name__)
 
 
 def default_output_name(args):
-    output = '{}.eval-{}'.format(args.checkpoint, args.dataset)
+    output = '{}.eval-{}'.format(network.Factory.checkpoint, args.dataset)
 
     # coco
     if args.coco_eval_orientation_invariant or args.coco_eval_extended_scale:
@@ -114,7 +114,7 @@ def evaluate(args):
 
     # skip existing?
     if args.skip_epoch0:
-        if args.checkpoint.endswith('.epoch000'):
+        if network.Factory.checkpoint.endswith('.epoch000'):
             print('Not evaluating epoch 0.')
             return
     if args.skip_existing:
@@ -122,7 +122,7 @@ def evaluate(args):
         if os.path.exists(stats_file):
             print('Output file {} exists already. Exiting.'.format(stats_file))
             return
-        print('{} not found. Processing: {}'.format(stats_file, args.checkpoint))
+        print('{} not found. Processing: {}'.format(stats_file, network.Factory.checkpoint))
 
     datamodule = datasets.factory(args.dataset)
     model_cpu, _ = network.Factory().factory(head_metas=datamodule.head_metas)
@@ -184,7 +184,7 @@ def evaluate(args):
 
     # model stats
     counted_ops = list(count_ops(model_cpu))
-    local_checkpoint = network.local_checkpoint_path(args.checkpoint)
+    local_checkpoint = network.local_checkpoint_path(network.Factory.checkpoint)
     file_size = os.path.getsize(local_checkpoint) if local_checkpoint else -1.0
 
     # write
@@ -194,7 +194,7 @@ def evaluate(args):
             'version': __version__,
             'dataset': args.dataset,
             'total_time': total_time,
-            'checkpoint': args.checkpoint,
+            'checkpoint': network.Factory.checkpoint,
             'count_ops': counted_ops,
             'file_size': file_size,
             'n_images': n_images,
@@ -239,7 +239,7 @@ def watch(args):
         for checkpoint in checkpoints:
             # reset
             args.output = None
-            args.checkpoint = checkpoint
+            network.Factory.checkpoint = checkpoint
 
             evaluate(args)
 
