@@ -11,7 +11,7 @@ LOG = logging.getLogger(__name__)
 
 class CompositeLoss(torch.nn.Module):
     prescale = 1.0
-    regression_loss = components.laplace_loss
+    regression_loss = staticmethod(components.laplace_loss)
 
     def __init__(self, head_net: heads.CompositeField3):
         super().__init__()
@@ -50,11 +50,11 @@ class CompositeLoss(torch.nn.Module):
         if args.regression_loss == 'smoothl1':
             cls.regression_loss = components.SmoothL1()
         elif args.regression_loss == 'l1':
-            cls.regression_loss = components.l1_loss
+            cls.regression_loss = staticmethod(components.l1_loss)
         elif args.regression_loss == 'laplace':
-            cls.regression_loss = components.laplace_loss
+            cls.regression_loss = staticmethod(components.laplace_loss)
         elif args.regression_loss is None:
-            cls.regression_loss = components.laplace_loss
+            cls.regression_loss = staticmethod(components.laplace_loss)
         else:
             raise Exception('unknown regression loss type {}'.format(args.regression_loss))
 
