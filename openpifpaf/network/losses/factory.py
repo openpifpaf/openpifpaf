@@ -1,3 +1,4 @@
+import argparse
 import logging
 
 from ... import headmeta
@@ -20,77 +21,88 @@ LOSS_COMPONENTS = {
 }
 
 
-def cli(parser):
-    group = parser.add_argument_group('losses')
-    group.add_argument('--lambdas', default=None, type=float, nargs='+',
-                       help='prefactor for head losses')
-    group.add_argument('--auto-tune-mtl', default=False, action='store_true',
-                       help=('[experimental] use Kendall\'s prescription for '
-                             'adjusting the multitask weight'))
-    group.add_argument('--auto-tune-mtl-variance', default=False, action='store_true',
-                       help=('[experimental] use Variance prescription for '
-                             'adjusting the multitask weight'))
-    assert MultiHeadLoss.task_sparsity_weight == MultiHeadLossAutoTuneKendall.task_sparsity_weight
-    assert MultiHeadLoss.task_sparsity_weight == MultiHeadLossAutoTuneVariance.task_sparsity_weight
-    group.add_argument('--task-sparsity-weight',
-                       default=MultiHeadLoss.task_sparsity_weight, type=float,
-                       help='[experimental]')
+class Factory:
+    lambdas = None
+    head_lambdas = None
+    auto_tune_mtl = False
+    auto_tune_mtl_variance = False
 
-    for l in set(LOSSES.values()):
-        l.cli(parser)
-    for lc in LOSS_COMPONENTS:
-        lc.cli(parser)
+    @classmethod
+    def cli(cls, parser: argparse.ArgumentParser):
+        group = parser.add_argument_group('losses')
+        group.add_argument('--lambdas', default=cls.lambdas, type=float, nargs='+',
+                           help='prefactor for head losses by component')
+        group.add_argument('--head-lambdas', default=cls.head_lambdas, type=float, nargs='+',
+                           help='prefactor for head losses by head')
+        assert not cls.auto_tune_mtl
+        group.add_argument('--auto-tune-mtl', default=False, action='store_true',
+                           help=('[experimental] use Kendall\'s prescription for '
+                                 'adjusting the multitask weight'))
+        assert not cls.auto_tune_mtl_variance
+        group.add_argument('--auto-tune-mtl-variance', default=False, action='store_true',
+                           help=('[experimental] use Variance prescription for '
+                                 'adjusting the multitask weight'))
+        assert MultiHeadLoss.task_sparsity_weight == \
+            MultiHeadLossAutoTuneKendall.task_sparsity_weight
+        assert MultiHeadLoss.task_sparsity_weight == \
+            MultiHeadLossAutoTuneVariance.task_sparsity_weight
+        group.add_argument('--task-sparsity-weight',
+                           default=MultiHeadLoss.task_sparsity_weight, type=float,
+                           help='[experimental]')
 
+        for l in set(LOSSES.values()):
+            l.cli(parser)
+        for lc in LOSS_COMPONENTS:
+            lc.cli(parser)
 
-def configure(args):
-    # MultiHeadLoss
-    MultiHeadLoss.task_sparsity_weight = args.task_sparsity_weight
-    MultiHeadLossAutoTuneKendall.task_sparsity_weight = args.task_sparsity_weight
-    MultiHeadLossAutoTuneVariance.task_sparsity_weight = args.task_sparsity_weight
+    @classmethod
+    def configure(cls, args: argparse.Namespace):
+        cls.lambdas = args.lambdas
+        cls.head_lambdas = args.head_lambdas
+        cls.auto_tune_mtl = args.auto_tune_mtl
+        cls.auto_tune_mtl_variance = args.auto_tune_mtl_variance
 
-    for l in set(LOSSES.values()):
-        l.configure(args)
-    for lc in LOSS_COMPONENTS:
-        lc.configure(args)
+        # MultiHeadLoss
+        MultiHeadLoss.task_sparsity_weight = args.task_sparsity_weight
+        MultiHeadLossAutoTuneKendall.task_sparsity_weight = args.task_sparsity_weight
+        MultiHeadLossAutoTuneVariance.task_sparsity_weight = args.task_sparsity_weight
 
+        for l in set(LOSSES.values()):
+            l.configure(args)
+        for lc in LOSS_COMPONENTS:
+            lc.configure(args)
 
-def factory_from_args(args, head_nets):
-    return factory(
-        head_nets,
-        args.lambdas,
-        device=args.device,
-        auto_tune_mtl_kendall=args.auto_tune_mtl,
-        auto_tune_mtl_variance=args.auto_tune_mtl_variance,
-    )
+    def factory(self, head_nets):
+        sparse_task_parameters = None
+        if MultiHeadLoss.task_sparsity_weight:
+            sparse_task_parameters = []
+            for head_net in head_nets:
+                if getattr(head_net, 'sparse_task_parameters', None) is not None:
+                    sparse_task_parameters += head_net.sparse_task_parameters
+                elif hasattr(head_net, 'conv'):
+                    sparse_task_parameters.append(head_net.conv.weight)
+                else:
+                    raise Exception('unknown l1 parameters for given head: {} ({})'
+                                    ''.format(head_net.meta.name, type(head_net)))
 
+        losses = [LOSSES[head_net.meta.__class__](head_net)
+                  for head_net in head_nets]
+        lambdas = self.lambdas
+        if lambdas is None and self.head_lambdas is not None:
+            assert len(self.head_lambdas) == len(head_nets)
+            lambdas = [
+                head_lambda
+                for loss, head_lambda in zip(losses, self.head_lambdas)
+                for _ in loss.field_names
+            ]
 
-# pylint: disable=too-many-branches
-def factory(head_nets, lambdas, *,
-            device=None, auto_tune_mtl_kendall=False, auto_tune_mtl_variance=False):
-    sparse_task_parameters = None
-    if MultiHeadLoss.task_sparsity_weight:
-        sparse_task_parameters = []
-        for head_net in head_nets:
-            if getattr(head_net, 'sparse_task_parameters', None) is not None:
-                sparse_task_parameters += head_net.sparse_task_parameters
-            elif hasattr(head_net, 'conv'):
-                sparse_task_parameters.append(head_net.conv.weight)
-            else:
-                raise Exception('unknown l1 parameters for given head: {} ({})'
-                                ''.format(head_net.meta.name, type(head_net)))
+        if self.auto_tune_mtl:
+            loss = MultiHeadLossAutoTuneKendall(
+                losses, lambdas, sparse_task_parameters=sparse_task_parameters)
+        elif self.auto_tune_mtl_variance:
+            loss = MultiHeadLossAutoTuneVariance(
+                losses, lambdas, sparse_task_parameters=sparse_task_parameters)
+        else:
+            loss = MultiHeadLoss(losses, lambdas)
 
-    losses = [LOSSES[head_net.meta.__class__](head_net)
-              for head_net in head_nets]
-    if auto_tune_mtl_kendall:
-        loss = MultiHeadLossAutoTuneKendall(losses, lambdas,
-                                            sparse_task_parameters=sparse_task_parameters)
-    elif auto_tune_mtl_variance:
-        loss = MultiHeadLossAutoTuneVariance(losses, lambdas,
-                                             sparse_task_parameters=sparse_task_parameters)
-    else:
-        loss = MultiHeadLoss(losses, lambdas)
-
-    if device is not None:
-        loss = loss.to(device)
-
-    return loss
+        return loss

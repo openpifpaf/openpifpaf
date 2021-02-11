@@ -51,7 +51,7 @@ def cli():
 
     logger.cli(parser)
     network.Factory.cli(parser)
-    network.losses.cli(parser)
+    network.losses.Factory.cli(parser)
     network.Trainer.cli(parser)
     encoder.cli(parser)
     optimize.cli(parser)
@@ -84,7 +84,7 @@ def cli():
         logging.getLogger('openpifpaf.stats').setLevel(logging.DEBUG)
 
     network.Factory.configure(args)
-    network.losses.configure(args)
+    network.losses.Factory.configure(args)
     network.Trainer.configure(args)
     encoder.configure(args)
     datasets.configure(args)
@@ -105,7 +105,8 @@ def main():
         print('Using multiple GPUs: {}'.format(torch.cuda.device_count()))
         net = torch.nn.DataParallel(net)
 
-    loss = network.losses.factory_from_args(args, net_cpu.head_nets)
+    loss = network.losses.Factory().factory(net_cpu.head_nets)
+    loss = loss.to(device=args.device)
     train_loader = datamodule.train_loader()
     val_loader = datamodule.val_loader()
 
