@@ -12,6 +12,13 @@ import torch.nn.functional as F
 import os.path
 from os import path
 
+from .panoptic_losses import RegularCE, OhemCE, DeepLabCE
+
+from torch import nn
+L1Loss = nn.L1Loss
+MSELoss = nn.MSELoss
+CrossEntropyLoss = nn.CrossEntropyLoss
+
 LOG = logging.getLogger(__name__)
 
 
@@ -185,8 +192,8 @@ class MultiHeadLoss(torch.nn.Module):
         self.lambdas = lambdas
 
         self.field_names = [n for l in self.losses for n in l.field_names]
-        # print('1111111111111111111')
-        # print('multihead loss: %s, %s', self.field_names, self.lambdas)
+        print('1111111111111111111')
+        print('multihead loss: %s, %s', self.field_names, self.lambdas)
         LOG.info('multihead loss: %s, %s', self.field_names, self.lambdas)
 
     def forward(self, head_fields, head_targets):  # pylint: disable=arguments-differ
@@ -201,7 +208,9 @@ class MultiHeadLoss(torch.nn.Module):
         loss_values = [lam * l
                        for lam, l in zip(self.lambdas, flat_head_losses)
                        if l is not None]
+
         total_loss = sum(loss_values) if loss_values else None
+        # total_loss = sum(flat_head_losses) if flat_head_losses else None
 
         return total_loss, flat_head_losses
 
@@ -905,6 +914,51 @@ class SegmantationLoss(torch.nn.Module):
         return loss_out
 
 
+class PanopticLoss(torch.nn.Module):
+    def __init__(self, args):
+        super(PanopticLoss, self).__init__()
+        self.field_names = ['pan.semantic', 'pan.offset']
+        self.semantic_loss = build_loss_from_cfg(args, 'semantic')
+        # self.semantic_loss_weight = self.field_names[0]
+        self.offset_loss = build_loss_from_cfg(args, 'offset')
+        # self.offset_loss_weight = self.field_names[0]
+
+    def forward(self, results, targets):
+        
+        batch_size = results['semantic'].size(0)
+        # loss = 0
+        if 'semantic_weights' in targets.keys():
+            semantic_loss = self.semantic_loss(
+                results['semantic'], targets['semantic'], semantic_weights=targets['semantic_weights']
+            )
+        else:
+            semantic_loss = self.semantic_loss(
+                results['semantic'], targets['semantic'])
+        # self.loss_meter_dict['Semantic loss'].update(semantic_loss.detach().cpu().item(), batch_size)
+        # loss += semantic_loss
+        if self.offset_loss is not None:
+            # Pixel-wise loss weight
+            offset_loss_weights = targets['offset_weights'][:, None, :, :].expand_as(results['offset'])
+            print(results['offset'].shape)
+            print(targets['offset'].shape)
+            offset_loss = self.offset_loss(results['offset'], targets['offset']) * offset_loss_weights
+            # safe division
+            if offset_loss_weights.sum() > 0:
+                offset_loss = offset_loss.sum() / offset_loss_weights.sum()
+            else:
+                offset_loss = offset_loss.sum() * 0
+            # self.loss_meter_dict['Offset loss'].update(offset_loss.detach().cpu().item(), batch_size)
+            # loss += offset_loss
+        # semantic_loss = self.semantic_loss(logits['semantic'], 
+        #                                     labels['semantic'],
+        #                                     weights=labels['semantic_weights'])
+        
+        # offset_loss = self.offset_loss(logits['offset'],
+        #                                     labels['offset'],
+        #                                     weights=labels['offset_weights'])
+
+        return [semantic_loss] + [offset_loss]
+
 def cli(parser):
     group = parser.add_argument_group('losses')
     group.add_argument('--lambdas', default=None, type=float, nargs='+',
@@ -927,6 +981,35 @@ def cli(parser):
                        default=MultiHeadLoss.task_sparsity_weight, type=float,
                        help='[experimental]')
 
+    group.add_argument('--seman-loss-name', default='cross_entropy',
+                       choices=['cross_entropy', 'ohem', 'hard_pixel_mining'],
+                       help='type of panoptic loss')
+    group.add_argument('--seman-loss-ignore', default=-1, type=int,
+                       help='label to ignore')
+    group.add_argument('--seman-loss-threshold', default=0.7, type=float,
+                        help='threshold for softmax score (of gt class), only predictions with softmax score below this threshold will be kept.')
+    group.add_argument('--seman-loss-min-kept', default=100000, type=int,
+                        help='minimum number of pixels to be kept, it is used to adjust the threshold value to avoid number of examples being too small.')
+    group.add_argument('--seman-loss-top-k-percent', default=1.0, type=float,
+                        help='the value lies in [0.0, 1.0]. When its value < 1.0, only compute the loss for the top k percent pixels (e.g., the top 20% pixels). This is useful for hard pixel mining.')
+    # group.add_argument('--seman-loss-reduction', default='none',
+    #                    choices=['none', 'mean', 'sum'],
+    #                    help='L1Loss Reduction')
+
+    group.add_argument('--offset-loss-name', default='mse',
+                       choices=['l1', 'mse'],
+                       help='type of panoptic loss')
+    # group.add_argument('--offset-loss-ignore', default=-1, type=int,
+    #                    help='label to ignore')
+    # group.add_argument('--offset-loss-threshold', default=0.7, type=float,
+    #                     help='threshold for softmax score (of gt class), only predictions with softmax score below this threshold will be kept.')
+    # group.add_argument('--offset-loss-min_kept', default=100000, type=int,
+    #                     help='minimum number of pixels to be kept, it is used to adjust the threshold value to avoid number of examples being too small.')
+    # group.add_argument('--offset-loss-top-k-percent', default=1.0, type=float,
+    #                     help='the value lies in [0.0, 1.0]. When its value < 1.0, only compute the loss for the top k percent pixels (e.g., the top 20% pixels). This is useful for hard pixel mining.')
+    group.add_argument('--offset-loss-reduction', default='none',
+                       choices=['none', 'mean', 'sum'],
+                       help='L1Loss Reduction')
 
 def configure(args):
     # apply for CompositeLoss
@@ -942,6 +1025,7 @@ def configure(args):
     SmoothL1Loss.r_smooth = args.r_smooth
 
 
+
 def factory_from_args(args, head_nets):
     return factory(
         head_nets,
@@ -949,6 +1033,7 @@ def factory_from_args(args, head_nets):
         reg_loss_name=args.regression_loss,
         device=args.device,
         auto_tune_mtl=args.auto_tune_mtl,
+        config=args
     )
 
 
@@ -956,7 +1041,7 @@ def factory_from_args(args, head_nets):
 def factory(head_nets, lambdas, *,
             reg_loss_name=None, device=None,
             auto_tune_mtl=False,
-            pan_loss=None):
+            config=None):
     if isinstance(head_nets[0], (list, tuple)):
         return [factory(hn, lam,
                         reg_loss_name=reg_loss_name,
@@ -992,8 +1077,8 @@ def factory(head_nets, lambdas, *,
     if len(head_nets) > 1 and isinstance(head_nets[1], heads.InstanceSegHead):
         losses.append(SegmantationLoss(head_nets[1],device))
 
-    # if len(head_nets) > 1 and isinstance(head_net[1], heads.PanopticDeeplabHead):
-    #     losses.append(build_loss_from_cfg(pan_loss))
+    if len(head_nets) > 1 and isinstance(head_nets[1], heads.PanopticDeeplabHead):
+        losses.append(PanopticLoss(config))
     if auto_tune_mtl:
         loss = MultiHeadLossAutoTune(losses, lambdas,
                                      sparse_task_parameters=sparse_task_parameters)
@@ -1007,24 +1092,41 @@ def factory(head_nets, lambdas, *,
 
 
 ### panoptic deeplab loss build
-def build_loss_from_cfg(pan_loss):
+def build_loss_from_cfg(config, loss='semantic'):
     """Builds loss function with specific configuration.
     Args:
-        pan_loss: the configuration.
+        config: the configuration.
 
     Returns:
         A nn.Module loss.
     """
-    if pan_loss == 'cross_entropy':
-        # return CrossEntropyLoss(ignore_index=config.IGNORE, reduction='mean')
-        return RegularCE(ignore_label=config.IGNORE)
-    elif pan_loss == 'ohem':
-        return OhemCE(ignore_label=config.IGNORE, threshold=config.THRESHOLD, min_kept=config.MIN_KEPT)
-    elif pan_loss == 'hard_pixel_mining':
-        return DeepLabCE(ignore_label=config.IGNORE, top_k_percent_pixels=config.TOP_K_PERCENT)
-    elif pan_loss == 'mse':
-        return MSELoss(reduction=config.REDUCTION)
-    elif pan_loss == 'l1':
-        return L1Loss(reduction=config.REDUCTION)
-    else:
-        raise ValueError('Unknown loss type: {}'.format(pan_loss))
+    if loss == 'semantic':
+        if config.seman_loss_name == 'cross_entropy':
+            # return CrossEntropyLoss(ignore_index=config.IGNORE, reduction='mean')
+            return RegularCE(ignore_label=config.seman_loss_ignore)
+        elif config.seman_loss_name == 'ohem':
+            return OhemCE(ignore_label=config.seman_loss_ignore, threshold=config.seman_loss_threshold, min_kept=config.seman_loss_min_kept)
+        elif config.seman_loss_name == 'hard_pixel_mining':
+            print('Hard pixel mining chosen!')
+            return DeepLabCE(ignore_label=config.seman_loss_ignore, top_k_percent_pixels=config.seman_loss_top_k_percent)
+        elif config.seman_loss_name == 'mse':
+            return MSELoss(reduction=config.seman_loss_reduction)
+        elif config.seman_loss_name == 'l1':
+            return L1Loss(reduction=config.seman_loss_reduction)
+        else:
+            raise ValueError('Unknown loss type: {}'.format(config.seman_loss_name))
+
+    elif loss == 'offset':
+        if config.offset_loss_name == 'cross_entropy':
+            # return CrossEntropyLoss(ignore_index=config.IGNORE, reduction='mean')
+            return RegularCE(ignore_label=config.offset_loss_ignore)
+        elif config.offset_loss_name == 'ohem':
+            return OhemCE(ignore_label=config.offset_loss_ignore, threshold=config.offset_loss_threshold, min_kept=config.offset_loss_min_kept)
+        elif config.offset_loss_name == 'hard_pixel_mining':
+            return DeepLabCE(ignore_label=config.offset_loss_ignore, top_k_percent_pixels=config.offset_loss_top_k_percent)
+        elif config.offset_loss_name == 'mse':
+            return MSELoss(reduction=config.offset_loss_reduction)
+        elif config.offset_loss_name == 'l1':
+            return L1Loss(reduction=config.offset_loss_reduction)
+        else:
+            raise ValueErr

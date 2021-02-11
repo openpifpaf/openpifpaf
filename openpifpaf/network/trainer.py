@@ -55,7 +55,7 @@ class Trainer(object):
 
         LOG.info({
             'type': 'config',
-            'field_names': self.loss.field_names,
+            # 'field_names': self.loss.field_names,
         })
 
     def lr(self):
@@ -102,17 +102,15 @@ class Trainer(object):
     def train_batch(self, data, targets, apply_gradients=True):  # pylint: disable=method-hidden
         if self.device:
             data = data.to(self.device, non_blocking=True)
-            # print('train batch')
-            # print(len(targets))
-            # print(len(targets[0]))
-            # print(targets[0].shape())
-            # print(len(targets[1]))
-            # print(targets[1].shape())
-            # print(len(targets[0][0]))
-            # print(len(targets[0][0][0]))
-            # print(len(targets[0][0][0][0]))
-            # print(len(targets[1][0]))
-            targets = [[t.to(self.device, non_blocking=True) for t in head] for head in targets]
+            
+            if len(targets)==2 and len(targets[1])==4:          # when panoptic head is operating
+                targets[0] = [t.to(self.device, non_blocking=True) for t in targets[0]]
+                for key, value in targets[1].items():
+                    targets[1][key] = targets[1][key].to(self.device, non_blocking=True)
+
+
+            else:
+                targets = [[t.to(self.device, non_blocking=True) for t in head] for head in targets]
 
         # train encoder
         with torch.autograd.profiler.record_function('model'):

@@ -156,6 +156,7 @@ COCO_PERSON_SIGMAS = [
     0.100,  # ball
 ]
 
+_COCO_PANOPTIC_THING_LIST = [0]  # for now, only consider people, add 37 for ball
 
 COCO_CATEGORIES = [
     'person',

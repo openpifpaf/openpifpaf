@@ -53,6 +53,8 @@ class Coco(torch.utils.data.Dataset):
             self.filter_for_keypoint_annotations()
         elif image_filter == 'kp_inst':
             # print(self.category_ids)
+
+
             if self.category_ids == [1]:
                 self.ids = self.coco.getImgIds(catIds=self.category_ids)
                 # self.ids_inst = self.coco_inst.getImgIds(catIds=self.category_ids)
@@ -246,11 +248,11 @@ class Coco(torch.utils.data.Dataset):
         
         for _ in mask:
             anns.append({'num_keypoints': 0,
-                'area': 21985.8665,
+                'area': 0.,
                 'iscrowd': 0,
                 'keypoints': keypoints,
                 'image_id': image_id,
-                'bbox': [231.34, 160.47, 152.42, 319.53],
+                'bbox': [0., 0., 0., 0.],
                 'category_id': category_id,
                 'id': image_id})
         

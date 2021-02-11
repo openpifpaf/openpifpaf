@@ -7,6 +7,4 @@ from . import losses
 from .panoptic_losses import RegularCE, OhemCE, DeepLabCE
 from torch import nn
 
-L1Loss = nn.L1Loss
-MSELoss = nn.MSELoss
-CrossEntropyLoss = nn.CrossEntropyLoss
+

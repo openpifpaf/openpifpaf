@@ -5,10 +5,11 @@ from .caf import Caf
 from .cif import Cif
 from .cifdet import CifDet
 from .seg import Seg
-from .pan import Pan
+from .pan import PanopticTargetGenerator
 from .. import network, visualizer
-
+from ..datasets.constants import _COCO_PANOPTIC_THING_LIST
 LOG = logging.getLogger(__name__)
+
 
 
 def cli(parser):
@@ -41,6 +42,11 @@ def factory(headnets, basenet_stride):
 
 def factory_head(head_net: network.heads.CompositeField, basenet_stride):
     meta = head_net.meta
+    if isinstance(meta, network.heads.PanopticDeeplabMeta):
+        return PanopticTargetGenerator(_COCO_PANOPTIC_THING_LIST,
+                        sigma=8, ignore_stuff_in_offset=True,
+                        small_instance_area=0,
+                        small_instance_weight=1)
     stride = head_net.stride(basenet_stride)
 
     if isinstance(meta, network.heads.DetectionMeta):
@@ -80,8 +86,7 @@ def factory_head(head_net: network.heads.CompositeField, basenet_stride):
                    only_in_field_of_view=meta.only_in_field_of_view,
                    visualizer=vis)
 
-    if isinstance(met, network.heads.PanopticDeeplabMeta):
-        return Pan()
+    
 
     ### AMA
     if isinstance(meta, network.heads.SegmentationMeta):
