@@ -24,9 +24,6 @@ def cli(parser):
     group = parser.add_argument_group('losses')
     group.add_argument('--lambdas', default=None, type=float, nargs='+',
                        help='prefactor for head losses')
-    group.add_argument('--regression-loss', default='laplace',
-                       choices=['smoothl1', 'smootherl1', 'l1', 'laplace'],
-                       help='type of regression loss')
     group.add_argument('--auto-tune-mtl', default=False, action='store_true',
                        help=('[experimental] use Kendall\'s prescription for '
                              'adjusting the multitask weight'))
@@ -61,7 +58,6 @@ def factory_from_args(args, head_nets):
     return factory(
         head_nets,
         args.lambdas,
-        reg_loss_name=args.regression_loss,
         device=args.device,
         auto_tune_mtl_kendall=args.auto_tune_mtl,
         auto_tune_mtl_variance=args.auto_tune_mtl_variance,
@@ -70,25 +66,7 @@ def factory_from_args(args, head_nets):
 
 # pylint: disable=too-many-branches
 def factory(head_nets, lambdas, *,
-            reg_loss_name=None, device=None,
-            auto_tune_mtl_kendall=False, auto_tune_mtl_variance=False):
-    if isinstance(head_nets[0], (list, tuple)):
-        return [factory(hn, lam,
-                        reg_loss_name=reg_loss_name,
-                        device=device)
-                for hn, lam in zip(head_nets, lambdas)]
-
-    if reg_loss_name == 'smoothl1':
-        reg_loss = components.SmoothL1()
-    elif reg_loss_name == 'l1':
-        reg_loss = components.l1_loss
-    elif reg_loss_name == 'laplace':
-        reg_loss = components.laplace_loss
-    elif reg_loss_name is None:
-        reg_loss = components.laplace_loss
-    else:
-        raise Exception('unknown regression loss type {}'.format(reg_loss_name))
-
+            device=None, auto_tune_mtl_kendall=False, auto_tune_mtl_variance=False):
     sparse_task_parameters = None
     if MultiHeadLoss.task_sparsity_weight:
         sparse_task_parameters = []
@@ -101,7 +79,7 @@ def factory(head_nets, lambdas, *,
                 raise Exception('unknown l1 parameters for given head: {} ({})'
                                 ''.format(head_net.meta.name, type(head_net)))
 
-    losses = [LOSSES[head_net.meta.__class__](head_net, reg_loss)
+    losses = [LOSSES[head_net.meta.__class__](head_net)
               for head_net in head_nets]
     if auto_tune_mtl_kendall:
         loss = MultiHeadLossAutoTuneKendall(losses, lambdas,

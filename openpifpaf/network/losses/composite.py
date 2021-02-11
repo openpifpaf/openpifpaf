@@ -11,8 +11,9 @@ LOG = logging.getLogger(__name__)
 
 class CompositeLoss(torch.nn.Module):
     prescale = 1.0
+    regression_loss = components.laplace_loss
 
-    def __init__(self, head_net: heads.CompositeField3, regression_loss):
+    def __init__(self, head_net: heads.CompositeField3):
         super().__init__()
         self.n_vectors = head_net.meta.n_vectors
         self.n_scales = head_net.meta.n_scales
@@ -21,7 +22,6 @@ class CompositeLoss(torch.nn.Module):
                   head_net.meta.name, self.n_vectors, self.n_scales)
 
         self.confidence_loss = components.Bce()
-        self.regression_loss = regression_loss or components.laplace_loss
         self.scale_losses = torch.nn.ModuleList([
             components.Scale() for _ in range(self.n_scales)])
         self.field_names = (
@@ -39,10 +39,24 @@ class CompositeLoss(torch.nn.Module):
     def cli(cls, parser: argparse.ArgumentParser):
         group = parser.add_argument_group('Composite Loss')
         group.add_argument('--loss-prescale', default=cls.prescale, type=float)
+        group.add_argument('--regression-loss', default='laplace',
+                           choices=['smoothl1', 'l1', 'laplace'],
+                           help='type of regression loss')
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
         cls.prescale = args.loss_prescale
+
+        if args.regression_loss == 'smoothl1':
+            cls.regression_loss = components.SmoothL1()
+        elif args.regression_loss == 'l1':
+            cls.regression_loss = components.l1_loss
+        elif args.regression_loss == 'laplace':
+            cls.regression_loss = components.laplace_loss
+        elif args.regression_loss is None:
+            cls.regression_loss = components.laplace_loss
+        else:
+            raise Exception('unknown regression loss type {}'.format(args.regression_loss))
 
     def _confidence_loss(self, x_confidence, t_confidence):
         # TODO assumes one confidence
