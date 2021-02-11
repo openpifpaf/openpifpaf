@@ -55,6 +55,14 @@ class Bce(torch.nn.Module):
         # x = torch.clamp(x, -20.0, 20.0)
         bce = torch.nn.functional.binary_cross_entropy_with_logits(
             x, t_zeroone, reduction='none')
+
+        # torch.clamp_max_(bce, 10.0)
+        # Backprop rule pre-multiplies by input. Therefore, for a constant
+        # gradient above the max bce threshold, need to divide by the input.
+        # Just like gradient-clipping, but inline:
+        above_max = bce > 5.0
+        bce[above_max] /= bce[above_max].detach() / 5.0
+
         if self.min_bce > 0.0:
             torch.clamp_min_(bce, self.min_bce)
 
