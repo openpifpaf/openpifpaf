@@ -19,6 +19,7 @@ class MultiHeadLoss(torch.nn.Module):
         self.lambdas = lambdas
 
         self.field_names = [n for l in self.losses for n in l.field_names]
+        assert len(self.field_names) == len(self.lambdas)
         LOG.info('multihead loss: %s, %s', self.field_names, self.lambdas)
 
     def forward(self, head_fields, head_targets):  # pylint: disable=arguments-differ
