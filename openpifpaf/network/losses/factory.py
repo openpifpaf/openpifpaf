@@ -23,7 +23,7 @@ LOSS_COMPONENTS = {
 
 class Factory:
     lambdas = None
-    head_lambdas = None
+    component_lambdas = None
     auto_tune_mtl = False
     auto_tune_mtl_variance = False
 
@@ -31,9 +31,10 @@ class Factory:
     def cli(cls, parser: argparse.ArgumentParser):
         group = parser.add_argument_group('losses')
         group.add_argument('--lambdas', default=cls.lambdas, type=float, nargs='+',
-                           help='prefactor for head losses by component')
-        group.add_argument('--head-lambdas', default=cls.head_lambdas, type=float, nargs='+',
                            help='prefactor for head losses by head')
+        group.add_argument('--component-lambdas',
+                           default=cls.component_lambdas, type=float, nargs='+',
+                           help='prefactor for head losses by component')
         assert not cls.auto_tune_mtl
         group.add_argument('--auto-tune-mtl', default=False, action='store_true',
                            help=('[experimental] use Kendall\'s prescription for '
@@ -87,22 +88,22 @@ class Factory:
 
         losses = [LOSSES[head_net.meta.__class__](head_net)
                   for head_net in head_nets]
-        lambdas = self.lambdas
-        if lambdas is None and self.head_lambdas is not None:
-            assert len(self.head_lambdas) == len(head_nets)
-            lambdas = [
+        component_lambdas = self.component_lambdas
+        if component_lambdas is None and self.lambdas is not None:
+            assert len(self.lambdas) == len(head_nets)
+            component_lambdas = [
                 head_lambda
-                for loss, head_lambda in zip(losses, self.head_lambdas)
+                for loss, head_lambda in zip(losses, self.lambdas)
                 for _ in loss.field_names
             ]
 
         if self.auto_tune_mtl:
             loss = MultiHeadLossAutoTuneKendall(
-                losses, lambdas, sparse_task_parameters=sparse_task_parameters)
+                losses, component_lambdas, sparse_task_parameters=sparse_task_parameters)
         elif self.auto_tune_mtl_variance:
             loss = MultiHeadLossAutoTuneVariance(
-                losses, lambdas, sparse_task_parameters=sparse_task_parameters)
+                losses, component_lambdas, sparse_task_parameters=sparse_task_parameters)
         else:
-            loss = MultiHeadLoss(losses, lambdas)
+            loss = MultiHeadLoss(losses, component_lambdas)
 
         return loss
