@@ -59,7 +59,7 @@ class Factory:
     @classmethod
     def configure(cls, args: argparse.Namespace):
         cls.lambdas = args.lambdas
-        cls.head_lambdas = args.head_lambdas
+        cls.component_lambdas = args.component_lambdas
         cls.auto_tune_mtl = args.auto_tune_mtl
         cls.auto_tune_mtl_variance = args.auto_tune_mtl_variance
 
