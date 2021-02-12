@@ -162,64 +162,65 @@ class PanopticTargetGenerator(object):
         offset_weights = np.zeros_like(panoptic, dtype=np.uint8)
         for seg in anns:
             cat_id = seg["category_id"]
-            seman_id = self.catId2semanId(cat_id)
-            if self.ignore_crowd_in_semantic:
-                if not seg['iscrowd']:
-                    semantic[panoptic == cat_id] = seman_id
-            else:
-                semantic[panoptic == cat_id] = seman_id
-            # if cat_id in self.thing_list:
-            #     foreground[panoptic == cat_id] = 1
-            if not seg['iscrowd']:
-                # Ignored regions are not in `segments`.
-                # Handle crowd region.
-                # center_weights[panoptic == seg["id"]] = 1
-                if self.ignore_stuff_in_offset:
-                    # Handle stuff region.
-                    if cat_id in self.thing_list:
-                        offset_weights[panoptic == seg["id"]] = 1
+            if cat_id in self.thing_list:           # decide if consider ball or not
+                seman_id = self.catId2semanId(cat_id)
+                if self.ignore_crowd_in_semantic:
+                    if not seg['iscrowd']:
+                        semantic[panoptic == seg['id']] = seman_id
                 else:
-                    offset_weights[panoptic == seg["id"]] = 1
-            if cat_id in self.thing_list:
-                # find instance center
-                mask_index = np.where(panoptic == seg["id"])
-                if len(mask_index[0]) == 0:
-                    # the instance is completely cropped
-                    continue
+                    semantic[panoptic == seg['id']] = seman_id
+                # if cat_id in self.thing_list:
+                #     foreground[panoptic == cat_id] = 1
+                if not seg['iscrowd']:
+                    # Ignored regions are not in `segments`.
+                    # Handle crowd region.
+                    # center_weights[panoptic == seg["id"]] = 1
+                    if self.ignore_stuff_in_offset:
+                        # Handle stuff region.
+                        if cat_id in self.thing_list:
+                            offset_weights[panoptic == seg["id"]] = 1
+                    else:
+                        offset_weights[panoptic == seg["id"]] = 1
+                if cat_id in self.thing_list:
+                    # find instance center
+                    mask_index = np.where(panoptic == seg["id"])
+                    if len(mask_index[0]) == 0:
+                        # the instance is completely cropped
+                        continue
 
-                # Find instance area
-                ins_area = len(mask_index[0])
-                if ins_area < self.small_instance_area:
-                    semantic_weights[panoptic == seg["id"]] = self.small_instance_weight
+                    # Find instance area
+                    ins_area = len(mask_index[0])
+                    if ins_area < self.small_instance_area:
+                        semantic_weights[panoptic == seg["id"]] = self.small_instance_weight
 
-                center_y, center_x = np.mean(mask_index[0]), np.mean(mask_index[1])
-                center_pts.append([center_y, center_x])
+                    center_y, center_x = np.mean(mask_index[0]), np.mean(mask_index[1])
+                    center_pts.append([center_y, center_x])
 
-                # generate center heatmap
-                y, x = int(center_y), int(center_x)
-                # outside image boundary
-                if x < 0 or y < 0 or \
-                        x >= width or y >= height:
-                    continue
-                sigma = self.sigma
-                # upper left
-                ul = int(np.round(x - 3 * sigma - 1)), int(np.round(y - 3 * sigma - 1))
-                # bottom right
-                br = int(np.round(x + 3 * sigma + 2)), int(np.round(y + 3 * sigma + 2))
+                    # generate center heatmap
+                    y, x = int(center_y), int(center_x)
+                    # outside image boundary
+                    if x < 0 or y < 0 or \
+                            x >= width or y >= height:
+                        continue
+                    sigma = self.sigma
+                    # upper left
+                    ul = int(np.round(x - 3 * sigma - 1)), int(np.round(y - 3 * sigma - 1))
+                    # bottom right
+                    br = int(np.round(x + 3 * sigma + 2)), int(np.round(y + 3 * sigma + 2))
 
-                c, d = max(0, -ul[0]), min(br[0], width) - ul[0]
-                a, b = max(0, -ul[1]), min(br[1], height) - ul[1]
+                    c, d = max(0, -ul[0]), min(br[0], width) - ul[0]
+                    a, b = max(0, -ul[1]), min(br[1], height) - ul[1]
 
-                cc, dd = max(0, ul[0]), min(br[0], width)
-                aa, bb = max(0, ul[1]), min(br[1], height)
-                center[0, aa:bb, cc:dd] = np.maximum(
-                    center[0, aa:bb, cc:dd], self.g[a:b, c:d])
+                    cc, dd = max(0, ul[0]), min(br[0], width)
+                    aa, bb = max(0, ul[1]), min(br[1], height)
+                    center[0, aa:bb, cc:dd] = np.maximum(
+                        center[0, aa:bb, cc:dd], self.g[a:b, c:d])
 
-                # generate offset (2, h, w) -> (y-dir, x-dir)
-                offset_y_index = (np.zeros_like(mask_index[0]), mask_index[0], mask_index[1])
-                offset_x_index = (np.ones_like(mask_index[0]), mask_index[0], mask_index[1])
-                offset[offset_y_index] = center_y - y_coord[mask_index]
-                offset[offset_x_index] = center_x - x_coord[mask_index]
+                    # generate offset (2, h, w) -> (y-dir, x-dir)
+                    offset_y_index = (np.zeros_like(mask_index[0]), mask_index[0], mask_index[1])
+                    offset_x_index = (np.ones_like(mask_index[0]), mask_index[0], mask_index[1])
+                    offset[offset_y_index] = center_y - y_coord[mask_index]
+                    offset[offset_x_index] = center_x - x_coord[mask_index]
 
         # semantic = torch.cat([foreground, semantic])
 

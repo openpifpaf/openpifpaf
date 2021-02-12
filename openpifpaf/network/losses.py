@@ -939,8 +939,8 @@ class PanopticLoss(torch.nn.Module):
         if self.offset_loss is not None:
             # Pixel-wise loss weight
             offset_loss_weights = targets['offset_weights'][:, None, :, :].expand_as(results['offset'])
-            print(results['offset'].shape)
-            print(targets['offset'].shape)
+            # print(results['offset'].shape)
+            # print(targets['offset'].shape)
             offset_loss = self.offset_loss(results['offset'], targets['offset']) * offset_loss_weights
             # safe division
             if offset_loss_weights.sum() > 0:

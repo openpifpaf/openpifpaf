@@ -195,9 +195,7 @@ class Coco(torch.utils.data.Dataset):
         # print(max_w)
         return weights
 
-    def add_center(self, image, anns, mask, visiblity=2):
-        # print(len(anns))
-        # print(len(mask))
+    def add_center(self, anns, mask, visiblity=2, id_ball=None):
         
         for id_m, msk in enumerate(mask):
             meshgrid = np.indices(msk.shape)
@@ -206,47 +204,27 @@ class Coco(torch.utils.data.Dataset):
             center = (meshgrid[0].sum()/msk.sum(),
                     meshgrid[1].sum()/msk.sum())
 
-            # print(len(anns))
             keypoints = anns[id_m]['keypoints']
-            # print('start of process')
-            # print(sum(keypoints))
-            # if sum(keypoints) == 0:
-            #     import pickle
-            #     import os.path
-            #     from os import path
-            #     if path.isfile('keypoints_emp.pickle') is not True:
-            #         print('file saved')
-            #         with open('keypoints_emp.pickle','wb') as f:
-            #             pickle.dump((image,anns,mask), f)
-                # torch.save((image,anns,mask),'keypoints_emp_coco.pt')
-            # print(sum(sum(msk)))
-            anns[id_m]['keypoints'].append(int(center[1]))      # add center for x
-            anns[id_m]['keypoints'].append(int(center[0]))      # add center for y
+            anns[id_m]['keypoints'].append(int(center[1]))      # add center for y
+            anns[id_m]['keypoints'].append(int(center[0]))      # add center for x
             anns[id_m]['keypoints'].append(visiblity)
+            # if id_ball is not None:
+            #     anns[id_m]['id_ball'] = id_ball
 
-            # print(int(center[1]))
-            # print(int(center[0]))
-            # print(2)
-
-            # anns[id_m]['keypoints'].append(int(center[1]))      # add center for x
-            # anns[id_m]['keypoints'].append(int(center[0]))      # add center for y
-            # anns[id_m]['keypoints'].append(2)
-            # keypoints = anns[id_m]['keypoints']
-            # if anns[id_m]['keypoints']
-            # print(type(keypoints))
-            # print(keypoints)
             
 
         return anns
 
-    def empty_person_keypoint(mask, image_id, n_keypoints=17, category_id=1):
+    def empty_person_keypoint(anns_inst, n_keypoints=17, category_id=37):
         
         anns = []
         keypoints = []
         for _ in range(3*n_keypoints):
             keypoints.append(0)
         
-        for _ in mask:
+        for i in anns_inst:
+            id = i['id']
+            image_id = i['image_id']
             anns.append({'num_keypoints': 0,
                 'area': 0.,
                 'iscrowd': 0,
@@ -254,7 +232,7 @@ class Coco(torch.utils.data.Dataset):
                 'image_id': image_id,
                 'bbox': [0., 0., 0., 0.],
                 'category_id': category_id,
-                'id': image_id})
+                'id': id})
         
         return anns
 
@@ -284,6 +262,7 @@ class Coco(torch.utils.data.Dataset):
 
         ann_ids = self.coco.getAnnIds(imgIds=image_id)
         anns = self.coco.loadAnns(ann_ids)
+        
 
         # mask = []
 
@@ -292,41 +271,54 @@ class Coco(torch.utils.data.Dataset):
             anns_inst = self.coco_inst.loadAnns(ann_ids_inst)
             
             for i in anns_inst:
-                mask.append(self.coco_inst.annToMask(i))
+                ann_mask_id = i['id']
+                # print(i)
+                # print(ann_mask_id)
+                mask.append(self.coco_inst.annToMask(i) * ann_mask_id)
 
-        # if self.config == 'cif':
-        #     pass
+            # print('annsssssssssssssssssssssssss')
+            # print(len(anns))
+            # print(anns)
+            # print('insssssssssssssssssssssssss')
+            # print(anns_inst)
+        #     print(len(anns_inst))
+        # print(anns.shape)
+        if self.config == 'cif':
+            pass
 
-        # elif self.config == 'cifcent':
-        #     anns = self.add_center(image, anns, mask)
+        elif self.config == 'cifcent':
+            anns = self.add_center(anns, mask)
 
-        # elif self.config == 'cifball':
-        #     # anns = self.add_center(image, anns, mask, visiblity=0)        # add fake ball keypoint
-        #     mask_ball = []
-        #     ann_ids_inst = self.coco_inst.getAnnIds(imgIds=image_id, catIds=[37])
-        #     anns_inst = self.coco_inst.loadAnns(ann_ids_inst)
-        #     for i in anns_inst:
-        #         mask_ball.append(self.coco_inst.annToMask(i))
+        elif self.config == 'cifball':
+            anns = self.add_center(anns, mask, visiblity=0)        # add fake ball keypoint
+            mask_ball = []
+            ann_ids_inst = self.coco_inst.getAnnIds(imgIds=image_id, catIds=[37])
+            anns_inst = self.coco_inst.loadAnns(ann_ids_inst)
+            for i in anns_inst:
+                ann_mask_id = i['id']
+                mask_ball.append(self.coco_inst.annToMask(i) * ann_mask_id) 
 
-        #     anns_ball = self.empty_person_keypoint(mask_ball, image_id)     # add fake people
-        #     anns_ball = self.add_center(image, anns_ball, mask_ball)        # add ball keypoint
-        #     anns += anns_ball
+            anns_ball = self.empty_person_keypoint(anns_inst)     # add fake people
+            anns_ball = self.add_center(anns_ball, mask_ball)        # add ball keypoint
+            anns += anns_ball
+            mask += mask_ball
 
-        # elif self.config == 'cifcentball':
-        #     anns = self.add_center(image, anns, mask)
-        #     anns = self.add_center(image, anns, mask, visiblity=0)        # add fake ball keypoint
-        #     mask_ball = []
-        #     ann_ids_inst = self.coco_inst.getAnnIds(imgIds=image_id, catIds=[37])
-        #     anns_inst = self.coco_inst.loadAnns(ann_ids_inst)
-        #     for i in anns_inst:
-        #         mask_ball.append(self.coco_inst.annToMask(i))
+        elif self.config == 'cifcentball':
+            anns = self.add_center(anns, mask)
+            anns = self.add_center(anns, mask, visiblity=0)        # add fake ball keypoint
+            mask_ball = []
+            ann_ids_inst = self.coco_inst.getAnnIds(imgIds=image_id, catIds=[37])
+            anns_inst = self.coco_inst.loadAnns(ann_ids_inst)
+            for i in anns_inst:
+                ann_mask_id = i['id']
+                mask_ball.append(self.coco_inst.annToMask(i) * ann_mask_id)
 
-        #     anns_ball = self.empty_person_keypoint(mask_ball, image_id)     # add fake people
-        #     anns_ball = self.add_center(image, anns_ball, mask_ball)        # add ball keypoint
-        #     anns += anns_ball
+            anns_ball = self.empty_person_keypoint(anns_inst, n_keypoints=18)     # add fake people
+            anns_ball = self.add_center(anns_ball, mask_ball)        # add ball keypoint
+            anns += anns_ball
 
-        # else:
-        #     raise NotImplementedError
+        else:
+            raise NotImplementedError
 
         
         # print(len(anns))
