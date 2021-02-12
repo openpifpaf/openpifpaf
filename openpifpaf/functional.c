@@ -5,7 +5,7 @@
     "distutils": {
         "depends": [],
         "include_dirs": [
-            "/home/ghasemzadeh/miniconda3/lib/python3.8/site-packages/numpy/core/include"
+            "/home/gva/miniconda3/lib/python3.8/site-packages/numpy/core/include"
         ],
         "name": "openpifpaf.functional",
         "sources": [
