@@ -7,6 +7,26 @@ import torch
 LOG = logging.getLogger(__name__)
 
 
+class SoftClamp(torch.nn.Module):
+    max_value = 5.0
+
+    def __init__(self, max_value=None):
+        super().__init__()
+        if max_value is not None:
+            self.max_value = max_value
+
+    def forward(self, *args):
+        x = args[0]
+
+        # Backprop rule pre-multiplies by input. Therefore, for a constant
+        # gradient above the max bce threshold, need to divide by the input.
+        # Just like gradient-clipping, but inline:
+        above_max = x > self.max_value
+        x[above_max] /= x[above_max].detach() / self.max_value
+
+        return x
+
+
 class Bce(torch.nn.Module):
     background_weight = 1.0
     focal_alpha = 0.5
@@ -22,6 +42,8 @@ class Bce(torch.nn.Module):
         for n, v in kwargs.items():
             assert hasattr(self, n)
             setattr(self, n, v)
+
+        self.soft_clamp = SoftClamp()
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
@@ -55,14 +77,8 @@ class Bce(torch.nn.Module):
         # x = torch.clamp(x, -20.0, 20.0)
         bce = torch.nn.functional.binary_cross_entropy_with_logits(
             x, t_zeroone, reduction='none')
-
         # torch.clamp_max_(bce, 10.0)
-        # Backprop rule pre-multiplies by input. Therefore, for a constant
-        # gradient above the max bce threshold, need to divide by the input.
-        # Just like gradient-clipping, but inline:
-        above_max = bce > 5.0
-        bce[above_max] /= bce[above_max].detach() / 5.0
-
+        bce = self.soft_clamp(bce)
         if self.min_bce > 0.0:
             torch.clamp_min_(bce, self.min_bce)
 
@@ -108,6 +124,10 @@ class Scale(torch.nn.Module):
     relative_eps = 0.1
     clip = None
 
+    def __init__(self):
+        super().__init__()
+        self.soft_clamp = SoftClamp()
+
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
         group = parser.add_argument_group('Scale Loss')
@@ -140,52 +160,66 @@ class Scale(torch.nn.Module):
             denominator = self.b * (self.relative_eps + t)
         loss = loss / denominator
 
+        if self.clip is None:
+            loss = self.soft_clamp(loss)
+
         return loss
 
 
-def laplace_loss(x1, x2, logb, t1, t2, bmin, *, weight=None, norm_clip=None):
+class Laplace(torch.nn.Module):
     """Loss based on Laplace Distribution.
 
     Loss for a single two-dimensional vector (x1, x2) with radial
     spread b and true (t1, t2) vector.
     """
 
-    # left derivative of sqrt at zero is not defined, so prefer torch.norm():
-    # https://github.com/pytorch/pytorch/issues/2421
-    # norm = torch.sqrt((x1 - t1)**2 + (x2 - t2)**2)
-    # norm = (torch.stack((x1, x2)) - torch.stack((t1, t2))).norm(dim=0)
-    # norm = (
-    #     torch.nn.functional.l1_loss(x1, t1, reduction='none')
-    #     + torch.nn.functional.l1_loss(x2, t2, reduction='none')
-    # )
-    # While torch.norm is a special treatment at zero, it does produce
-    # large gradients for tiny values (as it should).
-    # Similar to BatchNorm, we introduce a physically irrelevant epsilon
-    # that stabilizes the gradients for small norms.
-    # norm = torch.sqrt((x1 - t1)**2 + (x2 - t2)**2 + torch.clamp_min(bmin**2, 0.0001))
-    # norm = torch.stack((x1 - t1, x2 - t2, torch.clamp_min(bmin, 0.01))).norm(dim=0)
-    norm = torch.stack((x1 - t1, x2 - t2, bmin)).norm(dim=0)
-    if norm_clip is not None:
-        norm = torch.clamp(norm, norm_clip[0], norm_clip[1])
+    weight = None
+    norm_clip = None
 
-    # constrain range of logb
-    # low range constraint: prevent strong confidence when overfitting
-    # high range constraint: force some data dependence
-    logb = 3.0 * torch.tanh(logb / 3.0)
-    # b = torch.nn.functional.softplus(b)
-    # b = torch.max(b, bmin)
-    # b_plus_bmin = torch.nn.functional.softplus(b) + bmin
-    # b_plus_bmin = 20.0 * torch.sigmoid(b / 20.0) + bmin
-    # logb = -3.0 + torch.nn.functional.softplus(logb + 3.0)
-    # log_bmin = torch.log(bmin)
-    # logb = log_bmin + torch.nn.functional.softplus(logb - log_bmin)
+    def __init__(self):
+        super().__init__()
+        self.soft_clamp = SoftClamp()
 
-    # ln(2) = 0.694
-    # losses = torch.log(b_plus_bmin) + norm / b_plus_bmin
-    losses = logb + norm * torch.exp(-logb)
-    if weight is not None:
-        losses = losses * weight
-    return losses
+    def forward(self, *args):
+        x1, x2, logb, t1, t2, bmin = args
+
+        # left derivative of sqrt at zero is not defined, so prefer torch.norm():
+        # https://github.com/pytorch/pytorch/issues/2421
+        # norm = torch.sqrt((x1 - t1)**2 + (x2 - t2)**2)
+        # norm = (torch.stack((x1, x2)) - torch.stack((t1, t2))).norm(dim=0)
+        # norm = (
+        #     torch.nn.functional.l1_loss(x1, t1, reduction='none')
+        #     + torch.nn.functional.l1_loss(x2, t2, reduction='none')
+        # )
+        # While torch.norm is a special treatment at zero, it does produce
+        # large gradients for tiny values (as it should).
+        # Similar to BatchNorm, we introduce a physically irrelevant epsilon
+        # that stabilizes the gradients for small norms.
+        # norm = torch.sqrt((x1 - t1)**2 + (x2 - t2)**2 + torch.clamp_min(bmin**2, 0.0001))
+        # norm = torch.stack((x1 - t1, x2 - t2, torch.clamp_min(bmin, 0.01))).norm(dim=0)
+        norm = torch.stack((x1 - t1, x2 - t2, bmin)).norm(dim=0)
+        if self.norm_clip is not None:
+            norm = torch.clamp(norm, self.norm_clip[0], self.norm_clip[1])
+
+        # constrain range of logb
+        # low range constraint: prevent strong confidence when overfitting
+        # high range constraint: force some data dependence
+        logb = 3.0 * torch.tanh(logb / 3.0)
+        # b = torch.nn.functional.softplus(b)
+        # b = torch.max(b, bmin)
+        # b_plus_bmin = torch.nn.functional.softplus(b) + bmin
+        # b_plus_bmin = 20.0 * torch.sigmoid(b / 20.0) + bmin
+        # logb = -3.0 + torch.nn.functional.softplus(logb + 3.0)
+        # log_bmin = torch.log(bmin)
+        # logb = log_bmin + torch.nn.functional.softplus(logb - log_bmin)
+
+        # ln(2) = 0.694
+        # losses = torch.log(b_plus_bmin) + norm / b_plus_bmin
+        losses = logb + norm * torch.exp(-logb)
+        losses = self.soft_clamp(losses)
+        if self.weight is not None:
+            losses = losses * self.weight
+        return losses
 
 
 def l1_loss(x1, x2, _, t1, t2, weight=None):
