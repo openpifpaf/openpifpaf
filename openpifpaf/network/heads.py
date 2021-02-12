@@ -90,6 +90,59 @@ class CifCafCollector(torch.nn.Module):
         return cif_head, caf_head
 
 
+class CifPanCollector(torch.nn.Module):
+    def __init__(self, cif_indices):
+        super(CifPanCollector, self).__init__()
+        self.cif_indices = cif_indices
+        LOG.debug('cif = %s', cif_indices)
+
+    @staticmethod
+    def selector(inputs, index):
+        if not isinstance(index, (list, tuple)):
+            return inputs[index]
+
+        for ind in index:
+            inputs = inputs[ind]
+        return inputs
+
+    @staticmethod
+    def concat_fields(fields):
+        fields = [
+            f.view(f.shape[0], f.shape[1], f.shape[2] * f.shape[3], *f.shape[4:])
+            if len(f.shape) == 6
+            else f.view(f.shape[0], f.shape[1], f.shape[2], *f.shape[3:])
+            for f in fields
+        ]
+        return torch.cat(fields, dim=2)
+
+    @staticmethod
+    def concat_heads(heads):
+        if not heads:
+            return None
+        if len(heads) == 1:
+            return heads[0]
+
+        # LOG.debug('heads = %s', [h.shape for h in heads])
+        return torch.cat(heads, dim=1)
+
+    def forward(self, *args):
+        heads = args[0]
+
+        # concat fields
+        cif_heads = [self.concat_fields(self.selector(heads, head_index))
+                     for head_index in self.cif_indices]
+
+        # concat heads
+        cif_head = self.concat_heads(cif_heads)
+
+        # add index
+        index_field = index_field_torch(cif_head.shape[-2:], device=cif_head.device)
+        if cif_head is not None:
+            cif_head[:, :, 1:3].add_(index_field)
+
+        return cif_head, heads[1]
+
+
 class CifdetCollector(torch.nn.Module):
     def __init__(self, indices):
         super(CifdetCollector, self).__init__()
@@ -290,6 +343,11 @@ class PanopticDeeplabMeta:
     """
 
     name: str
+
+    keypoints: List[str]
+    skeleton: List[Tuple[int, int]]
+    sparse_skeleton: List[Tuple[int, int]] = None
+
     feature_key: str = 'res5'
     decoder_channels: int = 256
     atrous_rates: Tuple[int] = (3,6,9)

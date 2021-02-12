@@ -153,7 +153,7 @@ def factory_decode(head_nets, *,
     if isinstance(head_nets[0].meta, network.heads.IntensityMeta) \
        and len(head_nets) == 1:
         field_config = FieldConfig()
-    
+
 
         # skeleton = head_nets[1].meta.skeleton
         # print(skeleton)
@@ -190,13 +190,28 @@ def factory_decode(head_nets, *,
 
     if isinstance(head_nets[0].meta, network.heads.IntensityMeta) \
        and isinstance(head_nets[1].meta, network.heads.PanopticDeeplabMeta):
-        return CifPan(FieldConfig())
+        field_config = FieldConfig()
+
+        field_config.cif_visualizers = [
+            visualizer.Cif(head_nets[i].meta.name,
+                           stride=head_nets[i].stride(basenet_stride),
+                           keypoints=head_nets[0].meta.keypoints,
+                           skeleton=head_nets[0].meta.draw_skeleton)
+            for i in field_config.cif_indices
+        ]
+
+        return CifPan(
+            field_config,
+            keypoints=head_nets[0].meta.keypoints,
+            out_skeleton=head_nets[1].meta.skeleton,
+            worker_pool=worker_pool
+        )
 
 
     if isinstance(head_nets[0].meta, network.heads.IntensityMeta) \
        and isinstance(head_nets[1].meta, network.heads.SegmentationMeta):
         field_config = FieldConfig()
-    
+
 
         skeleton = head_nets[1].meta.skeleton
         # print(skeleton)
@@ -279,7 +294,7 @@ def factory_decode(head_nets, *,
                            skeleton=head_nets[0].meta.draw_skeleton)
             for i in field_config.cif_indices
         ]
-        
+
         field_config.caf_visualizers = [
             visualizer.Caf(head_nets[i].meta.name,
                            stride=head_nets[i].stride(basenet_stride),

@@ -15,6 +15,8 @@ from .. import nms as nms_module
 from ..occupancy import Occupancy
 from ... import visualizer
 
+import torch
+
 # pylint: disable=import-error
 from ...functional import caf_center_s
 
@@ -33,101 +35,244 @@ class CifPan(Generator):
     keypoint_threshold = 0.0
 
     def __init__(self, field_config: FieldConfig, *,
-                #  keypoints,
+                keypoints,
                 #  skeleton,
-                #  out_skeleton=None,
-                #  confidence_scales=None,
+                 out_skeleton=None,
+                 confidence_scales=None,
                  worker_pool=None,
-                #  nms=True
+                 nms=True
                 ):
         super().__init__(worker_pool)
-        return
         if nms is True:
             nms = nms_module.Keypoints()
 
         self.field_config = field_config
 
         self.keypoints = keypoints
-        self.skeleton = skeleton
-        self.skeleton_m1 = np.asarray(skeleton) - 1
-        self.out_skeleton = out_skeleton or skeleton
+        # self.skeleton = skeleton
+        # self.skeleton_m1 = np.asarray(skeleton) - 1
+        self.out_skeleton = out_skeleton
         self.confidence_scales = confidence_scales
         self.nms = nms
 
         self.timers = defaultdict(float)
 
         # init by_target and by_source
-        self.by_target = defaultdict(dict)
-        for caf_i, (j1, j2) in enumerate(self.skeleton_m1):
-            self.by_target[j2][j1] = (caf_i, True)
-            self.by_target[j1][j2] = (caf_i, False)
-        self.by_source = defaultdict(dict)
-        for caf_i, (j1, j2) in enumerate(self.skeleton_m1):
-            self.by_source[j1][j2] = (caf_i, True)
-            self.by_source[j2][j1] = (caf_i, False)
+        # self.by_target = defaultdict(dict)
+        # for caf_i, (j1, j2) in enumerate(self.skeleton_m1):
+        #     self.by_target[j2][j1] = (caf_i, True)
+        #     self.by_target[j1][j2] = (caf_i, False)
+        # self.by_source = defaultdict(dict)
+        # for caf_i, (j1, j2) in enumerate(self.skeleton_m1):
+        #     self.by_source[j1][j2] = (caf_i, True)
+        #     self.by_source[j2][j1] = (caf_i, False)
 
     def __call__(self, fields, initial_annotations=None):
         cif, pan = fields
         semantic, offsets = pan['semantic'], pan['offset']
-        print("cif", len(cif))
+        print("cif", cif.shape)
         print("semantic", semantic.shape)
         print("offset", offsets.shape)
-        return []
+
         start = time.perf_counter()
         if not initial_annotations:
             initial_annotations = []
         LOG.debug('initial annotations = %d', len(initial_annotations))
 
-        if self.field_config.cif_visualizers:
-            for vis, cif_i in zip(self.field_config.cif_visualizers, self.field_config.cif_indices):
-                vis.predicted(fields[cif_i])
-        if self.field_config.caf_visualizers:
-            for vis, caf_i in zip(self.field_config.caf_visualizers, self.field_config.caf_indices):
-                vis.predicted(fields[caf_i])
+        # print(self.field_config)
+        # if self.field_config.cif_visualizers:
+        #     for vis, cif_i in zip(self.field_config.cif_visualizers, self.field_config.cif_indices):
+        #         vis.predicted(fields[cif_i])
+        # if self.field_config.caf_visualizers:
+        #     for vis, caf_i in zip(self.field_config.caf_visualizers, self.field_config.caf_indices):
+        #         vis.predicted(fields[caf_i])
 
         cifhr = CifHr(self.field_config).fill(fields)
         seeds = CifSeeds(cifhr.accumulated, self.field_config).fill(fields)
-        caf_scored = CafScored(cifhr.accumulated, self.field_config, self.skeleton).fill(fields)
 
-        occupied = Occupancy(cifhr.accumulated.shape, 2, min_scale=4)
-        annotations = []
+        # caf_scored = CafScored(cifhr.accumulated, self.field_config, self.skeleton).fill(fields)
 
-        def mark_occupied(ann):
-            for joint_i, xyv in enumerate(ann.data):
-                if xyv[2] == 0.0:
-                    continue
+        Ñ = None
 
-                width = ann.joint_scales[joint_i]
-                occupied.set(joint_i, xyv[0], xyv[1], width)  # width = 2 * sigma
+        def cif_local_max(cif):
+            """Use torch for max pooling"""
+            cif = torch.tensor(cif)
+            cif_m = torch.max_pool2d(cif[None], 7, stride=1, padding=3)[0] == cif
+            cif_m &= cif > 0.1
+            return np.asarray(cif_m)
 
-        for ann in initial_annotations:
-            self._grow(ann, caf_scored)
-            annotations.append(ann)
-            mark_occupied(ann)
+        # Get coordinates of keypoints of every type
+        # list[K,N_k]
+        keypoints_yx = [np.stack(np.nonzero(cif_local_max(cif)), axis=-1)
+                        for cif in cifhr.accumulated]
 
-        for v, f, x, y, s in seeds.get():
-            if occupied.get(f, x, y):
-                continue
+        # Get instance mapping for every pixel
+        # keypoints[-1] tensor[I,2]
+        # offsets       tensor[2,H,W]
+        # meshgrid      tensor[2,H,W]
+        absolute = offsets + np.stack(np.meshgrid(np.arange(offsets.shape[2]),
+                                                  np.arange(offsets.shape[1])))
+        difference = (absolute[Ñ,:,:,:] -                   # [ ,2,H,W]
+                      keypoints_yx[-1][:,:,Ñ,Ñ]             # [I,2, , ]
+                      )
 
-            ann = Annotation(self.keypoints, self.out_skeleton).add(f, (x, y, v))
-            ann.joint_scales[f] = s
-            self._grow(ann, caf_scored)
-            annotations.append(ann)
-            mark_occupied(ann)
+        distances2 = np.square(difference).sum(axis=1)      # [I,H,W]
+        instances = distances2.argmin(axis=0)               # [H,W]
 
-        self.occupancy_visualizer.predicted(occupied)
+        # For each detected keypoints, get its confidence and instance
+        centers_fyxv = [
+            (17, y, x, cifhr.accumulated[-1,y,x])
+            for y, x in keypoints_yx[-1]
+        ]
+        keypoints_fyxiv = [
+            (f, y, x, instances[y,x], cifhr.accumulated[f,y,x])
+            for f, kp_yx in enumerate(keypoints_yx[:-1])
+            for y, x in kp_yx
+        ]
+
+        annotations = [
+            Annotation(self.keypoints, self.out_skeleton)
+                .add(f, (x,y,v))
+            for f,y,x,v in centers_fyxv
+        ]
+
+        # Assign keypoints to their instance (least confidence first)
+        keypoints_fyxiv.sort(key=lambda x:x[-1])
+        for f,y,x,i,v in keypoints_fyxiv:
+            annotation = annotations[i]
+            annotation.add(f, (x,y,v))
+
+        # semantic      shape [C,H,W]
+        classes = semantic.argmin(axis=0)   # [H,W]
+
+        panoptic = classes*1000 + instances
+        for i in range(len(annotations)):
+            annotation = annotations[i]
+            centroid_mask = (classes != 0) & (instances == i)
+            annotation.cls = semantic[:,centroid_mask].sum(axis=1).argmin(axis=0)
+            annotation.mask = centroid_mask
+
+        # self.occupancy_visualizer.predicted(occupied)
 
         LOG.debug('annotations %d, %.3fs', len(annotations), time.perf_counter() - start)
 
-        if self.force_complete:
-            annotations = self.complete_annotations(cifhr, fields, annotations)
+        # if self.force_complete:
+        #     annotations = self.complete_annotations(cifhr, fields, annotations)
 
-        if self.nms is not None:
-            annotations = self.nms.annotations(annotations)
+        # if self.nms is not None:
+        #     annotations = self.nms.annotations(annotations)
 
         LOG.info('%d annotations: %s', len(annotations),
                  [np.sum(ann.data[:, 2] > 0.1) for ann in annotations])
         return annotations
+
+    def _flood_fill(self, ann):
+        frontier = PriorityQueue()
+
+        def add_to_frontier(start_i):
+            for end_i in self.by_source[start_i].keys():
+                if ann.data[end_i, 2] > 0.0:
+                    continue
+                start_xyv = ann.data[start_i].tolist()
+                frontier.put((-xyv[2], end_i, start_xyv, ann.joint_scales[start_i]))
+
+        for start_i, xyv in enumerate(ann.data):
+            if xyv[2] == 0.0:
+                continue
+            add_to_frontier(start_i)
+
+        while frontier.qsize():
+            _, end_i, xyv, s = frontier.get()
+            if ann.data[end_i, 2] > 0.0:
+                continue
+            ann.data[end_i, :2] = xyv[:2]
+            ann.data[end_i, 2] = 0.00001
+            ann.joint_scales[end_i] = s
+            add_to_frontier(end_i)
+
+    def complete_annotations(self, cifhr, fields, annotations):
+        start = time.perf_counter()
+
+        caf_scored = CafScored(cifhr.accumulated, self.field_config, self.skeleton,
+                               score_th=0.0001).fill(fields)
+
+        for ann in annotations:
+            unfilled_mask = ann.data[:, 2] == 0.0
+            self._grow(ann, caf_scored, reverse_match=False)
+            now_filled_mask = ann.data[:, 2] > 0.0
+            updated = np.logical_and(unfilled_mask, now_filled_mask)
+            ann.data[updated, 2] = np.minimum(0.001, ann.data[updated, 2])
+
+            # some joints might still be unfilled
+            if np.any(ann.data[:, 2] == 0.0):
+                self._flood_fill(ann)
+
+        LOG.debug('complete annotations %.3fs', time.perf_counter() - start)
+        return annotations
+
+    #################### BELOW IS CAF-SPECIFIC ####################
+
+    def _grow(self, ann, caf_scored, *, reverse_match=True):
+        frontier = PriorityQueue()
+        in_frontier = set()
+
+        def add_to_frontier(start_i):
+            for end_i, (caf_i, _) in self.by_source[start_i].items():
+                if ann.data[end_i, 2] > 0.0:
+                    continue
+                if (start_i, end_i) in in_frontier:
+                    continue
+
+                max_possible_score = np.sqrt(ann.data[start_i, 2])
+                if self.confidence_scales is not None:
+                    max_possible_score *= self.confidence_scales[caf_i]
+                frontier.put((-max_possible_score, None, start_i, end_i))
+                in_frontier.add((start_i, end_i))
+                ann.frontier_order.append((start_i, end_i))
+
+        def frontier_get():
+            while frontier.qsize():
+                entry = frontier.get()
+                if entry[1] is not None:
+                    return entry
+
+                _, __, start_i, end_i = entry
+                if ann.data[end_i, 2] > 0.0:
+                    continue
+
+                new_xysv = self.connection_value(
+                    ann, caf_scored, start_i, end_i, reverse_match=reverse_match)
+                if new_xysv[3] == 0.0:
+                    continue
+                score = new_xysv[3]
+                if self.greedy:
+                    return (-score, new_xysv, start_i, end_i)
+                if self.confidence_scales is not None:
+                    caf_i, _ = self.by_source[start_i][end_i]
+                    score *= self.confidence_scales[caf_i]
+                frontier.put((-score, new_xysv, start_i, end_i))
+
+        # seeding the frontier
+        for joint_i, v in enumerate(ann.data[:, 2]):
+            if v == 0.0:
+                continue
+            add_to_frontier(joint_i)
+
+        while True:
+            entry = frontier_get()
+            if entry is None:
+                break
+
+            _, new_xysv, jsi, jti = entry
+            if ann.data[jti, 2] > 0.0:
+                continue
+
+            ann.data[jti, :2] = new_xysv[:2]
+            ann.data[jti, 2] = new_xysv[3]
+            ann.joint_scales[jti] = new_xysv[2]
+            ann.decoding_order.append(
+                (jsi, jti, np.copy(ann.data[jsi]), np.copy(ann.data[jti])))
+            add_to_frontier(jti)
 
     def _grow_connection(self, xy, xy_scale, caf_field):
         assert len(xy) == 2
@@ -251,109 +396,3 @@ class CifPan(Generator):
             caf_field[0]
         )
         return np.sqrt(source_xyv[2] * max(scores))
-
-    def _grow(self, ann, caf_scored, *, reverse_match=True):
-        frontier = PriorityQueue()
-        in_frontier = set()
-
-        def add_to_frontier(start_i):
-            for end_i, (caf_i, _) in self.by_source[start_i].items():
-                if ann.data[end_i, 2] > 0.0:
-                    continue
-                if (start_i, end_i) in in_frontier:
-                    continue
-
-                max_possible_score = np.sqrt(ann.data[start_i, 2])
-                if self.confidence_scales is not None:
-                    max_possible_score *= self.confidence_scales[caf_i]
-                frontier.put((-max_possible_score, None, start_i, end_i))
-                in_frontier.add((start_i, end_i))
-                ann.frontier_order.append((start_i, end_i))
-
-        def frontier_get():
-            while frontier.qsize():
-                entry = frontier.get()
-                if entry[1] is not None:
-                    return entry
-
-                _, __, start_i, end_i = entry
-                if ann.data[end_i, 2] > 0.0:
-                    continue
-
-                new_xysv = self.connection_value(
-                    ann, caf_scored, start_i, end_i, reverse_match=reverse_match)
-                if new_xysv[3] == 0.0:
-                    continue
-                score = new_xysv[3]
-                if self.greedy:
-                    return (-score, new_xysv, start_i, end_i)
-                if self.confidence_scales is not None:
-                    caf_i, _ = self.by_source[start_i][end_i]
-                    score *= self.confidence_scales[caf_i]
-                frontier.put((-score, new_xysv, start_i, end_i))
-
-        # seeding the frontier
-        for joint_i, v in enumerate(ann.data[:, 2]):
-            if v == 0.0:
-                continue
-            add_to_frontier(joint_i)
-
-        while True:
-            entry = frontier_get()
-            if entry is None:
-                break
-
-            _, new_xysv, jsi, jti = entry
-            if ann.data[jti, 2] > 0.0:
-                continue
-
-            ann.data[jti, :2] = new_xysv[:2]
-            ann.data[jti, 2] = new_xysv[3]
-            ann.joint_scales[jti] = new_xysv[2]
-            ann.decoding_order.append(
-                (jsi, jti, np.copy(ann.data[jsi]), np.copy(ann.data[jti])))
-            add_to_frontier(jti)
-
-    def _flood_fill(self, ann):
-        frontier = PriorityQueue()
-
-        def add_to_frontier(start_i):
-            for end_i in self.by_source[start_i].keys():
-                if ann.data[end_i, 2] > 0.0:
-                    continue
-                start_xyv = ann.data[start_i].tolist()
-                frontier.put((-xyv[2], end_i, start_xyv, ann.joint_scales[start_i]))
-
-        for start_i, xyv in enumerate(ann.data):
-            if xyv[2] == 0.0:
-                continue
-            add_to_frontier(start_i)
-
-        while frontier.qsize():
-            _, end_i, xyv, s = frontier.get()
-            if ann.data[end_i, 2] > 0.0:
-                continue
-            ann.data[end_i, :2] = xyv[:2]
-            ann.data[end_i, 2] = 0.00001
-            ann.joint_scales[end_i] = s
-            add_to_frontier(end_i)
-
-    def complete_annotations(self, cifhr, fields, annotations):
-        start = time.perf_counter()
-
-        caf_scored = CafScored(cifhr.accumulated, self.field_config, self.skeleton,
-                               score_th=0.0001).fill(fields)
-
-        for ann in annotations:
-            unfilled_mask = ann.data[:, 2] == 0.0
-            self._grow(ann, caf_scored, reverse_match=False)
-            now_filled_mask = ann.data[:, 2] > 0.0
-            updated = np.logical_and(unfilled_mask, now_filled_mask)
-            ann.data[updated, 2] = np.minimum(0.001, ann.data[updated, 2])
-
-            # some joints might still be unfilled
-            if np.any(ann.data[:, 2] == 0.0):
-                self._flood_fill(ann)
-
-        LOG.debug('complete annotations %.3fs', time.perf_counter() - start)
-        return annotations
