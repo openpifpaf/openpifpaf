@@ -13,7 +13,7 @@ from .constants import (
 def factory(head_names):
     if head_names is None:
         return None
-    
+
     return [factory_single(hn) for hn in head_names]
 
 
@@ -55,7 +55,9 @@ def factory_single(head_name):
                                 COCO_PERSON_SKELETON)
 
     if 'pan' in head_name:
-        return PanopticDeeplabMeta(head_name)
+        return PanopticDeeplabMeta(head_name,
+                                   COCO_KEYPOINTS,
+                                   COCO_PERSON_SKELETON)
 
 
     raise NotImplementedError

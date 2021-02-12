@@ -122,11 +122,11 @@ def factory(
     elif dense_connections and multi_scale:
         cif_indices = [v * 3 + 1 for v in range(10)]
         caf_indices = [v * 3 + 2 for v in range(10)]
-    
+
     if isinstance(net_cpu.head_nets[0].meta, heads.DetectionMeta):
         net_cpu.process_heads = heads.CifdetCollector(cif_indices)
     elif isinstance(net_cpu.head_nets[1].meta, heads.PanopticDeeplabMeta):
-        pass
+        net_cpu.process_heads = heads.CifPanCollector(cif_indices)
     else:
         net_cpu.process_heads = heads.CifCafCollector(cif_indices, caf_indices)
     net_cpu.cross_talk = cross_talk
@@ -149,9 +149,6 @@ def factory_from_scratch(basename, head_names, *, pretrained=True):
     if 'resnet18' in basename:
         base_vision = torchvision.models.resnet18(pretrained)
         return resnet_factory_from_scratch(basename, base_vision, 512, head_metas)
-    if 'resnet50pan' in basename:
-        base_vision = torchvision.models.resnet50(pretrained)
-        return resnet_factory_from_scratch(basename, base_vision, 2048, head_metas)
     if 'resnet50' in basename:
         base_vision = torchvision.models.resnet50(pretrained)
         return resnet_factory_from_scratch(basename, base_vision, 2048, head_metas)
