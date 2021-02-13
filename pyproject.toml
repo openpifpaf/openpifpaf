@@ -1,42 +1,25 @@
 [build-system]
 requires = ["cython", "numpy", "setuptools", "wheel"]
 
-
 [tool.pylint.BASIC]
-
-variable-rgx=[a-z0-9_]{1,30}$
-good-names=ap,AP,APM,APL,ar,ax,b,d,f,g,gt,h,i,im,lr,n,p,plt,r,s,t,t1,t2,th,v,vs,w,wh,x,x1,x2,xs,y,ys,xy
-
+variable-rgx = "[a-z0-9_]{1,30}$"
+good-names = ["ap", "AP", "APM", "APL", "ar", "ax", "b", "d", "f", "g", "gt", "h", "i", "im", "lr", "n", "p", "plt", "r", "s", "t", "t1", "t2", "th", "v", "vs", "w", "wh", "x", "x1", "x2", "xs", "y", "ys", "xy"]
 
 [tool.pylint.IMPORTS]
-
-allow-any-import-level=pycocotools,pycocotools.coco
-
+allow-any-import-level = ["pycocotools", "pycocotools.coco"]
 
 [tool.pylint.SIMILARITIES]
-
-# Minimum lines number of a similarity.
-min-similarity-lines=15
-
-# Ignore comments when computing similarities.
-ignore-comments=yes
-
-# Ignore docstrings when computing similarities.
-ignore-docstrings=yes
-
-# Ignore imports when computing similarities.
-ignore-imports=yes
-
+min-similarity-lines = 15  # Minimum lines number of a similarity.
+ignore-comments = "yes"  # Ignore comments when computing similarities.
+ignore-docstrings = "yes"  # Ignore docstrings when computing similarities.
+ignore-imports = "yes"  # Ignore imports when computing similarities.
 
 [tool.pylint.TYPECHECK]
-
 # List of members which are set dynamically and missed by pylint inference
 # system, and so shouldn't trigger E1101 when accessed. Python regular
 # expressions are accepted.
-generated-members=numpy.*,torch.*,cv2.*,openpifpaf.functional.*
-
-ignored-modules=openpifpaf.functional,pycocotools
-
+generated-members = ["numpy.*", "torch.*", "cv2.*", "openpifpaf.functional.*"]
+ignored-modules = ["openpifpaf.functional", "pycocotools"]
 # for pytorch: not-callable
 # for pytorch 1.6.0: abstract-method
-disable=missing-docstring,too-many-arguments,too-many-instance-attributes,too-many-locals,too-few-public-methods,not-callable,abstract-method,unsubscriptable-object
+disable=["missing-docstring", "too-many-arguments", "too-many-instance-attributes", "too-many-locals", "too-few-public-methods", "not-callable", "abstract-method", "unsubscriptable-object"]
