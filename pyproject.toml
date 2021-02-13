@@ -22,7 +22,7 @@ ignore-imports = "yes"  # Ignore imports when computing similarities.
 [tool.pylint.TYPECHECK]
 generated-members = ["numpy.*", "torch.*", "cv2.*", "openpifpaf.functional.*"]
 ignored-modules = ["openpifpaf.functional", "pycocotools"]
-disable=[
+disable = [
     "missing-docstring",
     "too-many-arguments",
     "too-many-instance-attributes",
