@@ -17,12 +17,13 @@ class SoftClamp(torch.nn.Module):
 
     def forward(self, *args):
         x = args[0]
+        th = args[1] if len(args) > 1 else args[0]
 
         # Backprop rule pre-multiplies by input. Therefore, for a constant
         # gradient above the max bce threshold, need to divide by the input.
         # Just like gradient-clipping, but inline:
-        above_max = x > self.max_value
-        x[above_max] /= x[above_max].detach() / self.max_value
+        above_max = th > self.max_value
+        x[above_max] /= th[above_max].detach() / self.max_value
 
         return x
 
@@ -215,8 +216,9 @@ class Laplace(torch.nn.Module):
 
         # ln(2) = 0.694
         # losses = torch.log(b_plus_bmin) + norm / b_plus_bmin
-        losses = logb + norm * torch.exp(-logb)
-        losses = self.soft_clamp(losses)
+        scaled_norm = norm * torch.exp(-logb)
+        losses = logb + scaled_norm
+        losses = self.soft_clamp(losses, scaled_norm)
         if self.weight is not None:
             losses = losses * self.weight
         return losses
