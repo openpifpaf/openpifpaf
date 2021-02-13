@@ -3,7 +3,7 @@ requires = ["cython", "numpy", "setuptools", "wheel"]
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "--nbval-lax"
+addopts = "--nbval-lax --current-env"
 testpaths = ["tests"]
 
 [tool.pylint.BASIC]
