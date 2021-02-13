@@ -151,12 +151,12 @@ class Plots():
 
             if 'val-epoch' in data:
                 x = np.array([row.get('epoch') for row in data['val-epoch']])
-                y = np.array([row.get('loss') for row in data['val-epoch']], dtype=np.float)
+                y = np.array([row.get('loss') for row in data['val-epoch']], dtype=np.float64)
                 ax.plot(x, y, 'o-', color=color, markersize=2, label=label)
 
             if 'train-epoch' in data:
                 x = np.array([row.get('epoch') for row in data['train-epoch']])
-                y = np.array([row.get('loss') for row in data['train-epoch']], dtype=np.float)
+                y = np.array([row.get('loss') for row in data['train-epoch']], dtype=np.float64)
                 m = x > 0
                 ax.plot(x[m], y[m], 'x-', color=color, linestyle='dotted', markersize=2)
 
@@ -183,7 +183,7 @@ class Plots():
             if 'val-epoch' in data:
                 x = np.array([row.get('epoch') for row in data['val-epoch']])
                 y = np.array([row.get('head_losses')[field_i]
-                              for row in data['val-epoch']], dtype=np.float)
+                              for row in data['val-epoch']], dtype=np.float64)
                 m = np.logical_not(np.isnan(y))
                 ax.plot(x[m], y[m], 'o-', color=color, markersize=2, label=label)
                 last_five_y.append(y[m][-5:])
@@ -191,7 +191,7 @@ class Plots():
             if 'train-epoch' in data:
                 x = np.array([row.get('epoch') for row in data['train-epoch']])
                 y = np.array([row.get('head_losses')[field_i]
-                              for row in data['train-epoch']], dtype=np.float)
+                              for row in data['train-epoch']], dtype=np.float64)
                 m = np.logical_not(np.isnan(y))
                 ax.plot(x[m], y[m], 'x-', color=color, linestyle='dotted', markersize=2)
                 last_five_y.append(y[m][-5:])
@@ -222,7 +222,7 @@ class Plots():
                               if row.get('batch', 1) > 0])
                 y = np.array([row.get('data_time') / row.get('time') * 100.0
                               for row in data['train']
-                              if row.get('batch', 1) > 0], dtype=np.float)
+                              if row.get('batch', 1) > 0], dtype=np.float64)
                 optionally_shaded(ax, x, y, color=color, label=label)
 
         ax.set_xlabel('epoch')
@@ -242,7 +242,7 @@ class Plots():
                     )
                 for loss_index, xy in xy_all.items():
                     x = np.array([x for x, _ in xy])
-                    y = np.array([y for _, y in xy], dtype=np.float)
+                    y = np.array([y for _, y in xy], dtype=np.float64)
                     miny = min(miny, np.min(y))
 
                     kwargs = {}
@@ -271,7 +271,7 @@ class Plots():
             if 'train' in data:
                 x = np.array([fractional_epoch(row) for row in data['train']])
                 y = np.array([row.get('head_losses')[field_i]
-                              for row in data['train']], dtype=np.float)
+                              for row in data['train']], dtype=np.float64)
                 m = np.logical_not(np.isnan(y))
                 optionally_shaded(ax, x[m], y[m], color=color, label=label)
 
@@ -294,7 +294,7 @@ class Plots():
             if 'train' in data:
                 x = np.array([fractional_epoch(row) for row in data['train']])
                 y = np.array([row['mtl_sigmas'][field_i] if 'mtl_sigmas' in row else np.nan
-                              for row in data['train']], dtype=np.float)
+                              for row in data['train']], dtype=np.float64)
                 m = np.logical_not(np.isnan(y))
                 optionally_shaded(ax, x[m], y[m], color=color, label=label)
 
