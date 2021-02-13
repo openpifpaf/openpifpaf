@@ -1,37 +1,30 @@
 from setuptools import setup, find_packages
 from setuptools.extension import Extension
 
+import versioneer
+
 try:
     from Cython.Build import cythonize
 except ImportError:
     cythonize = None
 try:
     import numpy
-except ImportError:
-    numpy = None
-
-import versioneer
-
-
-class NumpyIncludePath():
-    """Lazy import of numpy to get include path."""
-    @staticmethod
-    def __str__():
-        import numpy
-        return numpy.get_include()
+except ImportError as e:
+    print('install numpy first')
+    raise e
 
 
 if cythonize is not None and numpy is not None:
     EXTENSIONS = cythonize([Extension('openpifpaf.functional',
                                       ['openpifpaf/functional.pyx'],
                                       include_dirs=[numpy.get_include()]),
-                           ],
+                            ],
                            annotate=True,
                            compiler_directives={'language_level': 3})
 else:
     EXTENSIONS = [Extension('openpifpaf.functional',
                             ['openpifpaf/functional.pyx'],
-                            include_dirs=[NumpyIncludePath()])]
+                            include_dirs=[numpy.get_include()])]
 
 
 setup(
@@ -67,6 +60,7 @@ setup(
             'matplotlib',
             'nbdime',
             'nbstripout',
+            'wheel',
         ],
         'onnx': [
             'onnx',
