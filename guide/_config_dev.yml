@@ -1,6 +1,6 @@
 # Book settings
 title: OpenPifPaf Guide DEV
-author: <a href="https://www.svenkreiss.com">Sven Kreiss</a> and <a href="https://github.com/vita-epfl/openpifpaf/graphs/contributors">contributors</a>
+author: <a href="https://www.svenkreiss.com">Sven Kreiss</a> and <a href="https://github.com/vita-epfl/openpifpaf/graphs/contributors">contributors</a>.
 copyright: "2020-2021"
 email: research@svenkreiss.com
 logo: logo.png
@@ -12,6 +12,7 @@ logo: logo.png
 html:
   favicon: favicon.png
   extra_navbar: This is the dev version of the Guide. Here is the <a href="https://vita-epfl.github.io/openpifpaf/">stable version</a>.
+  use_repository_button: True
 
 # Information about where the book exists on the web
 repository:
