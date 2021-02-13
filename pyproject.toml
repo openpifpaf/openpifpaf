@@ -1,0 +1,6 @@
+[build]
+requires =
+    cython
+    numpy
+    setuptools
+    wheel
