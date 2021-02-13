@@ -8,7 +8,7 @@ LOG = logging.getLogger(__name__)
 
 
 class SoftClamp(torch.nn.Module):
-    max_value = 5.0
+    max_value = 20.0
 
     def __init__(self, max_value=None):
         super().__init__()
