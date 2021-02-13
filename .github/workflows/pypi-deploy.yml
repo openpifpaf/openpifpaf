@@ -62,7 +62,9 @@ jobs:
           python-version: '3.7'
 
       - name: Build sdist
-        run: python setup.py sdist
+        run: |
+          pip install -e .
+          python setup.py sdist
 
       - uses: actions/upload-artifact@v2
         with:
