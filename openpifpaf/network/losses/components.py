@@ -8,12 +8,9 @@ LOG = logging.getLogger(__name__)
 
 
 class SoftClamp(torch.nn.Module):
-    max_value = 20.0
-
-    def __init__(self, max_value=None):
+    def __init__(self, max_value):
         super().__init__()
-        if max_value is not None:
-            self.max_value = max_value
+        self.max_value = max_value
 
     def forward(self, *args):
         x = args[0]
@@ -44,7 +41,7 @@ class Bce(torch.nn.Module):
             assert hasattr(self, n)
             setattr(self, n, v)
 
-        self.soft_clamp = SoftClamp()
+        self.soft_clamp = SoftClamp(5.0)
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
@@ -127,7 +124,7 @@ class Scale(torch.nn.Module):
 
     def __init__(self):
         super().__init__()
-        self.soft_clamp = SoftClamp()
+        self.soft_clamp = SoftClamp(20.0)
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
@@ -179,7 +176,7 @@ class Laplace(torch.nn.Module):
 
     def __init__(self):
         super().__init__()
-        self.soft_clamp = SoftClamp()
+        self.soft_clamp = SoftClamp(20.0)
 
     def forward(self, *args):
         x1, x2, logb, t1, t2, bmin = args
