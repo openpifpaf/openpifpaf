@@ -1,6 +1,6 @@
 [build-system]
 build-backend = "setuptools.build_meta"
-requires = ["cython", "numpy", "setuptools", "wheel"]
+requires = ["numpy", "setuptools", "wheel"]
 
 [tool.pytest.ini_options]
 minversion = "6.0"

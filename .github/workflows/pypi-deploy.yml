@@ -67,6 +67,7 @@ jobs:
 
       - run: python -c "import openpifpaf; print(openpifpaf.__version__)"
       - run: git status
+      - run: git diff
       - run: python -c "import openpifpaf; assert 'dirty' not in openpifpaf.__version__"
 
       - name: Build sdist
