@@ -57,7 +57,7 @@ setup(
         'dev': [
             'flameprof',
             'jupyter-book>=0.9.1',
-            'matplotlib',
+            'matplotlib>=3.3',
             'nbdime',
             'nbstripout',
             'wheel',
@@ -82,7 +82,7 @@ setup(
             'thop',
         ],
         'train': [
-            'matplotlib',  # required by pycocotools
+            'matplotlib>=3.3',  # required by pycocotools
             'pycocotools>=2.0.1',  # pre-install cython (currently incompatible with numpy 1.18 or above)
         ],
     },
