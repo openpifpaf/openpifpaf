@@ -142,7 +142,7 @@ class Plots():
 
         ax.set_xlabel('epoch')
         ax.set_ylabel('learning rate')
-        ax.set_yscale('log', nonposy='clip')
+        ax.set_yscale('log', nonpositive='clip')
         ax.legend(loc='upper left')
 
     def epoch_loss(self, ax):
@@ -164,7 +164,7 @@ class Plots():
         ax.set_ylabel('loss')
         # ax.set_ylim(0.0, 4.0)
         # if min(y) > -0.1:
-        #     ax.set_yscale('log', nonposy='clip')
+        #     ax.set_yscale('log', nonpositive='clip')
         ax.grid(linestyle='dotted')
         ax.legend(loc='upper right')
         ax.text(0.01, 1.01, 'train (cross-dotted), val (dot-solid)',
@@ -205,7 +205,7 @@ class Plots():
             ax.set_ylim(np.min(last_five_y), np.max(last_five_y))
         # ax.set_ylim(0.0, 1.0)
         # if min(y) > -0.1:
-        #     ax.set_yscale('log', nonposy='clip')
+        #     ax.set_yscale('log', nonpositive='clip')
         ax.grid(linestyle='dotted')
         # ax.legend(loc='upper right')
         ax.text(0.01, 1.01, 'train (cross-dotted), val (dot-solid)',
@@ -256,7 +256,7 @@ class Plots():
         ax.set_ylabel('training loss')
         # ax.set_ylim(0, 8)
         if miny > -0.1:
-            ax.set_yscale('log', nonposy='clip')
+            ax.set_yscale('log', nonpositive='clip')
         ax.grid(linestyle='dotted')
         ax.legend(loc='upper right')
 
@@ -279,7 +279,7 @@ class Plots():
         ax.set_ylabel(format(field_name))
         # ax.set_ylim(3e-3, 3.0)
         if not self.share_y and min(y) > -0.1:
-            ax.set_yscale('log', nonposy='clip')
+            ax.set_yscale('log', nonpositive='clip')
         ax.grid(linestyle='dotted')
         # ax.legend(loc='upper right')
 
@@ -303,7 +303,7 @@ class Plots():
         ax.set_ylim(-0.1, 1.1)
         if min(y) > -0.1:
             ax.set_ylim(3e-3, 3.0)
-            ax.set_yscale('log', nonposy='clip')
+            ax.set_yscale('log', nonpositive='clip')
         ax.grid(linestyle='dotted')
         # ax.legend(loc='upper right')
 
