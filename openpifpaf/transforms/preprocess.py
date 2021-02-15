@@ -9,7 +9,7 @@ from . import utils
 
 class Preprocess(metaclass=ABCMeta):
     @abstractmethod
-    def __call__(self, image, anns, mask, meta):
+    def __call__(self, image, anns, meta):
         """Implementation of preprocess operation."""
 
     @staticmethod

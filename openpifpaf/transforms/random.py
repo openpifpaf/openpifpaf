@@ -13,10 +13,10 @@ class RandomApply(Preprocess):
 
     # def __call__(self, image, anns, meta):
     #AMA
-    def __call__(self, image, anns, mask, meta):
+    def __call__(self, image, anns, meta):
         if float(torch.rand(1).item()) > self.probability:
-            return image, anns, mask, meta
-        return self.transform(image, anns, mask, meta)
+            return image, anns, meta
+        return self.transform(image, anns, meta)
 
 
 class DeterministicEqualChoice(Preprocess):
@@ -24,11 +24,11 @@ class DeterministicEqualChoice(Preprocess):
         self.transforms = transforms
         self.salt = salt
 
-    def __call__(self, image, anns, mask, meta):
+    def __call__(self, image, anns, meta):
         assert meta['image_id'] > 0
         LOG.debug('image id = %d', meta['image_id'])
         choice = hash(meta['image_id'] + self.salt) % len(self.transforms)
         t = self.transforms[choice]
         if t is None:
-            return image, anns, mask, meta
-        return t(image, anns, mask, meta)
+            return image, anns, meta
+        return t(image, anns, meta)

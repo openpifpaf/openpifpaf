@@ -15,56 +15,6 @@ import scipy.ndimage
 LOG = logging.getLogger(__name__)
 
 
-# @dataclasses.dataclass
-# class Pan:
-#     # rescaler: AnnRescaler
-#     # # sigmas: list
-#     # v_threshold: int = 0
-#     # visualizer: CifVisualizer = None
-
-#     # side_length: ClassVar[int] = 4
-#     # padding: ClassVar[int] = 10
-
-#     def __call__(self, image, anns, mask, meta):
-#         return PanGenerator(self)(image, anns, mask, meta)
-
-
-# class PanGenerator(object):
-#     def __init__(self, config: Seg):
-#         self.config = config
-
-
-#     def __call__(self, image, anns, mask, meta):
-#         width_height_original = image.shape[2:0:-1]
-#         # masks = []
-#         # for mas in mask:
-#             # masks.append(torch.from_numpy(mas))
-#         # print('encoder')
-#         # print(len(mask))
-#         # mask = scipy.ndimage.zoom(c, 49/385, order=1)
-#         hei_wid = mask[0].shape[0]
-        
-#         # down sample the target
-#         # print(mask[0].sum())
-#         mask_copy = mask.copy()
-#         for i in range(len(mask)):
-#             mask[i] = scipy.ndimage.zoom(mask[i], 49/hei_wid, order=1)
-
-
-#         ## encode the masks
-#         masks = np.zeros((49, 49))    
-#         for i in range(len(mask)):    
-#             masks [mask[i] == 1] = i+1
-
-#         # if np.unique(masks).tolist() == [0.0]:
-#         #     torch.save((image,mask_copy,masks),'image_empt_seg.pt')
-#         # print('output')
-#         # print(masks.shape)
-#         # print(np.count_nonzero(masks == 1))
-#         # masks = np.array(mask)
-#         return torch.from_numpy(masks)
-
-
 
 class PanopticTargetGenerator(object):
     """
@@ -107,7 +57,7 @@ class PanopticTargetGenerator(object):
             raise Exception('Incorrect catId')
 
     # def __call__(self, panoptic, segments):
-    def __call__(self, image, anns, mask, meta):
+    def __call__(self, image, anns, meta):
         """Generates the training target.
         reference: https://github.com/mcordts/cityscapesScripts/blob/master/cityscapesscripts/preparation/createPanopticImgs.py
         reference: https://github.com/facebookresearch/detectron2/blob/master/datasets/prepare_panoptic_fpn.py#L18
@@ -133,11 +83,14 @@ class PanopticTargetGenerator(object):
                     regression 0 is ignore, 1 is has instance. Multiply this mask to loss.
         """
         
-        panoptic = np.zeros((mask[0].shape))
-        for msk in mask:
+        assert len(anns) == 0
+        panoptic = np.zeros((anns[0]['bmask'].shape))
+        for ann in anns:
             # print(msk.shape)
             # print(masks.shape)
-            panoptic += msk
+            ann['bmask'] *= ann['id']
+            panoptic += ann['bmask']
+            # panoptic += ann['category_id'] * ann['bmask']
         
         # panoptic = np.clip(masks, 0, 1)    # build semantic mask of people
         # panoptic = self.rgb2id(panoptic)

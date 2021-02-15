@@ -15,14 +15,14 @@ class Crop(Preprocess):
         self.use_area_of_interest = use_area_of_interest
 
     ### AMA
-    def __call__(self, image, anns, mask, meta):
+    def __call__(self, image, anns, meta):
         meta = copy.deepcopy(meta)
         anns = copy.deepcopy(anns)
-        mask = copy.deepcopy(mask)
+        # anns_inst = copy.deepcopy(anns_inst)
 
         original_valid_area = meta['valid_area'].copy()
 
-        image, anns, mask, ltrb = self.crop(image, anns, mask, meta['valid_area'])
+        image, anns, ltrb = self.crop(image, anns, meta['valid_area'])
         meta['offset'] += ltrb[:2]
 
         new_wh = image.size
@@ -46,7 +46,7 @@ class Crop(Preprocess):
             ann['bbox'][2:] = new_rb - ann['bbox'][:2]
         anns = [ann for ann in anns if ann['bbox'][2] > 0.0 and ann['bbox'][3] > 0.0]
 
-        return image, anns, mask, meta
+        return image, anns, meta
 
     @staticmethod
     def area_of_interest(anns, valid_area, edge_length):
@@ -84,7 +84,7 @@ class Crop(Preprocess):
         return (left, top, right - left, bottom - top)
 
     ### AMA
-    def crop(self, image, anns, mask, valid_area):
+    def crop(self, image, anns, valid_area):
         if self.use_area_of_interest:
             area_of_interest = self.area_of_interest(anns, valid_area, self.long_edge)
         else:
@@ -122,8 +122,8 @@ class Crop(Preprocess):
 
         ### AMA crop masks
 
-        for mask_idx in range(len(mask)):
-            mask[mask_idx] = mask[mask_idx][y_offset:y_offset + new_h, x_offset:x_offset+new_w]
+        # for mask_idx in range(len(mask)):
+        #     mask[mask_idx] = mask[mask_idx][y_offset:y_offset + new_h, x_offset:x_offset+new_w]
 
         # crop keypoints
         for ann in anns:
@@ -132,4 +132,8 @@ class Crop(Preprocess):
             ann['bbox'][0] -= x_offset
             ann['bbox'][1] -= y_offset
 
-        return image, anns, mask, np.array(ltrb)
+            ### AMA crop masks
+
+            ann['bmask'] = ann['bmask'][y_offset:y_offset + new_h, x_offset:x_offset+new_w]
+
+        return image, anns, np.array(ltrb)

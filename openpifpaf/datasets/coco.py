@@ -33,6 +33,7 @@ class Coco(torch.utils.data.Dataset):
 
         self.config = config
         print(self.config)
+        
 
         from pycocotools.coco import COCO  # pylint: disable=import-outside-toplevel
         self.image_dir = image_dir
@@ -41,6 +42,7 @@ class Coco(torch.utils.data.Dataset):
             self.coco_inst = COCO(ann_inst_file)
 
         self.category_ids = category_ids
+        print(self.category_ids)
         self.ann_inst_file = ann_inst_file
 
         if image_filter == 'all':
@@ -53,6 +55,7 @@ class Coco(torch.utils.data.Dataset):
             self.filter_for_keypoint_annotations()
         elif image_filter == 'kp_inst':
             # print(self.category_ids)
+            
 
 
             if self.category_ids == [1]:
@@ -73,6 +76,8 @@ class Coco(torch.utils.data.Dataset):
                 #         self.ids.append(i) 
                 
                 self.ids = list(dict.fromkeys(self.ids))        ## remove duplicate image Ids
+
+            self.filter_for_annotations()
             # print(self.category_ids)
             # print(len(self.ids))
             
@@ -95,6 +100,8 @@ class Coco(torch.utils.data.Dataset):
             # self.filter_for_keypoint_annotations_inst()
         else:
             raise Exception('unknown value for image_filter: {}'.format(image_filter))
+
+        # self.ids = [363469]     # for a debug
 
         if n_images:
             self.ids = self.ids[:n_images]
@@ -141,7 +148,7 @@ class Coco(torch.utils.data.Dataset):
         """removes images that only contain crowd annotations"""
         LOG.info('filter for annotations ...')
         def has_annotation(image_id):
-            ann_ids = self.coco.getAnnIds(imgIds=image_id, catIds=self.category_ids)
+            ann_ids = self.coco.getAnnIds(imgIds=image_id)
             anns = self.coco.loadAnns(ann_ids)
             for ann in anns:
                 if ann.get('iscrowd'):
@@ -195,46 +202,91 @@ class Coco(torch.utils.data.Dataset):
         # print(max_w)
         return weights
 
-    def add_center(self, anns, mask, visiblity=2, id_ball=None):
-        
-        for id_m, msk in enumerate(mask):
-            meshgrid = np.indices(msk.shape)
-            meshgrid[0] *= msk
-            meshgrid[1] *= msk
-            center = (meshgrid[0].sum()/msk.sum(),
-                    meshgrid[1].sum()/msk.sum())
+    # def add_center_person(self, anns_center, visiblity=2):
+                    
+    #     anns_copy = copy.deepcopy(anns_center)
+    #     counter = 0
+    #     for ann in anns_center:
+    #         meshgrid = np.indices(ann['bmask'].shape)
+    #         meshgrid[0] *= ann['bmask']
+    #         meshgrid[1] *= ann['bmask']
+    #         center = (meshgrid[0].sum()/ann['bmask'].sum(),
+    #                 meshgrid[1].sum()/ann['bmask'].sum())
 
-            keypoints = anns[id_m]['keypoints']
-            anns[id_m]['keypoints'].append(int(center[1]))      # add center for y
-            anns[id_m]['keypoints'].append(int(center[0]))      # add center for x
-            anns[id_m]['keypoints'].append(visiblity)
-            # if id_ball is not None:
-            #     anns[id_m]['id_ball'] = id_ball
+            
+    #         counter += 1
+    #         ann['keypoints'].append(int(center[1]))      # add center for y
+    #         counter += 1
+    #         ann['keypoints'].append(int(center[0]))      # add center for x
+    #         counter += 1
+    #         ann['keypoints'].append(visiblity)
+            
+    #     assert counter == len(anns_center) * 3, counter
+    #     for ann in anns_center:
+    #         if len(ann['keypoints']) != 54:
+    #             import pickle
+    #             if not os.path.isfile('add_center.pickle'):
+    #                 with open('add_center.pickle','wb') as f:
+    #                     pickle.dump((anns_center, anns_copy),f)
+    #         assert len(ann['keypoints']) == 54, len(ann['keypoints'])
+
+    #     return anns_center
+    
+    def add_center(self, anns_center, visiblity=2):
+        
+        assert visiblity == 2 or visiblity == 0, visiblity
+        # for ann in anns_center:
+        #     if len(ann['keypoints']) != 51:
+        #         import pickle
+        #         if not os.path.isfile('add_center.pickle'):
+        #             with open('add_center.pickle','wb') as f:
+        #                 pickle.dump(anns_center,f)
+        # counter = 0
+                    
+        # anns_copy = copy.deepcopy(anns_center)
+        for ann_id, ann in enumerate(anns_center):
+            meshgrid = np.indices(anns_center[ann_id]['bmask'].shape)
+            meshgrid[0] *= anns_center[ann_id]['bmask']
+            meshgrid[1] *= anns_center[ann_id]['bmask']
+            center = (meshgrid[0].sum()/anns_center[ann_id]['bmask'].sum(),
+                    meshgrid[1].sum()/anns_center[ann_id]['bmask'].sum())
+
+            # assert isinstance(center[1], float)
+            # assert isinstance(center[0], float)
+
+            # assert len(ann['keypoints']) == 51, len(ann['keypoints'])
+            
+            # keypoints = copy.deepcopy(ann['keypoints'])
+            # counter += 1
+            anns_center[ann_id]['keypoints'].append(int(center[1]))      # add center for y
+            # counter += 1
+            anns_center[ann_id]['keypoints'].append(int(center[0]))      # add center for x
+            # counter += 1
+            anns_center[ann_id]['keypoints'].append(visiblity)
+            
+        # assert counter == len(anns_center) * 3, counter
+        # for ann in anns_center:
+        #     if len(ann['keypoints']) != 54:
+        #         import pickle
+        #         # if not os.path.isfile('add_center.pickle'):
+        #         with open('add_center.pickle','wb') as f:
+        #             pickle.dump((anns_center, anns_copy, image, image_id),f)
+            # assert len(ann['keypoints']) == 54, len(ann['keypoints'])
 
             
 
-        return anns
+        return anns_center
 
-    def empty_person_keypoint(anns_inst, n_keypoints=17, category_id=37):
+    def empty_person_keypoint(self, anns_inst, n_keypoints=17, category_id=37):
         
-        anns = []
-        keypoints = []
-        for _ in range(3*n_keypoints):
-            keypoints.append(0)
         
-        for i in anns_inst:
-            id = i['id']
-            image_id = i['image_id']
-            anns.append({'num_keypoints': 0,
-                'area': 0.,
-                'iscrowd': 0,
-                'keypoints': keypoints,
-                'image_id': image_id,
-                'bbox': [0., 0., 0., 0.],
-                'category_id': category_id,
-                'id': id})
-        
-        return anns
+        for ann in anns_inst:
+            keypoints = []
+            for _ in range(3 * n_keypoints):
+                keypoints.append(0)
+            ann['keypoints'] = keypoints
+
+        return anns_inst
 
 
     def __getitem__(self, index):
@@ -257,64 +309,67 @@ class Coco(torch.utils.data.Dataset):
             flickr_id, _ = flickr_file_name.split('_', maxsplit=1)
             meta['flickr_full_page'] = 'http://flickr.com/photo.gne?id={}'.format(flickr_id)
 
-        anns = []
-        mask = []
+        # anns = []
+        # mask = []
 
         ann_ids = self.coco.getAnnIds(imgIds=image_id)
         anns = self.coco.loadAnns(ann_ids)
+        assert len(anns) != 0, anns
         
 
         # mask = []
 
         if self.ann_inst_file is not None:
-            ann_ids_inst = self.coco_inst.getAnnIds(imgIds=image_id, catIds=[1])
-            anns_inst = self.coco_inst.loadAnns(ann_ids_inst)
+            # ann_ids_inst = self.coco_inst.getAnnIds(imgIds=image_id, catIds=[1])
+            # anns_inst = self.coco_inst.loadAnns(ann_ids_inst)
             
-            for i in anns_inst:
-                ann_mask_id = i['id']
+            for i in anns:
+                # ann_mask_id = i['id']
                 # print(i)
                 # print(ann_mask_id)
-                mask.append(self.coco_inst.annToMask(i) * ann_mask_id)
+                # print(np.max(np.max(self.coco_inst.annToMask(i))))
+                # print(np.max(np.max(self.coco_inst.annToMask(i) * ann_mask_id)))
+                i['bmask'] = self.coco_inst.annToMask(i)
+                # mask.append(self.coco_inst.annToMask(i))
 
-            # print('annsssssssssssssssssssssssss')
-            # print(len(anns))
-            # print(anns)
-            # print('insssssssssssssssssssssssss')
-            # print(anns_inst)
-        #     print(len(anns_inst))
-        # print(anns.shape)
         if self.config == 'cif':
             pass
 
         elif self.config == 'cifcent':
-            anns = self.add_center(anns, mask)
+            anns = self.add_center(anns)
 
         elif self.config == 'cifball':
-            anns = self.add_center(anns, mask, visiblity=0)        # add fake ball keypoint
-            mask_ball = []
+
+            anns = self.add_center(anns, visiblity=0)        # add fake ball keypoint
+
             ann_ids_inst = self.coco_inst.getAnnIds(imgIds=image_id, catIds=[37])
             anns_inst = self.coco_inst.loadAnns(ann_ids_inst)
             for i in anns_inst:
-                ann_mask_id = i['id']
-                mask_ball.append(self.coco_inst.annToMask(i) * ann_mask_id) 
+                # ann_mask_id = i['id']
+                i['bmask'] = self.coco_inst.annToMask(i)
+                # mask_ball.append(self.coco_inst.annToMask(i) * ann_mask_id) 
 
-            anns_ball = self.empty_person_keypoint(anns_inst)     # add fake people
-            anns_ball = self.add_center(anns_ball, mask_ball)        # add ball keypoint
-            anns += anns_ball
-            mask += mask_ball
+            if len(anns_inst) is not 0:
 
+                anns_ball = self.empty_person_keypoint(anns_inst)     # add fake people
+
+                anns_ball = self.add_center(anns_ball)        # add ball keypoint
+
+                anns += anns_ball
+            
         elif self.config == 'cifcentball':
-            anns = self.add_center(anns, mask)
-            anns = self.add_center(anns, mask, visiblity=0)        # add fake ball keypoint
-            mask_ball = []
+            anns = self.add_center(anns)
+            anns = self.add_center(anns, visiblity=0)        # add fake ball keypoint
+            # mask_ball = []
             ann_ids_inst = self.coco_inst.getAnnIds(imgIds=image_id, catIds=[37])
             anns_inst = self.coco_inst.loadAnns(ann_ids_inst)
             for i in anns_inst:
-                ann_mask_id = i['id']
-                mask_ball.append(self.coco_inst.annToMask(i) * ann_mask_id)
+                # ann_mask_id = i['id']
+                i['bmask'] = self.coco_inst.annToMask(i)
+                # mask_ball.append(self.coco_inst.annToMask(i) * ann_mask_id)
 
             anns_ball = self.empty_person_keypoint(anns_inst, n_keypoints=18)     # add fake people
-            anns_ball = self.add_center(anns_ball, mask_ball)        # add ball keypoint
+            anns_ball = self.add_center(anns_ball)        # add ball keypoint
             anns += anns_ball
 
         else:
@@ -326,7 +381,7 @@ class Coco(torch.utils.data.Dataset):
         # anns = self.empty_person_keypoint(mask, image_id)
 
         anns = copy.deepcopy(anns)
-        mask = copy.deepcopy(mask)
+        # anns_inst = copy.deepcopy(anns_inst)
         # anns_inst = copy.deepcopy(anns_inst)
 
         # anns.append(np.squeeze(anns_inst)[0])
@@ -368,7 +423,7 @@ class Coco(torch.utils.data.Dataset):
         # if self.ann_inst_file is not None:
         #     anns = self.add_center(image,anns, mask)
         
-        image, anns, mask, meta = self.preprocess(image, anns, mask, meta)
+        image, anns, meta = self.preprocess(image, anns, meta)
         # print('222')
         # print(len(anns))
         # print(anns[0].shape)
@@ -376,6 +431,7 @@ class Coco(torch.utils.data.Dataset):
         # print(anns)
         # print(meta)
         # mask valid TODO still necessary?
+        # print('after augmentation')
         
         valid_area = meta['valid_area']
         utils.mask_valid_area(image, valid_area)
@@ -396,9 +452,9 @@ class Coco(torch.utils.data.Dataset):
 
         # transform targets
         if self.target_transforms is not None:
-            anns = [t(image, anns, mask, meta) for t in self.target_transforms]
+            anns = [t(image, anns, meta) for t in self.target_transforms]
 
-        
+        # print('after target transforms')
         # hei_wid = mask[0].shape[0]
         # masks = np.zeros((49, 49))
         # # print(mask[0].sum())

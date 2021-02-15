@@ -22,8 +22,8 @@ class Cif:
     side_length: ClassVar[int] = 4      # area around the keypoint to be supervised
     padding: ClassVar[int] = 10
 
-    def __call__(self, image, anns, mask, meta):
-        return CifGenerator(self)(image, anns, mask, meta)
+    def __call__(self, image, anns, meta):
+        return CifGenerator(self)(image, anns, meta)
 
 
 class CifGenerator(object):
@@ -38,7 +38,7 @@ class CifGenerator(object):
         self.sink = create_sink(config.side_length)
         self.s_offset = (config.side_length - 1.0) / 2.0
 
-    def __call__(self, image, anns, mask, meta):
+    def __call__(self, image, anns, meta):
         width_height_original = image.shape[2:0:-1]
 
         # print('777777777777777777777in cif')

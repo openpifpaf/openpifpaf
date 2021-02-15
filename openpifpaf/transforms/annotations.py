@@ -29,7 +29,7 @@ class NormalizeAnnotations(Preprocess):
 
     # def __call__(self, image, anns, meta):
     ### AMA
-    def __call__(self, image, anns, mask, meta):
+    def __call__(self, image, anns, meta):
         # print('in annotations')
         # print(anns)
         anns = self.normalize_annotations(anns)
@@ -54,7 +54,7 @@ class NormalizeAnnotations(Preprocess):
 
         # return image, anns, meta
         ### AMA
-        return image, anns, mask, meta
+        return image, anns, meta
 
 
 class AnnotationJitter(Preprocess):
@@ -63,7 +63,7 @@ class AnnotationJitter(Preprocess):
 
     # def __call__(self, image, anns, meta):
     ### AMA
-    def __call__(self, image, anns, mask, meta):
+    def __call__(self, image, anns, meta):
         meta = copy.deepcopy(meta)
         anns = copy.deepcopy(anns)
 
@@ -75,4 +75,4 @@ class AnnotationJitter(Preprocess):
             sym_rnd_bbox = (torch.rand((4,)).numpy() - 0.5) * 2.0
             ann['bbox'] += 0.5 * self.epsilon * sym_rnd_bbox
 
-        return image, anns, mask, meta
+        return image, anns, meta

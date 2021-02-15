@@ -343,7 +343,8 @@ def train_cocokpinst_factory(args, target_transforms):
     train_loader = torch.utils.data.DataLoader(
         train_data, batch_size=args.batch_size, shuffle=not args.debug,
         pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
-        collate_fn=collate_images_targets_inst_meta)
+        collate_fn=collate_images_targets_inst_meta,
+        timeout=10.)
 
     val_data = Coco(
         image_dir=args.coco_val_image_dir,
