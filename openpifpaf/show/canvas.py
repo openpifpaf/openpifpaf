@@ -40,7 +40,7 @@ class Canvas:
 
     @classmethod
     @contextmanager
-    def blank(cls, fig_file=None, *, dpi=None, nomargin=False, **kwargs):
+    def blank(cls, fig_file=None, *, dpi=None, nomargin=False, return_fig=False, **kwargs):
         if plt is None:
             raise Exception('please install matplotlib')
         if fig_file is None:
@@ -59,7 +59,10 @@ class Canvas:
         else:
             fig, ax = plt.subplots(dpi=dpi, **kwargs)
 
-        yield ax
+        if return_fig:
+            yield fig, ax
+        else:
+            yield ax
 
         fig.set_tight_layout(not nomargin)
         if fig_file:
@@ -71,7 +74,7 @@ class Canvas:
 
     @classmethod
     @contextmanager
-    def image(cls, image, fig_file=None, *, margin=None, **kwargs):
+    def image(cls, image, fig_file=None, *, margin=None, return_fig=False, **kwargs):
         if plt is None:
             raise Exception('please install matplotlib')
         if fig_file is None:
@@ -115,7 +118,10 @@ class Canvas:
         if cls.white_overlay:
             white_screen(ax, cls.white_overlay)
 
-        yield ax
+        if return_fig:
+            yield fig, ax
+        else:
+            yield ax
 
         if fig_file:
             LOG.debug('writing image to %s', fig_file)
