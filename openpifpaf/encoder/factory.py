@@ -43,6 +43,7 @@ def factory(headnets, basenet_stride):
 def factory_head(head_net: network.heads.CompositeField, basenet_stride):
     meta = head_net.meta
     if isinstance(meta, network.heads.PanopticDeeplabMeta):
+        LOG.info('selected encoder PAN')
         return PanopticTargetGenerator(_COCO_PANOPTIC_THING_LIST,
                         sigma=8, ignore_stuff_in_offset=True,
                         small_instance_area=0,

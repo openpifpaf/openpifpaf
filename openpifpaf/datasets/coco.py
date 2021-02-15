@@ -65,11 +65,12 @@ class Coco(torch.utils.data.Dataset):
             elif self.category_ids == [37]:
                 self.ids_ball = self.coco_inst.getImgIds(catIds=self.category_ids)
                 self.ids = self.ids_ball
+                self.filter_for_ball_annotations()
             else:
                 self.ids = self.coco.getImgIds(catIds=self.category_ids[0])
                 # self.ids_inst = self.coco_inst.getImgIds(catIds=self.category_ids[0])
                 self.ids_ball = self.coco_inst.getImgIds(catIds=self.category_ids[1])
-                # self.filter_for_keypoint_annotations()
+                self.filter_for_kp_ball_annotations()
                 self.ids += self.ids_ball
                 # for i in self.ids_ball:
                 #     if i not in self.ids:
@@ -77,7 +78,7 @@ class Coco(torch.utils.data.Dataset):
                 
                 self.ids = list(dict.fromkeys(self.ids))        ## remove duplicate image Ids
 
-            self.filter_for_annotations()
+            # self.filter_for_annotations()
             # print(self.category_ids)
             # print(len(self.ids))
             
@@ -125,6 +126,39 @@ class Coco(torch.utils.data.Dataset):
             return False
 
         self.ids = [image_id for image_id in self.ids if has_keypoint_annotation(image_id)]
+        LOG.info('... done.')
+
+    def filter_for_ball_annotations(self):
+        LOG.info('filter for keypoint annotations ...')
+        def has_ball_annotation(image_id):
+            ann_ids = self.coco_inst.getAnnIds(imgIds=image_id)
+            anns = self.coco_inst.loadAnns(ann_ids)
+            if len(anns) == 0:
+                return False
+            return True
+
+        self.ids = [image_id for image_id in self.ids if has_ball_annotation(image_id)]
+        LOG.info('... done.')
+
+    def filter_for_kp_ball_annotations(self):
+        LOG.info('filter for keypoint annotations ...')
+        def has_keypoint_annotation(image_id):
+            ann_ids = self.coco.getAnnIds(imgIds=image_id)
+            anns = self.coco.loadAnns(ann_ids)
+            for ann in anns:
+                if 'keypoints' not in ann:
+                    continue
+                if any(v > 0.0 for v in ann['keypoints'][2::3]):
+                    return True
+            return False
+        def has_ball_annotation(image_id):
+            ann_ids = self.coco_inst.getAnnIds(imgIds=image_id)
+            anns = self.coco_inst.loadAnns(ann_ids)
+            if len(anns) == 0:
+                return False
+            return True
+
+        self.ids = [image_id for image_id in self.ids if has_keypoint_annotation(image_id) or has_ball_annotation(image_id)]
         LOG.info('... done.')
 
     ###
@@ -422,8 +456,17 @@ class Coco(torch.utils.data.Dataset):
 
         # if self.ann_inst_file is not None:
         #     anns = self.add_center(image,anns, mask)
-        
+        assert len(anns) != 0, len(anns)
+        imag_copy = copy.deepcopy(image)
+        anns_copy = copy.deepcopy(anns)
+        meta_copy = copy.deepcopy(meta)
         image, anns, meta = self.preprocess(image, anns, meta)
+        if len(anns) == 0:
+            import pickle
+            with open('preprocess.pickle','wb') as f:
+                pickle.dump(((image, anns, meta),(imag_copy, anns_copy, meta_copy)),f)
+
+        assert len(anns) == len(anns_copy), str(len(anns)) +' '+ str(len(anns_copy))
         # print('222')
         # print(len(anns))
         # print(anns[0].shape)
