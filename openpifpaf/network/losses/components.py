@@ -41,7 +41,7 @@ class Bce(torch.nn.Module):
             assert hasattr(self, n)
             setattr(self, n, v)
 
-        self.soft_clamp = SoftClamp(5.0)
+        self.soft_clamp = SoftClamp(10.0)
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
