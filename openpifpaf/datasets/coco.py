@@ -456,17 +456,18 @@ class Coco(torch.utils.data.Dataset):
 
         # if self.ann_inst_file is not None:
         #     anns = self.add_center(image,anns, mask)
-        assert len(anns) != 0, len(anns)
-        imag_copy = copy.deepcopy(image)
-        anns_copy = copy.deepcopy(anns)
-        meta_copy = copy.deepcopy(meta)
+        # assert len(anns) != 0, len(anns)
+        # image_copy = copy.deepcopy(image)
+        # anns_copy = copy.deepcopy(anns)
+        # meta_copy = copy.deepcopy(meta)
         image, anns, meta = self.preprocess(image, anns, meta)
-        if len(anns) == 0:
-            import pickle
-            with open('preprocess.pickle','wb') as f:
-                pickle.dump(((image, anns, meta),(imag_copy, anns_copy, meta_copy)),f)
+        # if len(anns) == 0:
+        #     import pickle
+        #     with open('preprocess.pickle','wb') as f:
+        #         pickle.dump(((image, anns, meta),(image_copy, anns_copy, meta_copy)),f)
 
-        assert len(anns) == len(anns_copy), str(len(anns)) +' '+ str(len(anns_copy))
+        # assert len(anns) == len(anns_copy), str(len(anns)) +' '+ str(len(anns_copy))
+
         # print('222')
         # print(len(anns))
         # print(anns[0].shape)

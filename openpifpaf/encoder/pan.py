@@ -83,8 +83,10 @@ class PanopticTargetGenerator(object):
                     regression 0 is ignore, 1 is has instance. Multiply this mask to loss.
         """
         
-        assert len(anns) != 0, len(anns)
-        panoptic = np.zeros((anns[0]['bmask'].shape))
+        # assert len(anns) != 0, len(anns)
+        # print((image[0].shape))
+        panoptic = np.zeros((image[0].shape)) # shape of image
+        # print(panoptic.shape)
         for ann in anns:
             # print(msk.shape)
             # print(masks.shape)
