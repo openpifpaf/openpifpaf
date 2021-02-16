@@ -23,7 +23,7 @@ class DataModule:
     batch_size = 1
 
     #: Data loader number of workers.
-    loader_workers = 0
+    loader_workers = None
 
     #: A list of head metas for this dataset.
     #: Set as instance variable (not class variable) in derived classes
@@ -81,14 +81,20 @@ class DataModule:
         sampler = None
         batch_size = self.batch_size
         loader_workers = self.loader_workers
+
         if torch.distributed.is_initialized():
             world_size = torch.distributed.get_world_size()
             assert batch_size % world_size == 0
             batch_size //= world_size
-            if loader_workers > 0:
-                loader_workers = max(1, loader_workers // world_size)
             sampler = torch.utils.data.DistributedSampler(dataset, shuffle=shuffle, drop_last=True)
             LOG.info('Loading data with distributed sampler.')
+
+        if loader_workers is None:
+            # Do not propose more than 16 loaders. More loaders use more
+            # shared memory. When shared memory is exceeded, all jobs
+            # on that machine crash.
+            loader_workers = min(16, batch_size)
+
         return torch.utils.data.DataLoader(
             dataset, batch_size=batch_size,
             shuffle=shuffle and sampler is None,
