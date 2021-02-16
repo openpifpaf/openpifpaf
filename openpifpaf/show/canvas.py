@@ -16,6 +16,12 @@ LOG = logging.getLogger(__name__)
 
 
 class Canvas:
+    """Canvas for plotting.
+
+    All methods expose Axes objects. To get Figure objects, you can ask the axis
+    `ax.get_figure()`.
+    """
+
     all_images_directory = None
     all_images_count = 0
     show = False
@@ -40,7 +46,7 @@ class Canvas:
 
     @classmethod
     @contextmanager
-    def blank(cls, fig_file=None, *, dpi=None, nomargin=False, return_fig=False, **kwargs):
+    def blank(cls, fig_file=None, *, dpi=None, nomargin=False, **kwargs):
         if plt is None:
             raise Exception('please install matplotlib')
         if fig_file is None:
@@ -59,10 +65,7 @@ class Canvas:
         else:
             fig, ax = plt.subplots(dpi=dpi, **kwargs)
 
-        if return_fig:
-            yield fig, ax
-        else:
-            yield ax
+        yield ax
 
         fig.set_tight_layout(not nomargin)
         if fig_file:
@@ -74,7 +77,7 @@ class Canvas:
 
     @classmethod
     @contextmanager
-    def image(cls, image, fig_file=None, *, margin=None, return_fig=False, **kwargs):
+    def image(cls, image, fig_file=None, *, margin=None, **kwargs):
         if plt is None:
             raise Exception('please install matplotlib')
         if fig_file is None:
@@ -118,10 +121,7 @@ class Canvas:
         if cls.white_overlay:
             white_screen(ax, cls.white_overlay)
 
-        if return_fig:
-            yield fig, ax
-        else:
-            yield ax
+        yield ax
 
         if fig_file:
             LOG.debug('writing image to %s', fig_file)
