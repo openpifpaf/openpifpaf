@@ -3,6 +3,7 @@ import torch
 from .coco import Coco
 from .keemotion import Keemotion
 from .deepsport import DeepSportBalls
+from .deepsport import build_DeepSportBall_datasets
 from .collate import collate_images_targets_meta
 from .collate import collate_images_targets_inst_meta
 from .constants import COCO_KEYPOINTS, HFLIP, COCO_CATEGORIES
@@ -194,14 +195,13 @@ def train_cocokpinst_preprocess_factory(
     ])
 
 
-
 def train_deepsport_factory(args, target_transforms):
     if args.loader_workers is None:
-        args.loader_workers = args.batch_size
+        args.loader_workers = 0
 
     train_data, val_data = build_DeepSportBall_datasets(
         pickled_dataset_filename=args.deepsport_pickled_dataset,
-        validation_set_size_pc=15)
+        validation_set_size_pc=15, square_edge=args.square_edge)
 
     train_loader = torch.utils.data.DataLoader(
         train_data, batch_size=args.batch_size, shuffle=not args.debug,
@@ -433,6 +433,8 @@ def train_keemotion_factory(args, target_transforms):
 
 
 def train_factory(args, target_transforms):
+    if args.dataset in ('deepsport'):
+        return train_deepsport_factory(args, target_transforms)
     if args.dataset in ('cocokpinst'):
         return train_cocokpinst_factory(args, target_transforms)
     if args.dataset in ('cocokp',):
