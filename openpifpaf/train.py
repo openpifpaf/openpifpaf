@@ -49,7 +49,7 @@ def cli():
     parser.add_argument('--version', action='version',
                         version='OpenPifPaf {version}'.format(version=__version__))
     parser.add_argument('--ddp', default=False, action='store_true')
-    parser.add_argument('--local-rank', type=int)
+    parser.add_argument('--local_rank', type=int)
 
     logger.cli(parser)
     network.Factory.cli(parser)
@@ -107,13 +107,15 @@ def main():
     if not args.ddp:
         net = net_cpu.to(device=args.device)
         if not args.disable_cuda and torch.cuda.device_count() > 1:
-            print('Using multiple GPUs: {}'.format(torch.cuda.device_count()))
+            LOG.info('Using multiple GPUs: %d', torch.cuda.device_count())
             net = torch.nn.DataParallel(net)
         loss = loss.to(device=args.device)
     else:
         assert torch.cuda.device_count() > 0
+        torch.cuda.set_device(args.local_rank)
         torch.distributed.init_process_group(backend='NCCL', init_method='env://')
-        net = torch.nn.parallel.DistributedDataParallel(net_cpu,
+        LOG.info('DDP: rank %d, world %d', torch.distributed.get_rank(), torch.distributed.get_world_size())
+        net = torch.nn.parallel.DistributedDataParallel(net_cpu.to(device=args.device),
                                                         device_ids=[args.local_rank],
                                                         output_device=args.local_rank)
 

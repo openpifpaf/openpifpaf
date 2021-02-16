@@ -1,9 +1,13 @@
 import argparse
+import logging
 from typing import List
 
 import torch
 
+from .collate import collate_images_targets_meta
 from .. import headmeta, metric
+
+LOG = logging.getLogger(__name__)
 
 
 class DataModule:
@@ -72,3 +76,21 @@ class DataModule:
         what the output of the decoder is expected to be.
         """
         raise NotImplementedError
+
+    def target_dataloader(self, dataset, *, shuffle=False, pin_memory=False):
+        sampler = None
+        batch_size = self.batch_size
+        if torch.distributed.is_initialized():
+            assert batch_size % torch.distributed.get_world_size() == 0
+            batch_size //= torch.distributed.get_world_size()
+            sampler = torch.utils.data.DistributedSampler(dataset, shuffle=shuffle, drop_last=True)
+            LOG.info('Loading data with distributed sampler.')
+        return torch.utils.data.DataLoader(
+            dataset, batch_size=batch_size,
+            shuffle=shuffle and sampler is None,
+            pin_memory=pin_memory,
+            num_workers=self.loader_workers,
+            drop_last=True,
+            sampler=sampler,
+            collate_fn=collate_images_targets_meta,
+        )
