@@ -43,22 +43,6 @@ class Shell(torch.nn.Module):
         return head_outputs
 
 
-class ModelWithLoss(torch.nn.Module):
-    def __init__(self, net, loss):
-        super().__init__()
-        self.net = net
-        self.loss = loss
-
-    def forward(self, *args):
-        x = args[0]
-        t = args[1]
-
-        o = self.net(x)
-        l = self.loss(o, t)
-
-        return l
-
-
 class CrossTalk(torch.nn.Module):
     def __init__(self, strength=0.2):
         super().__init__()
