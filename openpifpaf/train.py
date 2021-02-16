@@ -48,6 +48,8 @@ def cli():
     )
     parser.add_argument('--version', action='version',
                         version='OpenPifPaf {version}'.format(version=__version__))
+    parser.add_argument('--ddp', default=False, action='store_true')
+    parser.add_argument('--local-rank', type=int)
 
     logger.cli(parser)
     network.Factory.cli(parser)
@@ -100,21 +102,28 @@ def main():
     datamodule = datasets.factory(args.dataset)
 
     net_cpu, start_epoch = network.Factory().factory(head_metas=datamodule.head_metas)
-    net = net_cpu.to(device=args.device)
-    if not args.disable_cuda and torch.cuda.device_count() > 1:
-        print('Using multiple GPUs: {}'.format(torch.cuda.device_count()))
-        net = torch.nn.DataParallel(net)
-
     loss = network.losses.Factory().factory(net_cpu.head_nets)
-    loss = loss.to(device=args.device)
+    model_cpu = network.ModelWithLoss(net_cpu, loss)
+
+    if not args.ddp:
+        model = model_cpu.to(device=args.device)
+        if not args.disable_cuda and torch.cuda.device_count() > 1:
+            print('Using multiple GPUs: {}'.format(torch.cuda.device_count()))
+            model = torch.nn.DataParallel(model)
+    else:
+        assert torch.cuda.device_count() > 0
+        torch.distributed.init_process_group(backend='NCCL', init_method='env://')
+        model = torch.nn.parallel.DistributedDataParallel(model_cpu,
+                                                          device_ids=[args.local_rank],
+                                                          output_device=args.local_rank)
+
     train_loader = datamodule.train_loader()
     val_loader = datamodule.val_loader()
 
-    optimizer = optimize.factory_optimizer(
-        args, list(net.parameters()) + list(loss.parameters()))
+    optimizer = optimize.factory_optimizer(args, model.parameters())
     lr_scheduler = optimize.factory_lrscheduler(args, optimizer, len(train_loader))
     trainer = network.Trainer(
-        net, loss, optimizer, args.output,
+        model, optimizer, args.output,
         lr_scheduler=lr_scheduler,
         device=args.device,
         model_meta_data={

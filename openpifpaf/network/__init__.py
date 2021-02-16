@@ -3,6 +3,6 @@
 from .basenetworks import BaseNetwork
 from .factory import Factory, local_checkpoint_path
 from .heads import HeadNetwork
-from .nets import Shell
+from .nets import Shell, ModelWithLoss
 from .trainer import Trainer
 from . import losses
