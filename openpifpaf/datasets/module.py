@@ -80,16 +80,20 @@ class DataModule:
     def target_dataloader(self, dataset, *, shuffle=False, pin_memory=False):
         sampler = None
         batch_size = self.batch_size
+        loader_workers = self.loader_workers
         if torch.distributed.is_initialized():
-            assert batch_size % torch.distributed.get_world_size() == 0
-            batch_size //= torch.distributed.get_world_size()
+            world_size = torch.distributed.get_world_size()
+            assert batch_size % world_size == 0
+            batch_size //= world_size
+            if loader_workers > 0:
+                loader_workers = max(1, loader_workers // world_size)
             sampler = torch.utils.data.DistributedSampler(dataset, shuffle=shuffle, drop_last=True)
             LOG.info('Loading data with distributed sampler.')
         return torch.utils.data.DataLoader(
             dataset, batch_size=batch_size,
             shuffle=shuffle and sampler is None,
             pin_memory=pin_memory,
-            num_workers=self.loader_workers,
+            num_workers=loader_workers,
             drop_last=True,
             sampler=sampler,
             collate_fn=collate_images_targets_meta,
