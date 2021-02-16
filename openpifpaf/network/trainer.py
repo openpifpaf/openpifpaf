@@ -359,6 +359,9 @@ class Trainer():
         if isinstance(self.model, torch.nn.DataParallel):
             LOG.debug('Writing a dataparallel model.')
             model = self.model.module
+        elif isinstance(self.model, torch.nn.parallel.DistributedDataParallel):
+            LOG.debug('Writing a distributeddataparallel model.')
+            model = self.model.module
         else:
             LOG.debug('Writing a single-thread model.')
             model = self.model
