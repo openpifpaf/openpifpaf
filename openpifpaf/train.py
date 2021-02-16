@@ -81,7 +81,7 @@ def cli():
         args.output = default_output_file(args)
         os.makedirs('outputs', exist_ok=True)
 
-    logger.train_configure(args, LOG)
+    logger.configure(args, LOG)
     if args.log_stats:
         logging.getLogger('openpifpaf.stats').setLevel(logging.DEBUG)
 
@@ -119,6 +119,7 @@ def main():
                                                         device_ids=[args.local_rank],
                                                         output_device=args.local_rank)
 
+    logger.train_configure(args)
     train_loader = datamodule.train_loader()
     val_loader = datamodule.val_loader()
 

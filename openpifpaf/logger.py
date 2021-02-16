@@ -3,6 +3,8 @@ import logging
 import socket
 import sys
 
+import torch
+
 LOG = logging.getLogger(__name__)
 
 
@@ -45,7 +47,10 @@ def configure(args: argparse.Namespace, local_logger=None):
         local_logger.setLevel(log_level)
 
 
-def train_configure(args, local_logger=None):
+def train_configure(args):
+    if torch.distributed.is_initialized() and torch.distributed.get_rank() != 0:
+        return
+
     # pylint: disable=import-outside-toplevel,cyclic-import
     from pythonjsonlogger import jsonlogger
     from . import __version__
@@ -54,10 +59,7 @@ def train_configure(args, local_logger=None):
     file_handler = logging.FileHandler(args.output + '.log', mode='w')
     file_handler.setFormatter(
         jsonlogger.JsonFormatter('%(message) %(levelname) %(name) %(asctime)'))
-    stdout_handler = logging.StreamHandler(sys.stdout)
-    logging.basicConfig(handlers=[stdout_handler, file_handler])
-
-    configure(args, local_logger)
+    logging.getLogger('openpifpaf').addHandler(file_handler)
 
     LOG.info({
         'type': 'process',
