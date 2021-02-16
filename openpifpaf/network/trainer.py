@@ -182,6 +182,7 @@ class Trainer(object):
             #     with open('in_enumerate.pickle','wb') as f:
             #         pickle.dump((data, target),f)
             preprocess_time = time.time() - last_batch_end
+            
 
             batch_start = time.time()
             apply_gradients = batch_idx % self.stride_apply == 0

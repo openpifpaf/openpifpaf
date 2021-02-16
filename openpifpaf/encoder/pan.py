@@ -90,9 +90,10 @@ class PanopticTargetGenerator(object):
         for ann in anns:
             # print(msk.shape)
             # print(masks.shape)
-            ann['bmask'] *= ann['id']
-            panoptic += ann['bmask']
+            # ann['bmask'] *= ann['id']
+            panoptic += ann['bmask'] * ann['id']
             # panoptic += ann['category_id'] * ann['bmask']
+
         
         # panoptic = np.clip(masks, 0, 1)    # build semantic mask of people
         # panoptic = self.rgb2id(panoptic)
@@ -124,6 +125,8 @@ class PanopticTargetGenerator(object):
                         semantic[panoptic == seg['id']] = seman_id
                 else:
                     semantic[panoptic == seg['id']] = seman_id
+
+                
                 # if cat_id in self.thing_list:
                 #     foreground[panoptic == cat_id] = 1
                 if not seg['iscrowd']:
@@ -149,7 +152,7 @@ class PanopticTargetGenerator(object):
                         semantic_weights[panoptic == seg["id"]] = self.small_instance_weight
 
                     center_y, center_x = np.mean(mask_index[0]), np.mean(mask_index[1])
-                    center_pts.append([center_y, center_x])
+                    # center_pts.append([center_y, center_x])
 
                     # generate center heatmap
                     y, x = int(center_y), int(center_x)
@@ -176,8 +179,6 @@ class PanopticTargetGenerator(object):
                     offset_x_index = (np.ones_like(mask_index[0]), mask_index[0], mask_index[1])
                     offset[offset_y_index] = center_y - y_coord[mask_index]
                     offset[offset_x_index] = center_x - x_coord[mask_index]
-
-        # semantic = torch.cat([foreground, semantic])
 
         return dict(
             semantic=torch.as_tensor(semantic.astype('long')),
