@@ -45,6 +45,7 @@ class Shell(torch.nn.Module):
 
 class ModelWithLoss(torch.nn.Module):
     def __init__(self, net, loss):
+        super().__init__()
         self.net = net
         self.loss = loss
 

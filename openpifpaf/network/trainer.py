@@ -27,11 +27,12 @@ class Trainer():
     ema_decay = 0.01
     train_profile = None
 
-    def __init__(self, model, optimizer, out, *,
+    def __init__(self, model, loss, optimizer, out, *,
                  lr_scheduler=None,
                  device=None,
                  model_meta_data=None):
         self.model = model
+        self.loss = loss
         self.optimizer = optimizer
         self.out = out
         self.lr_scheduler = lr_scheduler
@@ -64,7 +65,7 @@ class Trainer():
 
         LOG.info({
             'type': 'config',
-            'field_names': self.model.loss.field_names,
+            'field_names': self.loss.field_names,
         })
 
     @classmethod
@@ -170,8 +171,10 @@ class Trainer():
                        for head in targets]
 
         # train encoder
-        with torch.autograd.profiler.record_function('model_and_loss'):
-            loss, head_losses = self.model(data, targets)
+        with torch.autograd.profiler.record_function('model'):
+            outputs = self.model(data)
+        with torch.autograd.profiler.record_function('loss'):
+            loss, head_losses = self.loss(outputs, targets)
         if loss is not None:
             with torch.autograd.profiler.record_function('backward'):
                 loss.backward()
@@ -205,7 +208,8 @@ class Trainer():
                        for head in targets]
 
         with torch.no_grad():
-            loss, head_losses = self.model(data, targets)
+            outputs = self.model(data)
+            loss, head_losses = self.loss(outputs, targets)
 
         return (
             float(loss.item()) if loss is not None else None,
@@ -266,8 +270,8 @@ class Trainer():
                     'head_losses': [round(l, 3) if l is not None else None
                                     for l in head_losses],
                 }
-                if hasattr(self.model.loss, 'batch_meta'):
-                    batch_info.update(self.model.loss.batch_meta())
+                if hasattr(self.loss, 'batch_meta'):
+                    batch_info.update(self.loss.batch_meta())
                 LOG.info(batch_info)
 
             # initialize ema
@@ -347,10 +351,10 @@ class Trainer():
 
         if isinstance(self.model, torch.nn.DataParallel):
             LOG.debug('Writing a dataparallel model.')
-            model = self.model.module.net
+            model = self.model.module
         else:
             LOG.debug('Writing a single-thread model.')
-            model = self.model.net
+            model = self.model
 
         filename = '{}.epoch{:03d}'.format(self.out, epoch)
         LOG.debug('about to write model')

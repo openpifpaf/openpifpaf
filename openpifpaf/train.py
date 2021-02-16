@@ -103,27 +103,28 @@ def main():
 
     net_cpu, start_epoch = network.Factory().factory(head_metas=datamodule.head_metas)
     loss = network.losses.Factory().factory(net_cpu.head_nets)
-    model_cpu = network.ModelWithLoss(net_cpu, loss)
 
     if not args.ddp:
-        model = model_cpu.to(device=args.device)
+        net = net_cpu.to(device=args.device)
         if not args.disable_cuda and torch.cuda.device_count() > 1:
             print('Using multiple GPUs: {}'.format(torch.cuda.device_count()))
-            model = torch.nn.DataParallel(model)
+            net = torch.nn.DataParallel(net)
+        loss = loss.to(device=args.device)
     else:
         assert torch.cuda.device_count() > 0
         torch.distributed.init_process_group(backend='NCCL', init_method='env://')
-        model = torch.nn.parallel.DistributedDataParallel(model_cpu,
-                                                          device_ids=[args.local_rank],
-                                                          output_device=args.local_rank)
+        net = torch.nn.parallel.DistributedDataParallel(net_cpu,
+                                                        device_ids=[args.local_rank],
+                                                        output_device=args.local_rank)
 
     train_loader = datamodule.train_loader()
     val_loader = datamodule.val_loader()
 
-    optimizer = optimize.factory_optimizer(args, model.parameters())
+    optimizer = optimize.factory_optimizer(
+        args, list(net.parameters()) + list(loss.parameters()))
     lr_scheduler = optimize.factory_lrscheduler(args, optimizer, len(train_loader))
     trainer = network.Trainer(
-        model, optimizer, args.output,
+        net, loss, optimizer, args.output,
         lr_scheduler=lr_scheduler,
         device=args.device,
         model_meta_data={
