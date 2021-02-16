@@ -141,7 +141,7 @@ class Trainer():
             p.data.copy_(ema_p)
         self.ema_restore_params = None
 
-    def loop(self, train_scenes, val_scenes, start_epoch=0):
+    def loop(self, train_scenes: torch.utils.data.DataLoader, val_scenes: torch.utils.data.DataLoader, start_epoch=0):
         if start_epoch >= self.epochs:
             raise Exception('start epoch ({}) >= total epochs ({})'
                             ''.format(start_epoch, self.epochs))
@@ -155,6 +155,13 @@ class Trainer():
         for epoch in range(start_epoch, self.epochs):
             if epoch == 0:
                 self.write_model(0, final=False)
+
+            # The DistributedSampler needs to have the epoch set so that
+            # the shuffle order changes from epoch to epoch.
+            if hasattr(train_scenes.sampler, 'set_epoch'):
+                train_scenes.sampler.set_epoch(epoch)
+            if hasattr(val_scenes.sampler, 'set_epoch'):
+                val_scenes.sampler.set_epoch(epoch)
 
             self.train(train_scenes, epoch)
 
