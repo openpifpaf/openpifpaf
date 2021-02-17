@@ -115,6 +115,7 @@ def main():
         torch.cuda.set_device(args.local_rank)
         torch.distributed.init_process_group(backend='NCCL', init_method='env://')
         LOG.info('DDP: rank %d, world %d', torch.distributed.get_rank(), torch.distributed.get_world_size())
+        net_cpu = torch.nn.SyncBatchNorm.convert_sync_batchnorm(net_cpu)
         net = torch.nn.parallel.DistributedDataParallel(net_cpu.to(device=args.device),
                                                         device_ids=[args.local_rank],
                                                         output_device=args.local_rank)
