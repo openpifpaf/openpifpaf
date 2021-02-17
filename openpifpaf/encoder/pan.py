@@ -118,6 +118,8 @@ class PanopticTargetGenerator(object):
         offset_weights = np.zeros_like(panoptic, dtype=np.uint8)
         for seg in anns:
             cat_id = seg["category_id"]
+            
+
             if cat_id in self.thing_list:           # decide if consider ball or not
                 seman_id = self.catId2semanId(cat_id)
                 if self.ignore_crowd_in_semantic:
@@ -179,6 +181,7 @@ class PanopticTargetGenerator(object):
                     offset_x_index = (np.ones_like(mask_index[0]), mask_index[0], mask_index[1])
                     offset[offset_y_index] = center_y - y_coord[mask_index]
                     offset[offset_x_index] = center_x - x_coord[mask_index]
+            
 
         return dict(
             semantic=torch.as_tensor(semantic.astype('long')),

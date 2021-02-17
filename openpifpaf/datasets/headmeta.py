@@ -14,10 +14,14 @@ def factory(head_names):
     if head_names is None:
         return None
 
-    return [factory_single(hn) for hn in head_names]
+    num_sem_classes = 2
+    if 'cifball' in head_names or 'cifcentball' in head_names:      # handle num classes in panoptic head
+        num_sem_classes = 3
+
+    return [factory_single(hn, num_sem_classes=num_sem_classes) for hn in head_names]
 
 
-def factory_single(head_name):
+def factory_single(head_name, num_sem_classes=None):
     if 'cifdet' in head_name:
         return DetectionMeta(head_name, COCO_CATEGORIES)
 
@@ -93,7 +97,8 @@ def factory_single(head_name):
     if 'pan' in head_name:
         return PanopticDeeplabMeta(head_name,
                                    COCO_KEYPOINTS,
-                                   COCO_PERSON_SKELETON)
+                                   COCO_PERSON_SKELETON,
+                                   num_classes=(num_sem_classes, 2))
 
 
     raise NotImplementedError

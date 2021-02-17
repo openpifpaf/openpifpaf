@@ -192,7 +192,7 @@ class MultiHeadLoss(torch.nn.Module):
         self.lambdas = lambdas
 
         self.field_names = [n for l in self.losses for n in l.field_names]
-        print('1111111111111111111')
+        
         print('multihead loss: %s, %s', self.field_names, self.lambdas)
         LOG.info('multihead loss: %s, %s', self.field_names, self.lambdas)
 
@@ -949,14 +949,7 @@ class PanopticLoss(torch.nn.Module):
                 offset_loss = offset_loss.sum() * 0
             # self.loss_meter_dict['Offset loss'].update(offset_loss.detach().cpu().item(), batch_size)
             # loss += offset_loss
-        # semantic_loss = self.semantic_loss(logits['semantic'], 
-        #                                     labels['semantic'],
-        #                                     weights=labels['semantic_weights'])
         
-        # offset_loss = self.offset_loss(logits['offset'],
-        #                                     labels['offset'],
-        #                                     weights=labels['offset_weights'])
-
         return [semantic_loss] + [offset_loss]
 
 def cli(parser):

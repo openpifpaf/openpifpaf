@@ -188,6 +188,8 @@ def main():
 
     for batch_i, (image_tensors_batch, _, meta_batch) in enumerate(data_loader):
         pred_batch = processor.batch(model, image_tensors_batch, device=args.device)
+        print(pred_batch)
+        raise
 
         # unbatch
         for pred, meta in zip(pred_batch, meta_batch):

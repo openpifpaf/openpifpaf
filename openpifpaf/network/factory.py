@@ -320,13 +320,11 @@ def resnet_factory_from_scratch(basename, base_vision, out_features, head_metas)
 
     headnets = [heads.CompositeFieldFused(head_metas[0], basenet.out_features)]
 
-    # h = heads.SegmentationMeta('seg', ['person'])
+
     # #### AMA
     if len(head_metas) > 1 and isinstance(head_metas[1], heads.SegmentationMeta):
         headnets.append(heads.InstanceSegHead(head_metas[1], basenet.out_features))
-        # print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Hey Segmentation')
-    # print('hereeeeeeeeeeeeeee')
-    # print(headnets)
+
 
 
     if panoptic:  # Integrate a panoptic-deeplab decoder
