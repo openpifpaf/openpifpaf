@@ -201,6 +201,11 @@ class Trainer():
             with torch.autograd.profiler.record_function('ema'):
                 self.step_ema()
 
+        with torch.no_grad():
+            if loss is not None and torch.distributed.is_initialized():
+                # average loss from all processes
+                torch.distributed.reduce(loss, 0)
+                loss = loss / torch.distributed.get_world_size()
         return (
             float(loss.item()) if loss is not None else None,
             [float(l.item()) if l is not None else None
@@ -217,6 +222,10 @@ class Trainer():
         with torch.no_grad():
             outputs = self.model(data)
             loss, head_losses = self.loss(outputs, targets)
+            if loss is not None and torch.distributed.is_initialized():
+                # average loss from all processes
+                torch.distributed.reduce(loss, 0)
+                loss = loss / torch.distributed.get_world_size()
 
         return (
             float(loss.item()) if loss is not None else None,
