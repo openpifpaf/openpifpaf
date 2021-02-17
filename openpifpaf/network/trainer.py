@@ -206,8 +206,8 @@ class Trainer():
                 self.step_ema()
 
         with torch.no_grad():
-            self.reduce_loss(loss)
-            self.reduce_loss(head_losses)
+            loss = self.reduce_loss(loss)
+            head_losses = self.reduce_loss(head_losses)
 
         return (
             float(loss.item()) if loss is not None else None,
@@ -241,8 +241,8 @@ class Trainer():
         with torch.no_grad():
             outputs = self.model(data)
             loss, head_losses = self.loss(outputs, targets)
-            self.reduce_loss(loss)
-            self.reduce_loss(head_losses)
+            loss = self.reduce_loss(loss)
+            head_losses = self.reduce_loss(head_losses)
 
         return (
             float(loss.item()) if loss is not None else None,
