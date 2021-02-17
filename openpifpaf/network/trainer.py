@@ -205,7 +205,8 @@ class Trainer():
             if loss is not None and torch.distributed.is_initialized():
                 # average loss from all processes
                 torch.distributed.reduce(loss, 0)
-                loss = loss / torch.distributed.get_world_size()
+                if torch.distributed.get_rank() == 0:
+                    loss = loss / torch.distributed.get_world_size()
         return (
             float(loss.item()) if loss is not None else None,
             [float(l.item()) if l is not None else None
@@ -225,7 +226,8 @@ class Trainer():
             if loss is not None and torch.distributed.is_initialized():
                 # average loss from all processes
                 torch.distributed.reduce(loss, 0)
-                loss = loss / torch.distributed.get_world_size()
+                if torch.distributed.get_rank() == 0:
+                    loss = loss / torch.distributed.get_world_size()
 
         return (
             float(loss.item()) if loss is not None else None,
