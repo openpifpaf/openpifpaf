@@ -206,16 +206,30 @@ class Trainer():
                 self.step_ema()
 
         with torch.no_grad():
-            if loss is not None and torch.distributed.is_initialized():
-                # average loss from all processes
-                torch.distributed.reduce(loss, 0)
-                if torch.distributed.get_rank() == 0:
-                    loss = loss / torch.distributed.get_world_size()
+            self.reduce_loss(loss)
+            self.reduce_loss(head_losses)
+
         return (
             float(loss.item()) if loss is not None else None,
             [float(l.item()) if l is not None else None
              for l in head_losses],
         )
+
+    @classmethod
+    def reduce_loss(cls, loss):
+        if loss is None:
+            return loss
+        if not torch.distributed.is_initialized():
+            return loss
+
+        if isinstance(loss, (list, tuple)):
+            return [cls.reduce_loss(l) for l in loss]
+
+        # average loss from all processes
+        torch.distributed.reduce(loss, 0)
+        if torch.distributed.get_rank() == 0:
+            loss = loss / torch.distributed.get_world_size()
+        return loss
 
     def val_batch(self, data, targets):
         if self.device:
@@ -227,11 +241,8 @@ class Trainer():
         with torch.no_grad():
             outputs = self.model(data)
             loss, head_losses = self.loss(outputs, targets)
-            if loss is not None and torch.distributed.is_initialized():
-                # average loss from all processes
-                torch.distributed.reduce(loss, 0)
-                if torch.distributed.get_rank() == 0:
-                    loss = loss / torch.distributed.get_world_size()
+            self.reduce_loss(loss)
+            self.reduce_loss(head_losses)
 
         return (
             float(loss.item()) if loss is not None else None,
