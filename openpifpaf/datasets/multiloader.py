@@ -1,6 +1,8 @@
 import logging
+from typing import List
 
 import numpy as np
+import torch
 
 LOG = logging.getLogger(__name__)
 
@@ -9,7 +11,7 @@ class MultiLoader:
     last_task_index = None
     weights = None
 
-    def __init__(self, loaders, n_heads, *, n_batches=None):
+    def __init__(self, loaders: List[torch.utils.data.DataLoader], n_heads: int, *, n_batches=None):
         self.loaders = loaders
         self.n_heads = n_heads
         self._weights = self.weights
@@ -55,3 +57,9 @@ class MultiLoader:
 
     def __len__(self):
         return self.n_batches
+
+    def set_epoch(self, epoch):
+        for loader in self.loaders:
+            if not hasattr(loader.sampler, 'set_epoch'):
+                continue
+            loader.sampler.set_epoch(epoch)

@@ -158,9 +158,13 @@ class Trainer():
 
             # The DistributedSampler needs to have the epoch set so that
             # the shuffle order changes from epoch to epoch.
-            if hasattr(train_scenes.sampler, 'set_epoch'):
+            if hasattr(train_scenes, 'set_epoch'):
+                train_scenes.set_epoch(epoch)
+            elif hasattr(train_scenes.sampler, 'set_epoch'):
                 train_scenes.sampler.set_epoch(epoch)
-            if hasattr(val_scenes.sampler, 'set_epoch'):
+            if hasattr(val_scenes, 'set_epoch'):
+                val_scenes.set_epoch(epoch)
+            elif hasattr(val_scenes.sampler, 'set_epoch'):
                 val_scenes.sampler.set_epoch(epoch)
 
             self.train(train_scenes, epoch)
