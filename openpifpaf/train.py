@@ -120,7 +120,6 @@ def main():
         if not args.disable_cuda and torch.cuda.device_count() > 1:
             LOG.info('Using multiple GPUs: %d', torch.cuda.device_count())
             net = torch.nn.DataParallel(net)
-        loss = loss.to(device=args.device)
     else:
         assert torch.cuda.device_count() > 0
         torch.cuda.set_device(args.local_rank)
@@ -131,6 +130,7 @@ def main():
         net = torch.nn.parallel.DistributedDataParallel(net_cpu.to(device=args.device),
                                                         device_ids=[args.local_rank],
                                                         output_device=args.local_rank)
+    loss = loss.to(device=args.device)
 
     logger.train_configure(args)
     train_loader = datamodule.train_loader()
