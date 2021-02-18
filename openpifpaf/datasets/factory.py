@@ -32,7 +32,7 @@ def cli(parser):
 
 
 def configure(args):
-    DataModule._loader_workers = args.loader_workers if not args.debug else 0
+    DataModule.set_loader_workers(args.loader_workers if not args.debug else 0)
     DataModule.batch_size = args.batch_size
     MultiLoader.weights = args.dataset_weights
 

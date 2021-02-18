@@ -33,6 +33,10 @@ class DataModule:
     #: name and dataset to entries in the checkpoint and overwritten here.
     head_metas: List[headmeta.Base] = None
 
+    @classmethod
+    def set_loader_workers(cls, value):
+        cls._loader_workers = value
+
     @property
     def loader_workers(self):
         if self._loader_workers is not None:
