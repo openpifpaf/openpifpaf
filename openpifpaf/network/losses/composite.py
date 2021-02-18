@@ -94,10 +94,6 @@ class CompositeLoss(torch.nn.Module):
         reg_losses = []
         for i in range(self.n_vectors):
             reg_masks = torch.isnan(t_regs[:, :, i * 2]).bitwise_not_()
-            if not torch.any(reg_masks):
-                reg_losses.append(None)
-                continue
-
             loss = self.regression_loss(
                 torch.masked_select(x_regs[:, :, i * 2 + 0], reg_masks),
                 torch.masked_select(x_regs[:, :, i * 2 + 1], reg_masks),

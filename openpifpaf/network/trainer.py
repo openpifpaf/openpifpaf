@@ -141,7 +141,38 @@ class Trainer():
             p.data.copy_(ema_p)
         self.ema_restore_params = None
 
-    def loop(self, train_scenes, val_scenes, start_epoch=0):
+    @staticmethod
+    def ensure_distributed_sampler(loader: torch.utils.data.DataLoader, epoch):
+        # The DistributedSampler needs to have the epoch set so that
+        # the shuffle order changes from epoch to epoch.
+
+        if not torch.distributed.is_initialized():
+            return loader
+
+        current_sampler = loader.sampler
+        if isinstance(current_sampler, torch.utils.data.DistributedSampler):
+            current_sampler.set_epoch(epoch)
+            return loader
+
+        LOG.info('Replacing sampler of %s with DistributedSampler.', loader)
+        distributed_sampler = torch.utils.data.DistributedSampler(
+            loader.dataset, shuffle=True, drop_last=True)
+        distributed_sampler.set_epoch(epoch)
+
+        return torch.utils.data.DataLoader(
+            loader.dataset,
+            batch_size=loader.batch_size,
+            shuffle=False,
+            sampler=distributed_sampler,
+            pin_memory=loader.pin_memory,
+            num_workers=loader.num_workers,
+            collate_fn=loader.collate_fn,
+        )
+
+    def loop(self,
+             train_scenes: torch.utils.data.DataLoader,
+             val_scenes: torch.utils.data.DataLoader,
+             start_epoch=0):
         if start_epoch >= self.epochs:
             raise Exception('start epoch ({}) >= total epochs ({})'
                             ''.format(start_epoch, self.epochs))
@@ -155,6 +186,8 @@ class Trainer():
         for epoch in range(start_epoch, self.epochs):
             if epoch == 0:
                 self.write_model(0, final=False)
+            train_scenes = self.ensure_distributed_sampler(train_scenes, epoch)
+            val_scenes = self.ensure_distributed_sampler(val_scenes, epoch)
 
             self.train(train_scenes, epoch)
 
@@ -194,11 +227,31 @@ class Trainer():
             with torch.autograd.profiler.record_function('ema'):
                 self.step_ema()
 
+        with torch.no_grad():
+            loss = self.reduce_loss(loss)
+            head_losses = self.reduce_loss(head_losses)
+
         return (
             float(loss.item()) if loss is not None else None,
             [float(l.item()) if l is not None else None
              for l in head_losses],
         )
+
+    @classmethod
+    def reduce_loss(cls, loss):
+        if loss is None:
+            return loss
+        if not torch.distributed.is_initialized():
+            return loss
+
+        if isinstance(loss, (list, tuple)):
+            return [cls.reduce_loss(l) for l in loss]
+
+        # average loss from all processes
+        torch.distributed.reduce(loss, 0)
+        if torch.distributed.get_rank() == 0:
+            loss = loss / torch.distributed.get_world_size()
+        return loss
 
     def val_batch(self, data, targets):
         if self.device:
@@ -210,6 +263,8 @@ class Trainer():
         with torch.no_grad():
             outputs = self.model(data)
             loss, head_losses = self.loss(outputs, targets)
+            loss = self.reduce_loss(loss)
+            head_losses = self.reduce_loss(head_losses)
 
         return (
             float(loss.item()) if loss is not None else None,
@@ -352,27 +407,31 @@ class Trainer():
         if isinstance(self.model, torch.nn.DataParallel):
             LOG.debug('Writing a dataparallel model.')
             model = self.model.module
+        elif isinstance(self.model, torch.nn.parallel.DistributedDataParallel):
+            LOG.debug('Writing a distributeddataparallel model.')
+            model = self.model.module
         else:
             LOG.debug('Writing a single-thread model.')
             model = self.model
 
-        filename = '{}.epoch{:03d}'.format(self.out, epoch)
-        LOG.debug('about to write model')
-        torch.save({
-            'model': model,
-            'epoch': epoch,
-            'meta': self.model_meta_data,
-        }, filename)
-        LOG.debug('model written')
+        if not torch.distributed.is_initialized() or torch.distributed.get_rank() == 0:
+            filename = '{}.epoch{:03d}'.format(self.out, epoch)
+            LOG.debug('about to write model')
+            torch.save({
+                'model': model,
+                'epoch': epoch,
+                'meta': self.model_meta_data,
+            }, filename)
+            LOG.info('model written: %s', filename)
 
-        if final:
-            sha256_hash = hashlib.sha256()
-            with open(filename, 'rb') as f:
-                for byte_block in iter(lambda: f.read(8192), b''):
-                    sha256_hash.update(byte_block)
-            file_hash = sha256_hash.hexdigest()
-            outname, _, outext = self.out.rpartition('.')
-            final_filename = '{}-{}.{}'.format(outname, file_hash[:8], outext)
-            shutil.copyfile(filename, final_filename)
+            if final:
+                sha256_hash = hashlib.sha256()
+                with open(filename, 'rb') as f:
+                    for byte_block in iter(lambda: f.read(8192), b''):
+                        sha256_hash.update(byte_block)
+                file_hash = sha256_hash.hexdigest()
+                outname, _, outext = self.out.rpartition('.')
+                final_filename = '{}-{}.{}'.format(outname, file_hash[:8], outext)
+                shutil.copyfile(filename, final_filename)
 
         self.model.to(self.device)

@@ -1,9 +1,12 @@
 import argparse
+import logging
 from typing import List
 
 import torch
 
 from .. import headmeta, metric
+
+LOG = logging.getLogger(__name__)
 
 
 class DataModule:
@@ -19,7 +22,7 @@ class DataModule:
     batch_size = 1
 
     #: Data loader number of workers.
-    loader_workers = 0
+    _loader_workers = None
 
     #: A list of head metas for this dataset.
     #: Set as instance variable (not class variable) in derived classes
@@ -29,6 +32,20 @@ class DataModule:
     #: When loading a checkpoint, entries in this list will be matched by
     #: name and dataset to entries in the checkpoint and overwritten here.
     head_metas: List[headmeta.Base] = None
+
+    @classmethod
+    def set_loader_workers(cls, value):
+        cls._loader_workers = value
+
+    @property
+    def loader_workers(self):
+        if self._loader_workers is not None:
+            return self._loader_workers
+
+        # Do not propose more than 16 loaders. More loaders use more
+        # shared memory. When shared memory is exceeded, all jobs
+        # on that machine crash.
+        return min(16, self.batch_size)
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):

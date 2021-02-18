@@ -48,6 +48,14 @@ def cli():
     )
     parser.add_argument('--version', action='version',
                         version='OpenPifPaf {version}'.format(version=__version__))
+    parser.add_argument('-o', '--output', default=None,
+                        help='output file')
+    parser.add_argument('--disable-cuda', action='store_true',
+                        help='disable CUDA')
+    parser.add_argument('--ddp', default=False, action='store_true',
+                        help='[experimental] DistributedDataParallel')
+    parser.add_argument('--local_rank', default=None, type=int,
+                        help='[experimental] for torch.distributed.launch')
 
     logger.cli(parser)
     network.Factory.cli(parser)
@@ -59,12 +67,23 @@ def cli():
     show.cli(parser)
     visualizer.cli(parser)
 
-    parser.add_argument('-o', '--output', default=None,
-                        help='output file')
-    parser.add_argument('--disable-cuda', action='store_true',
-                        help='disable CUDA')
-
     args = parser.parse_args()
+
+    logger.configure(args, LOG)
+    if args.log_stats:
+        logging.getLogger('openpifpaf.stats').setLevel(logging.DEBUG)
+
+    # slurm
+    slurm_process_id = os.environ.get('SLURM_PROCID')
+    if slurm_process_id is not None:
+        LOG.info('found SLURM process id: %s', slurm_process_id)
+        args.local_rank = 0
+        os.environ['RANK'] = slurm_process_id
+        if not os.environ.get('WORLD_SIZE') and os.environ.get('SLURM_NTASKS'):
+            os.environ['WORLD_SIZE'] = os.environ.get('SLURM_NTASKS')
+        LOG.info('distributed env: master=%s port=%s rank=%s world=%s',
+                 os.environ.get('MASTER_ADDR'), os.environ.get('MASTER_PORT'),
+                 os.environ.get('RANK'), os.environ.get('WORLD_SIZE'))
 
     # add args.device
     args.device = torch.device('cpu')
@@ -78,10 +97,6 @@ def cli():
     if args.output is None:
         args.output = default_output_file(args)
         os.makedirs('outputs', exist_ok=True)
-
-    logger.train_configure(args, LOG)
-    if args.log_stats:
-        logging.getLogger('openpifpaf.stats').setLevel(logging.DEBUG)
 
     network.Factory.configure(args)
     network.losses.Factory.configure(args)
@@ -100,13 +115,26 @@ def main():
     datamodule = datasets.factory(args.dataset)
 
     net_cpu, start_epoch = network.Factory().factory(head_metas=datamodule.head_metas)
-    net = net_cpu.to(device=args.device)
-    if not args.disable_cuda and torch.cuda.device_count() > 1:
-        print('Using multiple GPUs: {}'.format(torch.cuda.device_count()))
-        net = torch.nn.DataParallel(net)
-
     loss = network.losses.Factory().factory(net_cpu.head_nets)
+
+    if not args.ddp:
+        net = net_cpu.to(device=args.device)
+        if not args.disable_cuda and torch.cuda.device_count() > 1:
+            LOG.info('Using multiple GPUs: %d', torch.cuda.device_count())
+            net = torch.nn.DataParallel(net)
+    else:
+        assert torch.cuda.device_count() > 0
+        torch.cuda.set_device(args.local_rank)
+        torch.distributed.init_process_group(backend='NCCL', init_method='env://')
+        LOG.info('DDP: rank %d, world %d',
+                 torch.distributed.get_rank(), torch.distributed.get_world_size())
+        net_cpu = torch.nn.SyncBatchNorm.convert_sync_batchnorm(net_cpu)
+        net = torch.nn.parallel.DistributedDataParallel(net_cpu.to(device=args.device),
+                                                        device_ids=[args.local_rank],
+                                                        output_device=args.local_rank)
     loss = loss.to(device=args.device)
+
+    logger.train_configure(args)
     train_loader = datamodule.train_loader()
     val_loader = datamodule.val_loader()
 
