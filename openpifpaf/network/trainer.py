@@ -147,18 +147,27 @@ class Trainer():
         # the shuffle order changes from epoch to epoch.
 
         if not torch.distributed.is_initialized():
-            return
+            return loader
 
         current_sampler = loader.sampler
         if isinstance(current_sampler, torch.utils.data.DistributedSampler):
             current_sampler.set_epoch(epoch)
-            return
+            return loader
 
         LOG.info('Replacing sampler of %s with DistributedSampler.', loader)
         distributed_sampler = torch.utils.data.DistributedSampler(
             loader.dataset, shuffle=True, drop_last=True)
-        loader.sampler = distributed_sampler
-        loader.sampler.set_epoch(epoch)
+        distributed_sampler.set_epoch(epoch)
+
+        return torch.utils.data.DataLoader(
+            loader.dataset,
+            batch_size=loader.batch_size,
+            shuffle=False,
+            sampler=distributed_sampler,
+            pin_memory=loader.pin_memory,
+            num_workers=loader.num_workers,
+            collate_fn=loader.collate_fn,
+        )
 
     def loop(self,
              train_scenes: torch.utils.data.DataLoader,
@@ -177,8 +186,8 @@ class Trainer():
         for epoch in range(start_epoch, self.epochs):
             if epoch == 0:
                 self.write_model(0, final=False)
-            self.ensure_distributed_sampler(train_scenes, epoch)
-            self.ensure_distributed_sampler(val_scenes, epoch)
+            train_scenes = self.ensure_distributed_sampler(train_scenes, epoch)
+            val_scenes = self.ensure_distributed_sampler(val_scenes, epoch)
 
             self.train(train_scenes, epoch)
 
