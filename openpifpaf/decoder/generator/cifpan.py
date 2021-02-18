@@ -34,6 +34,10 @@ class CifPan(Generator):
     greedy = False
     keypoint_threshold = 0.0
 
+    ball = False
+    cent = True
+
+
     def __init__(self, field_config: FieldConfig, *,
                 keypoints,
                 #  skeleton,
@@ -74,6 +78,8 @@ class CifPan(Generator):
         print("semantic", semantic.shape)
         print("offset", offsets.shape)
 
+        Ci, Bi = (17, object()) if self.ball else (17, 18)
+
         start = time.perf_counter()
         if not initial_annotations:
             initial_annotations = []
@@ -107,13 +113,13 @@ class CifPan(Generator):
                         for cif in cifhr.accumulated]
 
         # Get instance mapping for every pixel
-        # keypoints[-1] tensor[I,2]
+        # keypoints[Ci] tensor[I,2]
         # offsets       tensor[2,H,W]
         # meshgrid      tensor[2,H,W]
         absolute = offsets + np.stack(np.meshgrid(np.arange(offsets.shape[2]),
                                                   np.arange(offsets.shape[1])))
         difference = (absolute[Ñ,:,:,:] -                   # [ ,2,H,W]
-                      keypoints_yx[-1][:,:,Ñ,Ñ]             # [I,2, , ]
+                      keypoints_yx[Ci][:,:,Ñ,Ñ]             # [I,2, , ]
                       )
 
         distances2 = np.square(difference).sum(axis=1)      # [I,H,W]
@@ -121,20 +127,28 @@ class CifPan(Generator):
 
         # For each detected keypoints, get its confidence and instance
         centers_fyxv = [
-            (17, y, x, cifhr.accumulated[-1,y,x])
-            for y, x in keypoints_yx[-1]
+            (Ci, y, x, cifhr.accumulated[Ci,y,x])
+            for y, x in keypoints_yx[Ci]
         ]
+        if self.ball:
+            centers_fyxv += [
+                (Bi, y, x, cifhr.accumulated[Bi,y,x])
+                for y, x in keypoints_yx[Bi]
+            ]
         keypoints_fyxiv = [
             (f, y, x, instances[y,x], cifhr.accumulated[f,y,x])
-            for f, kp_yx in enumerate(keypoints_yx[:-1])
+            for f, kp_yx in enumerate(keypoints_yx[:Ci])
             for y, x in kp_yx
         ]
 
-        annotations = [
-            Annotation(self.keypoints, self.out_skeleton)
-                .add(f, (x,y,v))
-            for f,y,x,v in centers_fyxv
-        ]
+        annotations = []
+        for f, y, x, v in centers_fyxv:
+            annotation = Annotation(
+                self.keypoints, self.out_skeleton,
+                category_id={17:1,18:37}[f]  # center => person, ball center => ball
+                )
+            annotation.add(f, (x,y,v))
+            annotations.append(annotation)
 
         # Assign keypoints to their instance (least confidence first)
         keypoints_fyxiv.sort(key=lambda x:x[-1])
@@ -149,7 +163,7 @@ class CifPan(Generator):
         for i in range(len(annotations)):
             annotation = annotations[i]
             centroid_mask = (classes != 0) & (instances == i)
-            annotation.cls = semantic[:,centroid_mask].sum(axis=1).argmin(axis=0)
+            annotation.cls = semantic[:,centroid_mask].sum(axis=1).argmax(axis=0)
             annotation.mask = centroid_mask
 
         # self.occupancy_visualizer.predicted(occupied)
