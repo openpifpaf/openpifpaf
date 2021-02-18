@@ -141,6 +141,24 @@ class Trainer():
             p.data.copy_(ema_p)
         self.ema_restore_params = None
 
+    def ensure_distributed_sampler(self, loader: torch.utils.data.DataLoader, epoch):
+        # The DistributedSampler needs to have the epoch set so that
+        # the shuffle order changes from epoch to epoch.
+
+        if not torch.distributed.is_initialized():
+            return
+
+        current_sampler = loader.sampler
+        if isinstance(current_sampler, torch.utils.data.DistributedSampler):
+            current_sampler.set_epoch(epoch)
+            return
+
+        LOG.info('Replacing sampler of %s with DistributedSampler.', loader)
+        distributed_sampler = torch.utils.data.DistributedSampler(
+            loader.dataset, shuffle=True, drop_last=True)
+        loader.sampler = distributed_sampler
+        loader.sampler.set_epoch(epoch)
+
     def loop(self,
              train_scenes: torch.utils.data.DataLoader,
              val_scenes: torch.utils.data.DataLoader,
@@ -158,17 +176,8 @@ class Trainer():
         for epoch in range(start_epoch, self.epochs):
             if epoch == 0:
                 self.write_model(0, final=False)
-
-            # The DistributedSampler needs to have the epoch set so that
-            # the shuffle order changes from epoch to epoch.
-            if hasattr(train_scenes, 'set_epoch'):
-                train_scenes.set_epoch(epoch)
-            elif hasattr(train_scenes.sampler, 'set_epoch'):
-                train_scenes.sampler.set_epoch(epoch)
-            if hasattr(val_scenes, 'set_epoch'):
-                val_scenes.set_epoch(epoch)
-            elif hasattr(val_scenes.sampler, 'set_epoch'):
-                val_scenes.sampler.set_epoch(epoch)
+            self.ensure_distributed_sampler(train_scenes, epoch)
+            self.ensure_distributed_sampler(val_scenes, epoch)
 
             self.train(train_scenes, epoch)
 
