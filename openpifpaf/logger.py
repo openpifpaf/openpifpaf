@@ -49,8 +49,9 @@ def configure(args: argparse.Namespace, local_logger=None):
 
 def train_configure(args):
     if torch.distributed.is_initialized():
-        formatter = logging.Formatter('Rank {}/{} - %(levelname)s:%(name)s:%(message)s'
-                                      ''.format(torch.distributed.get_rank(), torch.distributed.get_world_size()))
+        rank_prefix = 'Rank {}/{}'.format(
+            torch.distributed.get_rank(), torch.distributed.get_world_size())
+        formatter = logging.Formatter(rank_prefix + ' - %(levelname)s:%(name)s:%(message)s')
         for handler in logging.getLogger('').handlers:
             handler.setFormatter(formatter)
 

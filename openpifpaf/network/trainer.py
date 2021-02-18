@@ -141,7 +141,10 @@ class Trainer():
             p.data.copy_(ema_p)
         self.ema_restore_params = None
 
-    def loop(self, train_scenes: torch.utils.data.DataLoader, val_scenes: torch.utils.data.DataLoader, start_epoch=0):
+    def loop(self,
+             train_scenes: torch.utils.data.DataLoader,
+             val_scenes: torch.utils.data.DataLoader,
+             start_epoch=0):
         if start_epoch >= self.epochs:
             raise Exception('start epoch ({}) >= total epochs ({})'
                             ''.format(start_epoch, self.epochs))
