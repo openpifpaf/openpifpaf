@@ -52,8 +52,10 @@ def cli():
                         help='output file')
     parser.add_argument('--disable-cuda', action='store_true',
                         help='disable CUDA')
-    parser.add_argument('--ddp', default=False, action='store_true')
-    parser.add_argument('--local_rank', default=None, type=int)
+    parser.add_argument('--ddp', default=False, action='store_true',
+                        help='[experimental] DistributedDataParallel')
+    parser.add_argument('--local_rank', default=None, type=int,
+                        help='[experimental] for torch.distributed.launch')
 
     logger.cli(parser)
     network.Factory.cli(parser)
