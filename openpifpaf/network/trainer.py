@@ -141,7 +141,8 @@ class Trainer():
             p.data.copy_(ema_p)
         self.ema_restore_params = None
 
-    def ensure_distributed_sampler(self, loader: torch.utils.data.DataLoader, epoch):
+    @staticmethod
+    def ensure_distributed_sampler(loader: torch.utils.data.DataLoader, epoch):
         # The DistributedSampler needs to have the epoch set so that
         # the shuffle order changes from epoch to epoch.
 

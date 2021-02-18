@@ -4,7 +4,6 @@ from typing import List
 
 import torch
 
-from .collate import collate_images_targets_meta
 from .. import headmeta, metric
 
 LOG = logging.getLogger(__name__)
