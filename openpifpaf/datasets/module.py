@@ -43,10 +43,6 @@ class DataModule:
         # on that machine crash.
         return min(16, self.batch_size)
 
-    @loader_workers.setter
-    def loader_workers(self, value):
-        self._loader_workers = value
-
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
         """Command line interface (CLI) to extend argument parser."""
