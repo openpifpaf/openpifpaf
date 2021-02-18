@@ -23,7 +23,7 @@ class DataModule:
     batch_size = 1
 
     #: Data loader number of workers.
-    loader_workers = None
+    _loader_workers = None
 
     #: A list of head metas for this dataset.
     #: Set as instance variable (not class variable) in derived classes
@@ -33,6 +33,20 @@ class DataModule:
     #: When loading a checkpoint, entries in this list will be matched by
     #: name and dataset to entries in the checkpoint and overwritten here.
     head_metas: List[headmeta.Base] = None
+
+    @property
+    def loader_workers(self):
+        if self._loader_workers is not None:
+            return self._loader_workers
+
+        # Do not propose more than 16 loaders. More loaders use more
+        # shared memory. When shared memory is exceeded, all jobs
+        # on that machine crash.
+        return min(16, self.batch_size)
+
+    @loader_workers.setter
+    def loader_workers(self, value):
+        self._loader_workers = value
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
@@ -79,23 +93,16 @@ class DataModule:
 
     def target_dataloader(self, dataset, *, shuffle=False, pin_memory=False):
         sampler = None
-        loader_workers = self.loader_workers
 
         if torch.distributed.is_initialized():
             sampler = torch.utils.data.DistributedSampler(dataset, shuffle=shuffle, drop_last=True)
             LOG.info('Loading data with distributed sampler.')
 
-        if loader_workers is None:
-            # Do not propose more than 16 loaders. More loaders use more
-            # shared memory. When shared memory is exceeded, all jobs
-            # on that machine crash.
-            loader_workers = min(16, self.batch_size)
-
         return torch.utils.data.DataLoader(
             dataset, batch_size=self.batch_size,
             shuffle=shuffle and sampler is None,
             pin_memory=pin_memory,
-            num_workers=loader_workers,
+            num_workers=self.loader_workers,
             drop_last=True,
             sampler=sampler,
             collate_fn=collate_images_targets_meta,
