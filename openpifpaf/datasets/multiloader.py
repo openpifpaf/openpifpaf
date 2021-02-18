@@ -57,9 +57,3 @@ class MultiLoader:
 
     def __len__(self):
         return self.n_batches
-
-    def set_epoch(self, epoch):
-        for loader in self.loaders:
-            if not hasattr(loader.sampler, 'set_epoch'):
-                continue
-            loader.sampler.set_epoch(epoch)
