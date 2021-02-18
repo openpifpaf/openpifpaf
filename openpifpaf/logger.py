@@ -46,13 +46,14 @@ def configure(args: argparse.Namespace, local_logger=None):
     if local_logger is not None:
         local_logger.setLevel(log_level)
 
-    if getattr(args, 'local_rank', None) is not None:
-        formatter = logging.Formatter('LocalRank {} - %(levelname)s:%(name)s:%(message)s'.format(args.local_rank))
+
+def train_configure(args):
+    if torch.distributed.is_initialized():
+        formatter = logging.Formatter('Rank {}/{} - %(levelname)s:%(name)s:%(message)s'
+                                      ''.format(torch.distributed.get_rank(), torch.distributed.get_world_size()))
         for handler in logging.getLogger('').handlers:
             handler.setFormatter(formatter)
 
-
-def train_configure(args):
     if torch.distributed.is_initialized() and torch.distributed.get_rank() != 0:
         return
 
