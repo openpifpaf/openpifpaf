@@ -7,6 +7,10 @@ import shutil
 import time
 import torch
 
+from torch.utils.tensorboard import SummaryWriter
+writer = SummaryWriter()
+LOSS_NAMES = ['PIF Confidence', 'PIF Localization', 'PIF Scale', 'PAN Semantic', 'PAN Offset']
+
 LOG = logging.getLogger(__name__)
 
 
@@ -181,6 +185,8 @@ class Trainer(object):
             # if not os.path.isfile('in_enumerate.pickle'):
             #     with open('in_enumerate.pickle','wb') as f:
             #         pickle.dump((data, target),f)
+
+            
             preprocess_time = time.time() - last_batch_end
             
 
@@ -195,6 +201,9 @@ class Trainer(object):
             # print('filename is')
             # print(filename)
             loss, head_losses = self.train_batch(data, target, apply_gradients)
+            writer.add_scalar('Loss/Total loss', loss, batch_idx)
+            for hd_idx, head_ls in enumerate(head_losses):
+                writer.add_scalar('Loss/head '+ LOSS_NAMES[hd_idx], head_ls, batch_idx)
 
             # update epoch accumulates
             if loss is not None:

@@ -32,6 +32,8 @@ def laplace_loss(x1, x2, logb, t1, t2, weight=None):
     # left derivative of sqrt at zero is not defined, so prefer torch.norm():
     # https://github.com/pytorch/pytorch/issues/2421
     # norm = torch.sqrt((x1 - t1)**2 + (x2 - t2)**2)
+
+    
     norm = (torch.stack((x1, x2)) - torch.stack((t1, t2))).norm(dim=0)
 
     # constrain range of logb
@@ -40,7 +42,7 @@ def laplace_loss(x1, x2, logb, t1, t2, weight=None):
     losses = 0.694 + logb + norm * torch.exp(-logb)
     if weight is not None:
         losses = losses * weight
-    return torch.sum(losses)
+    return torch.sum(losses)            # TODO why sum? shouldn't it be mean? because each image can have different number of nans !
 
 
 def l1_loss(x1, x2, _, t1, t2, weight=None):
@@ -329,7 +331,11 @@ class CompositeLoss(torch.nn.Module):
 
         LOG.debug('BCE: x = %s, target = %s, mask = %s',
                   x_confidence.shape, target_confidence.shape, bce_masks.shape)
+        # print(bce_masks.sum())
+        # print(target_confidence.sum())
         bce_target = torch.masked_select(target_confidence, bce_masks)
+        # print(bce_target.sum())
+        # raise
         bce_weight = 1.0
         x_confidence = torch.masked_select(x_confidence, bce_masks)
         if self.background_weight != 1.0:
@@ -340,6 +346,7 @@ class CompositeLoss(torch.nn.Module):
             bce_weight[bce_target == 1] = x_confidence[bce_target == 1]
             bce_weight[bce_target == 0] = -x_confidence[bce_target == 0]
             bce_weight = (1.0 + torch.exp(bce_weight)).pow(-self.focal_gamma)
+        # print(x_confidence.shape)
         ce_loss = (torch.nn.functional.binary_cross_entropy_with_logits(
             x_confidence,
             bce_target,
@@ -358,11 +365,18 @@ class CompositeLoss(torch.nn.Module):
         # print(target_regs[0].shape)
 
         reg_losses = []
+
         for i, target_reg in enumerate(target_regs):
+            # print(target_reg.shape)
             reg_masks = torch.isnan(target_reg[:, :, 0]).bitwise_not_()
             if not torch.any(reg_masks):
                 reg_losses.append(None)
                 continue
+            
+            # print('local loss')
+            # print(x_regs.shape)
+            # print(x_logbs.shape)
+            # print(target_reg.shape)
 
             reg_losses.append(self.regression_loss(
                 torch.masked_select(x_regs[:, :, i, 0], reg_masks),
@@ -372,6 +386,9 @@ class CompositeLoss(torch.nn.Module):
                 torch.masked_select(target_reg[:, :, 1], reg_masks),
                 weight=0.1,
             ) / (100.0 * batch_size))
+
+        # print(len(reg_losses))
+        # raise
 
         return reg_losses
 
@@ -388,7 +405,7 @@ class CompositeLoss(torch.nn.Module):
             logl1_loss(
                 torch.masked_select(x_scales[:, :, i], torch.isnan(target_scale).bitwise_not_()),
                 torch.masked_select(target_scale, torch.isnan(target_scale).bitwise_not_()),
-                reduction='sum',
+                reduction='sum',            # TODO shouldn't it be mean???
             ) / (100.0 * batch_size)
             for i, target_scale in enumerate(target_scales)
         ]
@@ -397,12 +414,6 @@ class CompositeLoss(torch.nn.Module):
         if not self.margin:
             return []
 
-        # print('margin losses')
-        # print(x_regs.shape)
-        # print(len(target_regs))
-        # print(target_regs[0].shape)
-        # print(len(target_confidence))
-        # print(target_confidence[0].shape)
 
         reg_masks = target_confidence > 0.5
         if not torch.any(reg_masks):
@@ -941,14 +952,20 @@ class PanopticLoss(torch.nn.Module):
             offset_loss_weights = targets['offset_weights'][:, None, :, :].expand_as(results['offset'])
             # print(results['offset'].shape)
             # print(targets['offset'].shape)
+            # print(results['offset'].shape)
             offset_loss = self.offset_loss(results['offset'], targets['offset']) * offset_loss_weights
+            # print(offset_loss.shape)
+            
             # safe division
+            # TODO figure out the purpose of these lines (maybe add /2 to take the actual avg.)
             if offset_loss_weights.sum() > 0:
-                offset_loss = offset_loss.sum() / offset_loss_weights.sum()
+                offset_loss = offset_loss.sum() / offset_loss_weights.sum()     # offset_loss_weights (number of pixels of containing things)
             else:
                 offset_loss = offset_loss.sum() * 0
             # self.loss_meter_dict['Offset loss'].update(offset_loss.detach().cpu().item(), batch_size)
             # loss += offset_loss
+            # print(offset_loss)
+            # raise
         
         return [semantic_loss] + [offset_loss]
 

@@ -181,7 +181,9 @@ class CifGenerator(object):
         # if not os.path.isfile('cif.pickle'):
         #     with open('cif.pickle','wb') as f:
         #         pickle.dump((self.intensities, self.fields_reg, self.fields_scale),f)
+        
         intensities = self.intensities[:, p:-p, p:-p]
+        
         fields_reg = self.fields_reg[:, :, p:-p, p:-p]
         fields_scale = self.fields_scale[:, p:-p, p:-p]
         # print(fields_scale.shape)
@@ -194,7 +196,7 @@ class CifGenerator(object):
         mask_valid_area(fields_reg[:, 0], valid_area, fill_value=np.nan)
         mask_valid_area(fields_reg[:, 1], valid_area, fill_value=np.nan)
         mask_valid_area(fields_scale, valid_area, fill_value=np.nan)
-        
+                
         # print("_____________cif_____________")
         # print(intensities.shape)
         # print(fields_reg.shape)
