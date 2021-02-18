@@ -235,11 +235,10 @@ class CocoKp(openpifpaf.datasets.DataModule):
             min_kp_anns=self.min_kp_anns,
             category_ids=[1],
         )
-        return self.target_dataloader(
-            train_data,
-            shuffle=not self.debug and self.augmentation,
-            pin_memory=self.pin_memory,
-        )
+        return torch.utils.data.DataLoader(
+            train_data, batch_size=self.batch_size, shuffle=not self.debug and self.augmentation,
+            pin_memory=self.pin_memory, num_workers=self.loader_workers, drop_last=True,
+            collate_fn=openpifpaf.datasets.collate_images_targets_meta)
 
     def val_loader(self):
         val_data = CocoDataset(
@@ -250,11 +249,10 @@ class CocoKp(openpifpaf.datasets.DataModule):
             min_kp_anns=self.min_kp_anns,
             category_ids=[1],
         )
-        return self.target_dataloader(
-            val_data,
-            shuffle=not self.debug and self.augmentation,
-            pin_memory=self.pin_memory,
-        )
+        return torch.utils.data.DataLoader(
+            val_data, batch_size=self.batch_size, shuffle=not self.debug and self.augmentation,
+            pin_memory=self.pin_memory, num_workers=self.loader_workers, drop_last=True,
+            collate_fn=openpifpaf.datasets.collate_images_targets_meta)
 
     @classmethod
     def common_eval_preprocess(cls):

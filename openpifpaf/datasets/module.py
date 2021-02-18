@@ -90,20 +90,3 @@ class DataModule:
         what the output of the decoder is expected to be.
         """
         raise NotImplementedError
-
-    def target_dataloader(self, dataset, *, shuffle=False, pin_memory=False):
-        sampler = None
-
-        if torch.distributed.is_initialized():
-            sampler = torch.utils.data.DistributedSampler(dataset, shuffle=shuffle, drop_last=True)
-            LOG.info('Loading data with distributed sampler.')
-
-        return torch.utils.data.DataLoader(
-            dataset, batch_size=self.batch_size,
-            shuffle=shuffle and sampler is None,
-            pin_memory=pin_memory,
-            num_workers=self.loader_workers,
-            drop_last=True,
-            sampler=sampler,
-            collate_fn=collate_images_targets_meta,
-        )
