@@ -162,6 +162,7 @@ class Trainer():
         return torch.utils.data.DataLoader(
             loader.dataset,
             batch_size=loader.batch_size,
+            drop_last=True,
             shuffle=False,
             sampler=distributed_sampler,
             pin_memory=loader.pin_memory,

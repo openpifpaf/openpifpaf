@@ -135,8 +135,8 @@ def main():
     loss = loss.to(device=args.device)
 
     logger.train_configure(args)
-    train_loader = datamodule.train_loader()
-    val_loader = datamodule.val_loader()
+    train_loader = network.Trainer.ensure_distributed_sampler(datamodule.train_loader(), 0)
+    val_loader = network.Trainer.ensure_distributed_sampler(datamodule.val_loader(), 0)
 
     optimizer = optimize.factory_optimizer(
         args, list(net.parameters()) + list(loss.parameters()))
