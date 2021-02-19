@@ -1,6 +1,7 @@
 import torch
 
 from .coco import Coco
+from .keemotion import Keemotion
 from .collate import collate_images_targets_meta
 from .collate import collate_images_targets_inst_meta
 from .constants import COCO_KEYPOINTS, HFLIP, COCO_CATEGORIES
@@ -12,6 +13,7 @@ COCODET_ANNOTATIONS_TRAIN = 'data-mscoco/annotations/instances_train2017.json'
 COCODET_ANNOTATIONS_VAL = 'data-mscoco/annotations/instances_val2017.json'
 COCO_IMAGE_DIR_TRAIN = 'data-mscoco/images/train2017/'
 COCO_IMAGE_DIR_VAL = 'data-mscoco/images/val2017/'
+KEEMOTION_DIR = 'keemotion/'
 
 
 def train_cli(parser):
@@ -24,6 +26,7 @@ def train_cli(parser):
     group.add_argument('--cocoinst-val-annotations', default=COCODET_ANNOTATIONS_VAL)
     group.add_argument('--coco-train-image-dir', default=COCO_IMAGE_DIR_TRAIN)
     group.add_argument('--coco-val-image-dir', default=COCO_IMAGE_DIR_VAL)
+    group.add_argument('--keemotion-dir', default=KEEMOTION_DIR)
     group.add_argument('--dataset', default='cocokp')
     group.add_argument('--n-images', default=None, type=int,
                        help='number of images to sample')
@@ -176,7 +179,7 @@ def train_cocokpinst_preprocess_factory(
         coco_keypoints_ = COCO_KEYPOINTS
     elif 'cifcent' in args.headnets:
         coco_keypoints_ = COCO_KEYPOINTS[:-1]
-        
+
     return transforms.Compose([
         transforms.NormalizeAnnotations(),
         transforms.AnnotationJitter(),
@@ -311,7 +314,7 @@ def train_cocokpinst_factory(args, target_transforms):
 
     if 'cifball' in args.headnets:
         config = 'cifball'
-        category_ids = [1, 37]    
+        category_ids = [1, 37]
     elif 'cifcentball' in args.headnets:
         config = 'cifcentball'
         category_ids = [1, 37]
@@ -323,7 +326,7 @@ def train_cocokpinst_factory(args, target_transforms):
         category_ids = [37]
     # else:
     #     raise Exception('Error in dataset facrtory!')
-    
+
     train_data = Coco(
         image_dir=args.coco_train_image_dir,
         ann_file=args.cocokp_train_annotations,
@@ -368,6 +371,35 @@ def train_cocokpinst_factory(args, target_transforms):
     return train_loader, val_loader
 
 
+def train_keemotion_factory(args, target_transforms):
+    preprocess = train_cocokpinst_preprocess_factory(
+        square_edge=args.square_edge,
+        augmentation=args.augmentation,
+        extended_scale=args.extended_scale,
+        orientation_invariant=args.orientation_invariant,
+        rescale_images=args.rescale_images,
+        args=args)
+
+    if args.loader_workers is None:
+        args.loader_workers = args.batch_size
+
+    train_data = Keemotion(args.keemotion_dir, 'train', config=args.headnets[0],
+        target_transforms=target_transforms, preprocess=preprocess)
+    train_loader = torch.utils.data.DataLoader(
+        train_data, batch_size=args.batch_size, shuffle=not args.debug,
+        pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
+        collate_fn=collate_images_targets_inst_meta,
+        timeout=10.)
+
+    val_data = Keemotion(args.keemotion_dir, 'val', config=args.headnets[0],
+        target_transforms=target_transforms, preprocess=preprocess)
+    val_loader = torch.utils.data.DataLoader(
+        val_data, batch_size=args.batch_size, shuffle=False,
+        pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
+        collate_fn=collate_images_targets_inst_meta)
+
+    return train_loader, val_loader
+
 
 def train_factory(args, target_transforms):
     if args.dataset in ('cocokpinst'):
@@ -376,5 +408,7 @@ def train_factory(args, target_transforms):
         return train_cocokp_factory(args, target_transforms)
     if args.dataset in ('cocodet',):
         return train_cocodet_factory(args, target_transforms)
+    if args.dataset in ('keemotion',):
+        return train_keemotion_factory(args, target_transforms)
 
     raise Exception('unknown dataset: {}'.format(args.dataset))
