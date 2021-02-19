@@ -25,23 +25,34 @@ def cli(parser):
                        help='minimum dpi of image output')
     group.add_argument('--show-file-extension', default=Canvas.out_file_extension,
                        help='default file extension')
-    group.add_argument('--textbox-alpha', default=KeypointPainter.textbox_alpha, type=float)
-    group.add_argument('--text-color', default=KeypointPainter.text_color)
-    group.add_argument('--font-size', default=KeypointPainter.font_size, type=int)
+    group.add_argument('--textbox-alpha', default=KeypointPainter.textbox_alpha, type=float,
+                       help='transparency of annotation text box')
+    group.add_argument('--text-color', default=KeypointPainter.text_color,
+                       help='annotation text color')
+    group.add_argument('--font-size', default=KeypointPainter.font_size, type=int,
+                       help='annotation font size')
     assert not KeypointPainter.monocolor_connections
-    group.add_argument('--monocolor-connections', default=False, action='store_true')
-    group.add_argument('--line-width', default=None, type=int)
+    group.add_argument('--monocolor-connections', default=False, action='store_true',
+                       help='use a single color per instance')
+    group.add_argument('--line-width', default=None, type=int,
+                       help='skeleton line width')
     group.add_argument('--skeleton-solid-threshold',
-                       default=KeypointPainter.solid_threshold, type=float)
+                       default=KeypointPainter.solid_threshold, type=float,
+                       help='set to 0.0 to draw all connections as solid lines')
 
-    group.add_argument('--show-box', default=False, action='store_true')
+    group.add_argument('--show-box', default=False, action='store_true',
+                       help='show annotation bounding boxes')
     group.add_argument('--white-overlay',
-                       nargs='?', default=False, const=0.8, type=float)
-    group.add_argument('--show-joint-scales', default=False, action='store_true')
-    group.add_argument('--show-joint-confidences', default=False, action='store_true')
+                       nargs='?', default=False, const=0.8, type=float,
+                       help='increase contrast to annotations by making image whiter')
+    group.add_argument('--show-joint-scales', default=False, action='store_true',
+                       help='show boxes representing joint sizes')
+    group.add_argument('--show-joint-confidences', default=False, action='store_true',
+                       help='print per-joint confidences on skeleton annotations')
     group.add_argument('--show-decoding-order', default=False, action='store_true')
     group.add_argument('--show-frontier-order', default=False, action='store_true')
-    group.add_argument('--show-only-decoded-connections', default=False, action='store_true')
+    group.add_argument('--show-only-decoded-connections', default=False, action='store_true',
+                       help='to debug which connections were used for decoding')
 
     group.add_argument('--video-fps', default=AnimationFrame.video_fps, type=float,
                        help='output video frame rate (frames per second)')
