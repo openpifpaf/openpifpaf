@@ -412,7 +412,6 @@ class Trainer():
         model_to_save = self.model
         if self.checkpoint_shell is not None:
             model = self.model if not hasattr(self.model, 'module') else self.model.module
-            LOG.info('state keys: %s', list(model.state_dict().keys()))
             self.checkpoint_shell.load_state_dict(model.state_dict())
             model_to_save = self.checkpoint_shell
 
