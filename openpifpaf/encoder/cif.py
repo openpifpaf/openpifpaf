@@ -72,7 +72,7 @@ class CifGenerator(object):
         self.config.visualizer.processed_image(image)
         self.config.visualizer.targets(fields, keypoint_sets=keypoint_sets)
 
-        print('CIF time:', time.time()-start_time)
+        # print('CIF time:', time.time()-start_time)
 
         return fields
 

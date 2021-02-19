@@ -53,7 +53,7 @@ def _scale(image, anns, meta, target_w, target_h, resample, *, fast=False):
 
         for ann in anns:
             # if hasattr(ann, 'bmask'):
-            print('Scale done!')
+            # print('Scale done!')
             ann['bmask'] = scipy.ndimage.zoom(ann['bmask'], (target_h / h, target_w / w))
     # rescale keypoints
     x_scale = (image.size[0] - 1) / (w - 1)

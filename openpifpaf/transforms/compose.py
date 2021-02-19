@@ -13,7 +13,7 @@ class Compose(Preprocess):
                 continue
             
             image, anns, meta = p(image, anns, meta)
-            print('Transform time: ', time.time() - last_time, p)
+            # print('Transform time: ', time.time() - last_time, p)
             last_time = time.time()
 
         # return image, anns, meta

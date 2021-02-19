@@ -186,7 +186,7 @@ class PanopticTargetGenerator(object):
                     offset[offset_y_index] = center_y - y_coord[mask_index]
                     offset[offset_x_index] = center_x - x_coord[mask_index]
         
-        print('PAN time: ', time.time() - start_time)
+        # print('PAN time: ', time.time() - start_time)
 
         return dict(
             semantic=torch.as_tensor(semantic.astype('long')),

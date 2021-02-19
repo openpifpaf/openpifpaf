@@ -17,7 +17,7 @@ LOG = logging.getLogger(__name__)
 class Trainer(object):
     def __init__(self, model, loss, optimizer, out, *,
                  lr_scheduler=None,
-                 log_interval=10,
+                 log_interval=1,
                  device=None,
                  fix_batch_norm=False,
                  stride_apply=1,

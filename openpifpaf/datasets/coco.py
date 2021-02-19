@@ -51,21 +51,15 @@ class Coco(torch.utils.data.Dataset):
         elif image_filter == 'annotated':
             self.ids = self.coco.getImgIds(catIds=self.category_ids)
             self.filter_for_annotations()
-        elif image_filter == 'keypoint-annotations':
-            self.ids_kp = self.coco_kp.getImgIds(catIds=self.category_ids)
-            self.filter_for_keypoint_annotations()
+        # elif image_filter == 'keypoint-annotations':
+        #     self.ids_kp = self.coco_kp.getImgIds(catIds=self.category_ids)
+        #     self.filter_for_keypoint_annotations()
+        
         elif image_filter == 'kp_inst':
-            # print(self.category_ids)
-            
-
-
             if self.category_ids == [1]:
                 self.ids = self.coco.getImgIds(catIds=self.category_ids)
-                print('len ids', len(self.ids))
-                # self.ids_inst = self.coco_inst.getImgIds(catIds=self.category_ids)
+                self.ids_inst = self.coco_inst.getImgIds(catIds=self.category_ids)
                 self.filter_for_keypoint_annotations()
-                print('len ids_2', len(self.ids))
-                raise
             elif self.category_ids == [37]:
                 self.ids_ball = self.coco_inst.getImgIds(catIds=self.category_ids)
                 self.ids = self.ids_ball
@@ -112,15 +106,6 @@ class Coco(torch.utils.data.Dataset):
             self.ids = self.ids[:n_images]
         LOG.info('Images: %d', len(self.ids))
 
-        import pickle
-        if not os.path.isfile('image_ids.pickle'):
-            with open('image_ids.pickle','wb') as f:
-                pickle.dump((self.ids,self.ids_ball),f)
-        elif not os.path.isfile('image_ids_2.pickle'):
-            with open('image_ids_2.pickle','wb') as f:
-                pickle.dump((self.ids,self.ids_ball),f)
-        else:
-            raise
 
         
 
@@ -129,16 +114,18 @@ class Coco(torch.utils.data.Dataset):
 
     def filter_for_keypoint_annotations(self):
         LOG.info('filter for keypoint annotations ...')
+        self.counter = 0
         def has_keypoint_annotation(image_id):
-            ann_ids = self.coco.getAnnIds(imgIds=image_id, catIds=self.category_ids)
+            ann_ids = self.coco.getAnnIds(imgIds=image_id, catIds=[1])
             anns = self.coco.loadAnns(ann_ids)
             for ann in anns:
                 if 'keypoints' not in ann:
                     continue
                 if any(v > 0.0 for v in ann['keypoints'][2::3]):
+                    # self.counter += 1
+                    # print(self.counter)
                     return True
             return False
-
         self.ids = [image_id for image_id in self.ids
                     if has_keypoint_annotation(image_id)]
         LOG.info('... done.')
@@ -264,6 +251,7 @@ class Coco(torch.utils.data.Dataset):
             anns_center[ann_id]['keypoints'].append(int(center[0]))      # add center for x
             anns_center[ann_id]['keypoints'].append(visiblity)    
 
+        
         return anns_center
 
     def empty_person_keypoint(self, anns_inst, n_keypoints=17, category_id=37):
@@ -280,8 +268,8 @@ class Coco(torch.utils.data.Dataset):
     def __getitem__(self, index):
 
         image_id = self.ids[index]
-        print('------------------------------------------')
-        print('----------- IMAGAE ID: ', image_id)
+        # print('------------------------------------------')
+        # print('----------- IMAGAE ID: ', image_id)
 
         image_info = self.coco.loadImgs(image_id)[0]
         LOG.debug(image_info)
@@ -301,11 +289,14 @@ class Coco(torch.utils.data.Dataset):
 
         ann_ids = self.coco.getAnnIds(imgIds=image_id)
         anns = self.coco.loadAnns(ann_ids)
+        anns = copy.deepcopy(anns)
 
 
         if self.ann_inst_file is not None:
             # ann_ids_inst = self.coco_inst.getAnnIds(imgIds=image_id, catIds=[1])
             # anns_inst = self.coco_inst.loadAnns(ann_ids_inst)
+            
+            # print id
             
             for i in anns:
                 i['bmask'] = self.coco_inst.annToMask(i)

@@ -340,16 +340,16 @@ def train_cocokpinst_factory(args, target_transforms):
     if args.duplicate_data:
         train_data = torch.utils.data.ConcatDataset(
             [train_data for _ in range(args.duplicate_data)])
-    # train_loader = torch.utils.data.DataLoader(
-    #     train_data, batch_size=args.batch_size, shuffle=not args.debug,
-    #     pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
-    #     collate_fn=collate_images_targets_inst_meta,
-    #     timeout=30.)
-
     train_loader = torch.utils.data.DataLoader(
         train_data, batch_size=args.batch_size, shuffle=False,
-        pin_memory=args.pin_memory, drop_last=True,
-        collate_fn=collate_images_targets_inst_meta,)
+        pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
+        collate_fn=collate_images_targets_inst_meta,
+        timeout=30.)
+
+    # train_loader = torch.utils.data.DataLoader(
+    #     train_data, batch_size=args.batch_size, shuffle=False,
+    #     pin_memory=args.pin_memory, drop_last=True,
+    #     collate_fn=collate_images_targets_inst_meta,)
 
     val_data = Coco(
         image_dir=args.coco_val_image_dir,
