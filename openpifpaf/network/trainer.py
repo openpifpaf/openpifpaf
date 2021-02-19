@@ -28,6 +28,7 @@ class Trainer():
     train_profile = None
 
     def __init__(self, model, loss, optimizer, out, *,
+                 checkpoint_shell=None,
                  lr_scheduler=None,
                  device=None,
                  model_meta_data=None):
@@ -35,6 +36,7 @@ class Trainer():
         self.loss = loss
         self.optimizer = optimizer
         self.out = out
+        self.checkpoint_shell = checkpoint_shell
         self.lr_scheduler = lr_scheduler
         self.device = device
         self.model_meta_data = model_meta_data
@@ -151,6 +153,7 @@ class Trainer():
 
         current_sampler = loader.sampler
         if isinstance(current_sampler, torch.utils.data.DistributedSampler):
+            LOG.info('setting sampler epoch to %d', epoch)
             current_sampler.set_epoch(epoch)
             return loader
 
@@ -403,36 +406,31 @@ class Trainer():
         })
 
     def write_model(self, epoch, final=True):
-        self.model.cpu()
+        if torch.distributed.is_initialized() and torch.distributed.get_rank() != 0:
+            return
 
-        if isinstance(self.model, torch.nn.DataParallel):
-            LOG.debug('Writing a dataparallel model.')
-            model = self.model.module
-        elif isinstance(self.model, torch.nn.parallel.DistributedDataParallel):
-            LOG.debug('Writing a distributeddataparallel model.')
-            model = self.model.module
-        else:
-            LOG.debug('Writing a single-thread model.')
-            model = self.model
+        model_to_save = self.model
+        if self.checkpoint_shell is not None:
+            model = self.model if not hasattr(self.model, 'module') else self.model.module
+            LOG.info('state keys: %s', list(model.state_dict().keys()))
+            self.checkpoint_shell.load_state_dict(model.state_dict())
+            model_to_save = self.checkpoint_shell
 
-        if not torch.distributed.is_initialized() or torch.distributed.get_rank() == 0:
-            filename = '{}.epoch{:03d}'.format(self.out, epoch)
-            LOG.debug('about to write model')
-            torch.save({
-                'model': model,
-                'epoch': epoch,
-                'meta': self.model_meta_data,
-            }, filename)
-            LOG.info('model written: %s', filename)
+        filename = '{}.epoch{:03d}'.format(self.out, epoch)
+        LOG.debug('about to write model')
+        torch.save({
+            'model': model_to_save,
+            'epoch': epoch,
+            'meta': self.model_meta_data,
+        }, filename)
+        LOG.info('model written: %s', filename)
 
-            if final:
-                sha256_hash = hashlib.sha256()
-                with open(filename, 'rb') as f:
-                    for byte_block in iter(lambda: f.read(8192), b''):
-                        sha256_hash.update(byte_block)
-                file_hash = sha256_hash.hexdigest()
-                outname, _, outext = self.out.rpartition('.')
-                final_filename = '{}-{}.{}'.format(outname, file_hash[:8], outext)
-                shutil.copyfile(filename, final_filename)
-
-        self.model.to(self.device)
+        if final:
+            sha256_hash = hashlib.sha256()
+            with open(filename, 'rb') as f:
+                for byte_block in iter(lambda: f.read(8192), b''):
+                    sha256_hash.update(byte_block)
+            file_hash = sha256_hash.hexdigest()
+            outname, _, outext = self.out.rpartition('.')
+            final_filename = '{}-{}.{}'.format(outname, file_hash[:8], outext)
+            shutil.copyfile(filename, final_filename)

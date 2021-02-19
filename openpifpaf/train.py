@@ -1,6 +1,7 @@
 """Train a pifpaf network."""
 
 import argparse
+import copy
 import datetime
 import logging
 import os
@@ -117,14 +118,22 @@ def main():
     net_cpu, start_epoch = network.Factory().factory(head_metas=datamodule.head_metas)
     loss = network.losses.Factory().factory(net_cpu.head_nets)
 
-    if not args.ddp:
+    checkpoint_shell = None
+    if not args.disable_cuda and torch.cuda.device_count() > 1 and not args.ddp:
+        LOG.info('Multiple GPUs with DataParallel: %d', torch.cuda.device_count())
+        checkpoint_shell = copy.deepcopy(net_cpu)
+        net = torch.nn.DataParallel(net_cpu.to(device=args.device))
+        loss = loss.to(device=args.device)
+    elif not args.disable_cuda and torch.cuda.device_count() == 1 and not args.ddp:
+        LOG.info('Single GPU training')
+        checkpoint_shell = copy.deepcopy(net_cpu)
         net = net_cpu.to(device=args.device)
-        if not args.disable_cuda and torch.cuda.device_count() > 1:
-            LOG.info('Using multiple GPUs: %d', torch.cuda.device_count())
-            net = torch.nn.DataParallel(net)
-    else:
+        loss = loss.to(device=args.device)
+    elif not args.disable_cuda and torch.cuda.device_count() > 0:
+        LOG.info('Multiple GPUs with DistributedDataParallel')
         assert not list(loss.parameters())
         assert torch.cuda.device_count() > 0
+        checkpoint_shell = copy.deepcopy(net_cpu)
         torch.cuda.set_device(args.local_rank)
         torch.distributed.init_process_group(backend='nccl', init_method='env://')
         LOG.info('DDP: rank %d, world %d',
@@ -133,7 +142,9 @@ def main():
         net = torch.nn.parallel.DistributedDataParallel(net_cpu.to(device=args.device),
                                                         device_ids=[args.local_rank],
                                                         output_device=args.local_rank)
-    loss = loss.to(device=args.device)
+        loss = loss.to(device=args.device)
+    else:
+        net = net_cpu
 
     logger.train_configure(args)
     train_loader = network.Trainer.ensure_distributed_sampler(datamodule.train_loader(), 0)
@@ -144,6 +155,7 @@ def main():
     lr_scheduler = optimize.factory_lrscheduler(args, optimizer, len(train_loader))
     trainer = network.Trainer(
         net, loss, optimizer, args.output,
+        checkpoint_shell=checkpoint_shell,
         lr_scheduler=lr_scheduler,
         device=args.device,
         model_meta_data={
