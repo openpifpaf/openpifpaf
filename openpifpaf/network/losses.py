@@ -67,6 +67,10 @@ def margin_loss(x1, x2, t1, t2, max_r1, max_r2, max_r3, max_r4):
     x = torch.stack((x1, x2))
     t = torch.stack((t1, t2))
 
+    print('shape x', x.shape)
+    print('shape t', t.shape)
+    print('shape max_r1', max_r1.shape)
+
     max_r = torch.min((torch.stack(max_r1, max_r2, max_r3, max_r4)), axis=0)
     m0 = torch.isfinite(max_r)
     x = x[:, m0]
@@ -967,7 +971,7 @@ class PanopticLoss(torch.nn.Module):
             # print(offset_loss)
             # raise
         
-        return [semantic_loss] + [offset_loss]
+        return [semantic_loss] + [offset_loss * 0.01]
 
 def cli(parser):
     group = parser.add_argument_group('losses')

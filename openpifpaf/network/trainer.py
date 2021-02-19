@@ -140,7 +140,15 @@ class Trainer(object):
     def val_batch(self, data, targets):
         if self.device:
             data = data.to(self.device, non_blocking=True)
-            targets = [[t.to(self.device, non_blocking=True) for t in head] for head in targets]
+
+            if len(targets)==2 and len(targets[1])==4:          # when panoptic head is operating
+                targets[0] = [t.to(self.device, non_blocking=True) for t in targets[0]]
+                for key, value in targets[1].items():
+                    targets[1][key] = targets[1][key].to(self.device, non_blocking=True)
+
+
+            else:
+                targets = [[t.to(self.device, non_blocking=True) for t in head] for head in targets]
 
         with torch.no_grad():
             outputs = self.model(data)
@@ -201,9 +209,18 @@ class Trainer(object):
             # print('filename is')
             # print(filename)
             loss, head_losses = self.train_batch(data, target, apply_gradients)
-            writer.add_scalar('Loss/Total loss', loss, batch_idx)
-            for hd_idx, head_ls in enumerate(head_losses):
-                writer.add_scalar('Loss/head '+ LOSS_NAMES[hd_idx], head_ls, batch_idx)
+            try:
+                writer.add_scalar('Loss/Total loss', loss, batch_idx)
+                if hasattr(self.loss, 'batch_meta'):
+                    sigmas = self.loss.batch_meta()
+                for hd_idx, head_ls in enumerate(head_losses):
+                    writer.add_scalar('Loss/head '+ LOSS_NAMES[hd_idx], head_ls, batch_idx)
+                    if hasattr(self.loss, 'batch_meta'):
+                        writer.add_scalar('Sigmas/head '+ LOSS_NAMES[hd_idx], .5/sigmas['mtl_sigmas'][hd_idx]**2, batch_idx)
+            except AssertionError as error:
+                print(error)
+                
+
 
             # update epoch accumulates
             if loss is not None:

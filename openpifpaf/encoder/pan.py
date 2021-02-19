@@ -8,7 +8,7 @@ import torch
 from .annrescaler import AnnRescaler
 from ..visualizer import Cif as CifVisualizer
 from ..utils import create_sink, mask_valid_area
-
+import time
 
 import scipy.ndimage
 
@@ -82,6 +82,7 @@ class PanopticTargetGenerator(object):
                 - offset_weights: Tensor, ignore region of offset prediction, shape=(H, W), used as weights for offset
                     regression 0 is ignore, 1 is has instance. Multiply this mask to loss.
         """
+        start_time = time.time()
         
         # assert len(anns) != 0, len(anns)
         # print((image[0].shape))
@@ -91,6 +92,9 @@ class PanopticTargetGenerator(object):
             # print(msk.shape)
             # print(masks.shape)
             # ann['bmask'] *= ann['id']
+            
+            # print(ann['id'])
+            # print(ann['bmask'].shape)
             panoptic += ann['bmask'] * ann['id']
             # panoptic += ann['category_id'] * ann['bmask']
 
@@ -181,7 +185,8 @@ class PanopticTargetGenerator(object):
                     offset_x_index = (np.ones_like(mask_index[0]), mask_index[0], mask_index[1])
                     offset[offset_y_index] = center_y - y_coord[mask_index]
                     offset[offset_x_index] = center_x - x_coord[mask_index]
-            
+        
+        print('PAN time: ', time.time() - start_time)
 
         return dict(
             semantic=torch.as_tensor(semantic.astype('long')),

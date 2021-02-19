@@ -9,6 +9,8 @@ from .annrescaler import AnnRescaler
 from ..visualizer import Cif as CifVisualizer
 from ..utils import create_sink, mask_valid_area
 
+import time
+
 LOG = logging.getLogger(__name__)
 
 
@@ -39,6 +41,7 @@ class CifGenerator(object):
         self.s_offset = (config.side_length - 1.0) / 2.0
 
     def __call__(self, image, anns, meta):
+        start_time = time.time()
         width_height_original = image.shape[2:0:-1]
 
         # print('777777777777777777777in cif')
@@ -68,6 +71,8 @@ class CifGenerator(object):
         # print(len(fields[2][0]))
         self.config.visualizer.processed_image(image)
         self.config.visualizer.targets(fields, keypoint_sets=keypoint_sets)
+
+        print('CIF time:', time.time()-start_time)
 
         return fields
 

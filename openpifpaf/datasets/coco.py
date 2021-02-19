@@ -33,6 +33,7 @@ class Coco(torch.utils.data.Dataset):
 
         self.config = config
         print(self.config)
+        self.ids_ball = []
         
 
         from pycocotools.coco import COCO  # pylint: disable=import-outside-toplevel
@@ -60,8 +61,11 @@ class Coco(torch.utils.data.Dataset):
 
             if self.category_ids == [1]:
                 self.ids = self.coco.getImgIds(catIds=self.category_ids)
+                print('len ids', len(self.ids))
                 # self.ids_inst = self.coco_inst.getImgIds(catIds=self.category_ids)
                 self.filter_for_keypoint_annotations()
+                print('len ids_2', len(self.ids))
+                raise
             elif self.category_ids == [37]:
                 self.ids_ball = self.coco_inst.getImgIds(catIds=self.category_ids)
                 self.ids = self.ids_ball
@@ -108,6 +112,16 @@ class Coco(torch.utils.data.Dataset):
             self.ids = self.ids[:n_images]
         LOG.info('Images: %d', len(self.ids))
 
+        import pickle
+        if not os.path.isfile('image_ids.pickle'):
+            with open('image_ids.pickle','wb') as f:
+                pickle.dump((self.ids,self.ids_ball),f)
+        elif not os.path.isfile('image_ids_2.pickle'):
+            with open('image_ids_2.pickle','wb') as f:
+                pickle.dump((self.ids,self.ids_ball),f)
+        else:
+            raise
+
         
 
         self.preprocess = preprocess or transforms.EVAL_TRANSFORM
@@ -116,7 +130,7 @@ class Coco(torch.utils.data.Dataset):
     def filter_for_keypoint_annotations(self):
         LOG.info('filter for keypoint annotations ...')
         def has_keypoint_annotation(image_id):
-            ann_ids = self.coco.getAnnIds(imgIds=image_id)
+            ann_ids = self.coco.getAnnIds(imgIds=image_id, catIds=self.category_ids)
             anns = self.coco.loadAnns(ann_ids)
             for ann in anns:
                 if 'keypoints' not in ann:
@@ -125,7 +139,8 @@ class Coco(torch.utils.data.Dataset):
                     return True
             return False
 
-        self.ids = [image_id for image_id in self.ids if has_keypoint_annotation(image_id)]
+        self.ids = [image_id for image_id in self.ids
+                    if has_keypoint_annotation(image_id)]
         LOG.info('... done.')
 
     def filter_for_ball_annotations(self):
@@ -236,48 +251,8 @@ class Coco(torch.utils.data.Dataset):
         # print(max_w)
         return weights
 
-    # def add_center_person(self, anns_center, visiblity=2):
-                    
-    #     anns_copy = copy.deepcopy(anns_center)
-    #     counter = 0
-    #     for ann in anns_center:
-    #         meshgrid = np.indices(ann['bmask'].shape)
-    #         meshgrid[0] *= ann['bmask']
-    #         meshgrid[1] *= ann['bmask']
-    #         center = (meshgrid[0].sum()/ann['bmask'].sum(),
-    #                 meshgrid[1].sum()/ann['bmask'].sum())
-
-            
-    #         counter += 1
-    #         ann['keypoints'].append(int(center[1]))      # add center for y
-    #         counter += 1
-    #         ann['keypoints'].append(int(center[0]))      # add center for x
-    #         counter += 1
-    #         ann['keypoints'].append(visiblity)
-            
-    #     assert counter == len(anns_center) * 3, counter
-    #     for ann in anns_center:
-    #         if len(ann['keypoints']) != 54:
-    #             import pickle
-    #             if not os.path.isfile('add_center.pickle'):
-    #                 with open('add_center.pickle','wb') as f:
-    #                     pickle.dump((anns_center, anns_copy),f)
-    #         assert len(ann['keypoints']) == 54, len(ann['keypoints'])
-
-    #     return anns_center
-    
     def add_center(self, anns_center, image=None, visiblity=2):
         
-        assert visiblity == 2 or visiblity == 0, visiblity
-        # for ann in anns_center:
-        #     if len(ann['keypoints']) != 51:
-        #         import pickle
-        #         if not os.path.isfile('add_center.pickle'):
-        #             with open('add_center.pickle','wb') as f:
-        #                 pickle.dump(anns_center,f)
-        # counter = 0
-                    
-        # anns_copy = copy.deepcopy(anns_center)
         for ann_id, ann in enumerate(anns_center):
             meshgrid = np.indices(anns_center[ann_id]['bmask'].shape)
             meshgrid[0] *= anns_center[ann_id]['bmask']
@@ -285,41 +260,13 @@ class Coco(torch.utils.data.Dataset):
             center = (meshgrid[0].sum()/anns_center[ann_id]['bmask'].sum(),
                     meshgrid[1].sum()/anns_center[ann_id]['bmask'].sum())
             
-            if np.isnan(center[0]) or np.isnan(center[1]):
-                import pickle
-                if not os.path.isfile('add_center_nan.pickle'):
-                    with open('add_center_nan.pickle','wb') as f:
-                        pickle.dump((image,anns_center,center),f)
-                assert False
-
-            # assert isinstance(center[1], float)
-            # assert isinstance(center[0], float)
-
-            # assert len(ann['keypoints']) == 51, len(ann['keypoints'])
-            
-            # keypoints = copy.deepcopy(ann['keypoints'])
-            # counter += 1
             anns_center[ann_id]['keypoints'].append(int(center[1]))      # add center for y
-            # counter += 1
             anns_center[ann_id]['keypoints'].append(int(center[0]))      # add center for x
-            # counter += 1
-            anns_center[ann_id]['keypoints'].append(visiblity)
-            
-        # assert counter == len(anns_center) * 3, counter
-        # for ann in anns_center:
-        #     if len(ann['keypoints']) != 54:
-        #         import pickle
-        #         # if not os.path.isfile('add_center.pickle'):
-        #         with open('add_center.pickle','wb') as f:
-        #             pickle.dump((anns_center, anns_copy, image, image_id),f)
-            # assert len(ann['keypoints']) == 54, len(ann['keypoints'])
-
-            
+            anns_center[ann_id]['keypoints'].append(visiblity)    
 
         return anns_center
 
     def empty_person_keypoint(self, anns_inst, n_keypoints=17, category_id=37):
-        
         
         for ann in anns_inst:
             keypoints = []
@@ -333,6 +280,8 @@ class Coco(torch.utils.data.Dataset):
     def __getitem__(self, index):
 
         image_id = self.ids[index]
+        print('------------------------------------------')
+        print('----------- IMAGAE ID: ', image_id)
 
         image_info = self.coco.loadImgs(image_id)[0]
         LOG.debug(image_info)
@@ -350,77 +299,77 @@ class Coco(torch.utils.data.Dataset):
             flickr_id, _ = flickr_file_name.split('_', maxsplit=1)
             meta['flickr_full_page'] = 'http://flickr.com/photo.gne?id={}'.format(flickr_id)
 
-        # anns = []
-        # mask = []
-
         ann_ids = self.coco.getAnnIds(imgIds=image_id)
         anns = self.coco.loadAnns(ann_ids)
-        # assert len(anns) != 0, anns
-        
 
-        # mask = []
 
         if self.ann_inst_file is not None:
             # ann_ids_inst = self.coco_inst.getAnnIds(imgIds=image_id, catIds=[1])
             # anns_inst = self.coco_inst.loadAnns(ann_ids_inst)
             
             for i in anns:
-                # ann_mask_id = i['id']
-                # print(i)
-                # print(ann_mask_id)
-                # print(np.max(np.max(self.coco_inst.annToMask(i))))
-                # print(np.max(np.max(self.coco_inst.annToMask(i) * ann_mask_id)))
                 i['bmask'] = self.coco_inst.annToMask(i)
-                # mask.append(self.coco_inst.annToMask(i))
 
-        if self.config == 'cif':
-            pass
+        try:
 
-        elif self.config == 'cifcent':
-            anns = self.add_center(anns)
+            if self.config == 'cif':
+                pass
 
-        elif self.config == 'cifball':
+            elif self.config == 'cifcent':
+                anns = self.add_center(anns)
 
-            anns = self.add_center(anns, image=image, visiblity=0)        # add fake ball keypoint
+            elif self.config == 'cifball':
 
-            ann_ids_inst = self.coco_inst.getAnnIds(imgIds=image_id, catIds=[37])
-            anns_inst = self.coco_inst.loadAnns(ann_ids_inst)
-            for i in anns_inst:
-                # ann_mask_id = i['id']
-                i['bmask'] = self.coco_inst.annToMask(i)
-                # mask_ball.append(self.coco_inst.annToMask(i) * ann_mask_id) 
+                anns = self.add_center(anns, image=image, visiblity=0)        # add fake ball keypoint
 
-            if len(anns_inst) is not 0:
+                ann_ids_inst = self.coco_inst.getAnnIds(imgIds=image_id, catIds=[37])
+                anns_inst = self.coco_inst.loadAnns(ann_ids_inst)
+                for i in anns_inst:
+                    # ann_mask_id = i['id']
+                    i['bmask'] = self.coco_inst.annToMask(i)
+                    # mask_ball.append(self.coco_inst.annToMask(i) * ann_mask_id) 
 
-                anns_ball = self.empty_person_keypoint(anns_inst)     # add fake people
+                if len(anns_inst) is not 0:
 
-                anns_ball = self.add_center(anns_ball, image=image)        # add ball keypoint
+                    anns_ball = self.empty_person_keypoint(anns_inst)     # add fake people
 
+                    anns_ball = self.add_center(anns_ball, image=image)        # add ball keypoint
+
+                    anns += anns_ball
+                
+            elif self.config == 'cifcentball':
+                anns = self.add_center(anns)
+                anns = self.add_center(anns, visiblity=0)        # add fake ball keypoint
+                # mask_ball = []
+                ann_ids_inst = self.coco_inst.getAnnIds(imgIds=image_id, catIds=[37])
+                anns_inst = self.coco_inst.loadAnns(ann_ids_inst)
+                for i in anns_inst:
+                    # ann_mask_id = i['id']
+                    i['bmask'] = self.coco_inst.annToMask(i)
+                    # mask_ball.append(self.coco_inst.annToMask(i) * ann_mask_id)
+
+                anns_ball = self.empty_person_keypoint(anns_inst, n_keypoints=18)     # add fake people
+                anns_ball = self.add_center(anns_ball)        # add ball keypoint
                 anns += anns_ball
-            
-        elif self.config == 'cifcentball':
-            anns = self.add_center(anns)
-            anns = self.add_center(anns, visiblity=0)        # add fake ball keypoint
-            # mask_ball = []
-            ann_ids_inst = self.coco_inst.getAnnIds(imgIds=image_id, catIds=[37])
-            anns_inst = self.coco_inst.loadAnns(ann_ids_inst)
-            for i in anns_inst:
-                # ann_mask_id = i['id']
-                i['bmask'] = self.coco_inst.annToMask(i)
-                # mask_ball.append(self.coco_inst.annToMask(i) * ann_mask_id)
 
-            anns_ball = self.empty_person_keypoint(anns_inst, n_keypoints=18)     # add fake people
-            anns_ball = self.add_center(anns_ball)        # add ball keypoint
-            anns += anns_ball
-
-        else:
-            raise NotImplementedError
-
-        
+            else:
+                raise NotImplementedError
+        except:
+            print('image_id_1: ', image_id)
+            import pickle
+            with open('coco_1.pickle','wb') as f:
+                pickle.dump((image, anns),f)
+        # anns = []
 
         anns = copy.deepcopy(anns)
         
-        image, anns, meta = self.preprocess(image, anns, meta)
+        try:
+            image, anns, meta = self.preprocess(image, anns, meta)
+        except:
+            print('image_id_2: ', image_id)
+            import pickle
+            with open('coco_2.pickle','wb') as f:
+                pickle.dump((image, anns),f)
 
         # mask valid TODO still necessary?
         # print('after augmentation')
@@ -438,19 +387,27 @@ class Coco(torch.utils.data.Dataset):
                 continue
             STAT_LOG.debug({'bbox': [int(v) for v in ann['bbox']]})
 
-        # print(anns)
-        # raise
 
         # transform targets
+        # try:
+        #     if self.target_transforms is not None:
+        #         anns = [t(image, anns, meta) for t in self.target_transforms]
+        # except:
+        #     print('image_id_3: ', image_id)
+        #     import pickle
+        #     with open('coco_3.pickle','wb') as f:
+        #         pickle.dump((image, anns),f)
+        
+        anns_trans = []
         if self.target_transforms is not None:
-            anns = [t(image, anns, meta) for t in self.target_transforms]
+            for t in self.target_transforms:
+                # try:
+                anns_trans.append(t(image, anns, meta))
+                # except:
+                #     print('image_id_3: ', image_id, t)
 
-        
-        
-        # import pickle
-        # if not os.path.isfile('coco.pickle'):
-        #     with open('coco.pickle','wb') as f:
-        #         pickle.dump((image, anns, meta),f)
+        anns = anns_trans
+
         return image, anns, meta
 
     def __len__(self):

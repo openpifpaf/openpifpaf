@@ -61,8 +61,7 @@ class AnnotationJitter(Preprocess):
     def __init__(self, epsilon=0.5):
         self.epsilon = epsilon
 
-    # def __call__(self, image, anns, meta):
-    ### AMA
+
     def __call__(self, image, anns, meta):
         meta = copy.deepcopy(meta)
         anns = copy.deepcopy(anns)
