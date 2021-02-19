@@ -123,9 +123,10 @@ def main():
             LOG.info('Using multiple GPUs: %d', torch.cuda.device_count())
             net = torch.nn.DataParallel(net)
     else:
+        assert not list(loss.parameters())
         assert torch.cuda.device_count() > 0
         torch.cuda.set_device(args.local_rank)
-        torch.distributed.init_process_group(backend='NCCL', init_method='env://')
+        torch.distributed.init_process_group(backend='nccl', init_method='env://')
         LOG.info('DDP: rank %d, world %d',
                  torch.distributed.get_rank(), torch.distributed.get_world_size())
         net_cpu = torch.nn.SyncBatchNorm.convert_sync_batchnorm(net_cpu)
