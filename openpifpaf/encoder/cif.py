@@ -51,6 +51,7 @@ class CifGenerator(object):
         keypoint_sets = self.config.rescaler.keypoint_sets(anns)
         # print(keypoint_sets)
         bg_mask = self.config.rescaler.bg_mask(anns, width_height_original)
+        # print(bg_mask.shape)
         valid_area = self.config.rescaler.valid_area(meta)
         # print(valid_area)
         LOG.debug('valid area: %s, pif side length = %d', valid_area, self.config.side_length)

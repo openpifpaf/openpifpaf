@@ -315,6 +315,7 @@ class Coco(torch.utils.data.Dataset):
 
                 ann_ids_inst = self.coco_inst.getAnnIds(imgIds=image_id, catIds=[37])
                 anns_inst = self.coco_inst.loadAnns(ann_ids_inst)
+                anns_inst = copy.deepcopy(anns_inst)
                 for i in anns_inst:
                     # ann_mask_id = i['id']
                     i['bmask'] = self.coco_inst.annToMask(i)
@@ -334,6 +335,7 @@ class Coco(torch.utils.data.Dataset):
                 # mask_ball = []
                 ann_ids_inst = self.coco_inst.getAnnIds(imgIds=image_id, catIds=[37])
                 anns_inst = self.coco_inst.loadAnns(ann_ids_inst)
+                anns_inst = copy.deepcopy(anns_inst)
                 for i in anns_inst:
                     # ann_mask_id = i['id']
                     i['bmask'] = self.coco_inst.annToMask(i)
@@ -352,7 +354,7 @@ class Coco(torch.utils.data.Dataset):
                 pickle.dump((image, anns),f)
         # anns = []
 
-        anns = copy.deepcopy(anns)
+        # anns = copy.deepcopy(anns)
         
         try:
             image, anns, meta = self.preprocess(image, anns, meta)

@@ -17,7 +17,7 @@ LOG = logging.getLogger(__name__)
 class Trainer(object):
     def __init__(self, model, loss, optimizer, out, *,
                  lr_scheduler=None,
-                 log_interval=1,
+                 log_interval=10,
                  device=None,
                  fix_batch_norm=False,
                  stride_apply=1,
@@ -209,16 +209,7 @@ class Trainer(object):
             # print('filename is')
             # print(filename)
             loss, head_losses = self.train_batch(data, target, apply_gradients)
-            try:
-                writer.add_scalar('Loss/Total loss', loss, batch_idx)
-                if hasattr(self.loss, 'batch_meta'):
-                    sigmas = self.loss.batch_meta()
-                for hd_idx, head_ls in enumerate(head_losses):
-                    writer.add_scalar('Loss/head '+ LOSS_NAMES[hd_idx], head_ls, batch_idx)
-                    if hasattr(self.loss, 'batch_meta'):
-                        writer.add_scalar('Sigmas/head '+ LOSS_NAMES[hd_idx], .5/sigmas['mtl_sigmas'][hd_idx]**2, batch_idx)
-            except AssertionError as error:
-                print(error)
+            
                 
 
 
@@ -272,6 +263,18 @@ class Trainer(object):
             'time': round(time.time() - start_time, 1),
         })
 
+        ########### tensorboard stuff 
+        try:
+            writer.add_scalar('Train Loss/Total loss', epoch_loss / len(scenes), epoch + 1)
+            if hasattr(self.loss, 'batch_meta'):
+                sigmas = self.loss.batch_meta()
+            for hd_idx, head_ls in enumerate(head_epoch_losses):
+                writer.add_scalar('Train Loss/head '+ LOSS_NAMES[hd_idx], head_ls / max(1, head_epoch_counts[hd_idx]), epoch + 1)
+                if hasattr(self.loss, 'batch_meta'):
+                    writer.add_scalar('Sigmas/head '+ LOSS_NAMES[hd_idx], .5/sigmas['mtl_sigmas'][hd_idx]**2, epoch + 1)
+        except AssertionError as error:
+            print(error)
+
     def val(self, scenes, epoch):
         start_time = time.time()
 
@@ -314,6 +317,14 @@ class Trainer(object):
                             for l, c in zip(head_epoch_losses, head_epoch_counts)],
             'time': round(eval_time, 1),
         })
+
+        ########### tensorboard stuff 
+        try:
+            writer.add_scalar('Val Loss/Total loss', epoch_loss / len(scenes), epoch + 1)
+            for hd_idx, head_ls in enumerate(head_epoch_losses):
+                writer.add_scalar('Val Loss/head '+ LOSS_NAMES[hd_idx], head_ls / max(1, head_epoch_counts[hd_idx]), epoch + 1)
+        except AssertionError as error:
+            print(error)
 
     def write_model(self, epoch, final=True):
         self.model.cpu()
