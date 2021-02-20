@@ -26,6 +26,7 @@ class Trainer():
     stride_apply = 1
     ema_decay = 0.01
     train_profile = None
+    distributed_reduce_loss = True
 
     def __init__(self, model, loss, optimizer, out, *,
                  checkpoint_shell=None,
@@ -215,6 +216,8 @@ class Trainer():
 
     @classmethod
     def reduce_loss(cls, loss):
+        if not cls.distributed_reduce_loss:
+            return loss
         if loss is None:
             return loss
         if not torch.distributed.is_initialized():
