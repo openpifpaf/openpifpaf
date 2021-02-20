@@ -14,13 +14,13 @@ class SoftClamp(torch.nn.Module):
 
     def forward(self, *args):
         x = args[0]
-        th = args[1] if len(args) > 1 else args[0]
 
         # Backprop rule pre-multiplies by input. Therefore, for a constant
         # gradient above the max bce threshold, need to divide by the input.
         # Just like gradient-clipping, but inline:
-        above_max = th > self.max_value
-        x[above_max] /= th[above_max].detach() / self.max_value
+        above_max = x > self.max_value
+        # x[above_max] /= th[above_max].detach() / self.max_value
+        x[above_max] = self.max_value + torch.log(1 - self.max_value + x[above_max])
 
         return x
 
@@ -31,6 +31,7 @@ class Bce(torch.nn.Module):
     focal_gamma = 1.0
     focal_detach = False
     focal_clamp = True
+    soft_clamp_value = 5.0
 
     # 0.02 -> -3.9, 0.01 -> -4.6, 0.001 -> -7, 0.0001 -> -9
     min_bce = 0.0  # 1e-6 corresponds to x~=14, 1e-10 -> 20
@@ -41,7 +42,7 @@ class Bce(torch.nn.Module):
             assert hasattr(self, n)
             setattr(self, n, v)
 
-        self.soft_clamp = SoftClamp(10.0)
+        self.soft_clamp = SoftClamp(self.soft_clamp_value)
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
@@ -59,6 +60,8 @@ class Bce(torch.nn.Module):
                            default=True, action='store_false')
         group.add_argument('--bce-min', default=cls.min_bce, type=float,
                            help='gradient clipped below')
+        group.add_argument('--bce-soft-clamp', default=cls.soft_clamp_value, type=float,
+                           help='soft clamp for BCE')
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
@@ -68,6 +71,7 @@ class Bce(torch.nn.Module):
         cls.focal_detach = args.focal_detach
         cls.focal_clamp = args.focal_clamp
         cls.min_bce = args.bce_min
+        cls.soft_clamp_value = args.bce_soft_clamp
 
     def forward(self, x, t):  # pylint: disable=arguments-differ
         t_zeroone = t.clone()
@@ -121,10 +125,11 @@ class Scale(torch.nn.Module):
     relative = True
     relative_eps = 0.1
     clip = None
+    soft_clamp_value = 5.0
 
     def __init__(self):
         super().__init__()
-        self.soft_clamp = SoftClamp(20.0)
+        self.soft_clamp = SoftClamp(self.soft_clamp_value)
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
@@ -133,6 +138,8 @@ class Scale(torch.nn.Module):
                            help='Laplace width b for scale loss')
         assert not cls.log_space
         group.add_argument('--scale-log', default=False, action='store_true')
+        group.add_argument('--scale-soft-clamp', default=cls.soft_clamp_value, type=float,
+                           help='soft clamp for scale')
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
@@ -140,6 +147,7 @@ class Scale(torch.nn.Module):
         cls.log_space = args.scale_log
         if args.scale_log:
             cls.relative = False
+        cls.soft_clamp_value = args.scale_soft_clamp
 
     def forward(self, logs, t):  # pylint: disable=arguments-differ
         assert not (self.log_space and self.relative)
@@ -173,10 +181,21 @@ class Laplace(torch.nn.Module):
 
     weight = None
     norm_clip = None
+    soft_clamp_value = 5.0
 
     def __init__(self):
         super().__init__()
-        self.soft_clamp = SoftClamp(20.0)
+        self.soft_clamp = SoftClamp(self.soft_clamp_value)
+
+    @classmethod
+    def cli(cls, parser: argparse.ArgumentParser):
+        group = parser.add_argument_group('Laplace Loss')
+        group.add_argument('--laplace-soft-clamp', default=cls.soft_clamp_value, type=float,
+                           help='soft clamp for Laplace')
+
+    @classmethod
+    def configure(cls, args: argparse.Namespace):
+        cls.soft_clamp_value = args.laplace_soft_clamp
 
     def forward(self, *args):
         x1, x2, logb, t1, t2, bmin = args
@@ -214,8 +233,7 @@ class Laplace(torch.nn.Module):
         # ln(2) = 0.694
         # losses = torch.log(b_plus_bmin) + norm / b_plus_bmin
         scaled_norm = norm * torch.exp(-logb)
-        losses = logb + scaled_norm
-        losses = self.soft_clamp(losses, scaled_norm)
+        losses = logb + self.soft_clamp(scaled_norm)
         if self.weight is not None:
             losses = losses * self.weight
         return losses

@@ -18,6 +18,7 @@ LOSS_COMPONENTS = {
     components.Bce,
     components.SmoothL1,
     components.Scale,
+    components.Laplace,
 }
 
 
