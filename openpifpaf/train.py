@@ -139,9 +139,11 @@ def main():
         LOG.info('DDP: rank %d, world %d',
                  torch.distributed.get_rank(), torch.distributed.get_world_size())
         net_cpu = torch.nn.SyncBatchNorm.convert_sync_batchnorm(net_cpu)
-        net = torch.nn.parallel.DistributedDataParallel(net_cpu.to(device=args.device),
-                                                        device_ids=[args.local_rank],
-                                                        output_device=args.local_rank)
+        net = torch.nn.parallel.DistributedDataParallel(
+            net_cpu.to(device=args.device),
+            device_ids=[args.local_rank], output_device=args.local_rank,
+            find_unused_parameters=isinstance(datamodule, datasets.MultiDataModule),
+        )
         loss = loss.to(device=args.device)
     else:
         net = net_cpu

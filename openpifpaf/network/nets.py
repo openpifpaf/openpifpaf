@@ -35,7 +35,7 @@ class Shell(torch.nn.Module):
             image_batch = self.process_input(image_batch)
 
         x = self.base_net(image_batch)
-        if len(args) >= 1:
+        if len(args) >= 2:
             head_mask = args[1]
             head_outputs = [hn(x) if m else None for hn, m in zip(self.head_nets, head_mask)]
         else:
