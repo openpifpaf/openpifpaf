@@ -7,6 +7,15 @@ import torch
 LOG = logging.getLogger(__name__)
 
 
+class SamplerProxy:
+    def __init__(self, loaders: List[torch.utils.data.DataLoader]):
+        self.loaders = loaders
+
+    def set_epoch(self, value):
+        for loader in self.loaders:
+            loader.sampler.set_epoch(value)
+
+
 class MultiLoader:
     last_task_index = None
     weights = None
@@ -14,6 +23,7 @@ class MultiLoader:
     def __init__(self, loaders: List[torch.utils.data.DataLoader], n_heads: int, *, n_batches=None):
         self.loaders = loaders
         self.n_heads = n_heads
+        self.sampler = SamplerProxy(loaders)
         self._weights = self.weights
 
         if self._weights is None:

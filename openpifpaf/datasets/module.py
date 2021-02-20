@@ -89,3 +89,20 @@ class DataModule:
         what the output of the decoder is expected to be.
         """
         raise NotImplementedError
+
+    @staticmethod
+    def distributed_sampler(loader: torch.utils.data.DataLoader):
+        LOG.info('Replacing sampler of %s with DistributedSampler.', loader)
+        distributed_sampler = torch.utils.data.DistributedSampler(
+            loader.dataset, shuffle=True, drop_last=True)
+
+        return torch.utils.data.DataLoader(
+            loader.dataset,
+            batch_size=loader.batch_size,
+            drop_last=True,
+            shuffle=False,
+            sampler=distributed_sampler,
+            pin_memory=loader.pin_memory,
+            num_workers=loader.num_workers,
+            collate_fn=loader.collate_fn,
+        )

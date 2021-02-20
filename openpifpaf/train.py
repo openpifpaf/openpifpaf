@@ -147,8 +147,11 @@ def main():
         net = net_cpu
 
     logger.train_configure(args)
-    train_loader = network.Trainer.ensure_distributed_sampler(datamodule.train_loader(), 0)
-    val_loader = network.Trainer.ensure_distributed_sampler(datamodule.val_loader(), 0)
+    train_loader = datamodule.train_loader()
+    val_loader = datamodule.val_loader()
+    if torch.distributed.is_initialized():
+        train_loader = datamodule.distributed_sampler(train_loader)
+        val_loader = datamodule.distributed_sampler(val_loader)
 
     optimizer = optimize.factory_optimizer(
         args, list(net.parameters()) + list(loss.parameters()))
