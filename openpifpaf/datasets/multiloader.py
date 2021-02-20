@@ -7,12 +7,19 @@ import torch
 LOG = logging.getLogger(__name__)
 
 
-class SamplerProxy:
+class MultiSamplerProxy:
     def __init__(self, loaders: List[torch.utils.data.DataLoader]):
         self.loaders = loaders
 
+    def __getattribute__(self, name):
+        if name == 'set_epoch' and not hasattr(self.loaders[0], 'set_epoch'):
+            raise AttributeError
+
+        return object.__getattribute__(self, name)
+
     def set_epoch(self, value):
-        for loader in self.loaders:
+        for loader_i, loader in enumerate(self.loaders):
+            LOG.info('setting epoch %d for loader %d', value, loader_i)
             loader.sampler.set_epoch(value)
 
 
@@ -23,7 +30,7 @@ class MultiLoader:
     def __init__(self, loaders: List[torch.utils.data.DataLoader], n_heads: int, *, n_batches=None):
         self.loaders = loaders
         self.n_heads = n_heads
-        self.sampler = SamplerProxy(loaders)
+        self.sampler = MultiSamplerProxy(loaders)
         self._weights = self.weights
 
         if self._weights is None:
