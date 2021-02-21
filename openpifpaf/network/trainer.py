@@ -26,6 +26,7 @@ class Trainer():
     stride_apply = 1
     ema_decay = 0.01
     train_profile = None
+    distributed_reduce_loss = True
 
     def __init__(self, model, loss, optimizer, out, *,
                  checkpoint_shell=None,
@@ -143,36 +144,6 @@ class Trainer():
             p.data.copy_(ema_p)
         self.ema_restore_params = None
 
-    @staticmethod
-    def ensure_distributed_sampler(loader: torch.utils.data.DataLoader, epoch):
-        # The DistributedSampler needs to have the epoch set so that
-        # the shuffle order changes from epoch to epoch.
-
-        if not torch.distributed.is_initialized():
-            return loader
-
-        current_sampler = loader.sampler
-        if isinstance(current_sampler, torch.utils.data.DistributedSampler):
-            LOG.info('setting sampler epoch to %d', epoch)
-            current_sampler.set_epoch(epoch)
-            return loader
-
-        LOG.info('Replacing sampler of %s with DistributedSampler.', loader)
-        distributed_sampler = torch.utils.data.DistributedSampler(
-            loader.dataset, shuffle=True, drop_last=True)
-        distributed_sampler.set_epoch(epoch)
-
-        return torch.utils.data.DataLoader(
-            loader.dataset,
-            batch_size=loader.batch_size,
-            drop_last=True,
-            shuffle=False,
-            sampler=distributed_sampler,
-            pin_memory=loader.pin_memory,
-            num_workers=loader.num_workers,
-            collate_fn=loader.collate_fn,
-        )
-
     def loop(self,
              train_scenes: torch.utils.data.DataLoader,
              val_scenes: torch.utils.data.DataLoader,
@@ -190,8 +161,10 @@ class Trainer():
         for epoch in range(start_epoch, self.epochs):
             if epoch == 0:
                 self.write_model(0, final=False)
-            train_scenes = self.ensure_distributed_sampler(train_scenes, epoch)
-            val_scenes = self.ensure_distributed_sampler(val_scenes, epoch)
+            if hasattr(train_scenes.sampler, 'set_epoch'):
+                train_scenes.sampler.set_epoch(epoch)
+            if hasattr(val_scenes.sampler, 'set_epoch'):
+                val_scenes.sampler.set_epoch(epoch)
 
             self.train(train_scenes, epoch)
 
@@ -209,7 +182,7 @@ class Trainer():
 
         # train encoder
         with torch.autograd.profiler.record_function('model'):
-            outputs = self.model(data)
+            outputs = self.model(data, [t is not None for t in targets])
         with torch.autograd.profiler.record_function('loss'):
             loss, head_losses = self.loss(outputs, targets)
         if loss is not None:
@@ -243,6 +216,8 @@ class Trainer():
 
     @classmethod
     def reduce_loss(cls, loss):
+        if not cls.distributed_reduce_loss:
+            return loss
         if loss is None:
             return loss
         if not torch.distributed.is_initialized():

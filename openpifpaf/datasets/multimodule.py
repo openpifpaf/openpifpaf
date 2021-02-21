@@ -63,3 +63,10 @@ class MultiDataModule(DataModule):
 
     def eval_loader(self):
         return MultiLoader([dm.eval_loader() for dm in self.datamodules], len(self.head_metas))
+
+    def distributed_sampler(self, loader: MultiLoader):
+        assert len(self.datamodules) == len(loader.loaders)
+        return MultiLoader(
+            [dm.distributed_sampler(l) for dm, l in zip(self.datamodules, loader.loaders)],
+            len(self.head_metas),
+        )
