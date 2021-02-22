@@ -187,7 +187,7 @@ def lovasz_hinge_flat(logits, labels, delta=1.):
 class MultiHeadLoss(torch.nn.Module):
     task_sparsity_weight = 0.0
 
-    def __init__(self, losses, lambdas):
+    def __init__(self, losses, lambdas, loss_debug=0):
         super(MultiHeadLoss, self).__init__()
 
         if not lambdas:
@@ -198,6 +198,13 @@ class MultiHeadLoss(torch.nn.Module):
         self.lambdas = lambdas
 
         self.field_names = [n for l in self.losses for n in l.field_names]
+
+        ### for freezing one head
+        self.loss_debug = [1.0 for l in losses for _ in l.field_names]
+        if loss_debug == 1:
+            self.loss_debug[3:5] = [0., 0.] 
+        elif loss_debug == 2:
+            self.loss_debug[0:3] = [0., 0., 0.]
         
         print('multihead loss: %s, %s', self.field_names, self.lambdas)
         LOG.info('multihead loss: %s, %s', self.field_names, self.lambdas)
@@ -210,9 +217,14 @@ class MultiHeadLoss(torch.nn.Module):
                             for l, f, t in zip(self.losses, head_fields, head_targets)
                             for ll in l(f, t)]
 
+        ### for freezing one head
+        loss_values_ = [ld * l
+                    for ld, l in zip(self.loss_debug, flat_head_losses)
+                    if l is not None]
+        
         assert len(self.lambdas) == len(flat_head_losses)
         loss_values = [lam * l
-                       for lam, l in zip(self.lambdas, flat_head_losses)
+                       for lam, l in zip(self.lambdas, loss_values_)
                        if l is not None]
 
         total_loss = sum(loss_values) if loss_values else None
@@ -224,7 +236,7 @@ class MultiHeadLoss(torch.nn.Module):
 class MultiHeadLossAutoTune(torch.nn.Module):
     task_sparsity_weight = 0.0
 
-    def __init__(self, losses, lambdas, *, sparse_task_parameters=None):
+    def __init__(self, losses, lambdas, *, sparse_task_parameters=None, loss_debug=0):
         """Auto-tuning multi-head less.
 
         Uses idea from "Multi-Task Learning Using Uncertainty to Weigh Losses
@@ -255,6 +267,15 @@ class MultiHeadLossAutoTune(torch.nn.Module):
         assert len(self.field_names) == len(self.lambdas)
         assert len(self.field_names) == len(self.log_sigmas)
 
+
+        ### for freezing one head
+        self.loss_debug = [1.0 for l in losses for _ in l.field_names]
+        if loss_debug == 1:
+            self.loss_debug[3:5] = [0., 0.] 
+        elif loss_debug == 2:
+            self.loss_debug[0:3] = [0., 0., 0.]
+
+
     def batch_meta(self):
         return {'mtl_sigmas': [round(float(s), 3) for s in self.log_sigmas.exp()]}
 
@@ -270,12 +291,21 @@ class MultiHeadLossAutoTune(torch.nn.Module):
 
         assert len(self.lambdas) == len(flat_head_losses)
         assert len(self.log_sigmas) == len(flat_head_losses)
+
+        ### for freezing one head
+        loss_values_ = [ld * l
+                    for ld, l in zip(self.loss_debug, flat_head_losses)
+                    if l is not None]
+
         loss_values = [lam * l / (2.0 * (log_sigma.exp() ** 2))
-                       for lam, log_sigma, l in zip(self.lambdas, self.log_sigmas, flat_head_losses)
+                       for lam, log_sigma, l in zip(self.lambdas, self.log_sigmas, loss_values_)
                        if l is not None]
         auto_reg = [lam * log_sigma
-                    for lam, log_sigma, l in zip(self.lambdas, self.log_sigmas, flat_head_losses)
+                    for lam, log_sigma, l in zip(self.lambdas, self.log_sigmas, loss_values_)
                     if l is not None]
+        
+        
+        
         total_loss = sum(loss_values) + sum(auto_reg) if loss_values else None
 
         if self.task_sparsity_weight and self.sparse_task_parameters is not None:
@@ -286,6 +316,8 @@ class MultiHeadLossAutoTune(torch.nn.Module):
             )
             LOG.debug('l1 head sparsity loss = %f (total = %f)', head_sparsity_loss, total_loss)
             total_loss = total_loss + self.task_sparsity_weight * head_sparsity_loss
+
+        
 
         return total_loss, flat_head_losses
 
@@ -1025,6 +1057,9 @@ def cli(parser):
                        choices=['none', 'mean', 'sum'],
                        help='L1Loss Reduction')
 
+    group.add_argument('--loss-debug', default=0,
+                        help='1 for freezing pan and 2 for freezing cif heads')
+
 def configure(args):
     # apply for CompositeLoss
     CompositeLoss.background_weight = args.background_weight
@@ -1047,7 +1082,8 @@ def factory_from_args(args, head_nets):
         reg_loss_name=args.regression_loss,
         device=args.device,
         auto_tune_mtl=args.auto_tune_mtl,
-        config=args
+        config=args,
+        loss_debug=args.loss_debug
     )
 
 
@@ -1055,7 +1091,8 @@ def factory_from_args(args, head_nets):
 def factory(head_nets, lambdas, *,
             reg_loss_name=None, device=None,
             auto_tune_mtl=False,
-            config=None):
+            config=None,
+            loss_debug=0):
     if isinstance(head_nets[0], (list, tuple)):
         return [factory(hn, lam,
                         reg_loss_name=reg_loss_name,
@@ -1095,9 +1132,9 @@ def factory(head_nets, lambdas, *,
         losses.append(PanopticLoss(config))
     if auto_tune_mtl:
         loss = MultiHeadLossAutoTune(losses, lambdas,
-                                     sparse_task_parameters=sparse_task_parameters)
+                                     sparse_task_parameters=sparse_task_parameters, loss_debug=loss_debug)
     else:
-        loss = MultiHeadLoss(losses, lambdas)
+        loss = MultiHeadLoss(losses, lambdas, loss_debug=loss_debug)
 
     if device is not None:
         loss = loss.to(device)
