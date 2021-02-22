@@ -13,6 +13,16 @@ LOSS_NAMES = ['PIF Confidence', 'PIF Localization', 'PIF Scale', 'PAN Semantic',
 
 LOG = logging.getLogger(__name__)
 
+def apply(f, items):
+    """Apply f in a nested fashion to all items that are not list or tuple."""
+    if items is None:
+        return None
+    if isinstance(items, (list, tuple)):
+        return [apply(f, i) for i in items]
+    if isinstance(items, dict):
+        return {k: apply(f, v) for k, v in items.items()}
+    return f(items)
+
 
 class Trainer(object):
     def __init__(self, model, loss, optimizer, out, *,
@@ -98,32 +108,74 @@ class Trainer(object):
                 self.lr_scheduler.step()
 
         for epoch in range(start_epoch, epochs):
+
+            device_to_check = [0,1]
+            mem_al = (torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1]))/(10**6)
+            writer.add_scalar('Memory EPOCH/before train', mem_al,epoch)
             self.train(train_scenes, epoch)
+
+            
+            mem_al = (torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1]))/(10**6)
+            writer.add_scalar('Memory EPOCH/after train', mem_al,epoch)
 
             self.write_model(epoch + 1, epoch == epochs - 1)
             self.val(val_scenes, epoch + 1)
+            
+            mem_al = (torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1]))/(10**6)
+            writer.add_scalar('Memory EPOCH/after val', mem_al,epoch)
 
-    def train_batch(self, data, targets, apply_gradients=True):  # pylint: disable=method-hidden
+
+
+
+
+    def train_batch(self, data, targets, apply_gradients=True, batch_idx=None, epoch=None):  # pylint: disable=method-hidden
+
+        device_to_check = [0,1]
+        mem_al = (torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1]))/(10**6)
+        # print(' Before putting data on GPU: ',)
+        writer.add_scalar('Memory/Prior data on GPU', mem_al,batch_idx+ epoch * 100_000)
         if self.device:
             data = data.to(self.device, non_blocking=True)
             
-            if len(targets)==2 and len(targets[1])==4:          # when panoptic head is operating
-                targets[0] = [t.to(self.device, non_blocking=True) for t in targets[0]]
-                for key, value in targets[1].items():
-                    targets[1][key] = targets[1][key].to(self.device, non_blocking=True)
+            # if len(targets)==2 and len(targets[1])==4:          # when panoptic head is operating
+                
+            targets = apply(lambda x: x.to(self.device), targets)
+
+                # targets_ = []
+                # targets_.append([t.to(self.device, non_blocking=True) for t in targets[0]])
+                # targets_.append(dict())
+                # for key, value in targets[1].items():
+                #     targets_[1][key] = targets[1][key].to(self.device, non_blocking=True)
+
+                # targets = targets_
+                
+
+            
 
 
-            else:
-                targets = [[t.to(self.device, non_blocking=True) for t in head] for head in targets]
+            # else:
+            #     targets = [[t.to(self.device, non_blocking=True) for t in head] for head in targets]
 
+        # print(' After putting data on GPU: ',torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1])/(10**6))
+        mem_al = (torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1]))/(10**6)
+        writer.add_scalar('Memory/After data on GPU', mem_al,batch_idx+ epoch * 100_000)
         # train encoder
         with torch.autograd.profiler.record_function('model'):
             outputs = self.model(data)
+            # print(' After running model: ',torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1])/(10**6))
+            mem_al = (torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1]))/(10**6)
+            writer.add_scalar('Memory/After running model', mem_al,batch_idx+ epoch * 100_000)
         with torch.autograd.profiler.record_function('loss'):
             loss, head_losses = self.loss(outputs, targets)
+            # print(' After loss calc: ',torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1])/(10**6))
+            mem_al = (torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1]))/(10**6)
+            writer.add_scalar('Memory/After loss calc', mem_al,batch_idx+ epoch * 100_000)
         if loss is not None:
             with torch.autograd.profiler.record_function('backward'):
                 loss.backward()
+                # print(' After loss backward: ',torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1])/(10**6))
+                mem_al = (torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1]))/(10**6)
+            writer.add_scalar('Memory/After loss backward', mem_al,batch_idx+ epoch * 100_000)
         if apply_gradients:
             with torch.autograd.profiler.record_function('step'):
                 self.optimizer.step()
@@ -137,22 +189,43 @@ class Trainer(object):
              for l in head_losses],
         )
 
-    def val_batch(self, data, targets):
+    def val_batch(self, data, targets, epoch=None):
+        device_to_check = [0,1]
+        # print('Val Before putting data on GPU: ',torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1])/(10**6))
+        mem_al = (torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1]))/(10**6)
+        writer.add_scalar('Memory Val/Prior data on GPU', mem_al,epoch)
         if self.device:
             data = data.to(self.device, non_blocking=True)
 
-            if len(targets)==2 and len(targets[1])==4:          # when panoptic head is operating
-                targets[0] = [t.to(self.device, non_blocking=True) for t in targets[0]]
-                for key, value in targets[1].items():
-                    targets[1][key] = targets[1][key].to(self.device, non_blocking=True)
+            # if len(targets)==2 and len(targets[1])==4:          # when panoptic head is operating
+
+            targets = apply(lambda x: x.to(self.device), targets)
+                
+                # targets_ = []
+                # targets_.append([t.to(self.device, non_blocking=True) for t in targets[0]])
+                # targets_.append(dict())
+                # for key, value in targets[1].items():
+                #     targets_[1][key] = targets[1][key].to(self.device, non_blocking=True)
+
+                # targets = targets_
 
 
-            else:
-                targets = [[t.to(self.device, non_blocking=True) for t in head] for head in targets]
+            # else:
+            #     targets = [[t.to(self.device, non_blocking=True) for t in head] for head in targets]
+
+        # print('Val After putting data on GPU: ',torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1])/(10**6))
+        mem_al = (torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1]))/(10**6)
+        writer.add_scalar('Memory Val/After data on GPU', mem_al,epoch)
 
         with torch.no_grad():
             outputs = self.model(data)
+            # print('Val After running model: ',torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1])/(10**6))
+            mem_al = (torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1]))/(10**6)
+            writer.add_scalar('Memory Val/After running model', mem_al,epoch)
             loss, head_losses = self.loss(outputs, targets)
+            # print('Val After loss calc: ',torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1])/(10**6))
+            mem_al = (torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1]))/(10**6)
+            writer.add_scalar('Memory Val/After loss calc', mem_al,epoch)
 
         return (
             float(loss.item()) if loss is not None else None,
@@ -208,7 +281,7 @@ class Trainer(object):
             # torch.save(target, filename)
             # print('filename is')
             # print(filename)
-            loss, head_losses = self.train_batch(data, target, apply_gradients)
+            loss, head_losses = self.train_batch(data, target, apply_gradients, batch_idx=batch_idx, epoch=epoch)
             
                 
 
@@ -293,7 +366,7 @@ class Trainer(object):
         head_epoch_losses = None
         head_epoch_counts = None
         for data, target, _ in scenes:
-            loss, head_losses = self.val_batch(data, target)
+            loss, head_losses = self.val_batch(data, target, epoch=epoch)
 
             # update epoch accumulates
             if loss is not None:

@@ -349,7 +349,7 @@ class PanopticDeeplabMeta:
     sparse_skeleton: List[Tuple[int, int]] = None
 
     feature_key: str = 'res5'
-    decoder_channels: int = 256
+    decoder_channels: int = 128
     atrous_rates: Tuple[int] = (3,6,9)
 
     low_level_channels: Tuple[int] = (1024, 512, 256)

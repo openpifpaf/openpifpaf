@@ -1152,6 +1152,7 @@ def build_loss_from_cfg(config, loss='semantic'):
         A nn.Module loss.
     """
     if loss == 'semantic':
+        # return RegularCE(ignore_label=-1)
         if config.seman_loss_name == 'cross_entropy':
             # return CrossEntropyLoss(ignore_index=config.IGNORE, reduction='mean')
             return RegularCE(ignore_label=config.seman_loss_ignore)
@@ -1168,6 +1169,7 @@ def build_loss_from_cfg(config, loss='semantic'):
             raise ValueError('Unknown loss type: {}'.format(config.seman_loss_name))
 
     elif loss == 'offset':
+        # return MSELoss(reduction='none')
         if config.offset_loss_name == 'cross_entropy':
             # return CrossEntropyLoss(ignore_index=config.IGNORE, reduction='mean')
             return RegularCE(ignore_label=config.offset_loss_ignore)
