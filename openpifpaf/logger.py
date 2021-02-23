@@ -38,7 +38,7 @@ def configure(args: argparse.Namespace, local_logger=None):
         logging.basicConfig()
 
     # set log level for openpifpaf and all openpifpaf plugins
-    for logger_name in logging.root.manager.loggerDict:
+    for logger_name in logging.root.manager.loggerDict:  # pylint: disable=no-member
         if '.' in logger_name or not logger_name.startswith('openpifpaf'):
             continue
         logging.getLogger(logger_name).setLevel(log_level)
