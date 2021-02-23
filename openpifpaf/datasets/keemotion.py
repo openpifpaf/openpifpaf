@@ -154,7 +154,7 @@ class Keemotion(torch.utils.data.Dataset):
             is_crowd = iid == 0
 
             coords = meshgrid[mask,:]
-            center = tuple(coords.mean(axis=0))
+            center = tuple(coords.mean(axis=0))[::-1]
             y1, x1 = coords.min(axis=0)
             y2, x2 = coords.max(axis=0)
             w, h = x2-x1, y2-y1
@@ -166,12 +166,14 @@ class Keemotion(torch.utils.data.Dataset):
                 keypoints[17,:] = (*center, 1)
             elif label == 3 and self.ball:
                 keypoints[18,:] = (*center, 1)
+            else:
+                raise NotImplementedError('Class label %d'%label)
 
             anns.append({
                 'num_keypoints': 1,
                 'area': coords.shape[0],
                 'iscrowd': is_crowd,
-                'bmask': mask,
+                'bmask': mask.astype(np.int64),
                 'keypoints': keypoints,
                 'image_id': path,
                 'id': instance_id,
