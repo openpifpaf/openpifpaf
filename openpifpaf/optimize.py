@@ -109,6 +109,7 @@ def factory_optimizer(args, parameters):
 
 
 def factory_lrscheduler(args, optimizer, training_batches_per_epoch):
+    LOG.info('training batches per epoch = %d', training_batches_per_epoch)
     return torch.optim.lr_scheduler.LambdaLR(
         optimizer,
         [

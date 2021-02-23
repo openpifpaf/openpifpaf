@@ -5,6 +5,7 @@ import torchvision
 from .annotations import AnnotationJitter, NormalizeAnnotations
 from .compose import Compose
 from .crop import Crop
+from .encoders import Encoders
 from .hflip import HFlip
 from .image import Blur, ImageTransform, JpegCompression
 from .minsize import MinSize
@@ -14,6 +15,7 @@ from .preprocess import Preprocess
 from .random import DeterministicEqualChoice, RandomApply
 from .rotate import RotateBy90
 from .scale import RescaleAbsolute, RescaleRelative, ScaleMix
+from .toannotations import ToAnnotations, ToCrowdAnnotations, ToDetAnnotations, ToKpAnnotations
 from .unclipped import UnclippedArea, UnclippedSides
 
 
@@ -30,7 +32,7 @@ EVAL_TRANSFORM = Compose([
 TRAIN_TRANSFORM = Compose([
     NormalizeAnnotations(),
     ImageTransform(torchvision.transforms.ColorJitter(
-        brightness=0.4, saturation=0.4, hue=0.1)),
+        brightness=0.4, contrast=0.1, saturation=0.4, hue=0.1)),
     RandomApply(JpegCompression(), 0.1),  # maybe irrelevant for COCO, but good for others
     # RandomApply(Blur(), 0.01),  # maybe irrelevant for COCO, but good for others
     ImageTransform(torchvision.transforms.RandomGrayscale(p=0.01)),

@@ -1,9 +1,9 @@
 import copy
 import logging
 
-from .base import BaseVisualizer
+from .base import Base
 from ..annotation import Annotation
-from .. import show
+from .. import headmeta, show
 
 try:
     import matplotlib.cm
@@ -15,92 +15,81 @@ except ImportError:
 LOG = logging.getLogger(__name__)
 
 
-class Caf(BaseVisualizer):
-    show_margin = False
-    show_background = False
-    show_confidences = False
-    show_regressions = False
+class Caf(Base):
+    def __init__(self, meta: headmeta.Caf):
+        super().__init__(meta.name)
+        self.meta = meta
+        keypoint_painter = show.KeypointPainter(monocolor_connections=True)
+        self.annotation_painter = show.AnnotationPainter(painters={'Annotation': keypoint_painter})
 
-    def __init__(self, head_name, *, stride=1, keypoints=None, skeleton=None):
-        super().__init__(head_name)
-
-        self.stride = stride
-        self.keypoints = keypoints
-        self.skeleton = skeleton
-
-        self.keypoint_painter = show.KeypointPainter(xy_scale=self.stride)
-
-    def targets(self, field, keypoint_sets):
-        assert self.keypoints is not None
-        assert self.skeleton is not None
+    def targets(self, field, *, annotation_dicts):
+        assert self.meta.keypoints is not None
+        assert self.meta.skeleton is not None
 
         annotations = [
-            Annotation(keypoints=self.keypoints, skeleton=self.skeleton).set(kps, fixed_score=None)
-            for kps in keypoint_sets
+            Annotation(
+                keypoints=self.meta.keypoints,
+                skeleton=self.meta.skeleton,
+                sigmas=self.meta.sigmas,
+            ).set(
+                ann['keypoints'], fixed_score='', fixed_bbox=ann['bbox'])
+            for ann in annotation_dicts
         ]
 
-        self._confidences(field[0])
-        self._regressions(field[1], field[2], field[3], field[4], annotations=annotations)
-
-    def predicted(self, field, *, annotations=None):
         self._confidences(field[:, 0])
-        self._regressions(field[:, 1:3], field[:, 5:7], field[:, 4], field[:, 8],
-                          annotations=annotations,
+        self._regressions(field[:, 1:3], field[:, 3:5], field[:, 7], field[:, 8],
+                          annotations=annotations)
+
+    def predicted(self, field):
+        self._confidences(field[:, 0])
+        self._regressions(field[:, 1:3], field[:, 3:5], field[:, 7], field[:, 8],
+                          annotations=self._ground_truth,
                           confidence_fields=field[:, 0],
                           uv_is_offset=False)
 
     def _confidences(self, confidences):
-        if not self.show_confidences:
-            return
-
-        for f in self.indices:
+        for f in self.indices('confidence'):
             LOG.debug('%s,%s',
-                      self.keypoints[self.skeleton[f][0] - 1],
-                      self.keypoints[self.skeleton[f][1] - 1])
+                      self.meta.keypoints[self.meta.skeleton[f][0] - 1],
+                      self.meta.keypoints[self.meta.skeleton[f][1] - 1])
 
             with self.image_canvas(self._processed_image, margin=[0.0, 0.01, 0.05, 0.01]) as ax:
-                im = ax.imshow(self.scale_scalar(confidences[f], self.stride),
+                im = ax.imshow(self.scale_scalar(confidences[f], self.meta.stride),
                                alpha=0.9, vmin=0.0, vmax=1.0, cmap=CMAP_BLUES_NAN)
                 self.colorbar(ax, im)
 
     def _regressions(self, regression_fields1, regression_fields2,
                      scale_fields1, scale_fields2, *,
                      annotations=None, confidence_fields=None, uv_is_offset=True):
-        if not self.show_regressions:
-            return
-
-        for f in self.indices:
+        for f in self.indices('regression'):
             LOG.debug('%s,%s',
-                      self.keypoints[self.skeleton[f][0] - 1],
-                      self.keypoints[self.skeleton[f][1] - 1])
+                      self.meta.keypoints[self.meta.skeleton[f][0] - 1],
+                      self.meta.keypoints[self.meta.skeleton[f][1] - 1])
             confidence_field = confidence_fields[f] if confidence_fields is not None else None
 
             with self.image_canvas(self._processed_image, margin=[0.0, 0.01, 0.05, 0.01]) as ax:
                 show.white_screen(ax, alpha=0.5)
                 if annotations:
-                    self.keypoint_painter.annotations(ax, annotations)
+                    self.annotation_painter.annotations(ax, annotations, color='lightgray')
                 q1 = show.quiver(ax,
                                  regression_fields1[f, :2],
                                  confidence_field=confidence_field,
-                                 xy_scale=self.stride, uv_is_offset=uv_is_offset,
+                                 xy_scale=self.meta.stride, uv_is_offset=uv_is_offset,
                                  cmap='Blues', clim=(0.5, 1.0), width=0.001)
                 show.quiver(ax,
                             regression_fields2[f, :2],
                             confidence_field=confidence_field,
-                            xy_scale=self.stride, uv_is_offset=uv_is_offset,
+                            xy_scale=self.meta.stride, uv_is_offset=uv_is_offset,
                             cmap='Greens', clim=(0.5, 1.0), width=0.001)
                 show.boxes(ax, scale_fields1[f] / 2.0,
                            confidence_field=confidence_field,
                            regression_field=regression_fields1[f, :2],
-                           xy_scale=self.stride, cmap='Blues', fill=False,
+                           xy_scale=self.meta.stride, cmap='Blues', fill=False,
                            regression_field_is_offset=uv_is_offset)
                 show.boxes(ax, scale_fields2[f] / 2.0,
                            confidence_field=confidence_field,
                            regression_field=regression_fields2[f, :2],
-                           xy_scale=self.stride, cmap='Greens', fill=False,
+                           xy_scale=self.meta.stride, cmap='Greens', fill=False,
                            regression_field_is_offset=uv_is_offset)
-                if self.show_margin:
-                    show.margins(ax, regression_fields1[f, :6], xy_scale=self.stride)
-                    show.margins(ax, regression_fields2[f, :6], xy_scale=self.stride)
 
                 self.colorbar(ax, q1)

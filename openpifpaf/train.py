@@ -1,99 +1,90 @@
 """Train a pifpaf network."""
 
 import argparse
+import copy
 import datetime
 import logging
+import os
 import socket
 
 import torch
 
-from . import datasets, encoder, logs, network, optimize, show, visualizer
+from . import datasets, encoder, logger, network, optimize, plugin, show, visualizer
 from . import __version__
 
 LOG = logging.getLogger(__name__)
 
 
-def default_output_file(args, net_cpu):
-    base_name = net_cpu.base_net.shortname
-    head_names = [hn.meta.name for hn in net_cpu.head_nets]
+def default_output_file(args):
+    base_name = args.basenet
+    if not base_name:
+        base_name, _, __ = os.path.basename(args.checkpoint).partition('-')
 
     now = datetime.datetime.now().strftime('%y%m%d-%H%M%S')
-    out = 'outputs/{}-{}-{}'.format(base_name, now, '-'.join(head_names))
-    if args.square_edge != 385:
-        out += '-edge{}'.format(args.square_edge)
+    out = 'outputs/{}-{}-{}'.format(base_name, now, args.dataset)
+    if args.cocokp_square_edge != 385:
+        out += '-edge{}'.format(args.cocokp_square_edge)
     if args.regression_loss != 'laplace':
         out += '-{}'.format(args.regression_loss)
     if args.r_smooth != 0.0:
         out += '-rsmooth{}'.format(args.r_smooth)
-    if args.orientation_invariant or args.extended_scale:
+    if args.cocokp_orientation_invariant or args.cocokp_extended_scale:
         out += '-'
-        if args.orientation_invariant:
-            out += 'o{:02.0f}'.format(args.orientation_invariant * 100.0)
-        if args.extended_scale:
+        if args.cocokp_orientation_invariant:
+            out += 'o{:02.0f}'.format(args.cocokp_orientation_invariant * 100.0)
+        if args.cocokp_extended_scale:
             out += 's'
 
     return out + '.pkl'
 
 
 def cli():
+    plugin.register()
+
     parser = argparse.ArgumentParser(
         prog='python3 -m openpifpaf.train',
+        usage='%(prog)s [options]',
         description=__doc__,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument('--version', action='version',
                         version='OpenPifPaf {version}'.format(version=__version__))
+    parser.add_argument('-o', '--output', default=None,
+                        help='output file')
+    parser.add_argument('--disable-cuda', action='store_true',
+                        help='disable CUDA')
+    parser.add_argument('--ddp', default=False, action='store_true',
+                        help='[experimental] DistributedDataParallel')
+    parser.add_argument('--local_rank', default=None, type=int,
+                        help='[experimental] for torch.distributed.launch')
 
-    logs.cli(parser)
-    network.cli(parser)
-    network.losses.cli(parser)
+    logger.cli(parser)
+    network.Factory.cli(parser)
+    network.losses.Factory.cli(parser)
+    network.Trainer.cli(parser)
     encoder.cli(parser)
     optimize.cli(parser)
-    datasets.train_cli(parser)
+    datasets.cli(parser)
     show.cli(parser)
     visualizer.cli(parser)
 
-    parser.add_argument('-o', '--output', default=None,
-                        help='output file')
-    parser.add_argument('--stride-apply', default=1, type=int,
-                        help='apply and reset gradients every n batches')
-    parser.add_argument('--epochs', default=75, type=int,
-                        help='number of epochs to train')
-    parser.add_argument('--val-interval', default=1, type=int,
-                        help='validation run every n epochs')
-    parser.add_argument('--rescale-images', type=float, default=1.0,
-                        help='overall image rescale factor')
-    parser.add_argument('--update-batchnorm-runningstatistics',
-                        default=False, action='store_true',
-                        help='update batch norm running statistics')
-    parser.add_argument('--ema', default=1e-2, type=float,
-                        help='ema decay constant')
-    parser.add_argument('--clip-grad-norm', default=0.0, type=float,
-                        help='clip grad norm: specify largest change for single param')
-    parser.add_argument('--log-interval', default=10, type=int,
-                        help='log loss every n steps')
-    parser.add_argument('--disable-cuda', action='store_true',
-                        help='disable CUDA')
-
-    group = parser.add_argument_group('debug')
-    group.add_argument('--profile', default=None,
-                       help='enables profiling. specify path for chrome tracing file')
-    group.add_argument('--log-stats', default=False, action='store_true',
-                       help='enable stats logging')
-    group.add_argument('--debug-images', default=False, action='store_true',
-                       help='print debug messages and enable all debug images')
-
     args = parser.parse_args()
 
-    if args.debug_images:
-        args.debug = True
+    logger.configure(args, LOG)
+    if args.log_stats:
+        logging.getLogger('openpifpaf.stats').setLevel(logging.DEBUG)
 
-    network.configure(args)
-    network.losses.configure(args)
-    encoder.configure(args)
-    datasets.train_configure(args)
-    show.configure(args)
-    visualizer.configure(args)
+    # slurm
+    slurm_process_id = os.environ.get('SLURM_PROCID')
+    if slurm_process_id is not None:
+        LOG.info('found SLURM process id: %s', slurm_process_id)
+        args.local_rank = 0
+        os.environ['RANK'] = slurm_process_id
+        if not os.environ.get('WORLD_SIZE') and os.environ.get('SLURM_NTASKS'):
+            os.environ['WORLD_SIZE'] = os.environ.get('SLURM_NTASKS')
+        LOG.info('distributed env: master=%s port=%s rank=%s world=%s',
+                 os.environ.get('MASTER_ADDR'), os.environ.get('MASTER_PORT'),
+                 os.environ.get('RANK'), os.environ.get('WORLD_SIZE'))
 
     # add args.device
     args.device = torch.device('cpu')
@@ -103,51 +94,83 @@ def cli():
         args.pin_memory = True
     LOG.debug('neural network device: %s', args.device)
 
+    # output
+    if args.output is None:
+        args.output = default_output_file(args)
+        os.makedirs('outputs', exist_ok=True)
+
+    network.Factory.configure(args)
+    network.losses.Factory.configure(args)
+    network.Trainer.configure(args)
+    encoder.configure(args)
+    datasets.configure(args)
+    show.configure(args)
+    visualizer.configure(args)
+
     return args
 
 
 def main():
     args = cli()
-    net_cpu, start_epoch = network.factory_from_args(args)
-    net_cpu.process_heads = None
-    if args.output is None:
-        args.output = default_output_file(args, net_cpu)
 
-    log_level = logs.configure(args)
-    LOG.setLevel(log_level)
-    if args.log_stats:
-        logging.getLogger('openpifpaf.stats').setLevel(logging.DEBUG)
+    datamodule = datasets.factory(args.dataset)
 
-    net = net_cpu.to(device=args.device)
-    if not args.disable_cuda and torch.cuda.device_count() > 1:
-        print('Using multiple GPUs: {}'.format(torch.cuda.device_count()))
-        net = torch.nn.DataParallel(net)
+    net_cpu, start_epoch = network.Factory().factory(head_metas=datamodule.head_metas)
+    loss = network.losses.Factory().factory(net_cpu.head_nets)
 
-    loss = network.losses.factory_from_args(args, net_cpu.head_nets)
-    target_transforms = encoder.factory(net_cpu.head_nets, net_cpu.base_net.stride)
-    train_loader, val_loader = datasets.train_factory(args, target_transforms)
+    checkpoint_shell = None
+    if not args.disable_cuda and torch.cuda.device_count() > 1 and not args.ddp:
+        LOG.info('Multiple GPUs with DataParallel: %d', torch.cuda.device_count())
+        checkpoint_shell = copy.deepcopy(net_cpu)
+        net = torch.nn.DataParallel(net_cpu.to(device=args.device))
+        loss = loss.to(device=args.device)
+    elif not args.disable_cuda and torch.cuda.device_count() == 1 and not args.ddp:
+        LOG.info('Single GPU training')
+        checkpoint_shell = copy.deepcopy(net_cpu)
+        net = net_cpu.to(device=args.device)
+        loss = loss.to(device=args.device)
+    elif not args.disable_cuda and torch.cuda.device_count() > 0:
+        LOG.info('Multiple GPUs with DistributedDataParallel')
+        assert not list(loss.parameters())
+        assert torch.cuda.device_count() > 0
+        checkpoint_shell = copy.deepcopy(net_cpu)
+        torch.cuda.set_device(args.local_rank)
+        torch.distributed.init_process_group(backend='nccl', init_method='env://')
+        LOG.info('DDP: rank %d, world %d',
+                 torch.distributed.get_rank(), torch.distributed.get_world_size())
+        net_cpu = torch.nn.SyncBatchNorm.convert_sync_batchnorm(net_cpu)
+        net = torch.nn.parallel.DistributedDataParallel(
+            net_cpu.to(device=args.device),
+            device_ids=[args.local_rank], output_device=args.local_rank,
+            find_unused_parameters=isinstance(datamodule, datasets.MultiDataModule),
+        )
+        loss = loss.to(device=args.device)
+    else:
+        net = net_cpu
+
+    logger.train_configure(args)
+    train_loader = datamodule.train_loader()
+    val_loader = datamodule.val_loader()
+    if torch.distributed.is_initialized():
+        train_loader = datamodule.distributed_sampler(train_loader)
+        val_loader = datamodule.distributed_sampler(val_loader)
 
     optimizer = optimize.factory_optimizer(
         args, list(net.parameters()) + list(loss.parameters()))
     lr_scheduler = optimize.factory_lrscheduler(args, optimizer, len(train_loader))
     trainer = network.Trainer(
         net, loss, optimizer, args.output,
+        checkpoint_shell=checkpoint_shell,
         lr_scheduler=lr_scheduler,
         device=args.device,
-        fix_batch_norm=not args.update_batchnorm_runningstatistics,
-        stride_apply=args.stride_apply,
-        ema_decay=args.ema,
-        log_interval=args.log_interval,
-        train_profile=args.profile,
         model_meta_data={
             'args': vars(args),
             'version': __version__,
+            'plugin_versions': plugin.versions(),
             'hostname': socket.gethostname(),
         },
-        clip_grad_norm=args.clip_grad_norm,
-        val_interval=args.val_interval,
     )
-    trainer.loop(train_loader, val_loader, args.epochs, start_epoch=start_epoch)
+    trainer.loop(train_loader, val_loader, start_epoch=start_epoch)
 
 
 if __name__ == '__main__':

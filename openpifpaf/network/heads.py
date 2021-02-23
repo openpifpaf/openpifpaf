@@ -1,145 +1,31 @@
 """Head networks."""
 
-from dataclasses import dataclass
+import argparse
 import functools
 import logging
-from typing import Any, List, Tuple, Union
+import math
 
-import numpy as np
 import torch
+
+from .. import headmeta
 
 LOG = logging.getLogger(__name__)
 
 
 @functools.lru_cache(maxsize=16)
-def index_field_torch(shape, *, device=None, n_unsqueeze=2):
-    yx = np.indices(shape, dtype=np.float32)
-    xy = np.flip(yx, axis=0)
+def index_field_torch(shape, *, device=None, unsqueeze=(0, 0)):
+    assert len(shape) == 2
+    fliprow = torch.arange(shape[1]).repeat(shape[0], 1)
+    flipcol = torch.arange(shape[0]).repeat(shape[1], 1).t()
+    xy = torch.cat([fliprow.unsqueeze(0), flipcol.unsqueeze(0)])
 
-    xy = torch.from_numpy(xy.copy())
     if device is not None:
         xy = xy.to(device, non_blocking=True)
 
-    for _ in range(n_unsqueeze):
-        xy = torch.unsqueeze(xy, 0)
+    for dim in unsqueeze:
+        xy = torch.unsqueeze(xy, dim)
 
     return xy
-
-
-class CifCafCollector(torch.nn.Module):
-    def __init__(self, cif_indices, caf_indices):
-        super().__init__()
-        self.cif_indices = cif_indices
-        self.caf_indices = caf_indices
-        LOG.debug('cif = %s, caf = %s', cif_indices, caf_indices)
-
-    @staticmethod
-    def selector(inputs, index):
-        if not isinstance(index, (list, tuple)):
-            return inputs[index]
-
-        for ind in index:
-            inputs = inputs[ind]
-        return inputs
-
-    @staticmethod
-    def concat_fields(fields):
-        fields = [
-            f.view(f.shape[0], f.shape[1], f.shape[2] * f.shape[3], *f.shape[4:])
-            if len(f.shape) == 6
-            else f.view(f.shape[0], f.shape[1], f.shape[2], *f.shape[3:])
-            for f in fields
-        ]
-        return torch.cat(fields, dim=2)
-
-    @staticmethod
-    def concat_heads(heads):
-        if not heads:
-            return None
-        if len(heads) == 1:
-            return heads[0]
-
-        # LOG.debug('heads = %s', [h.shape for h in heads])
-        return torch.cat(heads, dim=1)
-
-    def forward(self, *args):
-        heads = args[0]
-
-        # concat fields
-        cif_heads = [self.concat_fields(self.selector(heads, head_index))
-                     for head_index in self.cif_indices]
-        caf_heads = [self.concat_fields(self.selector(heads, head_index))
-                     for head_index in self.caf_indices]
-
-        # concat heads
-        cif_head = self.concat_heads(cif_heads)
-        caf_head = self.concat_heads(caf_heads)
-
-        # add index
-        index_field = index_field_torch(cif_head.shape[-2:], device=cif_head.device)
-        if cif_head is not None:
-            cif_head[:, :, 1:3].add_(index_field)
-        if caf_head is not None:
-            caf_head[:, :, 1:3].add_(index_field)
-            caf_head[:, :, 3:5].add_(index_field)
-            # rearrange caf_fields
-            caf_head = caf_head[:, :, (0, 1, 2, 5, 7, 3, 4, 6, 8)]
-
-        return cif_head, caf_head
-
-
-class CifdetCollector(torch.nn.Module):
-    def __init__(self, indices):
-        super().__init__()
-        self.indices = indices
-        LOG.debug('cifdet = %s', indices)
-
-    @staticmethod
-    def selector(inputs, index):
-        if not isinstance(index, (list, tuple)):
-            return inputs[index]
-
-        for ind in index:
-            inputs = inputs[ind]
-        return inputs
-
-    @staticmethod
-    def concat_fields(fields):
-        fields = [
-            f.view(f.shape[0], f.shape[1], f.shape[2] * f.shape[3], *f.shape[4:])
-            if len(f.shape) == 6
-            else f.view(f.shape[0], f.shape[1], f.shape[2], *f.shape[3:])
-            for f in fields
-        ]
-        return torch.cat(fields, dim=2)
-
-    @staticmethod
-    def concat_heads(heads):
-        if not heads:
-            return None
-        if len(heads) == 1:
-            return heads[0]
-
-        # LOG.debug('heads = %s', [h.shape for h in heads])
-        return torch.cat(heads, dim=1)
-
-    def forward(self, *args):
-        heads = args[0]
-
-        # concat fields
-        cifdet_heads = [self.concat_fields(self.selector(heads, head_index))
-                        for head_index in self.indices]
-
-        # concat heads
-        cifdet_head = self.concat_heads(cifdet_heads)
-
-        # add index
-        index_field = index_field_torch(cifdet_head.shape[-2:], device=cifdet_head.device)
-        cifdet_head[:, :, 1:3] += index_field
-        # rearrange caf_fields
-        cifdet_head = cifdet_head[:, :, (0, 1, 2, 5, 3, 4, 6)]
-
-        return (cifdet_head,)
 
 
 class PifHFlip(torch.nn.Module):
@@ -152,7 +38,6 @@ class PifHFlip(torch.nn.Module):
         ])
         LOG.debug('hflip indices: %s', flip_indices)
         self.register_buffer('flip_indices', flip_indices)
-
 
     def forward(self, *args):
         out = []
@@ -214,235 +99,157 @@ class PafHFlip(torch.nn.Module):
         return out
 
 
-@dataclass
-class IntensityMeta:
-    name: str
-    keypoints: List[str]
-    sigmas: List[float]
-    pose: Any
-    draw_skeleton: List[Tuple[int, int]] = None
+class HeadNetwork(torch.nn.Module):
+    """Base class for head networks.
 
-    n_confidences: int = 1
-    n_vectors: int = 1
-    n_scales: int = 1
+    :param meta: head meta instance to configure this head network
+    :param in_features: number of input features which should be equal to the
+        base network's output features
+    """
+    def __init__(self, meta: headmeta.Base, in_features: int):
+        super().__init__()
+        self.meta = meta
+        self.in_features = in_features
 
-    @property
-    def n_fields(self):
-        return len(self.keypoints)
+    @classmethod
+    def cli(cls, parser: argparse.ArgumentParser):
+        """Command line interface (CLI) to extend argument parser."""
 
-
-@dataclass
-class AssociationMeta:
-    name: str
-    keypoints: List[str]
-    sigmas: List[float]
-    pose: Any
-    skeleton: List[Tuple[int, int]]
-    sparse_skeleton: List[Tuple[int, int]] = None
-    only_in_field_of_view: bool = False
-
-    n_confidences: int = 1
-    n_vectors: int = 2
-    n_scales: int = 2
-
-    @property
-    def n_fields(self):
-        return len(self.skeleton)
+    @classmethod
+    def configure(cls, args: argparse.Namespace):
+        """Take the parsed argument parser output and configure class variables."""
 
 
-@dataclass
-class DetectionMeta:
-    name: str
-    categories: List[str]
-
-    n_confidences: int = 1
-    n_vectors: int = 2
-    n_scales: int = 0
-
-    @property
-    def n_fields(self):
-        return len(self.categories)
-
-
-class CompositeField(torch.nn.Module):
+class CompositeField3(HeadNetwork):
     dropout_p = 0.0
-    quad = 1
+    inplace_ops = True
 
     def __init__(self,
-                 meta: Union[IntensityMeta, AssociationMeta, DetectionMeta],
+                 meta: headmeta.Base,
                  in_features, *,
                  kernel_size=1, padding=0, dilation=1):
-        super().__init__()
+        super().__init__(meta, in_features)
 
         LOG.debug('%s config: fields = %d, confidences = %d, vectors = %d, scales = %d '
                   'kernel = %d, padding = %d, dilation = %d',
                   meta.name, meta.n_fields, meta.n_confidences, meta.n_vectors, meta.n_scales,
                   kernel_size, padding, dilation)
 
-        self.meta = meta
         self.dropout = torch.nn.Dropout2d(p=self.dropout_p)
-        self._quad = self.quad
-
-        # classification
-        out_features = meta.n_fields * (4 ** self._quad)
-        self.class_convs = torch.nn.ModuleList([
-            torch.nn.Conv2d(in_features, out_features,
-                            kernel_size, padding=padding, dilation=dilation)
-            for _ in range(meta.n_confidences)
-        ])
-
-        # regression
-        self.reg_convs = torch.nn.ModuleList([
-            torch.nn.Conv2d(in_features, 2 * out_features,
-                            kernel_size, padding=padding, dilation=dilation)
-            for _ in range(meta.n_vectors)
-        ])
-        self.reg_spreads = torch.nn.ModuleList([
-            torch.nn.Conv2d(in_features, out_features,
-                            kernel_size, padding=padding, dilation=dilation)
-            for _ in self.reg_convs
-        ])
-
-        # scale
-        self.scale_convs = torch.nn.ModuleList([
-            torch.nn.Conv2d(in_features, out_features,
-                            kernel_size, padding=padding, dilation=dilation)
-            for _ in range(meta.n_scales)
-        ])
-
-        # dequad
-        self.dequad_op = torch.nn.PixelShuffle(2)
-        raise Exception('use CompositeFieldFused instead of CompositeField')
-
-    def stride(self, basenet_stride):
-        return basenet_stride // (2 ** self._quad)
-
-    def forward(self, x):  # pylint: disable=arguments-differ
-        x = self.dropout(x)
-
-        # classification
-        classes_x = [class_conv(x) for class_conv in self.class_convs]
-        if not self.training:
-            classes_x = [torch.sigmoid(class_x) for class_x in classes_x]
-
-        # regressions
-        regs_x = [reg_conv(x) for reg_conv in self.reg_convs]
-        regs_logb = [reg_spread(x) for reg_spread in self.reg_spreads]
-        if self.training:
-            regs_logb = [3.0 * torch.tanh(reg_logb / 3.0) for reg_logb in regs_logb]
-
-        # scale
-        scales_x = [scale_conv(x) for scale_conv in self.scale_convs]
-        if not self.training:
-            scales_x = [torch.exp(scale_x) for scale_x in scales_x]
-
-        # upscale
-        for _ in range(self._quad):
-            classes_x = [self.dequad_op(class_x)[:, :, :-1, :-1]
-                         for class_x in classes_x]
-            regs_x = [self.dequad_op(reg_x)[:, :, :-1, :-1]
-                      for reg_x in regs_x]
-            regs_logb = [self.dequad_op(reg_x_spread)[:, :, :-1, :-1]
-                         for reg_x_spread in regs_logb]
-            scales_x = [self.dequad_op(scale_x)[:, :, :-1, :-1]
-                        for scale_x in scales_x]
-
-        # reshape regressions
-        regs_x = [
-            reg_x.reshape(reg_x.shape[0],
-                          reg_x.shape[1] // 2,
-                          2,
-                          reg_x.shape[2],
-                          reg_x.shape[3])
-            for reg_x in regs_x
-        ]
-
-        return classes_x + regs_x + regs_logb + scales_x
-
-
-class CompositeFieldFused(torch.nn.Module):
-    dropout_p = 0.0
-    quad = 1
-
-    def __init__(self,
-                 meta: Union[IntensityMeta, AssociationMeta, DetectionMeta],
-                 in_features, *,
-                 kernel_size=1, padding=0, dilation=1):
-        super().__init__()
-
-        LOG.debug('%s config: fields = %d, confidences = %d, vectors = %d, scales = %d '
-                  'kernel = %d, padding = %d, dilation = %d',
-                  meta.name, meta.n_fields, meta.n_confidences, meta.n_vectors, meta.n_scales,
-                  kernel_size, padding, dilation)
-
-        self.meta = meta
-        self.dropout = torch.nn.Dropout2d(p=self.dropout_p)
-        self._quad = self.quad
 
         # convolution
-        feature_groups = [
-            meta.n_confidences * meta.n_fields,
-            meta.n_vectors * 2 * meta.n_fields,
-            meta.n_vectors * 1 * meta.n_fields,
-            meta.n_scales * meta.n_fields,
-        ]
-        self.out_features = []  # the cumulative of the feature_groups above
-        for fg in feature_groups:
-            self.out_features.append(
-                (self.out_features[-1] if self.out_features else 0) + fg)
-        self.conv = torch.nn.Conv2d(in_features, self.out_features[-1] * (4 ** self._quad),
+        out_features = meta.n_fields * (meta.n_confidences + meta.n_vectors * 3 + meta.n_scales)
+        self.conv = torch.nn.Conv2d(in_features, out_features * (meta.upsample_stride ** 2),
                                     kernel_size, padding=padding, dilation=dilation)
 
-        # dequad
-        self.dequad_op = torch.nn.PixelShuffle(2)
+        # upsample
+        assert meta.upsample_stride >= 1
+        self.upsample_op = None
+        if meta.upsample_stride > 1:
+            self.upsample_op = torch.nn.PixelShuffle(meta.upsample_stride)
+
+    @classmethod
+    def cli(cls, parser: argparse.ArgumentParser):
+        group = parser.add_argument_group('CompositeField3')
+        group.add_argument('--cf3-dropout', default=cls.dropout_p, type=float,
+                           help='[experimental] zeroing probability of feature in head input')
+        assert cls.inplace_ops
+        group.add_argument('--cf3-no-inplace-ops', dest='cf3_inplace_ops',
+                           default=True, action='store_false',
+                           help='alternative graph without inplace ops')
+
+    @classmethod
+    def configure(cls, args: argparse.Namespace):
+        cls.dropout_p = args.cf3_dropout
+        cls.inplace_ops = args.cf3_inplace_ops
 
     @property
     def sparse_task_parameters(self):
         return [self.conv.weight]
 
-    def stride(self, basenet_stride):
-        return basenet_stride // (2 ** self._quad)
-
     def forward(self, x):  # pylint: disable=arguments-differ
         x = self.dropout(x)
         x = self.conv(x)
         # upscale
-        for _ in range(self._quad):
-            x = self.dequad_op(x)[:, :, :-1, :-1]
+        if self.upsample_op is not None:
+            x = self.upsample_op(x)
+            low_cut = (self.meta.upsample_stride - 1) // 2
+            high_cut = math.ceil((self.meta.upsample_stride - 1) / 2.0)
+            if self.training:
+                # negative axes not supported by ONNX TensorRT
+                x = x[:, :, low_cut:-high_cut, low_cut:-high_cut]
+            else:
+                # the int() forces the tracer to use static shape
+                x = x[:, :, low_cut:int(x.shape[2]) - high_cut, low_cut:int(x.shape[3]) - high_cut]
 
-        # classification
-        classes_x = x[:, 0:self.out_features[0]]
-        classes_x = classes_x.view(classes_x.shape[0],
-                                   self.meta.n_fields,
-                                   self.meta.n_confidences,
-                                   classes_x.shape[2],
-                                   classes_x.shape[3])
-        if not self.training:
+        # Extract some shape parameters once.
+        # Convert to int so that shape is constant in ONNX export.
+        x_size = x.size()
+        batch_size = int(x_size[0])
+        feature_height = int(x_size[2])
+        feature_width = int(x_size[3])
+
+        x = x.view(
+            batch_size,
+            self.meta.n_fields,
+            self.meta.n_confidences + self.meta.n_vectors * 3 + self.meta.n_scales,
+            feature_height,
+            feature_width
+        )
+
+        if not self.training and self.inplace_ops:
+            # classification
+            classes_x = x[:, :, 0:self.meta.n_confidences]
+            torch.sigmoid_(classes_x)
+
+            # regressions x: add index
+            if self.meta.n_vectors > 0:
+                index_field = index_field_torch(x.shape[-2:], device=x.device)
+                first_reg_feature = self.meta.n_confidences
+                for i, do_offset in enumerate(self.meta.vector_offsets):
+                    if not do_offset:
+                        continue
+                    reg_x = x[:, :, first_reg_feature + i * 2:first_reg_feature + (i + 1) * 2]
+                    reg_x.add_(index_field)
+
+            # scale
+            first_scale_feature = self.meta.n_confidences + self.meta.n_vectors * 3
+            scales_x = x[:, :, first_scale_feature:first_scale_feature + self.meta.n_scales]
+            scales_x[:] = torch.nn.functional.softplus(scales_x)
+        elif not self.training and not self.inplace_ops:
+            # TODO: CoreMLv4 does not like strided slices.
+            # Strides are avoided when switching the first and second dim
+            # temporarily.
+            x = torch.transpose(x, 1, 2)
+
+            # classification
+            classes_x = x[:, 0:self.meta.n_confidences]
             classes_x = torch.sigmoid(classes_x)
 
-        # regressions
-        regs_x = x[:, self.out_features[0]:self.out_features[1]]
-        regs_x = regs_x.view(regs_x.shape[0],
-                             self.meta.n_fields,
-                             self.meta.n_vectors,
-                             2,
-                             regs_x.shape[2],
-                             regs_x.shape[3])
-        regs_logb = x[:, self.out_features[1]:self.out_features[2]]
-        regs_logb = regs_logb.view(regs_logb.shape[0],
-                                   self.meta.n_fields,
-                                   self.meta.n_vectors,
-                                   regs_logb.shape[2],
-                                   regs_logb.shape[3])
+            # regressions x
+            first_reg_feature = self.meta.n_confidences
+            regs_x = [
+                x[:, first_reg_feature + i * 2:first_reg_feature + (i + 1) * 2]
+                for i in range(self.meta.n_vectors)
+            ]
+            # regressions x: add index
+            index_field = index_field_torch(x.shape[-2:], device=x.device, unsqueeze=(1, 0))
+            regs_x = [torch.add(reg_x, index_field) if do_offset else reg_x
+                      for reg_x, do_offset in zip(regs_x, self.meta.vector_offsets)]
 
-        # scale
-        scales_x = x[:, self.out_features[2]:self.out_features[3]]
-        scales_x = scales_x.view(scales_x.shape[0],
-                                 self.meta.n_fields,
-                                 self.meta.n_scales,
-                                 scales_x.shape[2],
-                                 scales_x.shape[3])
-        if not self.training:
-            scales_x = torch.exp(scales_x)
+            # regressions logb
+            first_reglogb_feature = self.meta.n_confidences + self.meta.n_vectors * 2
+            regs_logb = x[:, first_reglogb_feature:first_reglogb_feature + self.meta.n_vectors]
 
-        return classes_x, regs_x, regs_logb, scales_x
+            # scale
+            first_scale_feature = self.meta.n_confidences + self.meta.n_vectors * 3
+            scales_x = x[:, first_scale_feature:first_scale_feature + self.meta.n_scales]
+            scales_x = torch.nn.functional.softplus(scales_x)
+
+            # concat
+            x = torch.cat([classes_x, *regs_x, regs_logb, scales_x], dim=1)
+
+            # TODO: CoreMLv4 problem (see above).
+            x = torch.transpose(x, 1, 2)
+
+        return x

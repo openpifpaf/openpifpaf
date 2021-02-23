@@ -1,6 +1,11 @@
+(introduction)=
 # Introduction
 
-Continuously tested on Linux, MacOS and Windows: [![Build Status](https://travis-ci.org/vita-epfl/openpifpaf.svg?branch=master)](https://travis-ci.org/vita-epfl/openpifpaf)<br />
+Continuously tested on Linux, MacOS and Windows:
+[![Tests](https://github.com/vita-epfl/openpifpaf/workflows/Tests/badge.svg?branch=dev)](https://github.com/vita-epfl/openpifpaf/actions?query=workflow%3ATests)
+[![deploy-guide](https://github.com/vita-epfl/openpifpaf/workflows/deploy-guide/badge.svg)](https://github.com/vita-epfl/openpifpaf/actions?query=workflow%3Adeploy-guide)
+[![Downloads](https://pepy.tech/badge/openpifpaf)](https://pepy.tech/project/openpifpaf)
+<br />
 [CVPR 2019 paper](http://openaccess.thecvf.com/content_CVPR_2019/html/Kreiss_PifPaf_Composite_Fields_for_Human_Pose_Estimation_CVPR_2019_paper.html)
 <!-- [arxiv.org/abs/1903.06593](https://arxiv.org/abs/1903.06593) -->
 
@@ -32,8 +37,8 @@ Created with
 
 More demos:
 * [openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo) project (best performance)
-* OpenPifPaf running in your browser: https://vita-epfl.github.io/openpifpafwebdemo/ (experimental)
-* the `openpifpaf.video` command (requires OpenCV)
+* OpenPifPaf [running in your browser: vita-epfl.github.io/openpifpafwebdemo](https://vita-epfl.github.io/openpifpafwebdemo/) (experimental)
+* the `python3 -m openpifpaf.video` command (requires OpenCV)
 * [Google Colab demo](https://colab.research.google.com/drive/1H8T4ZE6wc0A9xJE4oGnhgHpUpAH5HL7W)
 
 ```{image} ../docs/wave3.gif
@@ -79,31 +84,23 @@ yourself without the exclamation point.
 
 Performance metrics with version 0.11 on the COCO val set obtained with a GTX1080Ti:
 
-| Backbone                  | AP       | APᴹ      | APᴸ      | t_{total} [ms]  | t_{dec} [ms] |     size |
+| Checkpoint                | AP       | APᴹ      | APᴸ      | t_{total} [ms]  | t_{dec} [ms] |     size |
 |--------------------------:|:--------:|:--------:|:--------:|:---------------:|:------------:|---------:|
-| [resnet50]                | __67.8__ | 65.3     | 72.6     | 70              | 28           |  105.0MB |
-| [shufflenetv2k16w]        | __67.3__ | 62.2     | 75.3     | 54              | 25           |   43.9MB |
-| [shufflenetv2k30w]        | __71.1__ | 66.0     | 79.0     | 94              | 22           |  122.3MB |
+| [resnet50]                | __67.9__ | 64.6     | 73.5     | 69              | 26           |  105.0MB |
+| [shufflenetv2k16]         | __67.2__ | 62.7     | 74.6     | 51              | 19           |   39.3MB |
+| [shufflenetv2k30]         | __71.0__ | 66.2     | 78.7     | 93              | 17           |  115.6MB |
 
-[resnet50]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.11.2/resnet50-200527-171310-cif-caf-caf25-o10s-c0b7ae80.pkl
-[shufflenetv2k16w]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.11.0/shufflenetv2k16w-200510-221334-cif-caf-caf25-o10s-604c5956.pkl
-[shufflenetv2k30w]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.11.0/shufflenetv2k30w-200510-104256-cif-caf-caf25-o10s-0b5ba06f.pkl
+[resnet50]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.12a7/resnet50-201123-175351-cocokp-o10s-127f7fdf.pkl
+[shufflenetv2k16]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.12b4/shufflenetv2k16-210214-123448-cocokp-o10s-e2ae3708.pkl
+[shufflenetv2k30]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.12b4/shufflenetv2k30-210217-075056-cocokp-o10s-6f9daa84.pkl
 
-Command to reproduce this table: `python -m openpifpaf.benchmark --backbones shufflenetv2k16w shufflenetv2k30w`.
+Command to reproduce this table: `python -m openpifpaf.benchmark --checkpoints resnet50 shufflenetv2k16 shufflenetv2k30`.
 
 Pretrained model files are shared in the
 __[openpifpaf-torchhub](https://github.com/vita-epfl/openpifpaf-torchhub/releases)__
-repository and linked from the backbone names in the table above.
+repository and linked from the checkpoint names in the table above.
 The pretrained models are downloaded automatically when
-using the command line option `--checkpoint backbonenameasintableabove`.
-
-For comparison, old v0.10:
-
-| Backbone               | AP       | APᴹ      | APᴸ      | t_{total} [ms]  | t_{dec} [ms] |
-|-----------------------:|:--------:|:--------:|:--------:|:---------------:|:------------:|
-| shufflenetv2x2 v0.10   | __60.4__ | 55.5     | 67.8     | 56              | 33           |
-| resnet50 v0.10         | __64.4__ | 61.1     | 69.9     | 76              | 32           |
-| resnet101 v0.10        | __67.8__ | 63.6     | 74.3     | 97              | 28           |
+using the command line option `--checkpoint checkpointasintableabove`.
 
 
 ## Related Projects
@@ -113,7 +110,7 @@ For comparison, old v0.10:
 * [physio pose](https://medium.com/@_samkitjain/physio-pose-a-virtual-physiotherapy-assistant-7d1c17db3159): "A virtual physiotherapy assistant".
 * [monstereo](https://github.com/vita-epfl/monstereo): "MonStereo: When Monocular and Stereo Meet at the Tail of 3D Human Localization".
 * [monoloco](https://github.com/vita-epfl/monoloco): "Monocular 3D Pedestrian Localization and Uncertainty Estimation".
-* [openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo): web front-end.
+* [openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo): Web server and frontend. Docker image. Kubernetes config.
 * [GitHub dependency graph](https://github.com/vita-epfl/openpifpaf/network/dependents): auto-detected Github repositories that use OpenPifPaf.
 
 Open an issue to suggest more projects.
@@ -136,11 +133,11 @@ Reference: {cite}`kreiss2019pifpaf`
 
 
 
-```{bibliography} references.bib
+```{bibliography}
 ```
 
 
 ## Commercial License
 
 This software is available for licensing via the EPFL Technology Transfer
-Office (https://tto.epfl.ch/, info.tto@epfl.ch).
+Office ([https://tto.epfl.ch/](https://tto.epfl.ch/), [info.tto@epfl.ch](mailto:info.tto@epfl.ch)).

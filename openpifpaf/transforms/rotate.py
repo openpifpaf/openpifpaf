@@ -8,7 +8,7 @@ import scipy
 import torch
 
 from .preprocess import Preprocess
-from . import utils
+from .. import utils
 
 LOG = logging.getLogger(__name__)
 
@@ -60,10 +60,10 @@ class RotateBy90(Preprocess):
         sangle = math.sin(angle / 180.0 * math.pi)
         for ann in anns:
             xy = ann['keypoints'][:, :2]
-            x_old = xy[:, 0].copy() - (w - 1)/2
-            y_old = xy[:, 1].copy() - (h - 1)/2
-            xy[:, 0] = (w - 1)/2 + cangle * x_old + sangle * y_old
-            xy[:, 1] = (h - 1)/2 - sangle * x_old + cangle * y_old
+            x_old = xy[:, 0].copy() - (w - 1) / 2
+            y_old = xy[:, 1].copy() - (h - 1) / 2
+            xy[:, 0] = (w - 1) / 2 + cangle * x_old + sangle * y_old
+            xy[:, 1] = (h - 1) / 2 - sangle * x_old + cangle * y_old
             ann['bbox'] = utils.rotate_box(ann['bbox'], w - 1, h - 1, angle)
 
         LOG.debug('meta before: %s', meta)

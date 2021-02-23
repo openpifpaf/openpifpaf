@@ -85,8 +85,8 @@ class RescaleRelative(Preprocess):
             if self.power_law:
                 rnd_range = np.log2(self.scale_range[0]), np.log2(self.scale_range[1])
                 log2_scale_factor = (
-                    rnd_range[0] +
-                    torch.rand(1).item() * (rnd_range[1] - rnd_range[0])
+                    rnd_range[0]
+                    + torch.rand(1).item() * (rnd_range[1] - rnd_range[0])
                 )
 
                 scale_factor = 2 ** log2_scale_factor
@@ -94,8 +94,8 @@ class RescaleRelative(Preprocess):
                           rnd_range, log2_scale_factor, scale_factor)
             else:
                 scale_factor = (
-                    self.scale_range[0] +
-                    torch.rand(1).item() * (self.scale_range[1] - self.scale_range[0])
+                    self.scale_range[0]
+                    + torch.rand(1).item() * (self.scale_range[1] - self.scale_range[0])
                 )
         else:
             scale_factor = self.scale_range
@@ -112,8 +112,8 @@ class RescaleRelative(Preprocess):
         stretch_factor = 1.0
         if self.stretch_range is not None:
             stretch_factor = (
-                self.stretch_range[0] +
-                torch.rand(1).item() * (self.stretch_range[1] - self.stretch_range[0])
+                self.stretch_range[0]
+                + torch.rand(1).item() * (self.stretch_range[1] - self.stretch_range[0])
             )
 
         target_w, target_h = int(w * scale_factor * stretch_factor), int(h * scale_factor)
@@ -157,8 +157,8 @@ class ScaleMix(Preprocess):
     def __call__(self, image, anns, meta):
         scales = np.array([
             np.sqrt(ann['bbox'][2] * ann['bbox'][3])
-            for ann in anns if (not getattr(ann, 'iscrowd', False) and
-                                np.any(ann['keypoints'][:, 2] > 0.0))
+            for ann in anns if (not getattr(ann, 'iscrowd', False)
+                                and np.any(ann['keypoints'][:, 2] > 0.0))
         ])
         LOG.debug('scale threshold = %f, scales = %s', self.scale_threshold, scales)
         if not scales.shape[0]:

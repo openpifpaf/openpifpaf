@@ -1,6 +1,6 @@
 """Higher level drawing functions."""
 
-from .base import BaseVisualizer
+from .base import Base
 from .cif import Cif
 from .cifdet import CifDet
 from .cifhr import CifHr

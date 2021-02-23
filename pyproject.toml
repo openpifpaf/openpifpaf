@@ -1,0 +1,35 @@
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = ["numpy", "setuptools", "wheel"]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "--nbval-lax --current-env"
+testpaths = ["tests"]
+
+[tool.pylint.BASIC]
+variable-rgx = "[a-z0-9_]{1,30}$"
+good-names = ["ap", "AP", "APM", "APL", "ar", "ax", "b", "d", "f", "g", "gt", "h", "i", "im", "lr", "n", "p", "plt", "r", "s", "t", "t1", "t2", "th", "v", "vs", "w", "wh", "x", "x1", "x2", "xs", "y", "ys", "xy"]
+
+[tool.pylint.IMPORTS]
+allow-any-import-level = ["pycocotools", "pycocotools.coco"]
+
+[tool.pylint.SIMILARITIES]
+min-similarity-lines = 15  # Minimum lines number of a similarity.
+ignore-comments = "yes"  # Ignore comments when computing similarities.
+ignore-docstrings = "yes"  # Ignore docstrings when computing similarities.
+ignore-imports = "yes"  # Ignore imports when computing similarities.
+
+[tool.pylint.TYPECHECK]
+generated-members = ["numpy.*", "torch.*", "cv2.*", "openpifpaf.functional.*"]
+ignored-modules = ["openpifpaf.functional", "pycocotools"]
+disable = [
+    "missing-docstring",
+    "too-many-arguments",
+    "too-many-instance-attributes",
+    "too-many-locals",
+    "too-few-public-methods",
+    "not-callable",  # for pytorch
+    "abstract-method",  # for pytorch 1.6.0
+    "unsubscriptable-object",
+]

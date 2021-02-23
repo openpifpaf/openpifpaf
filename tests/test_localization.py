@@ -1,26 +1,23 @@
 import numpy as np
 import torch
-import openpifpaf.network.nets
-import openpifpaf.utils
-from openpifpaf.datasets.constants import COCO_KEYPOINTS, COCO_PERSON_SKELETON
+import openpifpaf
 
 
 def localize(x):
-    openpifpaf.network.heads.CompositeFieldFused.quad = 0
+    openpifpaf.plugin.register()
+    openpifpaf.plugins.coco.CocoKp.upsample_stride = 1
+    datamodule = openpifpaf.datasets.factory('cocokp')
+    openpifpaf.network.basenetworks.Resnet.pretrained = False
 
     black = torch.zeros((3, 321, 321))
     im = black.clone()
     im[:, 0, x] = 1000.0
 
-    model, _ = openpifpaf.network.factory(
-        base_name='resnet18',
-        head_names=['cif', 'caf'],
-        pretrained=False)
+    model, _ = openpifpaf.network.Factory(base_name='resnet18').factory(
+        head_metas=datamodule.head_metas)
     model.eval()
 
-    decode = openpifpaf.decoder.CifCaf(
-        openpifpaf.decoder.FieldConfig(),
-        keypoints=COCO_KEYPOINTS, skeleton=COCO_PERSON_SKELETON)
+    decode = openpifpaf.decoder.factory(datamodule.head_metas)
     cif_ref = decode.fields_batch(model, torch.unsqueeze(black, 0))[0][0]
     cif = decode.fields_batch(model, torch.unsqueeze(im, 0))[0][0]
 

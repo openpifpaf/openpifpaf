@@ -1,11 +1,14 @@
 """Benchmark."""
 
 import argparse
+from collections import namedtuple
+from dataclasses import dataclass
 import datetime
 import json
 import logging
 import os
 import subprocess
+from typing import List
 
 import pysparkling
 
@@ -14,13 +17,10 @@ from . import __version__
 LOG = logging.getLogger(__name__)
 
 
-DEFAULT_BACKBONES = [
-    # 'shufflenetv2x1',
-    'shufflenetv2x2',
+DEFAULT_CHECKPOINTS = [
     'resnet50',
-    # 'resnext50',
-    'resnet101',
-    'resnet152',
+    'shufflenetv2k16',
+    'shufflenetv2k30',
 ]
 
 
@@ -40,10 +40,13 @@ def cli():
 
     parser.add_argument('--output', default=None,
                         help='output file name')
-    parser.add_argument('--backbones', default=DEFAULT_BACKBONES, nargs='+',
-                        help='backbones to evaluate')
+    parser.add_argument('--checkpoints', default=DEFAULT_CHECKPOINTS, nargs='+',
+                        help='checkpoints to evaluate')
     parser.add_argument('--iccv2019-ablation', default=False, action='store_true')
-    parser.add_argument('--dense-ablation', default=False, action='store_true')
+    parser.add_argument('--v012-ablation-1', default=False, action='store_true')
+    parser.add_argument('--v012-ablation-2', default=False, action='store_true')
+    parser.add_argument('--v012-ablation-3', default=False, action='store_true')
+    parser.add_argument('--v012-ablation-4', default=False, action='store_true')
     group = parser.add_argument_group('logging')
     group.add_argument('--debug', default=False, action='store_true',
                        help='print debug messages')
@@ -53,15 +56,29 @@ def cli():
 
     # default eval_args
     if not eval_args:
-        eval_args = ['--all-images', '--loader-workers=8']
+        eval_args = ['--loader-workers=8']
 
-    if '--all-images' not in eval_args:
-        LOG.info('adding "--all-images" to the argument list')
-        eval_args.append('--all-images')
-
+    # default loader workers
     if not any(l.startswith('--loader-workers') for l in eval_args):
         LOG.info('adding "--loader-workers=8" to the argument list')
         eval_args.append('--loader-workers=8')
+
+    # default dataset
+    if not any(l.startswith('--dataset') for l in eval_args):
+        LOG.info('adding "--dataset=cocokp" to the argument list')
+        eval_args.append('--dataset=cocokp')
+        if not any(l.startswith('--coco-no-eval-annotation-filter') for l in eval_args):
+            LOG.info('adding "--coco-no-eval-annotation-filter" to the argument list')
+            eval_args.append('--coco-no-eval-annotation-filter')
+        if not any(l.startswith('--force-complete-pose') for l in eval_args):
+            LOG.info('adding "--force-complete-pose" to the argument list')
+            eval_args.append('--force-complete-pose')
+        if not any(l.startswith('--seed-threshold') for l in eval_args):
+            LOG.info('adding "--seed-threshold=0.2" to the argument list')
+            eval_args.append('--seed-threshold=0.2')
+        if not any(l.startswith('--decoder') for l in eval_args):
+            LOG.info('adding "--decoder=cifcaf:0" to the argument list')
+            eval_args.append('--decoder=cifcaf:0')
 
     # generate a default output filename
     if args.output is None:
@@ -72,96 +89,191 @@ def cli():
     return args, eval_args
 
 
-def run_eval_coco(output_folder, backbone, eval_args, output_name=None):
-    if output_name is None:
-        output_name = backbone
-    output_name = output_name.replace('/', '-')
+@dataclass
+class Config:
+    checkpoint: str
+    suffix: str
+    args: List[str]
 
-    out_file = os.path.join(output_folder, output_name)
-    if os.path.exists(out_file + '.stats.json'):
-        LOG.warning('Output file %s exists already. Skipping.',
-                    out_file + '.stats.json')
-        return
+    @property
+    def name(self):
+        return (self.checkpoint + self.suffix).replace('/', '-')
 
-    LOG.debug('Launching eval for %s.', output_name)
-    subprocess.run([
-        'python', '-m', 'openpifpaf.eval_coco',
-        '--output', out_file,
-        '--checkpoint', backbone,
-    ] + eval_args, check=True)
+
+class Benchmark:
+    def __init__(self, configs, output_folder, *,
+                 reference_config=None, stat_filter=None, stat_scale=1.0):
+        self.configs = configs
+        self.output_folder = output_folder
+        self.reference_config = reference_config
+        self.stat_filter = stat_filter
+        self.stat_scale = stat_scale
+
+    def run(self):
+        for config in self.configs:
+            self.run_config(config)
+        return self
+
+    def run_config(self, config: Config):
+        out_file = os.path.join(self.output_folder, config.name)
+        if os.path.exists(out_file + '.stats.json'):
+            LOG.warning('Output file %s exists already. Skipping.',
+                        out_file + '.stats.json')
+            return
+
+        LOG.debug('Launching eval for %s.', config.name)
+        cmd = [
+            'python', '-m', 'openpifpaf.eval',
+            '--output', out_file,
+            '--checkpoint', config.checkpoint,
+        ] + config.args
+        LOG.info('eval command: %s', ' '.join(cmd))
+        subprocess.run(cmd, check=True)
+
+        # print intermediate output
+        self.print_md()
+
+    def stats(self):
+        sc = pysparkling.Context()
+        stats = (
+            sc
+            .wholeTextFiles(self.output_folder + '*.stats.json')
+            .mapValues(json.loads)
+            .map(lambda d: (d[0].replace('.stats.json', '').replace(self.output_folder, ''), d[1]))
+            .collectAsMap()
+        )
+        LOG.debug('all data: %s', stats)
+        return stats
+
+    def stat_values(self, stat):
+        return [
+            v * self.stat_scale
+            for l, v in zip(stat['text_labels'], stat['stats'])
+            if self.stat_filter is None or l in self.stat_filter
+        ]
+
+    def stat_text_labels(self, stat):
+        return [
+            l
+            for l in stat['text_labels']
+            if self.stat_filter is None or l in self.stat_filter
+        ]
+
+    def print_md(self):
+        """Pretty printing markdown"""
+        stats = self.stats()
+
+        first_stats = list(stats.values())[0]
+        name_w = max(len(c) for c in stats.keys()) + 2
+        name_title = 'Name'
+        labels = ''.join(['{0: <8} | '.format(l) for l in self.stat_text_labels(first_stats)])
+        print(
+            f'| {name_title: <{name_w}} | {labels}'
+            't_{total} [ms]  | t_{dec} [ms] |     size |'
+        )
+
+        reference_values = None
+        if self.reference_config is not None:
+            reference = stats.get(self.reference_config.name)
+            if reference is not None:
+                reference_values = self.stat_values(reference)
+
+        for name, data in sorted(stats.items(), key=lambda b_d: self.stat_values(b_d[1])[0]):
+            values = self.stat_values(data)
+            t = 1000.0 * data['total_time'] / data['n_images']
+            tdec = 1000.0 * data['decoder_time'] / data['n_images']
+            file_size = data['file_size'] / 1024 / 1024
+
+            name_link = '[' + name + ']'
+
+            if reference_values is not None and self.reference_config.name != name:
+                values = [v - r for v, r in zip(values, reference_values)]
+                t -= 1000.0 * reference['total_time'] / reference['n_images']
+                tdec -= 1000.0 * reference['decoder_time'] / reference['n_images']
+                file_size -= reference['file_size'] / 1024 / 1024
+
+                values_serialized = '__{0: <+2.1f}__ | '.format(values[0])
+                if len(values) > 1:
+                    values_serialized += ''.join(['{0: <+8.1f} | '.format(v) for v in values[1:]])
+                print(
+                    f'| {name_link: <{name_w}} | {values_serialized}'
+                    f'{t: <+15.0f} | {tdec: <+12.0f} | {file_size: >+6.1f}MB |'
+                )
+            else:
+                values_serialized = '__{0: <2.1f}__ | '.format(values[0])
+                if len(values) > 1:
+                    values_serialized += ''.join(['{0: <8.1f} | '.format(v) for v in values[1:]])
+                print(
+                    f'| {name_link: <{name_w}} | {values_serialized}'
+                    f'{t: <15.0f} | {tdec: <12.0f} | {file_size: >6.1f}MB |'
+                )
+
+        return self
 
 
 def main():
     args, eval_args = cli()
+    Ablation = namedtuple('Ablation', ['suffix', 'args'])
+    ablations = [Ablation('', eval_args)]
 
     if args.iccv2019_ablation:
-        assert len(args.backbones) == 1
-        multi_eval_args = [
-            eval_args,
-            eval_args + ['--connection-method=blend'],
-            eval_args + ['--connection-method=blend', '--long-edge=961', '--multi-scale',
-                         '--no-multi-scale-hflip'],
-            eval_args + ['--connection-method=blend', '--long-edge=961', '--multi-scale'],
+        ablations += [
+            Ablation('.singlescale-max', eval_args + ['--connection-method=max']),
+            Ablation('.singlescale', eval_args + ['--connection-method=blend']),
+            Ablation('.multiscale-nohflip', eval_args + ['--connection-method=blend',
+                                                         '--long-edge=961',
+                                                         '--multi-scale',
+                                                         '--no-multi-scale-hflip']),
+            Ablation('.multiscale', eval_args + ['--connection-method=blend',
+                                                 '--long-edge=961',
+                                                 '--multi-scale']),
         ]
-        names = [
-            'singlescale-max',
-            'singlescale',
-            'multiscale-nohflip',
-            'multiscale',
+    if args.v012_ablation_1:
+        ablations += [
+            Ablation('.greedy', eval_args + ['--greedy']),
+            Ablation('.no-reverse', eval_args + ['--no-reverse-match']),
+            Ablation('.greedy.no-reverse', eval_args + ['--greedy', '--no-reverse-match']),
+            Ablation('.greedy.dense', eval_args + ['--greedy', '--dense-connections']),
+            Ablation('.dense', eval_args + ['--dense-connections']),
+            Ablation('.dense.hierarchy', eval_args + ['--dense-connections=0.1']),
         ]
-        for eval_args_i, name_i in zip(multi_eval_args, names):
-            run_eval_coco(args.output, args.backbones[0], eval_args_i, output_name=name_i)
-    elif args.dense_ablation:
-        multi_eval_args = [
-            eval_args,
-            eval_args + ['--dense-connections', '--dense-coupling=1.0'],
-            eval_args + ['--dense-connections'],
+    if args.v012_ablation_2:
+        eval_args_nofc = [a for a in eval_args
+                          if not a.startswith(('--force-complete', '--seed-threshold'))]
+        ablations += [
+            Ablation('.cifnr', eval_args + ['--ablation-cifseeds-no-rescore']),
+            Ablation('.cifnr.nms', eval_args + ['--ablation-cifseeds-no-rescore',
+                                                '--ablation-cifseeds-nms']),
+            Ablation('.cafnr', eval_args + ['--ablation-caf-no-rescore']),
+            Ablation('.nr.nms', eval_args + ['--ablation-cifseeds-no-rescore',
+                                             '--ablation-cifseeds-nms',
+                                             '--ablation-caf-no-rescore']),
         ]
-        for backbone in args.backbones:
-            names = [
-                backbone,
-                '{}.wdense'.format(backbone),
-                '{}.wdense.whierarchy'.format(backbone),
-            ]
-            for eval_args_i, name_i in zip(multi_eval_args, names):
-                run_eval_coco(args.output, backbone, eval_args_i, output_name=name_i)
-    else:
-        for backbone in args.backbones:
-            run_eval_coco(args.output, backbone, eval_args)
+    if args.v012_ablation_3:
+        eval_args_nofc = [a for a in eval_args if not a.startswith('--force-complete')]
+        ablations += [
+            Ablation('.nofc', eval_args_nofc),
+            Ablation('.nr.nms.nofc', eval_args_nofc + ['--ablation-cifseeds-no-rescore',
+                                                       '--ablation-cifseeds-nms',
+                                                       '--ablation-caf-no-rescore']),
+        ]
+    if args.v012_ablation_4:
+        ablations += [
+            Ablation('.indkp', eval_args + ['--ablation-independent-kp',
+                                            '--keypoint-threshold=0.2']),
+        ]
 
-    sc = pysparkling.Context()
-    stats = (
-        sc
-        .wholeTextFiles(args.output + '*.stats.json')
-        .mapValues(json.loads)
-        .map(lambda d: (d[0].replace('.stats.json', '').replace(args.output, ''), d[1]))
-        .collectAsMap()
-    )
-    LOG.debug('all data: %s', stats)
-
-    # pretty printing
-    # pylint: disable=line-too-long
-    print('| Backbone                  | AP       | APM      | APL      | t_{total} [ms]  | t_{dec} [ms] |     size |')
-    print('|--------------------------:|:--------:|:--------:|:--------:|:---------------:|:------------:|---------:|')
-    for backbone, data in sorted(stats.items(), key=lambda b_d: b_d[1]['stats'][0]):
-        print(
-            '| {backbone: <25} '
-            '| __{AP:.1f}__ '
-            '| {APM: <8.1f} '
-            '| {APL: <8.1f} '
-            '| {t: <15.0f} '
-            '| {tdec: <12.0f} '
-            '| {file_size: >6.1f}MB '
-            '|'.format(
-                backbone='['+backbone+']',
-                AP=100.0 * data['stats'][0],
-                APM=100.0 * data['stats'][3],
-                APL=100.0 * data['stats'][4],
-                t=1000.0 * data['total_time'] / data['n_images'],
-                tdec=1000.0 * data['decoder_time'] / data['n_images'],
-                file_size=data['file_size'] / 1024 / 1024,
-            )
-        )
+    configs = [
+        Config(checkpoint, ablation.suffix, ablation.args)
+        for checkpoint in args.checkpoints
+        for ablation in ablations
+    ]
+    Benchmark(
+        configs, args.output,
+        reference_config=configs[0] if len(args.checkpoints) == 1 else None,
+        stat_filter=('AP', 'APM', 'APL'),
+        stat_scale=100.0,
+    ).run()
 
 
 if __name__ == '__main__':

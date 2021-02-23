@@ -111,24 +111,27 @@ cpdef void scalar_square_add_gauss_with_max(float[:, :] field, float[:] x, float
     cdef float cv, cx, cy, csigma, csigma2
     cdef long minx, miny, maxx, maxy
     cdef float truncate2 = truncate * truncate
+    cdef float truncate_csigma, truncate2_csigma2
 
     for i in range(x.shape[0]):
         csigma = sigma[i]
         csigma2 = csigma * csigma
+        truncate_csigma = truncate * csigma
+        truncate2_csigma2 = truncate2 * csigma2
         cx = x[i]
         cy = y[i]
         cv = v[i]
 
-        minx = (<long>clip(cx - truncate * csigma, 0, field.shape[1] - 1))
-        maxx = (<long>clip(cx + truncate * csigma + 1, minx + 1, field.shape[1]))
-        miny = (<long>clip(cy - truncate * csigma, 0, field.shape[0] - 1))
-        maxy = (<long>clip(cy + truncate * csigma + 1, miny + 1, field.shape[0]))
+        minx = (<long>clip(cx - truncate_csigma, 0, field.shape[1] - 1))
+        maxx = (<long>clip(cx + truncate_csigma + 1, minx + 1, field.shape[1]))
+        miny = (<long>clip(cy - truncate_csigma, 0, field.shape[0] - 1))
+        maxy = (<long>clip(cy + truncate_csigma + 1, miny + 1, field.shape[0]))
         for xx in range(minx, maxx):
             deltax2 = (xx - cx)**2
             for yy in range(miny, maxy):
                 deltay2 = (yy - cy)**2
 
-                if deltax2 + deltay2 > truncate2 * csigma2:
+                if deltax2 + deltay2 > truncate2_csigma2:
                     continue
 
                 if deltax2 < 0.25 and deltay2 < 0.25:
@@ -393,7 +396,7 @@ def grow_connection_blend(float[:, :] caf_field, float x, float y, float xy_scal
         # combined value and source distance
         score = exp(-0.5 * d2 / sigma2) * caf_field[0, i]
 
-        if score > score_1:
+        if score >= score_1:  # if score is equal to score_1, make sure score_2 is filled
             score_2_i = score_1_i
             score_2 = score_1
             score_1_i = i
@@ -405,21 +408,24 @@ def grow_connection_blend(float[:, :] caf_field, float x, float y, float xy_scal
     if score_1 == 0.0:
         return 0.0, 0.0, 0.0, 0.0
 
-    # only max
-    cdef float[:] entry_1 = caf_field[5:, score_1_i]
+    cdef float[4] entry_1 = [  # xybs
+        caf_field[3, score_1_i], caf_field[4, score_1_i],
+        caf_field[6, score_1_i], caf_field[8, score_1_i]]
     if only_max:
         return entry_1[0], entry_1[1], entry_1[3], score_1
-
-    # blend
-    cdef float[:] entry_2 = caf_field[5:, score_2_i]
     if score_2 < 0.01 or score_2 < 0.5 * score_1:
         return entry_1[0], entry_1[1], entry_1[3], score_1 * 0.5
+
+    # blend
+    cdef float[4] entry_2 = [  # xybs
+        caf_field[3, score_2_i], caf_field[4, score_2_i],
+        caf_field[6, score_2_i], caf_field[8, score_2_i]]
 
     cdef float blend_d2 = (entry_1[0] - entry_2[0])**2 + (entry_1[1] - entry_2[1])**2
     if blend_d2 > entry_1[3]**2 / 4.0:
         return entry_1[0], entry_1[1], entry_1[3], score_1 * 0.5
 
-    return (
+    return (  # xysv
         (score_1 * entry_1[0] + score_2 * entry_2[0]) / (score_1 + score_2),
         (score_1 * entry_1[1] + score_2 * entry_2[1]) / (score_1 + score_2),
         (score_1 * entry_1[3] + score_2 * entry_2[3]) / (score_1 + score_2),
