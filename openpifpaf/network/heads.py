@@ -408,7 +408,7 @@ class PanopticDeeplabHead(torch.nn.Module):
     def forward(self, x):
         # Use intermediate outputs as well
         features = x.all_outputs
-
+        del x.all_outputs
         x = self.decoder(features)
         x = self.head(x)
         x = self._upsample_predictions(x, features['input'].shape[-2:])

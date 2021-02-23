@@ -360,7 +360,7 @@ def train_cocokpinst_factory(args, target_transforms):
         ann_inst_file=args.cocoinst_val_annotations,
         preprocess=preprocess,
         target_transforms=target_transforms,
-        n_images=args.n_images,
+        # n_images=args.n_images,
         image_filter='kp_inst',
         category_ids=category_ids,
         config=config

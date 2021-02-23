@@ -319,6 +319,9 @@ def resnet_factory_from_scratch(basename, base_vision, out_features, head_metas)
     # headnets = [heads.CompositeFieldFused(h, basenet.out_features) for h in head_metas]
 
     headnets = [heads.CompositeFieldFused(head_metas[0], basenet.out_features)]
+    
+    if len(head_metas) > 1 and isinstance(head_metas[1], heads.AssociationMeta):    ## for caf
+        headnets.append(heads.CompositeFieldFused(head_metas[1], basenet.out_features))
 
 
     # #### AMA

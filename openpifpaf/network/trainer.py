@@ -111,17 +111,20 @@ class Trainer(object):
 
             device_to_check = [0,1]
             mem_al = (torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1]))/(10**6)
+            # mem_al = (torch.cuda.memory_allocated(device_to_check[0]))/(10**6)
             writer.add_scalar('Memory EPOCH/before train', mem_al,epoch)
             self.train(train_scenes, epoch)
 
             
             mem_al = (torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1]))/(10**6)
+            # mem_al = (torch.cuda.memory_allocated(device_to_check[0]))/(10**6)
             writer.add_scalar('Memory EPOCH/after train', mem_al,epoch)
 
             self.write_model(epoch + 1, epoch == epochs - 1)
             self.val(val_scenes, epoch + 1)
             
             mem_al = (torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1]))/(10**6)
+            # mem_al = (torch.cuda.memory_allocated(device_to_check[0]))/(10**6)
             writer.add_scalar('Memory EPOCH/after val', mem_al,epoch)
 
 
@@ -132,6 +135,7 @@ class Trainer(object):
 
         device_to_check = [0,1]
         mem_al = (torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1]))/(10**6)
+        # mem_al = (torch.cuda.memory_allocated(device_to_check[0]))/(10**6)
         # print(' Before putting data on GPU: ',)
         writer.add_scalar('Memory/Prior data on GPU', mem_al,batch_idx+ epoch * 100_000)
         if self.device:
@@ -148,6 +152,10 @@ class Trainer(object):
                 #     targets_[1][key] = targets[1][key].to(self.device, non_blocking=True)
 
                 # targets = targets_
+
+                # targets[0] = [t.to(self.device, non_blocking=True) for t in targets[0]]
+                # for key, value in targets[1].items():
+                #     targets[1][key] = targets[1][key].to(self.device, non_blocking=True)
                 
 
             
@@ -158,24 +166,28 @@ class Trainer(object):
 
         # print(' After putting data on GPU: ',torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1])/(10**6))
         mem_al = (torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1]))/(10**6)
+        # mem_al = (torch.cuda.memory_allocated(device_to_check[0]))/(10**6)
         writer.add_scalar('Memory/After data on GPU', mem_al,batch_idx+ epoch * 100_000)
         # train encoder
         with torch.autograd.profiler.record_function('model'):
             outputs = self.model(data)
             # print(' After running model: ',torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1])/(10**6))
             mem_al = (torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1]))/(10**6)
+            # mem_al = (torch.cuda.memory_allocated(device_to_check[0]))/(10**6)
             writer.add_scalar('Memory/After running model', mem_al,batch_idx+ epoch * 100_000)
         with torch.autograd.profiler.record_function('loss'):
             loss, head_losses = self.loss(outputs, targets)
             # print(' After loss calc: ',torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1])/(10**6))
             mem_al = (torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1]))/(10**6)
+            # mem_al = (torch.cuda.memory_allocated(device_to_check[0]))/(10**6)
             writer.add_scalar('Memory/After loss calc', mem_al,batch_idx+ epoch * 100_000)
         if loss is not None:
             with torch.autograd.profiler.record_function('backward'):
                 loss.backward()
                 # print(' After loss backward: ',torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1])/(10**6))
                 mem_al = (torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1]))/(10**6)
-            writer.add_scalar('Memory/After loss backward', mem_al,batch_idx+ epoch * 100_000)
+                # mem_al = (torch.cuda.memory_allocated(device_to_check[0]))/(10**6)
+                writer.add_scalar('Memory/After loss backward', mem_al,batch_idx+ epoch * 100_000)
         if apply_gradients:
             with torch.autograd.profiler.record_function('step'):
                 self.optimizer.step()
@@ -183,17 +195,21 @@ class Trainer(object):
             with torch.autograd.profiler.record_function('ema'):
                 self.step_ema()
 
+        # del targets
+
         return (
-            float(loss.item()) if loss is not None else None,
-            [float(l.item()) if l is not None else None
+            float(loss.detach().item()) if loss is not None else None,
+            [float(l.detach().item()) if l is not None else None
              for l in head_losses],
         )
 
-    def val_batch(self, data, targets, epoch=None):
+    def val_batch(self, data, targets, batch_idx=None, epoch=None):
+        epoch -= 1
         device_to_check = [0,1]
         # print('Val Before putting data on GPU: ',torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1])/(10**6))
         mem_al = (torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1]))/(10**6)
-        writer.add_scalar('Memory Val/Prior data on GPU', mem_al,epoch)
+        # mem_al = (torch.cuda.memory_allocated(device_to_check[0]))/(10**6)
+        writer.add_scalar('Memory Val/Prior data on GPU', mem_al,batch_idx + epoch*100_000)
         if self.device:
             data = data.to(self.device, non_blocking=True)
 
@@ -209,27 +225,38 @@ class Trainer(object):
 
                 # targets = targets_
 
+                # targets[0] = [t.to(self.device, non_blocking=True) for t in targets[0]]
+                # for key, value in targets[1].items():
+                #     targets[1][key] = targets[1][key].to(self.device, non_blocking=True)
+
 
             # else:
             #     targets = [[t.to(self.device, non_blocking=True) for t in head] for head in targets]
 
         # print('Val After putting data on GPU: ',torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1])/(10**6))
         mem_al = (torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1]))/(10**6)
-        writer.add_scalar('Memory Val/After data on GPU', mem_al,epoch)
+        # mem_al = (torch.cuda.memory_allocated(device_to_check[0]))/(10**6)
+        writer.add_scalar('Memory Val/After data on GPU', mem_al,batch_idx + epoch*100_000)
 
         with torch.no_grad():
             outputs = self.model(data)
             # print('Val After running model: ',torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1])/(10**6))
             mem_al = (torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1]))/(10**6)
-            writer.add_scalar('Memory Val/After running model', mem_al,epoch)
+            # mem_al = (torch.cuda.memory_allocated(device_to_check[0]))/(10**6)
+            writer.add_scalar('Memory Val/After running model', mem_al,batch_idx + epoch*100_000)
             loss, head_losses = self.loss(outputs, targets)
             # print('Val After loss calc: ',torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1])/(10**6))
             mem_al = (torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1]))/(10**6)
-            writer.add_scalar('Memory Val/After loss calc', mem_al,epoch)
+            # mem_al = (torch.cuda.memory_allocated(device_to_check[0]))/(10**6)
+            writer.add_scalar('Memory Val/After loss calc', mem_al,batch_idx + epoch*100_000)
+
+        # del targets
+        # for hd in head_losses:
+        #     print(hd.shape)
 
         return (
-            float(loss.item()) if loss is not None else None,
-            [float(l.item()) if l is not None else None
+            float(loss.detach().item()) if loss is not None else None,
+            [float(l.detach().item()) if l is not None else None
              for l in head_losses],
         )
 
@@ -253,34 +280,21 @@ class Trainer(object):
         head_epoch_counts = None
         last_batch_end = time.time()
         self.optimizer.zero_grad()
-        # torch.save(scenes, 'tensor.pt')
-        import os
-        import pickle
-        if not os.path.isfile('scenes.pickle'):
-            with open('scenes.pickle','wb') as f:
-                pickle.dump(scenes,f)
-        # print('data')
+        
+        # import os
+        # import pickle
+        # if not os.path.isfile('scenes.pickle'):
+        #     with open('scenes.pickle','wb') as f:
+        #         pickle.dump(scenes,f)
+        
         for batch_idx, (data, target, _) in enumerate(scenes):
-            # print('__________________________________________')
-            
-            # if not os.path.isfile('in_enumerate.pickle'):
-            #     with open('in_enumerate.pickle','wb') as f:
-            #         pickle.dump((data, target),f)
-
-            
+  
             preprocess_time = time.time() - last_batch_end
             
 
             batch_start = time.time()
             apply_gradients = batch_idx % self.stride_apply == 0
-            # print('trainer!!!!!!!!!!!!')
-            # print(len(target))
-            # print(len(mask))
-            
-            # filename = 'in_target_{}.pt'.format(batch_idx)
-            # torch.save(target, filename)
-            # print('filename is')
-            # print(filename)
+
             loss, head_losses = self.train_batch(data, target, apply_gradients, batch_idx=batch_idx, epoch=epoch)
             
                 
@@ -345,8 +359,8 @@ class Trainer(object):
                 writer.add_scalar('Train Loss/head '+ LOSS_NAMES[hd_idx], head_ls / max(1, head_epoch_counts[hd_idx]), epoch + 1)
                 if hasattr(self.loss, 'batch_meta'):
                     writer.add_scalar('Sigmas/head '+ LOSS_NAMES[hd_idx], .5/sigmas['mtl_sigmas'][hd_idx]**2, epoch + 1)
-        except AssertionError as error:
-            print(error)
+        except:
+            print('error')
 
     def val(self, scenes, epoch):
         start_time = time.time()
@@ -365,8 +379,8 @@ class Trainer(object):
         epoch_loss = 0.0
         head_epoch_losses = None
         head_epoch_counts = None
-        for data, target, _ in scenes:
-            loss, head_losses = self.val_batch(data, target, epoch=epoch)
+        for batch_idx, (data, target, _) in enumerate(scenes):
+            loss, head_losses = self.val_batch(data, target,batch_idx=batch_idx, epoch=epoch)
 
             # update epoch accumulates
             if loss is not None:
@@ -396,8 +410,8 @@ class Trainer(object):
             writer.add_scalar('Val Loss/Total loss', epoch_loss / len(scenes), epoch + 1)
             for hd_idx, head_ls in enumerate(head_epoch_losses):
                 writer.add_scalar('Val Loss/head '+ LOSS_NAMES[hd_idx], head_ls / max(1, head_epoch_counts[hd_idx]), epoch + 1)
-        except AssertionError as error:
-            print(error)
+        except:
+            print('error')
 
     def write_model(self, epoch, final=True):
         self.model.cpu()
