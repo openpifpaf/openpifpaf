@@ -50,4 +50,4 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./guide/_build/html
         destination_dir: dev
-        force_orphan: true
+        # force_orphan: true  # broken: needs peaceiris/actions-gh-pages@v4
