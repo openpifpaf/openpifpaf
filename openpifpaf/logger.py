@@ -52,7 +52,7 @@ def train_configure(args):
         rank_prefix = 'Rank {}/{}'.format(
             torch.distributed.get_rank(), torch.distributed.get_world_size())
         formatter = logging.Formatter(rank_prefix + ' - %(levelname)s:%(name)s:%(message)s')
-        for handler in logging.getLogger('').handlers:
+        for handler in logging.getLogger().handlers:
             handler.setFormatter(formatter)
 
     if torch.distributed.is_initialized() and torch.distributed.get_rank() != 0:
