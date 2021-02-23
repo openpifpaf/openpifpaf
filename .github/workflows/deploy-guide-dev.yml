@@ -50,3 +50,4 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./guide/_build/html
         destination_dir: dev
+        force_orphan: true

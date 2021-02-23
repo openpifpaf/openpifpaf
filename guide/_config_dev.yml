@@ -13,6 +13,8 @@ html:
   favicon: favicon.png
   extra_navbar: This is the dev version of the Guide. Here is the <a href="https://vita-epfl.github.io/openpifpaf/">stable version</a>.
   use_repository_button: True
+  extra_footer: |
+    <div>Powered by <a href="https://jupyterbook.org/">Jupyter Book</a>.</div>
 
 # Information about where the book exists on the web
 repository:
@@ -27,6 +29,7 @@ sphinx:
   extra_extensions: [sphinx.ext.autodoc]
   config:
     autodoc_member_order: bysource
+    language: en
 
 execute:
   timeout: 600
