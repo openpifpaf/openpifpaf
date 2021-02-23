@@ -57,6 +57,9 @@ def cli():
                         help='[experimental] DistributedDataParallel')
     parser.add_argument('--local_rank', default=None, type=int,
                         help='[experimental] for torch.distributed.launch')
+    parser.add_argument('--no-sync-batchnorm', dest='sync_batchnorm',
+                        default=True, action='store_false',
+                        help='[experimental] in ddp, to not use syncbatchnorm')
 
     logger.cli(parser)
     network.Factory.cli(parser)
@@ -138,7 +141,11 @@ def main():
         torch.distributed.init_process_group(backend='nccl', init_method='env://')
         LOG.info('DDP: rank %d, world %d',
                  torch.distributed.get_rank(), torch.distributed.get_world_size())
-        net_cpu = torch.nn.SyncBatchNorm.convert_sync_batchnorm(net_cpu)
+        if args.sync_batchnorm:
+            LOG.info('convert all batchnorms to syncbatchnorms')
+            net_cpu = torch.nn.SyncBatchNorm.convert_sync_batchnorm(net_cpu)
+        else:
+            LOG.info('not converting batchnorms to syncbatchnorms')
         net = torch.nn.parallel.DistributedDataParallel(
             net_cpu.to(device=args.device),
             device_ids=[args.local_rank], output_device=args.local_rank,
