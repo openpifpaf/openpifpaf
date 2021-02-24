@@ -74,9 +74,6 @@ class CifPan(Generator):
     def __call__(self, fields, initial_annotations=None):
         cif, pan = fields
         semantic, offsets = pan['semantic'], pan['offset']
-        print("cif", cif.shape)
-        print("semantic", semantic.shape)
-        print("offset", offsets.shape)
 
         Ci, Bi = (17, object()) if self.ball else (17, 18)
 
@@ -94,7 +91,7 @@ class CifPan(Generator):
         #         vis.predicted(fields[caf_i])
 
         cifhr = CifHr(self.field_config).fill(fields)
-        seeds = CifSeeds(cifhr.accumulated, self.field_config).fill(fields)
+        # seeds = CifSeeds(cifhr.accumulated, self.field_config).fill(fields)
 
         # caf_scored = CafScored(cifhr.accumulated, self.field_config, self.skeleton).fill(fields)
 
@@ -163,6 +160,7 @@ class CifPan(Generator):
         for i in range(len(annotations)):
             annotation = annotations[i]
             centroid_mask = (classes != 0) & (instances == i)
+            # print(semantic.shape)
             annotation.cls = semantic[:,centroid_mask].sum(axis=1).argmax(axis=0)
             annotation.mask = centroid_mask
 
