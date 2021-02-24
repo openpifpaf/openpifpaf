@@ -37,9 +37,9 @@ class Shell(torch.nn.Module):
         x = self.base_net(image_batch)
         if len(args) >= 2:
             head_mask = args[1]
-            head_outputs = [hn(x) if m else None for hn, m in zip(self.head_nets, head_mask)]
+            head_outputs = tuple(hn(x) if m else None for hn, m in zip(self.head_nets, head_mask))
         else:
-            head_outputs = [hn(x) for hn in self.head_nets]
+            head_outputs = tuple(hn(x) for hn in self.head_nets)
 
         if self.process_heads is not None:
             head_outputs = self.process_heads(head_outputs)
