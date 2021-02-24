@@ -17,10 +17,10 @@ def test_onnx_exportable(tmpdir):
     assert not os.path.exists(outfile)
 
     datamodule = openpifpaf.datasets.factory('cocokp')
-    model, _ = openpifpaf.network.factory(
+    model, _ = openpifpaf.network.Factory(
         base_name='shufflenetv2k16',
         head_metas=datamodule.head_metas,
-    )
+    ).factory()
     openpifpaf.export_onnx.apply(model, outfile, verbose=False)
     assert os.path.exists(outfile)
     openpifpaf.export_onnx.check(outfile)
@@ -47,10 +47,10 @@ def test_onnxruntime(tmpdir):
     # create model
     openpifpaf.plugins.coco.CocoKp.upsample_stride = 2  # create a model with PixelShuffle
     datamodule = openpifpaf.datasets.factory('cocokp')
-    model, _ = openpifpaf.network.factory(
+    model, _ = openpifpaf.network.Factory(
         base_name='shufflenetv2k16',
         head_metas=datamodule.head_metas,
-    )
+    ).factory()
     print(model)
 
     # export to onnx file

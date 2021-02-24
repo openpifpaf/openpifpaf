@@ -77,14 +77,17 @@ def main():
     parser.add_argument('--version', action='version',
                         version='OpenPifPaf {version}'.format(version=openpifpaf.__version__))
 
-    parser.add_argument('--checkpoint', default='resnet50')
+    openpifpaf.network.Factory.cli(parser)
+
     parser.add_argument('--outfile', default='openpifpaf-resnet50.mlmodel')
     parser.add_argument('--input-width', type=int, default=129)
     parser.add_argument('--input-height', type=int, default=97)
     parser.add_argument('--minimum-deployment-target', choices=('iOS13', 'iOS14'), default='iOS14')
     args = parser.parse_args()
 
-    model, _ = openpifpaf.network.factory(checkpoint=args.checkpoint)
+    openpifpaf.network.Factory.configure(args)
+
+    model, _ = openpifpaf.network.Factory().factory()
 
     assert args.outfile.endswith('.mlmodel')
     apply(model, args.outfile,

@@ -10,6 +10,8 @@ from . import show
 DATA_FILE = ('outputs/resnet101block5-pif-paf-edge401-190412-151013.pkl'
              '.decodertraindata-edge641-samples0.json')
 
+# pylint: skip-file
+
 
 def plot_training_data(train_data, val_data, entry=0, entryname=None):
     train_x, train_y = train_data

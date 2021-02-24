@@ -1,4 +1,5 @@
 import logging
+from typing import List
 
 from .decoder import Decoder
 
@@ -23,7 +24,12 @@ class Multi(Decoder):
         return out
 
     def reset(self):
+        # TODO: remove?
         for dec in self.decoders:
             if not hasattr(dec, 'reset'):
                 continue
             dec.reset()
+
+    @classmethod
+    def factory(cls, head_metas) -> List['Generator']:
+        raise NotImplementedError

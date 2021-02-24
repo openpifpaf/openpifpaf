@@ -125,7 +125,8 @@ def main():
     parser.add_argument('--version', action='version',
                         version='OpenPifPaf {version}'.format(version=openpifpaf.__version__))
 
-    parser.add_argument('--checkpoint', default='resnet50')
+    openpifpaf.network.Factory.cli(parser)
+
     parser.add_argument('--outfile', default='openpifpaf-resnet50.onnx')
     parser.add_argument('--simplify', dest='simplify', default=False, action='store_true')
     parser.add_argument('--polish', dest='polish', default=False, action='store_true',
@@ -136,7 +137,10 @@ def main():
     parser.add_argument('--input-height', type=int, default=97)
     args = parser.parse_args()
 
-    model, _ = openpifpaf.network.factory(checkpoint=args.checkpoint)
+    openpifpaf.network.Factory.configure(args)
+
+    model, _ = openpifpaf.network.Factory().factory()
+
     apply(model, args.outfile, input_w=args.input_width, input_h=args.input_height)
     if args.simplify:
         simplify(args.outfile)

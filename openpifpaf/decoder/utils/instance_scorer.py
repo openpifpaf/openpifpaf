@@ -4,6 +4,8 @@ import json
 import numpy as np
 import torch
 
+# pylint: skip-file
+
 
 class InstanceScorer(torch.nn.Module):
     def __init__(self, in_features=35):
