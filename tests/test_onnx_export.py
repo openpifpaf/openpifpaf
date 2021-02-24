@@ -2,12 +2,14 @@ import os
 
 import numpy as np
 import onnxruntime
+import pytest
 import torch
 
 import openpifpaf
 import openpifpaf.export_onnx
 
 
+@pytest.mark.skipif(sys.platform.startswith('mac'), reason='onnx simplify crashes')
 def test_onnx_exportable(tmpdir):
     openpifpaf.plugin.register()
 
@@ -29,6 +31,7 @@ def test_onnx_exportable(tmpdir):
     assert os.path.exists(outfile + '.simplified')
 
 
+@pytest.mark.skipif(sys.platform.startswith('mac'), reason='onnx simplify crashes')
 def test_onnxruntime(tmpdir):
     """Export an onnx model and test outputs.
 
