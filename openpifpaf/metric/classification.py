@@ -36,3 +36,6 @@ class Classification(Base):
             'stats': [correct / gt_count if gt_count else 0.0
                       for correct, gt_count in zip(self.correct_counts, self.gt_counts)]
         }
+
+    def write_predictions(self, filename, *, additional_data=None):
+        raise NotImplementedError

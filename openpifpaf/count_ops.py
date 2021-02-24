@@ -19,9 +19,8 @@ except ImportError as e:
     raise Exception('need to install thop (pip install thop) for this script') from e
 
 
-def count(checkpoint):
+def count(model):
     dummy_input = torch.randn(1, 3, 641, 641)
-    model, _ = openpifpaf.network.factory(checkpoint=checkpoint)
     return thop.profile(model, inputs=(dummy_input, ))
 
 
@@ -39,10 +38,13 @@ def main():
     parser.add_argument('--version', action='version',
                         version='OpenPifPaf {version}'.format(version=openpifpaf.__version__))
 
-    parser.add_argument('--checkpoint')
+    openpifpaf.network.Factory.cli(parser)
     args = parser.parse_args()
+    openpifpaf.network.Factory.configure(args)
 
-    gmacs, params = count(args.checkpoint)
+    model, _ = openpifpaf.network.Factory().factory()
+
+    gmacs, params = count(model)
     print('GMACs = {0:.2f}, million params = {1:.2f}'.format(gmacs / 1e9, params / 1e6))
 
 
