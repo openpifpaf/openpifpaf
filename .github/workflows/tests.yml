@@ -14,7 +14,6 @@ jobs:
             torch: 1.7.1+cpu
             torchvision: 0.8.2+cpu
             torch-source: https://download.pytorch.org/whl/cpu/torch_stable.html
-            train: True
           - os: ubuntu-latest
             python: 3.7
             torch: 1.7.1+cpu
@@ -25,6 +24,7 @@ jobs:
             torch: 1.7.1+cpu
             torchvision: 0.8.2+cpu
             torch-source: https://download.pytorch.org/whl/cpu/torch_stable.html
+            train: True
           - os: macos-latest
             python: 3.7
             torch: 1.7.1
