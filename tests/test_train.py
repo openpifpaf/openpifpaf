@@ -26,7 +26,7 @@ PREDICT_COMMAND = [
 ]
 
 
-@pytest.mark.skipif(os.getenv('PIFPAFTRAINING') != '1', reason='env PIFPAFTRAINING is not set')
+@pytest.mark.slow
 def test_train(tmp_path):
     # train a model
     train_cmd = TRAIN_COMMAND + ['--out={}'.format(os.path.join(tmp_path, 'train_test.pkl'))]
