@@ -6,6 +6,7 @@ requires = ["numpy", "setuptools", "wheel"]
 minversion = "6.0"
 addopts = "--nbval-lax --current-env"
 testpaths = ["tests"]
+markers = ["slow: marks tests as slow (deselect with '-m \"not slow\"')"]
 
 [tool.pylint.BASIC]
 variable-rgx = "[a-z0-9_]{1,30}$"

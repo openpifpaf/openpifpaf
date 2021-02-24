@@ -24,7 +24,7 @@ jobs:
             torch: 1.7.1+cpu
             torchvision: 0.8.2+cpu
             torch-source: https://download.pytorch.org/whl/cpu/torch_stable.html
-            train: True
+            slow: True
           - os: macos-latest
             python: 3.7
             torch: 1.7.1
@@ -53,7 +53,7 @@ jobs:
         python -m pip install torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }} -f ${{ matrix.torch-source }}
         python -m pip install -e ".[test]"
     - name: Install for training
-      if: matrix.train
+      if: matrix.slow
       run: python -m pip install -e ".[train]"
     - name: Install for MacOSX - libomp
       if: matrix.os == 'macos-latest'
@@ -82,20 +82,20 @@ jobs:
         python -m pycodestyle tests/*.py
     - name: Test
       run: |
-        pytest -vv -m "not train"
+        pytest -vv -m "not slow"
     - name: Test training
-      if: matrix.train
+      if: matrix.slow
       run: |
-        pytest -vv -m train
+        pytest -vv -m slow
     - name: Test notebooks
-      if: matrix.train && matrix.os != 'windows-latest'  # because of path separator
+      if: matrix.slow && matrix.os != 'windows-latest'  # because of path separator
       run: |
         pytest --nbval-lax --current-env docs/predict.ipynb
     - name: Test guide (download data)
-      if: matrix.train
+      if: matrix.slow
       run: |
         cd guide && python download_data.py && cd ..
     - name: Test guide
-      if: matrix.train
+      if: matrix.slow
       run: |
         cd guide && pytest --nbval-lax --current-env *.ipynb && cd ..
