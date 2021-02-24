@@ -8,7 +8,7 @@ import openpifpaf.export_coreml
 
 
 @pytest.mark.skipif(not sys.platform.startswith('darwin'), reason='coreml export only on macos')
-def test_onnx_exportable(tmpdir):
+def test_coreml_exportable(tmpdir):
     openpifpaf.plugin.register()
 
     outfile = str(tmpdir.join('openpifpaf-shufflenetv2k16.coreml.mlmodel'))
