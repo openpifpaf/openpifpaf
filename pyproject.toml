@@ -29,7 +29,6 @@ disable = [
     "too-many-instance-attributes",
     "too-many-locals",
     "too-few-public-methods",
-    "not-callable",  # for pytorch
     "abstract-method",  # for pytorch 1.6.0
     "unsubscriptable-object",
 ]
