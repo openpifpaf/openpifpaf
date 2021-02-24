@@ -86,7 +86,7 @@ jobs:
     - name: Test training
       if: matrix.slow
       run: |
-        pytest -vv -m slow
+        pytest -vv -s -m slow
     - name: Test notebooks
       if: matrix.slow && matrix.os != 'windows-latest'  # because of path separator
       run: |
