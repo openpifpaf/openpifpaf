@@ -82,7 +82,11 @@ jobs:
         python -m pycodestyle tests/*.py
     - name: Test
       run: |
-        pytest -vv
+        pytest -vv -m "not train"
+    - name: Test training
+      if: matrix.train
+      run: |
+        pytest -vv -m train
     - name: Test notebooks
       if: matrix.train && matrix.os != 'windows-latest'  # because of path separator
       run: |
