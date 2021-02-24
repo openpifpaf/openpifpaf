@@ -15,12 +15,9 @@ LOG = logging.getLogger(__name__)
 @functools.lru_cache(maxsize=16)
 def index_field_torch(shape, *, device=None, unsqueeze=(0, 0)):
     assert len(shape) == 2
-    fliprow = torch.arange(shape[1]).repeat(shape[0], 1)
-    flipcol = torch.arange(shape[0]).repeat(shape[1], 1).t()
-    xy = torch.cat([fliprow.unsqueeze(0), flipcol.unsqueeze(0)])
-
-    if device is not None:
-        xy = xy.to(device, non_blocking=True)
+    xy = torch.empty((2, shape[0], shape[1]), device=device)
+    xy[0] = torch.arange(shape[1], device=device)
+    xy[1] = torch.arange(shape[0], device=device).unsqueeze(1)
 
     for dim in unsqueeze:
         xy = torch.unsqueeze(xy, dim)
@@ -207,7 +204,7 @@ class CompositeField3(HeadNetwork):
 
             # regressions x: add index
             if self.meta.n_vectors > 0:
-                index_field = index_field_torch(x.shape[-2:], device=x.device)
+                index_field = index_field_torch((feature_height, feature_width), device=x.device)
                 first_reg_feature = self.meta.n_confidences
                 for i, do_offset in enumerate(self.meta.vector_offsets):
                     if not do_offset:
@@ -236,8 +233,11 @@ class CompositeField3(HeadNetwork):
                 for i in range(self.meta.n_vectors)
             ]
             # regressions x: add index
-            index_field = index_field_torch(x.shape[-2:], device=x.device, unsqueeze=(1, 0))
-            regs_x = [torch.add(reg_x, index_field) if do_offset else reg_x
+            index_field = index_field_torch(
+                (feature_height, feature_width), device=x.device, unsqueeze=(1, 0))
+            # TODO: coreml export does not work with the index_field creation in the graph.
+            index_field = torch.from_numpy(index_field.numpy())
+            regs_x = [reg_x + index_field if do_offset else reg_x
                       for reg_x, do_offset in zip(regs_x, self.meta.vector_offsets)]
 
             # regressions logb

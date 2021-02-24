@@ -76,7 +76,7 @@ setup(
             'onnx-simplifier>=0.2.9',
         ],
         'coreml': [
-            'coremltools==4.0b3',
+            'coremltools>=4.1',
         ],
         'test': [
             'nbval',
