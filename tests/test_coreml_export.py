@@ -1,14 +1,13 @@
 import os
+import sys
 
-import numpy as np
-import onnxruntime
 import pytest
-import torch
 
 import openpifpaf
 import openpifpaf.export_coreml
 
 
+@pytest.mark.skipif(not sys.platform.startswith('mac'), reason='coreml export only on macos')
 def test_onnx_exportable(tmpdir):
     openpifpaf.plugin.register()
 
