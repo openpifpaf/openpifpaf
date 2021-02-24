@@ -7,7 +7,7 @@ import openpifpaf
 import openpifpaf.export_coreml
 
 
-@pytest.mark.skipif(not sys.platform.startswith('mac'), reason='coreml export only on macos')
+@pytest.mark.skipif(not sys.platform.startswith('darwin'), reason='coreml export only on macos')
 def test_onnx_exportable(tmpdir):
     openpifpaf.plugin.register()
 
