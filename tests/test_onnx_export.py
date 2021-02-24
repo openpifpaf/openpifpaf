@@ -9,7 +9,6 @@ import openpifpaf
 import openpifpaf.export_onnx
 
 
-@pytest.mark.skipif(not torch.__version__.startswith('1.5'), reason='only PyTorch 1.5')
 def test_onnx_exportable(tmpdir):
     openpifpaf.plugin.register()
 
@@ -19,8 +18,7 @@ def test_onnx_exportable(tmpdir):
     datamodule = openpifpaf.datasets.factory('cocokp')
     model, _ = openpifpaf.network.Factory(
         base_name='shufflenetv2k16',
-        head_metas=datamodule.head_metas,
-    ).factory()
+    ).factory(head_metas=datamodule.head_metas)
     openpifpaf.export_onnx.apply(model, outfile, verbose=False)
     assert os.path.exists(outfile)
     openpifpaf.export_onnx.check(outfile)
@@ -32,7 +30,6 @@ def test_onnx_exportable(tmpdir):
     assert os.path.exists(outfile + '.simplified')
 
 
-@pytest.mark.skipif(not torch.__version__.startswith('1.5'), reason='only PyTorch 1.5')
 def test_onnxruntime(tmpdir):
     """Export an onnx model and test outputs.
 
@@ -49,8 +46,7 @@ def test_onnxruntime(tmpdir):
     datamodule = openpifpaf.datasets.factory('cocokp')
     model, _ = openpifpaf.network.Factory(
         base_name='shufflenetv2k16',
-        head_metas=datamodule.head_metas,
-    ).factory()
+    ).factory(head_metas=datamodule.head_metas)
     print(model)
 
     # export to onnx file

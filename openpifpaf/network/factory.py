@@ -124,7 +124,7 @@ class Factory:
 
         # use kwargs to set instance attributes to overwrite class attributes
         for key, value in kwargs.items():
-            assert hasattr(self, key)
+            assert hasattr(self, key), key
             setattr(self, key, value)
 
     @classmethod
