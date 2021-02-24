@@ -33,6 +33,9 @@ def laplace_loss(x1, x2, logb, t1, t2, weight=None):
     # https://github.com/pytorch/pytorch/issues/2421
     # norm = torch.sqrt((x1 - t1)**2 + (x2 - t2)**2)
 
+
+    # print('shape logb', logb.shape)
+
     
     norm = (torch.stack((x1, x2)) - torch.stack((t1, t2))).norm(dim=0)
 
@@ -620,7 +623,7 @@ def cli(parser):
                        default=MultiHeadLoss.task_sparsity_weight, type=float,
                        help='[experimental]')
 
-    group.add_argument('--seman-loss-name', default='cross_entropy',
+    group.add_argument('--seman-loss-name', default='hard_pixel_mining',
                        choices=['cross_entropy', 'ohem', 'hard_pixel_mining'],
                        help='type of panoptic loss')
     group.add_argument('--seman-loss-ignore', default=-1, type=int,
@@ -629,28 +632,18 @@ def cli(parser):
                         help='threshold for softmax score (of gt class), only predictions with softmax score below this threshold will be kept.')
     group.add_argument('--seman-loss-min-kept', default=100000, type=int,
                         help='minimum number of pixels to be kept, it is used to adjust the threshold value to avoid number of examples being too small.')
-    group.add_argument('--seman-loss-top-k-percent', default=1.0, type=float,
+    group.add_argument('--seman-loss-top-k-percent', default=0.2, type=float,
                         help='the value lies in [0.0, 1.0]. When its value < 1.0, only compute the loss for the top k percent pixels (e.g., the top 20% pixels). This is useful for hard pixel mining.')
-    # group.add_argument('--seman-loss-reduction', default='none',
-    #                    choices=['none', 'mean', 'sum'],
-    #                    help='L1Loss Reduction')
+    
 
     group.add_argument('--offset-loss-name', default='mse',
                        choices=['l1', 'mse'],
                        help='type of panoptic loss')
-    # group.add_argument('--offset-loss-ignore', default=-1, type=int,
-    #                    help='label to ignore')
-    # group.add_argument('--offset-loss-threshold', default=0.7, type=float,
-    #                     help='threshold for softmax score (of gt class), only predictions with softmax score below this threshold will be kept.')
-    # group.add_argument('--offset-loss-min_kept', default=100000, type=int,
-    #                     help='minimum number of pixels to be kept, it is used to adjust the threshold value to avoid number of examples being too small.')
-    # group.add_argument('--offset-loss-top-k-percent', default=1.0, type=float,
-    #                     help='the value lies in [0.0, 1.0]. When its value < 1.0, only compute the loss for the top k percent pixels (e.g., the top 20% pixels). This is useful for hard pixel mining.')
     group.add_argument('--offset-loss-reduction', default='none',
                        choices=['none', 'mean', 'sum'],
                        help='L1Loss Reduction')
 
-    group.add_argument('--loss-debug', default=0,
+    group.add_argument('--loss-debug', default=0, type=int,
                         help='1 for freezing pan and 2 for freezing cif heads')
 
 def configure(args):

@@ -187,6 +187,10 @@ class Keemotion(torch.utils.data.Dataset):
             anns = [t(image, anns, meta) for t in self.target_transforms]
 
         return image, anns, meta
+
+
+
+        
         image_id = self.ids[index]
 
         image_info = self.coco.loadImgs(image_id)[0]

@@ -360,7 +360,7 @@ def train_cocokpinst_factory(args, target_transforms):
         ann_inst_file=args.cocoinst_val_annotations,
         preprocess=preprocess,
         target_transforms=target_transforms,
-        # n_images=args.n_images,
+        n_images=args.n_images,
         image_filter='kp_inst',
         category_ids=category_ids,
         config=config
@@ -394,14 +394,15 @@ def train_keemotion_factory(args, target_transforms):
         train_data, batch_size=args.batch_size, shuffle=not args.debug,
         pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
         collate_fn=collate_images_targets_inst_meta,
-        timeout=10.)
+        timeout=30.)
 
     val_data = Keemotion(args.keemotion_dir, 'val', config=args.headnets[0],
         target_transforms=target_transforms, preprocess=preprocess)
     val_loader = torch.utils.data.DataLoader(
         val_data, batch_size=args.batch_size, shuffle=False,
         pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
-        collate_fn=collate_images_targets_inst_meta)
+        collate_fn=collate_images_targets_inst_meta,
+        timeout=30.)
 
     return train_loader, val_loader
 

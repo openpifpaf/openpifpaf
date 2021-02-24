@@ -50,6 +50,7 @@ class BaseNetworkWithSkips(torch.nn.Module):
         x.all_outputs = outputs
         return x
 
+#### TODO (maybe after submission) convert Normal Conv to Atrous Conv and see the change (deeplab v3 has done it)
 
 class ResnetBlocks(object):
     def __init__(self, resnet):
