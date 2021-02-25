@@ -98,7 +98,8 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     if not args.disable_cuda and torch.cuda.is_available():
         args.device = torch.device('cuda')
         args.pin_memory = True
-    LOG.debug('neural network device: %s', args.device)
+    LOG.info('neural network device: %s (CUDA available: %s, count: %d)',
+             args.device, torch.cuda.is_available(), torch.cuda.device_count())
 
     decoder.configure(args)
     network.Factory.configure(args)
