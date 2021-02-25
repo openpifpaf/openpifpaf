@@ -29,14 +29,14 @@ Continuously tested on Linux, MacOS and Windows:
 
 ## Demo
 
-![example image with overlaid pose predictions](../docs/coco/000000081988.jpg.predictions.png)
+![example image with overlaid pose predictions](../docs/coco/000000081988.jpg.predictions.jpeg)
 
 Image credit: "[Learning to surf](https://www.flickr.com/photos/fotologic/6038911779/in/photostream/)" by fotologic which is licensed under [CC-BY-2.0].<br />
 Created with
-`python3 -m openpifpaf.predict docs/coco/000000081988.jpg --image-output`.
+`python3 -m openpifpaf.predict docs/coco/000000081988.jpg --image-min-dpi=200 --show-file-extension=jpeg --image-output`.
 
 More demos:
-* [openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo) project (best performance)
+* [openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo) project (best performance). [Live](https://vitademo.epfl.ch).
 * OpenPifPaf [running in your browser: vita-epfl.github.io/openpifpafwebdemo](https://vita-epfl.github.io/openpifpafwebdemo/) (experimental)
 * the `python3 -m openpifpaf.video` command (requires OpenCV)
 * [Google Colab demo](https://colab.research.google.com/drive/1H8T4ZE6wc0A9xJE4oGnhgHpUpAH5HL7W)
@@ -110,7 +110,7 @@ using the command line option `--checkpoint checkpointasintableabove`.
 * [physio pose](https://medium.com/@_samkitjain/physio-pose-a-virtual-physiotherapy-assistant-7d1c17db3159): "A virtual physiotherapy assistant".
 * [monstereo](https://github.com/vita-epfl/monstereo): "MonStereo: When Monocular and Stereo Meet at the Tail of 3D Human Localization".
 * [monoloco](https://github.com/vita-epfl/monoloco): "Monocular 3D Pedestrian Localization and Uncertainty Estimation".
-* [openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo): Web server and frontend. Docker image. Kubernetes config.
+* [openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo): Web server and frontend. Docker image. Kubernetes config. [Live](https://vitademo.epfl.ch).
 * [GitHub dependency graph](https://github.com/vita-epfl/openpifpaf/network/dependents): auto-detected Github repositories that use OpenPifPaf.
 
 Open an issue to suggest more projects.
