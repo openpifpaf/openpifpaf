@@ -80,14 +80,21 @@ def cli():
     # slurm
     slurm_process_id = os.environ.get('SLURM_PROCID')
     if slurm_process_id is not None:
-        LOG.info('found SLURM process id: %s', slurm_process_id)
-        args.local_rank = 0
+        # if there is more than one GPU available, assume that other SLURM tasks
+        # have access to the same GPUs and assign GPUs uniquely by slurm_process_id
+        args.local_rank = (int(slurm_process_id) % torch.cuda.device_count()
+                           if torch.cuda.device_count() > 0 else 0)
+
         os.environ['RANK'] = slurm_process_id
         if not os.environ.get('WORLD_SIZE') and os.environ.get('SLURM_NTASKS'):
             os.environ['WORLD_SIZE'] = os.environ.get('SLURM_NTASKS')
-        LOG.info('distributed env: master=%s port=%s rank=%s world=%s',
+
+        LOG.info('found SLURM process id: %s', slurm_process_id)
+        LOG.info('distributed env: master=%s port=%s rank=%s world=%s, '
+                 'local rank (GPU)=%d',
                  os.environ.get('MASTER_ADDR'), os.environ.get('MASTER_PORT'),
-                 os.environ.get('RANK'), os.environ.get('WORLD_SIZE'))
+                 os.environ.get('RANK'), os.environ.get('WORLD_SIZE'),
+                 args.local_rank)
 
     # add args.device
     args.device = torch.device('cpu')
@@ -95,7 +102,8 @@ def cli():
     if not args.disable_cuda and torch.cuda.is_available():
         args.device = torch.device('cuda')
         args.pin_memory = True
-    LOG.debug('neural network device: %s', args.device)
+    LOG.info('neural network device: %s (CUDA available: %s, count: %d)',
+             args.device, torch.cuda.is_available(), torch.cuda.device_count())
 
     # output
     if args.output is None:
