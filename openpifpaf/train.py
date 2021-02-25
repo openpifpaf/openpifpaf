@@ -77,9 +77,14 @@ def cli():
     if args.log_stats:
         logging.getLogger('openpifpaf.stats').setLevel(logging.DEBUG)
 
-    # slurm
+    # DDP with SLURM
     slurm_process_id = os.environ.get('SLURM_PROCID')
-    if slurm_process_id is not None:
+    if args.ddp and slurm_process_id is not None:
+        if torch.cuda.device_count() > 1:
+            LOG.warning('Expected one GPU per SLURM task but found %d. '
+                        'Try with "srun --gpu-bind=closest ...". Still trying.',
+                        torch.cuda.device_count())
+
         # if there is more than one GPU available, assume that other SLURM tasks
         # have access to the same GPUs and assign GPUs uniquely by slurm_process_id
         args.local_rank = (int(slurm_process_id) % torch.cuda.device_count()
