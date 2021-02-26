@@ -107,6 +107,8 @@ def factory(
         net_cpu = checkpoint['model']
         epoch = checkpoint['epoch']
 
+        # tb_filename = checkpoint['tb_filename']
+
         # normalize for backwards compatibility
         nets.model_migration(net_cpu)
 

@@ -21,6 +21,7 @@ class CifHr:
         self.accumulated = None
 
     def fill_cif(self, cif, stride, min_scale=0.0):
+        # print('fill_cif', cif.shape)
         return self.fill_multiple([cif], stride, min_scale)
 
     def accumulate(self, len_cifs, t, p, stride, min_scale):
@@ -28,6 +29,7 @@ class CifHr:
         if min_scale:
             p = p[:, p[4] > min_scale / stride]
 
+        print(len(p))
         v, x, y, _, scale = p
         x = x * stride
         y = y * stride
@@ -48,11 +50,14 @@ class CifHr:
                 int((cifs[0].shape[2] - 1) * stride + 1),
                 int((cifs[0].shape[3] - 1) * stride + 1),
             )
+            # print('shape',shape)
             ta = np.zeros(shape, dtype=np.float32)
         else:
             ta = np.zeros(self.accumulated.shape, dtype=np.float32)
-
+        print(ta.shape)
+        
         for cif in cifs:
+            # print('fill',len(cif))
             for t, p in zip(ta, cif):
                 self.accumulate(len(cifs), t, p, stride, min_scale)
 

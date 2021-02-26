@@ -17,13 +17,13 @@ class ImageList(torch.utils.data.Dataset):
 
         anns = []
         mask = []
-        image, anns, mask, meta = self.preprocess(image, anns, mask, None)
+        image, anns, meta = self.preprocess(image, anns, None)
         meta.update({
             'dataset_index': index,
             'file_name': image_path,
         })
 
-        return image, [anns, mask], meta
+        return image, anns, meta
 
     def __len__(self):
         return len(self.image_paths)
