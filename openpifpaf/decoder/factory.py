@@ -120,13 +120,14 @@ class Factory:
             decoders_by_class = {c: ds.factory(head_metas)
                                  for c, ds in decoders_by_class.items()
                                  if c in cls.decoder_filter}
+            LOG.debug('all decoders by class: %s', decoders_by_class)
             decoders_by_class = {c: [d
                                      for i, d in enumerate(ds)
                                      if (not cls.decoder_filter[c]
                                          or i in cls.decoder_filter[c])]
                                  for c, ds in decoders_by_class.items()}
             decoders = [d for ds in decoders_by_class.values() for d in ds]
-            LOG.debug('filtered to %d decoders', len(decoders))
+            LOG.debug('filtered decoders (%d) by class: %s', len(decoders), decoders_by_class)
         else:
             decoders = [
                 d
