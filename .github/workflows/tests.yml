@@ -94,6 +94,12 @@ jobs:
       if: matrix.slow
       run: |
         pytest -vv -s -m slow
+    - name: Lint notebooks
+      if: matrix.slow
+      run: |
+        mkdir guide_py
+        jupyter nbconvert --to=script --output-dir=./guide_py ./guide/*.ipynb
+        pylint ./guide_py/*.py --disable=trailing-whitespace,trailing-newlines,line-too-long,pointless-statement,undefined-variable,expression-not-assigned,wrong-import-position,ungrouped-imports,wrong-import-order
     - name: Test notebooks
       if: matrix.slow && matrix.os != 'windows-latest'  # because of path separator
       run: |
