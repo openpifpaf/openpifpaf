@@ -40,6 +40,13 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
+    - name: Cache checkpoints and data
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cache
+          data-cifar10
+        key: ${{ runner.os }}-${{ hashFiles('**/*.py') }}
     - name: Set up Python ${{ matrix.python }}
       uses: actions/setup-python@v2
       with:

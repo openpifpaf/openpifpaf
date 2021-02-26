@@ -15,6 +15,14 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Cache checkpoints and data
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cache
+          data-cifar10
+        key: ${{ runner.os }}-${{ hashFiles('**/*.py') }}
+
     # Install dependencies
     - name: Set up Python 3.7
       uses: actions/setup-python@v1
