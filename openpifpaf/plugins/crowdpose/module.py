@@ -2,10 +2,10 @@ import argparse
 import logging
 
 import numpy as np
+import pycocotools
 import torch
 
 import openpifpaf
-import pycocotools
 
 try:
     import pycocotools.coco
@@ -171,7 +171,6 @@ class CrowdPose(openpifpaf.datasets.DataModule):
                            default=cls.eval_orientation_invariant, type=float)
         group.add_argument('--crowdpose-index', choices=('easy', 'medium', 'hard'),
                            default=None)
-
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
