@@ -21,6 +21,8 @@ class Base:
 
     @property
     def stride(self) -> int:
+        if self.base_stride is None:
+            return None
         return self.base_stride // self.upsample_stride
 
     @property
