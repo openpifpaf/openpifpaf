@@ -113,7 +113,7 @@ using the command line option `--checkpoint checkpointasintableabove`.
 * [openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo): Web server and frontend. Docker image. Kubernetes config. [Live](https://vitademo.epfl.ch).
 * [GitHub dependency graph](https://github.com/vita-epfl/openpifpaf/network/dependents): auto-detected Github repositories that use OpenPifPaf.
 
-Open an issue to suggest more projects.
+Open an [issue](https://github.com/vita-epfl/openpifpaf/issues) to suggest more projects.
 
 
 ## Citation
