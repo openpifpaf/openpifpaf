@@ -2,7 +2,9 @@ from collections import defaultdict
 import copy
 import logging
 import os
+import sys
 import random
+import imageio
 
 import cv2
 import numpy as np
@@ -49,7 +51,7 @@ def build_DeepSportBall_datasets(pickled_dataset_filename, validation_set_size_p
     validation_keys = keys[:lim]
 
     transforms = [
-        ViewCropperTransform(output_shape=(square_edge,square_edge), def_min=30, def_max=80, with_diff=False),
+        ViewCropperTransform(output_shape=(square_edge,square_edge), def_min=30, def_max=80, on_ball=True, with_diff=False),
         ExtractViewData(
             AddBallPositionFactory(),
             AddBallSegmentationTargetViewFactory()
@@ -75,7 +77,7 @@ class DeepSportBalls(torch.utils.data.Dataset):
                 'num_keypoints': 0,
                 'area': 21985.8665, # dummy value
                 'iscrowd': 0,
-                'keypoints': [0]*3*n_keypoints,
+                'keypoints': [],
                 'image_id': image_id,
                 'bbox': [231.34, 160.47, 152.42, 319.53], # dummy values
                 'category_id': category_id,
@@ -92,6 +94,9 @@ class DeepSportBalls(torch.utils.data.Dataset):
         key = self.keys[index]
 
         data = self.dataset.query_item(key)
+        if data is None:
+            print("Warning: failed to query {}. Using another key.".format(key), file=sys.stderr)
+            return self[random.randint(0, len(self)-1)]
         image_id = key[0].timestamp
         image = data["input_image"]
         anns = []
