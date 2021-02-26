@@ -21,7 +21,7 @@ CHECKPOINT_URLS = {
                     'v0.12a5/mobilenetv2-201112-193315-cocokp-1728a9f5.pkl'),
     'resnet18': PRETRAINED_UNAVAILABLE,
     'resnet50': ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
-                 'v0.12a7/resnet50-201123-175351-cocokp-o10s-127f7fdf.pkl'),
+                 'v0.12.2/resnet50-210224-202010-cocokp-o10s-d020d7f1.pkl'),
     'resnet50-crowdpose': (
         'http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
         'v0.12a7/resnet50-201005-100758-crowdpose-d978a89f.pkl'
