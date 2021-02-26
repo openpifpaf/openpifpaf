@@ -87,6 +87,13 @@ jobs:
       if: matrix.os != 'windows-latest'  # because of path separator
       run: |
         python -m pycodestyle tests/*.py
+    - name: Lint and pycodestyle on notebooks
+      if: matrix.slow
+      run: |
+        mkdir guide_py
+        jupyter nbconvert --to=script --output-dir=./guide_py ./guide/*.ipynb
+        pylint ./guide_py/*.py --disable=trailing-whitespace,trailing-newlines,line-too-long,pointless-statement,undefined-variable,expression-not-assigned,wrong-import-position,ungrouped-imports,wrong-import-order
+        pycodestyle guide_py/*.py --ignore=W291,W391,E302,E305,E402,E501
     - name: Test
       run: |
         pytest -vv -m "not slow"

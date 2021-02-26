@@ -79,6 +79,7 @@ setup(
             'coremltools>=4.1',
         ],
         'test': [
+            'nbconvert',
             'nbval',
             'onnx',
             'onnxruntime',
