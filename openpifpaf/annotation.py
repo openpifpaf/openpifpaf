@@ -4,7 +4,7 @@ import numpy as np
 
 # pylint: disable=import-error
 from .functional import scalar_value_clipped
-from . import utils
+from . import headmeta, utils
 
 
 class Base:
@@ -42,6 +42,18 @@ class Annotation(Base):
         if self.suppress_score_index:
             self.score_weights[-len(self.suppress_score_index):] = 0.0
         self.score_weights /= np.sum(self.score_weights)
+
+    @classmethod
+    def from_cif_meta(cls, cif_meta: headmeta.Cif):
+        scale = np.sqrt(
+            (np.max(cif_meta.pose[:, 0]) - np.min(cif_meta.pose[:, 0]))
+            * (np.max(cif_meta.pose[:, 1]) - np.min(cif_meta.pose[:, 1]))
+        )
+        ann = cls(keypoints=cif_meta.keypoints,
+                  skeleton=cif_meta.draw_skeleton,
+                  score_weights=cif_meta.score_weights)
+        ann.set(cif_meta.pose, np.array(cif_meta.sigmas) * scale, fixed_score='')
+        return ann
 
     @property
     def category(self):

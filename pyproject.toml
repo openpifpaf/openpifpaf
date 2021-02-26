@@ -31,4 +31,5 @@ disable = [
     "too-many-locals",
     "too-few-public-methods",
     "unsubscriptable-object",
+    "duplicate-code",  # similarity check unworkable with plugins
 ]
