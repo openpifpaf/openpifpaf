@@ -274,7 +274,7 @@ def main():
     Benchmark(
         configs, args.output,
         reference_config=configs[0] if len(args.checkpoints) == 1 else None,
-        stat_filter=('AP', 'APM', 'APL'),
+        stat_filter=('AP', 'AP0.5', 'AP0.75', 'APM', 'APL'),
         stat_scale=100.0,
     ).run()
 
