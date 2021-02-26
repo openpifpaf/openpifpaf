@@ -17,6 +17,7 @@
 
 - part: Tutorials
   chapters:
+  - file: plugins_crowdpose
   - file: plugins_cifar10
 
 - part: Reference
