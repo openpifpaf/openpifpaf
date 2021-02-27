@@ -35,7 +35,7 @@ class Base:
         self.head_name = head_name
         self._ax = None
 
-        LOG.debug('%s: indices = %s', head_name, self.indices)
+        LOG.debug('%s: indices = %s', head_name, self.indices())
 
     @staticmethod
     def image(image, meta=None):
