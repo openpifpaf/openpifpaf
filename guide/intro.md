@@ -33,12 +33,12 @@ Continuously tested on Linux, MacOS and Windows:
 
 Image credit: "[Learning to surf](https://www.flickr.com/photos/fotologic/6038911779/in/photostream/)" by fotologic which is licensed under [CC-BY-2.0].<br />
 Created with
-`python3 -m openpifpaf.predict docs/coco/000000081988.jpg --image-min-dpi=200 --show-file-extension=jpeg --image-output`.
+{ref}`python3 -m openpifpaf.predict docs/coco/000000081988.jpg --image-min-dpi=200 --show-file-extension=jpeg --image-output <cli-help-predict>`.
 
 More demos:
 * [openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo) project (best performance). [Live](https://vitademo.epfl.ch).
 * OpenPifPaf [running in your browser: vita-epfl.github.io/openpifpafwebdemo](https://vita-epfl.github.io/openpifpafwebdemo/) (experimental)
-* the `python3 -m openpifpaf.video` command (requires OpenCV)
+* the {ref}`python3 -m openpifpaf.video <cli-help-video>` command (requires OpenCV)
 * [Google Colab demo](https://colab.research.google.com/drive/1H8T4ZE6wc0A9xJE4oGnhgHpUpAH5HL7W)
 
 ```{image} ../docs/wave3.gif
@@ -62,22 +62,19 @@ To modify openpifpaf itself, please follow {ref}`modify-code`.
 
 For a live demo, we recommend to try the
 [openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo) project.
-Alternatively, `openpifpaf.video` (requires OpenCV) provides a live demo as well.
+Alternatively, {ref}`python3 -m openpifpaf.video <cli-help-video>` (requires OpenCV)
+provides a live demo as well.
 
 
 ## About this Guide
 
-This is an auto-generated book.
-Many sections of this book, like {doc}`predict_cli`, are interactive:
-they are based on Jupyter Notebooks
-that can be launched interactively in the cloud by clicking on the rocket
+This is an executable book.
+Many sections of this book, like {doc}`predict_cli`, are generated from the code
+shown on the page itself:
+most pages are based on Jupyter Notebooks
+that can be downloaded or launched interactively in the cloud by clicking on the rocket
 at the top and selecting a cloud provider like _Binder_.
-This is also the reason why some pages contain quite a bit of code: this is
-all the code required for regenerating that particular page.
-
-__Syntax__: Some code blocks start with an exclamation point "`!`". It means
-that this command is executed on the command line. You can run the same command
-yourself without the exclamation point.
+The code on the page is all the code required to reproduce that particular page.
 
 
 ## Pre-trained Models
@@ -94,7 +91,7 @@ Performance metrics with version 0.11 on the COCO val set obtained with a GTX108
 [shufflenetv2k16]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.12b4/shufflenetv2k16-210214-123448-cocokp-o10s-e2ae3708.pkl
 [shufflenetv2k30]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.12.2/shufflenetv2k30-210224-074128-cocokp-o10s-59ca2b89.pkl
 
-Command to reproduce this table: `python -m openpifpaf.benchmark --checkpoints resnet50 shufflenetv2k16 shufflenetv2k30`.
+Command to reproduce this table: {ref}`python -m openpifpaf.benchmark --checkpoints resnet50 shufflenetv2k16 shufflenetv2k30 <cli-help-benchmark>`.
 
 Pretrained model files are shared in the
 __[openpifpaf-torchhub](https://github.com/vita-epfl/openpifpaf-torchhub/releases)__
