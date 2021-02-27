@@ -46,7 +46,7 @@ jobs:
         path: |
           ~/.cache
           data-cifar10
-        key: ${{ runner.os }}-${{ hashFiles('**/*.py') }}
+        key: ${{ runner.os }}-${{ hashFiles('setup.py') }}
     - name: Set up Python ${{ matrix.python }}
       uses: actions/setup-python@v2
       with:
