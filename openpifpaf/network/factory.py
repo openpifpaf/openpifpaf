@@ -8,6 +8,7 @@ import torch
 import torchvision
 
 from .. import headmeta
+from ..configurable import Configurable
 from . import basenetworks, heads, nets
 
 # generate hash values with: shasum -a 256 filename.pkl
@@ -105,7 +106,7 @@ def local_checkpoint_path(checkpoint):
     return None
 
 
-class Factory:
+class Factory(Configurable):
     base_name = None
     checkpoint = None
     cross_talk = 0.0
@@ -113,15 +114,11 @@ class Factory:
     head_consolidation = 'filter_and_extend'
 
     def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         if self.base_name is not None:
             assert self.checkpoint is None
         if self.checkpoint is not None:
             assert self.base_name is None
-
-        # use kwargs to set instance attributes to overwrite class attributes
-        for key, value in kwargs.items():
-            assert hasattr(self, key), key
-            setattr(self, key, value)
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):

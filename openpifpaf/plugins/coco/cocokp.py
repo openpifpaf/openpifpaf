@@ -24,7 +24,7 @@ except ImportError:
     pass
 
 
-class CocoKp(openpifpaf.datasets.DataModule):
+class CocoKp(openpifpaf.datasets.DataModule, openpifpaf.Configurable):
     _test2017_annotations = 'data-mscoco/annotations/image_info_test2017.json'
     _testdev2017_annotations = 'data-mscoco/annotations/image_info_test-dev2017.json'
     _test2017_image_dir = 'data-mscoco/images/test2017/'
@@ -53,26 +53,28 @@ class CocoKp(openpifpaf.datasets.DataModule):
     eval_orientation_invariant = 0.0
     eval_extended_scale = False
 
-    def __init__(self):
-        super().__init__()
+    skeleton = COCO_PERSON_SKELETON
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         cif = openpifpaf.headmeta.Cif('cif', 'cocokp',
                                       keypoints=COCO_KEYPOINTS,
                                       sigmas=COCO_PERSON_SIGMAS,
                                       pose=COCO_UPRIGHT_POSE,
-                                      draw_skeleton=COCO_PERSON_SKELETON,
+                                      draw_skeleton=self.skeleton,
                                       score_weights=COCO_PERSON_SCORE_WEIGHTS)
         caf = openpifpaf.headmeta.Caf('caf', 'cocokp',
                                       keypoints=COCO_KEYPOINTS,
                                       sigmas=COCO_PERSON_SIGMAS,
                                       pose=COCO_UPRIGHT_POSE,
-                                      skeleton=COCO_PERSON_SKELETON)
+                                      skeleton=self.skeleton)
         dcaf = openpifpaf.headmeta.Caf('caf25', 'cocokp',
                                        keypoints=COCO_KEYPOINTS,
                                        sigmas=COCO_PERSON_SIGMAS,
                                        pose=COCO_UPRIGHT_POSE,
                                        skeleton=DENSER_COCO_PERSON_CONNECTIONS,
-                                       sparse_skeleton=COCO_PERSON_SKELETON,
+                                       sparse_skeleton=self.skeleton,
                                        only_in_field_of_view=True)
 
         cif.upsample_stride = self.upsample_stride
