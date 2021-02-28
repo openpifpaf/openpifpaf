@@ -2,7 +2,7 @@
 # Introduction
 
 Continuously tested on Linux, MacOS and Windows:
-[![Tests](https://github.com/vita-epfl/openpifpaf/workflows/Tests/badge.svg?branch=dev)](https://github.com/vita-epfl/openpifpaf/actions?query=workflow%3ATests)
+[![Tests](https://github.com/vita-epfl/openpifpaf/workflows/Tests/badge.svg?branch=main)](https://github.com/vita-epfl/openpifpaf/actions?query=workflow%3ATests)
 [![deploy-guide](https://github.com/vita-epfl/openpifpaf/workflows/deploy-guide/badge.svg)](https://github.com/vita-epfl/openpifpaf/actions?query=workflow%3Adeploy-guide)
 [![Downloads](https://pepy.tech/badge/openpifpaf)](https://pepy.tech/project/openpifpaf)
 <br />
