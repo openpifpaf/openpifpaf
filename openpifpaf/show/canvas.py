@@ -55,15 +55,14 @@ class Canvas:
             dpi = cls.blank_dpi
 
         if 'figsize' not in kwargs:
-            # kwargs['figsize'] = (15, 8)
             kwargs['figsize'] = (10, 6)
 
         if nomargin:
-            fig = plt.figure(dpi=dpi, **kwargs)
-            ax = plt.Axes(fig, [0.0, 0.0, 1.0, 1.0])
-            fig.add_axes(ax)
-        else:
-            fig, ax = plt.subplots(dpi=dpi, **kwargs)
+            if 'gridspec_kw' not in kwargs:
+                kwargs['gridspec_kw'] = {}
+            kwargs['gridspec_kw']['wspace'] = 0
+            kwargs['gridspec_kw']['hspace'] = 0
+        fig, ax = plt.subplots(dpi=dpi, **kwargs)
 
         yield ax
 
@@ -143,11 +142,14 @@ class Canvas:
         ylim = bbox[1] - margin, bbox[1] + bbox[3] + margin
         if fig_w is None:
             fig_w = fig_h / (ylim[1] - ylim[0]) * (xlim[1] - xlim[0])
+        fig_w *= kwargs.get('ncols', 1)
+        fig_h *= kwargs.get('nrows', 1)
 
         with cls.blank(filename, figsize=(fig_w, fig_h), nomargin=True, **kwargs) as ax:
-            ax.set_axis_off()
-            ax.set_xlim(*xlim)
-            ax.set_ylim(*ylim)
+            for ax_ in (ax if not hasattr(ax, 'set_axis_off') else [ax]):
+                ax_.set_axis_off()
+                ax_.set_xlim(*xlim)
+                ax_.set_ylim(*ylim)
 
             yield ax
 
