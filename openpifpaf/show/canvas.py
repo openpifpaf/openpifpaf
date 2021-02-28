@@ -146,7 +146,8 @@ class Canvas:
         fig_h *= kwargs.get('nrows', 1)
 
         with cls.blank(filename, figsize=(fig_w, fig_h), nomargin=True, **kwargs) as ax:
-            for ax_ in (ax if not hasattr(ax, 'set_axis_off') else [ax]):
+            iter_ax = [ax] if hasattr(ax, 'set_axis_off') else ax
+            for ax_ in iter_ax:
                 ax_.set_axis_off()
                 ax_.set_xlim(*xlim)
                 ax_.set_ylim(*ylim)
