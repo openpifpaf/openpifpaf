@@ -44,8 +44,10 @@ class Configurable:
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
+        """Extend an ArgumentParser with the configurable parameters."""
         pass
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
+        """Configure the class from parsed command line arguments."""
         pass
