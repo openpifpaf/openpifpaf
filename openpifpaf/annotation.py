@@ -19,7 +19,7 @@ class Annotation:
         self.decoding_order = []
         self.frontier_order = []
 
-        self.skeleton_m1 = (np.asarray(skeleton) - 1).tolist()
+        self.skeleton_m1 = (np.asarray(skeleton) - 1).tolist() if self.skeleton else None
 
         self.score_weights = np.ones((len(keypoints),))
         if self.suppress_score_index:

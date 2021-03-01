@@ -2,6 +2,8 @@ import torch
 
 from .coco import Coco
 from .keemotion import Keemotion
+from .deepsport import DeepSportBalls
+from .deepsport import build_DeepSportBall_datasets
 from .collate import collate_images_targets_meta
 from .collate import collate_images_targets_inst_meta
 from .constants import COCO_KEYPOINTS, HFLIP, COCO_CATEGORIES
@@ -37,6 +39,7 @@ def train_cli(parser):
     group.add_argument('--coco-train-image-dir', default=COCO_IMAGE_DIR_TRAIN)
     group.add_argument('--coco-val-image-dir', default=COCO_IMAGE_DIR_VAL)
     group.add_argument('--keemotion-dir', default=KEEMOTION_DIR)
+    group.add_argument('--deepsport-pickled-dataset', default=None)
     group.add_argument('--dataset', default='cocokp')
     group.add_argument('--n-images', default=None, type=int,
                        help='number of images to sample')
@@ -202,6 +205,35 @@ def train_cocokpinst_preprocess_factory(
         orientation_t,
         transforms.TRAIN_TRANSFORM,
     ])
+
+
+def train_deepsport_factory(args, target_transforms):
+    if args.loader_workers is None:
+        args.loader_workers = 0
+
+    preprocess = train_cocokp_preprocess_factory(
+        square_edge=args.square_edge,
+        augmentation=args.augmentation,
+        extended_scale=args.extended_scale,
+        orientation_invariant=args.orientation_invariant,
+        rescale_images=args.rescale_images)
+
+    train_data, val_data = build_DeepSportBall_datasets(
+        pickled_dataset_filename=args.deepsport_pickled_dataset,
+        validation_set_size_pc=15, square_edge=args.square_edge, target_transforms=target_transforms, preprocess=preprocess)
+
+    train_loader = torch.utils.data.DataLoader(
+        train_data, batch_size=args.batch_size, shuffle=not args.debug,
+        pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
+        collate_fn=collate_images_targets_meta)
+
+    val_loader = torch.utils.data.DataLoader(
+        val_data, batch_size=args.batch_size, shuffle=False,
+        pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
+        collate_fn=collate_images_targets_meta)
+
+    return train_loader, val_loader
+
 
 
 
@@ -420,8 +452,11 @@ def train_keemotion_factory(args, target_transforms):
     return train_loader, val_loader
 
 
+
 def train_factory(args, target_transforms, heads=None):
-    # print('in train factory', heads)
+    if args.dataset in ('deepsport'):
+        return train_deepsport_factory(args, target_transforms)
+
     if args.dataset in ('cocokpinst'):
         return train_cocokpinst_factory(args, target_transforms, heads=heads)
     if args.dataset in ('cocokp',):

@@ -17,6 +17,7 @@ class ImageList(torch.utils.data.Dataset):
 
         anns = []
         mask = []
+
         image, anns, meta = self.preprocess(image, anns, None)
         meta.update({
             'dataset_index': index,

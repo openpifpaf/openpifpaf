@@ -41,23 +41,32 @@ def factory_single(head_name, num_sem_classes=None):
     ## 2
     if 'cifcent' in head_name:
         return IntensityMeta(head_name,
-                             COCO_KEYPOINTS[:-1],
-                             COCO_PERSON_SIGMAS[:-1],
+                             COCO_KEYPOINTS[:17],
+                             COCO_PERSON_SIGMAS[:17],
                              COCO_UPRIGHT_POSE,
                              COCO_PERSON_SKELETON)
     ## 3
     if 'cifball' in head_name:
         return IntensityMeta(head_name,
-                             np.concatenate((COCO_KEYPOINTS[:-2],np.expand_dims(COCO_KEYPOINTS[-1],axis=0))),
-                             np.concatenate((COCO_PERSON_SIGMAS[:-2],np.expand_dims(COCO_PERSON_SIGMAS[-1],axis=0))),
+                             np.concatenate((COCO_KEYPOINTS[:17],np.expand_dims(COCO_KEYPOINTS[-1],axis=0))),
+                             np.concatenate((COCO_PERSON_SIGMAS[:17],np.expand_dims(COCO_PERSON_SIGMAS[-1],axis=0))),
                              COCO_UPRIGHT_POSE[:-1],
                              COCO_PERSON_SKELETON)
+    ## 4
+    if 'ball' in head_name:
+        index = COCO_KEYPOINTS.index("ball")
+        return IntensityMeta(head_name,
+                             [COCO_KEYPOINTS[index]],
+                             [COCO_PERSON_SIGMAS[index]],
+                             np.array([COCO_UPRIGHT_POSE[index]]),
+                             None)
+
     ## 1
     if 'pif' in head_name or 'cif' in head_name:
         return IntensityMeta(head_name,
-                             COCO_KEYPOINTS[:-2],
-                             COCO_PERSON_SIGMAS[:-2],
-                             COCO_UPRIGHT_POSE[:-1],
+                             COCO_KEYPOINTS[:17],
+                             COCO_PERSON_SIGMAS[:17],
+                             COCO_UPRIGHT_POSE[:17],
                              COCO_PERSON_SKELETON)
 
     # if 'ball' in head_name:
