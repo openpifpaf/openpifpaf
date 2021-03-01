@@ -13,7 +13,7 @@ import glob
 from .. import transforms, utils
 
 import scipy.ndimage
-import imageio
+# import imageio
 
 LOG = logging.getLogger(__name__)
 STAT_LOG = logging.getLogger(__name__.replace('openpifpaf.', 'openpifpaf.stats.'))

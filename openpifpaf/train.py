@@ -20,6 +20,9 @@ def default_output_file(args, net_cpu):
 
     now = datetime.datetime.now().strftime('%y%m%d-%H%M%S')
     out = 'outputs/{}-{}-{}'.format(base_name, now, '-'.join(head_names))
+    ### Manneback changes
+    # out = 'pifpaf_modified/poseestimation_emb/outputs/{}-{}-{}'.format(base_name, now, '-'.join(head_names))
+    
     if args.square_edge != 385:
         out += '-edge{}'.format(args.square_edge)
     if args.regression_loss != 'laplace':

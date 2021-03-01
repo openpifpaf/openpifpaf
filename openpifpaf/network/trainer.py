@@ -287,11 +287,11 @@ class Trainer(object):
         last_batch_end = time.time()
         self.optimizer.zero_grad()
         
-        import os
-        import pickle
-        if not os.path.isfile('scenes_keemotion.pickle'):
-            with open('scenes_keemotion.pickle','wb') as f:
-                pickle.dump(scenes,f)
+        # import os
+        # import pickle
+        # if not os.path.isfile('scenes_keemotion.pickle'):
+        #     with open('scenes_keemotion.pickle','wb') as f:
+        #         pickle.dump(scenes,f)
         
         for batch_idx, (data, target, _) in enumerate(scenes):
   
@@ -300,6 +300,10 @@ class Trainer(object):
 
             batch_start = time.time()
             apply_gradients = batch_idx % self.stride_apply == 0
+
+            # print('enumerate', batch_idx)
+            # print('enumerate', data.shape)
+            # print('enumerate', len(target))
 
             loss, head_losses = self.train_batch(data, target, apply_gradients, batch_idx=batch_idx, epoch=epoch)
             

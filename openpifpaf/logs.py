@@ -31,6 +31,7 @@ def cli(parser):
 def configure(args):
     # pylint: disable=import-outside-toplevel
     from pythonjsonlogger import jsonlogger
+    # print('here', args.output)
 
     file_handler = logging.FileHandler(args.output + '.log', mode='w')
     file_handler.setFormatter(

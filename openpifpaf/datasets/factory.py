@@ -7,13 +7,23 @@ from .collate import collate_images_targets_inst_meta
 from .constants import COCO_KEYPOINTS, HFLIP, COCO_CATEGORIES
 from .. import transforms
 
-COCOKP_ANNOTATIONS_TRAIN = 'data-mscoco/annotations/person_keypoints_train2017.json'
-COCOKP_ANNOTATIONS_VAL = 'data-mscoco/annotations/person_keypoints_val2017.json'
-COCODET_ANNOTATIONS_TRAIN = 'data-mscoco/annotations/instances_train2017.json'
-COCODET_ANNOTATIONS_VAL = 'data-mscoco/annotations/instances_val2017.json'
-COCO_IMAGE_DIR_TRAIN = 'data-mscoco/images/train2017/'
-COCO_IMAGE_DIR_VAL = 'data-mscoco/images/val2017/'
-KEEMOTION_DIR = 'keemotion/'
+
+#### Mannback changes
+COCOKP_ANNOTATIONS_TRAIN = '/data/mistasse/coco/annotations/person_keypoints_train2017.json'
+COCOKP_ANNOTATIONS_VAL = '/data/mistasse/coco/annotations/person_keypoints_val2017.json'
+COCODET_ANNOTATIONS_TRAIN = '/data/mistasse/coco/annotations/instances_train2017.json'
+COCODET_ANNOTATIONS_VAL = '/data/mistasse/coco/annotations/instances_val2017.json'
+COCO_IMAGE_DIR_TRAIN = '/data/mistasse/coco/images/train2017/'
+COCO_IMAGE_DIR_VAL = '/data/mistasse/coco/images/val2017/'
+KEEMOTION_DIR = '/data/mistasse/keemotion/'
+
+# COCOKP_ANNOTATIONS_TRAIN = 'data-mscoco/annotations/person_keypoints_train2017.json'
+# COCOKP_ANNOTATIONS_VAL = 'data-mscoco/annotations/person_keypoints_val2017.json'
+# COCODET_ANNOTATIONS_TRAIN = 'data-mscoco/annotations/instances_train2017.json'
+# COCODET_ANNOTATIONS_VAL = 'data-mscoco/annotations/instances_val2017.json'
+# COCO_IMAGE_DIR_TRAIN = 'data-mscoco/images/train2017/'
+# COCO_IMAGE_DIR_VAL = 'data-mscoco/images/val2017/'
+# KEEMOTION_DIR = 'keemotion/'
 
 
 def train_cli(parser):
@@ -348,7 +358,7 @@ def train_cocokpinst_factory(args, target_transforms, heads=None):
             [train_data for _ in range(args.duplicate_data)])
     train_loader = torch.utils.data.DataLoader(
         train_data, batch_size=args.batch_size, shuffle=not args.debug,
-        pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
+        pin_memory=args.pin_memory, num_workers=3, drop_last=True,
         collate_fn=collate_images_targets_inst_meta,
         timeout=10000.)
 
