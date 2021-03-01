@@ -64,6 +64,7 @@ class Annotation(Base):
         return self
 
     def set(self, data, joint_scales=None, *, category_id=1, fixed_score=None, fixed_bbox=None):
+        """Set the data (keypoint locations, category, ...) for this instance."""
         self.data = data
         if joint_scales is not None:
             self.joint_scales = joint_scales
