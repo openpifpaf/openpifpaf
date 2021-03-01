@@ -28,7 +28,5 @@
   chapters:
   - file: dev
   - file: performance
-  - title: History
-    url: https://github.com/vita-epfl/openpifpaf/blob/main/HISTORY.md
   - title: GitHub
     url: https://github.com/vita-epfl/openpifpaf
