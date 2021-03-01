@@ -2,6 +2,8 @@ import logging
 
 import numpy as np
 
+from ..configurable import Configurable
+
 try:
     import matplotlib
     import matplotlib.animation
@@ -124,7 +126,7 @@ class CrowdPainter:
             )
 
 
-class KeypointPainter:
+class KeypointPainter(Configurable):
     """Paint poses.
 
     The constructor can take any class attribute as parameter and
@@ -154,14 +156,11 @@ class KeypointPainter:
                  highlight=None,
                  highlight_invisible=False,
                  **kwargs):
+        super().__init__(**kwargs)
+
         self.xy_scale = xy_scale
         self.highlight = highlight
         self.highlight_invisible = highlight_invisible
-
-        # use kwargs to set instance attributes to overwrite class attributes
-        for key, value in kwargs.items():
-            assert hasattr(self, key)
-            setattr(self, key, value)
 
         # set defaults for line_width and marker_size depending on monocolor
         if self.line_width is None:
