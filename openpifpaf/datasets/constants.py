@@ -63,7 +63,7 @@ COCO_UPRIGHT_POSE = np.array([
     [-1.4, 0.0, 2.0],  # 'left_ankle',      # 16
     [1.4, 0.1, 2.0],  # 'right_ankle',     # 17
     [0.0, 5.0, 2.0],   # 'center',           # 18
-    # [0.0, 5.0, 2.0],   # 'ball',           # 19          # consider ball as part of body
+    [0.0, 5.0, 2.0],   # 'ball',           # 19          # consider ball as part of body
 ])
 
 
@@ -153,7 +153,7 @@ COCO_PERSON_SIGMAS = [
     0.089,  # ankles
     0.089,  # ankles
     0.100,  # center
-    0.100,  # ball
+    0.200,  # ball
 ]
 
 _COCO_PANOPTIC_THING_LIST = [1, 37]  # for now, only consider people, add 37 for ball
