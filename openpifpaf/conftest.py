@@ -1,8 +1,9 @@
 """Context for doctests."""
 
 import numpy
-import openpifpaf
 import pytest
+
+import openpifpaf
 
 
 @pytest.fixture(autouse=True)
