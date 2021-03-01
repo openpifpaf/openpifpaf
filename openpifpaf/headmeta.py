@@ -32,6 +32,8 @@ class Base:
 
 @dataclass
 class Cif(Base):
+    """Head meta data for a Composite Intensity Field (CIF)."""
+
     keypoints: List[str]
     sigmas: List[float]
     pose: Any = None
@@ -53,6 +55,8 @@ class Cif(Base):
 
 @dataclass
 class Caf(Base):
+    """Head meta data for a Composite Association Field (CAF)."""
+
     keypoints: List[str]
     sigmas: List[float]
     skeleton: List[Tuple[int, int]]
@@ -103,6 +107,8 @@ class Caf(Base):
 
 @dataclass
 class CifDet(Base):
+    """Head meta data for a Composite Intensity Field (CIF) for Detection."""
+
     categories: List[str]
 
     n_confidences: ClassVar[int] = 1
