@@ -6,9 +6,9 @@ LOG = logging.getLogger(__name__)
 
 
 class AnnRescaler(object):
-    def __init__(self, stride, n_keypoints, pose, ball=False):
+    def __init__(self, stride, n_keypoints, pose):#, ball=False):
 
-        self.ball = ball
+        #self.ball = ball
         self.stride = stride
         self.n_keypoints = n_keypoints
         self.pose = pose
@@ -84,8 +84,8 @@ class AnnRescaler(object):
     def scale(self, keypoints):
         # print('in annrescaler', len(keypoints))
         # print(self.pose.shape)
-        if self.ball == True:
-            keypoints = keypoints[:-1]  ## remove ball from keypoints
+        # if self.ball == True:
+        #     keypoints = keypoints[:-1]  ## remove ball from keypoints
         visible = keypoints[:, 2] > 0
         # print('in annrescaler', np.sum(visible))
         # print(self.n_keypoints)
@@ -93,6 +93,8 @@ class AnnRescaler(object):
             # print('in annrescaler', np.sum(visible))
             return 1    # return 1 as scale
 
+        if self.n_keypoints == 1: # only for ball
+            return 1
         if self.n_keypoints == 2:   # when only ball as keypoint
             return 1
         elif np.sum(visible) < 3:

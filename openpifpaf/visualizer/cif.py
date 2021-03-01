@@ -1,5 +1,5 @@
 import logging
-
+import imageio
 from .base import BaseVisualizer
 from ..annotation import Annotation
 from .. import show
@@ -24,7 +24,7 @@ class Cif(BaseVisualizer):
 
     def targets(self, field, keypoint_sets):
         assert self.keypoints is not None
-        assert self.skeleton is not None
+        #assert self.skeleton is not None
 
         annotations = [
             Annotation(keypoints=self.keypoints, skeleton=self.skeleton).set(kps, fixed_score=None)
@@ -49,7 +49,9 @@ class Cif(BaseVisualizer):
             LOG.debug('%s', self.keypoints[f])
 
             with self.image_canvas(self._processed_image) as ax:
-                im = ax.imshow(self.scale_scalar(confidences[f], self.stride),
+                img = self.scale_scalar(confidences[f], self.stride)
+                #imageio.imwrite("/tmp/cif_confidences.png", img)
+                im = ax.imshow(img,
                                alpha=0.9, vmin=0.0, vmax=1.0, cmap='Oranges')
                 self.colorbar(ax, im)
 

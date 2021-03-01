@@ -307,7 +307,8 @@ def resnet_factory_from_scratch(basename, base_vision, out_features, head_metas)
     else:
         out_features //= 2
 
-    panoptic = len(head_metas) > 1 and isinstance(head_metas[1], heads.PanopticDeeplabMeta)
+    panoptic = len([hm for hm in head_meta if hm.name == "pan"]) > 0
+    has_ball = len([hm for hm in head_meta if hm.name == "ball"]) > 0
 
     BaseNetwork = basenetworks.BaseNetworkWithSkips if panoptic else basenetworks.BaseNetwork
     basenet = BaseNetwork(
@@ -331,6 +332,9 @@ def resnet_factory_from_scratch(basename, base_vision, out_features, head_metas)
         headnets.append(heads.InstanceSegHead(head_metas[1], basenet.out_features))
 
 
+    if has_ball:
+        head_meta = [hm for hm in head_meta if hm.name == "ball"][0]
+        headnets.append(heads.CompositeFieldFused(head_metas, basenet.out_features))
 
     if panoptic:  # Integrate a panoptic-deeplab decoder
         headnets.append(heads.PanopticDeeplabHead(head_metas[1], basenet.out_features))

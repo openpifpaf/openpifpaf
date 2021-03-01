@@ -70,12 +70,12 @@ def factory_head(head_net: network.heads.CompositeField, basenet_stride):
         vis = visualizer.Cif(meta.name,
                              stride=stride,
                              keypoints=meta.keypoints, skeleton=meta.draw_skeleton)
-        # print('!!!!!!!!!!!!!',meta.name)
-        ball = False
-        if meta.name in ['cifcentball', 'cifball']:
-            ball = True
-        # print('!!!!!!!!!!!!!',ball)
-        return Cif(AnnRescaler(stride, len(meta.keypoints), meta.pose, ball=ball),
+        # # print('!!!!!!!!!!!!!',meta.name)
+        # ball = False
+        # if meta.name in ['cifcentball', 'cifball']:
+        #     ball = True
+        # # print('!!!!!!!!!!!!!',ball)
+        return Cif(AnnRescaler(stride, len(meta.keypoints), meta.pose),#, ball=ball),
                    sigmas=meta.sigmas,
                    visualizer=vis)
 
