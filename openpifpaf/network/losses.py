@@ -45,7 +45,8 @@ def laplace_loss(x1, x2, logb, t1, t2, weight=None):
     losses = 0.694 + logb + norm * torch.exp(-logb)
     if weight is not None:
         losses = losses * weight
-    return torch.sum(losses)            # TODO why sum? shouldn't it be mean? because each image can have different number of nans !
+    # return torch.sum(losses)            # TODO why sum? shouldn't it be mean? because each image can have different number of nans !
+    return torch.mean(losses)
 
 
 def l1_loss(x1, x2, _, t1, t2, weight=None):
@@ -54,10 +55,13 @@ def l1_loss(x1, x2, _, t1, t2, weight=None):
     Loss for a single two-dimensional vector (x1, x2)
     true (t1, t2) vector.
     """
-    losses = torch.sqrt((x1 - t1)**2 + (x2 - t2)**2)
+    # losses = torch.sqrt((x1 - t1)**2 + (x2 - t2)**2)
+    losses = (x1 - t1)**2 + (x2 - t2)**2
+    
     if weight is not None:
         losses = losses * weight
-    return torch.sum(losses)
+    # return torch.sum(losses)
+    return torch.mean(losses)
 
 
 def logl1_loss(logx, t, **kwargs):
@@ -70,9 +74,9 @@ def margin_loss(x1, x2, t1, t2, max_r1, max_r2, max_r3, max_r4):
     x = torch.stack((x1, x2))
     t = torch.stack((t1, t2))
 
-    print('shape x', x.shape)
-    print('shape t', t.shape)
-    print('shape max_r1', max_r1.shape)
+    # print('shape x', x.shape)
+    # print('shape t', t.shape)
+    # print('shape max_r1', max_r1.shape)
 
     max_r = torch.min((torch.stack(max_r1, max_r2, max_r3, max_r4)), axis=0)
     m0 = torch.isfinite(max_r)
@@ -149,7 +153,8 @@ class SmoothL1Loss(object):
             losses = losses * weight
 
         self.scale = None
-        return torch.sum(losses)
+        # return torch.sum(losses)
+        return torch.mean(losses)
 
 ## AMA
 
@@ -391,7 +396,7 @@ class CompositeLoss(torch.nn.Module):
             bce_target,
             # weight=bce_weight,
             reduction='none',
-        ) * bce_weight).sum() / (1000.0 * batch_size)
+        ) * bce_weight).mean() #/ (1000.0 * batch_size)
 
         return ce_loss
 
@@ -424,7 +429,7 @@ class CompositeLoss(torch.nn.Module):
                 torch.masked_select(target_reg[:, :, 0], reg_masks),
                 torch.masked_select(target_reg[:, :, 1], reg_masks),
                 weight=0.1,
-            ) / (100.0 * batch_size))
+            )) #/ (100.0 * batch_size))
 
         # print(len(reg_losses))
         # raise
@@ -444,8 +449,8 @@ class CompositeLoss(torch.nn.Module):
             logl1_loss(
                 torch.masked_select(x_scales[:, :, i], torch.isnan(target_scale).bitwise_not_()),
                 torch.masked_select(target_scale, torch.isnan(target_scale).bitwise_not_()),
-                reduction='sum',            # TODO shouldn't it be mean???
-            ) / (100.0 * batch_size)
+                reduction='mean',            # TODO shouldn't it be mean???
+            ) #/ (100.0 * batch_size)
             for i, target_scale in enumerate(target_scales)
         ]
 
@@ -470,7 +475,7 @@ class CompositeLoss(torch.nn.Module):
                 torch.masked_select(target_reg[:, :, 3], reg_masks),
                 torch.masked_select(target_reg[:, :, 4], reg_masks),
                 torch.masked_select(target_reg[:, :, 5], reg_masks),
-            ) / (100.0 * batch_size))
+            ) )#/ (100.0 * batch_size))
         return margin_losses
 
     def forward(self, *args):
