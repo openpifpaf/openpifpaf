@@ -16,7 +16,6 @@ class Configurable:
 
     Example:
 
-    >>> import openpifpaf
     >>> class MyClass(openpifpaf.Configurable):
     ...     a = 0
     ...     def __init__(self, myclass_argument=None, **kwargs):
