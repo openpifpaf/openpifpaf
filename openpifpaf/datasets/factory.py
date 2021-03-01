@@ -152,6 +152,7 @@ def train_cocokpinst_preprocess_factory(
         extended_scale=False,
         orientation_invariant=0.0,
         rescale_images=1.0,
+        heads=None,
 ):
     if not augmentation:
         return transforms.Compose([
@@ -174,13 +175,14 @@ def train_cocokpinst_preprocess_factory(
     if orientation_invariant:
         orientation_t = transforms.RandomApply(transforms.RotateBy90(), orientation_invariant)
 
-
+    print(heads)
     coco_keypoints_ = COCO_KEYPOINTS[:-2]
-    if 'cifball' in args.headnets:
+    if 'cifball' in heads:
         coco_keypoints_ = COCO_KEYPOINTS[:-2] + [COCO_KEYPOINTS[-1]]
-    elif 'cifcentball' in args.headnets:
+    elif 'cifcentball' in heads:
         coco_keypoints_ = COCO_KEYPOINTS
-    elif 'cifcent' in args.headnets:
+    elif 'cifcent' in heads:
+        print('yeay')
         coco_keypoints_ = COCO_KEYPOINTS[:-1]
 
     return transforms.Compose([
@@ -327,14 +329,15 @@ def train_cocodet_factory(args, target_transforms):
 
 
 ### AMA both keypoints and instance annotations
-def train_cocokpinst_factory(args, target_transforms):
+def train_cocokpinst_factory(args, target_transforms, heads=None):
     preprocess = train_cocokpinst_preprocess_factory(
         square_edge=args.square_edge,
         augmentation=args.augmentation,
         extended_scale=args.extended_scale,
         orientation_invariant=args.orientation_invariant,
         rescale_images=args.rescale_images,
-        args=args)
+        args=args,
+        heads=heads)
 
     if args.loader_workers is None:
         args.loader_workers = args.batch_size
@@ -344,16 +347,16 @@ def train_cocokpinst_factory(args, target_transforms):
     config = 'cif'
     category_ids = [1]
 
-    if 'cifball' in args.headnets:
+    if 'cifball' in heads:
         config = 'cifball'
         category_ids = [1, 37]
-    elif 'cifcentball' in args.headnets:
+    elif 'cifcentball' in heads:
         config = 'cifcentball'
         category_ids = [1, 37]
-    elif 'cifcent' in args.headnets:
+    elif 'cifcent' in heads:
         config = 'cifcent'
         category_ids = [1]
-    elif 'ball' in args.headnets:
+    elif 'ball' in heads:
         config = 'ball'
         category_ids = [37]
     # else:
@@ -379,7 +382,7 @@ def train_cocokpinst_factory(args, target_transforms):
         train_data, batch_size=args.batch_size, shuffle=not args.debug,
         pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
         collate_fn=collate_images_targets_inst_meta,
-        timeout=30.)
+        timeout=10000.)
 
     # train_loader = torch.utils.data.DataLoader(
     #     train_data, batch_size=args.batch_size, shuffle=False,
@@ -426,7 +429,7 @@ def train_keemotion_factory(args, target_transforms):
         train_data, batch_size=args.batch_size, shuffle=not args.debug,
         pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
         collate_fn=collate_images_targets_inst_meta,
-        timeout=30.)
+        timeout=50.)
 
     val_data = Keemotion(args.keemotion_dir, 'val', config=args.headnets[0],
         target_transforms=target_transforms, preprocess=preprocess)
@@ -434,21 +437,23 @@ def train_keemotion_factory(args, target_transforms):
         val_data, batch_size=args.batch_size, shuffle=False,
         pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
         collate_fn=collate_images_targets_inst_meta,
-        timeout=30.)
+        timeout=50.)
 
     return train_loader, val_loader
 
 
-def train_factory(args, target_transforms):
+
+def train_factory(args, target_transforms, heads=None):
     if args.dataset in ('deepsport'):
         return train_deepsport_factory(args, target_transforms)
+
     if args.dataset in ('cocokpinst'):
-        return train_cocokpinst_factory(args, target_transforms)
+        return train_cocokpinst_factory(args, target_transforms, heads=heads)
     if args.dataset in ('cocokp',):
         return train_cocokp_factory(args, target_transforms)
     if args.dataset in ('cocodet',):
         return train_cocodet_factory(args, target_transforms)
     if args.dataset in ('keemotion',):
-        return train_keemotion_factory(args, target_transforms)
+        return train_keemotion_factory(args, target_transforms, heads=heads)
 
     raise Exception('unknown dataset: {}'.format(args.dataset))

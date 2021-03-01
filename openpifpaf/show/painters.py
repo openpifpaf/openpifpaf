@@ -31,7 +31,13 @@ class AnnotationPainter:
     def annotations(self, ax, annotations, *,
                     color=None, colors=None, texts=None, subtexts=None):
         by_classname = defaultdict(list)
+        # print('in annotations', type(annotations[0]))
+        # print(len(annotations[0]))
+        # print(annotations[0][0].shape)
+        # print(annotations[0])
+
         for ann_i, ann in enumerate(annotations):
+            print(ann.__class__.__name__)
             by_classname[ann.__class__.__name__].append((ann_i, ann))
 
         for classname, i_anns in by_classname.items():
@@ -39,7 +45,8 @@ class AnnotationPainter:
             this_colors = [colors[i] for i, _ in i_anns] if colors else None
             this_texts = [texts[i] for i, _ in i_anns] if texts else None
             this_subtexts = [subtexts[i] for i, _ in i_anns] if subtexts else None
-            # print(self.painters[classname])
+            # print(self.painters)
+            # print(classname)
             self.painters[classname].annotations(
                 ax, anns,
                 color=color, colors=this_colors, texts=this_texts, subtexts=this_subtexts)
@@ -159,50 +166,51 @@ class KeypointCentPainter:
         LOG.debug('color connections = %s, lw = %d, marker = %d',
                   self.color_connections, self.linewidth, self.markersize)
 
-    # def _draw_skeleton(self, ax, x, y, v, *, skeleton, color=None, **kwargs):
-    #     if not np.any(v > 0):
-    #         return
+    def _draw_skeleton(self, ax, x, y, v, *, skeleton, color=None, **kwargs):
+        print('in draw skeleton')
+        if not np.any(v > 0):
+            return
 
-    #     # connections
-    #     lines, line_colors, line_styles = [], [], []
-    #     for ci, (j1i, j2i) in enumerate(np.array(skeleton) - 1):
-    #         c = color
-    #         if self.color_connections:
-    #             c = matplotlib.cm.get_cmap('tab20')(ci / len(skeleton))
-    #         if v[j1i] > 0 and v[j2i] > 0:
-    #             lines.append([(x[j1i], y[j1i]), (x[j2i], y[j2i])])
-    #             line_colors.append(c)
-    #             if v[j1i] > self.solid_threshold and v[j2i] > self.solid_threshold:
-    #                 line_styles.append('solid')
-    #             else:
-    #                 line_styles.append('dashed')
-    #     ax.add_collection(matplotlib.collections.LineCollection(
-    #         lines, colors=line_colors,
-    #         linewidths=kwargs.get('linewidth', self.linewidth),
-    #         linestyles=kwargs.get('linestyle', line_styles),
-    #         capstyle='round',
-    #     ))
+        # connections
+        lines, line_colors, line_styles = [], [], []
+        for ci, (j1i, j2i) in enumerate(np.array(skeleton) - 1):
+            c = color
+            if self.color_connections:
+                c = matplotlib.cm.get_cmap('tab20')(ci / len(skeleton))
+            if v[j1i] > 0 and v[j2i] > 0:
+                lines.append([(x[j1i], y[j1i]), (x[j2i], y[j2i])])
+                line_colors.append(c)
+                if v[j1i] > self.solid_threshold and v[j2i] > self.solid_threshold:
+                    line_styles.append('solid')
+                else:
+                    line_styles.append('dashed')
+        ax.add_collection(matplotlib.collections.LineCollection(
+            lines, colors=line_colors,
+            linewidths=kwargs.get('linewidth', self.linewidth),
+            linestyles=kwargs.get('linestyle', line_styles),
+            capstyle='round',
+        ))
 
-    #     # joints
-    #     ax.scatter(
-    #         x[v > 0.0], y[v > 0.0], s=self.markersize**2, marker='.',
-    #         color='white' if self.color_connections else color,
-    #         edgecolor='k' if self.highlight_invisible else None,
-    #         zorder=2,
-    #     )
+        # joints
+        ax.scatter(
+            x[v > 0.0], y[v > 0.0], s=self.markersize**2, marker='.',
+            color='white' if self.color_connections else color,
+            edgecolor='k' if self.highlight_invisible else None,
+            zorder=2,
+        )
 
-    #     # highlight joints
-    #     if self.highlight is not None:
-    #         highlight_v = np.zeros_like(v)
-    #         highlight_v[self.highlight] = 1
-    #         highlight_v = np.logical_and(v, highlight_v)
+        # highlight joints
+        if self.highlight is not None:
+            highlight_v = np.zeros_like(v)
+            highlight_v[self.highlight] = 1
+            highlight_v = np.logical_and(v, highlight_v)
 
-    #         ax.scatter(
-    #             x[highlight_v], y[highlight_v], s=self.markersize**2, marker='.',
-    #             color='white' if self.color_connections else color,
-    #             edgecolor='k' if self.highlight_invisible else None,
-    #             zorder=2,
-    #         )
+            ax.scatter(
+                x[highlight_v], y[highlight_v], s=self.markersize**2, marker='.',
+                color='white' if self.color_connections else color,
+                edgecolor='k' if self.highlight_invisible else None,
+                zorder=2,
+            )
 
     def keypoints(self, ax, keypoint_sets, *,
                   scores=None, color=None, colors=None, texts=None):
@@ -224,7 +232,7 @@ class KeypointCentPainter:
             if isinstance(color, (int, np.integer)):
                 color = matplotlib.cm.get_cmap('tab20')((color % 20 + 0.05) / 20)
 
-            # self._draw_skeleton(ax, x, y, v, skeleton=skeleton, color=color)
+            self._draw_skeleton(ax, x, y, v, skeleton=skeleton, color=color)
             if self.show_box:
                 score = scores[i] if scores is not None else None
                 self._draw_box(ax, x, y, v, color, score)
@@ -306,6 +314,7 @@ class KeypointCentPainter:
 
     def annotations(self, ax, annotations, *,
                     color=None, colors=None, texts=None, subtexts=None):
+        # print('its here')
         for i, ann in enumerate(annotations):
             color = i
             if colors is not None:
@@ -353,7 +362,7 @@ class KeypointCentPainter:
             self._draw_skeleton(ax, x, y, v, color='black', skeleton=frontier_skeleton,
                                 linestyle='dotted', linewidth=1)
 
-        # skeleton = ann.skeleton
+        skeleton = ann.skeleton
         # if self.show_only_decoded_connections:
         #     decoded_connections = set((jsi, jti) for jsi, jti, _, __ in ann.decoding_order)
         #     skeleton_mask = [
@@ -362,7 +371,7 @@ class KeypointCentPainter:
         #     ]
         #     skeleton = [se for se, m in zip(skeleton, skeleton_mask) if m]
 
-        # self._draw_skeleton(ax, x, y, v, color=color, skeleton=skeleton)
+        self._draw_skeleton(ax, x, y, v, color=color, skeleton=skeleton)
 
         if self.show_joint_scales and ann.joint_scales is not None:
             self._draw_scales(ax, x, y, v, color, ann.joint_scales)

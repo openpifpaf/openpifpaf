@@ -116,11 +116,21 @@ def main():
 
     loss = network.losses.factory_from_args(args, net_cpu.head_nets)
     target_transforms = encoder.factory(net_cpu.head_nets, net_cpu.base_net.stride)
-    train_loader, val_loader = datasets.train_factory(args, target_transforms)
+
+    ### to handle checkpoint problem (introduce the right dataset configs)
+    heads = []
+    for hd in net_cpu.head_nets:
+        heads.append(hd.meta.name)
+
+    # print('in train ', heads)
+    train_loader, val_loader = datasets.train_factory(args, target_transforms, heads=heads)
 
     optimizer = optimize.factory_optimizer(
         args, list(net.parameters()) + list(loss.parameters()))
     lr_scheduler = optimize.factory_lrscheduler(args, optimizer, len(train_loader))
+
+    # checkpoint = torch.load(arg.checkpoint)
+
     trainer = network.Trainer(
         net, loss, optimizer, args.output,
         lr_scheduler=lr_scheduler,
