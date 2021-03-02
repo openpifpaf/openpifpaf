@@ -46,3 +46,23 @@ class PilImageList(torch.utils.data.Dataset):
 
     def __len__(self):
         return len(self.images)
+
+
+class NumpyImageList(torch.utils.data.Dataset):
+    def __init__(self, images, preprocess=None):
+        super().__init__()
+        self.images = images
+        self.preprocess = preprocess or transforms.EVAL_TRANSFORM
+
+    def __getitem__(self, index):
+        image = PIL.Image.fromarray(self.images[index]).copy()
+
+        anns = []
+        meta = {
+            'dataset_index': index,
+        }
+        image, anns, meta = self.preprocess(image, anns, meta)
+        return image, anns, meta
+
+    def __len__(self):
+        return len(self.images)
