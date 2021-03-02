@@ -88,7 +88,7 @@ class CompositeLoss(torch.nn.Module):
         if self.prescale != 1.0:
             ce_loss = ce_loss * self.prescale
         weights_torch = torch.tensor(self.weights, device=bce_masks.device).unsqueeze(0).unsqueeze(2).unsqueeze(3)  # TODO find a nicer way to assign the weights to the correct GPU
-        weight = torch.ones_like(t_confidence)
+        weight = torch.ones_like(t_confidence, dtype=torch.float, requires_grad=False)
         weight[:] = weights_torch
         weight = weight[bce_masks]
         ce_loss = ce_loss * weight
@@ -101,7 +101,6 @@ class CompositeLoss(torch.nn.Module):
         assert t_regs.shape[2] == self.n_vectors * 3
         batch_size = t_regs.shape[0]
         weights_torch = torch.tensor(self.weights, device=x_regs.device).unsqueeze(0).unsqueeze(2).unsqueeze(3)
-
         reg_losses = []
         for i in range(self.n_vectors):
             reg_masks = torch.isnan(t_regs[:, :, i * 2]).bitwise_not_()
@@ -115,7 +114,7 @@ class CompositeLoss(torch.nn.Module):
             )
             if self.prescale != 1.0:
                 loss = loss * self.prescale
-            weight = torch.ones_like(reg_masks, dtype=torch.float)
+            weight = torch.ones_like(reg_masks, dtype=torch.float, requires_grad=False)
             weight[:] = weights_torch
             weight = weight[reg_masks]
             loss = loss * weight
@@ -136,7 +135,7 @@ class CompositeLoss(torch.nn.Module):
             )
             if self.prescale != 1.0:
                 loss = loss * self.prescale
-            weight = torch.ones_like(mask, dtype=torch.float)
+            weight = torch.ones_like(mask, dtype=torch.float, requires_grad=False)
             weight[:] = weights_torch
             weight = weight[mask]
             loss = loss * weight

@@ -47,7 +47,7 @@ def test_conf_ones_weight():
     np.testing.assert_allclose(loss_np, correct_values, atol=1e-7)
 
 def test_conf_equal_weight():
-    w = 1.34
+    w = 1.54 # an arbitary float value
     cif = openpifpaf.headmeta.Cif('cif', 'cocokp',
                                       keypoints=COCO_KEYPOINTS,
                                       sigmas=COCO_PERSON_SIGMAS,
@@ -79,3 +79,7 @@ def test_conf_zero_weight():
     loss_values = loss(x, t)
     loss_np = np.array([l.numpy() for l in loss_values])
     np.testing.assert_allclose(loss_np, np.zeros((3)), atol=1e-7)
+    
+#test_conf_ones_weight()
+#test_conf_equal_weight()
+#test_conf_zero_weight()
