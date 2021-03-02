@@ -200,7 +200,7 @@ class Plots():
         if not last_five_y:
             return
         ax.set_xlabel('epoch')
-        ax.set_ylabel(field_name)
+        ax.set_ylabel(field_name, fontsize=8 if len(field_name) < 30 else 5)
         last_five_y = np.concatenate(last_five_y)
         if not self.share_y and last_five_y.shape[0]:
             ax.set_ylim(np.min(last_five_y), np.max(last_five_y))
@@ -277,7 +277,7 @@ class Plots():
                 optionally_shaded(ax, x[m], y[m], color=color, label=label)
 
         ax.set_xlabel('epoch')
-        ax.set_ylabel(format(field_name))
+        ax.set_ylabel(field_name, fontsize=8 if len(field_name) < 30 else 5)
         # ax.set_ylim(3e-3, 3.0)
         if not self.share_y and min(y) > -0.1:
             ax.set_yscale('log', nonpositive='clip')
