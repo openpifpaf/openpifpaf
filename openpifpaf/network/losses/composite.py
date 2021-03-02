@@ -31,7 +31,12 @@ class CompositeLoss(torch.nn.Module):
             + ['{}.{}.scales{}'.format(head_net.meta.dataset, head_net.meta.name, i + 1)
                for i in range(self.n_scales)]
         )
-
+        w = head_net.meta.weights
+        if w is None:
+            self.weights = [1] * head_net.meta.n_fields
+        else:
+            self.weights = w
+        LOG.debug("The weights for the keypoints are {}".format(self.weights))
         self.bce_blackout = None
         self.previous_losses = None
 
@@ -82,14 +87,20 @@ class CompositeLoss(torch.nn.Module):
         ce_loss = self.confidence_loss(x_confidence, bce_target)
         if self.prescale != 1.0:
             ce_loss = ce_loss * self.prescale
+        weights_torch = torch.tensor(self.weights, device=bce_masks.device).unsqueeze(0).unsqueeze(2).unsqueeze(3)  # TODO find a nicer way to assign the weights to the correct GPU
+        weight = torch.ones_like(t_confidence)
+        weight[:] = weights_torch
+        weight = weight[bce_masks]
+        ce_loss = ce_loss * weight
         ce_loss = ce_loss.sum() / batch_size
-
+        
         return ce_loss
 
     def _localization_loss(self, x_regs, t_regs):
         assert x_regs.shape[2] == self.n_vectors * 3
         assert t_regs.shape[2] == self.n_vectors * 3
         batch_size = t_regs.shape[0]
+        weights_torch = torch.tensor(self.weights, device=x_regs.device).unsqueeze(0).unsqueeze(2).unsqueeze(3)
 
         reg_losses = []
         for i in range(self.n_vectors):
@@ -104,14 +115,18 @@ class CompositeLoss(torch.nn.Module):
             )
             if self.prescale != 1.0:
                 loss = loss * self.prescale
+            weight = torch.ones_like(reg_masks, dtype=torch.float)
+            weight[:] = weights_torch
+            weight = weight[reg_masks]
+            loss = loss * weight
             reg_losses.append(loss.sum() / batch_size)
 
         return reg_losses
 
     def _scale_losses(self, x_scales, t_scales):
         assert x_scales.shape[2] == t_scales.shape[2] == len(self.scale_losses)
-
         batch_size = x_scales.shape[0]
+        weights_torch = torch.tensor(self.weights, device=t_scales.device).unsqueeze(0).unsqueeze(2).unsqueeze(3)            
         losses = []
         for i, sl in enumerate(self.scale_losses):
             mask = torch.isnan(t_scales[:, :, i]).bitwise_not_()
@@ -121,6 +136,10 @@ class CompositeLoss(torch.nn.Module):
             )
             if self.prescale != 1.0:
                 loss = loss * self.prescale
+            weight = torch.ones_like(mask, dtype=torch.float)
+            weight[:] = weights_torch
+            weight = weight[mask]
+            loss = loss * weight
             losses.append(loss.sum() / batch_size)
 
         return losses

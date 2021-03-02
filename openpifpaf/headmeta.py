@@ -47,6 +47,8 @@ class Cif(Base):
     vector_offsets = [True]
     decoder_min_scale = 0.0
     decoder_seed_mask: List[int] = None
+    
+    weights: List[int] = None
 
     @property
     def n_fields(self):
@@ -73,6 +75,8 @@ class Caf(Base):
     decoder_min_distance = 0.0
     decoder_max_distance = float('inf')
     decoder_confidence_scales: List[float] = None
+    
+    weights: List[int] = None
 
     @property
     def n_fields(self):
@@ -117,6 +121,8 @@ class CifDet(Base):
 
     vector_offsets = [True, False]
     decoder_min_scale = 0.0
+    
+    weights: List[int] = None
 
     @property
     def n_fields(self):
