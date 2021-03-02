@@ -68,7 +68,7 @@ setup(
             'matplotlib>=3.3',
             'nbdime',
             'nbstripout',
-            'sphinx-book-theme@https://github.com/svenkreiss/sphinx-book-theme/archive/onthispage.zip',
+            'sphinx-book-theme',
             'wheel',
         ],
         'onnx': [
