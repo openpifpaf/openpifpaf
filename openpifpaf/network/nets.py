@@ -109,3 +109,7 @@ def model_defaults(net_cpu):
 
         elif isinstance(m, (torch.nn.GroupNorm, torch.nn.LayerNorm)):
             m.eps = 1e-4
+
+        elif isinstance(m, (torch.nn.InstanceNorm1d, torch.nn.InstanceNorm2d)):
+            m.eps = 1e-4
+            m.momentum = 0.01
