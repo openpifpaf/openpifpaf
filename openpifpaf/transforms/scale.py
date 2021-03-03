@@ -9,6 +9,11 @@ import torch
 
 from .preprocess import Preprocess
 
+try:
+    import cv2
+except ImportError:
+    cv2 = None
+
 LOG = logging.getLogger(__name__)
 
 
@@ -26,7 +31,21 @@ def _scale(image, anns, meta, target_w, target_h, resample, *, fast=False):
     assert resample in (0, 2, 3)
 
     # scale image
-    if fast:
+    if fast and cv2 is not None:
+        if resample == 0:
+            cv_interpoltation = cv2.INTER_NEAREST
+        elif resample == 2:
+            cv_interpoltation = cv2.INTER_LINEAR
+        elif resample == 3:
+            cv_interpoltation = cv2.INTER_CUBIC
+        else:
+            raise NotImplementedError('resample of {} not implemented for OpenCV'.format(resample))
+        im_np = np.asarray(image)
+        im_np = cv2.resize(im_np, (target_w, target_h), interpolation=cv_interpoltation)
+        image = PIL.Image.fromarray(im_np)
+    elif fast:
+        LOG.debug('Requested fast resizing without OpenCV. Using Pillow. '
+                  'Install OpenCV for even faster image resizing.')
         image = image.resize((target_w, target_h), resample)
     else:
         order = resample

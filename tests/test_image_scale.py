@@ -1,7 +1,14 @@
+import time
+
 import numpy as np
 import PIL.Image
 import pytest
 import scipy.ndimage
+
+try:
+    import cv2
+except ImportError:
+    cv2 = None
 
 
 @pytest.mark.parametrize('resample', [PIL.Image.BILINEAR, PIL.Image.BICUBIC])
@@ -29,3 +36,21 @@ def test_scipy_zoom(order):
 
     print(d_out)
     assert np.all(d_in == d_out[0, ::2])
+
+
+def test_opencv_faster_than_pil():
+    image = PIL.Image.new('RGB', (640, 640))
+
+    pil_start = time.perf_counter()
+    for _ in range(5):
+        image.resize((500, 500))
+    pil_time = time.perf_counter() - pil_start
+
+    cv_start = time.perf_counter()
+    for _ in range(5):
+        im_np = np.asarray(image)
+        PIL.Image.fromarray(cv2.resize(im_np, (500, 500)))
+    cv_time = time.perf_counter() - cv_start
+
+    print(f'pil: {pil_time}, cv: {cv_time}')
+    assert cv_time < 0.5 * pil_time
