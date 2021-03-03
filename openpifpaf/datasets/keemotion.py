@@ -43,92 +43,20 @@ class Keemotion(torch.utils.data.Dataset):
             os.path.join(self.image_dir,"images_trainvaltest", self.split, "*.png"),
             recursive=True)
         self.images.sort()
+        # self.ids = [i for i, _ in enumerate(self.images)]
+        # self.ids = self._ids + self._ids
 
         self.preprocess = preprocess or transforms.EVAL_TRANSFORM
         self.target_transforms = target_transforms
         self.config = config
         self.ball = 'ball' in self.config
+
+        print('Number of Keemotion Images:', len(self.images))
         return
-        if category_ids is None:
-            category_ids = [1]
-
-        self.config = config
-        print(self.config)
-
-
-        from pycocotools.coco import COCO  # pylint: disable=import-outside-toplevel
-        self.image_dir = image_dir
-        self.coco = COCO(ann_file)
-        if ann_inst_file is not None:
-            self.coco_inst = COCO(ann_inst_file)
-
-        self.category_ids = category_ids
-        print(self.category_ids)
-        self.ann_inst_file = ann_inst_file
-
-        if image_filter == 'all':
-            self.ids = self.coco.getImgIds()
-        elif image_filter == 'annotated':
-            self.ids = self.coco.getImgIds(catIds=self.category_ids)
-            self.filter_for_annotations()
-        elif image_filter == 'keypoint-annotations':
-            self.ids_kp = self.coco_kp.getImgIds(catIds=self.category_ids)
-            self.filter_for_keypoint_annotations()
-        elif image_filter == 'kp_inst':
-            # print(self.category_ids)
-
-            if self.category_ids == [1]:
-                self.ids = self.coco.getImgIds(catIds=self.category_ids)
-                # self.ids_inst = self.coco_inst.getImgIds(catIds=self.category_ids)
-                self.filter_for_keypoint_annotations()
-            elif self.category_ids == [37]:
-                self.ids_ball = self.coco_inst.getImgIds(catIds=self.category_ids)
-                self.ids = self.ids_ball
-                self.filter_for_ball_annotations()
-            else:
-                self.ids = self.coco.getImgIds(catIds=self.category_ids[0])
-                # self.ids_inst = self.coco_inst.getImgIds(catIds=self.category_ids[0])
-                self.ids_ball = self.coco_inst.getImgIds(catIds=self.category_ids[1])
-                self.filter_for_kp_ball_annotations()
-                self.ids += self.ids_ball
-                # for i in self.ids_ball:
-                #     if i not in self.ids:
-                #         self.ids.append(i)
-
-                self.ids = list(dict.fromkeys(self.ids))        ## remove duplicate image Ids
-
-            # self.filter_for_annotations()
-            # print(self.category_ids)
-            # print(len(self.ids))
-
-            # print(len(self.ids_inst))
-            # self.filter_for_annotations()
-            ### AMA union of kp and inst annotations
-            # self.ids_ = []
-            # for idx in self.ids:
-            #     if idx in self.ids_inst:
-            #         self.ids_.append(idx)
-            # self.ids = self.ids_
-
-
-            # if self.category_ids != [1]:
-
-            #     self.ids += self.ids_ball
-
-            #     self.ids = list(dict.fromkeys(self.ids))        ## remove duplicate image Ids
-
-            # self.filter_for_keypoint_annotations_inst()
-        else:
-            raise Exception('unknown value for image_filter: {}'.format(image_filter))
-
-        # self.ids = [363469]     # for a debug
-
-        if n_images:
-            self.ids = self.ids[:n_images]
-        LOG.info('Images: %d', len(self.ids))
 
 
     def __getitem__(self, index):
+        # index = index % len(self.images)
         path = self.images[index]
         annotation_path = path.replace('images_trainvaltest/'+self.split, 'panoptic') \
                               .replace('.png', '_panoptic.png')
@@ -163,11 +91,12 @@ class Keemotion(torch.utils.data.Dataset):
 
             keypoints = np.zeros((18+self.ball,3))
             if label == 1:
-                keypoints[17,:] = (*center, 1)
+                keypoints[17,:] = (*center, 2)
             elif label == 3 and self.ball:
-                keypoints[18,:] = (*center, 1)
+                keypoints[18,:] = (*center, 2)
             else:
-                raise NotImplementedError('Class label %d'%label)
+                pass
+                # raise NotImplementedError('Class label %d'%label)
 
             anns.append({
                 'num_keypoints': 1,
@@ -191,141 +120,9 @@ class Keemotion(torch.utils.data.Dataset):
         return image, anns, meta
 
 
-
-        
-        image_id = self.ids[index]
-
-        image_info = self.coco.loadImgs(image_id)[0]
-        LOG.debug(image_info)
-        with open(os.path.join(self.image_dir, image_info['file_name']), 'rb') as f:
-            image = Image.open(f).convert('RGB')
-
-        meta = {
-            'dataset_index': index,
-            'image_id': image_id,
-            'file_name': image_info['file_name'],
-        }
-
-        if 'flickr_url' in image_info:
-            _, flickr_file_name = image_info['flickr_url'].rsplit('/', maxsplit=1)
-            flickr_id, _ = flickr_file_name.split('_', maxsplit=1)
-            meta['flickr_full_page'] = 'http://flickr.com/photo.gne?id={}'.format(flickr_id)
-
-        # anns = []
-        # mask = []
-
-        ann_ids = self.coco.getAnnIds(imgIds=image_id)
-        anns = self.coco.loadAnns(ann_ids)
-        assert len(anns) != 0, anns
-
-
-        # mask = []
-
-        if self.ann_inst_file is not None:
-            # ann_ids_inst = self.coco_inst.getAnnIds(imgIds=image_id, catIds=[1])
-            # anns_inst = self.coco_inst.loadAnns(ann_ids_inst)
-
-            for i in anns:
-                # ann_mask_id = i['id']
-                # print(i)
-                # print(ann_mask_id)
-                # print(np.max(np.max(self.coco_inst.annToMask(i))))
-                # print(np.max(np.max(self.coco_inst.annToMask(i) * ann_mask_id)))
-                i['bmask'] = self.coco_inst.annToMask(i)
-                # mask.append(self.coco_inst.annToMask(i))
-
-        if self.config == 'cif':
-            pass
-
-        elif self.config == 'cifcent':
-            anns = self.add_center(anns)
-
-        elif self.config == 'cifball':
-
-            anns = self.add_center(anns, visiblity=0)        # add fake ball keypoint
-
-            ann_ids_inst = self.coco_inst.getAnnIds(imgIds=image_id, catIds=[37])
-            anns_inst = self.coco_inst.loadAnns(ann_ids_inst)
-            for i in anns_inst:
-                # ann_mask_id = i['id']
-                i['bmask'] = self.coco_inst.annToMask(i)
-                # mask_ball.append(self.coco_inst.annToMask(i) * ann_mask_id)
-
-            if len(anns_inst) is not 0:
-
-                anns_ball = self.empty_person_keypoint(anns_inst)     # add fake people
-
-                anns_ball = self.add_center(anns_ball)        # add ball keypoint
-
-                anns += anns_ball
-
-        elif self.config == 'cifcentball':
-            anns = self.add_center(anns)
-            anns = self.add_center(anns, visiblity=0)        # add fake ball keypoint
-            # mask_ball = []
-            ann_ids_inst = self.coco_inst.getAnnIds(imgIds=image_id, catIds=[37])
-            anns_inst = self.coco_inst.loadAnns(ann_ids_inst)
-            for i in anns_inst:
-                # ann_mask_id = i['id']
-                i['bmask'] = self.coco_inst.annToMask(i)
-                # mask_ball.append(self.coco_inst.annToMask(i) * ann_mask_id)
-
-            anns_ball = self.empty_person_keypoint(anns_inst, n_keypoints=18)     # add fake people
-            anns_ball = self.add_center(anns_ball)        # add ball keypoint
-            anns += anns_ball
-
-        else:
-            raise NotImplementedError
-
-
-        # print(len(anns))
-        # print(len(mask))
-        # anns = self.empty_person_keypoint(mask, image_id)
-
-        anns = copy.deepcopy(anns)
-
-        image, anns, meta = self.preprocess(image, anns, meta)
-        # if len(anns) == 0:
-        #     import pickle
-        #     with open('preprocess.pickle','wb') as f:
-        #         pickle.dump(((image, anns, meta),(image_copy, anns_copy, meta_copy)),f)
-
-        # assert len(anns) == len(anns_copy), str(len(anns)) +' '+ str(len(anns_copy))
-
-        # print('222')
-        # print(len(anns))
-        # print(anns[0].shape)
-        # print(image)
-        # print(anns)
-        # print(meta)
-        # mask valid TODO still necessary?
-        # print('after augmentation')
-
-        valid_area = meta['valid_area']
-        utils.mask_valid_area(image, valid_area)
-
-        LOG.debug(meta)
-
-        # print('______valid area______')
-        # print(valid_area)
-        # print(image.shape)
-
-        # log stats
-        for ann in anns:
-            if getattr(ann, 'iscrowd', False):
-                continue
-            if not np.any(ann['keypoints'][:, 2] > 0.0):
-                continue
-            STAT_LOG.debug({'bbox': [int(v) for v in ann['bbox']]})
-
-        # transform targets
-        if self.target_transforms is not None:
-            anns = [t(image, anns, meta) for t in self.target_transforms]
-
-        return image, anns, meta
-
     def __len__(self):
         return len(self.images)
+        # return len(self.ids)
 
     def filter_for_keypoint_annotations(self):
         LOG.info('filter for keypoint annotations ...')

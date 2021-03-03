@@ -8,11 +8,13 @@ class Compose(Preprocess):
     def __call__(self, image, anns, meta):
         # print(self.preprocess_list[2])
         last_time = time.time()
-        for p in self.preprocess_list:
+        for i,p in enumerate(self.preprocess_list):
             if p is None:
                 continue
             
+            # print('in compose',i, image.size)
             image, anns, meta = p(image, anns, meta)
+            # print('in compose after',i, image.size)
             # print('Transform time: ', time.time() - last_time, p)
             last_time = time.time()
 

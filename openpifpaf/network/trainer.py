@@ -108,9 +108,9 @@ class Trainer(object):
             p.data.copy_(ema_p)
         self.ema_restore_params = None
 
-    def loop(self, train_scenes, val_scenes, epochs, start_epoch=0):
+    def loop(self, scenes, epochs, start_epoch=0):
         if self.lr_scheduler is not None:
-            for _ in range(start_epoch * len(train_scenes)):
+            for _ in range(start_epoch * len(scenes)):
                 self.lr_scheduler.step()
 
         for epoch in range(start_epoch, epochs):
@@ -119,7 +119,7 @@ class Trainer(object):
             # mem_al = (torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1]))/(10**6)
             # mem_al = (torch.cuda.memory_allocated(device_to_check[0]))/(10**6)
             # self.writer.add_scalar('Memory EPOCH/before train', mem_al,epoch)
-            self.train(train_scenes, epoch)
+            self.train(scenes, epoch)
 
             
             # mem_al = (torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1]))/(10**6)
@@ -127,7 +127,7 @@ class Trainer(object):
             # self.writer.add_scalar('Memory EPOCH/after train', mem_al,epoch)
 
             self.write_model(epoch + 1, epoch == epochs - 1)
-            self.val(val_scenes, epoch + 1)
+            self.val(scenes, epoch + 1)
             
             # mem_al = (torch.cuda.memory_allocated(device_to_check[0])+torch.cuda.memory_allocated(device_to_check[1]))/(10**6)
             # mem_al = (torch.cuda.memory_allocated(device_to_check[0]))/(10**6)
@@ -292,9 +292,19 @@ class Trainer(object):
         # if not os.path.isfile('scenes_keemotion.pickle'):
         #     with open('scenes_keemotion.pickle','wb') as f:
         #         pickle.dump(scenes,f)
+        scenes.trainIter()
         
-        for batch_idx, (data, target, _) in enumerate(scenes):
-  
+        # for batch_idx, (data, target, _) in enumerate(scenes):
+        for batch_idx in range(len(scenes)):
+            data, target = scenes.getTrainNext(batch_idx)
+            # print('trainer')
+            # print('data', data.shape)
+            # print('target_cif_0', target[0][0].shape)
+            # print('target_cif_1', target[0][1].shape)
+            # print('target_cif_2', target[0][2].shape)
+            # for iddd, (key, value) in enumerate(target[1].items()):
+            #     print('target_1 '+str(key), value.shape)
+            # raise
             preprocess_time = time.time() - last_batch_end
             
 
@@ -389,7 +399,13 @@ class Trainer(object):
         epoch_loss = 0.0
         head_epoch_losses = None
         head_epoch_counts = None
-        for batch_idx, (data, target, _) in enumerate(scenes):
+        
+        scenes.valIter()
+        
+        for batch_idx in range(scenes.getValLen()):
+            data, target, _ = scenes.getValNext(batch_idx)
+
+        # for batch_idx, (data, target, _) in enumerate(scenes):
             loss, head_losses = self.val_batch(data, target,batch_idx=batch_idx, epoch=epoch)
 
             # update epoch accumulates
@@ -409,7 +425,7 @@ class Trainer(object):
         LOG.info({
             'type': 'val-epoch',
             'epoch': epoch,
-            'loss': round(epoch_loss / len(scenes), 5),
+            'loss': round(epoch_loss / scenes.getValLen(), 5),
             'head_losses': [round(l / max(1, c), 5)
                             for l, c in zip(head_epoch_losses, head_epoch_counts)],
             'time': round(eval_time, 1),
@@ -417,7 +433,7 @@ class Trainer(object):
 
         ########### tensorboard stuff 
         try:
-            self.writer.add_scalar('Val Loss/Total loss', epoch_loss / len(scenes), epoch)
+            self.writer.add_scalar('Val Loss/Total loss', epoch_loss / scenes.getValLen(), epoch)
             for hd_idx, head_ls in enumerate(head_epoch_losses):
                 self.writer.add_scalar('Val Loss/head '+ self.LOSS_NAMES[hd_idx], head_ls / max(1, head_epoch_counts[hd_idx]), epoch)
         except:

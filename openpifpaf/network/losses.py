@@ -540,6 +540,8 @@ class PanopticLoss(torch.nn.Module):
             # loss += offset_loss
             # print(offset_loss)
             # raise
+
+        # print('in losses (semantic loss)', semantic_loss)
         
         return [semantic_loss] + [offset_loss * 0.01]
 

@@ -25,6 +25,9 @@ class NormalizeAnnotations(Preprocess):
             if 'segmentation' in ann:
                 del ann['segmentation']
 
+            if 'kp_ball' in ann:
+                ann['kp_ball'] = np.asarray(ann['kp_ball'], dtype=np.float32).reshape(-1, 3)
+
         return anns
 
     # def __call__(self, image, anns, meta):
@@ -73,5 +76,10 @@ class AnnotationJitter(Preprocess):
 
             sym_rnd_bbox = (torch.rand((4,)).numpy() - 0.5) * 2.0
             ann['bbox'] += 0.5 * self.epsilon * sym_rnd_bbox
+
+            if 'kp_ball' in ann:
+                ball_xy = ann['keypoints'][:, :2]
+                sym_rnd_ball = (torch.rand(*ball_xy.shape).numpy() - 0.5) * 2.0
+                ball_xy += self.epsilon * sym_rnd_ball
 
         return image, anns, meta

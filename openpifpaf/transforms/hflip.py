@@ -60,6 +60,8 @@ class HFlip(Preprocess):
         assert meta['hflip'] is False
         meta['hflip'] = True
 
+        # print('valid area (hflip)', meta['valid_area'])
         meta['valid_area'][0] = -(meta['valid_area'][0] + meta['valid_area'][2]) + w
+        # print('valid area (hflip) a', meta['valid_area'])
 
         return image, anns, meta

@@ -9,6 +9,8 @@ from .collate import collate_images_targets_inst_meta
 from .constants import COCO_KEYPOINTS, HFLIP, COCO_CATEGORIES
 from .. import transforms
 
+from .multidataset import MultiDataset
+
 
 #### Mannback changes
 COCOKP_ANNOTATIONS_TRAIN = '/data/mistasse/coco/annotations/person_keypoints_train2017.json'
@@ -17,7 +19,7 @@ COCODET_ANNOTATIONS_TRAIN = '/data/mistasse/coco/annotations/instances_train2017
 COCODET_ANNOTATIONS_VAL = '/data/mistasse/coco/annotations/instances_val2017.json'
 COCO_IMAGE_DIR_TRAIN = '/data/mistasse/coco/images/train2017/'
 COCO_IMAGE_DIR_VAL = '/data/mistasse/coco/images/val2017/'
-KEEMOTION_DIR = '/data/mistasse/keemotion/'
+KEEMOTION_DIR = '/data/mistasse/keemotion/km_complete_player_ball_1000x750/'
 
 # COCOKP_ANNOTATIONS_TRAIN = 'data-mscoco/annotations/person_keypoints_train2017.json'
 # COCOKP_ANNOTATIONS_VAL = 'data-mscoco/annotations/person_keypoints_val2017.json'
@@ -40,7 +42,7 @@ def train_cli(parser):
     group.add_argument('--coco-val-image-dir', default=COCO_IMAGE_DIR_VAL)
     group.add_argument('--keemotion-dir', default=KEEMOTION_DIR)
     group.add_argument('--deepsport-pickled-dataset', default=None)
-    group.add_argument('--dataset', default='cocokp')
+    group.add_argument('--dataset', default='cocokpinst')
     group.add_argument('--n-images', default=None, type=int,
                        help='number of images to sample')
     group.add_argument('--duplicate-data', default=None, type=int,
@@ -61,8 +63,12 @@ def train_cli(parser):
                            default=True, action='store_false',
                            help='do not apply data augmentation')
 
+    group.add_argument('--dataset-weights', default=None, nargs='+', type=float,
+                       help='n-1 weights for the datasets')
 
-def train_configure(_):
+    
+
+def train_configure(args):
     pass
 
 
@@ -163,7 +169,7 @@ def train_cocokpinst_preprocess_factory(
         orientation_invariant=0.0,
         rescale_images=1.0,
         heads=None,
-):
+        ):
     if not augmentation:
         return transforms.Compose([
             transforms.NormalizeAnnotations(),
@@ -186,14 +192,14 @@ def train_cocokpinst_preprocess_factory(
         orientation_t = transforms.RandomApply(transforms.RotateBy90(), orientation_invariant)
 
     print(heads)
-    coco_keypoints_ = COCO_KEYPOINTS[:-2]
+    coco_keypoints_ = COCO_KEYPOINTS[:17]
     if 'cifball' in heads:
-        coco_keypoints_ = COCO_KEYPOINTS[:-2] + [COCO_KEYPOINTS[-1]]
+        coco_keypoints_ = COCO_KEYPOINTS[:17] + [COCO_KEYPOINTS[-1]]
     elif 'cifcentball' in heads:
         coco_keypoints_ = COCO_KEYPOINTS
     elif 'cifcent' in heads:
         print('yeay')
-        coco_keypoints_ = COCO_KEYPOINTS[:-1]
+        coco_keypoints_ = COCO_KEYPOINTS[:18]
 
     return transforms.Compose([
         transforms.NormalizeAnnotations(),
@@ -206,6 +212,59 @@ def train_cocokpinst_preprocess_factory(
         transforms.TRAIN_TRANSFORM,
     ])
 
+def train_keemotion_preprocess_factory(
+        *,
+        square_edge,
+        args,
+        augmentation=False,
+        extended_scale=False,
+        orientation_invariant=0.0,
+        rescale_images=1.0,
+        heads=None,
+        ):
+    if not augmentation:
+        return transforms.Compose([
+            transforms.NormalizeAnnotations(),
+            transforms.ZoomScale(),
+            transforms.RescaleAbsolute(square_edge),
+            transforms.CenterPad(square_edge),
+            transforms.EVAL_TRANSFORM,
+        ])
+
+    if extended_scale:
+        rescale_t = transforms.RescaleRelative(
+            scale_range=(0.25 * rescale_images, 2.0 * rescale_images),
+            power_law=True)
+    else:
+        rescale_t = transforms.RescaleRelative(
+            scale_range=(0.4 * rescale_images, 2.0 * rescale_images),
+            power_law=True)
+
+    orientation_t = None
+    if orientation_invariant:
+        orientation_t = transforms.RandomApply(transforms.RotateBy90(), orientation_invariant)
+
+    print(heads)
+    coco_keypoints_ = COCO_KEYPOINTS[:17]
+    if 'cifball' in heads:
+        coco_keypoints_ = COCO_KEYPOINTS[:17] + [COCO_KEYPOINTS[-1]]
+    elif 'cifcentball' in heads:
+        coco_keypoints_ = COCO_KEYPOINTS
+    elif 'cifcent' in heads:
+        print('yeay')
+        coco_keypoints_ = COCO_KEYPOINTS[:18]
+
+    return transforms.Compose([
+        transforms.NormalizeAnnotations(),
+        transforms.AnnotationJitter(),
+        transforms.ZoomScale(),
+        transforms.RandomApply(transforms.HFlip(coco_keypoints_, HFLIP), 0.5),
+        rescale_t,
+        transforms.CropKeemotion(square_edge, use_area_of_interest=True),
+        transforms.CenterPad(square_edge),
+        orientation_t,
+        transforms.TRAIN_TRANSFORM,
+    ])
 
 def train_deepsport_factory(args, target_transforms):
     if args.loader_workers is None:
@@ -339,7 +398,7 @@ def train_cocodet_factory(args, target_transforms):
 
 
 ### AMA both keypoints and instance annotations
-def train_cocokpinst_factory(args, target_transforms, heads=None):
+def train_cocokpinst_factory(args, target_transforms, heads=None, batch_size=None):
     preprocess = train_cocokpinst_preprocess_factory(
         square_edge=args.square_edge,
         augmentation=args.augmentation,
@@ -385,14 +444,15 @@ def train_cocokpinst_factory(args, target_transforms, heads=None):
         config=config
     )
     # return train_data
+    
     if args.duplicate_data:
         train_data = torch.utils.data.ConcatDataset(
             [train_data for _ in range(args.duplicate_data)])
     train_loader = torch.utils.data.DataLoader(
-        train_data, batch_size=args.batch_size, shuffle=not args.debug,
+        train_data, batch_size=batch_size, shuffle=not args.debug,
         pin_memory=args.pin_memory, num_workers=3, drop_last=True,
-        collate_fn=collate_images_targets_inst_meta,
-        timeout=10000.)
+        collate_fn=collate_images_targets_inst_meta,)
+        # timeout=10000.)
 
     # train_loader = torch.utils.data.DataLoader(
     #     train_data, batch_size=args.batch_size, shuffle=False,
@@ -414,21 +474,22 @@ def train_cocokpinst_factory(args, target_transforms, heads=None):
         val_data = torch.utils.data.ConcatDataset(
             [val_data for _ in range(args.duplicate_data)])
     val_loader = torch.utils.data.DataLoader(
-        val_data, batch_size=args.batch_size, shuffle=False,
+        val_data, batch_size=batch_size, shuffle=False,
         pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
         collate_fn=collate_images_targets_inst_meta)
 
     return train_loader, val_loader
 
 
-def train_keemotion_factory(args, target_transforms):
-    preprocess = train_cocokpinst_preprocess_factory(
+def train_keemotion_factory(args, target_transforms, heads=None, batch_size=None):
+    preprocess = train_keemotion_preprocess_factory(
         square_edge=args.square_edge,
         augmentation=args.augmentation,
         extended_scale=args.extended_scale,
         orientation_invariant=args.orientation_invariant,
         rescale_images=args.rescale_images,
-        args=args)
+        args=args,
+        heads=heads)
 
     if args.loader_workers is None:
         args.loader_workers = args.batch_size
@@ -436,15 +497,15 @@ def train_keemotion_factory(args, target_transforms):
     train_data = Keemotion(args.keemotion_dir, 'train', config=args.headnets[0],
         target_transforms=target_transforms, preprocess=preprocess)
     train_loader = torch.utils.data.DataLoader(
-        train_data, batch_size=args.batch_size, shuffle=not args.debug,
+        train_data, batch_size=batch_size, shuffle=not args.debug,
         pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
-        collate_fn=collate_images_targets_inst_meta,
-        timeout=50.)
+        collate_fn=collate_images_targets_inst_meta,)
+        # timeout=50.)
 
     val_data = Keemotion(args.keemotion_dir, 'val', config=args.headnets[0],
         target_transforms=target_transforms, preprocess=preprocess)
     val_loader = torch.utils.data.DataLoader(
-        val_data, batch_size=args.batch_size, shuffle=False,
+        val_data, batch_size=batch_size, shuffle=False,
         pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
         collate_fn=collate_images_targets_inst_meta,
         timeout=50.)
@@ -453,17 +514,34 @@ def train_keemotion_factory(args, target_transforms):
 
 
 
-def train_factory(args, target_transforms, heads=None):
+def train_single_factory(args, target_transforms, dataset=None, heads=None, batch_size=None):
     if args.dataset in ('deepsport'):
         return train_deepsport_factory(args, target_transforms)
-
-    if args.dataset in ('cocokpinst'):
-        return train_cocokpinst_factory(args, target_transforms, heads=heads)
-    if args.dataset in ('cocokp',):
+    if dataset in ('cocokpinst'):
+        print('batch size for coco', batch_size)
+        return train_cocokpinst_factory(args, target_transforms, heads=heads, batch_size=batch_size)
+    if dataset in ('cocokp',):
         return train_cocokp_factory(args, target_transforms)
-    if args.dataset in ('cocodet',):
+    if dataset in ('cocodet',):
         return train_cocodet_factory(args, target_transforms)
-    if args.dataset in ('keemotion',):
-        return train_keemotion_factory(args, target_transforms, heads=heads)
+    if dataset in ('keemotion',):
+        print('batch size for keemotion', batch_size)
+        return train_keemotion_factory(args, target_transforms, heads=heads, batch_size=batch_size)
 
     raise Exception('unknown dataset: {}'.format(args.dataset))
+
+def train_factory(args, target_transforms, heads=None):
+        
+    if '-' in args.dataset:
+        if args.dataset_weights is None:
+            dataset_weights = [1. for ds in args.dataset.split('-')]
+        else:
+            dataset_weights = args.dataset_weights
+        assert len(dataset_weights) == len(args.dataset.split('-'))
+        
+        batch_sizes = [int(dw / sum(dataset_weights) * args.batch_size) for dw in dataset_weights]
+
+    # print('train_factory',args.dataset)
+    dataloaders = [train_single_factory(args, target_transforms, dataset=ds, heads=heads, batch_size=btch_sz) for ds, btch_sz in zip(args.dataset.split('-'), batch_sizes)]
+    # print('train_factory',dataloaders)
+    return MultiDataset(args,dataloaders)

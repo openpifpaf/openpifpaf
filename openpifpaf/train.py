@@ -85,6 +85,7 @@ def cli():
     if args.debug_images:
         args.debug = True
 
+    
     network.configure(args)
     network.losses.configure(args)
     encoder.configure(args)
@@ -126,11 +127,12 @@ def main():
         heads.append(hd.meta.name)
 
     # print('in train ', heads)
-    train_loader, val_loader = datasets.train_factory(args, target_transforms, heads=heads)
+    # train_loader, val_loader = datasets.train_factory(args, target_transforms, heads=heads)
+    loaders = datasets.train_factory(args, target_transforms, heads=heads)
 
     optimizer = optimize.factory_optimizer(
         args, list(net.parameters()) + list(loss.parameters()))
-    lr_scheduler = optimize.factory_lrscheduler(args, optimizer, len(train_loader))
+    lr_scheduler = optimize.factory_lrscheduler(args, optimizer, len(loaders))
 
     # checkpoint = torch.load(arg.checkpoint)
 
@@ -148,7 +150,7 @@ def main():
             'hostname': socket.gethostname(),
         },
     )
-    trainer.loop(train_loader, val_loader, args.epochs, start_epoch=start_epoch)
+    trainer.loop(loaders, args.epochs, start_epoch=start_epoch)
 
 
 if __name__ == '__main__':

@@ -307,8 +307,8 @@ def resnet_factory_from_scratch(basename, base_vision, out_features, head_metas)
     else:
         out_features //= 2
 
-    panoptic = len([hm for hm in head_meta if hm.name == "pan"]) > 0
-    has_ball = len([hm for hm in head_meta if hm.name == "ball"]) > 0
+    panoptic = len([hm for hm in head_metas if hm.name == "pan"]) > 0
+    has_ball = len([hm for hm in head_metas if hm.name == "ball"]) > 0
 
     BaseNetwork = basenetworks.BaseNetworkWithSkips if panoptic else basenetworks.BaseNetwork
     basenet = BaseNetwork(

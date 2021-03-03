@@ -48,6 +48,9 @@ class PanopticTargetGenerator(object):
         x0, y0 = 3 * sigma + 1, 3 * sigma + 1
         self.g = np.exp(- ((x - x0) ** 2 + (y - y0) ** 2) / (2 * sigma ** 2))
 
+        # print('thing list', self.thing_list)
+        # raise
+
     def catId2semanId(self, catId):
         if catId == 1:  # people
             return 1
@@ -126,6 +129,7 @@ class PanopticTargetGenerator(object):
 
             if cat_id in self.thing_list:           # decide if consider ball or not
                 seman_id = self.catId2semanId(cat_id)
+                assert seman_id == 1, seman_id
                 if self.ignore_crowd_in_semantic:
                     if not seg['iscrowd']:
                         semantic[panoptic == seg['id']] = seman_id
