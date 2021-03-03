@@ -49,7 +49,7 @@ class CenterPad(Preprocess):
         if bottom < 0:
             bottom = 0
         ltrb = (left, top, right, bottom)
-        LOG.debug('pad with %s', ltrb)
+        LOG.debug('pad with (left, top, right, bottom) %s', ltrb)
 
         # pad image
         image = torchvision.transforms.functional.pad(
@@ -109,7 +109,7 @@ class CenterPadTight(Preprocess):
         if bottom < 0:
             bottom = 0
         ltrb = (left, top, right, bottom)
-        LOG.debug('pad with %s', ltrb)
+        LOG.debug('pad with (left, top, right, bottom) %s', ltrb)
 
         # pad image
         image = torchvision.transforms.functional.pad(
