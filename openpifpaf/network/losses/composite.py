@@ -35,7 +35,7 @@ class CompositeLoss(torch.nn.Module):
         n_fields=head_net.meta.n_fields
         self.weights = torch.ones([1, n_fields, 1, 1])
         if w is not None:
-            self.weights[0, :, 0, 0] = torch.tensor(w)
+            self.weights[0, :, 0, 0] = torch.Tensor(w)
         LOG.debug("The weights for the keypoints are %s", self.weights)
         self.bce_blackout = None
         self.previous_losses = None
