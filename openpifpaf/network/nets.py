@@ -106,3 +106,6 @@ def model_defaults(net_cpu):
             # smaller step size for running std and mean update
             m.momentum = 0.01  # tf default is 0.99
             # m.momentum = 0.1  # pytorch default
+
+        elif isinstance(m, (torch.nn.GroupNorm, torch.nn.LayerNorm)):
+            m.eps = 1e-4
