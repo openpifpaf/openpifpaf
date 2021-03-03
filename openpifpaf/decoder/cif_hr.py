@@ -2,6 +2,7 @@ import logging
 import time
 
 import numpy as np
+import imageio
 
 # pylint: disable=import-error
 from ..functional import scalar_square_add_gauss_with_max
@@ -65,7 +66,17 @@ class CifHr:
             self.accumulated = ta
         else:
             self.accumulated = np.maximum(ta, self.accumulated)
-
+        
+        kp_id = 0 # ball is sole keypoint
+        pad_left, pad_top, pad_right, pad_bottom = 0, 4, 1, 5 # padding copied from logs
+        _, height, width = self.accumulated.shape
+        v_start = pad_top
+        v_stop = height-pad_bottom
+        h_start = pad_left
+        h_stop = width-pad_right
+        LOG.debug("accumulated hr heatmap can be created by uncommenting the following line")
+        #imageio.imwrite("/home/gva/test.accumulated.png", self.accumulated[kp_id,v_start:v_stop, h_start:h_stop])
+        
         LOG.debug('target_intensities %.3fs', time.perf_counter() - start)
         return self
 

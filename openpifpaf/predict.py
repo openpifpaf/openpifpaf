@@ -192,8 +192,8 @@ def main():
 
         # unbatch
         for pred, meta in zip(pred_batch, meta_batch):
-            print('meta')
-            print(meta)
+            #print('meta')
+            #print(meta)
             LOG.info('batch %d: %s', batch_i, meta['file_name'])
 
             # load the original image if necessary
