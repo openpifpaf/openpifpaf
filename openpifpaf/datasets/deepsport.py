@@ -42,6 +42,11 @@ class AddBallPositionFactory():
         ball_2D = view.calib.project_3D_to_2D(ball.center)
         return {"x": ball_2D.x, "y": ball_2D.y, "visible": ball.visible}
 
+
+class AddHumansSegmentationTargetViewFactory():
+    def __call__(self, view_key, view):
+        return {"human_masks": view.human_masks}
+
 def build_DeepSportBall_datasets(pickled_dataset_filename, validation_set_size_pc, square_edge, target_transforms, preprocess):
     dataset = PickledDataset(pickled_dataset_filename)
     keys = list(dataset.keys.all())
@@ -51,10 +56,11 @@ def build_DeepSportBall_datasets(pickled_dataset_filename, validation_set_size_p
     validation_keys = keys[:lim]
 
     transforms = [
-        ViewCropperTransform(output_shape=(square_edge,square_edge), def_min=30, def_max=80, on_ball=True, with_diff=False),
+        ViewCropperTransform(output_shape=(square_edge,square_edge), def_min=80, def_max=160, on_ball=False, with_diff=True, with_masks=True),
         ExtractViewData(
             AddBallPositionFactory(),
-            AddBallSegmentationTargetViewFactory()
+            AddBallSegmentationTargetViewFactory(),
+            AddHumansSegmentationTargetViewFactory()
         )
     ]
     dataset = TransformedDataset(dataset, transforms)

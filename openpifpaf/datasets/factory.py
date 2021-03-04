@@ -540,7 +540,8 @@ def train_factory(args, target_transforms, heads=None):
         assert len(dataset_weights) == len(args.dataset.split('-'))
         
         batch_sizes = [int(dw / sum(dataset_weights) * args.batch_size) for dw in dataset_weights]
-
+    else:
+        batch_sizes = [args.batch_size]
     # print('train_factory',args.dataset)
     dataloaders = [train_single_factory(args, target_transforms, dataset=ds, heads=heads, batch_size=btch_sz) for ds, btch_sz in zip(args.dataset.split('-'), batch_sizes)]
     # print('train_factory',dataloaders)

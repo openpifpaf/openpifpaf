@@ -151,6 +151,7 @@ def main():
         },
     )
     trainer.loop(loaders, args.epochs, start_epoch=start_epoch)
+    trainer.close_tb()
 
 
 if __name__ == '__main__':

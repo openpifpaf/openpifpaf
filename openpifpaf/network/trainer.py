@@ -133,6 +133,8 @@ class Trainer(object):
             # mem_al = (torch.cuda.memory_allocated(device_to_check[0]))/(10**6)
             # self.writer.add_scalar('Memory EPOCH/after val', mem_al,epoch)
 
+            self.writer.flush()
+
 
 
 
@@ -371,6 +373,7 @@ class Trainer(object):
         })
 
         ########### tensorboard stuff 
+        self.writer.add_scalar('Learning Rate/lr ', self.lr(), epoch + 1)
         try:
             self.writer.add_scalar('Train Loss/Total loss', epoch_loss / len(scenes), epoch + 1)
             if hasattr(self.loss, 'batch_meta'):
@@ -470,3 +473,6 @@ class Trainer(object):
             shutil.copyfile(filename, final_filename)
 
         self.model.to(self.device)
+
+    def close_tb(self):
+        self.writer.close()

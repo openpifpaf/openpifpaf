@@ -333,7 +333,7 @@ def resnet_factory_from_scratch(basename, base_vision, out_features, head_metas)
 
 
     if has_ball:
-        head_meta = [hm for hm in head_meta if hm.name == "ball"][0]
+        head_metas = [hm for hm in head_metas if hm.name == "ball"][0]
         headnets.append(heads.CompositeFieldFused(head_metas, basenet.out_features))
 
     if panoptic:  # Integrate a panoptic-deeplab decoder
