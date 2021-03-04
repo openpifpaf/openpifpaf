@@ -116,6 +116,14 @@ Open an [issue](https://github.com/vita-epfl/openpifpaf/issues) to suggest more 
 ## Citation
 
 ```
+@article{kreiss2021openpifpaf,
+  title = {{OpenPifPaf: Composite Fields for Semantic Keypoint Detection and Spatio-Temporal Association}},
+  author = {Sven Kreiss and Lorenzo Bertoni and Alexandre Alahi},
+  journal = {arXiv preprint arXiv:2103.02440},
+  month = {March},
+  year = {2021}
+}
+
 @InProceedings{kreiss2019pifpaf,
   author = {Kreiss, Sven and Bertoni, Lorenzo and Alahi, Alexandre},
   title = {{PifPaf: Composite Fields for Human Pose Estimation}},
@@ -124,13 +132,14 @@ Open an [issue](https://github.com/vita-epfl/openpifpaf/issues) to suggest more 
   year = {2019}
 }
 ```
-Reference: {cite}`kreiss2019pifpaf`
+References: {cite}`kreiss2021openpifpaf, kreiss2019pifpaf`
 
 [CC-BY-2.0]: https://creativecommons.org/licenses/by/2.0/
 
 
 
 ```{bibliography}
+:style: unsrtalpha
 ```
 
 
