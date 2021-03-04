@@ -6,7 +6,6 @@ import hashlib
 import logging
 import shutil
 import time
-import warnings
 
 import torch
 
