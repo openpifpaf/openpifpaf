@@ -32,6 +32,7 @@ def _scale(image, anns, meta, target_w, target_h, resample, *, fast=False):
 
     # scale image
     if fast and cv2 is not None:
+        LOG.debug('using OpenCV for fast rescale')
         if resample == 0:
             cv_interpoltation = cv2.INTER_NEAREST
         elif resample == 2:
