@@ -6,7 +6,6 @@ import hashlib
 import logging
 import shutil
 import time
-import warnings
 
 import torch
 
@@ -153,10 +152,7 @@ class Trainer():
                             ''.format(start_epoch, self.epochs))
 
         if self.lr_scheduler is not None:
-            with warnings.catch_warnings():
-                warnings.simplefilter('ignore')
-                for _ in range(start_epoch * len(train_scenes)):
-                    self.lr_scheduler.step()
+            assert self.lr_scheduler.last_epoch == start_epoch * len(train_scenes)
 
         for epoch in range(start_epoch, self.epochs):
             if epoch == 0:

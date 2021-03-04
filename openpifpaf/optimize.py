@@ -65,8 +65,7 @@ class LearningRateLambda():
 
         if step_i <= self.warm_up_start_epoch:
             lambda_ *= self.warm_up_factor
-
-        if self.warm_up_start_epoch < step_i < self.warm_up_start_epoch + self.warm_up_epochs:
+        elif self.warm_up_start_epoch < step_i < self.warm_up_start_epoch + self.warm_up_epochs:
             lambda_ *= self.warm_up_factor**(
                 1.0 - (step_i - self.warm_up_start_epoch) / self.warm_up_epochs
             )
@@ -108,8 +107,12 @@ def factory_optimizer(args, parameters):
     return optimizer
 
 
-def factory_lrscheduler(args, optimizer, training_batches_per_epoch):
+def factory_lrscheduler(args, optimizer, training_batches_per_epoch, last_epoch=0):
     LOG.info('training batches per epoch = %d', training_batches_per_epoch)
+    if last_epoch > 0:
+        for group in optimizer.param_groups:
+            group.setdefault('initial_lr', args.lr)
+
     return torch.optim.lr_scheduler.LambdaLR(
         optimizer,
         [
@@ -125,4 +128,5 @@ def factory_lrscheduler(args, optimizer, training_batches_per_epoch):
                 warm_restart_duration=args.lr_warm_restart_duration * training_batches_per_epoch,
             ),
         ],
+        last_epoch=last_epoch * training_batches_per_epoch - 1,
     )
