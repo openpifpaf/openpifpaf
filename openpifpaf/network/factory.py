@@ -148,7 +148,7 @@ def factory(
 
 # pylint: disable=too-many-return-statements
 def factory_from_scratch(basename, head_names, *, pretrained=True):
-    head_metas = datasets.headmeta.factory(head_names)
+    head_metas = datasets.headmeta.factory(head_names, basename=basename)
 
     if 'resnet18' in basename:
         base_vision = torchvision.models.resnet18(pretrained)
@@ -261,14 +261,29 @@ def shufflenet_factory_from_scratch(basename, base_vision, out_features, head_me
         base_vision.stage4,
         base_vision.conv5,
     ]
-    basenet = basenetworks.BaseNetwork(
+
+    panoptic = len([hm for hm in head_metas if hm.name == "pan"]) > 0
+    has_ball = len([hm for hm in head_metas if hm.name == "ball"]) > 0
+
+    BaseNetwork = basenetworks.BaseNetworkWithSkips if panoptic else basenetworks.BaseNetwork
+    basenet = BaseNetwork(
         torch.nn.Sequential(*blocks),
         basename,
         stride=16,
         out_features=out_features,
     )
 
-    headnets = [heads.CompositeFieldFused(h, basenet.out_features) for h in head_metas]
+    # headnets = [heads.CompositeFieldFused(h, basenet.out_features) for h in head_metas]
+    headnets = [heads.CompositeFieldFused(head_metas[0], basenet.out_features)]
+
+
+    if has_ball:
+        head_metas = [hm for hm in head_metas if hm.name == "ball"][0]
+        headnets.append(heads.CompositeFieldFused(head_metas, basenet.out_features))
+
+    if panoptic:  # Integrate a panoptic-deeplab decoder
+        headnets.append(heads.PanopticDeeplabHead(head_metas[1], basenet.out_features))
+
 
     net_cpu = nets.Shell(basenet, headnets)
     nets.model_defaults(net_cpu)
@@ -322,7 +337,7 @@ def resnet_factory_from_scratch(basename, base_vision, out_features, head_metas)
     # headnets = [heads.CompositeFieldFused(h, basenet.out_features) for h in head_metas]
 
     headnets = [heads.CompositeFieldFused(head_metas[0], basenet.out_features)]
-    
+
     if len(head_metas) > 1 and isinstance(head_metas[1], heads.AssociationMeta):    ## for caf
         headnets.append(heads.CompositeFieldFused(head_metas[1], basenet.out_features))
 

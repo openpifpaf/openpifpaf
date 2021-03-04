@@ -30,7 +30,6 @@ class BaseNetworkWithSkips(torch.nn.Module):
     def __init__(self, net, shortname, stride, out_features):
         super(BaseNetworkWithSkips, self).__init__()
 
-        assert isinstance(net, torch.nn.Sequential)
         self.net = net
         self.shortname = shortname
         self.stride = stride
@@ -48,6 +47,7 @@ class BaseNetworkWithSkips(torch.nn.Module):
             x =  module(x)
             outputs["res%d"%(i+1)] = x
         x.all_outputs = outputs
+        # print({k: v.shape for k, v in x.all_outputs.items()})
         return x
 
 #### TODO (maybe after submission) convert Normal Conv to Atrous Conv and see the change (deeplab v3 has done it)
