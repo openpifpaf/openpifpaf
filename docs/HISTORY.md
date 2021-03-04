@@ -1,14 +1,27 @@
 # History
 
-* [main](https://github.com/vita-epfl/openpifpaf/compare/v0.11.9...main)
-* [0.12.0]() ()
+* [main](https://github.com/vita-epfl/openpifpaf/compare/v0.12.5...main)
+* [0.12.5](https://github.com/vita-epfl/openpifpaf/compare/v0.12.4...v0.12.5) (2021-03-04)
+    * speed improvement for `openpifpaf.video` [#362](https://github.com/vita-epfl/openpifpaf/pull/362)
+    * new paper on arxiv: https://arxiv.org/abs/2103.02440
+* [0.12.4](https://github.com/vita-epfl/openpifpaf/compare/v0.12.0...v0.12.4) (2021-03-02)
+    * minor changes (mostly to experimental features like DDP)
+    * OpenCV tutorial in Guide
+    * new `datasets.NumpyImageList`
+* [0.12.0](https://github.com/vita-epfl/openpifpaf/compare/v0.11.9...v0.12.0) (2021-02-??)
+    Major rewrite with many backwards incompatible changes.
+    The Guide is updated: https://vita-epfl.github.io/openpifpaf/intro.html
+    Major changes:
+    * plugins: many components are now customizable with independent plugins; see [Guide: Plugins Overview](https://vita-epfl.github.io/openpifpaf/plugins_overview.html)
+    * Datamodule: a new class that holds all information related to datasets. Create a new Datamodule to add a new dataset to OpenPifPaf. Cifar10 is now implemented as a plugin and [documented](https://vita-epfl.github.io/openpifpaf/plugins_cifar10.html).
+    * Metric: now you can implement your own with a plugin.
     * train on multiple datasets simultaneously
-    * decode multiple types of data from one network (e.g. pose and detection)
-    * Plugins extendible: datamodules, base networks, head networks, decoders, encoders, transforms, metrics, visualizers
-    * CompositeField3: fewer slicing/reshaping ops and single tensor output
-    * Loss: introduced explicit bmin
-    * ONNX: test with onnxruntime
-    * CoreML: new export function via coremltools
+    * export to CoreML for iOS
+    * export to onnx with full test with onnxruntime
+    * `--show` and `--save-all` to either show or store all debug images as files for remote debugging
+    * experimental support for DistributedDataParallel (DDP) training
+    * moved to Github Actions
+    * continuous deployment
 * [0.11.9](https://github.com/vita-epfl/openpifpaf/compare/v0.11.8...v0.11.9) (2020-08-25)
     * new `--val-interval` which replaces the use-cases for previous `--duplicate-data`
     * extended ColorJitter ranges for training: brightness=0.4, saturation=0.4, hue=0.1
