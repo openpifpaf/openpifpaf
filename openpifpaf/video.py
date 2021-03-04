@@ -230,7 +230,7 @@ def main():
         visualizer.Base.image(image, meta=meta)
         visualizer.Base.processed_image(processed_image)
         visualizer.Base.common_ax = ax_second if args.separate_debug_ax else ax
-        LOG.debug('preprocessing time %.3fs', time.time() - start)
+        preprocessing_time = time.time() - start
 
         preds = processor.batch(model, torch.unsqueeze(processed_image, 0), device=args.device)[0]
 
@@ -248,11 +248,12 @@ def main():
            and (args.separate_debug_ax or not (args.debug or args.debug_indices)):
             ax.imshow(image)
             annotation_painter.annotations(ax, preds)
-
-        LOG.debug('time post = %.3fs', time.perf_counter() - start_post)
-        LOG.info('frame %d, loop time = %.3fs, FPS = %.3f',
+        postprocessing_time = time.perf_counter() - start_post
+        LOG.info('frame %d, loop time = %.3fs (pre = %.3fs, post = %.3fs), FPS = %.3f',
                  frame_i,
                  time.time() - last_loop,
+                 preprocessing_time,
+                 postprocessing_time,
                  1.0 / (time.time() - last_loop))
         last_loop = time.time()
 
