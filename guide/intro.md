@@ -102,6 +102,7 @@ using the command line option `--checkpoint checkpointasintableabove`.
 
 ## Related Projects
 
+* [pose tracker](https://github.com/vita-epfl/openpifpaf_posetrack): "OpenPifPaf: Composite Fields for Semantic Keypoint Detection and Spatio-Temporal Association".
 * [neuralet](https://neuralet.com/article/pose-estimation-on-nvidia-jetson-platforms-using-openpifpaf/): TensorRT execution, including Docker images for NVidia Jetson.
 * [fall detection using pose estimation](https://towardsdatascience.com/fall-detection-using-pose-estimation-a8f7fd77081d): illustrated with many example video clips.
 * [physio pose](https://medium.com/@_samkitjain/physio-pose-a-virtual-physiotherapy-assistant-7d1c17db3159): "A virtual physiotherapy assistant".
