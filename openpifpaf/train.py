@@ -177,7 +177,7 @@ def main():
 
     optimizer = optimize.factory_optimizer(
         args, list(net.parameters()) + list(loss.parameters()))
-    lr_scheduler = optimize.factory_lrscheduler(args, optimizer, len(train_loader))
+    lr_scheduler = optimize.factory_lrscheduler(args, optimizer, len(train_loader), last_epoch=start_epoch)
     trainer = network.Trainer(
         net, loss, optimizer, args.output,
         checkpoint_shell=checkpoint_shell,
