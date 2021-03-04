@@ -56,7 +56,7 @@ def build_DeepSportBall_datasets(pickled_dataset_filename, validation_set_size_p
     validation_keys = keys[:lim]
 
     transforms = [
-        ViewCropperTransform(output_shape=(square_edge,square_edge), def_min=80, def_max=160, on_ball=False, with_diff=True, with_masks=True),
+        ViewCropperTransform(output_shape=(square_edge,square_edge), def_min=80, def_max=160, on_ball=False, with_diff=False, with_masks=True),
         ExtractViewData(
             AddBallPositionFactory(),
             AddBallSegmentationTargetViewFactory(),
@@ -105,6 +105,7 @@ class DeepSportBalls(torch.utils.data.Dataset):
             return self[random.randint(0, len(self)-1)]
         image_id = key[0].timestamp
         image = data["input_image"]
+        # print('human masks',data["human_masks"])
         anns = []
         if "x" in data:
             anns = [add_ball_keypoint(build_empty_person(image_id), image.shape, data["x"], data["y"], data["visible"], data["mask"])]
