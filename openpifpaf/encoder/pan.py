@@ -202,6 +202,20 @@ class PanopticTargetGenerator(object):
             # center_weights=torch.as_tensor(center_weights.astype(np.float32)),
             offset_weights=torch.as_tensor(offset_weights.astype(np.float32))
         )
+        # return {'name': 'pan',
+        # 'value':
+        #     dict(
+        #     semantic=torch.as_tensor(semantic.astype('long')),
+        #     # foreground=torch.as_tensor(foreground.astype('long')),
+        #     # center=torch.as_tensor(center.astype(np.float32)),
+        #     # center_points=center_pts,
+        #     offset=torch.as_tensor(offset.astype(np.float32)),
+        #     semantic_weights=torch.as_tensor(semantic_weights.astype(np.float32)),
+        #     # center_weights=torch.as_tensor(center_weights.astype(np.float32)),
+        #     offset_weights=torch.as_tensor(offset_weights.astype(np.float32))
+        # )
+        # }
+        
 
 
 class SemanticTargetGenerator(object):

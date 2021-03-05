@@ -1,6 +1,7 @@
 import logging
 
 from .annrescaler import AnnRescaler, AnnRescalerDet
+from .annrescaler_ball import AnnRescalerBall
 from .caf import Caf
 from .cif import Cif
 from .cifdet import CifDet
@@ -75,7 +76,13 @@ def factory_head(head_net: network.heads.CompositeField, basenet_stride):
         # if meta.name in ['cifcentball', 'cifball']:
         #     ball = True
         # # print('!!!!!!!!!!!!!',ball)
-        return Cif(AnnRescaler(stride, len(meta.keypoints), meta.pose),#, ball=ball),
+        if meta.name == 'ball':
+            return Cif(AnnRescalerBall(stride, len(meta.keypoints), meta.pose),
+                    name=meta.name,
+                    sigmas=meta.sigmas,
+                    visualizer=vis)
+        return Cif(AnnRescaler(stride, len(meta.keypoints), meta.pose), 
+                    name=meta.name,#, ball=ball),
                    sigmas=meta.sigmas,
                    visualizer=vis)
 

@@ -375,7 +375,7 @@ class Coco(torch.utils.data.Dataset):
                     # ann_mask_id = i['id']
                     i['bmask'] = self.coco_inst.annToMask(i)
                 anns_ball = self.add_ball(anns_inst)
-                anns_ball = self.empty_person_keypoint(anns_ball, n_keypoints=18)   # add fake people
+                # anns_ball = self.empty_person_keypoint(anns_ball, n_keypoints=18)   # add fake people
                 anns += anns_ball
                 
         except:

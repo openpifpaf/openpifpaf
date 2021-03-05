@@ -132,8 +132,11 @@ class Crop(Preprocess):
             ann['bbox'][0] -= x_offset
             ann['bbox'][1] -= y_offset
 
-            ### AMA crop masks
+            if 'kp_ball' in ann:
+                ann['kp_ball'][:, 0] -= x_offset
+                ann['kp_ball'][:, 1] -= y_offset
 
+            ### AMA crop masks
             ann['bmask'] = ann['bmask'][y_offset:y_offset + new_h, x_offset:x_offset+new_w]
 
         return image, anns, np.array(ltrb)

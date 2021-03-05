@@ -17,6 +17,7 @@ LOG = logging.getLogger(__name__)
 @dataclasses.dataclass
 class Cif:
     rescaler: AnnRescaler
+    name: str
     sigmas: list
     v_threshold: int = 0
     visualizer: CifVisualizer = None
@@ -49,7 +50,7 @@ class CifGenerator(object):
         # print(width_height_original)
 
         keypoint_sets = self.config.rescaler.keypoint_sets(anns)
-        # print(keypoint_sets)
+        # print(len(keypoint_sets))
         bg_mask = self.config.rescaler.bg_mask(anns, width_height_original)
         # print(bg_mask.shape)
         valid_area = self.config.rescaler.valid_area(meta)
@@ -76,6 +77,9 @@ class CifGenerator(object):
         # print('CIF time:', time.time()-start_time)
 
         return fields
+        # return {'name': self.config.name,
+        # 'value': fields
+        # }
 
     def init_fields(self, n_fields, bg_mask):
         field_w = bg_mask.shape[1] + 2 * self.config.padding

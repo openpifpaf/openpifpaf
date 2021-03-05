@@ -85,6 +85,13 @@ class RotateBy90(Preprocess):
             xy[:, 1] = (h - 1)/2 - sangle * x_old + cangle * y_old
             ann['bbox'] = utils.rotate_box(ann['bbox'], w - 1, h - 1, angle)
 
+            if 'kp_ball' in ann:
+                xy = ann['kp_ball'][:, :2]
+                x_old = xy[:, 0].copy() - (w - 1)/2
+                y_old = xy[:, 1].copy() - (h - 1)/2
+                xy[:, 0] = (w - 1)/2 + cangle * x_old + sangle * y_old
+                xy[:, 1] = (h - 1)/2 - sangle * x_old + cangle * y_old
+
         LOG.debug('meta before: %s', meta)
         meta['valid_area'] = utils.rotate_box(meta['valid_area'], w - 1, h - 1, angle)
         # fix valid area to be inside original image dimensions

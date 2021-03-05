@@ -51,6 +51,9 @@ class HFlip(Preprocess):
                 meta['horizontal_swap'] = self.swap
             ann['bbox'][0] = -(ann['bbox'][0] + ann['bbox'][2]) - 1.0 + w
 
+            if 'kp_ball' in ann:
+                ann['kp_ball'][:, 0] = -ann['kp_ball'][:, 0] - 1.0 + w
+
             ann['bmask'] = np.flip(ann['bmask'], axis=1)
 
         ### AMA

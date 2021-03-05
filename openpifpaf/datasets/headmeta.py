@@ -15,7 +15,7 @@ def factory(head_names, basename=None):
         return None
 
     num_sem_classes = 2
-    if 'cifball' in head_names or 'cifcentball' in head_names:      # handle num classes in panoptic head
+    if 'cifball' in head_names or 'cifcentball' in head_names or ('cifcent' in head_names and 'ball' in head_names):      # handle num classes in panoptic head
         num_sem_classes = 3
     # print('in headmeta num_class', num_sem_classes)
 

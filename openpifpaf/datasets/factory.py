@@ -200,6 +200,8 @@ def train_cocokpinst_preprocess_factory(
     elif 'cifcent' in heads:
         print('yeay')
         coco_keypoints_ = COCO_KEYPOINTS[:18]
+    # elif 'ball' in heads:
+    #     coco_keypoints_
 
     return transforms.Compose([
         transforms.NormalizeAnnotations(),
@@ -284,12 +286,12 @@ def train_deepsport_factory(args, target_transforms):
     train_loader = torch.utils.data.DataLoader(
         train_data, batch_size=args.batch_size, shuffle=not args.debug,
         pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
-        collate_fn=collate_images_targets_meta)
+        collate_fn=collate_images_targets_inst_meta,)
 
     val_loader = torch.utils.data.DataLoader(
         val_data, batch_size=args.batch_size, shuffle=False,
         pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
-        collate_fn=collate_images_targets_meta)
+        collate_fn=collate_images_targets_inst_meta,)
 
     return train_loader, val_loader
 
@@ -547,4 +549,4 @@ def train_factory(args, target_transforms, heads=None):
     train_dataloaders = [tr_dl for tr_dl, _ in dataloaders]
     val_dataloaders = [val_dl for _, val_dl in dataloaders]
     # print('train_factory',dataloaders)
-    return MultiDataset(args, train_dataloaders), MultiDataset(args, val_dataloaders)
+    return MultiDataset(heads, train_dataloaders), MultiDataset(heads, val_dataloaders)

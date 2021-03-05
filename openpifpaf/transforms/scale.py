@@ -68,6 +68,10 @@ def _scale(image, anns, meta, target_w, target_h, resample, *, fast=False):
         ann['bbox'][2] *= x_scale
         ann['bbox'][3] *= y_scale
 
+        if 'kp_ball' in ann:
+            ann['kp_ball'][:, 0] = ann['kp_ball'][:, 0] * x_scale
+            ann['kp_ball'][:, 1] = ann['kp_ball'][:, 1] * y_scale
+
     # adjust meta
     scale_factors = np.array((x_scale, y_scale))
     LOG.debug('meta before: %s', meta)
