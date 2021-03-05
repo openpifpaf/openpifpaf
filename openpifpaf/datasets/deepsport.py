@@ -105,6 +105,7 @@ class DeepSportBalls(torch.utils.data.Dataset):
         self.preprocess = preprocess
 
         self.ball = False
+        print('Number of images deepsport:', len(self.keys))
     def __len__(self):
         return len(self.keys)
 

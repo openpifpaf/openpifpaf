@@ -30,9 +30,10 @@ class MultiDataset(object):
         except StopIteration:
             raise StopIteration
 
-        target_pan = None
-        cif_ball_conf = None
+        # target_pan = None
+        
         data = torch.cat([img for img,_,_ in list_scenes], dim=0)
+        meta = [met for _,_,met in list_scenes]
         targets = []
 
         for h_ix, head in enumerate(self.heads):
@@ -81,7 +82,7 @@ class MultiDataset(object):
         #     return data, [(cif_conf, cif_vec, cif_scale), target_pan, (cif_ball_conf, cif_ball_vec, cif_ball_scale)], 0
         # else:
         #     return data, [(cif_conf, cif_vec, cif_scale), target_pan], 0
-        return data, targets, 0
+        return data, targets, meta
 
 
     # def getTrainNext(self, i):

@@ -285,12 +285,12 @@ def train_deepsport_factory(args, target_transforms):
 
     train_loader = torch.utils.data.DataLoader(
         train_data, batch_size=args.batch_size, shuffle=not args.debug,
-        pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
+        pin_memory=args.pin_memory, num_workers=0, drop_last=True,
         collate_fn=collate_images_targets_inst_meta,)
 
     val_loader = torch.utils.data.DataLoader(
         val_data, batch_size=args.batch_size, shuffle=False,
-        pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
+        pin_memory=args.pin_memory, num_workers=0, drop_last=True,
         collate_fn=collate_images_targets_inst_meta,)
 
     return train_loader, val_loader
@@ -417,6 +417,7 @@ def train_cocokpinst_factory(args, target_transforms, heads=None, batch_size=Non
 
     config = 'cif'
     category_ids = [1]
+    ball = False
 
     if 'cifball' in heads:
         config = 'cifball'
@@ -427,6 +428,9 @@ def train_cocokpinst_factory(args, target_transforms, heads=None, batch_size=Non
     elif 'cifcent' in heads:
         config = 'cifcent'
         category_ids = [1]
+        if 'ball' in heads:
+            category_ids = [1, 37]
+            ball = True
     elif 'ball' in heads:
         config = 'ball'
         category_ids = [37]
@@ -443,7 +447,8 @@ def train_cocokpinst_factory(args, target_transforms, heads=None, batch_size=Non
         # n_images=16,
         category_ids=category_ids,
         image_filter='kp_inst',
-        config=config
+        config=config,
+        ball=ball
     )
     # return train_data
     
@@ -517,7 +522,9 @@ def train_keemotion_factory(args, target_transforms, heads=None, batch_size=None
 
 
 def train_single_factory(args, target_transforms, dataset=None, heads=None, batch_size=None):
-    if args.dataset in ('deepsport'):
+    # print('faccccccccccc',dataset)
+    if dataset in ('deepsport'):
+        print('batch size for deepsport', batch_size)
         return train_deepsport_factory(args, target_transforms)
     if dataset in ('cocokpinst'):
         print('batch size for coco', batch_size)
