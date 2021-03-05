@@ -32,7 +32,7 @@ class CompositeLoss(torch.nn.Module):
                for i in range(self.n_scales)]
         )
 
-        w = head_net.meta.weights
+        w = head_net.meta.training_weights
         self.weights = None
         if w is not None:
             self.weights = torch.ones([1, head_net.meta.n_fields, 1, 1], requires_grad=False)
@@ -106,7 +106,6 @@ class CompositeLoss(torch.nn.Module):
         if self.weights is not None:
             weight = torch.ones_like(t_regs[:, :, 0], requires_grad=False)
             weight[:] = self.weights
-            weights_stacked = weight.unsqueeze(0).repeat(self.n_vectors, 1, 1, 1, 1)
         for i in range(self.n_vectors):
             reg_masks = torch.isnan(t_regs[:, :, i * 2]).bitwise_not_()
             loss = self.regression_loss(
@@ -120,7 +119,7 @@ class CompositeLoss(torch.nn.Module):
             if self.prescale != 1.0:
                 loss = loss * self.prescale
             if self.weights is not None:
-                loss = loss * torch.masked_select(weights_stacked[i, :, :, :, :], reg_masks)
+                loss = loss * torch.masked_select(weight, reg_masks)
             reg_losses.append(loss.sum() / batch_size)
 
         return reg_losses
@@ -133,7 +132,6 @@ class CompositeLoss(torch.nn.Module):
         if self.weights is not None:
             weight = torch.ones_like(t_scales[:, :, 0], requires_grad=False)
             weight[:] = self.weights
-            weights_stacked = weight.unsqueeze(0).repeat(len(self.scale_losses), 1, 1, 1, 1)
         for i, sl in enumerate(self.scale_losses):
             mask = torch.isnan(t_scales[:, :, i]).bitwise_not_()
             loss = sl(
@@ -143,7 +141,7 @@ class CompositeLoss(torch.nn.Module):
             if self.prescale != 1.0:
                 loss = loss * self.prescale
             if self.weights is not None:
-                loss = loss * torch.masked_select(weights_stacked[i, :, :, :, :], mask)
+                loss = loss * torch.masked_select(weight, mask)
             losses.append(loss.sum() / batch_size)
 
         return losses
