@@ -79,7 +79,8 @@ def train_cocokp_preprocess_factory(
         extended_scale=False,
         orientation_invariant=0.0,
         rescale_images=1.0,
-):
+        heads=None,
+    ):
     if not augmentation:
         return transforms.Compose([
             transforms.NormalizeAnnotations(),
@@ -90,21 +91,39 @@ def train_cocokp_preprocess_factory(
 
     if extended_scale:
         rescale_t = transforms.RescaleRelative(
-            scale_range=(0.25 * rescale_images, 2.0 * rescale_images),
+            scale_range=(1 * rescale_images, 1 * rescale_images),
             power_law=True)
     else:
         rescale_t = transforms.RescaleRelative(
-            scale_range=(0.4 * rescale_images, 2.0 * rescale_images),
+            scale_range=(1 * rescale_images, 1 * rescale_images),
             power_law=True)
+
+    # if extended_scale:
+    #     rescale_t = transforms.RescaleRelative(
+    #         scale_range=(0.25 * rescale_images, 2.0 * rescale_images),
+    #         power_law=True)
+    # else:
+    #     rescale_t = transforms.RescaleRelative(
+    #         scale_range=(0.4 * rescale_images, 2.0 * rescale_images),
+    #         power_law=True)
 
     orientation_t = None
     if orientation_invariant:
         orientation_t = transforms.RandomApply(transforms.RotateBy90(), orientation_invariant)
 
+    coco_keypoints_ = COCO_KEYPOINTS[:17]
+    if 'cifball' in heads:
+        coco_keypoints_ = COCO_KEYPOINTS[:17] + [COCO_KEYPOINTS[-1]]
+    elif 'cifcentball' in heads:
+        coco_keypoints_ = COCO_KEYPOINTS
+    elif 'cifcent' in heads:
+        print('yeay')
+        coco_keypoints_ = COCO_KEYPOINTS[:18]
+
     return transforms.Compose([
         transforms.NormalizeAnnotations(),
         transforms.AnnotationJitter(),
-        transforms.RandomApply(transforms.HFlip(COCO_KEYPOINTS, HFLIP), 0.5),
+        transforms.RandomApply(transforms.HFlip(coco_keypoints_, HFLIP), 0.5),
         rescale_t,
         transforms.Crop(square_edge, use_area_of_interest=True),
         transforms.CenterPad(square_edge),
@@ -120,7 +139,7 @@ def train_cocodet_preprocess_factory(
         extended_scale=False,
         orientation_invariant=0.0,
         rescale_images=1.0,
-):
+    ):
     if not augmentation:
         return transforms.Compose([
             transforms.NormalizeAnnotations(),
@@ -268,7 +287,7 @@ def train_keemotion_preprocess_factory(
         transforms.TRAIN_TRANSFORM,
     ])
 
-def train_deepsport_factory(args, target_transforms):
+def train_deepsport_factory(args, target_transforms, heads=None, batch_size=None):
     if args.loader_workers is None:
         args.loader_workers = 0
 
@@ -277,19 +296,20 @@ def train_deepsport_factory(args, target_transforms):
         augmentation=args.augmentation,
         extended_scale=args.extended_scale,
         orientation_invariant=args.orientation_invariant,
-        rescale_images=args.rescale_images)
+        rescale_images=args.rescale_images,
+        heads=heads)
 
     train_data, val_data = build_DeepSportBall_datasets(
         pickled_dataset_filename=args.deepsport_pickled_dataset,
         validation_set_size_pc=15, square_edge=args.square_edge, target_transforms=target_transforms, preprocess=preprocess)
 
     train_loader = torch.utils.data.DataLoader(
-        train_data, batch_size=args.batch_size, shuffle=not args.debug,
+        train_data, batch_size=batch_size, shuffle=not args.debug,
         pin_memory=args.pin_memory, num_workers=0, drop_last=True,
         collate_fn=collate_images_targets_inst_meta,)
 
     val_loader = torch.utils.data.DataLoader(
-        val_data, batch_size=args.batch_size, shuffle=False,
+        val_data, batch_size=batch_size, shuffle=False,
         pin_memory=args.pin_memory, num_workers=0, drop_last=True,
         collate_fn=collate_images_targets_inst_meta,)
 
@@ -475,7 +495,8 @@ def train_cocokpinst_factory(args, target_transforms, heads=None, batch_size=Non
         n_images=args.n_images,
         image_filter='kp_inst',
         category_ids=category_ids,
-        config=config
+        config=config,
+        ball=ball
     )
     if args.duplicate_data:
         val_data = torch.utils.data.ConcatDataset(
@@ -525,7 +546,7 @@ def train_single_factory(args, target_transforms, dataset=None, heads=None, batc
     # print('faccccccccccc',dataset)
     if dataset in ('deepsport'):
         print('batch size for deepsport', batch_size)
-        return train_deepsport_factory(args, target_transforms)
+        return train_deepsport_factory(args, target_transforms, heads=heads, batch_size=batch_size)
     if dataset in ('cocokpinst'):
         print('batch size for coco', batch_size)
         return train_cocokpinst_factory(args, target_transforms, heads=heads, batch_size=batch_size)

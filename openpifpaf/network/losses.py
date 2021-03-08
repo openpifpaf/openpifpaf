@@ -407,16 +407,32 @@ class CompositeLoss(torch.nn.Module):
         # print(x_scales.shape)
         # print(len(target_scales))
         # print(target_scales[0].shape)
+        scale_losses = []
+        for i, target_scale in enumerate(target_scales):
+            # print(target_reg.shape)
+            reg_masks = torch.isnan(target_scale).bitwise_not_()
+            if not torch.any(reg_masks):
+                scale_losses.append(None)
+                continue
 
-        batch_size = x_scales.shape[0]
-        return [
-            logl1_loss(
+            scale_losses.append(
+                logl1_loss(
                 torch.masked_select(x_scales[:, :, i], torch.isnan(target_scale).bitwise_not_()),
                 torch.masked_select(target_scale, torch.isnan(target_scale).bitwise_not_()),
                 reduction='mean',            # TODO shouldn't it be mean???
-            ) #/ (100.0 * batch_size)
-            for i, target_scale in enumerate(target_scales)
-        ]
+            ))
+
+        return scale_losses
+
+        # batch_size = x_scales.shape[0]
+        # return [
+        #     logl1_loss(
+        #         torch.masked_select(x_scales[:, :, i], torch.isnan(target_scale).bitwise_not_()),
+        #         torch.masked_select(target_scale, torch.isnan(target_scale).bitwise_not_()),
+        #         reduction='mean',            # TODO shouldn't it be mean???
+        #     ) #/ (100.0 * batch_size)
+        #     for i, target_scale in enumerate(target_scales)
+        # ]
 
     def _margin_losses(self, x_regs, target_regs, *, target_confidence):
         if not self.margin:
@@ -681,6 +697,8 @@ def factory(head_nets, lambdas, *,
 
     # losses = [CompositeLoss(head_net, reg_loss) for head_net in head_nets]
     ### AMA
+
+
     losses = [CompositeLoss(head_nets[0], reg_loss)]
 
     if len(head_nets) > 1 and isinstance(head_nets[1], heads.AssociationMeta):
@@ -691,6 +709,13 @@ def factory(head_nets, lambdas, *,
 
     if len(head_nets) > 1 and isinstance(head_nets[1], heads.PanopticDeeplabHead):
         losses.append(PanopticLoss(config))
+    
+    # print('leeeeeeeeeeeeeeeeeeeeeeeeeeeen', len(head_nets))
+    # for i in range(len(head_nets)):
+    #     print(type(head_nets[i]))
+    if len(head_nets) > 2 and isinstance(head_nets[2], heads.CompositeFieldFused):
+        print('loss________________________________-ball')
+        losses.append(CompositeLoss(head_nets[2], reg_loss))
         # losses.append(PanopticLossDummy(config))
     if auto_tune_mtl:
         loss = MultiHeadLossAutoTune(losses, lambdas,
@@ -703,6 +728,13 @@ def factory(head_nets, lambdas, *,
 
     return loss
 
+# def facrtory_loss_head_single(head_meta, out_features):
+#     if head_meta.name == 'pan':
+#         return heads.PanopticDeeplabHead(head_meta, out_features)
+#     # elif head_meta.name == 'ball':
+#     #     heads.CompositeFieldFused(head_meta, out_features)
+#     elif head_meta.name in ['cif', 'cifcent', 'ball']:
+#         return heads.CompositeFieldFused(head_meta, out_features)
 
 ### panoptic deeplab loss build
 def build_loss_from_cfg(config, loss='semantic'):

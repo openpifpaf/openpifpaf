@@ -50,6 +50,10 @@ class MultiDataset(object):
                 target_pan['offset_weights'] = torch.cat([trg[h_ix]['offset_weights'] for _,trg,_ in list_scenes], dim=0)
                 targets.append(target_pan)
             elif head == 'ball':
+                # for xxxx, (_,i,_) in enumerate(list_scenes):
+                #     if len(i[h_ix][0])==0:
+                #         print(xxxx)
+
                 cif_conf = torch.cat([trg[h_ix][0] for _,trg,_ in list_scenes], dim=0)
                 cif_vec = torch.cat([trg[h_ix][1] for _,trg,_ in list_scenes], dim=0)
                 cif_scale = torch.cat([trg[h_ix][2] for _,trg,_ in list_scenes], dim=0)

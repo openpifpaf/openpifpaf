@@ -55,7 +55,7 @@ class Trainer(object):
         tb_hostname = socket.gethostname()
         self.tb_filename = 'runs/'+str(tb_datetime)+str(tb_hostname)
         self.writer = SummaryWriter(self.tb_filename)
-        self.LOSS_NAMES = ['PIF Confidence', 'PIF Localization', 'PIF Scale', 'PAN Semantic', 'PAN Offset']
+        self.LOSS_NAMES = ['PIF Confidence', 'PIF Localization', 'PIF Scale', 'PAN Semantic', 'PAN Offset', 'PIF Ball Confidence', 'PIF Ball Localization', 'PIF Ball Scale']
 
         if train_profile:
             # monkey patch to profile self.train_batch()

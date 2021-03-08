@@ -45,6 +45,7 @@ class HFlip(Preprocess):
         w, _ = image.size
         image = image.transpose(PIL.Image.FLIP_LEFT_RIGHT)
         for ann in anns:
+            # print('before', ann['kp_ball'])
             ann['keypoints'][:, 0] = -ann['keypoints'][:, 0] - 1.0 + w
             if self.swap is not None and not ann['iscrowd']:
                 ann['keypoints'] = self.swap(ann['keypoints'])
@@ -55,6 +56,7 @@ class HFlip(Preprocess):
                 ann['kp_ball'][:, 0] = -ann['kp_ball'][:, 0] - 1.0 + w
 
             ann['bmask'] = np.flip(ann['bmask'], axis=1)
+            # print('after', ann['kp_ball'])
 
         ### AMA
         # for mask_idx in range(len(mask)):

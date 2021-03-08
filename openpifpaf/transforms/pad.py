@@ -57,6 +57,7 @@ class CenterPad(Preprocess):
 
         # pad annotations
         for ann in anns:
+            # print('before', ann['kp_ball'])
             ann['keypoints'][:, 0] += ltrb[0]
             ann['keypoints'][:, 1] += ltrb[1]
             ann['bbox'][0] += ltrb[0]
@@ -65,6 +66,8 @@ class CenterPad(Preprocess):
             if 'kp_ball' in ann:
                 ann['kp_ball'][:, 0] += ltrb[0]
                 ann['kp_ball'][:, 1] += ltrb[1]
+
+            # print('after', ann['kp_ball'])
 
 
             ann['bmask'] = np.pad(ann['bmask'], ((top, bottom), (left, right)))

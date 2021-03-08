@@ -113,11 +113,25 @@ class Coco(torch.utils.data.Dataset):
         LOG.info('Images: %d', len(self.ids))
         print('Number of images: ', len(self.ids))
 
-
+        self.Get_number_of_images_with_ball()
         
 
         self.preprocess = preprocess or transforms.EVAL_TRANSFORM
         self.target_transforms = target_transforms
+
+    def Get_number_of_images_with_ball(self):
+        LOG.info('Images with ball ...')
+        def has_ball(image_id):
+            ann_ids = self.coco_inst.getAnnIds(imgIds=image_id, catIds=[37])
+            anns = self.coco_inst.loadAnns(ann_ids)
+            if len(anns) > 0:
+                return True
+            return False
+        self.ids = [image_id for image_id in self.ids
+                    if has_ball(image_id)]
+        print('Number of images with ball', len([image_id for image_id in self.ids
+                    if has_ball(image_id)]))
+        LOG.info('... done.')
 
     def filter_for_medium_people(self):
         LOG.info('filter for medium people ...')
@@ -269,6 +283,8 @@ class Coco(torch.utils.data.Dataset):
             meshgrid[1] *= anns_center[ann_id]['bmask']
             center = (meshgrid[0].sum()/anns_center[ann_id]['bmask'].sum(),
                     meshgrid[1].sum()/anns_center[ann_id]['bmask'].sum())
+
+            # anns_center[ann_id]['keypoints'] = 3*17*[0]
             
             anns_center[ann_id]['keypoints'].append(int(center[1]))      # add center for y
             anns_center[ann_id]['keypoints'].append(int(center[0]))      # add center for x
@@ -395,7 +411,8 @@ class Coco(torch.utils.data.Dataset):
                     i['bmask'] = self.coco_inst.annToMask(i)
 
                 for ann in anns:
-                    ann['kp_ball'] = 3*[0]
+                    ann['kp_ball'] = [0,0,0]
+                    # ann['kp_ball'] = np.zeros((1, 3))
                 anns_ball = self.add_ball(anns_inst)
                 # anns_ball = self.empty_person_keypoint(anns_ball, n_keypoints=18)   # add fake people
                 anns += anns_ball
@@ -409,13 +426,29 @@ class Coco(torch.utils.data.Dataset):
 
         # anns = copy.deepcopy(anns)
         
-        try:
-            image, anns, meta = self.preprocess(image, anns, meta)
-        except:
-            print('image_id_2: ', image_id)
-            import pickle
-            with open('coco_2.pickle','wb') as f:
-                pickle.dump((image, anns),f)
+        # try:
+        # import matplotlib.pyplot as plt
+        # plt.figure(figsize=(10,10))
+        # plt.imshow(image)
+        # plt.figure(figsize=(10,10))
+        # # print(len(anns))
+        # for aaa in anns:
+        #     # print(aaa['kp_ball'])
+        #     plt.scatter(aaa['kp_ball'][0],aaa['kp_ball'][1],linewidths=4)
+            # plt.show
+        image, anns, meta = self.preprocess(image, anns, meta)
+        # plt.figure(figsize=(10,10))
+        # plt.imshow(image)
+        # plt.figure(figsize=(10,10))
+        # for aaa in anns:
+    
+        #     plt.scatter(aaa['kp_ball'][0,0],aaa['kp_ball'][0,1],linewidths=4)
+        #     plt.show
+        # except:
+        #     print('image_id_2: ', image_id)
+        #     import pickle
+        #     with open('coco_2.pickle','wb') as f:
+        #         pickle.dump((image, anns),f)
 
         # mask valid TODO still necessary?
         # print('after augmentation')

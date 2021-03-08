@@ -5,7 +5,7 @@ import numpy as np
 LOG = logging.getLogger(__name__)
 
 
-class AnnRescaler(object):
+class AnnRescalerBall(object):
     def __init__(self, stride, n_keypoints, pose):#, ball=False):
 
         #self.ball = ball
@@ -40,16 +40,22 @@ class AnnRescaler(object):
 
     def keypoint_sets(self, anns):
         """Ignore annotations of crowds."""
-        keypoint_sets = [ann['keypoints'] for ann in anns if not ann['iscrowd']]
+        keypoint_sets = [ann['kp_ball'] for ann in anns]
+       
+        # print(len(keypoint_sets))
+        # assert len(keypoint_sets) > 0, len(keypoint_sets)
         if not keypoint_sets:
+            # raise
             return np.zeros((0, self.n_keypoints, 3))
 
         # print(len(anns))
         # print(len(keypoint_sets))
         # for i in range(len(keypoint_sets)):
+        #     print(keypoint_sets[i])
         #     print(keypoint_sets[i].shape)
 
         keypoint_sets = np.stack(keypoint_sets)
+        # print('keypoint_set shape in',keypoint_sets.shape)
         keypoint_sets[:, :, :2] /= self.stride
         return keypoint_sets
 
@@ -59,21 +65,12 @@ class AnnRescaler(object):
             (width_height[1] - 1) // self.stride + 1,
             (width_height[0] - 1) // self.stride + 1,
         ), dtype=np.bool)
-        # print('iciicccccccc')
-        # print(anns)
         for ann in anns:
-            # if 'put_nan' in ann:
-            #     # print('put nan')
-            #     mask[:,:] = 0
-            #     continue
-
             if not ann['iscrowd']:
-                valid_keypoints = 'keypoints' in ann and np.any(ann['keypoints'][:, 2] > 0)
+                valid_keypoints = 'kp_ball' in ann and np.any(ann['kp_ball'][:, 2] > 0)
                 if valid_keypoints:
                     continue
-            
-            
-            
+
             if 'mask' not in ann:
                 bb = ann['bbox'].copy()
                 bb /= self.stride
@@ -85,14 +82,13 @@ class AnnRescaler(object):
                 mask[top:bottom, left:right] = 0
                 continue
 
-            
-
             assert False  # because code below is not tested
             mask[ann['mask'][::self.stride, ::self.stride]] = 0
 
         return mask
 
     def scale(self, keypoints):
+        return 1
         # print('in annrescaler', len(keypoints))
         # print(self.pose.shape)
         # if self.ball == True:
@@ -100,14 +96,14 @@ class AnnRescaler(object):
         visible = keypoints[:, 2] > 0
         # print('in annrescaler', np.sum(visible))
         # print(self.n_keypoints)
-        if np.sum(visible) < 3 and self.n_keypoints == 18:   # for center detection
+        if np.sum(visible) < 3 and self.n_keypoints > 17:   # for ball detection
             # print('in annrescaler', np.sum(visible))
             return 1    # return 1 as scale
 
-        # if self.n_keypoints == 1: # only for ball
-        #     return 1
-        # if self.n_keypoints == 2:   # when only ball as keypoint
-        #     return 1
+        if self.n_keypoints == 1: # only for ball
+            return 1
+        if self.n_keypoints == 2:   # when only ball as keypoint
+            return 1
         elif np.sum(visible) < 3:
             return np.nan
 

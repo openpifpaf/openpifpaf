@@ -19,7 +19,10 @@ def default_output_file(args, net_cpu):
     head_names = [hn.meta.name for hn in net_cpu.head_nets]
 
     now = datetime.datetime.now().strftime('%y%m%d-%H%M%S')
-    out = 'outputs/{}-{}-{}'.format(base_name, now, '-'.join(head_names))
+    if args.output is not None:
+        out = args.output + '/{}-{}-{}'.format(base_name, now, '-'.join(head_names))    
+    else:
+        out = 'outputs/{}-{}-{}'.format(base_name, now, '-'.join(head_names))
     ### Manneback changes
     # out = 'pifpaf_modified/poseestimation_emb/outputs/{}-{}-{}'.format(base_name, now, '-'.join(head_names))
     
@@ -107,8 +110,8 @@ def main():
     args = cli()
     net_cpu, start_epoch = network.factory_from_args(args)
     net_cpu.process_heads = None
-    if args.output is None:
-        args.output = default_output_file(args, net_cpu)
+    # if args.output is None:
+    args.output = default_output_file(args, net_cpu)
     logs.configure(args)
     if args.log_stats:
         logging.getLogger('openpifpaf.stats').setLevel(logging.DEBUG)

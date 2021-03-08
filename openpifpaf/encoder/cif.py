@@ -1,11 +1,12 @@
 import dataclasses
 import logging
-from typing import ClassVar
+from typing import ClassVar, Union
 
 import numpy as np
 import torch
 
 from .annrescaler import AnnRescaler
+from .annrescaler_ball import AnnRescalerBall
 from ..visualizer import Cif as CifVisualizer
 from ..utils import create_sink, mask_valid_area
 
@@ -16,7 +17,7 @@ LOG = logging.getLogger(__name__)
 
 @dataclasses.dataclass
 class Cif:
-    rescaler: AnnRescaler
+    rescaler: Union[AnnRescaler, AnnRescalerBall]
     name: str
     sigmas: list
     v_threshold: int = 0
@@ -40,6 +41,7 @@ class CifGenerator(object):
 
         self.sink = create_sink(config.side_length)
         self.s_offset = (config.side_length - 1.0) / 2.0
+        
 
     def __call__(self, image, anns, meta):
         start_time = time.time()
@@ -48,8 +50,14 @@ class CifGenerator(object):
         # print('777777777777777777777in cif')
         # print(image.shape)
         # print(width_height_original)
+        self.put_nan = False
+        
+        if len(anns) > 0 and len(self.config.sigmas) > 1:           ## to handle deepsport lack of annotation
+            if 'put_nan' in anns[0]:
+                self.put_nan = True
 
         keypoint_sets = self.config.rescaler.keypoint_sets(anns)
+        # print('keypoint_set shape',keypoint_sets.shape)
         # print(len(keypoint_sets))
         bg_mask = self.config.rescaler.bg_mask(anns, width_height_original)
         # print(bg_mask.shape)
@@ -58,6 +66,7 @@ class CifGenerator(object):
         LOG.debug('valid area: %s, pif side length = %d', valid_area, self.config.side_length)
 
         n_fields = keypoint_sets.shape[1]
+        # print(n_fields)
         self.init_fields(n_fields, bg_mask)
         self.fill(keypoint_sets)
         
@@ -75,6 +84,7 @@ class CifGenerator(object):
         self.config.visualizer.targets(fields, keypoint_sets=keypoint_sets)
 
         # print('CIF time:', time.time()-start_time)
+        # print(fields[0].shape)
 
         return fields
         # return {'name': self.config.name,
@@ -85,6 +95,10 @@ class CifGenerator(object):
         field_w = bg_mask.shape[1] + 2 * self.config.padding
         field_h = bg_mask.shape[0] + 2 * self.config.padding
         self.intensities = np.zeros((n_fields, field_h, field_w), dtype=np.float32)
+        
+        if self.put_nan:
+            self.intensities = np.full((n_fields, field_h, field_w), np.nan, dtype=np.float32)
+
         self.fields_reg = np.full((n_fields, 6, field_h, field_w), np.nan, dtype=np.float32)
         self.fields_reg[:, 2:] = np.inf
         self.fields_scale = np.full((n_fields, field_h, field_w), np.nan, dtype=np.float32)
@@ -179,7 +193,9 @@ class CifGenerator(object):
         patch[2:, mask] = np.expand_dims(max_r, 1) * 0.5
 
         # update scale
-        assert np.isnan(scale) or scale > 0.0
+        if scale == 0.0:
+            scale = np.nan
+        assert np.isnan(scale) or scale > 0.0, str(scale)+'f='+str(f)
 
         self.fields_scale[f, miny:maxy, minx:maxx][mask] = scale
 

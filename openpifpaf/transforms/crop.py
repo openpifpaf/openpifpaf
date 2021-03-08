@@ -127,6 +127,7 @@ class Crop(Preprocess):
 
         # crop keypoints
         for ann in anns:
+            # print('before', ann['kp_ball'])
             ann['keypoints'][:, 0] -= x_offset
             ann['keypoints'][:, 1] -= y_offset
             ann['bbox'][0] -= x_offset
@@ -135,6 +136,8 @@ class Crop(Preprocess):
             if 'kp_ball' in ann:
                 ann['kp_ball'][:, 0] -= x_offset
                 ann['kp_ball'][:, 1] -= y_offset
+
+            # print('after', ann['kp_ball'])
 
             ### AMA crop masks
             ann['bmask'] = ann['bmask'][y_offset:y_offset + new_h, x_offset:x_offset+new_w]
