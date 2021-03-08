@@ -2,7 +2,7 @@ import torch
 
 from .coco import Coco
 from .keemotion import Keemotion
-from .deepsport import DeepSportBalls
+from .deepsport import DeepSportDataset
 from .deepsport import build_DeepSportBall_datasets
 from .collate import collate_images_targets_meta
 from .collate import collate_images_targets_inst_meta
