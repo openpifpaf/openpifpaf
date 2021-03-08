@@ -62,6 +62,11 @@ class CenterPad(Preprocess):
             ann['bbox'][0] += ltrb[0]
             ann['bbox'][1] += ltrb[1]
 
+            if 'kp_ball' in ann:
+                ann['kp_ball'][:, 0] += ltrb[0]
+                ann['kp_ball'][:, 1] += ltrb[1]
+
+
             ann['bmask'] = np.pad(ann['bmask'], ((top, bottom), (left, right)))
 
         ### AMA pad masks

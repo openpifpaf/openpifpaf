@@ -72,7 +72,9 @@ class Coco(torch.utils.data.Dataset):
                 self.ids = self.coco.getImgIds(catIds=self.category_ids[0])
                 # self.ids_inst = self.coco_inst.getImgIds(catIds=self.category_ids[0])
                 self.ids_ball = self.coco_inst.getImgIds(catIds=self.category_ids[1])
-                self.filter_for_kp_ball_annotations()
+                self.filter_for_keypoint_annotations()
+                self.filter_for_medium_people()
+                # self.filter_for_kp_ball_annotations()
                 self.ids += self.ids_ball
                 # for i in self.ids_ball:
                 #     if i not in self.ids:
@@ -116,6 +118,22 @@ class Coco(torch.utils.data.Dataset):
 
         self.preprocess = preprocess or transforms.EVAL_TRANSFORM
         self.target_transforms = target_transforms
+
+    def filter_for_medium_people(self):
+        LOG.info('filter for medium people ...')
+        def is_medium(image_id):
+            ann_ids = self.coco.getAnnIds(imgIds=image_id, catIds=[1])
+            anns = self.coco.loadAnns(ann_ids)
+            for ann in anns:
+                # mask = self.coco_inst.annToMask(ann)
+                if 'keypoints' not in ann:
+                    continue
+                if len([v for v in ann['keypoints'][2::3] if v > 0.0]) > 10:
+                    return True
+            return False
+        self.ids = [image_id for image_id in self.ids
+                    if is_medium(image_id)]
+        LOG.info('... done.')
 
     def filter_for_keypoint_annotations(self):
         LOG.info('filter for keypoint annotations ...')
@@ -271,7 +289,8 @@ class Coco(torch.utils.data.Dataset):
             anns_center[ann_id]['kp_ball'] = []
             anns_center[ann_id]['kp_ball'].append(int(center[1]))      # add center for y
             anns_center[ann_id]['kp_ball'].append(int(center[0]))      # add center for x
-            anns_center[ann_id]['kp_ball'].append(visiblity)    
+            anns_center[ann_id]['kp_ball'].append(visiblity)
+            anns_center[ann_id]['keypoints'] = 3*18*[0]
         
         return anns_center
 
@@ -374,8 +393,11 @@ class Coco(torch.utils.data.Dataset):
                 for i in anns_inst:
                     # ann_mask_id = i['id']
                     i['bmask'] = self.coco_inst.annToMask(i)
+
+                for ann in anns:
+                    ann['kp_ball'] = 3*[0]
                 anns_ball = self.add_ball(anns_inst)
-                anns_ball = self.empty_person_keypoint(anns_ball, n_keypoints=18)   # add fake people
+                # anns_ball = self.empty_person_keypoint(anns_ball, n_keypoints=18)   # add fake people
                 anns += anns_ball
                 
         except:

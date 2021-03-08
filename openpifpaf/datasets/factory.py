@@ -19,7 +19,7 @@ COCODET_ANNOTATIONS_TRAIN = '/data/mistasse/coco/annotations/instances_train2017
 COCODET_ANNOTATIONS_VAL = '/data/mistasse/coco/annotations/instances_val2017.json'
 COCO_IMAGE_DIR_TRAIN = '/data/mistasse/coco/images/train2017/'
 COCO_IMAGE_DIR_VAL = '/data/mistasse/coco/images/val2017/'
-KEEMOTION_DIR = '/data/mistasse/keemotion/km_complete_player_ball_1000x750/'
+KEEMOTION_DIR = '/data/mistasse/keemotion/km_complete_player_ball_full_res/'
 
 # COCOKP_ANNOTATIONS_TRAIN = 'data-mscoco/annotations/person_keypoints_train2017.json'
 # COCOKP_ANNOTATIONS_VAL = 'data-mscoco/annotations/person_keypoints_val2017.json'
@@ -200,6 +200,8 @@ def train_cocokpinst_preprocess_factory(
     elif 'cifcent' in heads:
         print('yeay')
         coco_keypoints_ = COCO_KEYPOINTS[:18]
+    # elif 'ball' in heads:
+    #     coco_keypoints_
 
     return transforms.Compose([
         transforms.NormalizeAnnotations(),
@@ -283,13 +285,13 @@ def train_deepsport_factory(args, target_transforms):
 
     train_loader = torch.utils.data.DataLoader(
         train_data, batch_size=args.batch_size, shuffle=not args.debug,
-        pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
-        collate_fn=collate_images_targets_meta)
+        pin_memory=args.pin_memory, num_workers=0, drop_last=True,
+        collate_fn=collate_images_targets_inst_meta,)
 
     val_loader = torch.utils.data.DataLoader(
         val_data, batch_size=args.batch_size, shuffle=False,
-        pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
-        collate_fn=collate_images_targets_meta)
+        pin_memory=args.pin_memory, num_workers=0, drop_last=True,
+        collate_fn=collate_images_targets_inst_meta,)
 
     return train_loader, val_loader
 
@@ -415,6 +417,7 @@ def train_cocokpinst_factory(args, target_transforms, heads=None, batch_size=Non
 
     config = 'cif'
     category_ids = [1]
+    ball = False
 
     if 'cifball' in heads:
         config = 'cifball'
@@ -425,6 +428,9 @@ def train_cocokpinst_factory(args, target_transforms, heads=None, batch_size=Non
     elif 'cifcent' in heads:
         config = 'cifcent'
         category_ids = [1]
+        if 'ball' in heads:
+            category_ids = [1, 37]
+            ball = True
     elif 'ball' in heads:
         config = 'ball'
         category_ids = [37]
@@ -441,7 +447,8 @@ def train_cocokpinst_factory(args, target_transforms, heads=None, batch_size=Non
         # n_images=16,
         category_ids=category_ids,
         image_filter='kp_inst',
-        config=config
+        config=config,
+        ball=ball
     )
     # return train_data
     
@@ -515,7 +522,9 @@ def train_keemotion_factory(args, target_transforms, heads=None, batch_size=None
 
 
 def train_single_factory(args, target_transforms, dataset=None, heads=None, batch_size=None):
-    if args.dataset in ('deepsport'):
+    # print('faccccccccccc',dataset)
+    if dataset in ('deepsport'):
+        print('batch size for deepsport', batch_size)
         return train_deepsport_factory(args, target_transforms)
     if dataset in ('cocokpinst'):
         print('batch size for coco', batch_size)
@@ -544,5 +553,7 @@ def train_factory(args, target_transforms, heads=None):
         batch_sizes = [args.batch_size]
     # print('train_factory',args.dataset)
     dataloaders = [train_single_factory(args, target_transforms, dataset=ds, heads=heads, batch_size=btch_sz) for ds, btch_sz in zip(args.dataset.split('-'), batch_sizes)]
+    train_dataloaders = [tr_dl for tr_dl, _ in dataloaders]
+    val_dataloaders = [val_dl for _, val_dl in dataloaders]
     # print('train_factory',dataloaders)
-    return MultiDataset(args,dataloaders)
+    return MultiDataset(heads, train_dataloaders), MultiDataset(heads, val_dataloaders)

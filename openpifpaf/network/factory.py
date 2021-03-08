@@ -263,7 +263,7 @@ def shufflenet_factory_from_scratch(basename, base_vision, out_features, head_me
     ]
 
     panoptic = len([hm for hm in head_metas if hm.name == "pan"]) > 0
-    has_ball = len([hm for hm in head_metas if hm.name == "ball"]) > 0
+    # has_ball = len([hm for hm in head_metas if hm.name == "ball"]) > 0
 
     BaseNetwork = basenetworks.BaseNetworkWithSkips if panoptic else basenetworks.BaseNetwork
     basenet = BaseNetwork(
@@ -273,16 +273,18 @@ def shufflenet_factory_from_scratch(basename, base_vision, out_features, head_me
         out_features=out_features,
     )
 
+    headnets = [facrtory_head_single(hd, basenet.out_features) for hd in head_metas]
+
     # headnets = [heads.CompositeFieldFused(h, basenet.out_features) for h in head_metas]
-    headnets = [heads.CompositeFieldFused(head_metas[0], basenet.out_features)]
+    # headnets = [heads.CompositeFieldFused(head_metas[0], basenet.out_features)]
 
 
-    if has_ball:
-        head_metas = [hm for hm in head_metas if hm.name == "ball"][0]
-        headnets.append(heads.CompositeFieldFused(head_metas, basenet.out_features))
+    # if has_ball:
+    #     head_metas = [hm for hm in head_metas if hm.name == "ball"][0]
+    #     headnets.append(heads.CompositeFieldFused(head_metas, basenet.out_features))
 
-    if panoptic:  # Integrate a panoptic-deeplab decoder
-        headnets.append(heads.PanopticDeeplabHead(head_metas[1], basenet.out_features))
+    # if panoptic:  # Integrate a panoptic-deeplab decoder
+    #     headnets.append(heads.PanopticDeeplabHead(head_metas[1], basenet.out_features))
 
 
     net_cpu = nets.Shell(basenet, headnets)
@@ -323,7 +325,7 @@ def resnet_factory_from_scratch(basename, base_vision, out_features, head_metas)
         out_features //= 2
 
     panoptic = len([hm for hm in head_metas if hm.name == "pan"]) > 0
-    has_ball = len([hm for hm in head_metas if hm.name == "ball"]) > 0
+    # has_ball = len([hm for hm in head_metas if hm.name == "ball"]) > 0
 
     BaseNetwork = basenetworks.BaseNetworkWithSkips if panoptic else basenetworks.BaseNetwork
     basenet = BaseNetwork(
@@ -333,32 +335,40 @@ def resnet_factory_from_scratch(basename, base_vision, out_features, head_metas)
         out_features=out_features,
     )
 
+    headnets = [facrtory_head_single(hd, basenet.out_features) for hd in head_metas]
+
 
     # headnets = [heads.CompositeFieldFused(h, basenet.out_features) for h in head_metas]
 
-    headnets = [heads.CompositeFieldFused(head_metas[0], basenet.out_features)]
+    # headnets = [heads.CompositeFieldFused(head_metas[0], basenet.out_features)]
 
-    if len(head_metas) > 1 and isinstance(head_metas[1], heads.AssociationMeta):    ## for caf
-        headnets.append(heads.CompositeFieldFused(head_metas[1], basenet.out_features))
+    # if len(head_metas) > 1 and isinstance(head_metas[1], heads.AssociationMeta):    ## for caf
+    #     headnets.append(heads.CompositeFieldFused(head_metas[1], basenet.out_features))
 
 
     # #### AMA
-    if len(head_metas) > 1 and isinstance(head_metas[1], heads.SegmentationMeta):
-        headnets.append(heads.InstanceSegHead(head_metas[1], basenet.out_features))
+    # if len(head_metas) > 1 and isinstance(head_metas[1], heads.SegmentationMeta):
+    #     headnets.append(heads.InstanceSegHead(head_metas[1], basenet.out_features))
 
 
-    if has_ball:
-        head_metas = [hm for hm in head_metas if hm.name == "ball"][0]
-        headnets.append(heads.CompositeFieldFused(head_metas, basenet.out_features))
+    # if panoptic:  # Integrate a panoptic-deeplab decoder
+    #     headnets.append(heads.PanopticDeeplabHead(head_metas[1], basenet.out_features))
 
-    if panoptic:  # Integrate a panoptic-deeplab decoder
-        headnets.append(heads.PanopticDeeplabHead(head_metas[1], basenet.out_features))
-
+    # if has_ball:
+    #     head_met = [hm for hm in head_metas if hm.name == "ball"][0]
+    #     headnets.append(heads.CompositeFieldFused(head_met, basenet.out_features))
 
     net_cpu = nets.Shell(basenet, headnets)
     nets.model_defaults(net_cpu)
     return net_cpu
 
+def facrtory_head_single(head_meta, out_features):
+    if head_meta.name == 'pan':
+        return heads.PanopticDeeplabHead(head_meta, out_features)
+    # elif head_meta.name == 'ball':
+    #     heads.CompositeFieldFused(head_meta, out_features)
+    elif head_meta.name in ['cif', 'cifcent', 'ball']:
+        return heads.CompositeFieldFused(head_meta, out_features)
 
 def configure(args):
     # configure CompositeField
