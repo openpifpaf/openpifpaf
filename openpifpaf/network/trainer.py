@@ -18,6 +18,7 @@ class Trainer():
     n_val_batches = None
 
     clip_grad_norm = 0.0
+    clip_grad_value = 0.0
     log_interval = 11
     val_interval = 1
 
@@ -82,6 +83,8 @@ class Trainer():
 
         group.add_argument('--clip-grad-norm', default=cls.clip_grad_norm, type=float,
                            help='clip grad norm: specify largest change for single param')
+        group.add_argument('--clip-grad-value', default=cls.clip_grad_value, type=float,
+                           help='clip grad value: specify largest change for single param')
         group.add_argument('--log-interval', default=cls.log_interval, type=int,
                            help='log loss every n steps')
         group.add_argument('--val-interval', default=cls.val_interval, type=int,
@@ -105,6 +108,7 @@ class Trainer():
         cls.n_val_batches = args.val_batches
 
         cls.clip_grad_norm = args.clip_grad_norm
+        cls.clip_grad_value = args.clip_grad_value
         cls.log_interval = args.log_interval
         cls.val_interval = args.val_interval
 
@@ -193,6 +197,8 @@ class Trainer():
                 self.n_clipped_grad += 1
                 print('CLIPPED GRAD NORM: total norm before clip: {}, max norm: {}'
                       ''.format(total_norm, max_norm))
+        if self.clip_grad_value:
+            torch.nn.utils.clip_grad_value_(self.model.parameters(), self.clip_grad_value)
         if apply_gradients:
             with torch.autograd.profiler.record_function('step'):
                 self.optimizer.step()
