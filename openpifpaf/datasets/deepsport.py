@@ -46,6 +46,8 @@ class AddBallPositionFactory():
 
 class AddHumansSegmentationTargetViewFactory():
     def __call__(self, view_key, view):
+        if not hasattr(view, "human_masks"):
+            view.human_masks = np.zeros(view.image.shape[0:2])
         return {"human_masks": view.human_masks}
 
 
@@ -92,10 +94,10 @@ def build_DeepSportBall_datasets(pickled_dataset_filename, validation_set_size_p
     dataset = TransformedDataset(dataset, transforms)
 
     return \
-        DeepSportBalls(dataset, training_keys, target_transforms, preprocess), \
-        DeepSportBalls(dataset, validation_keys, target_transforms, preprocess)
+        DeepSportDataset(dataset, training_keys, target_transforms, preprocess), \
+        DeepSportDataset(dataset, validation_keys, target_transforms, preprocess)
 
-class DeepSportBalls(torch.utils.data.Dataset):
+class DeepSportDataset(torch.utils.data.Dataset):
 
     map_categories = {1:1,3:37}
 
@@ -150,7 +152,7 @@ class DeepSportBalls(torch.utils.data.Dataset):
                 'area': 0, # dummy value
                 'iscrowd': 0,
                 'kp_ball': np.zeros((1,3)),
-                'keypoints': 3*18*[0],      # TODO make it dynamic
+                'keypoints': 3*n_keypoints*[0],
                 'image_id': image_id,
                 'bbox': [0, 0, 0, 0], # dummy values
                 'category_id': category_id,
