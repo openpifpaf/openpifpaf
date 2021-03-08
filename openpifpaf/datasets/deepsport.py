@@ -56,7 +56,7 @@ def build_DeepSportBall_datasets(pickled_dataset_filename, validation_set_size_p
     validation_keys = keys[:lim]
 
     transforms = [
-        ViewCropperTransform(output_shape=(square_edge,square_edge), def_min=80, def_max=160, on_ball=False, with_diff=False, with_masks=True),
+        ViewCropperTransform(output_shape=(square_edge,square_edge), def_min=80, def_max=160),
         ExtractViewData(
             AddBallPositionFactory(),
             AddBallSegmentationTargetViewFactory(),
