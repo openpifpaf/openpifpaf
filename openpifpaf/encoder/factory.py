@@ -4,6 +4,7 @@ from .annrescaler import AnnRescaler, AnnRescalerDet
 from .annrescaler_ball import AnnRescalerBall
 from .caf import Caf
 from .cif import Cif
+from .cif_ball import CifBall
 from .cifdet import CifDet
 from .seg import Seg
 from .pan import PanopticTargetGenerator
@@ -77,7 +78,8 @@ def factory_head(head_net: network.heads.CompositeField, basenet_stride):
         #     ball = True
         # # print('!!!!!!!!!!!!!',ball)
         if meta.name == 'ball':
-            return Cif(AnnRescalerBall(stride, len(meta.keypoints), meta.pose),
+            print('!!!!!!! BALL !!!!!!')
+            return CifBall(AnnRescalerBall(stride, len(meta.keypoints), meta.pose),
                     name=meta.name,
                     sigmas=meta.sigmas,
                     visualizer=vis)

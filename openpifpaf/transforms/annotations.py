@@ -57,10 +57,11 @@ class NormalizeAnnotations(Preprocess):
             'hflip': False,
             'width_height': np.array((w, h)),
         }
+       
         for k, v in meta_from_image.items():
             if k not in meta:
                 meta[k] = v
-
+        # print('valid area at first', meta['valid_area'])
         # return image, anns, meta
         ### AMA
         return image, anns, meta

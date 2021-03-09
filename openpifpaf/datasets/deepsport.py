@@ -82,7 +82,7 @@ def build_DeepSportBall_datasets(pickled_dataset_filename, validation_set_size_p
     #     )
     # ]
     transforms = [
-        ViewCropperTransform(output_shape=(400,400), def_min=60, def_max=160, max_angle=8, focus_object="player"),
+        ViewCropperTransform(output_shape=(400,400), def_min=60, def_max=160, max_angle=8, focus_object="ball"),
 
         ExtractViewData(
             AddBallPositionFactory(),
@@ -284,10 +284,11 @@ class DeepSportDataset(torch.utils.data.Dataset):
         #     # if aaa['kp_ball'][0,2] == 2:
         #     # plt.figure(figsize=(10,10))
         #     plt.scatter(aaa['kp_ball'][0],aaa['kp_ball'][1],linewidths=4)
-
+        # print(len(anns))
         # for aaa in anns:    
         #     # plt.figure(figsize=(10,10))
-        #     print('before',aaa['kp_ball'])
+            
+            # print('before',aaa['kp_ball'])
         #     plt.imshow(aaa['bmask'], alpha=.5)
 
         # plt.show
@@ -298,6 +299,7 @@ class DeepSportDataset(torch.utils.data.Dataset):
         # plt.figure(figsize=(10,10))
         # # plt.imshow(image)
         
+        # print(len(anns))
         # for aaa in anns:
         #     print('after',aaa['kp_ball'])
             
