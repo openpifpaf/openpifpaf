@@ -61,30 +61,9 @@ def build_DeepSportBall_datasets(pickled_dataset_filename, validation_set_size_p
     training_keys = keys[lim:]
     validation_keys = keys[:lim]
     random.seed(random_state)
-    # transforms = [
-    #     ViewCropperTransform(output_shape=(square_edge,square_edge), def_min=100, def_max=150, on_ball=False, with_diff=False, with_masks=True),
-    #     ExtractViewData(
-    #         AddBallPositionFactory(),
-    #         AddBallSegmentationTargetViewFactory(),
-    #         AddHumansSegmentationTargetViewFactory()
-    #     )
-    # ]
-    # dataset = TransformedDataset(dataset, transforms)
 
-    # transforms = [
-    #     ViewCropperTransform(
-    #     output_shape=(400,400),
-    #     def_min=60, def_max=160,
-    #     with_masks=True,
-    #     keypoint_sampler=SetKeypointsOfInterest(on_player=True)),
-    #     ExtractViewData(
-    #         AddBallPositionFactory(),
-    #         AddBallSegmentationTargetViewFactory(),
-    #         AddHumansSegmentationTargetViewFactory()
-    #     )
-    # ]
     transforms = [
-        ViewCropperTransform(output_shape=(400,400), def_min=60, def_max=160, max_angle=8, focus_object="player"),
+        ViewCropperTransform(output_shape=(square_edge,square_edge), def_min=60, def_max=160, max_angle=8, focus_object="ball"),
 
         ExtractViewData(
             AddBallPositionFactory(),
