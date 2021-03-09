@@ -34,6 +34,7 @@ def factory_from_args(args):
         multi_scale=args.multi_scale,
         multi_scale_hflip=args.multi_scale_hflip,
         download_progress=args.download_progress,
+        weights=args.weights,
     )
 
 
@@ -76,13 +77,19 @@ def factory(
         two_scale=False,
         multi_scale=False,
         multi_scale_hflip=True,
-        download_progress=True):
+        download_progress=True,
+        weights=None):
 
     if base_name:
         assert head_names
         assert checkpoint is None
         net_cpu = factory_from_scratch(base_name, head_names, pretrained=pretrained)
         epoch = 0
+        if weights is not None:
+            checkpoint = torch.load(weights)
+            old_model = checkpoint['model']
+            state_dict = old_model.base_net.state_dict()
+            net_cpu.base_net.load_state_dict(state_dict)
     else:
         assert base_name is None
         assert head_names is None
@@ -402,6 +409,9 @@ def cli(parser):
     group.add_argument('--no-download-progress', dest='download_progress',
                        default=True, action='store_false',
                        help='suppress model download progress bar')
+    group.add_argument('--weights',
+                       default=None,
+                       help='load network weights')
 
     group = parser.add_argument_group('head')
     group.add_argument('--head-dropout', default=heads.CompositeFieldFused.dropout_p, type=float,
