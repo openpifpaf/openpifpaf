@@ -74,7 +74,7 @@ class CifHr:
         h_start = pad_left
         h_stop = width-pad_right
         LOG.debug("accumulated hr heatmap can be created by uncommenting the following line")
-        imageio.imwrite("/home/gva/test.accumulated.png", self.accumulated[kp_id,v_start:v_stop, h_start:h_stop])
+        #imageio.imwrite("/home/gva/test.accumulated.png", self.accumulated[kp_id,v_start:v_stop, h_start:h_stop])
         
         LOG.debug('target_intensities %.3fs', time.perf_counter() - start)
         return self
