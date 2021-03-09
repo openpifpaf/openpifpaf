@@ -124,10 +124,10 @@ def train_cocokp_preprocess_factory(
         transforms.NormalizeAnnotations(),
         transforms.AnnotationJitter(),
         transforms.RandomApply(transforms.HFlip(coco_keypoints_, HFLIP), 0.5),
-        rescale_t,
-        transforms.Crop(square_edge, use_area_of_interest=False),
-        transforms.CenterPad(square_edge),
-        orientation_t,
+        # rescale_t,
+        # transforms.Crop(square_edge, use_area_of_interest=False),
+        # transforms.CenterPad(square_edge),
+        # orientation_t,
         transforms.TRAIN_TRANSFORM,
     ])
 
