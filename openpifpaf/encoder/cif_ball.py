@@ -1,0 +1,245 @@
+import dataclasses
+import logging
+from typing import ClassVar, Union
+
+import numpy as np
+import torch
+
+from .annrescaler_ball import AnnRescalerBall
+from ..visualizer import Cif as CifVisualizer
+from ..utils import create_sink, mask_valid_area
+
+import time
+import copy
+LOG = logging.getLogger(__name__)
+
+
+@dataclasses.dataclass
+class CifBall:
+    rescaler: AnnRescalerBall
+    name: str
+    sigmas: list
+    v_threshold: int = 0
+    visualizer: CifVisualizer = None
+
+    side_length: ClassVar[int] = 4      # area around the keypoint to be supervised
+    padding: ClassVar[int] = 10
+
+    def __call__(self, image, anns, meta):
+        return CifBallGenerator(self)(image, anns, meta)
+
+
+class CifBallGenerator(object):
+    def __init__(self, config: CifBall):
+        self.config = config
+
+        self.intensities = None
+        self.fields_reg = None
+        self.fields_scale = None
+        self.fields_reg_l = None
+
+        self.sink = create_sink(config.side_length)
+        self.s_offset = (config.side_length - 1.0) / 2.0
+        
+
+    def __call__(self, image, anns, meta):
+        # print('!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!')
+        start_time = time.time()
+        width_height_original = image.shape[2:0:-1]
+
+        # print('777777777777777777777in cif')
+        # print(image.shape)
+        # print(width_height_original)
+        # self.put_nan = False
+        
+        # if len(anns) > 0 and len(self.config.sigmas) > 1:           ## to handle deepsport lack of annotation
+        #     if 'put_nan' in anns[0]:
+        #         self.put_nan = True
+
+        keypoint_sets = self.config.rescaler.keypoint_sets(anns)
+        # print(keypoint_sets)
+        # print('keypoint_set shape',keypoint_sets.shape)
+        # print(len(keypoint_sets))
+        bg_mask = self.config.rescaler.bg_mask(anns, width_height_original)
+        # print(bg_mask.shape) 
+        meta = copy.deepcopy(meta)
+        meta['valid_area'] = [0,0,width_height_original[0], width_height_original[1]]
+        valid_area = self.config.rescaler.valid_area(meta)
+        # print(valid_area)
+        LOG.debug('valid area: %s, pif side length = %d', valid_area, self.config.side_length)
+
+        n_fields = keypoint_sets.shape[1]
+        # print(n_fields)
+        self.init_fields(n_fields, bg_mask)
+        self.fill(keypoint_sets)
+        
+        fields = self.fields(valid_area)
+        # print('fields')
+        # print(len(fields))
+        # print(len(fields[0]))
+        # print(len(fields[0][0]))
+        
+        # print(len(fields[1]))
+        # print(len(fields[1][0]))
+        # print(len(fields[2]))
+        # print(len(fields[2][0]))
+        self.config.visualizer.processed_image(image)
+        self.config.visualizer.targets(fields, keypoint_sets=keypoint_sets)
+
+        # print('CIF time:', time.time()-start_time)
+        # print(fields[0].shape)
+
+        return fields
+        # return {'name': self.config.name,
+        # 'value': fields
+        # }
+
+    def init_fields(self, n_fields, bg_mask):
+        field_w = bg_mask.shape[1] + 2 * self.config.padding
+        field_h = bg_mask.shape[0] + 2 * self.config.padding
+        self.intensities = np.zeros((n_fields, field_h, field_w), dtype=np.float32)
+        
+        # if self.put_nan:
+        #     self.intensities = np.full((n_fields, field_h, field_w), np.nan, dtype=np.float32)
+
+        self.fields_reg = np.full((n_fields, 6, field_h, field_w), np.nan, dtype=np.float32)
+        self.fields_reg[:, 2:] = np.inf
+        self.fields_scale = np.full((n_fields, field_h, field_w), np.nan, dtype=np.float32)
+        self.fields_reg_l = np.full((n_fields, field_h, field_w), np.inf, dtype=np.float32)
+
+        # bg_mask
+
+        # not needed for the ball
+        # p = self.config.padding
+        # self.fields_reg_l[:, p:-p, p:-p][:, bg_mask == 0] = 1.0
+        # self.intensities[:, p:-p, p:-p][:, bg_mask == 0] = np.nan
+
+    def fill(self, keypoint_sets):
+        for kps_i, keypoints in enumerate(keypoint_sets):
+            self.fill_keypoints(
+                keypoints,
+                [kps for i, kps in enumerate(keypoint_sets) if i != kps_i],
+            )
+
+    @staticmethod
+    def quadrant(xys):
+        q = np.zeros((xys.shape[0],), dtype=np.int)
+        q[xys[:, 0] < 0.0] += 1
+        q[xys[:, 1] < 0.0] += 2
+        return q
+
+    @classmethod
+    def max_r(cls, xyv, other_xyv):
+        out = np.array([np.inf, np.inf, np.inf, np.inf], dtype=np.float32)
+        if not other_xyv:
+            return out
+
+        other_xyv = np.asarray(other_xyv)
+        diffs = other_xyv[:, :2] - np.expand_dims(xyv[:2], 0)
+        qs = cls.quadrant(diffs)
+        for q in range(4):
+            if not np.any(qs == q):
+                continue
+            out[q] = np.min(np.linalg.norm(diffs[qs == q], axis=1))
+
+        return out
+
+    def fill_keypoints(self, keypoints, other_keypoints):
+        scale = self.config.rescaler.scale(keypoints)
+        # print('CIF; scale',scale)
+        for f, xyv in enumerate(keypoints):
+            if xyv[2] <= self.config.v_threshold:
+                continue
+
+            other_xyv = [other_kps[f] for other_kps in other_keypoints
+                         if other_kps[f, 2] > self.config.v_threshold]
+            max_r = self.max_r(xyv, other_xyv)
+
+            # print('CIF; scale', f)
+            # print(self.config.sigmas[f-1])
+            # print(self.config.sigmas[f])
+
+            # if isinstance(self.config.sigmas, float):    # when only ball
+            #     joint_scale = scale if self.config.sigmas is None else scale * self.config.sigmas
+            # else:    
+            joint_scale = scale if self.config.sigmas is None else scale * self.config.sigmas[f]
+            joint_scale = np.min([joint_scale, np.min(max_r) * 0.25])
+
+            self.fill_coordinate(f, xyv, joint_scale, max_r)
+
+    def fill_coordinate(self, f, xyv, scale, max_r):
+        ij = np.round(xyv[:2] - self.s_offset).astype(np.int) + self.config.padding
+        minx, miny = int(ij[0]), int(ij[1])
+        
+        maxx, maxy = minx + self.config.side_length, miny + self.config.side_length
+        # print('in cif', minx, maxx, miny, maxy)
+
+        if minx < 0 or maxx > self.intensities.shape[2] or \
+           miny < 0 or maxy > self.intensities.shape[1]:
+
+            return
+
+        offset = xyv[:2] - (ij + self.s_offset - self.config.padding)
+        offset = offset.reshape(2, 1, 1)
+
+        # mask
+        sink_reg = self.sink + offset
+        sink_l = np.linalg.norm(sink_reg, axis=0)
+        mask = sink_l < self.fields_reg_l[f, miny:maxy, minx:maxx]
+        self.fields_reg_l[f, miny:maxy, minx:maxx][mask] = sink_l[mask]
+
+        # update intensity
+        # print('in cif intensities', f,mask)
+        self.intensities[f, miny:maxy, minx:maxx][mask] = 1.0
+
+        # update regression
+        patch = self.fields_reg[f, :, miny:maxy, minx:maxx]
+        patch[:2, mask] = sink_reg[:, mask]
+        patch[2:, mask] = np.expand_dims(max_r, 1) * 0.5
+
+        # update scale
+        if scale == 0.0:
+            scale = np.nan
+        assert np.isnan(scale) or scale > 0.0, str(scale)+'f='+str(f)
+
+        self.fields_scale[f, miny:maxy, minx:maxx][mask] = scale
+
+    def fields(self, valid_area):
+        p = self.config.padding
+        # print(p)
+
+        # import os
+        # import pickle
+        # if not os.path.isfile('cif.pickle'):
+        #     with open('cif.pickle','wb') as f:
+        #         pickle.dump((self.intensities, self.fields_reg, self.fields_scale),f)
+        
+        intensities = self.intensities[:, p:-p, p:-p]
+        
+        fields_reg = self.fields_reg[:, :, p:-p, p:-p]
+        fields_scale = self.fields_scale[:, p:-p, p:-p]
+        # print(fields_scale.shape)
+
+        # if not os.path.isfile('cif_2.pickle'):
+        #     with open('cif_2.pickle','wb') as f:
+        #         pickle.dump((intensities, fields_reg, fields_scale),f)
+
+        mask_valid_area(intensities, valid_area)
+        mask_valid_area(fields_reg[:, 0], valid_area, fill_value=np.nan)
+        mask_valid_area(fields_reg[:, 1], valid_area, fill_value=np.nan)
+        mask_valid_area(fields_scale, valid_area, fill_value=np.nan)
+                
+        # print("_____________cif_____________")
+        # print(intensities.shape)
+        # print(fields_reg.shape)
+        # print(fields_scale.shape)
+
+        # if not os.path.isfile('cif_3.pickle'):
+        #     with open('cif_3.pickle','wb') as f:
+        #         pickle.dump((intensities, fields_reg, fields_scale),f)
+
+        return (
+            torch.from_numpy(intensities),
+            torch.from_numpy(fields_reg),
+            torch.from_numpy(fields_scale),
+        )
