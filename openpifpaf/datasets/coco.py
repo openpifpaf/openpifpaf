@@ -113,7 +113,7 @@ class Coco(torch.utils.data.Dataset):
         LOG.info('Images: %d', len(self.ids))
         print('Number of images: ', len(self.ids))
 
-        self.Get_number_of_images_with_ball()
+        # self.Get_number_of_images_with_ball()
         
 
         self.preprocess = preprocess or transforms.EVAL_TRANSFORM

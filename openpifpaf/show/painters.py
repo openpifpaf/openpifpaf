@@ -641,8 +641,8 @@ class KeypointPainter:
             x_, y_, w_, h_ = ann.bbox()
             self._draw_box(ax, x_, y_, w_, h_, color, ann.score())
 
-        if text is not None:
-            self._draw_text(ax, x, y, v, text, color, subtext=subtext)
+        # if text is not None:
+        #     self._draw_text(ax, x, y, v, text, color, subtext=subtext)
 
         if self.show_decoding_order and hasattr(ann, 'decoding_order'):
             self._draw_decoding_order(ax, ann.decoding_order)

@@ -2,7 +2,7 @@ import torch
 
 from .coco import Coco
 from .keemotion import Keemotion
-from .deepsport import DeepSportBalls
+from .deepsport import DeepSportDataset
 from .deepsport import build_DeepSportBall_datasets
 from .collate import collate_images_targets_meta
 from .collate import collate_images_targets_inst_meta
@@ -89,23 +89,23 @@ def train_cocokp_preprocess_factory(
             transforms.EVAL_TRANSFORM,
         ])
 
-    if extended_scale:
-        rescale_t = transforms.RescaleRelative(
-            scale_range=(1 * rescale_images, 1 * rescale_images),
-            power_law=True)
-    else:
-        rescale_t = transforms.RescaleRelative(
-            scale_range=(1 * rescale_images, 1 * rescale_images),
-            power_law=True)
-
     # if extended_scale:
     #     rescale_t = transforms.RescaleRelative(
-    #         scale_range=(0.25 * rescale_images, 2.0 * rescale_images),
+    #         scale_range=(1 * rescale_images, 1 * rescale_images),
     #         power_law=True)
     # else:
     #     rescale_t = transforms.RescaleRelative(
-    #         scale_range=(0.4 * rescale_images, 2.0 * rescale_images),
+    #         scale_range=(1 * rescale_images, 1 * rescale_images),
     #         power_law=True)
+
+    if extended_scale:
+        rescale_t = transforms.RescaleRelative(
+            scale_range=(0.25 * rescale_images, 2.0 * rescale_images),
+            power_law=True)
+    else:
+        rescale_t = transforms.RescaleRelative(
+            scale_range=(0.4 * rescale_images, 2.0 * rescale_images),
+            power_law=True)
 
     orientation_t = None
     if orientation_invariant:
@@ -299,9 +299,20 @@ def train_deepsport_factory(args, target_transforms, heads=None, batch_size=None
         rescale_images=args.rescale_images,
         heads=heads)
 
+    # config = ['cif']
+
+    # if 'cifball' in heads:
+    #     config = ['cifball']
+    # elif 'cifcentball' in heads:
+    #     config = ['cifcentball']
+    # elif 'cifcent' in heads:
+    #     config = ['cifcent']
+    # if 'ball' in heads:
+    #     config.'ball'
+
     train_data, val_data = build_DeepSportBall_datasets(
         pickled_dataset_filename=args.deepsport_pickled_dataset,
-        validation_set_size_pc=15, square_edge=args.square_edge, target_transforms=target_transforms, preprocess=preprocess)
+        validation_set_size_pc=15, square_edge=args.square_edge, target_transforms=target_transforms, preprocess=preprocess, config=heads)
 
     train_loader = torch.utils.data.DataLoader(
         train_data, batch_size=batch_size, shuffle=not args.debug,

@@ -51,7 +51,7 @@ class AddHumansSegmentationTargetViewFactory():
         return {"human_masks": view.human_masks}
 
 
-def build_DeepSportBall_datasets(pickled_dataset_filename, validation_set_size_pc, square_edge, target_transforms, preprocess):
+def build_DeepSportBall_datasets(pickled_dataset_filename, validation_set_size_pc, square_edge, target_transforms, preprocess, config=None):
     dataset = PickledDataset(pickled_dataset_filename)
     keys = list(dataset.keys.all())
     random.shuffle(keys)
@@ -82,7 +82,7 @@ def build_DeepSportBall_datasets(pickled_dataset_filename, validation_set_size_p
     #     )
     # ]
     transforms = [
-        ViewCropperTransform(output_shape=(400,400), def_min=60, def_max=160, max_angle=8, focus_object="ball"),
+        ViewCropperTransform(output_shape=(400,400), def_min=60, def_max=160, max_angle=8, focus_object="player"),
 
         ExtractViewData(
             AddBallPositionFactory(),
@@ -94,20 +94,26 @@ def build_DeepSportBall_datasets(pickled_dataset_filename, validation_set_size_p
     dataset = TransformedDataset(dataset, transforms)
 
     return \
-        DeepSportDataset(dataset, training_keys, target_transforms, preprocess), \
-        DeepSportDataset(dataset, validation_keys, target_transforms, preprocess)
+        DeepSportDataset(dataset, training_keys, target_transforms, preprocess, config), \
+        DeepSportDataset(dataset, validation_keys, target_transforms, preprocess, config)
 
 class DeepSportDataset(torch.utils.data.Dataset):
 
     map_categories = {1:1,3:37}
 
-    def __init__(self, dataset, keys, target_transforms=None, preprocess=None):
+    def __init__(self, dataset, keys, target_transforms=None, preprocess=None, config=None):
         self.dataset = dataset
         self.keys = keys
         self.target_transforms = target_transforms
         self.preprocess = preprocess
+        self.ball = False
+        
+        if config == None:
+            config = ['cif']
+        if 'ball' in config:
+            self.ball = True
 
-        self.ball = True
+        self.config = config[0]
         print('Number of images deepsport:', len(self.keys))
         # self.Get_number_of_images_with_ball()
         # print('Number of images deepsport:', len(self.keys))
@@ -191,78 +197,80 @@ class DeepSportDataset(torch.utils.data.Dataset):
         # plt.savefig('test.jpg')
         # print('human masks',data["human_masks"].shape)
         anns = []
-        if "x" in data:
-            anns = [add_ball_keypoint(build_empty_person(image_id), image.shape, data["x"], data["y"], data["visible"], data["mask"])]
-            # print(len(anns))
-            # print('shape kp_ball 1',anns[0]['kp_ball'].shape)
+        n_keypoints = 18 if self.config == 'cifcent' else 17
+        if self.ball:
+            if "x" in data:
+                anns = [add_ball_keypoint(build_empty_person(image_id,n_keypoints=n_keypoints), image.shape, data["x"], data["y"], data["visible"], data["mask"])]
+                # print(len(anns))
+                # print('shape kp_ball 1',anns[0]['kp_ball'].shape)
         meta = {
             'dataset_index': index,
             'image_id': image_id,
             'file_name': str(key),
         }
         
-
-        # annotation = data['human_masks']
-        # H, W = annotation.shape
-        # meshgrid = np.meshgrid(np.arange(H), np.arange(W), indexing='ij')
-        # meshgrid = np.stack(meshgrid, axis=-1)
-        
-        # ## keemotion.py (maxime)
-        # ins_id, id_c = np.unique(annotation, return_counts=True)
-        # for instance_id, id_count in zip(ins_id, id_c):
-        #     if instance_id < 1000 or id_count < 200:
-        #         continue
-        #     # print('count', id_count)
-        #     label = instance_id // 1000
-        #     category_id = self.map_categories[label]
-
-        #     iid = instance_id % 1000
-        #     mask = annotation == instance_id
-        #     is_crowd = iid == 0
-
-        #     coords = meshgrid[mask,:]
-        #     center = tuple(coords.mean(axis=0))[::-1]
-        #     y1, x1 = coords.min(axis=0)
-        #     y2, x2 = coords.max(axis=0)
-        #     w, h = x2-x1, y2-y1
-        #     x, y = x1+w/2, y1+h/2
-        #     bbox = (x, y, w, h)
-
-        #     keypoints = np.zeros((17,3))
-        #     kp_ball = np.zeros((1,3))
-        #     if label == 1:
-        #         keypoints[17,:] = (*center, 2)
-        #     elif label == 3 and self.ball:
-        #         kp_ball[:] = np.asarray((*center, 2))
-        #     # else:
-        #     #     pass
-        #     # kp_ball = []
-        #     # if self.ball:
+        if self.config in ['cif', 'cifcent']:
+            annotation = data['human_masks']
+            H, W = annotation.shape
+            meshgrid = np.meshgrid(np.arange(H), np.arange(W), indexing='ij')
+            meshgrid = np.stack(meshgrid, axis=-1)
             
-        #     # kp_ball = [0, 0, 0]
-        #     # if label == 3:
-        #     #     kp_ball = [data["x"], data["y"], data["visible"]]
+            ## keemotion.py (maxime)
+            ins_id, id_c = np.unique(annotation, return_counts=True)
+            for instance_id, id_count in zip(ins_id, id_c):
+                if instance_id < 1000 or id_count < 200:
+                    continue
+                # print('count', id_count)
+                label = instance_id // 1000
+                category_id = self.map_categories[label]
 
-        #         # raise NotImplementedError('Class label %d'%label)
-        #     # plt.figure()
-        #     # plt.imshow(mask.astype(np.int64))
+                iid = instance_id % 1000
+                mask = annotation == instance_id
+                is_crowd = iid == 0
 
-        #     # print('shape kp_ball 2', kp_ball.shape)
+                coords = meshgrid[mask,:]
+                center = tuple(coords.mean(axis=0))[::-1]
+                y1, x1 = coords.min(axis=0)
+                y2, x2 = coords.max(axis=0)
+                w, h = x2-x1, y2-y1
+                x, y = x1+w/2, y1+h/2
+                bbox = (x, y, w, h)
 
-        #     anns.append({
-        #         'num_keypoints': 1,
-        #         'area': coords.shape[0],
-        #         'iscrowd': is_crowd,
-        #         'bmask': mask.astype(np.int64),
-        #         'kp_ball': 3*[0],
-        #         'keypoints': keypoints,
-        #         'image_id': str(key),
-        #         'id': instance_id,
-        #         'category_id': category_id,
-        #         'bbox_original': bbox,
-        #         'bbox': bbox,
-        #         'put_nan': True
-        #     })
+                keypoints = np.zeros((n_keypoints,3))
+                kp_ball = np.zeros((1,3))
+                if label == 1:
+                    keypoints[17,:] = (*center, 2)
+                elif label == 3 and self.ball:
+                    kp_ball[:] = np.asarray((*center, 2))
+                # else:
+                #     pass
+                # kp_ball = []
+                # if self.ball:
+                
+                # kp_ball = [0, 0, 0]
+                # if label == 3:
+                #     kp_ball = [data["x"], data["y"], data["visible"]]
+
+                    # raise NotImplementedError('Class label %d'%label)
+                # plt.figure()
+                # plt.imshow(mask.astype(np.int64))
+
+                # print('shape kp_ball 2', kp_ball.shape)
+
+                anns.append({
+                    'num_keypoints': 1,
+                    'area': coords.shape[0],
+                    'iscrowd': is_crowd,
+                    'bmask': mask.astype(np.int64),
+                    'kp_ball': 3*[0],
+                    'keypoints': keypoints,
+                    'image_id': str(key),
+                    'id': instance_id,
+                    'category_id': category_id,
+                    'bbox_original': bbox,
+                    'bbox': bbox,
+                    'put_nan': True
+                })
         # print('length anns',len(anns))
         # raise
         # import matplotlib.pyplot as plt
