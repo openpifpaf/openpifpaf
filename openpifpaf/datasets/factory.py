@@ -21,6 +21,14 @@ COCO_IMAGE_DIR_TRAIN = '/data/mistasse/coco/images/train2017/'
 COCO_IMAGE_DIR_VAL = '/data/mistasse/coco/images/val2017/'
 KEEMOTION_DIR = '/data/mistasse/keemotion/km_complete_player_ball_full_res/'
 
+# COCOKP_ANNOTATIONS_TRAIN = '/scratch/mistasse/coco/annotations/person_keypoints_train2017.json'
+# COCOKP_ANNOTATIONS_VAL = '/scratch/mistasse/coco/annotations/person_keypoints_val2017.json'
+# COCODET_ANNOTATIONS_TRAIN = '/scratch/mistasse/coco/annotations/instances_train2017.json'
+# COCODET_ANNOTATIONS_VAL = '/scratch/mistasse/coco/annotations/instances_val2017.json'
+# COCO_IMAGE_DIR_TRAIN = '/scratch/mistasse/coco/images/train2017/'
+# COCO_IMAGE_DIR_VAL = '/scratch/mistasse/coco/images/val2017/'
+# KEEMOTION_DIR = '/scratch/mistasse/keemotion/km_complete_player_ball_full_res/'
+
 # COCOKP_ANNOTATIONS_TRAIN = 'data-mscoco/annotations/person_keypoints_train2017.json'
 # COCOKP_ANNOTATIONS_VAL = 'data-mscoco/annotations/person_keypoints_val2017.json'
 # COCODET_ANNOTATIONS_TRAIN = 'data-mscoco/annotations/instances_train2017.json'
@@ -65,6 +73,8 @@ def train_cli(parser):
 
     group.add_argument('--dataset-weights', default=None, nargs='+', type=float,
                        help='n-1 weights for the datasets')
+
+    group.add_argument('--focus-object', default='player')
 
     
 
@@ -312,7 +322,7 @@ def train_deepsport_factory(args, target_transforms, heads=None, batch_size=None
 
     train_data, val_data = build_DeepSportBall_datasets(
         pickled_dataset_filename=args.deepsport_pickled_dataset,
-        validation_set_size_pc=15, square_edge=args.square_edge, target_transforms=target_transforms, preprocess=preprocess, config=heads)
+        validation_set_size_pc=15, square_edge=args.square_edge, target_transforms=target_transforms, preprocess=preprocess, focus_object=args.focus_object, config=heads)
 
     train_loader = torch.utils.data.DataLoader(
         train_data, batch_size=batch_size, shuffle=not args.debug,

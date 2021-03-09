@@ -51,7 +51,7 @@ class AddHumansSegmentationTargetViewFactory():
         return {"human_masks": view.human_masks}
 
 
-def build_DeepSportBall_datasets(pickled_dataset_filename, validation_set_size_pc, square_edge, target_transforms, preprocess, config=None):
+def build_DeepSportBall_datasets(pickled_dataset_filename, validation_set_size_pc, square_edge, target_transforms, preprocess, focus_object, config=None):
     dataset = PickledDataset(pickled_dataset_filename)
     keys = list(dataset.keys.all())
     random_state = random.getstate()
@@ -63,7 +63,7 @@ def build_DeepSportBall_datasets(pickled_dataset_filename, validation_set_size_p
     random.seed(random_state)
 
     transforms = [
-        ViewCropperTransform(output_shape=(square_edge,square_edge), def_min=60, def_max=160, max_angle=8, focus_object="ball"),
+        ViewCropperTransform(output_shape=(square_edge,square_edge), def_min=50, def_max=100, max_angle=8, focus_object=focus_object),
 
         ExtractViewData(
             AddBallPositionFactory(),
