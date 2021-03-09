@@ -185,7 +185,6 @@ def main():
         )
     
     annotation_painter = show.AnnotationPainter(keypoint_painter=keypoint_painter)
-
     for batch_i, (image_tensors_batch, _, meta_batch) in enumerate(data_loader):
         pred_batch = processor.batch(model, image_tensors_batch, device=args.device)
 

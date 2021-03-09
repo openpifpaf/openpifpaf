@@ -37,7 +37,7 @@ class AnnotationPainter:
         # print(annotations[0])
 
         for ann_i, ann in enumerate(annotations):
-            print(ann.__class__.__name__)
+            #print(ann.__class__.__name__)
             by_classname[ann.__class__.__name__].append((ann_i, ann))
 
         for classname, i_anns in by_classname.items():
@@ -362,16 +362,17 @@ class KeypointCentPainter:
             self._draw_skeleton(ax, x, y, v, color='black', skeleton=frontier_skeleton,
                                 linestyle='dotted', linewidth=1)
 
-        skeleton = ann.skeleton
-        # if self.show_only_decoded_connections:
-        #     decoded_connections = set((jsi, jti) for jsi, jti, _, __ in ann.decoding_order)
-        #     skeleton_mask = [
-        #         (s - 1, e - 1) in decoded_connections or (e - 1, s - 1) in decoded_connections
-        #         for s, e in skeleton
-        #     ]
-        #     skeleton = [se for se, m in zip(skeleton, skeleton_mask) if m]
+        if hasattr(ann, "skeleton"):
+            skeleton = ann.skeleton
+            # if self.show_only_decoded_connections:
+            #     decoded_connections = set((jsi, jti) for jsi, jti, _, __ in ann.decoding_order)
+            #     skeleton_mask = [
+            #         (s - 1, e - 1) in decoded_connections or (e - 1, s - 1) in decoded_connections
+            #         for s, e in skeleton
+            #     ]
+            #     skeleton = [se for se, m in zip(skeleton, skeleton_mask) if m]
 
-        self._draw_skeleton(ax, x, y, v, color=color, skeleton=skeleton)
+            self._draw_skeleton(ax, x, y, v, color=color, skeleton=skeleton)
 
         if self.show_joint_scales and ann.joint_scales is not None:
             self._draw_scales(ax, x, y, v, color, ann.joint_scales)
