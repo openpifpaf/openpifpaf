@@ -54,11 +54,13 @@ class AddHumansSegmentationTargetViewFactory():
 def build_DeepSportBall_datasets(pickled_dataset_filename, validation_set_size_pc, square_edge, target_transforms, preprocess):
     dataset = PickledDataset(pickled_dataset_filename)
     keys = list(dataset.keys.all())
+    random_state = random.getstate()
+    random.setstate(0)
     random.shuffle(keys)
     lim = len(keys)*validation_set_size_pc//100
     training_keys = keys[lim:]
     validation_keys = keys[:lim]
-
+    random.setstate(random_state)
     # transforms = [
     #     ViewCropperTransform(output_shape=(square_edge,square_edge), def_min=100, def_max=150, on_ball=False, with_diff=False, with_masks=True),
     #     ExtractViewData(
