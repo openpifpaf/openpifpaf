@@ -30,7 +30,6 @@ class CifHr:
         if min_scale:
             p = p[:, p[4] > min_scale / stride]
 
-        print(len(p))
         v, x, y, _, scale = p
         x = x * stride
         y = y * stride
@@ -55,7 +54,7 @@ class CifHr:
             ta = np.zeros(shape, dtype=np.float32)
         else:
             ta = np.zeros(self.accumulated.shape, dtype=np.float32)
-        print(ta.shape)
+        #print(ta.shape)
         
         for cif in cifs:
             # print('fill',len(cif))
