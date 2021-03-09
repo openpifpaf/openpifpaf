@@ -210,7 +210,7 @@ def train_cocokpinst_preprocess_factory(
     if orientation_invariant:
         orientation_t = transforms.RandomApply(transforms.RotateBy90(), orientation_invariant)
 
-    print(heads)
+    print("heads:", heads)
     coco_keypoints_ = COCO_KEYPOINTS[:17]
     if 'cifball' in heads:
         coco_keypoints_ = COCO_KEYPOINTS[:17] + [COCO_KEYPOINTS[-1]]
@@ -265,7 +265,7 @@ def train_keemotion_preprocess_factory(
     if orientation_invariant:
         orientation_t = transforms.RandomApply(transforms.RotateBy90(), orientation_invariant)
 
-    print(heads)
+    print("heads2:", heads)
     coco_keypoints_ = COCO_KEYPOINTS[:17]
     if 'cifball' in heads:
         coco_keypoints_ = COCO_KEYPOINTS[:17] + [COCO_KEYPOINTS[-1]]
