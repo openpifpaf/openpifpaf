@@ -179,13 +179,17 @@ class DeepSportDataset(torch.utils.data.Dataset):
         if self.ball:
             if "x" in data:
                 anns = [add_ball_keypoint(build_empty_person(image_id,n_keypoints=n_keypoints), image.shape, data["x"], data["y"], data["visible"], data["mask"])]
+        
         meta = {
-            # 'ball_size': data["size"],
             'dataset_index': index,
             'image_id': image_id,
             'file_name': str(key),
         }
         
+        if "ball_size" in data:
+            meta['ball_size'] = data["size"]
+        
+
         if self.config in ['cif', 'cifcent']:
             # print('here')
             annotation = data['human_masks']
