@@ -309,10 +309,11 @@ class DeepSportDataset(torch.utils.data.Dataset):
             #     ann = t(image, anns, meta)
             #     anns_dict[ann['name']] = ann['value']
 
-        import pickle
-        pickle.dump((anns, image, meta), open("/tmp/auie.pickle", "wb"))
-        import time
-        time.sleep(0.1)
+        # import pickle
+        # pickle.dump((anns, image, meta), open("/tmp/auie.pickle", "wb"))
+        # import time
+        # print("sleeping 0.1 second")
+        # time.sleep(0.1)
         return image, anns, meta
 
 
