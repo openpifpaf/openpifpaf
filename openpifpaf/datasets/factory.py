@@ -74,7 +74,7 @@ def train_cli(parser):
     group.add_argument('--dataset-weights', default=None, nargs='+', type=float,
                        help='n-1 weights for the datasets')
 
-    group.add_argument('--focus-object', default='player')
+    group.add_argument('--focus-object', default=None)
 
     
 

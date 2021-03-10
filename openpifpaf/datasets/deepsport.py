@@ -51,7 +51,7 @@ class AddHumansSegmentationTargetViewFactory():
         return {"human_masks": view.human_masks}
 
 
-def build_DeepSportBall_datasets(pickled_dataset_filename, validation_set_size_pc, square_edge, target_transforms, preprocess, focus_object, config=None):
+def build_DeepSportBall_datasets(pickled_dataset_filename, validation_set_size_pc, square_edge, target_transforms, preprocess, focus_object=None, config=None):
     dataset = PickledDataset(pickled_dataset_filename)
     keys = list(dataset.keys.all())
     random_state = random.getstate()
@@ -63,7 +63,7 @@ def build_DeepSportBall_datasets(pickled_dataset_filename, validation_set_size_p
     random.seed(random_state)
 
     transforms = [
-        ViewCropperTransform(output_shape=(square_edge,square_edge), def_min=50, def_max=100, max_angle=8, focus_object=focus_object),
+        ViewCropperTransform(output_shape=(square_edge,square_edge), def_min=30, def_max=80, max_angle=8, focus_object=focus_object),
 
         ExtractViewData(
             AddBallPositionFactory(),
@@ -138,7 +138,6 @@ class DeepSportDataset(torch.utils.data.Dataset):
                 'num_keypoints': 0,
                 'area': 0, # dummy value
                 'iscrowd': 0,
-                'kp_ball': np.zeros((1,3)),
                 'keypoints': 3*n_keypoints*[0],
                 'image_id': image_id,
                 'bbox': [0, 0, 0, 0], # dummy values
@@ -151,11 +150,13 @@ class DeepSportDataset(torch.utils.data.Dataset):
             visiblity = 2 if visible else 0
             if x < 0 or y < 0 or x >= width or y >= height:
                 visiblity = 0
-            # print('111',ann['kp_ball'].shape)
-            ann['kp_ball'] = []
-            ann['kp_ball'].append(int(x))      # add center for y
-            ann['kp_ball'].append(int(y))      # add center for x
-            ann['kp_ball'].append(visiblity)
+
+            #key = "kp_ball"   # Custom CifBall decoding
+            key = "keypoints" # normal Cif decoding
+            ann[key] = []
+            ann[key].append(int(x))      # add center for y
+            ann[key].append(int(y))      # add center for x
+            ann[key].append(visiblity)
 
             # ann["kp_ball"][:] = np.asarray((int(x), int(y), visibility))
             # print('222',ann['kp_ball'].shape)
@@ -171,19 +172,12 @@ class DeepSportDataset(torch.utils.data.Dataset):
             return self[random.randint(0, len(self)-1)]
         image_id = key[0].timestamp
         image = data["input_image"]
-        # import matplotlib.pyplot as plt
-        # plt.figure()
-        # plt.imshow(image)
-        # print(np.unique(data['human_masks'], return_counts=True))
-        # plt.savefig('test.jpg')
-        # print('human masks',data["human_masks"].shape)
+        
         anns = []
         n_keypoints = 18 if self.config == 'cifcent' else 17
         if self.ball:
             if "x" in data:
                 anns = [add_ball_keypoint(build_empty_person(image_id,n_keypoints=n_keypoints), image.shape, data["x"], data["y"], data["visible"], data["mask"])]
-                # print(len(anns))
-                # print('shape kp_ball 1',anns[0]['kp_ball'].shape)
         meta = {
             'dataset_index': index,
             'image_id': image_id,
@@ -304,7 +298,10 @@ class DeepSportDataset(torch.utils.data.Dataset):
             #     ann = t(image, anns, meta)
             #     anns_dict[ann['name']] = ann['value']
 
-
+        # import pickle
+        # pickle.dump((anns, image, meta), open("/tmp/auie.pickle", "wb"))
+        # import time
+        # time.sleep(0.1)
         return image, anns, meta
 
 
