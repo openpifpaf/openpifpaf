@@ -104,8 +104,8 @@ class AnnRescaler(object):
             # print('in annrescaler', np.sum(visible))
             return 1    # return 1 as scale
 
-        # if self.n_keypoints == 1: # only for ball
-        #     return 1
+        if self.n_keypoints == 1: # only for ball
+            return 1
         # if self.n_keypoints == 2:   # when only ball as keypoint
         #     return 1
         elif np.sum(visible) < 3:
