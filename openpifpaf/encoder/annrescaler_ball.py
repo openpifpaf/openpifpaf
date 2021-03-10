@@ -48,12 +48,6 @@ class AnnRescalerBall(object):
             # raise
             return np.zeros((0, self.n_keypoints, 3))
 
-        # print(len(anns))
-        # print(len(keypoint_sets))
-        for i in range(len(keypoint_sets)):
-        #     print(keypoint_sets[i])
-            print(keypoint_sets[i].shape)
-
         keypoint_sets = np.stack(keypoint_sets)
         # print('keypoint_set shape in',keypoint_sets.shape)
         keypoint_sets[:, :, :2] /= self.stride
