@@ -41,7 +41,8 @@ class AddBallPositionFactory():
         if view_key.camera != ball.camera:
             return {}
         ball_2D = view.calib.project_3D_to_2D(ball.center)
-        return {"x": ball_2D.x, "y": ball_2D.y, "visible": ball.visible}
+        size = view.calib.compute_length2D(BALL_DIAMETER, ball.center)
+        return {"x": ball_2D.x, "y": ball_2D.y, "visible": ball.visible, "size": size}
 
 
 class AddHumansSegmentationTargetViewFactory():
@@ -68,7 +69,7 @@ def build_DeepSportBall_datasets(pickled_dataset_filename, validation_set_size_p
         ExtractViewData(
             AddBallPositionFactory(),
             AddBallSegmentationTargetViewFactory(),
-            AddHumansSegmentationTargetViewFactory()
+            AddHumansSegmentationTargetViewFactory(),
         )
     ]
 
@@ -179,6 +180,7 @@ class DeepSportDataset(torch.utils.data.Dataset):
             if "x" in data:
                 anns = [add_ball_keypoint(build_empty_person(image_id,n_keypoints=n_keypoints), image.shape, data["x"], data["y"], data["visible"], data["mask"])]
         meta = {
+            'ball_size': data["size"],
             'dataset_index': index,
             'image_id': image_id,
             'file_name': str(key),
@@ -186,6 +188,10 @@ class DeepSportDataset(torch.utils.data.Dataset):
         
         if self.config in ['cif', 'cifcent']:
             annotation = data['human_masks']
+            ball_map = data["mask"]
+            ball_class = 3001
+            annotation[annotation==0 and ball_map==1] = ball_class
+
             H, W = annotation.shape
             meshgrid = np.meshgrid(np.arange(H), np.arange(W), indexing='ij')
             meshgrid = np.stack(meshgrid, axis=-1)
@@ -298,10 +304,10 @@ class DeepSportDataset(torch.utils.data.Dataset):
             #     ann = t(image, anns, meta)
             #     anns_dict[ann['name']] = ann['value']
 
-        # import pickle
-        # pickle.dump((anns, image, meta), open("/tmp/auie.pickle", "wb"))
-        # import time
-        # time.sleep(0.1)
+        import pickle
+        pickle.dump((anns, image, meta), open("/tmp/auie.pickle", "wb"))
+        import time
+        time.sleep(0.1)
         return image, anns, meta
 
 

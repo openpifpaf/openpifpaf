@@ -92,7 +92,7 @@ class AnnRescaler(object):
 
         return mask
 
-    def scale(self, keypoints):
+    def scale(self, keypoints, meta=None):
         # print('in annrescaler', len(keypoints))
         # print(self.pose.shape)
         # if self.ball == True:
@@ -105,6 +105,8 @@ class AnnRescaler(object):
             return 1    # return 1 as scale
 
         if self.n_keypoints == 1: # only for ball
+            if meta and "ball_size" in meta:
+                return meta["ball_size"]
             return 1
         # if self.n_keypoints == 2:   # when only ball as keypoint
         #     return 1
