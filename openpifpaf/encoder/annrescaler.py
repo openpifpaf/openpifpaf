@@ -46,8 +46,8 @@ class AnnRescaler(object):
 
         # print(len(anns))
         # print(len(keypoint_sets))
-        # for i in range(len(keypoint_sets)):
-        #     print(keypoint_sets[i].shape)
+        for i in range(len(keypoint_sets)):
+            print(keypoint_sets[i].shape)
 
         keypoint_sets = np.stack(keypoint_sets)
         keypoint_sets[:, :, :2] /= self.stride

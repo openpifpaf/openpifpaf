@@ -90,8 +90,8 @@ class DeepSportDataset(torch.utils.data.Dataset):
         self.preprocess = preprocess
         self.ball = False
         
-        if config == None:
-            config = ['cif']
+
+        print(config)
         if 'ball' in config:
             self.ball = True
 
@@ -152,8 +152,8 @@ class DeepSportDataset(torch.utils.data.Dataset):
             if x < 0 or y < 0 or x >= width or y >= height:
                 visiblity = 0
 
-            #key = "kp_ball"   # Custom CifBall decoding
-            key = "keypoints" # normal Cif decoding
+            key = "kp_ball"   # Custom CifBall decoding
+            # key = "keypoints" # normal Cif decoding
             ann[key] = []
             ann[key].append(int(x))      # add center for y
             ann[key].append(int(y))      # add center for x
@@ -180,13 +180,14 @@ class DeepSportDataset(torch.utils.data.Dataset):
             if "x" in data:
                 anns = [add_ball_keypoint(build_empty_person(image_id,n_keypoints=n_keypoints), image.shape, data["x"], data["y"], data["visible"], data["mask"])]
         meta = {
-            'ball_size': data["size"],
+            # 'ball_size': data["size"],
             'dataset_index': index,
             'image_id': image_id,
             'file_name': str(key),
         }
         
         if self.config in ['cif', 'cifcent']:
+            # print('here')
             annotation = data['human_masks']
             ball_map = data["mask"]
             ball_class = 3001

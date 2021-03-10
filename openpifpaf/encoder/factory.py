@@ -77,7 +77,7 @@ def factory_head(head_net: network.heads.CompositeField, basenet_stride):
         # if meta.name in ['cifcentball', 'cifball']:
         #     ball = True
         # # print('!!!!!!!!!!!!!',ball)
-        if False:#meta.name == 'ball':
+        if meta.name == 'ball':
             print('!!!!!!! BALL !!!!!!')
             return CifBall(AnnRescalerBall(stride, len(meta.keypoints), meta.pose),
                     name=meta.name,
