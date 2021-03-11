@@ -55,14 +55,9 @@ class Trainer(object):
         ### tb stuff
         tb_datetime = datetime.datetime.now()
         tb_hostname = socket.gethostname()
-<<<<<<< HEAD
-        self.tb_filename = 'runs/'+str(tb_datetime)+str(tb_hostname)
-        # self.tb_filename = 'runs/2021-03-10 16:02:26.542041mb-cas001.cism.ucl.ac.be'
-=======
         checkpoint = torch.load(self.train_args.checkpoint) if self.train_args.checkpoint else None
         filename = checkpoint["tb_filename"] if checkpoint and "tb_filename" in checkpoint else os.path.basename(self.train_args.output)
         self.tb_filename = os.path.join('runs', filename)
->>>>>>> 44c16130c78322dc8f62f376183845bd66cf2c90
         self.writer = SummaryWriter(self.tb_filename)
         self.LOSS_NAMES = ['PIF Confidence', 'PIF Localization', 'PIF Scale', 'PAN Semantic', 'PAN Offset', 'PIF Ball Confidence', 'PIF Ball Localization', 'PIF Ball Scale']
 
