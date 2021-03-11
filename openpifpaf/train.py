@@ -152,6 +152,7 @@ def main():
             'version': __version__,
             'hostname': socket.gethostname(),
         },
+        train_args=args
     )
     trainer.loop(train_loader, val_loader, args.epochs, start_epoch=start_epoch)
     trainer.close_tb()

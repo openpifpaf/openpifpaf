@@ -1,5 +1,5 @@
 """Train a pifpaf net."""
-
+import os
 import copy
 import hashlib
 import logging
@@ -32,7 +32,8 @@ class Trainer(object):
                  stride_apply=1,
                  ema_decay=None,
                  train_profile=None,
-                 model_meta_data=None):
+                 model_meta_data=None,
+                 train_args=None):
         self.model = model
         self.loss = loss
         self.optimizer = optimizer
@@ -49,11 +50,14 @@ class Trainer(object):
         self.ema_restore_params = None
 
         self.model_meta_data = model_meta_data
+        self.train_args = train_args
 
         ### tb stuff
         tb_datetime = datetime.datetime.now()
         tb_hostname = socket.gethostname()
-        self.tb_filename = 'runs/'+str(tb_datetime)+str(tb_hostname)
+        checkpoint = torch.load(self.train_args.checkpoint) if self.train_args.checkpoint else None
+        filename = checkpoint["tb_filename"] if checkpoint and "tb_filename" in checkpoint else os.path.basename(self.train_args.output)
+        self.tb_filename = os.path.join('runs', filename)
         self.writer = SummaryWriter(self.tb_filename)
         self.LOSS_NAMES = ['PIF Confidence', 'PIF Localization', 'PIF Scale', 'PAN Semantic', 'PAN Offset', 'PIF Ball Confidence', 'PIF Ball Localization', 'PIF Ball Scale']
 
@@ -72,7 +76,6 @@ class Trainer(object):
                 prof.export_chrome_trace(tracefilename)
                 return result
             self.train_batch = train_batch_with_profile
-
         LOG.info({
             'type': 'config',
             # 'field_names': self.loss.field_names,
