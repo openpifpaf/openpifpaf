@@ -65,7 +65,8 @@ class CifPan(Generator):
                  out_skeleton=None,
                  confidence_scales=None,
                  worker_pool=None,
-                 nms=True
+                 nms=True,
+                 kp_ball=None,
                 ):
         super().__init__(worker_pool)
         if nms is True:
@@ -74,6 +75,9 @@ class CifPan(Generator):
         self.field_config = field_config
 
         self.keypoints = keypoints
+        self.kp_ball = kp_ball
+        if self.kp_ball is not None:
+            self.ball = True 
         # self.skeleton = skeleton
         # self.skeleton_m1 = np.asarray(skeleton) - 1
         self.out_skeleton = out_skeleton
@@ -97,6 +101,7 @@ class CifPan(Generator):
         semantic, offsets = pan['semantic'], pan['offset']
 
         Ci, Bi = (17, object()) if self.ball else (17, 18)
+        # Ci, Bi = (17, object()) if self.ball else (17, 0)
 
         start = time.perf_counter()
         if not initial_annotations:
@@ -152,6 +157,7 @@ class CifPan(Generator):
 
         absolute = offsets + np.stack(np.meshgrid(np.arange(offsets.shape[1]),
                                                   np.arange(offsets.shape[2]), indexing='ij'))
+        
         plt.imshow(offsets_to_colorwheel(offsets[None])[0])
         plt.show()
 
@@ -232,6 +238,7 @@ class CifPan(Generator):
 
         if self.ball:
             for f, y, x, v in ball_fyxv:
+                print('fff', f)
                 annotation = Annotation().add(f, (x, y, v))
                 annotation.cls = 37# semantic[:,centroid_mask].sum(axis=1).argmax(axis=0)
                 annotation.mask = None

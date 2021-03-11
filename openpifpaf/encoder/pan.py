@@ -129,6 +129,7 @@ class PanopticTargetGenerator(object):
 
             if cat_id in self.thing_list:           # decide if consider ball or not
                 seman_id = self.catId2semanId(cat_id)
+                # print(seman_id)
                 # assert seman_id == 1, seman_id
                 if self.ignore_crowd_in_semantic:
                     if not seg['iscrowd']:

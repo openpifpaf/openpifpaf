@@ -54,6 +54,7 @@ class Trainer(object):
         tb_datetime = datetime.datetime.now()
         tb_hostname = socket.gethostname()
         self.tb_filename = 'runs/'+str(tb_datetime)+str(tb_hostname)
+        # self.tb_filename = 'runs/2021-03-10 16:02:26.542041mb-cas001.cism.ucl.ac.be'
         self.writer = SummaryWriter(self.tb_filename)
         self.LOSS_NAMES = ['PIF Confidence', 'PIF Localization', 'PIF Scale', 'PAN Semantic', 'PAN Offset', 'PIF Ball Confidence', 'PIF Ball Localization', 'PIF Ball Scale']
 

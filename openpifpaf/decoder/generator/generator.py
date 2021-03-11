@@ -87,6 +87,8 @@ class Generator:
         """From image batch straight to annotations batch."""
         start_nn = time.perf_counter()
         fields_batch = self.fields_batch(model, image_batch, device=device)
+        # print('fields batch',len(fields_batch[0]))
+        # print('fields batch',fields_batch)
         self.last_nn_time = time.perf_counter() - start_nn
 
         if not isinstance(self.worker_pool, DummyPool):

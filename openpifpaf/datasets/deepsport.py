@@ -134,7 +134,7 @@ class DeepSportDataset(torch.utils.data.Dataset):
         LOG.info('... done.')
 
     def __getitem__(self, index):
-        def build_empty_person(image_id, n_keypoints=17, category_id=1):
+        def build_empty_person(image_id, n_keypoints=17, category_id=37):
             return {
                 'num_keypoints': 0,
                 'area': 0, # dummy value
@@ -164,7 +164,8 @@ class DeepSportDataset(torch.utils.data.Dataset):
             ann["bmask"] = mask
             return ann
         key = self.keys[index]
-
+        # print(index)
+        # print(key)
         data = self.dataset.query_item(key)
         # data2 = self.dataset.query_item(key)
         
@@ -185,7 +186,7 @@ class DeepSportDataset(torch.utils.data.Dataset):
             'image_id': image_id,
             'file_name': str(key),
         }
-        
+        print(str(key))
         if "ball_size" in data:
             meta['ball_size'] = data["size"]
         
@@ -193,21 +194,27 @@ class DeepSportDataset(torch.utils.data.Dataset):
         if self.config in ['cif', 'cifcent']:
             # print('here')
             annotation = data['human_masks']
-            ball_map = data["mask"]
-            ball_class = 3001
-            annotation[annotation==0 and ball_map==1] = ball_class
-
+            if self.ball:
+                ball_map = data["mask"]
+                ball_class = 3001
+                # annotation[annotation == 0 and ball_map == 1] = ball_class
+                ball_map = copy.deepcopy(annotation - ball_map)
+                annotation = np.where(ball_map > 5000, ball_class, annotation)  # because annotation is uint
+                # if np.all(ball_map < 5000):
+                #     print(key)
             H, W = annotation.shape
             meshgrid = np.meshgrid(np.arange(H), np.arange(W), indexing='ij')
             meshgrid = np.stack(meshgrid, axis=-1)
             
+            anns = []
             ## keemotion.py (maxime)
             ins_id, id_c = np.unique(annotation, return_counts=True)
             for instance_id, id_count in zip(ins_id, id_c):
-                if instance_id < 1000 or id_count < 200:
+                if instance_id < 1000 or id_count < 10:
                     continue
                 # print('count', id_count)
                 label = instance_id // 1000
+                # print(label)
                 category_id = self.map_categories[label]
 
                 iid = instance_id % 1000
@@ -227,7 +234,9 @@ class DeepSportDataset(torch.utils.data.Dataset):
                 if label == 1:
                     keypoints[17,:] = (*center, 2)
                 elif label == 3 and self.ball:
+                    
                     kp_ball[:] = np.asarray((*center, 2))
+                    # print(kp_ball)
                 # else:
                 #     pass
                 # kp_ball = []
@@ -248,7 +257,7 @@ class DeepSportDataset(torch.utils.data.Dataset):
                     'area': coords.shape[0],
                     'iscrowd': is_crowd,
                     'bmask': mask.astype(np.int64),
-                    'kp_ball': 3*[0],
+                    'kp_ball': kp_ball,
                     'keypoints': keypoints,
                     'image_id': str(key),
                     'id': instance_id,

@@ -47,9 +47,10 @@ def factory_head(head_net: network.heads.CompositeField, basenet_stride):
     if isinstance(meta, network.heads.PanopticDeeplabMeta):
         LOG.info('selected encoder PAN')
         
-        coco_panoptic_thing_list = _COCO_PANOPTIC_THING_LIST
-        if meta.num_classes[0] == 2:
-            coco_panoptic_thing_list = [_COCO_PANOPTIC_THING_LIST[0]]
+        # coco_panoptic_thing_list = _COCO_PANOPTIC_THING_LIST
+        # if meta.num_classes[0] == 2:
+        #     coco_panoptic_thing_list = [_COCO_PANOPTIC_THING_LIST[0]]
+        coco_panoptic_thing_list = [_COCO_PANOPTIC_THING_LIST[0]]       # to avoid having ball in semantic mask
 
         return PanopticTargetGenerator(coco_panoptic_thing_list,
                         sigma=8, ignore_stuff_in_offset=True,

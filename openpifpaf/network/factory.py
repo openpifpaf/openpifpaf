@@ -135,8 +135,12 @@ def factory(
     if isinstance(net_cpu.head_nets[0].meta, heads.DetectionMeta):
         net_cpu.process_heads = heads.CifdetCollector(cif_indices)
 
-    elif len(net_cpu.head_nets) > 1 and isinstance(net_cpu.head_nets[1].meta, heads.PanopticDeeplabMeta):
+    elif len(net_cpu.head_nets) == 2 and isinstance(net_cpu.head_nets[1].meta, heads.PanopticDeeplabMeta):
         net_cpu.process_heads = heads.CifPanCollector(cif_indices)
+    
+    elif len(net_cpu.head_nets) == 3 and isinstance(net_cpu.head_nets[1].meta, heads.PanopticDeeplabMeta):
+        net_cpu.process_heads = heads.CifPanBallCollector(cif_indices)
+        # net_cpu.process_heads = heads.CifPanCollector(cif_indices)
 
     else:
         net_cpu.process_heads = heads.CifCafCollector(cif_indices, caf_indices)
