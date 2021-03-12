@@ -34,9 +34,9 @@ SKELETON_ORIG = [
     [49, 46], [49, 8], [49, 57], [8, 0], [8, 11], [57, 0], [57, 52], [0, 5], [52, 5], [5, 7],            # frontal
     [7, 20], [11, 23], [20, 23], [23, 25], [34, 32], [9, 11], [9, 7], [9, 20], [7, 0], [9, 0], [9, 8],  # L-lat
     [24, 33], [24, 25], [24, 11], [25, 32], [25, 28], [33, 32], [33, 46], [32, 29], [28, 29],            # rear
-    [65, 64], [65, 25], [65, 28], [65, 20], [64, 29], [64, 32], [64, 37],  [29, 37], [28, 20],         # new rear
-    [34, 37], [34, 46], [37, 50], [50, 52], [46, 48], [48, 37], [48, 49], [50, 57], [48, 57], [48, 50]  # R-la
-    ]
+    [65, 64], [65, 25], [65, 28], [65, 20], [64, 29], [64, 32], [64, 37], [29, 37], [28, 20],         # new rear
+    [34, 37], [34, 46], [37, 50], [50, 52], [46, 48], [48, 37], [48, 49], [50, 57], [48, 57], [48, 50]
+]
 
 
 KPS_MAPPING = [49, 8, 57, 0, 52, 5, 11, 7, 20, 23, 24, 33, 25, 32, 28, 29, 46, 34, 37, 50, 65, 64, 9, 48]
@@ -87,10 +87,10 @@ CAR_POSE = np.array([
     [-2.0, 2.0, 2.0],  # 'front_light_right',           # 3
     [2.0, 2.0, 2.0],  # 'front_light_left',             # 4
     [-2.5, 0.0, 2.0],  # 'front_low_right',             # 5
-    [2.5, 0.0,  2.0],  # 'front_low_left',              # 6
+    [2.5, 0.0, 2.0],  # 'front_low_left',              # 6
     [2.6, 4.2, 2.0],  # 'central_up_left'     # 7
-    [3.2, 0.2,  2.0],  # 'front_wheel_left',           # 8
-    [3.0, 0.3,  2.0],   # 'rear_wheel_left'      # 9
+    [3.2, 0.2, 2.0],  # 'front_wheel_left',           # 8
+    [3.0, 0.3, 2.0],   # 'rear_wheel_left'      # 9
     [3.1, 2.1, 2.0],   # 'rear_corner_left',          # 10
     [2.4, 4.3, 2.0],  # 'rear_up_left',       # 11
     [-2.4, 4.3, 2.0],  # 'rear_up_right'      # 12
@@ -114,10 +114,10 @@ CAR_POSE_FRONT = np.array([
     [-1.3, 2.0, 2.0],  # 'front_light_right',    # 3
     [1.3, 2.0, 2.0],  # 'front_light_left',     # 4
     [-2.2, 0.0, 2.0],  # 'front_low_right',       # 5
-    [2.2, 0.0,  2.0],  # 'front_low_left',       # 6
-    [2.0 - p/2, 4.0 + p, 1.0],  # 'central_up_left',      # 7
-    [2.0 + p, 0.1 - p/2,  1.0],  # 'front_wheel_left',     # 8
-    [2, 0.1,  0.0],  # 'rear_wheel_left',      # 9
+    [2.2, 0.0, 2.0],  # 'front_low_left',       # 6
+    [2.0 - p / 2, 4.0 + p, 1.0],  # 'central_up_left',      # 7
+    [2.0 + p, 0.1 - p / 2, 1.0],  # 'front_wheel_left',     # 8
+    [2, 0.1, 0.0],  # 'rear_wheel_left',      # 9
     [2.6, 1.7, 0.0],   # 'rear_corner_left',          # 10
     [2.0, 4.1, 0.0],  # 'rear_up_left',         # 11
     [-2.0, 4.0, 0.0],  # 'rear_up_right',        # 12
@@ -125,10 +125,10 @@ CAR_POSE_FRONT = np.array([
     [-2.1, 1.9, 0.0],  # 'rear_right_right',     # 14
     [2.4, 0.1, 0.0],  # 'rear_low_left',        # 15
     [-2.4, 0.1, 0.0],  # 'rear_low_right',       # 16
-    [-2.0 + p/2, 4.0 + p, 1.0],  # 'central_up_right',     # 17
+    [-2.0 + p / 2, 4.0 + p, 1.0],  # 'central_up_right',     # 17
     [-2.6, 1.75, 0.0],  # 'rear_corner_right',           # 18
     [-2, 0.0, 0.0],  # 'rear_wheel_right',     # 19
-    [-2 - p, 0.0 - p/2, 1.0],  # 'front_wheel_right',     # 20
+    [-2 - p, 0.0 - p / 2, 1.0],  # 'front_wheel_right',     # 20
 ])
 
 CAR_POSE_REAR = np.array([
@@ -137,37 +137,37 @@ CAR_POSE_REAR = np.array([
     [-1.3, 2.0, 0.0],  # 'front_light_right',    # 3
     [1.3, 2.0, 0.0],  # 'front_light_left',     # 4
     [-2.2, 0.0, 0.0],  # 'front_low_right',       # 5
-    [2.2, 0.0,  0.0],  # 'front_low_left',       # 6
-    [-2.0+p, 4.0+p, 2.0],  # 'central_up_left',      # 7
-    [2, 0.0,  0.0],  # 'front_wheel_left',     # 8
-    [2, 0.0,  0.0],  # 'rear_wheel_left',      # 9
-    [-1.6-p, 2.2-p, 2.0],   # 'rear_corner_left',     # 10
+    [2.2, 0.0, 0.0],  # 'front_low_left',       # 6
+    [-2.0 + p, 4.0 + p, 2.0],  # 'central_up_left',      # 7
+    [2, 0.0, 0.0],  # 'front_wheel_left',     # 8
+    [2, 0.0, 0.0],  # 'rear_wheel_left',      # 9
+    [-1.6 - p, 2.2 - p, 2.0],   # 'rear_corner_left',     # 10
     [-2.0, 4.0, 2.0],  # 'rear_up_left',         # 11
     [2.0, 4.0, 2.0],  # 'rear_up_right',        # 12
     [-1.6, 2.2, 2.0],   # 'rear_light_left',      # 13
     [1.6, 2.2, 2.0],  # 'rear_right_right',     # 14
     [-2.4, 0.0, 2.0],  # 'rear_low_left',        # 15
     [2.4, 0.0, 2.0],  # 'rear_low_right',       # 16
-    [2.0-p, 4.0+p, 2.0],  # 'central_up_right',     # 17
-    [1.6+p, 2.2-p, 2.0],  # 'rear_corner_right', # 18
+    [2.0 - p, 4.0 + p, 2.0],  # 'central_up_right',     # 17
+    [1.6 + p, 2.2 - p, 2.0],  # 'rear_corner_right', # 18
     [-2, 0.0, 0.0],  # 'rear_wheel_right',     # 19
     [-2, 0.0, 0.0],  # 'front_wheel_right',     # 20
 ])
 
 CAR_POSE_LEFT = np.array([
     [-2.0, 4.0, 0.0],  # 'front_up_right',         # 1
-    [0 - 5*p, 4.0 - p/2, 2.0],   # 'front_up_left',        # 2
+    [0 - 5 * p, 4.0 - p / 2, 2.0],   # 'front_up_left',        # 2
     [-1.3, 2.0, 0.0],  # 'front_light_right',    # 3
     [1.3, 2.0, 0.0],  # 'front_light_left',     # 4
     [-2.2, 0.0, 0.0],  # 'front_low_right',       # 5
-    [-4-3*p, 0.0,  2.0],   # 'front_low_left',       # 6
+    [-4 - 3 * p, 0.0, 2.0],   # 'front_low_left',       # 6
     [0, 4.0, 2.0],  # 'central_up_left',      # 7
-    [-4, 0.0,  2.0],  # 'front_wheel_left',     # 8
-    [4, 0.0,  2.0],  # 'rear_wheel_left',      # 9
+    [-4, 0.0, 2.0],  # 'front_wheel_left',     # 8
+    [4, 0.0, 2.0],  # 'rear_wheel_left',      # 9
     [5, 2, 2.0],  # 'rear_corner_left',     # 10
-    [0 + 5*p, 4.0-p/2, 2.0],  # 'rear_up_left',  # 11
+    [0 + 5 * p, 4.0 - p / 2, 2.0],  # 'rear_up_left',  # 11
     [2.0, 4.0, 0.0],  # 'rear_up_right',        # 12
-    [5+p, 2+p, 1.0],   # 'rear_light_left',      # 13
+    [5 + p, 2 + p, 1.0],   # 'rear_light_left',      # 13
     [1.6, 2.2, 0.0],  # 'rear_right_right',     # 14
     [-2.4, 0.0, 0.0],  # 'rear_low_left',        # 15
     [2.4, 0.0, 0.0],  # 'rear_low_right',       # 16
@@ -179,20 +179,20 @@ CAR_POSE_LEFT = np.array([
 
 
 CAR_POSE_RIGHT = np.array([
-    [0 + 5*p, 4.0-p/2, 2.0],  # 'front_up_right',         # 1
+    [0 + 5 * p, 4.0 - p / 2, 2.0],  # 'front_up_right',         # 1
     [0, 4.0, 0.0],   # 'front_up_left',        # 2
     [-1.3, 2.0, 0.0],  # 'front_light_right',    # 3
     [1.3, 2.0, 0.0],  # 'front_light_left',     # 4
-    [4 + 3*p, 0.0,  2.0],  # 'front_low_right',       # 5
-    [-4-3, 0.0,  0.0],   # 'front_low_left',       # 6
+    [4 + 3 * p, 0.0, 2.0],  # 'front_low_right',       # 5
+    [-4 - 3, 0.0, 0.0],   # 'front_low_left',       # 6
     [0, 4.0, 0.0],  # 'central_up_left',      # 7
-    [-4, 0.0,  0.0],  # 'front_wheel_left',     # 8
-    [4, 0.0,  0.0],  # 'rear_wheel_left',      # 9
+    [-4, 0.0, 0.0],  # 'front_wheel_left',     # 8
+    [4, 0.0, 0.0],  # 'rear_wheel_left',      # 9
     [5, 2, 0.0],  # 'rear_corner_left',     # 10
     [0 + 5, 4.0, 0.0],  # 'rear_up_left',  # 11
-    [0 - 5*p, 4.0-p/2, 2.0],  # 'rear_up_right',        # 12
+    [0 - 5 * p, 4.0 - p / 2, 2.0],  # 'rear_up_right',        # 12
     [5, 2, 0.0],   # 'rear_light_left',      # 13
-    [-5-p, 2.0+p, 2.0],  # 'rear_light_right',     # 14
+    [-5 - p, 2.0 + p, 2.0],  # 'rear_light_right',     # 14
     [-2.4, 0.0, 0.0],  # 'rear_low_left',        # 15
     [2.4, 0.0, 0.0],  # 'rear_low_right',       # 16
     [0.0, 4.0, 2.0],  # 'central_up_right',     # 17

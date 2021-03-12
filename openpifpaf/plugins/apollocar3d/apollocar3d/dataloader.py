@@ -49,6 +49,7 @@ class Apollo(torch.utils.data.Dataset):
 
     def filter_for_annotations(self, *, min_kp_anns=0):
         LOG.info('filter for annotations (min kp=%d) ...', min_kp_anns)
+
         def filter_image(image_id):
             ann_ids = self.coco.getAnnIds(imgIds=image_id, catIds=self.category_ids)
             anns = self.coco.loadAnns(ann_ids)

@@ -13,14 +13,12 @@ class MeanPixelError(Base):
     """
     Calculate mean pixel error and detection rate for a given image and category in an "all-vs-all setting"
     """
-    
     predictions = []
     image_ids = []
     errors = []  # mean pixel errors
     detections = []  # detection rate
     errors_scaled = []  # mean pixel errors
     detections_scaled = []  # detection rate
-
     px_ref = 368  # CPM crop size in pixels
 
     def __init__(self):  # pylint: disable=useless-super-delegation
@@ -48,7 +46,7 @@ class MeanPixelError(Base):
                         preds = np.array([p.data[idx] for p in predictions]).reshape(-1, 3)[:, 0:2]
                         if preds.size > 0:
                             i = np.argmin(np.linalg.norm(preds - gt, axis=1))
-                            dist = preds[i:i+1] - gt
+                            dist = preds[i:i + 1] - gt
                             dist_scaled = dist * scale
                             d = float(np.linalg.norm(dist, axis=1))
                             d_scaled = float(np.linalg.norm(dist_scaled, axis=1))
@@ -119,7 +117,7 @@ def hungarian_matching(gts, predictions, thresh=0.5):
     row, cols = optimize.linear_sum_assignment(cost)
     return row, cols, cost
 
-  
+
 def average(my_list):
     """calculate mean of a list"""
     try:
@@ -127,4 +125,3 @@ def average(my_list):
         return out
     except ZeroDivisionError:
         return None
-
