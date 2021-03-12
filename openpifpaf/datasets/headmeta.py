@@ -15,9 +15,9 @@ def factory(head_names, basename=None):
         return None
 
     num_sem_classes = 2
-    # if 'cifball' in head_names or 'cifcentball' in head_names or ('cifcent' in head_names and 'ball' in head_names):      # handle num classes in panoptic head
-    #     num_sem_classes = 3
-    # print('in headmeta num_class', num_sem_classes)
+    if 'cifball' in head_names or 'cifcentball' in head_names or ('cifcent' in head_names and 'ball' in head_names):      # handle num classes in panoptic head
+        num_sem_classes = 3
+    print('Number of classes in semantic mask:', num_sem_classes)
 
     return [factory_single(hn, num_sem_classes=num_sem_classes, basename=basename) for hn in head_names]
 

@@ -196,8 +196,8 @@ class CifPanBall(Generator):
             for y, x in ball_fyxv[Bi]
         ]
         keypoints_fyxiv = [
-            # (f, y, x, instances[y,x], cifhr.accumulated[f,y,x])
-            (f, y, x, instances[y,x], 2.)
+            (f, y, x, instances[y,x], cifhr.accumulated[f,y,x])
+            # (f, y, x, instances[y,x], 2.)
             for f, kp_yx in enumerate(keypoints_yx[:Ci])
             for y, x in kp_yx
         ]
