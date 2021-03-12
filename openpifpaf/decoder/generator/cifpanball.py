@@ -186,8 +186,8 @@ class CifPanBall(Generator):
 
         # For each detected keypoints, get its confidence and instance
         centers_fyxv = [
-            # (Ci, y, x, cifhr.accumulated[Ci,y,x])
-            (Ci, y, x, 2.)
+            (Ci, y, x, cifhr.accumulated[Ci,y,x])
+            # (Ci, y, x, 2.)
             for y, x in keypoints_yx[Ci]
         ]
         # if self.ball:
@@ -237,7 +237,7 @@ class CifPanBall(Generator):
         panoptic = classes*1000 + instances
         # plt.figure(figsize=(20,20))
         # print('show')
-        plt.figure(figsize=(20,20))
+        # plt.figure(figsize=(20,20))
         inssss = np.zeros_like(panoptic)
         ids = np.random.permutation(len(annotations))
         for i in range(len(annotations)):
@@ -247,10 +247,10 @@ class CifPanBall(Generator):
             annotation.cls = 1# semantic[:,centroid_mask].sum(axis=1).argmax(axis=0)
             annotation.mask = centroid_mask
             inssss += (ids[i]+1)*centroid_mask       # to plot instances
-        plt.imshow(inssss)
-        plt.colorbar()
-        plt.show()
-        print('show')
+        # plt.imshow(inssss)
+        # plt.colorbar()
+        # plt.show()
+        # print('show')
 
         # if self.ball:
         for f, y, x, v in ball_fyxv:
@@ -294,6 +294,7 @@ class CifPanBall(Generator):
                 keypoints_fyxiv=keypoints_fyxiv,
                 centers_fyxv=centers_fyxv,
                 annotations=annotations,
+                fields=fields,
             )
         return annotations
     
