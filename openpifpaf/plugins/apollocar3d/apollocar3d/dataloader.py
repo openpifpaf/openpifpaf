@@ -1,5 +1,4 @@
 
-from collections import defaultdict
 import copy
 import logging
 import os
@@ -36,6 +35,10 @@ class Apollo(torch.utils.data.Dataset):
         self.category_ids = category_ids
 
         self.ids = self.coco.getImgIds(catIds=self.category_ids)
+        if annotation_filter:
+            self.filter_for_annotations(min_kp_anns=min_kp_anns)
+        elif min_kp_anns:
+            raise Exception('only set min_kp_anns with annotation_filter')
 
         if n_images:
             self.ids = self.ids[:n_images]
@@ -45,7 +48,6 @@ class Apollo(torch.utils.data.Dataset):
 
     def filter_for_annotations(self, *, min_kp_anns=0):
         LOG.info('filter for annotations (min kp=%d) ...', min_kp_anns)
-
         def filter_image(image_id):
             ann_ids = self.coco.getAnnIds(imgIds=image_id, catIds=self.category_ids)
             anns = self.coco.loadAnns(ann_ids)
