@@ -10,11 +10,28 @@ import json
 import argparse
 import shutil
 
-import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 from PIL import Image
-import cv2
+
+# Packages for data processing, crowd annotations and histograms
+try:
+    import matplotlib.pyplot as plt  # pylint: disable=import-error
+except ModuleNotFoundError as err:
+    if err.name != 'matplotlib':
+        raise err
+    plt = None
+try:
+    import pandas as pd  # pylint: disable=import-error
+except ModuleNotFoundError as err:
+    if err.name != 'pandas':
+        raise err
+    pd = None
+try:
+    import cv2  # pylint: disable=import-error
+except ModuleNotFoundError as err:
+    if err.name != 'cv2':
+        raise err
+    cv2 = None
 
 from .constants import CAR_KEYPOINTS, CAR_SKELETON, KPS_MAPPING
 from .transforms import skeleton_mapping
@@ -77,6 +94,9 @@ class ApolloToCoco:
 
     def process(self):
         """Parse and process the txt dataset into a single json file compatible with coco format"""
+        if pd is None:
+            raise Exception('please install pandas')
+
         for phase, im_paths in self.splits.items():  # Train and Val
             cnt_images = 0
             cnt_instances = 0
@@ -153,6 +173,10 @@ class ApolloToCoco:
         return (width, height), im_name, im_id
 
     def _process_mask(self, mask_path, im_id):
+        """Mask crowd annotations"""
+        if cv2 is None:
+            raise Exception('OpenCV')
+
         image = cv2.imread(mask_path)
         im_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         blur = cv2.GaussianBlur(im_gray, (0, 0), sigmaX=3, sigmaY=3, borderType=cv2.BORDER_DEFAULT)  # blur
@@ -239,6 +263,8 @@ class ApolloToCoco:
 
 
 def histogram(cnt_kps):
+    if plt is None:
+        raise Exception('please install matplotlib')
     bins = np.arange(len(cnt_kps))
     data = np.array(cnt_kps)
     plt.figure(1)

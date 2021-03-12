@@ -20,12 +20,11 @@ pip3 install openpifpaf
 
 Pretrained Shufflenet 16 (AP 76.1%) can be downloaded from [Google Drive](https://drive.google.com/drive/folders/1qaLtifM1_RRWj1KlYlpM3xm0VWbKbsku?usp=sharing)
 
- ![example](docs/test/example.jpg)
 
-Prediction runs as standard openpifpaf predict command, but using the pretrained model on vehicles. For the following image, run the command:
+Prediction runs as standard openpifpaf predict command, but using the pretrained model on vehicles. As an example, run the command:
 ```
 python -m openpifpaf.predict \
-openpifpaf/plugins/apollocar3d/docs/test/171206_034559609_Camera_5.jpg \
+<image path> \
 --checkpoint <model path> -o \
 --instance-threshold 0.07 --seed-threshold 0.07 \
 --line-width 3 --font-size 0 --white-overlay 0.6 
