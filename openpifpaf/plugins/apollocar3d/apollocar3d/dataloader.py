@@ -58,7 +58,7 @@ class Apollo(torch.utils.data.Dataset):
 
         self.ids = [image_id for image_id in self.ids if filter_image(image_id)]
         LOG.info('... done.')
-        
+
     def __getitem__(self, index):
         image_id = self.ids[index]
         ann_ids = self.coco.getAnnIds(imgIds=image_id, catIds=self.category_ids)

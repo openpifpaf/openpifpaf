@@ -106,8 +106,6 @@ class ApolloToCoco:
             # save only 50 images
             if self.sample:
                 im_paths = im_paths[:50]
-            if self.split_images:
-                make_new_directory(os.path.join(self.dir_out_im, phase))
             elif self.single_sample:
                 im_paths = self.splits['train'][:1]
                 print(f'Single sample for train/val:{im_paths}')
@@ -271,14 +269,6 @@ def histogram(cnt_kps):
     plt.bar(bins, data)
     plt.xticks(np.arange(len(cnt_kps), step=5))
     plt.show()
-
-
-def make_new_directory(dir_out):
-    """Remove the output directory if already exists (avoid residual txt files)"""
-    if os.path.exists(dir_out):
-        shutil.rmtree(dir_out)
-    os.makedirs(dir_out)
-    print(f"!Created empty output directory: {dir_out}!")
 
 
 def main():
