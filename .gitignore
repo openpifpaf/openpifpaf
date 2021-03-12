@@ -55,3 +55,4 @@ debug.*.png
 test-clis-*/
 *.mlmodel
 guide/cifar10_*.predictions.json
+slurm*
