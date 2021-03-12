@@ -74,9 +74,12 @@ class CifHr:
         h_start = pad_left
         h_stop = width-pad_right
         LOG.debug("accumulated hr heatmap can be created by uncommenting the following line")
+
         # print("dumping pif hr map into /scratch/mistasse/abolfazl/outputs/test.accumulated.png")
-        imageio.imwrite("image/test.accumulated.png", self.accumulated[kp_id,v_start:v_stop, h_start:h_stop])
-        
+        #imageio.imwrite("image/test.accumulated.png", self.accumulated[kp_id,v_start:v_stop, h_start:h_stop])
+        #import pickle
+        #pickle.dump(self.accumulated, open("/home/gva/pifhr.pickle","wb"))
+
         LOG.debug('target_intensities %.3fs', time.perf_counter() - start)
         return self
 
