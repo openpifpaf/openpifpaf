@@ -43,45 +43,22 @@ class Apollo(torch.utils.data.Dataset):
 
         self.preprocess = preprocess or transforms.EVAL_TRANSFORM
 
-    def class_aware_sample_weights(self, max_multiple=10.0):
-        """Class aware sampling.
+    def filter_for_annotations(self, *, min_kp_anns=0):
+        LOG.info('filter for annotations (min kp=%d) ...', min_kp_anns)
 
-        To be used with PyTorch's WeightedRandomSampler.
+        def filter_image(image_id):
+            ann_ids = self.coco.getAnnIds(imgIds=image_id, catIds=self.category_ids)
+            anns = self.coco.loadAnns(ann_ids)
+            anns = [ann for ann in anns if not ann.get('iscrowd')]
+            if not anns:
+                return False
+            kp_anns = [ann for ann in anns
+                       if 'keypoints' in ann and any(v > 0.0 for v in ann['keypoints'][2::3])]
+            return len(kp_anns) >= min_kp_anns
 
-        Reference: Solution for Large-Scale Hierarchical Object Detection
-        Datasets with Incomplete Annotation and Data Imbalance
-        Yuan Gao, Xingyuan Bu, Yang Hu, Hui Shen, Ti Bai, Xubin Li and Shilei Wen
-        """
-        ann_ids = self.coco.getAnnIds(imgIds=self.ids, catIds=self.category_ids)
-        anns = self.coco.loadAnns(ann_ids)
-
-        category_image_counts = defaultdict(int)
-        image_categories = defaultdict(set)
-        for ann in anns:
-            if ann['iscrowd']:
-                continue
-            image = ann['image_id']
-            category = ann['category_id']
-            if category in image_categories[image]:
-                continue
-            image_categories[image].add(category)
-            category_image_counts[category] += 1
-
-        weights = [
-            sum(
-                1.0 / category_image_counts[category_id]
-                for category_id in image_categories[image_id]
-            )
-            for image_id in self.ids
-        ]
-        min_w = min(weights)
-        LOG.debug('Class Aware Sampling: minW = %f, maxW = %f', min_w, max(weights))
-        max_w = min_w * max_multiple
-        weights = [min(w, max_w) for w in weights]
-        LOG.debug('Class Aware Sampling: minW = %f, maxW = %f', min_w, max(weights))
-
-        return weights
-
+        self.ids = [image_id for image_id in self.ids if filter_image(image_id)]
+        LOG.info('... done.')
+        
     def __getitem__(self, index):
         image_id = self.ids[index]
         ann_ids = self.coco.getAnnIds(imgIds=image_id, catIds=self.category_ids)

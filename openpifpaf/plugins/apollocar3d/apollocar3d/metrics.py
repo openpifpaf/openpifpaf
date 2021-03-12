@@ -32,7 +32,7 @@ class MeanPixelError(Base):
         detections_scaled = []
 
         # Filter ground-truth
-        for annotation in ground_truth:  # pylint: disable=too-many-nested-blocks
+        for annotation in ground_truth:
             if not isinstance(annotation, Annotation):
                 continue
             indices_gt = np.nonzero(annotation.data[:, 2] > 1.0)
