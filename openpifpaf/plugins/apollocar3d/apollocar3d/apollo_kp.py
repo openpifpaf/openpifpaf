@@ -9,7 +9,11 @@ The particular configuration of keypoints and skeleton is specified in the headm
 
 import argparse
 import torch
-import pycocotools
+try:
+    import pycocotools.coco
+    from pycocotools.coco import COCO
+except ImportError:
+    COCO = None
 
 from openpifpaf.datasets import DataModule
 from openpifpaf import encoder, headmeta, metric, transforms
@@ -315,7 +319,7 @@ class ApolloKp(DataModule):
 
     def metrics(self):
         return [metric.Coco(
-            pycocotools.coco.COCO(self.eval_annotations),
+            COCO(self.eval_annotations),
             max_per_image=20,
             category_ids=[1],
             iou_type='keypoints',
