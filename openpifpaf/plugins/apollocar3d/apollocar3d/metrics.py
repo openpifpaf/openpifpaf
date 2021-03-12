@@ -46,7 +46,7 @@ class MeanPixelError(Base):
             # Evaluate each keypoint
             for idx, gt in zip(indices_gt[0], gts):
                 preds = np.array([p.data[idx] for p in predictions]).reshape(-1, 3)[:, 0:2]
-                if preds.size < 0:
+                if preds.size <= 0:
                     continue
                 i = np.argmin(np.linalg.norm(preds - gt, axis=1))
                 dist = preds[i:i + 1] - gt
