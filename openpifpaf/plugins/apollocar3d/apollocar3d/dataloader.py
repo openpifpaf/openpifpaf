@@ -36,32 +36,12 @@ class Apollo(torch.utils.data.Dataset):
         self.category_ids = category_ids
 
         self.ids = self.coco.getImgIds(catIds=self.category_ids)
-        if annotation_filter:
-            self.filter_for_annotations(min_kp_anns=min_kp_anns)
-        elif min_kp_anns:
-            raise Exception('only set min_kp_anns with annotation_filter')
 
         if n_images:
             self.ids = self.ids[:n_images]
         LOG.info('Images: %d', len(self.ids))
 
         self.preprocess = preprocess or transforms.EVAL_TRANSFORM
-
-    def filter_for_annotations(self, *, min_kp_anns=0):
-        LOG.info('filter for annotations (min kp=%d) ...', min_kp_anns)
-
-        def filter_image(image_id):
-            ann_ids = self.coco.getAnnIds(imgIds=image_id, catIds=self.category_ids)
-            anns = self.coco.loadAnns(ann_ids)
-            anns = [ann for ann in anns if not ann.get('iscrowd')]
-            if not anns:
-                return False
-            kp_anns = [ann for ann in anns
-                       if 'keypoints' in ann and any(v > 0.0 for v in ann['keypoints'][2::3])]
-            return len(kp_anns) >= min_kp_anns
-
-        self.ids = [image_id for image_id in self.ids if filter_image(image_id)]
-        LOG.info('... done.')
 
     def class_aware_sample_weights(self, max_multiple=10.0):
         """Class aware sampling.
