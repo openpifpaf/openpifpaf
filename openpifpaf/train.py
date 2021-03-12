@@ -18,7 +18,7 @@ def default_output_file(args, net_cpu):
     base_name = net_cpu.base_net.shortname
     head_names = [hn.meta.name for hn in net_cpu.head_nets]
 
-    now = datetime.datetime.now().strftime('%y%m%d-%H%M%S')
+    now = datetime.datetime.now().strftime('%y%m%d-%H%M%S.%f')
     if args.output is not None:
         out = args.output + '/{}-{}-{}'.format(base_name, now, '-'.join(head_names))    
     else:
