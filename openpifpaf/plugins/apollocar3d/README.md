@@ -18,11 +18,24 @@ pip3 install openpifpaf
 
 ## Predict 
 
+Pretrained Shufflenet 16 (AP 76.1%) can be downloaded from [Google Drive](https://drive.google.com/drive/folders/1qaLtifM1_RRWj1KlYlpM3xm0VWbKbsku?usp=sharing)
+
+ ![example](docs/test/example.jpg)
+
+Prediction runs as standard openpifpaf predict command, but using the pretrained model on vehicles. For the following image, run the command:
+```
+python -m openpifpaf.predict \
+openpifpaf/plugins/apollocar3d/docs/test/171206_034559609_Camera_5.jpg \
+--checkpoint <model path> -o \
+--instance-threshold 0.07 --seed-threshold 0.07 \
+--line-width 3 --font-size 0 --white-overlay 0.6 
+```
+
 ## Preprocess Dataset
 The preprocessing step converts the annotations into the standard COCO format. It also sparsifies the original set of keypoints (90) to a set of 24 keypoints. The resulting pose, from the rear point of view, can be obtained running:
 `python -m openpifpaf_apollocar3d.utils.constants`
 
-   ![carpose](docs/skeleton_car.png)
+<img src="docs/skeleton_car.png" width="600"/>
 
 Create (or soft link) the following directories:
 * `mkdir data outputs apollo-coco, apollo-coco/images apollo-coco/annotations`
@@ -32,22 +45,22 @@ Create (or soft link) the following directories:
 pip install pandas
 pip install opencv-python==4.1.2.30
 ```
-Run:
+```
+python -m openpifpaf_apollocar3d.apollo_to_coco
+```
 
-`python -m openpifpaf_apollocar3d.apollo_to_coco`
-The first time, add the argument `--split_images` to copy original images in the new folders according to the train val split
+The argument `--split_images` copies the original images in the new folders according to the train val split, slowing down the process. No need to use it multiple times.
 
-
-## Pretrained models
-Pretrained Shufflenet 16 (AP 76.1%) can be downloaded from [Google Drive](https://drive.google.com/drive/folders/1qaLtifM1_RRWj1KlYlpM3xm0VWbKbsku?usp=sharing)
 
 ## Train
 Square-edge 769 (AP 76.1%)
 
 ```
-python3 -m openpifpaf.train --lr=0.00002 --momentum=0.95  --b-scale=5.0 --dataset apollo 
---epochs=300 --lr-decay 160 260 --lr-decay-epochs=10  --weight-decay=1e-5 --apollo-square-edge=769 
---weight-decay=1e-5 --basenet=shufflenetv2k16 --val-interval 10 --loader-workers 16 --apollo-upsample 2 
+python3 -m openpifpaf.train --dataset apollo \
+--basenet=shufflenetv2k16 --apollo-square-edge=769 \
+--lr=0.00002 --momentum=0.95  --b-scale=5.0 \
+--epochs=300 --lr-decay 160 260 --lr-decay-epochs=10  --weight-decay=1e-5 \
+--weight-decay=1e-5  --val-interval 10 --loader-workers 16 --apollo-upsample 2 \
 --apollo-bmin 2 --batch-size 8
 ```
 
