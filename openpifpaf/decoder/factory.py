@@ -203,7 +203,7 @@ def factory_decode(head_nets, *,
         # print('heads', len(head_nets))
         if len(head_nets) == 3:
             field_config_ball = FieldConfig(cif_indices=[2])
-            print('field config ball', field_config_ball)
+            #print('field config ball', field_config_ball)
             if isinstance(head_nets[2].meta, network.heads.IntensityMeta):
                 return CifPanBall(
                     field_config,
