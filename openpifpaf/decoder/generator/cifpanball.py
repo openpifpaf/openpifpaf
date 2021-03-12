@@ -97,7 +97,7 @@ class CifPanBall(Generator):
         #     self.by_source[j1][j2] = (caf_i, True)
         #     self.by_source[j2][j1] = (caf_i, False)
 
-    def __call__(self, fields, initial_annotations=None):
+    def __call__(self, fields, initial_annotations=None, debug=None):
         cif, pan, cif_ball = fields
         semantic, offsets = pan['semantic'], pan['offset']
 
@@ -117,8 +117,8 @@ class CifPanBall(Generator):
         #     for vis, caf_i in zip(self.field_config.caf_visualizers, self.field_config.caf_indices):
         #         vis.predicted(fields[caf_i])
 
-        print(self.field_config)
-        print('pif fields',fields[0].shape)
+        # print(self.field_config)
+        # print('pif fields',fields[0].shape)
         cifhr = CifHr(self.field_config).fill(fields)
         cifhr_ball = CifHr(self.field_config_ball).fill(fields)
 
@@ -141,19 +141,19 @@ class CifPanBall(Generator):
                         for cif in cifhr.accumulated]
 
         from matplotlib import pyplot as plt
-        plt.figure(figsize=(15,15))
-        im = plt.imshow(np.log(cifhr.accumulated[Ci]), cmap='jet')
-        plt.colorbar(im)
-        plt.show()
+        # plt.figure(figsize=(15,15))
+        # im = plt.imshow(np.log(cifhr.accumulated[Ci]), cmap='jet')
+        # plt.colorbar(im)
+        # plt.show()
 
         ball_fyxv = [np.stack(np.nonzero(cif_local_max(cif)), axis=-1)
                         for cif in cifhr_ball.accumulated]
-        plt.figure(figsize=(15,15))
-        # print('max', (cifhr_ball.accumulated[Bi]).max())
-        # print('min', (cifhr_ball.accumulated[Bi]).min())
-        im = plt.imshow(np.log(cifhr_ball.accumulated[Bi]), cmap='jet')
-        plt.colorbar(im)
-        plt.show()
+        # plt.figure(figsize=(15,15))
+        # # print('max', (cifhr_ball.accumulated[Bi]).max())
+        # # print('min', (cifhr_ball.accumulated[Bi]).min())
+        # im = plt.imshow(np.log(cifhr_ball.accumulated[Bi]), cmap='jet')
+        # plt.colorbar(im)
+        # plt.show()
         # print(keypoints_yx)
         # print(ball_fyxv)
         keypoints_yx += ball_fyxv
@@ -172,8 +172,8 @@ class CifPanBall(Generator):
         absolute = offsets + np.stack(np.meshgrid(np.arange(offsets.shape[1]),
                                                   np.arange(offsets.shape[2]), indexing='ij'))
         
-        plt.imshow(offsets_to_colorwheel(offsets[None])[0])
-        plt.show()
+        # plt.imshow(offsets_to_colorwheel(offsets[None])[0])
+        # plt.show()
 
         difference = (absolute[Ñ,:,:,:] -                   # [ ,2,H,W]
                       keypoints_yx[Ci][:,:,Ñ,Ñ]             # [I,2, , ]
@@ -181,8 +181,8 @@ class CifPanBall(Generator):
 
         distances2 = np.square(difference).sum(axis=1)      # [I,H,W]
         instances = distances2.argmin(axis=0)               # [H,W]
-        plt.imshow(instances)
-        plt.show()
+        # plt.imshow(instances)
+        # plt.show()
 
         # For each detected keypoints, get its confidence and instance
         centers_fyxv = [
@@ -224,20 +224,20 @@ class CifPanBall(Generator):
         # plt.imshow(semantic[1])
         # plt.show()
         
-        from matplotlib import pyplot as plt
+        # from matplotlib import pyplot as plt
         classes = semantic.argmax(axis=0)   # [H,W]
-        plt.imshow(softmax(semantic[None])[0,1])
-        plt.colorbar()
-        plt.show()
+        # plt.imshow(softmax(semantic[None])[0,1])
+        # plt.colorbar()
+        # plt.show()
 
-        plt.hist(semantic.reshape(-1))
-        plt.show()
+        # plt.hist(semantic.reshape(-1))
+        # plt.show()
         # plt.savefig('data-mscoco/test.png')
 
         panoptic = classes*1000 + instances
-        plt.figure(figsize=(20,20))
+        # plt.figure(figsize=(20,20))
         # print('show')
-        plt.figure(figsize=(20,20))
+        # plt.figure(figsize=(20,20))
         inssss = np.zeros_like(panoptic)
         for i in range(len(annotations)):
             annotation = annotations[i]
@@ -246,14 +246,14 @@ class CifPanBall(Generator):
             annotation.cls = 1# semantic[:,centroid_mask].sum(axis=1).argmax(axis=0)
             annotation.mask = centroid_mask
             inssss += (i+1)*centroid_mask       # to plot instances
-        plt.imshow(inssss, cmap='jet')
-        plt.show()
-        print('show')
+        # plt.imshow(inssss, cmap='jet')
+        # plt.show()
+        # print('show')
 
         # if self.ball:
         for f, y, x, v in ball_fyxv:
             f = 18
-            print('fff', f)
+            # print('fff', f)
             
             annotation = Annotation(
                         keypoints=self.keypoints,
@@ -282,5 +282,16 @@ class CifPanBall(Generator):
 
         LOG.info('%d annotations: %s', len(annotations),
                  [np.sum(ann.data[:, 2] > 0.1) for ann in annotations])
+        if debug is not None:
+            debug.update(
+                classes=classes,
+                cifhr=cifhr,
+                has_ball=self.ball,
+                instances=instances,
+                keypoints_yx=keypoints_yx,
+                keypoints_fyxiv=keypoints_fyxiv,
+                centers_fyxv=centers_fyxv,
+                annotations=annotations,
+            )
         return annotations
     

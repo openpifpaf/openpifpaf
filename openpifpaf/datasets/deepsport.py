@@ -161,7 +161,8 @@ class DeepSportDataset(torch.utils.data.Dataset):
 
             # ann["kp_ball"][:] = np.asarray((int(x), int(y), visibility))
             # print('222',ann['kp_ball'].shape)
-            ann["bmask"] = mask
+            # ann["bmask"] = mask
+            ann['bmask'] = np.zeros_like(mask)      # to get the mask of ball from human_masks !!!
             return ann
         key = self.keys[index]
         # print(index)
@@ -202,6 +203,11 @@ class DeepSportDataset(torch.utils.data.Dataset):
                 # annotation = np.where(ball_map > 5000, ball_class, annotation)  # because annotation is uint
                 # if np.all(ball_map < 5000):
                 #     print(key)
+
+            # import matplotlib.pyplot as plt
+            # plt.imshow(annotation)
+            # plt.colorbar()
+            # plt.show()
             H, W = annotation.shape
             meshgrid = np.meshgrid(np.arange(H), np.arange(W), indexing='ij')
             meshgrid = np.stack(meshgrid, axis=-1)
