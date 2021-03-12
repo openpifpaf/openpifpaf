@@ -106,6 +106,10 @@ class ApolloToCoco:
             # save only 50 images
             if self.sample:
                 im_paths = im_paths[:50]
+            if self.split_images:
+                path_dir = (os.path.join(self.dir_out_im, phase))
+                assert os.path.exists(path_dir), "Directory to save images does not exist"
+                assert not os.listdir(path_dir), "Directory to save images is not empty. Remove flag --split_images ?"
             elif self.single_sample:
                 im_paths = self.splits['train'][:1]
                 print(f'Single sample for train/val:{im_paths}')
