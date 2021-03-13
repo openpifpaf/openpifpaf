@@ -238,7 +238,7 @@ class MultiHeadLossAutoTune(torch.nn.Module):
             torch.zeros((len(self.tasks),), dtype=torch.float64),
             requires_grad=True,
         )
-        else
+        else:
             self.log_sigmas = torch.nn.Parameter(
                 torch.zeros((len(lambdas),), dtype=torch.float64),
                 requires_grad=True,
@@ -726,12 +726,14 @@ def factory(head_nets, lambdas, *,
     if isinstance(head_nets[0], heads.PanopticDeeplabHead):
         losses = [PanopticLoss(config)]
     else:
+        print('loss________________________________-cicent')
         losses = [CompositeLoss(head_nets[0], reg_loss)]
 
     if len(head_nets) > 1 and isinstance(head_nets[1], heads.AssociationMeta):
         losses.append(CompositeLoss(head_nets[1], reg_loss))
 
     if len(head_nets) > 1 and isinstance(head_nets[1], heads.InstanceSegHead):
+        print('loss________________________________-pan')
         losses.append(SegmantationLoss(head_nets[1],device))
 
     if len(head_nets) > 1 and isinstance(head_nets[1], heads.PanopticDeeplabHead):

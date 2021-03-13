@@ -210,7 +210,7 @@ def main():
     args = parser.parse_args()
 
     shape = (641,641)
-    ds = PickledDataset("/scratch/gva/views_with_human_masks.pickle")
+    ds = PickledDataset("/data/mistasse/abolfazl/keemotion/pickled/camera_views_with_human_masks_ball_mask.pickle")
     ds = TransformedDataset(ds, [ViewCropperTransform(def_min=30, def_max=80, output_shape=shape, focus_object="player")])
     keys = ds.keys.all()
     result_list = []
