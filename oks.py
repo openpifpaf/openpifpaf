@@ -260,7 +260,7 @@ def main():
             "oks_list": oks_list,
         })
 
-        if k_index%10 == 0:
+        if (k_index%10) == 0:
             pprint(compute_metrics(result_list))
 
     pickle.dump(result_list, open(f"{args.weights_file}_OKS_tmp_results.pickle", "wb"))
