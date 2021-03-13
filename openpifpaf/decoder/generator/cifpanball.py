@@ -158,6 +158,15 @@ class CifPanBall(Generator):
         # print(ball_fyxv)
         keypoints_yx += ball_fyxv
 
+
+        if debug is not None:
+            debug.update(
+                cifhr=cifhr,
+                fields=fields,
+            )
+
+
+
         if len(keypoints_yx[Ci]) == 0:
             return []
 

@@ -91,7 +91,7 @@ class DeepSportDataset(torch.utils.data.Dataset):
         self.ball = False
         
 
-        print(config)
+        print('deepsport config', config)
         if 'ball' in config:
             self.ball = True
 
@@ -177,7 +177,7 @@ class DeepSportDataset(torch.utils.data.Dataset):
         image = data["input_image"]
         
         anns = []
-        n_keypoints = 18 if self.config == 'cifcent' else 17
+        n_keypoints = 18 #if self.config == 'cifcent' else 17
         if self.ball:
             if "x" in data:
                 anns = [add_ball_keypoint(build_empty_person(image_id,n_keypoints=n_keypoints), image.shape, data["x"], data["y"], data["visible"], data["mask"])]
@@ -192,7 +192,7 @@ class DeepSportDataset(torch.utils.data.Dataset):
             meta['ball_size'] = data["size"]
         
 
-        if self.config in ['cif', 'cifcent']:
+        if self.config in ['cif', 'cifcent', 'pan']:
             # print('here')
             annotation = data['human_masks']
             # if self.ball:
@@ -221,6 +221,8 @@ class DeepSportDataset(torch.utils.data.Dataset):
                 # print('count', id_count)
                 label = instance_id // 1000
                 # print(label)
+                if label not in [1, 3]:
+                    continue
                 category_id = self.map_categories[label]
 
                 iid = instance_id % 1000

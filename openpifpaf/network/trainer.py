@@ -461,7 +461,7 @@ class Trainer(object):
             'model': model,
             'epoch': epoch,
             'meta': self.model_meta_data,
-            'tb_filename': self.tb_filename,
+            'tb_filename': os.path.basename(self.tb_filename),
         }, filename)
         LOG.debug('model written')
 

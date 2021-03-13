@@ -37,6 +37,14 @@ KEEMOTION_DIR = '/data/mistasse/keemotion/km_complete_player_ball_full_res/'
 # COCO_IMAGE_DIR_VAL = 'data-mscoco/images/val2017/'
 # KEEMOTION_DIR = 'keemotion/'
 
+# import gc
+# from mlworkflow import PickledDataset
+# def reset_pickled_datasets(*args):
+#     for obj in gc.get_objects():
+#         if isinstance(obj, PickledDataset):
+#             obj.__init__(obj.file_handler.name)
+
+
 
 def train_cli(parser):
     group = parser.add_argument_group('dataset and loader')
@@ -326,12 +334,14 @@ def train_deepsport_factory(args, target_transforms, heads=None, batch_size=None
 
     train_loader = torch.utils.data.DataLoader(
         train_data, batch_size=batch_size, shuffle=not args.debug,
-        pin_memory=args.pin_memory, num_workers=0, drop_last=True,
+        pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
+        # worker_init_fn=reset_pickled_datasets,
         collate_fn=collate_images_targets_inst_meta,)
 
     val_loader = torch.utils.data.DataLoader(
         val_data, batch_size=batch_size, shuffle=False,
-        pin_memory=args.pin_memory, num_workers=0, drop_last=True,
+        pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
+        # worker_init_fn=reset_pickled_datasets,
         collate_fn=collate_images_targets_inst_meta,)
 
     return train_loader, val_loader
