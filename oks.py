@@ -207,10 +207,11 @@ class OutputInhibitor():
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("weights_file")
+    parser.add_argument("--pickled-dataset", required=True)
     args = parser.parse_args()
 
     shape = (641,641)
-    ds = PickledDataset("/scratch/gva/views_with_human_masks.pickle")
+    ds = PickledDataset(args.pickled_dataset)
     ds = TransformedDataset(ds, [ViewCropperTransform(def_min=30, def_max=80, output_shape=shape, focus_object="player")])
     keys = ds.keys.all()
     result_list = []
