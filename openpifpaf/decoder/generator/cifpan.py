@@ -138,11 +138,11 @@ class CifPan(Generator):
         keypoints_yx = [np.stack(np.nonzero(cif_local_max(cif)), axis=-1)
                         for cif in cifhr.accumulated]
 
-        from matplotlib import pyplot as plt
-        plt.figure(figsize=(15,15))
-        im = plt.imshow(np.log(cifhr.accumulated[Ci]), cmap='jet')
-        plt.colorbar(im)
-        plt.show()
+        # from matplotlib import pyplot as plt
+        # plt.figure(figsize=(15,15))
+        # im = plt.imshow(np.log(cifhr.accumulated[Ci]), cmap='jet')
+        # plt.colorbar(im)
+        # plt.show()
 
         if len(keypoints_yx[Ci]) == 0:
             return []
@@ -158,8 +158,8 @@ class CifPan(Generator):
         absolute = offsets + np.stack(np.meshgrid(np.arange(offsets.shape[1]),
                                                   np.arange(offsets.shape[2]), indexing='ij'))
         
-        plt.imshow(offsets_to_colorwheel(offsets[None])[0])
-        plt.show()
+        # plt.imshow(offsets_to_colorwheel(offsets[None])[0])
+        # plt.show()
 
         difference = (absolute[Ñ,:,:,:] -                   # [ ,2,H,W]
                       keypoints_yx[Ci][:,:,Ñ,Ñ]             # [I,2, , ]
@@ -167,8 +167,8 @@ class CifPan(Generator):
 
         distances2 = np.square(difference).sum(axis=1)      # [I,H,W]
         instances = distances2.argmin(axis=0)               # [H,W]
-        plt.imshow(instances)
-        plt.show()
+        # plt.imshow(instances)
+        # plt.show()
 
         # For each detected keypoints, get its confidence and instance
         centers_fyxv = [
