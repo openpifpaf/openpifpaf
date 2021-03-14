@@ -181,6 +181,11 @@ class MultiHeadLoss(torch.nn.Module):
         print('multihead loss: %s, %s', self.field_names, self.lambdas)
         LOG.info('multihead loss: %s, %s', self.field_names, self.lambdas)
 
+    def batch_meta(self):
+        return {
+            'lambdas': self.lambdas
+        } 
+
     def forward(self, head_fields, head_targets):  # pylint: disable=arguments-differ
         assert len(self.losses) == len(head_fields)
         assert len(self.losses) <= len(head_targets)
@@ -232,22 +237,22 @@ class MultiHeadLossAutoTune(torch.nn.Module):
         self.TaskAutoTune = TaskAutoTune
         self.tasks = tasks
 
-        if self.TaskAutoTune:
+        if False:#self.TaskAutoTune:
             assert tasks
             self.log_sigmas = torch.nn.Parameter(
-            torch.zeros((len(self.tasks),), dtype=torch.float64),
-            requires_grad=True,
-        )
-        else
+                torch.zeros((len(self.tasks),), dtype=torch.float64),
+                requires_grad=True,
+            )
+        else:
             self.log_sigmas = torch.nn.Parameter(
                 torch.zeros((len(lambdas),), dtype=torch.float64),
                 requires_grad=True,
             )
-            assert len(self.field_names) == len(self.log_sigmas)
 
         self.field_names = [n for l in self.losses for n in l.field_names]
         LOG.info('multihead loss with autotune: %s', self.field_names)
         assert len(self.field_names) == len(self.lambdas)
+        assert len(self.field_names) == len(self.log_sigmas)
         
 
 
@@ -260,7 +265,10 @@ class MultiHeadLossAutoTune(torch.nn.Module):
 
 
     def batch_meta(self):
-        return {'mtl_sigmas': [round(float(s), 3) for s in self.log_sigmas.exp()]}
+        return {
+            'mtl_sigmas': [round(float(s), 3) for s in self.log_sigmas.exp()],
+            'lambdas': self.lambdas
+        }
 
     def forward(self, *args):
         head_fields, head_targets = args
