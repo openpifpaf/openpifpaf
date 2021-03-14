@@ -22,6 +22,75 @@ STAT_LOG = logging.getLogger(__name__.replace('openpifpaf.', 'openpifpaf.stats.'
 
 BALL_DIAMETER = 23
 
+
+
+class DeepSportKeysSplitter():
+    @staticmethod
+    def split_equally(d, K):
+        """
+            splits equally the keys of d given their values
+            arguments:
+                d: a dict {"label1": 30, "label2": 45, "label3": 22, ... "label20": 14}
+            returns:
+                a list of list splitting equally their value:
+                [[label1, label12, label19], [label2, label15], [label3, label10, label11], ...]
+        """
+        s = sorted(d.items(), key=lambda kv: kv[1])
+        f = [{"count": 0, "list": []} for _ in range(K)]
+        while s:
+            arena_label, count = s.pop(-1)
+            index, _ = min(enumerate(f), key=(lambda x: x[1]["count"]))
+            f[index]["count"] += count
+            f[index]["list"].append(arena_label)
+        return [x["list"] for x in f]
+
+    @staticmethod
+    def count_keys_per_arena_label(keys):
+        """returns a dict of (arena_label: number of keys of that arena)"""
+        bins = {}
+        for key in keys:
+            bins[key.arena_label] = bins.get(key.arena_label, 0) + 1
+        return bins
+    @staticmethod
+    def count_keys_per_game_id(keys):
+        """returns a dict of (game_id: number of keys of that game)"""
+        bins = {}
+        for key in keys:
+            bins[key.game_id] = bins.get(key.game_id, 0) + 1
+        return bins
+
+class KFoldsTestingKeysSplitter(DeepSportKeysSplitter):
+    def __init__(self, fold_count=8, validation_pc=15):
+        self.fold_count = fold_count
+        self.validation_pc = validation_pc
+
+    def __call__(self, keys, fold=0):
+        assert fold >= 0 and fold < self.fold_count
+
+        keys_dict = self.count_keys_per_arena_label(keys)
+        keys_lists = self.split_equally(keys_dict, self.fold_count)
+
+        testing_keys = [k for k in keys if k.arena_label in keys_lists[fold]]
+        remaining_keys = [k for k in keys if k not in testing_keys]
+
+        # Backup random seed
+        random_state = random.getstate()
+        random.seed(fold)
+
+        validation_keys = random.sample(remaining_keys, len(keys)*self.validation_pc//100)
+
+        # Restore random seed
+        random.setstate(random_state)
+
+        training_keys = [k for k in remaining_keys if k not in validation_keys]
+
+        return {
+            "training": training_keys,
+            "validation": validation_keys,
+            "testing": testing_keys
+        }
+
+
 class AddBallSegmentationTargetViewFactory():
     def __call__(self, view_key, view):
         calib = view.calib
@@ -52,16 +121,89 @@ class AddHumansSegmentationTargetViewFactory():
         return {"human_masks": view.human_masks}
 
 
-def build_DeepSportBall_datasets(pickled_dataset_filename, validation_set_size_pc, square_edge, target_transforms, preprocess, focus_object=None, config=None):
+class DeepSportKeysSplitter():
+    @staticmethod
+    def split_equally(d, K):
+        """
+            splits equally the keys of d given their values
+            arguments:
+                d: a dict {"label1": 30, "label2": 45, "label3": 22, ... "label20": 14}
+            returns:
+                a list of list splitting equally their value:
+                [[label1, label12, label19], [label2, label15], [label3, label10, label11], ...]
+        """
+        s = sorted(d.items(), key=lambda kv: kv[1])
+        f = [{"count": 0, "list": []} for _ in range(K)]
+        while s:
+            arena_label, count = s.pop(-1)
+            index, _ = min(enumerate(f), key=(lambda x: x[1]["count"]))
+            f[index]["count"] += count
+            f[index]["list"].append(arena_label)
+        return [x["list"] for x in f]
+
+    @staticmethod
+    def count_keys_per_arena_label(keys):
+        """returns a dict of (arena_label: number of keys of that arena)"""
+        bins = {}
+        for key in keys:
+            bins[key.arena_label] = bins.get(key.arena_label, 0) + 1
+        return bins
+    @staticmethod
+    def count_keys_per_game_id(keys):
+        """returns a dict of (game_id: number of keys of that game)"""
+        bins = {}
+        for key in keys:
+            bins[key.game_id] = bins.get(key.game_id, 0) + 1
+        return bins
+
+class KFoldsTestingKeysSplitter(DeepSportKeysSplitter):
+    def __init__(self, fold_count=8, validation_pc=15):
+        self.fold_count = fold_count
+        self.validation_pc = validation_pc
+
+    def __call__(self, keys, fold=0):
+        assert fold >= 0 and fold < self.fold_count
+
+        keys_dict = self.count_keys_per_arena_label(keys)
+        keys_lists = self.split_equally(keys_dict, self.fold_count)
+
+        testing_keys = [k for k in keys if k.arena_label in keys_lists[fold]]
+        remaining_keys = [k for k in keys if k not in testing_keys]
+
+        # Backup random seed
+        random_state = random.getstate()
+        random.seed(fold)
+
+        validation_keys = random.sample(remaining_keys, len(keys)*self.validation_pc//100)
+
+        # Restore random seed
+        random.setstate(random_state)
+
+        training_keys = [k for k in remaining_keys if k not in validation_keys]
+
+        return {
+            "training": training_keys,
+            "validation": validation_keys,
+            "testing": testing_keys
+        }
+
+
+def build_DeepSportBall_datasets(pickled_dataset_filename, validation_set_size_pc, square_edge, target_transforms, preprocess, focus_object=None, config=None, dataset_fold=None):
     dataset = PickledDataset(pickled_dataset_filename)
+
     keys = list(dataset.keys.all())
-    random_state = random.getstate()
-    random.seed(0)
-    random.shuffle(keys)
-    lim = len(keys)*validation_set_size_pc//100
-    training_keys = keys[lim:]
-    validation_keys = keys[:lim]
-    random.seed(random_state)
+    if dataset_fold is not None:
+        sets = KFoldsTestingKeysSplitter(validation_pc=validation_set_size_pc)(keys, fold=dataset_fold)
+        training_keys = sets["training"] #keys[lim:]
+        validation_keys = sets["validation"] #keys[:lim]
+    else:
+        random_state = random.getstate()
+        random.seed(0)
+        random.shuffle(keys)
+        lim = len(keys)*validation_set_size_pc//100
+        training_keys = keys[lim:]
+        validation_keys = keys[:lim]
+        random.seed(random_state)
 
     transforms = [
         ViewCropperTransform(output_shape=(square_edge,square_edge), def_min=30, def_max=80, max_angle=8, focus_object=focus_object),
