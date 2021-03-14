@@ -82,6 +82,8 @@ def cli():
                        help='enable stats logging')
     group.add_argument('--debug-images', default=False, action='store_true',
                        help='print debug messages and enable all debug images')
+    group.add_argument('--comment', nargs="*",
+                       help='write comment about that run')
 
     args = parser.parse_args()
 
