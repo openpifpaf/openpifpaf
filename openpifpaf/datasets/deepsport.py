@@ -23,6 +23,14 @@ STAT_LOG = logging.getLogger(__name__.replace('openpifpaf.', 'openpifpaf.stats.'
 BALL_DIAMETER = 23
 
 
+def niels_split(keys):
+    l = [(f'{k.instant_key.arena_label }_{k.instant_key.game_id}_{k.instant_key.timestamp}',k) for k in keys]
+    l = sorted(l, key=lambda kv: kv[0])
+    return {
+        "testing": [x[1] for x in l[-100:]],
+        "validation": [x[1] for x in l[-200:-100]],
+        "training": [x[1] for x in l[:-200]]
+    }
 
 class DeepSportKeysSplitter():
     @staticmethod
@@ -188,15 +196,21 @@ class KFoldsTestingKeysSplitter(DeepSportKeysSplitter):
         }
 
 
-def build_DeepSportBall_datasets(pickled_dataset_filename, validation_set_size_pc, square_edge, target_transforms, preprocess, focus_object=None, config=None, dataset_fold=None):
-    dataset = PickledDataset(pickled_dataset_filename)
 
-    keys = list(dataset.keys.all())
-    if dataset_fold is not None:
-        sets = KFoldsTestingKeysSplitter(validation_pc=validation_set_size_pc)(keys, fold=dataset_fold)
-        training_keys = sets["training"] #keys[lim:]
-        validation_keys = sets["validation"] #keys[:lim]
-    else:
+def deepsportlab_dataset_splitter(keys, method=None, fold=0):
+    print(f"splitting the dataset with '{method}' strategy")
+    if method == "Niels":
+        split = niels_split(keys)
+        training_keys = split["training"]
+        testing_keys = split["testing"]
+        validation_keys = split["validation"]
+        assert 460 < len(training_keys) <= 472, "This split is supposed to occur on the dataset of 661 views"
+    elif method == "KFoldTesting":
+        sets = KFoldsTestingKeysSplitter(validation_pc=validation_set_size_pc)(keys, fold=fold)
+        training_keys = sets["training"]
+        validation_keys = sets["validation"]
+        testing_keys = set["testing"]
+    elif method == "NoTestSet":
         random_state = random.getstate()
         random.seed(0)
         random.shuffle(keys)
@@ -204,6 +218,29 @@ def build_DeepSportBall_datasets(pickled_dataset_filename, validation_set_size_p
         training_keys = keys[lim:]
         validation_keys = keys[:lim]
         random.seed(random_state)
+        testing_keys = []
+    else:
+        raise BaseException("method not found")
+    return {
+        "training": training_keys,
+        "validation": validation_keys,
+        "testing": testing_keys
+    }
+
+def build_DeepSportBall_datasets(pickled_dataset_filename, validation_set_size_pc, square_edge, target_transforms, preprocess, focus_object=None, config=None, dataset_fold=None):
+    dataset = PickledDataset(pickled_dataset_filename)
+
+    keys = list(dataset.keys.all())
+    if dataset_fold is None:
+        method = "NoTestSet"
+        fold = 0
+    elif dataset_fold == "Niels":
+        method = "Niels"
+        fold = 0
+    else:
+        method = "KFoldTesting"
+        fold = dataset_fold
+    split = deepsportlab_dataset_splitter(keys, method, fold)
 
     transforms = [
         ViewCropperTransform(output_shape=(square_edge,square_edge), def_min=30, def_max=80, max_angle=8, focus_object=focus_object),
@@ -218,8 +255,8 @@ def build_DeepSportBall_datasets(pickled_dataset_filename, validation_set_size_p
     dataset = TransformedDataset(dataset, transforms)
 
     return \
-        DeepSportDataset(dataset, training_keys, target_transforms, preprocess, config), \
-        DeepSportDataset(dataset, validation_keys, target_transforms, preprocess, config)
+        DeepSportDataset(dataset, split["training"], target_transforms, preprocess, config), \
+        DeepSportDataset(dataset, split["validation"], target_transforms, preprocess, config)
 
 class DeepSportDataset(torch.utils.data.Dataset):
 
