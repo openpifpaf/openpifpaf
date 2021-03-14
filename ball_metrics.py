@@ -101,7 +101,7 @@ class ComputeKeypointsDetectionAccuracy(ChunkProcessor):
 
 
 def infer(weights_file, data, verbose=False):
-    image_filename = "tmp_image.png"
+    image_filename = "image/tmp_image_ball_metric.png"
     imageio.imwrite(image_filename, data["input_image"])
     sys.argv = [
         "aue",
