@@ -42,7 +42,9 @@ class Bce(torch.nn.Module):
             assert hasattr(self, n)
             setattr(self, n, v)
 
-        self.soft_clamp = SoftClamp(self.soft_clamp_value)
+        self.soft_clamp = None
+        if self.soft_clamp_value:
+            self.soft_clamp = SoftClamp(self.soft_clamp_value)
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
@@ -80,7 +82,8 @@ class Bce(torch.nn.Module):
         bce = torch.nn.functional.binary_cross_entropy_with_logits(
             x, t_zeroone, reduction='none')
         # torch.clamp_max_(bce, 10.0)
-        bce = self.soft_clamp(bce)
+        if self.soft_clamp is not None:
+            bce = self.soft_clamp(bce)
         if self.min_bce > 0.0:
             torch.clamp_min_(bce, self.min_bce)
 
@@ -129,7 +132,10 @@ class Scale(torch.nn.Module):
 
     def __init__(self):
         super().__init__()
-        self.soft_clamp = SoftClamp(self.soft_clamp_value)
+
+        self.soft_clamp = None
+        if self.soft_clamp_value:
+            self.soft_clamp = SoftClamp(self.soft_clamp_value)
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
@@ -166,7 +172,7 @@ class Scale(torch.nn.Module):
             denominator = self.b * (self.relative_eps + t)
         loss = loss / denominator
 
-        if self.clip is None:
+        if self.soft_clamp is not None:
             loss = self.soft_clamp(loss)
 
         return loss
@@ -185,7 +191,10 @@ class Laplace(torch.nn.Module):
 
     def __init__(self):
         super().__init__()
-        self.soft_clamp = SoftClamp(self.soft_clamp_value)
+
+        self.soft_clamp = None
+        if self.soft_clamp_value:
+            self.soft_clamp = SoftClamp(self.soft_clamp_value)
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
@@ -233,7 +242,9 @@ class Laplace(torch.nn.Module):
         # ln(2) = 0.694
         # losses = torch.log(b_plus_bmin) + norm / b_plus_bmin
         scaled_norm = norm * torch.exp(-logb)
-        losses = logb + self.soft_clamp(scaled_norm)
+        if self.soft_clamp is not None:
+            scaled_norm = self.soft_clamp(scaled_norm)
+        losses = logb + scaled_norm
         if self.weight is not None:
             losses = losses * self.weight
         return losses
