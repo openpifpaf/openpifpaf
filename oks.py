@@ -15,10 +15,38 @@ from mlworkflow import PickledDataset, TransformedDataset
 
 from dataset_utilities.court import Court
 from dataset_utilities.calib import Calib, Point2D
-from dataset_utilities.ds.instants_dataset import PlayerAnnotation, ViewCropperTransform
+from dataset_utilities.ds.instants_dataset import ViewCropperTransform
+from dataset_utilities.ds.instants_dataset.instants_dataset import PlayerAnnotation
 
-from openpifpaf.datasets.constants import COCO_KEYPOINTS
-from openpifpaf.predict import main as predict
+class OutputInhibitor():
+    def __init__(self, name=None):
+        self.name = name
+    def __enter__(self):
+        if self.name:
+            print("Launching {}... ".format(self.name), end="")
+        self.ps1, self.ps2 = getattr(sys, "ps1", None), getattr(sys, "ps2", None)
+        if self.ps1:
+            del sys.ps1
+        if self.ps2:
+            del sys.ps2
+        self.stderr = sys.stderr
+        self.fp = open(os.devnull, "w")
+        sys.stderr = self.fp
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.ps1:
+            sys.ps1 = self.ps1
+        if self.ps2:
+            sys.ps2 = self.ps2
+        sys.stderr = self.stderr
+        self.fp.close()
+        if self.name:
+            print("Done.")
+
+with OutputInhibitor:
+    from openpifpaf.datasets.constants import COCO_KEYPOINTS
+    from openpifpaf.datasets.deepsport import deepsportlab_dataset_splitter
+    from openpifpaf.predict import main as predict
+
 
 KiHEAD = 0.15
 KiHIPS = 0.2
@@ -179,41 +207,18 @@ def OKS(a: PlayerAnnotation2D, p: PlayerSkeleton, alpha=0.8):
     return max(pair1, pair2)
 
 
-class OutputInhibitor():
-    def __init__(self, name=None):
-        self.name = name
-    def __enter__(self):
-        if self.name:
-            print("Launching {}... ".format(self.name), end="")
-        self.ps1, self.ps2 = getattr(sys, "ps1", None), getattr(sys, "ps2", None)
-        if self.ps1:
-            del sys.ps1
-        if self.ps2:
-            del sys.ps2
-        self.stderr = sys.stderr
-        self.fp = open(os.devnull, "w")
-        sys.stderr = self.fp
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        if self.ps1:
-            sys.ps1 = self.ps1
-        if self.ps2:
-            sys.ps2 = self.ps2
-        sys.stderr = self.stderr
-        self.fp.close()
-        if self.name:
-            print("Done.")
-
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("weights_file")
     parser.add_argument("--pickled-dataset", required=True)
+    parser.add_argument("--verbose", action='store_true', default=False)
     args = parser.parse_args()
 
     shape = (641,641)
     ds = PickledDataset(args.pickled_dataset)
     ds = TransformedDataset(ds, [ViewCropperTransform(def_min=30, def_max=80, output_shape=shape, focus_object="player")])
     keys = ds.keys.all()
+    print("OKS metric computed on whole dataset since pose estimation is trained on COCO")
     result_list = []
 
     for k_index, key in enumerate(tqdm(keys)):
@@ -264,8 +269,10 @@ def main():
         if (k_index%10) == 0:
             pprint(compute_metrics(result_list))
 
-    pickle.dump(result_list, open(f"{args.weights_file}_OKS_tmp_results.pickle", "wb"))
+    filename = f"{args.weights_file}_OKS_tmp_results.pickle"
+    pickle.dump(result_list, open(filename, "wb"))
     pprint(compute_metrics(result_list))
+    print(f"Temporary results have been saved in {filename}. To recompute the metric later, just call the 'compute_metrics' function on the content of that file.")
 
 if __name__ == "__main__":
     main()
