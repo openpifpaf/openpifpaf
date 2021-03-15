@@ -40,6 +40,7 @@ def laplace_loss(x1, x2, logb, t1, t2, weight=None):
     norm = (torch.stack((x1, x2)) - torch.stack((t1, t2))).norm(dim=0)
 
     # constrain range of logb
+
     logb = 3.0 * torch.tanh(logb / 3.0)
 
     losses = 0.694 + logb + norm * torch.exp(-logb)
@@ -232,22 +233,23 @@ class MultiHeadLossAutoTune(torch.nn.Module):
         self.TaskAutoTune = TaskAutoTune
         self.tasks = tasks
 
-        if self.TaskAutoTune:
-            assert tasks
-            self.log_sigmas = torch.nn.Parameter(
-            torch.zeros((len(self.tasks),), dtype=torch.float64),
+        # if self.TaskAutoTune:
+        #     assert tasks
+        #     self.log_sigmas = torch.nn.Parameter(
+        #     torch.zeros((len(self.tasks),), dtype=torch.float64),
+        #     requires_grad=True,
+        # )
+        # else:
+        self.log_sigmas = torch.nn.Parameter(
+            torch.zeros((len(lambdas),), dtype=torch.float64),
             requires_grad=True,
         )
-        else:
-            self.log_sigmas = torch.nn.Parameter(
-                torch.zeros((len(lambdas),), dtype=torch.float64),
-                requires_grad=True,
-            )
-            assert len(self.field_names) == len(self.log_sigmas)
+            
 
         self.field_names = [n for l in self.losses for n in l.field_names]
         LOG.info('multihead loss with autotune: %s', self.field_names)
         assert len(self.field_names) == len(self.lambdas)
+        assert len(self.field_names) == len(self.log_sigmas)
         
 
 
@@ -289,13 +291,24 @@ class MultiHeadLossAutoTune(torch.nn.Module):
         #                 for lam, log_sigma, l in zip(self.lambdas, self.log_sigmas, loss_values_)
         #                 if l is not None]
         # else:
+        # print(self.log_sigmas)
+        # print(self.log_sigmas.shape)
+        # self.log_sigmas = [3.0 * torch.tanh(log_sigma / 3.0) for log_sigma in self.log_sigmas if log_sigma is not None]
+        # self.log_sigmas = 3.0 * torch.tanh(self.log_sigmas / 3.0) 
         loss_values = [lam * l / (2.0 * (log_sigma.exp() ** 2))
                     for lam, log_sigma, l in zip(self.lambdas, self.log_sigmas, flat_head_losses)
                     if l is not None]
+
         auto_reg = [lam * log_sigma
                     for lam, log_sigma, l in zip(self.lambdas, self.log_sigmas, flat_head_losses)
                     if l is not None]
         
+        # loss_values = [lam * l / (2.0 * ((3.0 * torch.tanh(log_sigma / 3.0)).exp() ** 2))
+        #             for lam, log_sigma, l in zip(self.lambdas, self.log_sigmas, flat_head_losses)
+        #             if l is not None]
+        # auto_reg = [lam * (3.0 * torch.tanh(log_sigma / 3.0))
+        #             for lam, log_sigma, l in zip(self.lambdas, self.log_sigmas, flat_head_losses)
+        #             if l is not None]
         
         
         total_loss = sum(loss_values) + sum(auto_reg) if loss_values else None
@@ -733,10 +746,11 @@ def factory(head_nets, lambdas, *,
         losses.append(CompositeLoss(head_nets[1], reg_loss))
 
     if len(head_nets) > 1 and isinstance(head_nets[1], heads.InstanceSegHead):
-        print('loss________________________________-pan')
+        
         losses.append(SegmantationLoss(head_nets[1],device))
 
     if len(head_nets) > 1 and isinstance(head_nets[1], heads.PanopticDeeplabHead):
+        print('loss________________________________-pan')
         losses.append(PanopticLoss(config))
     
     # print('leeeeeeeeeeeeeeeeeeeeeeeeeeeen', len(head_nets))

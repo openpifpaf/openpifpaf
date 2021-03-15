@@ -129,7 +129,7 @@ class CifPan(Generator):
         def cif_local_max(cif):
             """Use torch for max pooling"""
             cif = torch.tensor(cif)
-            cif_m = torch.max_pool2d(cif[None], 7, stride=1, padding=3)[0] == cif
+            cif_m = torch.max_pool2d(cif[None], 11, stride=1, padding=5)[0] == cif      #### 7 padding=3
             cif_m &= cif > 0.1
             return np.asarray(cif_m)
 

@@ -56,7 +56,8 @@ class Trainer(object):
         tb_datetime = datetime.datetime.now()
         tb_hostname = socket.gethostname()
         checkpoint = torch.load(self.train_args.checkpoint) if self.train_args.checkpoint else None
-        filename = checkpoint["tb_filename"] if checkpoint and "tb_filename" in checkpoint else os.path.basename(self.train_args.output)
+        # filename = checkpoint["tb_filename"] if checkpoint and "tb_filename" in checkpoint else os.path.basename(self.train_args.output)
+        filename = os.path.basename(self.train_args.output)
         self.tb_filename = os.path.join('runs', filename)
         self.writer = SummaryWriter(self.tb_filename)
         self.LOSS_NAMES = ['PIF Confidence', 'PIF Localization', 'PIF Scale', 'PAN Semantic', 'PAN Offset', 'PIF Ball Confidence', 'PIF Ball Localization', 'PIF Ball Scale']
@@ -385,6 +386,8 @@ class Trainer(object):
                 self.writer.add_scalar('Train Loss/head '+ self.LOSS_NAMES[hd_idx], head_ls / max(1, head_epoch_counts[hd_idx]), epoch + 1)
                 if hasattr(self.loss, 'batch_meta'):
                     self.writer.add_scalar('Sigmas/head '+ self.LOSS_NAMES[hd_idx], .5/sigmas['mtl_sigmas'][hd_idx]**2, epoch + 1)
+                    # self.writer.add_scalar('Sigmas/head '+ self.LOSS_NAMES[hd_idx], .5/(3.0 * torch.tanh(sigmas['mtl_sigmas'][hd_idx] / 3.0))**2, epoch + 1)
+                    
         except:
             print('error')
 

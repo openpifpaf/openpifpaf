@@ -128,15 +128,21 @@ class CifPanBall(Generator):
 
         Ñ = None
 
-        def cif_local_max(cif):
+        def cif_local_max(cif, kernel_size=13, pad=6):
             """Use torch for max pooling"""
             cif = torch.tensor(cif)
-            cif_m = torch.max_pool2d(cif[None], 7, stride=1, padding=3)[0] == cif
+            cif_m = torch.max_pool2d(cif[None], kernel_size, stride=1, padding=pad)[0] == cif      #### 7 padding=3
             cif_m &= cif > 0.1
             return np.asarray(cif_m)
 
         # Get coordinates of keypoints of every type
         # list[K,N_k]
+        keypoints_yx = []
+        # for i_k, cif in enumerate(cifhr.accumulated):
+        #     if i_k == Ci:
+        #         keypoints_yx.append(np.stack(np.nonzero(cif_local_max(cif)), axis=-1))
+        #     else:
+        #         keypoints_yx.append(np.stack(np.nonzero(cif), axis=-1))
         keypoints_yx = [np.stack(np.nonzero(cif_local_max(cif)), axis=-1)
                         for cif in cifhr.accumulated]
 
@@ -146,7 +152,7 @@ class CifPanBall(Generator):
         # plt.colorbar(im)
         # plt.show()
 
-        ball_fyxv = [np.stack(np.nonzero(cif_local_max(cif)), axis=-1)
+        ball_fyxv = [np.stack(np.nonzero(cif_local_max(cif, kernel_size=51, pad=25)), axis=-1)
                         for cif in cifhr_ball.accumulated]
         # plt.figure(figsize=(15,15))
         # # print('max', (cifhr_ball.accumulated[Bi]).max())
