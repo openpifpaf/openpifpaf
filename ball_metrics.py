@@ -120,7 +120,8 @@ def infer(weights_file, data, verbose=False):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("weights_file")
-    parser.add_argument("--pickled-dataset", required=True)
+    parser.add_argument("--pickled-dataset-of-masks", required=True)
+    parser.add_argument("--pickled-dataset-of-balls", required=True)
     parser.add_argument("--dataset-split", required=True)
     parser.add_argument("--test-fold", default=0)
     parser.add_argument("--verbose", action='store_true', default=False)
@@ -129,13 +130,15 @@ def main():
 
     # DATASET
     shape = (641,641)
-    ds = PickledDataset(args.pickled_dataset)
+    ds = PickledDataset(args.pickled_dataset_of_balls)
     ds = TransformedDataset(ds, [
         ViewCropperTransform(def_min=30, def_max=80, output_shape=shape),
         ExtractViewData(AddBallPositionFactory(), AddBallSegmentationTargetViewFactory()),
     ])
-    split = deepsportlab_dataset_splitter(list(ds.keys.all()), args.dataset_split, args.test_fold)
 
+    human_masks_keys = list(PickledDataset(args.pickled_dataset_of_masks).keys.all())
+    split = deepsportlab_dataset_splitter(human_masks_keys, args.dataset_split, args.test_fold)
+    split["testing"] = [k for k in ds.keys.all() if k not in human_masks_keys]
 
     # TENSORFLOW METRIC EVALUATION MODEL
     chunk = {}
