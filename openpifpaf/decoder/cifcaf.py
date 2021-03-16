@@ -64,6 +64,7 @@ class CifCaf(Decoder):
     connection_method = 'blend'
     occupancy_visualizer = visualizer.Occupancy()
     force_complete = False
+    force_complete_caf_th = 0.001
     greedy = False
     keypoint_threshold = 0.15
     keypoint_threshold_rel = 0.5
@@ -113,6 +114,9 @@ class CifCaf(Decoder):
         assert not cls.force_complete
         group.add_argument('--force-complete-pose',
                            default=False, action='store_true')
+        group.add_argument('--force-complete-caf-th', type=float,
+                           default=cls.force_complete_caf_th,
+                           help='CAF threshold for force complete. Set to -1 to deactivate.')
 
         assert utils.nms.Keypoints.keypoint_threshold == cls.keypoint_threshold
         group.add_argument('--keypoint-threshold', type=float,
@@ -163,6 +167,7 @@ class CifCaf(Decoder):
             args.keypoint_threshold = args.seed_threshold
 
         cls.force_complete = args.force_complete_pose
+        cls.force_complete_caf_th = args.force_complete_caf_th
         cls.keypoint_threshold = args.keypoint_threshold
         utils.nms.Keypoints.keypoint_threshold = keypoint_threshold_nms
         cls.keypoint_threshold_rel = args.keypoint_threshold_rel
@@ -347,9 +352,7 @@ class CifCaf(Decoder):
                 heapq.heappush(frontier, (-score, new_xysv, start_i, end_i))
 
         # seeding the frontier
-        for joint_i, v in enumerate(ann.data[:, 2]):
-            if v == 0.0:
-                continue
+        for joint_i in np.flatnonzero(ann.data[:, 2]):
             add_to_frontier(joint_i)
 
         while True:
@@ -376,14 +379,12 @@ class CifCaf(Decoder):
                 if ann.data[end_i, 2] > 0.0:
                     continue
                 start_xyv = ann.data[start_i].tolist()
-                score = xyv[2]
+                score = start_xyv[2]
                 if self.confidence_scales is not None:
                     score = score * self.confidence_scales[caf_i]
                 heapq.heappush(frontier, (-score, end_i, start_xyv, ann.joint_scales[start_i]))
 
-        for start_i, xyv in enumerate(ann.data):
-            if xyv[2] == 0.0:
-                continue
+        for start_i in np.flatnonzero(ann.data[:, 2]):
             add_to_frontier(start_i)
 
         while frontier:
@@ -398,18 +399,20 @@ class CifCaf(Decoder):
     def complete_annotations(self, cifhr, fields, annotations):
         start = time.perf_counter()
 
-        caf_scored = utils.CafScored(cifhr.accumulated, score_th=0.001).fill(
-            fields, self.caf_metas)
-        for ann in annotations:
-            unfilled_mask = ann.data[:, 2] == 0.0
-            self._grow(ann, caf_scored, reverse_match=False)
-            now_filled_mask = ann.data[:, 2] > 0.0
-            updated = np.logical_and(unfilled_mask, now_filled_mask)
-            ann.data[updated, 2] = np.minimum(0.001, ann.data[updated, 2])
+        if self.force_complete_caf_th >= 0.0:
+            caf_scored = (utils
+                          .CafScored(cifhr.accumulated, score_th=self.force_complete_caf_th)
+                          .fill(fields, self.caf_metas))
+            for ann in annotations:
+                unfilled_mask = ann.data[:, 2] == 0.0
+                self._grow(ann, caf_scored, reverse_match=False)
+                now_filled_mask = ann.data[:, 2] > 0.0
+                updated = np.logical_and(unfilled_mask, now_filled_mask)
+                ann.data[updated, 2] = np.minimum(0.001, ann.data[updated, 2])
 
-            # some joints might still be unfilled
-            if np.any(ann.data[:, 2] == 0.0):
-                self._flood_fill(ann)
+        # some joints might still be unfilled
+        for ann in annotations:
+            self._flood_fill(ann)
 
         LOG.debug('complete annotations %.3fs', time.perf_counter() - start)
         return annotations
