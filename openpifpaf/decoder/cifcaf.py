@@ -69,6 +69,7 @@ class CifCaf(Decoder):
     keypoint_threshold = 0.15
     keypoint_threshold_rel = 0.5
     nms = utils.nms.Keypoints()
+    nms_before_force_complete = False
     dense_coupling = 0.0
 
     reverse_match = True
@@ -117,6 +118,9 @@ class CifCaf(Decoder):
         group.add_argument('--force-complete-caf-th', type=float,
                            default=cls.force_complete_caf_th,
                            help='CAF threshold for force complete. Set to -1 to deactivate.')
+        assert not cls.nms_before_force_complete
+        group.add_argument('--nms-before-force-complete', default=False, action='store_true',
+                           help='run an additional NMS before completing poses')
 
         assert utils.nms.Keypoints.keypoint_threshold == cls.keypoint_threshold
         group.add_argument('--keypoint-threshold', type=float,
@@ -168,6 +172,7 @@ class CifCaf(Decoder):
 
         cls.force_complete = args.force_complete_pose
         cls.force_complete_caf_th = args.force_complete_caf_th
+        cls.nms_before_force_complete = args.nms_before_force_complete
         cls.keypoint_threshold = args.keypoint_threshold
         utils.nms.Keypoints.keypoint_threshold = keypoint_threshold_nms
         cls.keypoint_threshold_rel = args.keypoint_threshold_rel
@@ -243,6 +248,9 @@ class CifCaf(Decoder):
         LOG.debug('annotations %d, %.3fs', len(annotations), time.perf_counter() - start)
 
         if self.force_complete:
+            if self.nms_before_force_complete and self.nms is not None:
+                assert self.nms.instance_threshold > 0.0
+                annotations = self.nms.annotations(annotations)
             annotations = self.complete_annotations(cifhr, fields, annotations)
 
         if self.nms is not None:
