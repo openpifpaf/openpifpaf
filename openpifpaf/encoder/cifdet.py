@@ -125,6 +125,15 @@ class CifDetGenerator():
         self.fields_reg_bmin[f, miny:maxy, minx:maxx][mask] = bmin
         self.fields_wh_bmin[f, miny:maxy, minx:maxx][mask] = bmin
 
+    def train_bg_only_when_class_present_in_image(self, composite_field):
+        for field_i in range(composite_field.shape[0]):
+            if torch.any(composite_field[field_i, 0] == 1.0):
+                continue
+
+            composite_field[field_i] = np.nan
+
+        return composite_field
+
     def fields(self, valid_area):
         p = self.config.padding
         intensities = self.intensities[:, p:-p, p:-p]
@@ -141,10 +150,11 @@ class CifDetGenerator():
         mask_valid_area(fields_reg_bmin, valid_area, fill_value=np.nan)
         mask_valid_area(fields_wh_bmin, valid_area, fill_value=np.nan)
 
-        return torch.from_numpy(np.concatenate([
+        composite_field = torch.from_numpy(np.concatenate([
             np.expand_dims(intensities, 1),
             fields_reg,
             fields_wh,
             np.expand_dims(fields_reg_bmin, 1),
             np.expand_dims(fields_wh_bmin, 1),
         ], axis=1))
+        return self.train_bg_only_when_class_present_in_image(composite_field)
