@@ -126,7 +126,12 @@ class CifDetGenerator():
         self.fields_wh_bmin[f, miny:maxy, minx:maxx][mask] = bmin
 
     def train_bg_only_when_class_present_in_image(self, composite_field):
+        # keep one of the background maps without an object
+        keep_i = torch.randint(0, composite_field.shape[0], (1,)).item()
+
         for field_i in range(composite_field.shape[0]):
+            if field_i == keep_i:
+                continue
             if torch.any(composite_field[field_i, 0] == 1.0):
                 continue
 
