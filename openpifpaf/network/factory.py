@@ -82,14 +82,24 @@ def factory(
 
     if base_name:
         assert head_names
-        assert checkpoint is None
-        net_cpu = factory_from_scratch(base_name, head_names, pretrained=pretrained)
-        epoch = 0
-        if weights is not None:
-            checkpoint = torch.load(weights)
-            old_model = checkpoint['model']
-            state_dict = old_model.base_net.state_dict()
-            net_cpu.base_net.load_state_dict(state_dict)
+        if checkpoint is None:
+            # assert checkpoint is None
+            net_cpu = factory_from_scratch(base_name, head_names, pretrained=pretrained)
+            epoch = 0
+            if weights is not None:
+                checkpoint = torch.load(weights)
+                old_model = checkpoint['model']
+                state_dict = old_model.base_net.state_dict()
+                net_cpu.base_net.load_state_dict(state_dict)
+
+        else:
+            checkpoint = torch.load(checkpoint)
+            if 'model_state_dict' in checkpoint:
+                net_cpu = factory_from_scratch(base_name, head_names, pretrained=pretrained)
+                net_cpu.load_state_dict(checkpoint['model_state_dict'])
+                epoch = checkpoint['epoch']
+            else:
+                raise 'model_state_dict not in checkpoint dict! if the checkpoint is .pkl remove --basenet and --headnets!'
     else:
         assert base_name is None
         assert head_names is None
@@ -111,6 +121,14 @@ def factory(
         else:
             checkpoint = torch.load(checkpoint)
 
+        # if 'model_state_dict' in checkpoint:
+        #     assert base_name is not None
+        #     assert head_names is not None
+        #     net_cpu = factory_from_scratch(base_name, head_names, pretrained=pretrained)
+        #     net_cpu.load_state_dict(checkpoint['model_state_dict'])
+        # else:
+        #     assert base_name is None
+        #     assert head_names is None
         net_cpu = checkpoint['model']
         epoch = checkpoint['epoch']
 

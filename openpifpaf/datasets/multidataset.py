@@ -33,7 +33,11 @@ class MultiDataset(object):
         # target_pan = None
         
         data = torch.cat([img for img,_,_ in list_scenes], dim=0)
-        meta = [met for _,_,met in list_scenes]
+        meta = []
+        for _,_,met in list_scenes:
+            meta += met
+        # print(meta)
+        # raise
         targets = []
 
         for h_ix, head in enumerate(self.heads):

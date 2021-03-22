@@ -96,12 +96,24 @@ class DeepSportDataset(torch.utils.data.Dataset):
             self.ball = True
 
         self.config = config[0]
-        print('Number of images deepsport:', len(self.keys))
+        
         # self.Get_number_of_images_with_ball()
         # print('Number of images deepsport:', len(self.keys))
 
+        # KS-FR-LEMANS_24652_1513026063427_1_0
+        # self.keys=[ViewKey(instant_key=InstantKey(arena_label='KS-FR-LEMANS', game_id=24652, timestamp=1513026063427), camera=1, index=0)]
+        # keyss = []
+        # for key in self.keys:
+        #     if key.instant_key.arena_label == 'KS-FR-LEMANS' and key.instant_key.game_id == 24652 and \
+        #                 key.instant_key.timestamp == 1513026063427 and key.camera == 1 and key.index==0:
+        #         keyss.append(key)
+
+        # self.keys = keyss
+        print('Number of images deepsport:', len(self.keys))
+
     def __len__(self):
         return len(self.keys)
+        # return 24
 
 
     def Get_number_of_images_with_ball(self):
@@ -185,8 +197,10 @@ class DeepSportDataset(torch.utils.data.Dataset):
         meta = {
             'dataset_index': index,
             'image_id': image_id,
-            'file_name': str(key),
+            'file_name': str(key.instant_key.arena_label)+'_'+str(key.instant_key.game_id)+
+                        '_'+str(key.instant_key.timestamp)+'_'+str(key.camera)+'_'+str(key.index),
         }
+        # ViewKey(instant_key=InstantKey(arena_label='KS-AT-VIENNA', game_id=29887, timestamp=1513447440420), camera=0, index=0)
         # print(str(key))
         if "ball_size" in data:
             meta['ball_size'] = data["size"]

@@ -296,6 +296,14 @@ class CifPanBall(Generator):
 
         # if self.nms is not None:
         #     annotations = self.nms.annotations(annotations)
+        filtered_annotations = []
+        for ann in annotations:
+            if ann.category_id != 1:
+                filtered_annotations.append(ann)
+                continue
+            if np.count_nonzero(ann.mask) > 100 and np.count_nonzero(ann.data[:,2]) >= 5:
+                filtered_annotations.append(ann)
+        annotations = filtered_annotations
 
         LOG.info('%d annotations: %s', len(annotations),
                  [np.sum(ann.data[:, 2] > 0.1) for ann in annotations])

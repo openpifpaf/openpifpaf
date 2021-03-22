@@ -1,6 +1,6 @@
 from tqdm.auto import tqdm
 
-from dataset_utilities.providers import AWSSession
+from dataset_utilities import AWSSession
 from dataset_utilities.ds.instants_dataset import InstantsDataset, ViewsDataset, BuildCameraViews, AddBallAnnotation, DownloadFlags
 from mlworkflow import FilteredDataset, TransformedDataset, PickledDataset
 
@@ -34,12 +34,26 @@ session = AWSSession(profile_name="abolfazl@ucl").as_role("basketball-instants-d
 
 
 
-predicate = lambda instant_key, instant: instant.annotated_human_masks
+# predicate = lambda instant_key, instant: instant.annotated_human_masks
+# df = DownloadFlags.WITH_HUMAN_SEGMENTATION_MASKS | DownloadFlags.WITH_IMAGES | DownloadFlags.WITH_CALIB_FILE
+# instants_dataset = InstantsDataset(sport="basketball", session=session,
+#     local_storage="/scratch/mistasse/abolfazl/keemotion", progress_wrapper=tqdm,
+#     predicate=predicate, download_flags = df)
+# # build a dataset of balls centered in the image with a margin of 50cm around the ball
+# views_dataset = ViewsDataset(instants_dataset, view_builder=BuildCameraViews())
+# ds = TransformedDataset(views_dataset, [AddBallAnnotation()])
+# PickledDataset.create(ds, "/scratch/mistasse/abolfazl/keemotion/pickled/camera_views_with_human_masks_ball_mask.pickle")
+
+
+
+
+# predicate = lambda instant_key, instant: instant.annotated_human_masks
 df = DownloadFlags.WITH_HUMAN_SEGMENTATION_MASKS | DownloadFlags.WITH_IMAGES | DownloadFlags.WITH_CALIB_FILE
 instants_dataset = InstantsDataset(sport="basketball", session=session,
-    local_storage="/scratch/mistasse/abolfazl/keemotion", progress_wrapper=tqdm,
-    predicate=predicate, download_flags = df)
+    local_storage="/data/mistasse/abolfazl/keemotion", progress_wrapper=tqdm,
+    download_flags = df)
 # build a dataset of balls centered in the image with a margin of 50cm around the ball
 views_dataset = ViewsDataset(instants_dataset, view_builder=BuildCameraViews())
 ds = TransformedDataset(views_dataset, [AddBallAnnotation()])
-PickledDataset.create(ds, "/scratch/mistasse/abolfazl/keemotion/pickled/camera_views_with_human_masks_ball_mask.pickle")
+ds = FilteredDataset(ds, predicate=lambda k,v: k.camera == v.ball.camera)
+PickledDataset.create(ds, "/data/mistasse/abolfazl/keemotion/pickled/camera_views_all.pickle")
