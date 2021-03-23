@@ -86,6 +86,8 @@ def cli():
 
     group.add_argument('--slurm-job-id', default=None)
 
+    group.add_argument('--use-wandb', default=True)
+
     args = parser.parse_args()
 
     if args.debug_images:

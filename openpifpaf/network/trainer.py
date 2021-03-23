@@ -12,11 +12,14 @@ import socket
 
 LOG = logging.getLogger(__name__)
 
-# import wandb
+import wandb
 import numpy as np
 import math
 
 # wandb.login()
+
+def log_wandb(in_dict):
+    wandb.log(in_dict)
 
 
 def apply(f, items):
@@ -59,6 +62,9 @@ class Trainer(object):
         self.model_meta_data = model_meta_data
         self.train_args = train_args
 
+        if self.train_args.use_wandb:
+            wandb.login()
+
         
         ### tb stuff
         tb_datetime = datetime.datetime.now()
@@ -71,17 +77,17 @@ class Trainer(object):
         self.LOSS_NAMES = ['PIF Confidence', 'PIF Localization', 'PIF Scale', 'PAN Semantic', 'PAN Offset', 'PIF Ball Confidence', 'PIF Ball Localization', 'PIF Ball Scale']
 
         
-        
-        # if checkpoint is not None:
-        #     if 'wandb_id' in checkpoint:
-        #         self.wandb_id = checkpoint['wandb_id']
-        # else:
-        #     self.wandb_id = wandb.util.generate_id()
+        if self.train_args.use_wandb:
+            if checkpoint is not None:
+                if 'wandb_id' in checkpoint:
+                    self.wandb_id = checkpoint['wandb_id']
+            else:
+                self.wandb_id = wandb.util.generate_id()
+    
+            # self.wandb_id = wandb.util.generate_id() if wandb_id is None else wandb_id
+            wandb.init(project='DeepSportLab', id=self.wandb_id, config=train_args, resume='allow')
 
-        # # self.wandb_id = wandb.util.generate_id() if wandb_id is None else wandb_id
-        # wandb.init(project='DeepSportLab', id=self.wandb_id, config=train_args, resume='allow')
-
-        # wandb.watch(self.model, log="all", log_freq=1000)
+            wandb.watch(self.model, log="all", log_freq=9)
 
         if train_profile:
             # monkey patch to profile self.train_batch()
@@ -292,10 +298,19 @@ class Trainer(object):
 
             batch_time = time.time() - batch_start
 
-            # wandb.log({"train loss": loss, 'lr': self.lr()})
+            # wandb.log({"train loss": loss, 'lr': self.lr(), 'batch_idx': epoch * len(scenes) + batch_idx})
             # for hd_idx, head_ls in enumerate(head_losses):
             #     wandb.log({"train loss/ head"+ self.LOSS_NAMES[hd_idx]: head_ls, 'epoch': epoch+1})
-
+            if self.train_args.use_wandb:
+                in_dict = {
+                    "train loss": loss,
+                    'lr': self.lr(),
+                    'batch_idx': epoch * len(scenes) + batch_idx,
+                    'epoch': epoch+1,
+                    }
+                for hd_idx, head_ls in enumerate(head_losses):
+                    in_dict["train loss/ head"+self.LOSS_NAMES[hd_idx]] = head_ls
+                log_wandb(in_dict)
 
             # write training loss
             if batch_idx % self.log_interval == 0:
@@ -417,9 +432,19 @@ class Trainer(object):
             
 
             eval_time = time.time() - start_time
-            # wandb.log({"val loss": loss, 'lr': self.lr()})
+            # wandb.log({"val loss": loss, 'lr': self.lr(), 'batch_idx_val': batch_idx})
             # for hd_idx, head_ls in enumerate(head_losses):
             #     wandb.log({"val loss/ head"+ self.LOSS_NAMES[hd_idx]: head_ls})
+
+            if self.train_args.use_wandb:
+                in_dict = {
+                    "val loss": loss,
+                    'lr': self.lr(),
+                    'batch_idx_val': epoch * len(scenes) + batch_idx,
+                    }
+                for hd_idx, head_ls in enumerate(head_losses):
+                    in_dict["val loss/ head"+self.LOSS_NAMES[hd_idx]] = head_ls
+                log_wandb(in_dict)
 
         LOG.info({
             'type': 'val-epoch',
@@ -521,6 +546,9 @@ class Trainer(object):
 
     def close_tb(self):
         self.writer.close()
+
+
+    
 
 
     # def wandb_log_images(self, data, targets, outputs, meta, log_type='train images'):
