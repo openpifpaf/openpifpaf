@@ -14,6 +14,7 @@ try:
     from Cython.Build import cythonize
 except ImportError:
     cythonize = None
+
 try:
     import numpy
 except ImportError as e:
@@ -21,7 +22,7 @@ except ImportError as e:
     raise e
 
 
-if cythonize is not None and numpy is not None:
+if cythonize is not None:
     EXTENSIONS = cythonize([Extension('openpifpaf.functional',
                                       ['openpifpaf/functional.pyx'],
                                       include_dirs=[numpy.get_include()]),
@@ -30,7 +31,7 @@ if cythonize is not None and numpy is not None:
                            compiler_directives={'language_level': 3})
 else:
     EXTENSIONS = [Extension('openpifpaf.functional',
-                            ['openpifpaf/functional.pyx'],
+                            ['openpifpaf/functional.c'],
                             include_dirs=[numpy.get_include()])]
 
 
