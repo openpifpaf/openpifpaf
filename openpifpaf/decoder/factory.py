@@ -9,6 +9,7 @@ from .generator.cifcaf import CifCaf
 from .generator.cifdet import CifDet
 from .generator.cifseg import CifSeg
 from .generator.cifcent import CifCent
+from .generator.cifpanball import CifPanBall
 from . import nms
 from .profiler import Profiler
 from .profiler_autograd import ProfilerAutograd
@@ -199,6 +200,19 @@ def factory_decode(head_nets, *,
                            skeleton=head_nets[0].meta.draw_skeleton)
             for i in field_config.cif_indices
         ]
+        # print('heads', len(head_nets))
+        if len(head_nets) == 3:
+            field_config_ball = FieldConfig(cif_indices=[2])
+            #print('field config ball', field_config_ball)
+            if isinstance(head_nets[2].meta, network.heads.IntensityMeta):
+                return CifPanBall(
+                    field_config,
+                    field_config_ball,
+                    keypoints=head_nets[0].meta.keypoints,
+                    out_skeleton=head_nets[1].meta.skeleton,
+                    worker_pool=worker_pool,
+                    kp_ball=head_nets[2].meta.keypoints,
+                )
 
         return CifPan(
             field_config,

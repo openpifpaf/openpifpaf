@@ -27,13 +27,15 @@ class Coco(torch.utils.data.Dataset):
                  n_images=None, preprocess=None,
                  category_ids=None,
                  image_filter='keypoint-annotations',
-                 config='cif'):
+                 config='cif',
+                 ball=False):
         if category_ids is None:
             category_ids = [1]
 
         self.config = config
         print(self.config)
         self.ids_ball = []
+        self.ball = ball
         
 
         from pycocotools.coco import COCO  # pylint: disable=import-outside-toplevel
@@ -60,6 +62,8 @@ class Coco(torch.utils.data.Dataset):
                 self.ids = self.coco.getImgIds(catIds=self.category_ids)
                 self.ids_inst = self.coco_inst.getImgIds(catIds=self.category_ids)
                 self.filter_for_keypoint_annotations()
+                # self.ids += self.ids
+
             elif self.category_ids == [37]:
                 self.ids_ball = self.coco_inst.getImgIds(catIds=self.category_ids)
                 self.ids = self.ids_ball
@@ -68,7 +72,9 @@ class Coco(torch.utils.data.Dataset):
                 self.ids = self.coco.getImgIds(catIds=self.category_ids[0])
                 # self.ids_inst = self.coco_inst.getImgIds(catIds=self.category_ids[0])
                 self.ids_ball = self.coco_inst.getImgIds(catIds=self.category_ids[1])
-                self.filter_for_kp_ball_annotations()
+                self.filter_for_keypoint_annotations()
+                self.filter_for_medium_people()
+                # self.filter_for_kp_ball_annotations()
                 self.ids += self.ids_ball
                 # for i in self.ids_ball:
                 #     if i not in self.ids:
@@ -105,12 +111,43 @@ class Coco(torch.utils.data.Dataset):
         if n_images:
             self.ids = self.ids[:n_images]
         LOG.info('Images: %d', len(self.ids))
+        print('Number of images: ', len(self.ids))
 
-
+        # self.Get_number_of_images_with_ball()
         
 
         self.preprocess = preprocess or transforms.EVAL_TRANSFORM
         self.target_transforms = target_transforms
+
+    def Get_number_of_images_with_ball(self):
+        LOG.info('Images with ball ...')
+        def has_ball(image_id):
+            ann_ids = self.coco_inst.getAnnIds(imgIds=image_id, catIds=[37])
+            anns = self.coco_inst.loadAnns(ann_ids)
+            if len(anns) > 0:
+                return True
+            return False
+        self.ids = [image_id for image_id in self.ids
+                    if has_ball(image_id)]
+        print('Number of images with ball', len([image_id for image_id in self.ids
+                    if has_ball(image_id)]))
+        LOG.info('... done.')
+
+    def filter_for_medium_people(self):
+        LOG.info('filter for medium people ...')
+        def is_medium(image_id):
+            ann_ids = self.coco.getAnnIds(imgIds=image_id, catIds=[1])
+            anns = self.coco.loadAnns(ann_ids)
+            for ann in anns:
+                # mask = self.coco_inst.annToMask(ann)
+                if 'keypoints' not in ann:
+                    continue
+                if len([v for v in ann['keypoints'][2::3] if v > 0.0]) > 10:
+                    return True
+            return False
+        self.ids = [image_id for image_id in self.ids
+                    if is_medium(image_id)]
+        LOG.info('... done.')
 
     def filter_for_keypoint_annotations(self):
         LOG.info('filter for keypoint annotations ...')
@@ -246,6 +283,8 @@ class Coco(torch.utils.data.Dataset):
             meshgrid[1] *= anns_center[ann_id]['bmask']
             center = (meshgrid[0].sum()/anns_center[ann_id]['bmask'].sum(),
                     meshgrid[1].sum()/anns_center[ann_id]['bmask'].sum())
+
+            # anns_center[ann_id]['keypoints'] = 3*17*[0]
             
             anns_center[ann_id]['keypoints'].append(int(center[1]))      # add center for y
             anns_center[ann_id]['keypoints'].append(int(center[0]))      # add center for x
@@ -254,7 +293,24 @@ class Coco(torch.utils.data.Dataset):
         
         return anns_center
 
-    def empty_person_keypoint(self, anns_inst, n_keypoints=17, category_id=37):
+    def add_ball(self, anns_center, visiblity=2):
+        
+        for ann_id, ann in enumerate(anns_center):
+            meshgrid = np.indices(anns_center[ann_id]['bmask'].shape)
+            meshgrid[0] *= anns_center[ann_id]['bmask']
+            meshgrid[1] *= anns_center[ann_id]['bmask']
+            center = (meshgrid[0].sum()/anns_center[ann_id]['bmask'].sum(),
+                    meshgrid[1].sum()/anns_center[ann_id]['bmask'].sum())
+            
+            anns_center[ann_id]['kp_ball'] = []
+            anns_center[ann_id]['kp_ball'].append(int(center[1]))      # add center for y
+            anns_center[ann_id]['kp_ball'].append(int(center[0]))      # add center for x
+            anns_center[ann_id]['kp_ball'].append(visiblity)
+            anns_center[ann_id]['keypoints'] = 3*18*[0]
+        
+        return anns_center
+
+    def empty_person_keypoint(self, anns_inst, n_keypoints=17):
         
         for ann in anns_inst:
             keypoints = []
@@ -263,6 +319,7 @@ class Coco(torch.utils.data.Dataset):
             ann['keypoints'] = keypoints
 
         return anns_inst
+    
 
 
     def __getitem__(self, index):
@@ -290,7 +347,7 @@ class Coco(torch.utils.data.Dataset):
         ann_ids = self.coco.getAnnIds(imgIds=image_id)
         anns = self.coco.loadAnns(ann_ids)
         anns = copy.deepcopy(anns)
-
+        # assert anns != []
 
         if self.ann_inst_file is not None:
             # ann_ids_inst = self.coco_inst.getAnnIds(imgIds=image_id, catIds=[1])
@@ -345,8 +402,21 @@ class Coco(torch.utils.data.Dataset):
                 anns_ball = self.add_center(anns_ball)        # add ball keypoint
                 anns += anns_ball
 
-            else:
-                raise NotImplementedError
+            if self.ball:
+                ann_ids_inst = self.coco_inst.getAnnIds(imgIds=image_id, catIds=[37])
+                anns_inst = self.coco_inst.loadAnns(ann_ids_inst)
+                anns_inst = copy.deepcopy(anns_inst)
+                for i in anns_inst:
+                    # ann_mask_id = i['id']
+                    i['bmask'] = self.coco_inst.annToMask(i)
+
+                for ann in anns:
+                    ann['kp_ball'] = [0,0,0]
+                    # ann['kp_ball'] = np.zeros((1, 3))
+                anns_ball = self.add_ball(anns_inst)
+                # anns_ball = self.empty_person_keypoint(anns_ball, n_keypoints=18)   # add fake people
+                anns += anns_ball
+                
         except:
             print('image_id_1: ', image_id)
             import pickle
@@ -356,13 +426,29 @@ class Coco(torch.utils.data.Dataset):
 
         # anns = copy.deepcopy(anns)
         
-        try:
-            image, anns, meta = self.preprocess(image, anns, meta)
-        except:
-            print('image_id_2: ', image_id)
-            import pickle
-            with open('coco_2.pickle','wb') as f:
-                pickle.dump((image, anns),f)
+        # try:
+        # import matplotlib.pyplot as plt
+        # plt.figure(figsize=(10,10))
+        # plt.imshow(image)
+        # plt.figure(figsize=(10,10))
+        # # print(len(anns))
+        # for aaa in anns:
+        #     # print(aaa['kp_ball'])
+        #     plt.scatter(aaa['kp_ball'][0],aaa['kp_ball'][1],linewidths=4)
+            # plt.show
+        image, anns, meta = self.preprocess(image, anns, meta)
+        # plt.figure(figsize=(10,10))
+        # plt.imshow(image)
+        # plt.figure(figsize=(10,10))
+        # for aaa in anns:
+    
+        #     plt.scatter(aaa['kp_ball'][0,0],aaa['kp_ball'][0,1],linewidths=4)
+        #     plt.show
+        # except:
+        #     print('image_id_2: ', image_id)
+        #     import pickle
+        #     with open('coco_2.pickle','wb') as f:
+        #         pickle.dump((image, anns),f)
 
         # mask valid TODO still necessary?
         # print('after augmentation')
@@ -405,4 +491,5 @@ class Coco(torch.utils.data.Dataset):
 
     def __len__(self):
         return len(self.ids)
+        # return 50
         

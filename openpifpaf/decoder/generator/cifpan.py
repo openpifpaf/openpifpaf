@@ -22,6 +22,27 @@ from ...functional import caf_center_s
 
 LOG = logging.getLogger(__name__)
 
+def offsets_to_colorwheel(offset):
+    import kornia, math
+    offset = torch.tensor(offset)
+    angle = torch.atan2(offset[:,0],offset[:,1])[:,None]
+    magnitude = offset.pow(2).sum(dim=1,keepdim=True).sqrt()
+    eps = 1e-3
+    h = angle+math.pi
+    v = torch.ones_like(angle)-eps
+    s = magnitude/175
+    #s[self.instance_truth("foreground_instances")==0] = 0
+    v = 1-s/7
+    s[s>1] = 1
+    hsv = torch.cat([h,s,v], dim=1)
+    rgb = kornia.color.hsv_to_rgb(hsv)
+    return rgb.permute(0,2,3,1).cpu().numpy()
+
+def softmax(semantic):
+    semantic = torch.tensor(semantic)
+    p = torch.softmax(semantic, dim=1)
+    return p.cpu().numpy()
+
 
 class CifPan(Generator):
     """Generate CifCaf poses from fields.
@@ -44,7 +65,8 @@ class CifPan(Generator):
                  out_skeleton=None,
                  confidence_scales=None,
                  worker_pool=None,
-                 nms=True
+                 nms=True,
+                 kp_ball=None,
                 ):
         super().__init__(worker_pool)
         if nms is True:
@@ -53,6 +75,9 @@ class CifPan(Generator):
         self.field_config = field_config
 
         self.keypoints = keypoints
+        self.kp_ball = kp_ball
+        if self.kp_ball is not None:
+            self.ball = True 
         # self.skeleton = skeleton
         # self.skeleton_m1 = np.asarray(skeleton) - 1
         self.out_skeleton = out_skeleton
@@ -76,6 +101,7 @@ class CifPan(Generator):
         semantic, offsets = pan['semantic'], pan['offset']
 
         Ci, Bi = (17, object()) if self.ball else (17, 18)
+        # Ci, Bi = (17, object()) if self.ball else (17, 0)
 
         start = time.perf_counter()
         if not initial_annotations:
@@ -90,8 +116,8 @@ class CifPan(Generator):
         #     for vis, caf_i in zip(self.field_config.caf_visualizers, self.field_config.caf_indices):
         #         vis.predicted(fields[caf_i])
 
-        print(self.field_config)
-        print('pif fields',fields[0].shape)
+        # print(self.field_config)
+        # print('pif fields',fields[0].shape)
         cifhr = CifHr(self.field_config).fill(fields)
 
         # seeds = CifSeeds(cifhr.accumulated, self.field_config).fill(fields)
@@ -112,6 +138,12 @@ class CifPan(Generator):
         keypoints_yx = [np.stack(np.nonzero(cif_local_max(cif)), axis=-1)
                         for cif in cifhr.accumulated]
 
+        # from matplotlib import pyplot as plt
+        # plt.figure(figsize=(15,15))
+        # im = plt.imshow(np.log(cifhr.accumulated[Ci]), cmap='jet')
+        # plt.colorbar(im)
+        # plt.show()
+
         if len(keypoints_yx[Ci]) == 0:
             return []
 
@@ -125,11 +157,8 @@ class CifPan(Generator):
 
         absolute = offsets + np.stack(np.meshgrid(np.arange(offsets.shape[1]),
                                                   np.arange(offsets.shape[2]), indexing='ij'))
-        # plt.imshow(offsets[0])
-        # plt.colorbar()
-        # plt.show()
-        # plt.imshow(offsets[1])
-        # plt.colorbar()
+        
+        # plt.imshow(offsets_to_colorwheel(offsets[None])[0])
         # plt.show()
 
         difference = (absolute[Ñ,:,:,:] -                   # [ ,2,H,W]
@@ -138,11 +167,13 @@ class CifPan(Generator):
 
         distances2 = np.square(difference).sum(axis=1)      # [I,H,W]
         instances = distances2.argmin(axis=0)               # [H,W]
+        # plt.imshow(instances)
+        # plt.show()
 
         # For each detected keypoints, get its confidence and instance
         centers_fyxv = [
-            # (Ci, y, x, cifhr.accumulated[Ci,y,x])
-            (Ci, y, x, 2.)
+            (Ci, y, x, cifhr.accumulated[Ci,y,x])
+            # (Ci, y, x, 2.)
             for y, x in keypoints_yx[Ci]
         ]
         if self.ball:
@@ -151,8 +182,8 @@ class CifPan(Generator):
                 for y, x in keypoints_yx[Bi]
             ]
         keypoints_fyxiv = [
-            # (f, y, x, instances[y,x], cifhr.accumulated[f,y,x])
-            (f, y, x, instances[y,x], 2.)
+            (f, y, x, instances[y,x], cifhr.accumulated[f,y,x])
+            # (f, y, x, instances[y,x], 2.)
             for f, kp_yx in enumerate(keypoints_yx[:Ci])
             for y, x in kp_yx
         ]
@@ -175,23 +206,39 @@ class CifPan(Generator):
             annotation.add(f, (x,y,v))
 
         # semantic      shape [C,H,W]
+        # plt.figure(figsize=(15,15))
+        # plt.imshow(semantic[1])
+        # plt.show()
+        
+        # from matplotlib import pyplot as plt
         classes = semantic.argmax(axis=0)   # [H,W]
-        from matplotlib import pyplot as plt
-        plt.imshow(classes)
-        plt.show()
-        print('show')
+        # plt.imshow(softmax(semantic[None])[0,1])
+        # plt.colorbar()
+        # plt.show()
+
+        # plt.hist(semantic.reshape(-1))
+        # plt.show()
         # plt.savefig('data-mscoco/test.png')
 
         panoptic = classes*1000 + instances
+        # plt.figure(figsize=(20,20))
+        # print('show')
+        # plt.figure(figsize=(20,20))
+        # inssss = np.zeros_like(panoptic)
         for i in range(len(annotations)):
             annotation = annotations[i]
             centroid_mask = (classes != 0) & (instances == i)
             # print(semantic.shape)
             annotation.cls = 1# semantic[:,centroid_mask].sum(axis=1).argmax(axis=0)
             annotation.mask = centroid_mask
-        
+            # inssss += (i+1)*centroid_mask       # to plot instances
+        # plt.imshow(inssss, cmap='jet')
+        # plt.show()
+        # print('show')
+
         if self.ball:
             for f, y, x, v in ball_fyxv:
+                # print('fff', f)
                 annotation = Annotation().add(f, (x, y, v))
                 annotation.cls = 37# semantic[:,centroid_mask].sum(axis=1).argmax(axis=0)
                 annotation.mask = None

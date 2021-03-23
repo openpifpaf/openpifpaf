@@ -2,6 +2,7 @@ import logging
 import time
 
 import numpy as np
+import imageio
 
 # pylint: disable=import-error
 from ..functional import scalar_square_add_gauss_with_max
@@ -29,7 +30,6 @@ class CifHr:
         if min_scale:
             p = p[:, p[4] > min_scale / stride]
 
-        print(len(p))
         v, x, y, _, scale = p
         x = x * stride
         y = y * stride
@@ -54,7 +54,7 @@ class CifHr:
             ta = np.zeros(shape, dtype=np.float32)
         else:
             ta = np.zeros(self.accumulated.shape, dtype=np.float32)
-        print(ta.shape)
+        #print(ta.shape)
         
         for cif in cifs:
             # print('fill',len(cif))
@@ -65,6 +65,22 @@ class CifHr:
             self.accumulated = ta
         else:
             self.accumulated = np.maximum(ta, self.accumulated)
+        
+        if self.accumulated.shape[0] == 1: # PIF ball has only one HR map
+            # image needs to be dumped to compute ball metrics
+            kp_id = 0 # ball is sole keypoint
+            pad_left, pad_top, pad_right, pad_bottom = 0, 4, 1, 5 # padding copied from logs
+            _, height, width = self.accumulated.shape
+            v_start = pad_top
+            v_stop = height-pad_bottom
+            h_start = pad_left
+            h_stop = width-pad_right
+            LOG.debug("accumulated hr heatmap can be created by uncommenting the following line")
+
+            print("dumping Ball PIF hr map into image/test.accumulated.png")
+            imageio.imwrite("image/test.accumulated.png", self.accumulated[0])#[kp_id,v_start:v_stop, h_start:h_stop])
+        #import pickle
+        #pickle.dump(self.accumulated, open("/home/gva/pifhr.pickle","wb"))
 
         LOG.debug('target_intensities %.3fs', time.perf_counter() - start)
         return self

@@ -1,5 +1,5 @@
 """Train a pifpaf net."""
-
+import os
 import copy
 import hashlib
 import logging
@@ -32,7 +32,8 @@ class Trainer(object):
                  stride_apply=1,
                  ema_decay=None,
                  train_profile=None,
-                 model_meta_data=None):
+                 model_meta_data=None,
+                 train_args=None):
         self.model = model
         self.loss = loss
         self.optimizer = optimizer
@@ -49,13 +50,16 @@ class Trainer(object):
         self.ema_restore_params = None
 
         self.model_meta_data = model_meta_data
+        self.train_args = train_args
 
         ### tb stuff
         tb_datetime = datetime.datetime.now()
         tb_hostname = socket.gethostname()
-        self.tb_filename = 'runs/'+str(tb_datetime)+str(tb_hostname)
+        checkpoint = torch.load(self.train_args.checkpoint) if self.train_args.checkpoint else None
+        filename = checkpoint["tb_filename"] if checkpoint and "tb_filename" in checkpoint else os.path.basename(self.train_args.output)
+        self.tb_filename = os.path.join('runs', filename)
         self.writer = SummaryWriter(self.tb_filename)
-        self.LOSS_NAMES = ['PIF Confidence', 'PIF Localization', 'PIF Scale', 'PAN Semantic', 'PAN Offset']
+        self.LOSS_NAMES = ['PIF Confidence', 'PIF Localization', 'PIF Scale', 'PAN Semantic', 'PAN Offset', 'PIF Ball Confidence', 'PIF Ball Localization', 'PIF Ball Scale']
 
         if train_profile:
             # monkey patch to profile self.train_batch()
@@ -72,7 +76,6 @@ class Trainer(object):
                 prof.export_chrome_trace(tracefilename)
                 return result
             self.train_batch = train_batch_with_profile
-
         LOG.info({
             'type': 'config',
             # 'field_names': self.loss.field_names,
@@ -133,8 +136,7 @@ class Trainer(object):
             # mem_al = (torch.cuda.memory_allocated(device_to_check[0]))/(10**6)
             # self.writer.add_scalar('Memory EPOCH/after val', mem_al,epoch)
 
-
-
+            self.writer.flush()
 
 
     def train_batch(self, data, targets, apply_gradients=True, batch_idx=None, epoch=None):  # pylint: disable=method-hidden
@@ -287,19 +289,33 @@ class Trainer(object):
         last_batch_end = time.time()
         self.optimizer.zero_grad()
         
-        import os
-        import pickle
-        if not os.path.isfile('scenes_keemotion.pickle'):
-            with open('scenes_keemotion.pickle','wb') as f:
-                pickle.dump(scenes,f)
+        # import os
+        # import pickle
+        # if not os.path.isfile('scenes_keemotion.pickle'):
+        #     with open('scenes_keemotion.pickle','wb') as f:
+        #         pickle.dump(scenes,f)
+        # scenes.trainIter()
         
         for batch_idx, (data, target, _) in enumerate(scenes):
-  
+        # for batch_idx in range(len(scenes)):
+            # data, target = scenes.getTrainNext(batch_idx)
+            # print('trainer')
+            # print('data', data.shape)
+            # print('target_cif_0', target[0][0].shape)
+            # print('target_cif_1', target[0][1].shape)
+            # print('target_cif_2', target[0][2].shape)
+            # for iddd, (key, value) in enumerate(target[1].items()):
+            #     print('target_1 '+str(key), value.shape)
+            # raise
             preprocess_time = time.time() - last_batch_end
             
 
             batch_start = time.time()
             apply_gradients = batch_idx % self.stride_apply == 0
+
+            # print('enumerate', batch_idx)
+            # print('enumerate', data.shape)
+            # print('enumerate', len(target))
 
             loss, head_losses = self.train_batch(data, target, apply_gradients, batch_idx=batch_idx, epoch=epoch)
             
@@ -357,6 +373,10 @@ class Trainer(object):
         })
 
         ########### tensorboard stuff 
+        self.writer.add_scalar('Learning Rate/lr ', self.lr(), epoch + 1)
+        if hasattr(self.loss, 'batch_meta'):
+            for lambda_index, lambda_value in enumerate(self.loss.batch_meta()["lambdas"]):
+                self.writer.add_scalar(f'Lambdas/{self.LOSS_NAMES[lambda_index]} ', lambda_value, epoch + 1)
         try:
             self.writer.add_scalar('Train Loss/Total loss', epoch_loss / len(scenes), epoch + 1)
             if hasattr(self.loss, 'batch_meta'):
@@ -385,6 +405,12 @@ class Trainer(object):
         epoch_loss = 0.0
         head_epoch_losses = None
         head_epoch_counts = None
+        
+        # scenes.valIter()
+        
+        # for batch_idx in range(scenes.getValLen()):
+        #     data, target, _ = scenes.getValNext(batch_idx)
+
         for batch_idx, (data, target, _) in enumerate(scenes):
             loss, head_losses = self.val_batch(data, target,batch_idx=batch_idx, epoch=epoch)
 
@@ -435,7 +461,7 @@ class Trainer(object):
             'model': model,
             'epoch': epoch,
             'meta': self.model_meta_data,
-            'tb_filename': self.tb_filename,
+            'tb_filename': os.path.basename(self.tb_filename),
         }, filename)
         LOG.debug('model written')
 
@@ -450,3 +476,6 @@ class Trainer(object):
             shutil.copyfile(filename, final_filename)
 
         self.model.to(self.device)
+
+    def close_tb(self):
+        self.writer.close()

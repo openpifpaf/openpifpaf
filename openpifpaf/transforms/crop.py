@@ -21,6 +21,7 @@ class Crop(Preprocess):
         # anns_inst = copy.deepcopy(anns_inst)
 
         original_valid_area = meta['valid_area'].copy()
+        # print('valid area', original_valid_area)
 
         image, anns, ltrb = self.crop(image, anns, meta['valid_area'])
         meta['offset'] += ltrb[:2]
@@ -37,6 +38,7 @@ class Crop(Preprocess):
         LOG.debug('valid area after crop: %s', meta['valid_area'])
 
         # clip bounding boxes
+        skip_removing_anns = False
         for ann in anns:
             unclipped_bbox = ann['bbox'].copy()
             ann['bbox'][:2] = np.maximum(meta['valid_area'][:2], ann['bbox'][:2])
@@ -44,7 +46,12 @@ class Crop(Preprocess):
             new_rb = np.maximum(ann['bbox'][:2], new_rb)
             new_rb = np.minimum(meta['valid_area'][:2] + meta['valid_area'][2:], new_rb)
             ann['bbox'][2:] = new_rb - ann['bbox'][:2]
-        anns = [ann for ann in anns if ann['bbox'][2] > 0.0 and ann['bbox'][3] > 0.0]
+            # print('after 3', ann['kp_ball'])
+            if 'put_nan' in ann:
+                skip_removing_anns=True # because we don't have bbox for ball
+
+        if skip_removing_anns == False:
+            anns = [ann for ann in anns if ann['bbox'][2] > 0.0 and ann['bbox'][3] > 0.0]
 
         return image, anns, meta
 
@@ -90,6 +97,8 @@ class Crop(Preprocess):
         else:
             area_of_interest = valid_area
 
+        # print('area of interest', area_of_interest)
+
         w, h = image.size
         padding = int(self.long_edge / 2.0)
         x_offset, y_offset = 0, 0
@@ -118,6 +127,7 @@ class Crop(Preprocess):
         # it's the coordinates of the top-left corner and the coordinates
         # of the bottom right corner
         ltrb = (x_offset, y_offset, x_offset + new_w, y_offset + new_h)
+        # print('ltrb', ltrb)
         image = image.crop(ltrb)
 
         ### AMA crop masks
@@ -127,13 +137,19 @@ class Crop(Preprocess):
 
         # crop keypoints
         for ann in anns:
+            # print('before', ann['kp_ball'])
             ann['keypoints'][:, 0] -= x_offset
             ann['keypoints'][:, 1] -= y_offset
             ann['bbox'][0] -= x_offset
             ann['bbox'][1] -= y_offset
+            # print('after 1', ann['kp_ball'])
+            if 'kp_ball' in ann:
+                ann['kp_ball'][:, 0] -= x_offset
+                ann['kp_ball'][:, 1] -= y_offset
+
+            # print('after 2', ann['kp_ball'])
 
             ### AMA crop masks
-
             ann['bmask'] = ann['bmask'][y_offset:y_offset + new_h, x_offset:x_offset+new_w]
 
         return image, anns, np.array(ltrb)

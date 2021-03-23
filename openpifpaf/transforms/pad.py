@@ -49,7 +49,7 @@ class CenterPad(Preprocess):
         if bottom < 0:
             bottom = 0
         ltrb = (left, top, right, bottom)
-        LOG.debug('pad with %s', ltrb)
+        LOG.debug('pad with (left, top, right, bottom) %s', ltrb)
 
         # pad image
         image = torchvision.transforms.functional.pad(
@@ -57,10 +57,18 @@ class CenterPad(Preprocess):
 
         # pad annotations
         for ann in anns:
+            # print('before', ann['kp_ball'])
             ann['keypoints'][:, 0] += ltrb[0]
             ann['keypoints'][:, 1] += ltrb[1]
             ann['bbox'][0] += ltrb[0]
             ann['bbox'][1] += ltrb[1]
+
+            if 'kp_ball' in ann:
+                ann['kp_ball'][:, 0] += ltrb[0]
+                ann['kp_ball'][:, 1] += ltrb[1]
+
+            # print('after', ann['kp_ball'])
+
 
             ann['bmask'] = np.pad(ann['bmask'], ((top, bottom), (left, right)))
 
@@ -109,7 +117,7 @@ class CenterPadTight(Preprocess):
         if bottom < 0:
             bottom = 0
         ltrb = (left, top, right, bottom)
-        LOG.debug('pad with %s', ltrb)
+        LOG.debug('pad with (left, top, right, bottom) %s', ltrb)
 
         # pad image
         image = torchvision.transforms.functional.pad(

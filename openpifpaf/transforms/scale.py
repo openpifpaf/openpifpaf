@@ -54,7 +54,9 @@ def _scale(image, anns, meta, target_w, target_h, resample, *, fast=False):
         for ann in anns:
             # if hasattr(ann, 'bmask'):
             # print('Scale done!')
+            # print('in scale mask', ann['bmask'].shape)
             ann['bmask'] = scipy.ndimage.zoom(ann['bmask'], (target_h / h, target_w / w))
+            # print('in scale mask', ann['bmask'].shape)
     # rescale keypoints
     x_scale = (image.size[0] - 1) / (w - 1)
     y_scale = (image.size[1] - 1) / (h - 1)
@@ -66,6 +68,10 @@ def _scale(image, anns, meta, target_w, target_h, resample, *, fast=False):
         ann['bbox'][2] *= x_scale
         ann['bbox'][3] *= y_scale
 
+        if 'kp_ball' in ann:
+            ann['kp_ball'][:, 0] = ann['kp_ball'][:, 0] * x_scale
+            ann['kp_ball'][:, 1] = ann['kp_ball'][:, 1] * y_scale
+
     # adjust meta
     scale_factors = np.array((x_scale, y_scale))
     LOG.debug('meta before: %s', meta)
@@ -75,6 +81,7 @@ def _scale(image, anns, meta, target_w, target_h, resample, *, fast=False):
     meta['valid_area'][2:] *= scale_factors
     LOG.debug('meta after: %s', meta)
 
+    
     return image, anns, meta
 
 
@@ -113,6 +120,7 @@ class RescaleRelative(Preprocess):
             scale_factor = self.scale_range
 
         w, h = image.size
+        # print('in scale', image.size)
         if self.absolute_reference is not None:
             if w > h:
                 h *= self.absolute_reference / w

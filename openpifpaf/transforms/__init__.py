@@ -15,6 +15,8 @@ from .random import DeterministicEqualChoice, RandomApply
 from .rotate import RotateBy90
 from .scale import RescaleAbsolute, RescaleRelative, ScaleMix
 from .unclipped import UnclippedArea, UnclippedSides
+from .zoomscale import ZoomScale
+from .crop_keemotion import CropKeemotion
 
 
 EVAL_TRANSFORM = Compose([

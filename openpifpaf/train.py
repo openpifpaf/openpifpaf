@@ -18,8 +18,14 @@ def default_output_file(args, net_cpu):
     base_name = net_cpu.base_net.shortname
     head_names = [hn.meta.name for hn in net_cpu.head_nets]
 
-    now = datetime.datetime.now().strftime('%y%m%d-%H%M%S')
-    out = 'outputs/{}-{}-{}'.format(base_name, now, '-'.join(head_names))
+    now = datetime.datetime.now().strftime('%y%m%d-%H%M%S.%f')
+    if args.output is not None:
+        out = args.output + '/{}-{}-{}'.format(base_name, now, '-'.join(head_names))    
+    else:
+        out = 'outputs/{}-{}-{}'.format(base_name, now, '-'.join(head_names))
+    ### Manneback changes
+    # out = 'pifpaf_modified/poseestimation_emb/outputs/{}-{}-{}'.format(base_name, now, '-'.join(head_names))
+    
     if args.square_edge != 385:
         out += '-edge{}'.format(args.square_edge)
     if args.regression_loss != 'laplace':
@@ -76,12 +82,15 @@ def cli():
                        help='enable stats logging')
     group.add_argument('--debug-images', default=False, action='store_true',
                        help='print debug messages and enable all debug images')
+    group.add_argument('--comment', nargs="*",
+                       help='write comment about that run')
 
     args = parser.parse_args()
 
     if args.debug_images:
         args.debug = True
 
+    
     network.configure(args)
     network.losses.configure(args)
     encoder.configure(args)
@@ -103,8 +112,8 @@ def main():
     args = cli()
     net_cpu, start_epoch = network.factory_from_args(args)
     net_cpu.process_heads = None
-    if args.output is None:
-        args.output = default_output_file(args, net_cpu)
+    # if args.output is None:
+    args.output = default_output_file(args, net_cpu)
     logs.configure(args)
     if args.log_stats:
         logging.getLogger('openpifpaf.stats').setLevel(logging.DEBUG)
@@ -124,6 +133,7 @@ def main():
 
     # print('in train ', heads)
     train_loader, val_loader = datasets.train_factory(args, target_transforms, heads=heads)
+    # loaders = datasets.train_factory(args, target_transforms, heads=heads)
 
     optimizer = optimize.factory_optimizer(
         args, list(net.parameters()) + list(loss.parameters()))
@@ -144,8 +154,10 @@ def main():
             'version': __version__,
             'hostname': socket.gethostname(),
         },
+        train_args=args
     )
     trainer.loop(train_loader, val_loader, args.epochs, start_epoch=start_epoch)
+    trainer.close_tb()
 
 
 if __name__ == '__main__':

@@ -185,15 +185,14 @@ def main():
         )
     
     annotation_painter = show.AnnotationPainter(keypoint_painter=keypoint_painter)
-
     for batch_i, (image_tensors_batch, _, meta_batch) in enumerate(data_loader):
         pred_batch = processor.batch(model, image_tensors_batch, device=args.device)
 
 
         # unbatch
         for pred, meta in zip(pred_batch, meta_batch):
-            print('meta')
-            print(meta)
+            #print('meta')
+            #print(meta)
             LOG.info('batch %d: %s', batch_i, meta['file_name'])
 
             # load the original image if necessary

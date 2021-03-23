@@ -10,18 +10,19 @@ from .constants import (
 )
 import numpy as np
 
-def factory(head_names):
+def factory(head_names, basename=None):
     if head_names is None:
         return None
 
     num_sem_classes = 2
-    if 'cifball' in head_names or 'cifcentball' in head_names:      # handle num classes in panoptic head
+    if 'cifball' in head_names or 'cifcentball' in head_names or ('cifcent' in head_names and 'ball' in head_names) or head_names[0] == 'pan':      # handle num classes in panoptic head
         num_sem_classes = 3
+    print('Number of classes in semantic mask:', num_sem_classes)
 
-    return [factory_single(hn, num_sem_classes=num_sem_classes) for hn in head_names]
+    return [factory_single(hn, num_sem_classes=num_sem_classes, basename=basename) for hn in head_names]
 
 
-def factory_single(head_name, num_sem_classes=None):
+def factory_single(head_name, num_sem_classes=None, basename=None):
     if 'cifdet' in head_name:
         return DetectionMeta(head_name, COCO_CATEGORIES)
 
@@ -41,9 +42,9 @@ def factory_single(head_name, num_sem_classes=None):
     ## 2
     if 'cifcent' in head_name:
         return IntensityMeta(head_name,
-                             COCO_KEYPOINTS[:17],
-                             COCO_PERSON_SIGMAS[:17],
-                             COCO_UPRIGHT_POSE,
+                             COCO_KEYPOINTS[:18],
+                             COCO_PERSON_SIGMAS[:18],
+                             COCO_UPRIGHT_POSE[:18],
                              COCO_PERSON_SKELETON)
     ## 3
     if 'cifball' in head_name:
@@ -104,10 +105,19 @@ def factory_single(head_name, num_sem_classes=None):
                                 COCO_PERSON_SKELETON)
 
     if 'pan' in head_name:
+        specifics = {}
+        if basename == 'shufflenetv2k16':
+            specifics.update(
+                low_level_channels=(696, 348, 24),
+                low_level_key=('res3', 'res2', 'res1')
+            )
+        else:
+            assert basename == 'resnet50', basename
         return PanopticDeeplabMeta(head_name,
                                    COCO_KEYPOINTS,
                                    COCO_PERSON_SKELETON,
-                                   num_classes=(num_sem_classes, 2))
+                                   num_classes=(num_sem_classes, 2),
+                                   **specifics)
 
 
     raise NotImplementedError

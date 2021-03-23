@@ -1,8 +1,10 @@
 import logging
 
 from .annrescaler import AnnRescaler, AnnRescalerDet
+from .annrescaler_ball import AnnRescalerBall
 from .caf import Caf
 from .cif import Cif
+from .cif_ball import CifBall
 from .cifdet import CifDet
 from .seg import Seg
 from .pan import PanopticTargetGenerator
@@ -46,8 +48,10 @@ def factory_head(head_net: network.heads.CompositeField, basenet_stride):
         LOG.info('selected encoder PAN')
         
         coco_panoptic_thing_list = _COCO_PANOPTIC_THING_LIST
-        if meta.num_classes == 2:
+        if meta.num_classes[0] == 2:
             coco_panoptic_thing_list = [_COCO_PANOPTIC_THING_LIST[0]]
+        # coco_panoptic_thing_list = [_COCO_PANOPTIC_THING_LIST[0]]       # to avoid having ball in semantic mask
+        print('Things in Panoptic head:', coco_panoptic_thing_list)
 
         return PanopticTargetGenerator(coco_panoptic_thing_list,
                         sigma=8, ignore_stuff_in_offset=True,
@@ -75,7 +79,14 @@ def factory_head(head_net: network.heads.CompositeField, basenet_stride):
         # if meta.name in ['cifcentball', 'cifball']:
         #     ball = True
         # # print('!!!!!!!!!!!!!',ball)
-        return Cif(AnnRescaler(stride, len(meta.keypoints), meta.pose),#, ball=ball),
+        if meta.name == 'ball':
+            print('!!!!!!! BALL !!!!!!')
+            return CifBall(AnnRescalerBall(stride, len(meta.keypoints), meta.pose),
+                    name=meta.name,
+                    sigmas=meta.sigmas,
+                    visualizer=vis)
+        return Cif(AnnRescaler(stride, len(meta.keypoints), meta.pose), 
+                    name=meta.name,#, ball=ball),
                    sigmas=meta.sigmas,
                    visualizer=vis)
 
