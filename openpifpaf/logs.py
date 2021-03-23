@@ -560,7 +560,7 @@ def main():
                         help='path to log file(s)')
     parser.add_argument('--label', nargs='+',
                         help='label(s) in the same order as files')
-    parser.add_argument('--eval-suffix', default='.eval-cocokp.stats.json',
+    parser.add_argument('--eval-suffix', default='.eval-*.stats.json',
                         help='suffix of evaluation files to look for')
     parser.add_argument('--first-epoch', default=1e-6, type=float,
                         help='epoch (can be float) of first data point to plot')
