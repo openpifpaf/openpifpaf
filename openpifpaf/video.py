@@ -71,7 +71,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
                               'Or ipwebcam urls (rtsp/rtmp). '
                               'Use "screen" for screen grabs.'))
     parser.add_argument('--video-output', default=None, nargs='?', const=True,
-                        help='video output file')
+                        help='video output file or "virtualcam"')
     parser.add_argument('--json-output', default=None, nargs='?', const=True,
                         help='json output file')
     parser.add_argument('--horizontal-flip', default=False, action='store_true')

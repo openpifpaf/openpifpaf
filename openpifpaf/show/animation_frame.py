@@ -1,5 +1,8 @@
 import logging
 
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+import numpy as np
+
 try:
     import matplotlib
     import matplotlib.animation
@@ -10,8 +13,41 @@ except ImportError:
     matplotlib = None
     plt = None
 
+try:
+    import pyvirtualcam
+except ImportError:
+    pyvirtualcam = None
 
 LOG = logging.getLogger(__name__)
+
+
+class VirtualCamWriter:
+    def __init__(self, fps):
+        self.fps = fps
+
+        self.cam = None
+        self.canvas = None
+        self.fig = None
+
+    def setup(self, fig, _, __):
+        self.canvas = FigureCanvasAgg(fig)
+        self.fig = fig
+
+    def finish(self):
+        self.cam.close()
+
+    def grab_frame(self):
+        self.canvas.draw()
+        f = np.asarray(self.canvas.buffer_rgba())
+        LOG.debug('output frame shape: %s', f.shape)
+
+        if self.cam is None:
+            assert pyvirtualcam is not None
+            self.cam = pyvirtualcam.Camera(f.shape[1], f.shape[0], self.fps)
+            LOG.debug('virtual camera: %s', self.cam.device)
+        else:
+            self.cam.sleep_until_next_frame()
+        self.cam.send(f[:, :, :3])
 
 
 class AnimationFrame:
@@ -28,7 +64,9 @@ class AnimationFrame:
         self.fig_init_args = fig_init_args or {}
         self.video_output = video_output
         self.video_writer = None
-        if self.video_output:
+        if self.video_output == 'virtualcam':
+            self.video_writer = VirtualCamWriter(self.video_fps)
+        elif self.video_output:
             self.video_writer = matplotlib.animation.writers['ffmpeg'](fps=self.video_fps)
 
         self.second_visual = second_visual
