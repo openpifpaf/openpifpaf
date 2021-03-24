@@ -1,6 +1,5 @@
 """
-python -m openpifpaf.predict_pan --checkpoint chlpt.epoch\
- test_cvsports_dataset/images_trainvaltest/test/* --output output
+python -m openpifpaf.predict_pan --output output --checkpoint chlpt.epoch\ test_cvsports_dataset/images_trainvaltest/test/*
 
 """
 
@@ -18,6 +17,7 @@ import os
 import json
 
 import numpy as np
+from numpy.core.numeric import count_nonzero
 from tabulate import tabulate
 
 import PIL
@@ -75,6 +75,11 @@ def cli():
                        help='print debug messages and enable all debug images')
     group.add_argument('--output', required=True)
     group.add_argument('--skip-pred', default=False, action='store_true')
+
+    group.add_argument('--gt-json')
+    group.add_argument('--gt-folder')
+    group.add_argument('--discard-lesskp', default=0, type=int)
+    group.add_argument('--discard-smaller', default=0, type=int)
     args = parser.parse_args()
 
     if args.debug_images:
@@ -249,6 +254,10 @@ def main():
                 n_humans = 0
                 for ann in pred:
                     if ann.category_id == 1 and ann.mask.any():
+                        if (np.count_nonzero(ann.mask) < args.discard_smaller
+                            or np.count_nonzero(ann.data[:,2]) < args.discard_lesskp
+                            ):
+                            continue
                         n_humans += 1
                         instance_id = 1000+n_humans
                         panoptic[ann.mask] = instance_id
@@ -282,8 +291,8 @@ def main():
                 ], axis=-1)
                 imageio.imwrite(panoptic_name, panoptic)
 
-    gt_json_file = 'test_cvsports_dataset/keemotion_panoptic_test.json'
-    gt_folder = 'test_cvsports_dataset/annotations_trainvaltest/test/'
+    gt_json_file = args.gt_json
+    gt_folder = args.gt_folder
     pred_json_file = '%s.json'%args.output
     pred_folder = './'#'%s'%args.output
 
