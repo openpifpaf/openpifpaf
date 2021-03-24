@@ -187,7 +187,8 @@ def compute_metrics(result_list):
     }
 
 def dist(p1, p2):
-    return np.sqrt(np.sum((p1-p2)**2))
+    # return np.sqrt(np.sum((p1-p2)**2))
+    return np.sum((p1-p2)**2)
 
 def OKS(a: PlayerAnnotation2D, p: PlayerSkeleton, alpha=0.8):
     def KS(a, p, name, kapa, s, name2=None):
