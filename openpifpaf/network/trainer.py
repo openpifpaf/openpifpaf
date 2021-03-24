@@ -62,7 +62,7 @@ class Trainer(object):
         self.model_meta_data = model_meta_data
         self.train_args = train_args
 
-        if not self.train_args.use_wandb:
+        if not self.train_args.disable_wandb:
             wandb.login()
 
         
@@ -77,7 +77,7 @@ class Trainer(object):
         self.LOSS_NAMES = ['PIF Confidence', 'PIF Localization', 'PIF Scale', 'PAN Semantic', 'PAN Offset', 'PIF Ball Confidence', 'PIF Ball Localization', 'PIF Ball Scale']
 
         
-        if not self.train_args.use_wandb:
+        if not self.train_args.disable_wandb:
             if checkpoint is not None:
                 if 'wandb_id' in checkpoint:
                     self.wandb_id = checkpoint['wandb_id']
@@ -301,7 +301,7 @@ class Trainer(object):
             # wandb.log({"train loss": loss, 'lr': self.lr(), 'batch_idx': epoch * len(scenes) + batch_idx})
             # for hd_idx, head_ls in enumerate(head_losses):
             #     wandb.log({"train loss/ head"+ self.LOSS_NAMES[hd_idx]: head_ls, 'epoch': epoch+1})
-            if not self.train_args.use_wandb:
+            if not self.train_args.disable_wandb:
                 in_dict = {
                     "train loss": loss,
                     'lr': self.lr(),
@@ -436,7 +436,7 @@ class Trainer(object):
             # for hd_idx, head_ls in enumerate(head_losses):
             #     wandb.log({"val loss/ head"+ self.LOSS_NAMES[hd_idx]: head_ls})
 
-            if not self.train_args.use_wandb:
+            if not self.train_args.disable_wandb:
                 in_dict = {
                     "val loss": loss,
                     'lr': self.lr(),

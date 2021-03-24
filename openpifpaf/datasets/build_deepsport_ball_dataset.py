@@ -56,4 +56,4 @@ instants_dataset = InstantsDataset(sport="basketball", session=session,
 views_dataset = ViewsDataset(instants_dataset, view_builder=BuildCameraViews())
 ds = TransformedDataset(views_dataset, [AddBallAnnotation()])
 ds = FilteredDataset(ds, predicate=lambda k,v: k.camera == v.ball.camera)
-PickledDataset.create(ds, "/data/mistasse/abolfazl/keemotion/pickled/camera_views_all.pickle")
+PickledDataset.create(ds, "/data/mistasse/abolfazl/keemotion/pickled/camera_views_with_human_masks_ball_mask_v2.pickle")
