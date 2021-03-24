@@ -1,6 +1,12 @@
 # History
 
-* [main](https://github.com/vita-epfl/openpifpaf/compare/v0.12.5...main)
+* [main](https://github.com/vita-epfl/openpifpaf/compare/v0.12.6...main)
+* [0.12.6](https://github.com/vita-epfl/openpifpaf/compare/v0.12.5...v0.12.6) (2021-03-24)
+    * new training option: `--clip-grad-value`
+    * faster training startup when training from checkpoint: [#363](https://github.com/vita-epfl/openpifpaf/pull/363)
+    * test PyTorch 1.8
+    * eval tool: show all available eval stats by default
+    * new argument for video tool: `--video-output=virtualcam`
 * [0.12.5](https://github.com/vita-epfl/openpifpaf/compare/v0.12.4...v0.12.5) (2021-03-04)
     * speed improvement for `openpifpaf.video` [#362](https://github.com/vita-epfl/openpifpaf/pull/362)
     * new paper on arxiv: https://arxiv.org/abs/2103.02440
