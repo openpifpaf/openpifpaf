@@ -86,7 +86,7 @@ def cli():
 
     group.add_argument('--slurm-job-id', default=None)
 
-    group.add_argument('--use-wandb', default=True)
+    group.add_argument('--disable-wandb', action='store_true')
 
     args = parser.parse_args()
 
