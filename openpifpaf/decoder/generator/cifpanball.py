@@ -67,6 +67,8 @@ class CifPanBall(Generator):
                  worker_pool=None,
                  nms=True,
                  kp_ball=None,
+                 adaptive_max_pool_th=False,
+                 max_pool_th=0.1,
                 ):
         super().__init__(worker_pool)
         if nms is True:
@@ -86,6 +88,9 @@ class CifPanBall(Generator):
         self.nms = nms
 
         self.timers = defaultdict(float)
+
+        self.adaptive_max_pool_th = adaptive_max_pool_th
+        self.max_pool_th = max_pool_th
 
         # init by_target and by_source
         # self.by_target = defaultdict(dict)
@@ -127,12 +132,17 @@ class CifPanBall(Generator):
         # caf_scored = CafScored(cifhr.accumulated, self.field_config, self.skeleton).fill(fields)
 
         Ñ = None
-
-        def cif_local_max(cif):
+        # print('~~~~~~~~~~~~ ', bool(self.adaptive_max_pool_th))
+        # print('~~~~~~~~~~~~ ', float(self.max_pool_th))
+        # print(type(float(self.max_pool_th)))
+        def cif_local_max(cif, adaptive_max_pool_th=bool(self.adaptive_max_pool_th), max_pool_th=float(self.max_pool_th)):
             """Use torch for max pooling"""
             cif = torch.tensor(cif)
             cif_m = torch.max_pool2d(cif[None], 7, stride=1, padding=3)[0] == cif
-            cif_m &= cif > 0.1
+            if not adaptive_max_pool_th:
+                cif_m &= cif > max_pool_th
+            else:    
+                cif_m &= cif > max_pool_th * cif.max()
             return np.asarray(cif_m)
 
         # Get coordinates of keypoints of every type
