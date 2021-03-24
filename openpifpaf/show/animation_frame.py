@@ -1,6 +1,5 @@
 import logging
 
-from matplotlib.backends.backend_agg import FigureCanvasAgg
 import numpy as np
 
 try:
@@ -9,6 +8,7 @@ try:
     import matplotlib.collections
     import matplotlib.pyplot as plt
     import matplotlib.patches
+    from matplotlib.backends.backend_agg import FigureCanvasAgg
 except ImportError:
     matplotlib = None
     plt = None
