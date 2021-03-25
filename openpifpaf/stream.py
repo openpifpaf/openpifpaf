@@ -118,15 +118,15 @@ class Stream(torch.utils.data.IterableDataset):
         else:
             capture = cv2.VideoCapture(self.source)
             if self.start_frame:
-                assert not self.max_frames or self.max_frames > self.start_frame
                 capture.set(cv2.CAP_PROP_POS_FRAMES, self.start_frame)
             if self.start_msec:
                 capture.set(cv2.CAP_PROP_POS_MSEC, self.start_msec)
 
-        frame_i = 0 if not self.start_frame else self.start_frame
+        frame_start = 0 if not self.start_frame else self.start_frame
+        frame_i = frame_start
         while True:
             frame_i += 1
-            if self.max_frames and frame_i > self.max_frames:
+            if self.max_frames and frame_i - frame_start > self.max_frames:
                 LOG.info('reached max frames %d', self.max_frames)
                 break
 
