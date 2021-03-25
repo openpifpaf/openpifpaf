@@ -3,7 +3,6 @@ import logging
 import time
 
 import numpy as np
-import PIL
 import torch
 
 try:
@@ -11,6 +10,7 @@ try:
 except ImportError:
     cv2 = None
 
+import PIL
 try:
     import PIL.ImageGrab
 except ImportError:
@@ -24,6 +24,7 @@ except ImportError:
 LOG = logging.getLogger(__name__)
 
 
+# pylint: disable=abstract-method
 class Stream(torch.utils.data.IterableDataset):
     horizontal_flip = None
     rotate = None
@@ -71,6 +72,42 @@ class Stream(torch.utils.data.IterableDataset):
         cls.max_frames = args.max_frames
 
     # pylint: disable=unsubscriptable-object
+    def preprocessing(self, image):
+        if self.scale != 1.0:
+            image = cv2.resize(image, None, fx=self.scale, fy=self.scale)
+            LOG.debug('resized image size: %s', image.shape)
+        if self.horizontal_flip:
+            image = image[:, ::-1]
+        if self.crop:
+            if self.crop[0]:
+                image = image[:, self.crop[0]:]
+            if self.crop[1]:
+                image = image[self.crop[1]:, :]
+            if self.crop[2]:
+                image = image[:, :-self.crop[2]]
+            if self.crop[3]:
+                image = image[:-self.crop[3], :]
+        if self.rotate == 'left':
+            image = np.swapaxes(image, 0, 1)
+            image = np.flip(image, axis=0)
+        elif self.rotate == 'right':
+            image = np.swapaxes(image, 0, 1)
+            image = np.flip(image, axis=1)
+        elif self.rotate == '180':
+            image = np.flip(image, axis=0)
+            image = np.flip(image, axis=1)
+
+        image_pil = PIL.Image.fromarray(np.ascontiguousarray(image))
+        meta = {
+            'hflip': False,
+            'offset': np.array([0.0, 0.0]),
+            'scale': np.array([1.0, 1.0]),
+            'valid_area': np.array([0.0, 0.0, image_pil.size[0], image_pil.size[1]]),
+        }
+        processed_image, anns, meta = self.preprocess(image_pil, [], meta)
+        return image, processed_image, anns, meta
+
+    # pylint: disable=too-many-branches
     def __iter__(self):
         if self.source == 'screen':
             capture = 'screen'
@@ -108,39 +145,8 @@ class Stream(torch.utils.data.IterableDataset):
                 break
 
             start_preprocess = time.perf_counter()
-            if self.scale != 1.0:
-                image = cv2.resize(image, None, fx=self.scale, fy=self.scale)
-                LOG.debug('resized image size: %s', image.shape)
-            if self.horizontal_flip:
-                image = image[:, ::-1]
-            if self.crop:
-                if self.crop[0]:
-                    image = image[:, self.crop[0]:]
-                if self.crop[1]:
-                    image = image[self.crop[1]:, :]
-                if self.crop[2]:
-                    image = image[:, :-self.crop[2]]
-                if self.crop[3]:
-                    image = image[:-self.crop[3], :]
-            if self.rotate == 'left':
-                image = np.swapaxes(image, 0, 1)
-                image = np.flip(image, axis=0)
-            elif self.rotate == 'right':
-                image = np.swapaxes(image, 0, 1)
-                image = np.flip(image, axis=1)
-            elif self.rotate == '180':
-                image = np.flip(image, axis=0)
-                image = np.flip(image, axis=1)
-
-            image_pil = PIL.Image.fromarray(np.ascontiguousarray(image))
-            meta = {
-                'frame_i': frame_i,
-                'hflip': False,
-                'offset': np.array([0.0, 0.0]),
-                'scale': np.array([1.0, 1.0]),
-                'valid_area': np.array([0.0, 0.0, image_pil.size[0], image_pil.size[1]]),
-            }
-            processed_image, anns, meta = self.preprocess(image_pil, [], meta)
+            image, processed_image, anns, meta = self.preprocessing(image)
+            meta['frame_i'] = frame_i
             meta['preprocessing_s'] = time.perf_counter() - start_preprocess
 
             if self.with_raw_image:

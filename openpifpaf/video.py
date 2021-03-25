@@ -24,10 +24,8 @@ import logging
 import os
 import time
 
-import numpy as np
 import torch
 
-import cv2  # pylint: disable=import-error
 from . import decoder, logger, network, plugin, show, transforms, visualizer, __version__
 from .stream import Stream
 
@@ -109,7 +107,6 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     return args
 
 
-# pylint: disable=too-many-branches,too-many-statements
 def main():
     args = cli()
 
