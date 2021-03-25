@@ -81,13 +81,17 @@ class Trainer(object):
             if checkpoint is not None:
                 if 'wandb_id' in checkpoint:
                     self.wandb_id = checkpoint['wandb_id']
+                    print('wandb_id from checkpoint', self.wandb_id)
+                # self.wandb_id = '2u8qdm42'
+                print('Nothing', self.wandb_id)
             else:
                 self.wandb_id = wandb.util.generate_id()
+                print('new wandb_id', self.wandb_id)
     
             # self.wandb_id = wandb.util.generate_id() if wandb_id is None else wandb_id
             wandb.init(project='DeepSportLab', id=self.wandb_id, config=train_args, resume='allow')
 
-            wandb.watch(self.model, log="all", log_freq=9)
+            wandb.watch(self.model, log="all", log_freq=1000)
 
         if train_profile:
             # monkey patch to profile self.train_batch()
@@ -528,7 +532,7 @@ class Trainer(object):
             'epoch': epoch,
             'meta': self.model_meta_data,
             'tb_filename': os.path.basename(self.tb_filename),
-            # 'wandb_id': self.wandb_id
+            'wandb_id': self.wandb_id
         }, filename)
         LOG.debug('model written')
 
