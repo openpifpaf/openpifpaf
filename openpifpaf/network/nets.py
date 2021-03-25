@@ -18,6 +18,12 @@ class Shell(torch.nn.Module):
 
         self.set_head_nets(head_nets)
 
+    @property
+    def head_metas(self):
+        if self.head_nets is None:
+            return None
+        return [hn.meta for hn in self.head_nets]
+
     def set_head_nets(self, head_nets):
         if not isinstance(head_nets, torch.nn.ModuleList):
             head_nets = torch.nn.ModuleList(head_nets)
