@@ -25,20 +25,11 @@ import os
 import time
 
 import numpy as np
-import PIL
-try:
-    import PIL.ImageGrab
-except ImportError:
-    pass
 import torch
 
 import cv2  # pylint: disable=import-error
 from . import decoder, logger, network, plugin, show, transforms, visualizer, __version__
-
-try:
-    import mss
-except ImportError:
-    mss = None
+from .stream import Stream
 
 LOG = logging.getLogger(__name__)
 
@@ -64,6 +55,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     decoder.cli(parser)
     logger.cli(parser)
     show.cli(parser)
+    Stream.cli(parser)
     visualizer.cli(parser)
 
     parser.add_argument('--source', default='0',
@@ -74,20 +66,11 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
                         help='video output file or "virtualcam"')
     parser.add_argument('--json-output', default=None, nargs='?', const=True,
                         help='json output file')
-    parser.add_argument('--horizontal-flip', default=False, action='store_true')
     parser.add_argument('--long-edge', default=None, type=int,
                         help='long edge of input images')
+    parser.add_argument('--separate-debug-ax', default=False, action='store_true')
     parser.add_argument('--disable-cuda', action='store_true',
                         help='disable CUDA')
-    parser.add_argument('--scale', default=1.0, type=float,
-                        help='input image scale factor')
-    parser.add_argument('--start-frame', type=int, default=None)
-    parser.add_argument('--start-msec', type=float, default=None)
-    parser.add_argument('--skip-frames', type=int, default=1)
-    parser.add_argument('--max-frames', type=int, default=None)
-    parser.add_argument('--crop', type=int, nargs=4, default=None, help='left top right bottom')
-    parser.add_argument('--rotate', default=None, choices=('left', 'right', '180'))
-    parser.add_argument('--separate-debug-ax', default=False, action='store_true')
     args = parser.parse_args()
 
     logger.configure(args, LOG)  # logger first
@@ -104,6 +87,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     decoder.configure(args)
     network.Factory.configure(args)
     show.configure(args)
+    Stream.configure(args)
     visualizer.configure(args)
 
     # check whether source should be an int
@@ -143,88 +127,22 @@ def main():
         transforms.CenterPadTight(16),
         transforms.EVAL_TRANSFORM,
     ])
+    capture = Stream(args.source, preprocess=preprocess)
 
-    # create keypoint painter
     annotation_painter = show.AnnotationPainter()
-
-    if args.source == 'screen':
-        capture = 'screen'
-        if mss is None:
-            print('!!!!!!!!!!! install mss (pip install mss) for faster screen grabs')
-    else:
-        capture = cv2.VideoCapture(args.source)
-        if args.start_frame:
-            capture.set(cv2.CAP_PROP_POS_FRAMES, args.start_frame)
-        if args.start_msec:
-            capture.set(cv2.CAP_PROP_POS_MSEC, args.start_msec)
-
     animation = show.AnimationFrame(
         video_output=args.video_output,
         second_visual=args.separate_debug_ax,
     )
-    last_loop = time.time()
-    for frame_i, (ax, ax_second) in enumerate(animation.iter()):
-        if capture == 'screen':
-            if mss is None:
-                image = np.asarray(PIL.ImageGrab.grab().convert('RGB'))
-            else:
-                with mss.mss() as sct:
-                    monitor = sct.monitors[1]
-                    image = np.asarray(sct.grab(monitor))[:, :, 2::-1]
-        else:
-            _, image = capture.read()
-            if image is not None:
-                image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-        if image is None:
-            LOG.info('no more images captured')
-            break
-
-        if frame_i % args.skip_frames != 0:
-            animation.skip_frame()
-            continue
-
-        start = time.time()
-        if args.scale != 1.0:
-            image = cv2.resize(image, None, fx=args.scale, fy=args.scale)
-            LOG.debug('resized image size: %s', image.shape)
-        if args.horizontal_flip:
-            image = image[:, ::-1]
-        if args.crop:
-            if args.crop[0]:
-                image = image[:, args.crop[0]:]
-            if args.crop[1]:
-                image = image[args.crop[1]:, :]
-            if args.crop[2]:
-                image = image[:, :-args.crop[2]]
-            if args.crop[3]:
-                image = image[:-args.crop[3], :]
-        if args.rotate == 'left':
-            image = np.swapaxes(image, 0, 1)
-            image = np.flip(image, axis=0)
-        elif args.rotate == 'right':
-            image = np.swapaxes(image, 0, 1)
-            image = np.flip(image, axis=1)
-        elif args.rotate == '180':
-            image = np.flip(image, axis=0)
-            image = np.flip(image, axis=1)
-
+    last_loop = time.perf_counter()
+    for (ax, ax_second), (image, processed_image, _, meta) in zip(animation.iter(), capture):
         if ax is None:
             ax, ax_second = animation.frame_init(image)
 
-        image_pil = PIL.Image.fromarray(image)
-        meta = {
-            'hflip': False,
-            'offset': np.array([0.0, 0.0]),
-            'scale': np.array([1.0, 1.0]),
-            'valid_area': np.array([0.0, 0.0, image_pil.size[0], image_pil.size[1]]),
-        }
-        processed_image, _, meta = preprocess(image_pil, [], meta)
         visualizer.Base.image(image, meta=meta)
         visualizer.Base.processed_image(processed_image)
         visualizer.Base.common_ax = ax_second if args.separate_debug_ax else ax
-        preprocessing_time = time.time() - start
-
         preds = processor.batch(model, torch.unsqueeze(processed_image, 0), device=args.device)[0]
 
         start_post = time.perf_counter()
@@ -233,7 +151,7 @@ def main():
         if args.json_output:
             with open(args.json_output, 'a+') as f:
                 json.dump({
-                    'frame': frame_i,
+                    'frame': meta['frame_i'],
                     'predictions': [ann.json_data() for ann in preds]
                 }, f, separators=(',', ':'))
                 f.write('\n')
@@ -242,16 +160,14 @@ def main():
             ax.imshow(image)
             annotation_painter.annotations(ax, preds)
         postprocessing_time = time.perf_counter() - start_post
-        LOG.info('frame %d, loop time = %.3fs (pre = %.3fs, post = %.3fs), FPS = %.3f',
-                 frame_i,
-                 time.time() - last_loop,
-                 preprocessing_time,
-                 postprocessing_time,
-                 1.0 / (time.time() - last_loop))
-        last_loop = time.time()
 
-        if args.max_frames and frame_i >= args.max_frames:
-            break
+        LOG.info('frame %d, loop time = %.0fms (pre = %.1fms, post = %.1fms), FPS = %.1f',
+                 meta['frame_i'],
+                 (time.perf_counter() - last_loop) * 1000.0,
+                 meta['preprocessing_s'] * 1000.0,
+                 postprocessing_time * 1000.0,
+                 1.0 / (time.perf_counter() - last_loop))
+        last_loop = time.perf_counter()
 
 
 if __name__ == '__main__':
