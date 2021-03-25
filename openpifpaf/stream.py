@@ -37,6 +37,8 @@ class Stream(torch.utils.data.IterableDataset):
     def __init__(self, source, *,
                  preprocess=None,
                  with_raw_image=True):
+        super().__init__()
+
         self.source = source
         self.preprocess = preprocess
         self.with_raw_image = with_raw_image
