@@ -91,8 +91,7 @@ def processor_factory(args):
         model.base_net = model_cpu.base_net
         model.head_nets = model_cpu.head_nets
 
-    head_metas = [hn.meta for hn in model.head_nets]
-    processor = decoder.factory(head_metas)
+    processor = decoder.factory(model_cpu.head_metas)
     return processor, model
 
 

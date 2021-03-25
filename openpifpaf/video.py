@@ -125,20 +125,13 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     return args
 
 
-def processor_factory(args):
-    model, _ = network.Factory().factory()
-    model = model.to(args.device)
-
-    head_metas = [hn.meta for hn in model.head_nets]
-    processor = decoder.factory(head_metas)
-
-    return processor, model
-
-
 # pylint: disable=too-many-branches,too-many-statements
 def main():
     args = cli()
-    processor, model = processor_factory(args)
+
+    model, _ = network.Factory().factory()
+    model = model.to(args.device)
+    processor = decoder.factory(model.head_metas)
 
     # assemble preprocessing transforms
     rescale_t = None
