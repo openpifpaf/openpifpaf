@@ -47,7 +47,7 @@ class CocoDataset(torch.utils.data.Dataset):
             82, 84, 85, 86, 87, 88, 89, 90]
 
         self.cat_ids = {(v + 1): i for i, v in enumerate(self._valid_ids)}
-        
+
         self.ids = self.coco.getImgIds(catIds=self.category_ids)
         if annotation_filter:
             self.filter_for_annotations(min_kp_anns=min_kp_anns)
