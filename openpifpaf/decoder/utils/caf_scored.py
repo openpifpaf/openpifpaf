@@ -52,12 +52,12 @@ class CafScored:
             nine = nine[:, mask]
 
             if meta.decoder_min_distance:
-                dist = np.linalg.norm(nine[1:3] - nine[5:7], axis=0)
+                dist = np.linalg.norm(nine[1:3] - nine[3:5], axis=0)
                 mask_dist = dist > meta.decoder_min_distance / meta.stride
                 nine = nine[:, mask_dist]
 
             if meta.decoder_max_distance:
-                dist = np.linalg.norm(nine[1:3] - nine[5:7], axis=0)
+                dist = np.linalg.norm(nine[1:3] - nine[3:5], axis=0)
                 mask_dist = dist < meta.decoder_max_distance / meta.stride
                 nine = nine[:, mask_dist]
 
