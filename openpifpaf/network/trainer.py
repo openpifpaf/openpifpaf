@@ -91,7 +91,7 @@ class Trainer(object):
             # self.wandb_id = wandb.util.generate_id() if wandb_id is None else wandb_id
             wandb.init(project='DeepSportLab', id=self.wandb_id, config=train_args, resume='allow')
 
-            wandb.watch(self.model, log="all", log_freq=1000)
+            wandb.watch(self.model, log="all", log_freq=5000)
 
         if train_profile:
             # monkey patch to profile self.train_batch()
@@ -312,8 +312,13 @@ class Trainer(object):
                     'batch_idx': epoch * len(scenes) + batch_idx,
                     'epoch': epoch+1,
                     }
+                
                 for hd_idx, head_ls in enumerate(head_losses):
                     in_dict["train loss/ head"+self.LOSS_NAMES[hd_idx]] = head_ls
+                    if hasattr(self.loss, 'batch_meta'):
+                        sigmas = self.loss.batch_meta()
+                        in_dict["Sigma/ head"+ self.LOSS_NAMES[hd_idx]] = .5/sigmas['mtl_sigmas'][hd_idx]**2
+
                 log_wandb(in_dict)
 
             # write training loss

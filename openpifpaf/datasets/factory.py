@@ -508,7 +508,7 @@ def train_cocokpinst_factory(args, target_transforms, heads=None, batch_size=Non
             [train_data for _ in range(args.duplicate_data)])
     train_loader = torch.utils.data.DataLoader(
         train_data, batch_size=batch_size, shuffle=not args.debug,
-        pin_memory=args.pin_memory, num_workers=3, drop_last=True,
+        pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
         collate_fn=collate_images_targets_inst_meta,)
         # timeout=10000.)
 
