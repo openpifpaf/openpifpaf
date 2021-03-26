@@ -240,6 +240,7 @@ class CifPanBall(Generator):
         # plt.show()
         
         # from matplotlib import pyplot as plt
+        # print('semantic shape', semantic.shape)
         classes = semantic.argmax(axis=0)   # [H,W]
         # plt.imshow(softmax(semantic[None])[0,1])
         # plt.colorbar()
