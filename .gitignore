@@ -56,3 +56,4 @@ test-clis-*/
 *.mlmodel
 guide/cifar10_*.predictions.json
 slurm*
+profile_decoder*
