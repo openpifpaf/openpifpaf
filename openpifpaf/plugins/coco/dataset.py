@@ -36,6 +36,18 @@ class CocoDataset(torch.utils.data.Dataset):
 
         self.category_ids = category_ids
 
+        self._valid_ids = [
+            1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13,
+            14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
+            24, 25, 27, 28, 31, 32, 33, 34, 35, 36,
+            37, 38, 39, 40, 41, 42, 43, 44, 46, 47,
+            48, 49, 50, 51, 52, 53, 54, 55, 56, 57,
+            58, 59, 60, 61, 62, 63, 64, 65, 67, 70,
+            72, 73, 74, 75, 76, 77, 78, 79, 80, 81,
+            82, 84, 85, 86, 87, 88, 89, 90]
+
+        self.cat_ids = {(v + 1): i for i, v in enumerate(self._valid_ids)}
+        
         self.ids = self.coco.getImgIds(catIds=self.category_ids)
         if annotation_filter:
             self.filter_for_annotations(min_kp_anns=min_kp_anns)
@@ -123,6 +135,9 @@ class CocoDataset(torch.utils.data.Dataset):
             _, flickr_file_name = image_info['flickr_url'].rsplit('/', maxsplit=1)
             flickr_id, _ = flickr_file_name.split('_', maxsplit=1)
             meta['flickr_full_page'] = 'http://flickr.com/photo.gne?id={}'.format(flickr_id)
+
+        for ann in anns:
+            ann['category_id'] = int(self.cat_ids[ann['category_id']])
 
         # preprocess image and annotations
         image, anns, meta = self.preprocess(image, anns, meta)
