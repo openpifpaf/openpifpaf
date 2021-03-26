@@ -5,7 +5,7 @@
     "distutils": {
         "depends": [],
         "include_dirs": [
-            "/Users/svenkreiss/tech/openpifpaf/venv3/lib/python3.9/site-packages/numpy/core/include"
+            "/private/var/folders/hf/47tzklrn11z229jmb4k9m7gw0000gn/T/pip-build-env-3xr2xu38/overlay/lib/python3.9/site-packages/numpy/core/include"
         ],
         "name": "openpifpaf.functional",
         "sources": [
@@ -975,7 +975,7 @@ struct __pyx_opt_args_10openpifpaf_10functional_scalar_square_set {
   float min_sigma;
 };
 
-/* "openpifpaf/functional.pyx":141
+/* "openpifpaf/functional.pyx":143
  * @cython.wraparound(False)
  * @cython.cdivision(True)
  * cpdef void scalar_square_add_gauss(float[:, :] field, float[:] x, float[:] y, float[:] sigma, float[:] v, float truncate=2.0) nogil:             # <<<<<<<<<<<<<<
@@ -987,7 +987,7 @@ struct __pyx_opt_args_10openpifpaf_10functional_scalar_square_add_gauss {
   float truncate;
 };
 
-/* "openpifpaf/functional.pyx":175
+/* "openpifpaf/functional.pyx":177
  * @cython.wraparound(False)
  * @cython.cdivision(True)
  * cpdef void scalar_square_add_gauss_with_max(float[:, :] field, float[:] x, float[:] y, float[:] sigma, float[:] v, float truncate=2.0, float max_value=1.0) nogil:             # <<<<<<<<<<<<<<
@@ -1000,7 +1000,7 @@ struct __pyx_opt_args_10openpifpaf_10functional_scalar_square_add_gauss_with_max
   float max_value;
 };
 
-/* "openpifpaf/functional.pyx":217
+/* "openpifpaf/functional.pyx":219
  * @cython.wraparound(False)
  * @cython.cdivision(True)
  * cpdef void scalar_square_max_gauss(float[:, :] field, float[:] x, float[:] y, float[:] sigma, float[:] v, float truncate=2.0) nogil:             # <<<<<<<<<<<<<<
@@ -1012,7 +1012,7 @@ struct __pyx_opt_args_10openpifpaf_10functional_scalar_square_max_gauss {
   float truncate;
 };
 
-/* "openpifpaf/functional.pyx":319
+/* "openpifpaf/functional.pyx":321
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * cpdef float scalar_value(float[:, :] field, float x, float y, float default=-1):             # <<<<<<<<<<<<<<
@@ -1024,7 +1024,7 @@ struct __pyx_opt_args_10openpifpaf_10functional_scalar_value {
   float __pyx_default;
 };
 
-/* "openpifpaf/functional.pyx":336
+/* "openpifpaf/functional.pyx":338
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * cpdef unsigned char scalar_nonzero(unsigned char[:, :] field, float x, float y, unsigned char default=0):             # <<<<<<<<<<<<<<
@@ -1036,7 +1036,7 @@ struct __pyx_opt_args_10openpifpaf_10functional_scalar_nonzero {
   unsigned char __pyx_default;
 };
 
-/* "openpifpaf/functional.pyx":475
+/* "openpifpaf/functional.pyx":477
  *             score_2 = score
  * 
  *     cdef (float, float, float, float) r = (0.0, 0.0, 0.0, 0.0)             # <<<<<<<<<<<<<<
@@ -1062,7 +1062,8 @@ struct __pyx_obj_10openpifpaf_10functional_Occupancy {
   struct __pyx_vtabstruct_10openpifpaf_10functional_Occupancy *__pyx_vtab;
   float reduction;
   float min_scale_reduced;
-  __Pyx_memviewslice occupancy;
+  PyObject *occupancy;
+  __Pyx_memviewslice occupancy_view;
 };
 
 
@@ -2112,8 +2113,8 @@ static const char __pyx_k_Can_only_create_a_buffer_that_is[] = "Can only create 
 static const char __pyx_k_Cannot_assign_to_read_only_memor[] = "Cannot assign to read-only memoryview";
 static const char __pyx_k_Cannot_create_writable_memory_vi[] = "Cannot create writable memory view from read-only memoryview";
 static const char __pyx_k_Empty_shape_tuple_for_cython_arr[] = "Empty shape tuple for cython.array";
-static const char __pyx_k_Incompatible_checksums_s_vs_0x10[] = "Incompatible checksums (%s vs 0x102a9c0 = (min_scale_reduced, occupancy, reduction))";
 static const char __pyx_k_Incompatible_checksums_s_vs_0xb0[] = "Incompatible checksums (%s vs 0xb068931 = (name))";
+static const char __pyx_k_Incompatible_checksums_s_vs_0xbc[] = "Incompatible checksums (%s vs 0xbce0b81 = (min_scale_reduced, occupancy, occupancy_view, reduction))";
 static const char __pyx_k_Indirect_dimensions_not_supporte[] = "Indirect dimensions not supported";
 static const char __pyx_k_Invalid_mode_expected_c_or_fortr[] = "Invalid mode, expected 'c' or 'fortran', got %s";
 static const char __pyx_k_Out_of_bounds_on_buffer_access_a[] = "Out of bounds on buffer access (axis %d)";
@@ -2129,8 +2130,8 @@ static PyObject *__pyx_kp_s_Cannot_create_writable_memory_vi;
 static PyObject *__pyx_kp_s_Cannot_index_with_type_s;
 static PyObject *__pyx_n_s_Ellipsis;
 static PyObject *__pyx_kp_s_Empty_shape_tuple_for_cython_arr;
-static PyObject *__pyx_kp_s_Incompatible_checksums_s_vs_0x10;
 static PyObject *__pyx_kp_s_Incompatible_checksums_s_vs_0xb0;
+static PyObject *__pyx_kp_s_Incompatible_checksums_s_vs_0xbc;
 static PyObject *__pyx_n_s_IndexError;
 static PyObject *__pyx_kp_s_Indirect_dimensions_not_supporte;
 static PyObject *__pyx_kp_s_Invalid_mode_expected_c_or_fortr;
@@ -2299,6 +2300,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_9Occupancy_17min_scale_reduc
 static int __pyx_pf_10openpifpaf_10functional_9Occupancy_17min_scale_reduced_2__set__(struct __pyx_obj_10openpifpaf_10functional_Occupancy *__pyx_v_self, PyObject *__pyx_v_value); /* proto */
 static PyObject *__pyx_pf_10openpifpaf_10functional_9Occupancy_9occupancy___get__(struct __pyx_obj_10openpifpaf_10functional_Occupancy *__pyx_v_self); /* proto */
 static int __pyx_pf_10openpifpaf_10functional_9Occupancy_9occupancy_2__set__(struct __pyx_obj_10openpifpaf_10functional_Occupancy *__pyx_v_self, PyObject *__pyx_v_value); /* proto */
+static int __pyx_pf_10openpifpaf_10functional_9Occupancy_9occupancy_4__del__(struct __pyx_obj_10openpifpaf_10functional_Occupancy *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_10openpifpaf_10functional_9Occupancy_8__reduce_cython__(struct __pyx_obj_10openpifpaf_10functional_Occupancy *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_10openpifpaf_10functional_9Occupancy_10__setstate_cython__(struct __pyx_obj_10openpifpaf_10functional_Occupancy *__pyx_v_self, PyObject *__pyx_v___pyx_state); /* proto */
 static PyObject *__pyx_pf_10openpifpaf_10functional_4cumulative_average(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_cuma, __Pyx_memviewslice __pyx_v_cumw, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_y, __Pyx_memviewslice __pyx_v_width, __Pyx_memviewslice __pyx_v_v, __Pyx_memviewslice __pyx_v_w); /* proto */
@@ -2367,8 +2369,8 @@ static PyObject *__pyx_tp_new_memoryview(PyTypeObject *t, PyObject *a, PyObject 
 static PyObject *__pyx_tp_new__memoryviewslice(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_int_0;
 static PyObject *__pyx_int_1;
-static PyObject *__pyx_int_16951744;
 static PyObject *__pyx_int_184977713;
+static PyObject *__pyx_int_198052737;
 static PyObject *__pyx_int_neg_1;
 static __Pyx_memviewslice __pyx_k_;
 static PyObject *__pyx_slice__2;
@@ -3094,8 +3096,8 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_2scalar_square_set(CYTHON_UN
   return __pyx_r;
 }
 
-/* "openpifpaf/functional.pyx":57
- *     cdef public unsigned char[:, :, :] occupancy
+/* "openpifpaf/functional.pyx":58
+ *     cdef unsigned char[:, :, :] occupancy_view
  * 
  *     def __init__(self, shape, reduction, *, min_scale=None):             # <<<<<<<<<<<<<<
  *         assert len(shape) == 3
@@ -3138,7 +3140,7 @@ static int __pyx_pw_10openpifpaf_10functional_9Occupancy_1__init__(PyObject *__p
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_reduction)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, 1); __PYX_ERR(0, 57, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, 1); __PYX_ERR(0, 58, __pyx_L3_error)
         }
       }
       if (kw_args == 1) {
@@ -3147,7 +3149,7 @@ static int __pyx_pw_10openpifpaf_10functional_9Occupancy_1__init__(PyObject *__p
         if (value) { values[index] = value; kw_args--; }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 57, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 58, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -3161,7 +3163,7 @@ static int __pyx_pw_10openpifpaf_10functional_9Occupancy_1__init__(PyObject *__p
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 57, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 58, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("openpifpaf.functional.Occupancy.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -3193,7 +3195,7 @@ static int __pyx_pf_10openpifpaf_10functional_9Occupancy___init__(struct __pyx_o
   __Pyx_RefNannySetupContext("__init__", 0);
   __Pyx_INCREF(__pyx_v_min_scale);
 
-  /* "openpifpaf/functional.pyx":58
+  /* "openpifpaf/functional.pyx":59
  * 
  *     def __init__(self, shape, reduction, *, min_scale=None):
  *         assert len(shape) == 3             # <<<<<<<<<<<<<<
@@ -3202,15 +3204,15 @@ static int __pyx_pf_10openpifpaf_10functional_9Occupancy___init__(struct __pyx_o
  */
   #ifndef CYTHON_WITHOUT_ASSERTIONS
   if (unlikely(!Py_OptimizeFlag)) {
-    __pyx_t_1 = PyObject_Length(__pyx_v_shape); if (unlikely(__pyx_t_1 == ((Py_ssize_t)-1))) __PYX_ERR(0, 58, __pyx_L1_error)
+    __pyx_t_1 = PyObject_Length(__pyx_v_shape); if (unlikely(__pyx_t_1 == ((Py_ssize_t)-1))) __PYX_ERR(0, 59, __pyx_L1_error)
     if (unlikely(!((__pyx_t_1 == 3) != 0))) {
       PyErr_SetNone(PyExc_AssertionError);
-      __PYX_ERR(0, 58, __pyx_L1_error)
+      __PYX_ERR(0, 59, __pyx_L1_error)
     }
   }
   #endif
 
-  /* "openpifpaf/functional.pyx":59
+  /* "openpifpaf/functional.pyx":60
  *     def __init__(self, shape, reduction, *, min_scale=None):
  *         assert len(shape) == 3
  *         if min_scale is None:             # <<<<<<<<<<<<<<
@@ -3221,7 +3223,7 @@ static int __pyx_pf_10openpifpaf_10functional_9Occupancy___init__(struct __pyx_o
   __pyx_t_3 = (__pyx_t_2 != 0);
   if (__pyx_t_3) {
 
-    /* "openpifpaf/functional.pyx":60
+    /* "openpifpaf/functional.pyx":61
  *         assert len(shape) == 3
  *         if min_scale is None:
  *             min_scale = reduction             # <<<<<<<<<<<<<<
@@ -3231,7 +3233,7 @@ static int __pyx_pf_10openpifpaf_10functional_9Occupancy___init__(struct __pyx_o
     __Pyx_INCREF(__pyx_v_reduction);
     __Pyx_DECREF_SET(__pyx_v_min_scale, __pyx_v_reduction);
 
-    /* "openpifpaf/functional.pyx":59
+    /* "openpifpaf/functional.pyx":60
  *     def __init__(self, shape, reduction, *, min_scale=None):
  *         assert len(shape) == 3
  *         if min_scale is None:             # <<<<<<<<<<<<<<
@@ -3240,7 +3242,7 @@ static int __pyx_pf_10openpifpaf_10functional_9Occupancy___init__(struct __pyx_o
  */
   }
 
-  /* "openpifpaf/functional.pyx":61
+  /* "openpifpaf/functional.pyx":62
  *         if min_scale is None:
  *             min_scale = reduction
  *         assert min_scale >= reduction             # <<<<<<<<<<<<<<
@@ -3249,108 +3251,108 @@ static int __pyx_pf_10openpifpaf_10functional_9Occupancy___init__(struct __pyx_o
  */
   #ifndef CYTHON_WITHOUT_ASSERTIONS
   if (unlikely(!Py_OptimizeFlag)) {
-    __pyx_t_4 = PyObject_RichCompare(__pyx_v_min_scale, __pyx_v_reduction, Py_GE); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 61, __pyx_L1_error)
-    __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_3 < 0)) __PYX_ERR(0, 61, __pyx_L1_error)
+    __pyx_t_4 = PyObject_RichCompare(__pyx_v_min_scale, __pyx_v_reduction, Py_GE); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 62, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_3 < 0)) __PYX_ERR(0, 62, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     if (unlikely(!__pyx_t_3)) {
       PyErr_SetNone(PyExc_AssertionError);
-      __PYX_ERR(0, 61, __pyx_L1_error)
+      __PYX_ERR(0, 62, __pyx_L1_error)
     }
   }
   #endif
 
-  /* "openpifpaf/functional.pyx":63
+  /* "openpifpaf/functional.pyx":64
  *         assert min_scale >= reduction
  * 
  *         self.reduction = reduction             # <<<<<<<<<<<<<<
  *         self.min_scale_reduced = min_scale / reduction
  * 
  */
-  __pyx_t_5 = __pyx_PyFloat_AsFloat(__pyx_v_reduction); if (unlikely((__pyx_t_5 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 63, __pyx_L1_error)
+  __pyx_t_5 = __pyx_PyFloat_AsFloat(__pyx_v_reduction); if (unlikely((__pyx_t_5 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 64, __pyx_L1_error)
   __pyx_v_self->reduction = __pyx_t_5;
 
-  /* "openpifpaf/functional.pyx":64
+  /* "openpifpaf/functional.pyx":65
  * 
  *         self.reduction = reduction
  *         self.min_scale_reduced = min_scale / reduction             # <<<<<<<<<<<<<<
  * 
  *         self.occupancy = np.zeros((
  */
-  __pyx_t_4 = __Pyx_PyNumber_Divide(__pyx_v_min_scale, __pyx_v_reduction); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 64, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyNumber_Divide(__pyx_v_min_scale, __pyx_v_reduction); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 65, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __pyx_PyFloat_AsFloat(__pyx_t_4); if (unlikely((__pyx_t_5 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 64, __pyx_L1_error)
+  __pyx_t_5 = __pyx_PyFloat_AsFloat(__pyx_t_4); if (unlikely((__pyx_t_5 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 65, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_v_self->min_scale_reduced = __pyx_t_5;
 
-  /* "openpifpaf/functional.pyx":66
+  /* "openpifpaf/functional.pyx":67
  *         self.min_scale_reduced = min_scale / reduction
  * 
  *         self.occupancy = np.zeros((             # <<<<<<<<<<<<<<
  *             shape[0],
  *             int(shape[1] / reduction) + 1,
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 66, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 67, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_zeros); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 66, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_zeros); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 67, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "openpifpaf/functional.pyx":67
+  /* "openpifpaf/functional.pyx":68
  * 
  *         self.occupancy = np.zeros((
  *             shape[0],             # <<<<<<<<<<<<<<
  *             int(shape[1] / reduction) + 1,
  *             int(shape[2] / reduction) + 1,
  */
-  __pyx_t_4 = __Pyx_GetItemInt(__pyx_v_shape, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 67, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_GetItemInt(__pyx_v_shape, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 68, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
 
-  /* "openpifpaf/functional.pyx":68
+  /* "openpifpaf/functional.pyx":69
  *         self.occupancy = np.zeros((
  *             shape[0],
  *             int(shape[1] / reduction) + 1,             # <<<<<<<<<<<<<<
  *             int(shape[2] / reduction) + 1,
  *         ), dtype=np.uint8)
  */
-  __pyx_t_7 = __Pyx_GetItemInt(__pyx_v_shape, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 68, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_GetItemInt(__pyx_v_shape, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 69, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
-  __pyx_t_8 = __Pyx_PyNumber_Divide(__pyx_t_7, __pyx_v_reduction); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 68, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyNumber_Divide(__pyx_t_7, __pyx_v_reduction); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 69, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  __pyx_t_7 = __Pyx_PyNumber_Int(__pyx_t_8); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 68, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyNumber_Int(__pyx_t_8); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 69, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-  __pyx_t_8 = __Pyx_PyInt_AddObjC(__pyx_t_7, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 68, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyInt_AddObjC(__pyx_t_7, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 69, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "openpifpaf/functional.pyx":69
+  /* "openpifpaf/functional.pyx":70
  *             shape[0],
  *             int(shape[1] / reduction) + 1,
  *             int(shape[2] / reduction) + 1,             # <<<<<<<<<<<<<<
  *         ), dtype=np.uint8)
- *         # LOG.debug('shape = %s, min_scale = %d', self.occupancy.shape, self.min_scale_reduced)
+ *         self.occupancy_view = self.occupancy
  */
-  __pyx_t_7 = __Pyx_GetItemInt(__pyx_v_shape, 2, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 69, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_GetItemInt(__pyx_v_shape, 2, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
-  __pyx_t_9 = __Pyx_PyNumber_Divide(__pyx_t_7, __pyx_v_reduction); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 69, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyNumber_Divide(__pyx_t_7, __pyx_v_reduction); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  __pyx_t_7 = __Pyx_PyNumber_Int(__pyx_t_9); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 69, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyNumber_Int(__pyx_t_9); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-  __pyx_t_9 = __Pyx_PyInt_AddObjC(__pyx_t_7, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 69, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyInt_AddObjC(__pyx_t_7, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "openpifpaf/functional.pyx":67
+  /* "openpifpaf/functional.pyx":68
  * 
  *         self.occupancy = np.zeros((
  *             shape[0],             # <<<<<<<<<<<<<<
  *             int(shape[1] / reduction) + 1,
  *             int(shape[2] / reduction) + 1,
  */
-  __pyx_t_7 = PyTuple_New(3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 67, __pyx_L1_error)
+  __pyx_t_7 = PyTuple_New(3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 68, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_GIVEREF(__pyx_t_4);
   PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_4);
@@ -3362,57 +3364,69 @@ static int __pyx_pf_10openpifpaf_10functional_9Occupancy___init__(struct __pyx_o
   __pyx_t_8 = 0;
   __pyx_t_9 = 0;
 
-  /* "openpifpaf/functional.pyx":66
+  /* "openpifpaf/functional.pyx":67
  *         self.min_scale_reduced = min_scale / reduction
  * 
  *         self.occupancy = np.zeros((             # <<<<<<<<<<<<<<
  *             shape[0],
  *             int(shape[1] / reduction) + 1,
  */
-  __pyx_t_9 = PyTuple_New(1); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 66, __pyx_L1_error)
+  __pyx_t_9 = PyTuple_New(1); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 67, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
   __Pyx_GIVEREF(__pyx_t_7);
   PyTuple_SET_ITEM(__pyx_t_9, 0, __pyx_t_7);
   __pyx_t_7 = 0;
 
-  /* "openpifpaf/functional.pyx":70
+  /* "openpifpaf/functional.pyx":71
  *             int(shape[1] / reduction) + 1,
  *             int(shape[2] / reduction) + 1,
  *         ), dtype=np.uint8)             # <<<<<<<<<<<<<<
+ *         self.occupancy_view = self.occupancy
  *         # LOG.debug('shape = %s, min_scale = %d', self.occupancy.shape, self.min_scale_reduced)
- * 
  */
-  __pyx_t_7 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 70, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
-  __Pyx_GetModuleGlobalName(__pyx_t_8, __pyx_n_s_np); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 70, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_8, __pyx_n_s_np); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_8, __pyx_n_s_uint8); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 70, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_8, __pyx_n_s_uint8); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-  if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_dtype, __pyx_t_4) < 0) __PYX_ERR(0, 70, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_dtype, __pyx_t_4) < 0) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "openpifpaf/functional.pyx":66
+  /* "openpifpaf/functional.pyx":67
  *         self.min_scale_reduced = min_scale / reduction
  * 
  *         self.occupancy = np.zeros((             # <<<<<<<<<<<<<<
  *             shape[0],
  *             int(shape[1] / reduction) + 1,
  */
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_9, __pyx_t_7); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 66, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_9, __pyx_t_7); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 67, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_dsdsds_unsigned_char(__pyx_t_4, PyBUF_WRITABLE); if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 66, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __PYX_XDEC_MEMVIEW(&__pyx_v_self->occupancy, 0);
-  __pyx_v_self->occupancy = __pyx_t_10;
+  __Pyx_GIVEREF(__pyx_t_4);
+  __Pyx_GOTREF(__pyx_v_self->occupancy);
+  __Pyx_DECREF(__pyx_v_self->occupancy);
+  __pyx_v_self->occupancy = __pyx_t_4;
+  __pyx_t_4 = 0;
+
+  /* "openpifpaf/functional.pyx":72
+ *             int(shape[2] / reduction) + 1,
+ *         ), dtype=np.uint8)
+ *         self.occupancy_view = self.occupancy             # <<<<<<<<<<<<<<
+ *         # LOG.debug('shape = %s, min_scale = %d', self.occupancy.shape, self.min_scale_reduced)
+ * 
+ */
+  __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_dsdsds_unsigned_char(__pyx_v_self->occupancy, PyBUF_WRITABLE); if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 72, __pyx_L1_error)
+  __PYX_XDEC_MEMVIEW(&__pyx_v_self->occupancy_view, 0);
+  __pyx_v_self->occupancy_view = __pyx_t_10;
   __pyx_t_10.memview = NULL;
   __pyx_t_10.data = NULL;
 
-  /* "openpifpaf/functional.pyx":57
- *     cdef public unsigned char[:, :, :] occupancy
+  /* "openpifpaf/functional.pyx":58
+ *     cdef unsigned char[:, :, :] occupancy_view
  * 
  *     def __init__(self, shape, reduction, *, min_scale=None):             # <<<<<<<<<<<<<<
  *         assert len(shape) == 3
@@ -3437,7 +3451,7 @@ static int __pyx_pf_10openpifpaf_10functional_9Occupancy___init__(struct __pyx_o
   return __pyx_r;
 }
 
-/* "openpifpaf/functional.pyx":73
+/* "openpifpaf/functional.pyx":75
  *         # LOG.debug('shape = %s, min_scale = %d', self.occupancy.shape, self.min_scale_reduced)
  * 
  *     def __len__(self):             # <<<<<<<<<<<<<<
@@ -3461,25 +3475,28 @@ static Py_ssize_t __pyx_pw_10openpifpaf_10functional_9Occupancy_3__len__(PyObjec
 static Py_ssize_t __pyx_pf_10openpifpaf_10functional_9Occupancy_2__len__(struct __pyx_obj_10openpifpaf_10functional_Occupancy *__pyx_v_self) {
   Py_ssize_t __pyx_r;
   __Pyx_RefNannyDeclarations
-  size_t __pyx_t_1;
+  PyObject *__pyx_t_1 = NULL;
+  Py_ssize_t __pyx_t_2;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__len__", 0);
 
-  /* "openpifpaf/functional.pyx":74
+  /* "openpifpaf/functional.pyx":76
  * 
  *     def __len__(self):
  *         return len(self.occupancy)             # <<<<<<<<<<<<<<
  * 
  *     cpdef public set(self, long f, float x, float y, float sigma):
  */
-  if (unlikely(!__pyx_v_self->occupancy.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(0, 74, __pyx_L1_error)}
-  __pyx_t_1 = __Pyx_MemoryView_Len(__pyx_v_self->occupancy); 
-  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = __pyx_v_self->occupancy;
+  __Pyx_INCREF(__pyx_t_1);
+  __pyx_t_2 = PyObject_Length(__pyx_t_1); if (unlikely(__pyx_t_2 == ((Py_ssize_t)-1))) __PYX_ERR(0, 76, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_r = __pyx_t_2;
   goto __pyx_L0;
 
-  /* "openpifpaf/functional.pyx":73
+  /* "openpifpaf/functional.pyx":75
  *         # LOG.debug('shape = %s, min_scale = %d', self.occupancy.shape, self.min_scale_reduced)
  * 
  *     def __len__(self):             # <<<<<<<<<<<<<<
@@ -3489,6 +3506,7 @@ static Py_ssize_t __pyx_pf_10openpifpaf_10functional_9Occupancy_2__len__(struct 
 
   /* function exit code */
   __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
   __Pyx_AddTraceback("openpifpaf.functional.Occupancy.__len__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = -1;
   __pyx_L0:;
@@ -3496,7 +3514,7 @@ static Py_ssize_t __pyx_pf_10openpifpaf_10functional_9Occupancy_2__len__(struct 
   return __pyx_r;
 }
 
-/* "openpifpaf/functional.pyx":76
+/* "openpifpaf/functional.pyx":78
  *         return len(self.occupancy)
  * 
  *     cpdef public set(self, long f, float x, float y, float sigma):             # <<<<<<<<<<<<<<
@@ -3518,7 +3536,7 @@ PyObject *__pyx_f_10openpifpaf_10functional_9Occupancy_set(struct __pyx_obj_10op
   PyObject *__pyx_t_8 = NULL;
   int __pyx_t_9;
   PyObject *__pyx_t_10 = NULL;
-  size_t __pyx_t_11;
+  Py_ssize_t __pyx_t_11;
   int __pyx_t_12;
   __Pyx_memviewslice __pyx_t_13 = { 0, 0, { 0 }, { 0 }, { 0 } };
   struct __pyx_opt_args_10openpifpaf_10functional_scalar_square_set __pyx_t_14;
@@ -3535,17 +3553,17 @@ PyObject *__pyx_f_10openpifpaf_10functional_9Occupancy_set(struct __pyx_obj_10op
     if (unlikely(!__Pyx_object_dict_version_matches(((PyObject *)__pyx_v_self), __pyx_tp_dict_version, __pyx_obj_dict_version))) {
       PY_UINT64_T __pyx_type_dict_guard = __Pyx_get_tp_dict_version(((PyObject *)__pyx_v_self));
       #endif
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_set); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 76, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_set); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 78, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)(void*)__pyx_pw_10openpifpaf_10functional_9Occupancy_5set)) {
         __Pyx_XDECREF(__pyx_r);
-        __pyx_t_3 = __Pyx_PyInt_From_long(__pyx_v_f); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 76, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyInt_From_long(__pyx_v_f); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 78, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_3);
-        __pyx_t_4 = PyFloat_FromDouble(__pyx_v_x); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 76, __pyx_L1_error)
+        __pyx_t_4 = PyFloat_FromDouble(__pyx_v_x); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 78, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
-        __pyx_t_5 = PyFloat_FromDouble(__pyx_v_y); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 76, __pyx_L1_error)
+        __pyx_t_5 = PyFloat_FromDouble(__pyx_v_y); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 78, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_5);
-        __pyx_t_6 = PyFloat_FromDouble(__pyx_v_sigma); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 76, __pyx_L1_error)
+        __pyx_t_6 = PyFloat_FromDouble(__pyx_v_sigma); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 78, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_6);
         __Pyx_INCREF(__pyx_t_1);
         __pyx_t_7 = __pyx_t_1; __pyx_t_8 = NULL;
@@ -3563,7 +3581,7 @@ PyObject *__pyx_f_10openpifpaf_10functional_9Occupancy_set(struct __pyx_obj_10op
         #if CYTHON_FAST_PYCALL
         if (PyFunction_Check(__pyx_t_7)) {
           PyObject *__pyx_temp[5] = {__pyx_t_8, __pyx_t_3, __pyx_t_4, __pyx_t_5, __pyx_t_6};
-          __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_7, __pyx_temp+1-__pyx_t_9, 4+__pyx_t_9); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 76, __pyx_L1_error)
+          __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_7, __pyx_temp+1-__pyx_t_9, 4+__pyx_t_9); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 78, __pyx_L1_error)
           __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
           __Pyx_GOTREF(__pyx_t_2);
           __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -3575,7 +3593,7 @@ PyObject *__pyx_f_10openpifpaf_10functional_9Occupancy_set(struct __pyx_obj_10op
         #if CYTHON_FAST_PYCCALL
         if (__Pyx_PyFastCFunction_Check(__pyx_t_7)) {
           PyObject *__pyx_temp[5] = {__pyx_t_8, __pyx_t_3, __pyx_t_4, __pyx_t_5, __pyx_t_6};
-          __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_7, __pyx_temp+1-__pyx_t_9, 4+__pyx_t_9); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 76, __pyx_L1_error)
+          __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_7, __pyx_temp+1-__pyx_t_9, 4+__pyx_t_9); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 78, __pyx_L1_error)
           __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
           __Pyx_GOTREF(__pyx_t_2);
           __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -3585,7 +3603,7 @@ PyObject *__pyx_f_10openpifpaf_10functional_9Occupancy_set(struct __pyx_obj_10op
         } else
         #endif
         {
-          __pyx_t_10 = PyTuple_New(4+__pyx_t_9); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 76, __pyx_L1_error)
+          __pyx_t_10 = PyTuple_New(4+__pyx_t_9); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 78, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_10);
           if (__pyx_t_8) {
             __Pyx_GIVEREF(__pyx_t_8); PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_t_8); __pyx_t_8 = NULL;
@@ -3602,7 +3620,7 @@ PyObject *__pyx_f_10openpifpaf_10functional_9Occupancy_set(struct __pyx_obj_10op
           __pyx_t_4 = 0;
           __pyx_t_5 = 0;
           __pyx_t_6 = 0;
-          __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_10, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 76, __pyx_L1_error)
+          __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_10, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 78, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_2);
           __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
         }
@@ -3625,30 +3643,32 @@ PyObject *__pyx_f_10openpifpaf_10functional_9Occupancy_set(struct __pyx_obj_10op
     #endif
   }
 
-  /* "openpifpaf/functional.pyx":78
+  /* "openpifpaf/functional.pyx":80
  *     cpdef public set(self, long f, float x, float y, float sigma):
  *         """Setting needs to be centered at the rounded (x, y)."""
  *         if f >= len(self.occupancy):             # <<<<<<<<<<<<<<
  *             return
  * 
  */
-  if (unlikely(!__pyx_v_self->occupancy.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(0, 78, __pyx_L1_error)}
-  __pyx_t_11 = __Pyx_MemoryView_Len(__pyx_v_self->occupancy); 
+  __pyx_t_1 = __pyx_v_self->occupancy;
+  __Pyx_INCREF(__pyx_t_1);
+  __pyx_t_11 = PyObject_Length(__pyx_t_1); if (unlikely(__pyx_t_11 == ((Py_ssize_t)-1))) __PYX_ERR(0, 80, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_12 = ((__pyx_v_f >= __pyx_t_11) != 0);
   if (__pyx_t_12) {
 
-    /* "openpifpaf/functional.pyx":79
+    /* "openpifpaf/functional.pyx":81
  *         """Setting needs to be centered at the rounded (x, y)."""
  *         if f >= len(self.occupancy):
  *             return             # <<<<<<<<<<<<<<
  * 
- *         scalar_square_set(self.occupancy[f], x, y, sigma,
+ *         scalar_square_set(self.occupancy_view[f], x, y, sigma,
  */
     __Pyx_XDECREF(__pyx_r);
     __pyx_r = Py_None; __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "openpifpaf/functional.pyx":78
+    /* "openpifpaf/functional.pyx":80
  *     cpdef public set(self, long f, float x, float y, float sigma):
  *         """Setting needs to be centered at the rounded (x, y)."""
  *         if f >= len(self.occupancy):             # <<<<<<<<<<<<<<
@@ -3657,44 +3677,44 @@ PyObject *__pyx_f_10openpifpaf_10functional_9Occupancy_set(struct __pyx_obj_10op
  */
   }
 
-  /* "openpifpaf/functional.pyx":81
+  /* "openpifpaf/functional.pyx":83
  *             return
  * 
- *         scalar_square_set(self.occupancy[f], x, y, sigma,             # <<<<<<<<<<<<<<
+ *         scalar_square_set(self.occupancy_view[f], x, y, sigma,             # <<<<<<<<<<<<<<
  *                           reduction=self.reduction, min_sigma=self.min_scale_reduced)
  * 
  */
-  if (unlikely(!__pyx_v_self->occupancy.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(0, 81, __pyx_L1_error)}
-  __pyx_t_13.data = __pyx_v_self->occupancy.data;
-  __pyx_t_13.memview = __pyx_v_self->occupancy.memview;
+  if (unlikely(!__pyx_v_self->occupancy_view.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(0, 83, __pyx_L1_error)}
+  __pyx_t_13.data = __pyx_v_self->occupancy_view.data;
+  __pyx_t_13.memview = __pyx_v_self->occupancy_view.memview;
   __PYX_INC_MEMVIEW(&__pyx_t_13, 0);
   {
     Py_ssize_t __pyx_tmp_idx = __pyx_v_f;
-        Py_ssize_t __pyx_tmp_shape = __pyx_v_self->occupancy.shape[0];
-    Py_ssize_t __pyx_tmp_stride = __pyx_v_self->occupancy.strides[0];
+        Py_ssize_t __pyx_tmp_shape = __pyx_v_self->occupancy_view.shape[0];
+    Py_ssize_t __pyx_tmp_stride = __pyx_v_self->occupancy_view.strides[0];
         if (__pyx_tmp_idx < 0)
             __pyx_tmp_idx += __pyx_tmp_shape;
         if (unlikely(!__Pyx_is_valid_index(__pyx_tmp_idx, __pyx_tmp_shape))) {
             PyErr_SetString(PyExc_IndexError,
                             "Index out of bounds (axis 0)");
-            __PYX_ERR(0, 81, __pyx_L1_error)
+            __PYX_ERR(0, 83, __pyx_L1_error)
         }
         __pyx_t_13.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
 
-__pyx_t_13.shape[0] = __pyx_v_self->occupancy.shape[1];
-__pyx_t_13.strides[0] = __pyx_v_self->occupancy.strides[1];
+__pyx_t_13.shape[0] = __pyx_v_self->occupancy_view.shape[1];
+__pyx_t_13.strides[0] = __pyx_v_self->occupancy_view.strides[1];
     __pyx_t_13.suboffsets[0] = -1;
 
-__pyx_t_13.shape[1] = __pyx_v_self->occupancy.shape[2];
-__pyx_t_13.strides[1] = __pyx_v_self->occupancy.strides[2];
+__pyx_t_13.shape[1] = __pyx_v_self->occupancy_view.shape[2];
+__pyx_t_13.strides[1] = __pyx_v_self->occupancy_view.strides[2];
     __pyx_t_13.suboffsets[1] = -1;
 
 __pyx_t_14.__pyx_n = 2;
 
-  /* "openpifpaf/functional.pyx":82
+  /* "openpifpaf/functional.pyx":84
  * 
- *         scalar_square_set(self.occupancy[f], x, y, sigma,
+ *         scalar_square_set(self.occupancy_view[f], x, y, sigma,
  *                           reduction=self.reduction, min_sigma=self.min_scale_reduced)             # <<<<<<<<<<<<<<
  * 
  *     cpdef readonly unsigned char get(self, long f, float x, float y):
@@ -3706,7 +3726,7 @@ __pyx_t_14.__pyx_n = 2;
   __pyx_t_13.memview = NULL;
   __pyx_t_13.data = NULL;
 
-  /* "openpifpaf/functional.pyx":76
+  /* "openpifpaf/functional.pyx":78
  *         return len(self.occupancy)
  * 
  *     cpdef public set(self, long f, float x, float y, float sigma):             # <<<<<<<<<<<<<<
@@ -3777,23 +3797,23 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_9Occupancy_5set(PyObject *__
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_x)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("set", 1, 4, 4, 1); __PYX_ERR(0, 76, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("set", 1, 4, 4, 1); __PYX_ERR(0, 78, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_y)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("set", 1, 4, 4, 2); __PYX_ERR(0, 76, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("set", 1, 4, 4, 2); __PYX_ERR(0, 78, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_sigma)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("set", 1, 4, 4, 3); __PYX_ERR(0, 76, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("set", 1, 4, 4, 3); __PYX_ERR(0, 78, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "set") < 0)) __PYX_ERR(0, 76, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "set") < 0)) __PYX_ERR(0, 78, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 4) {
       goto __pyx_L5_argtuple_error;
@@ -3803,14 +3823,14 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_9Occupancy_5set(PyObject *__
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
       values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
     }
-    __pyx_v_f = __Pyx_PyInt_As_long(values[0]); if (unlikely((__pyx_v_f == (long)-1) && PyErr_Occurred())) __PYX_ERR(0, 76, __pyx_L3_error)
-    __pyx_v_x = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_x == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 76, __pyx_L3_error)
-    __pyx_v_y = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_y == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 76, __pyx_L3_error)
-    __pyx_v_sigma = __pyx_PyFloat_AsFloat(values[3]); if (unlikely((__pyx_v_sigma == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 76, __pyx_L3_error)
+    __pyx_v_f = __Pyx_PyInt_As_long(values[0]); if (unlikely((__pyx_v_f == (long)-1) && PyErr_Occurred())) __PYX_ERR(0, 78, __pyx_L3_error)
+    __pyx_v_x = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_x == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 78, __pyx_L3_error)
+    __pyx_v_y = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_y == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 78, __pyx_L3_error)
+    __pyx_v_sigma = __pyx_PyFloat_AsFloat(values[3]); if (unlikely((__pyx_v_sigma == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 78, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("set", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 76, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("set", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 78, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("openpifpaf.functional.Occupancy.set", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -3832,7 +3852,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_9Occupancy_4set(struct __pyx
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("set", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_10openpifpaf_10functional_9Occupancy_set(__pyx_v_self, __pyx_v_f, __pyx_v_x, __pyx_v_y, __pyx_v_sigma, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 76, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_10openpifpaf_10functional_9Occupancy_set(__pyx_v_self, __pyx_v_f, __pyx_v_x, __pyx_v_y, __pyx_v_sigma, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 78, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -3849,7 +3869,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_9Occupancy_4set(struct __pyx
   return __pyx_r;
 }
 
-/* "openpifpaf/functional.pyx":84
+/* "openpifpaf/functional.pyx":86
  *                           reduction=self.reduction, min_sigma=self.min_scale_reduced)
  * 
  *     cpdef readonly unsigned char get(self, long f, float x, float y):             # <<<<<<<<<<<<<<
@@ -3871,7 +3891,7 @@ unsigned char __pyx_f_10openpifpaf_10functional_9Occupancy_get(struct __pyx_obj_
   int __pyx_t_8;
   PyObject *__pyx_t_9 = NULL;
   unsigned char __pyx_t_10;
-  size_t __pyx_t_11;
+  Py_ssize_t __pyx_t_11;
   int __pyx_t_12;
   __Pyx_memviewslice __pyx_t_13 = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_lineno = 0;
@@ -3887,14 +3907,14 @@ unsigned char __pyx_f_10openpifpaf_10functional_9Occupancy_get(struct __pyx_obj_
     if (unlikely(!__Pyx_object_dict_version_matches(((PyObject *)__pyx_v_self), __pyx_tp_dict_version, __pyx_obj_dict_version))) {
       PY_UINT64_T __pyx_type_dict_guard = __Pyx_get_tp_dict_version(((PyObject *)__pyx_v_self));
       #endif
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 84, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 86, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)(void*)__pyx_pw_10openpifpaf_10functional_9Occupancy_7get)) {
-        __pyx_t_3 = __Pyx_PyInt_From_long(__pyx_v_f); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 84, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyInt_From_long(__pyx_v_f); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 86, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_3);
-        __pyx_t_4 = PyFloat_FromDouble(__pyx_v_x); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 84, __pyx_L1_error)
+        __pyx_t_4 = PyFloat_FromDouble(__pyx_v_x); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 86, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
-        __pyx_t_5 = PyFloat_FromDouble(__pyx_v_y); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 84, __pyx_L1_error)
+        __pyx_t_5 = PyFloat_FromDouble(__pyx_v_y); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 86, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_5);
         __Pyx_INCREF(__pyx_t_1);
         __pyx_t_6 = __pyx_t_1; __pyx_t_7 = NULL;
@@ -3912,7 +3932,7 @@ unsigned char __pyx_f_10openpifpaf_10functional_9Occupancy_get(struct __pyx_obj_
         #if CYTHON_FAST_PYCALL
         if (PyFunction_Check(__pyx_t_6)) {
           PyObject *__pyx_temp[4] = {__pyx_t_7, __pyx_t_3, __pyx_t_4, __pyx_t_5};
-          __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_6, __pyx_temp+1-__pyx_t_8, 3+__pyx_t_8); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 84, __pyx_L1_error)
+          __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_6, __pyx_temp+1-__pyx_t_8, 3+__pyx_t_8); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 86, __pyx_L1_error)
           __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
           __Pyx_GOTREF(__pyx_t_2);
           __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -3923,7 +3943,7 @@ unsigned char __pyx_f_10openpifpaf_10functional_9Occupancy_get(struct __pyx_obj_
         #if CYTHON_FAST_PYCCALL
         if (__Pyx_PyFastCFunction_Check(__pyx_t_6)) {
           PyObject *__pyx_temp[4] = {__pyx_t_7, __pyx_t_3, __pyx_t_4, __pyx_t_5};
-          __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_6, __pyx_temp+1-__pyx_t_8, 3+__pyx_t_8); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 84, __pyx_L1_error)
+          __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_6, __pyx_temp+1-__pyx_t_8, 3+__pyx_t_8); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 86, __pyx_L1_error)
           __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
           __Pyx_GOTREF(__pyx_t_2);
           __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -3932,7 +3952,7 @@ unsigned char __pyx_f_10openpifpaf_10functional_9Occupancy_get(struct __pyx_obj_
         } else
         #endif
         {
-          __pyx_t_9 = PyTuple_New(3+__pyx_t_8); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 84, __pyx_L1_error)
+          __pyx_t_9 = PyTuple_New(3+__pyx_t_8); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 86, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_9);
           if (__pyx_t_7) {
             __Pyx_GIVEREF(__pyx_t_7); PyTuple_SET_ITEM(__pyx_t_9, 0, __pyx_t_7); __pyx_t_7 = NULL;
@@ -3946,12 +3966,12 @@ unsigned char __pyx_f_10openpifpaf_10functional_9Occupancy_get(struct __pyx_obj_
           __pyx_t_3 = 0;
           __pyx_t_4 = 0;
           __pyx_t_5 = 0;
-          __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_9, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 84, __pyx_L1_error)
+          __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_9, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 86, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_2);
           __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
         }
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-        __pyx_t_10 = __Pyx_PyInt_As_unsigned_char(__pyx_t_2); if (unlikely((__pyx_t_10 == (unsigned char)-1) && PyErr_Occurred())) __PYX_ERR(0, 84, __pyx_L1_error)
+        __pyx_t_10 = __Pyx_PyInt_As_unsigned_char(__pyx_t_2); if (unlikely((__pyx_t_10 == (unsigned char)-1) && PyErr_Occurred())) __PYX_ERR(0, 86, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
         __pyx_r = __pyx_t_10;
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -3970,19 +3990,21 @@ unsigned char __pyx_f_10openpifpaf_10functional_9Occupancy_get(struct __pyx_obj_
     #endif
   }
 
-  /* "openpifpaf/functional.pyx":86
+  /* "openpifpaf/functional.pyx":88
  *     cpdef readonly unsigned char get(self, long f, float x, float y):
  *         """Getting needs to be done at the floor of (x, y)."""
  *         if f >= len(self.occupancy):             # <<<<<<<<<<<<<<
  *             return 1
  * 
  */
-  if (unlikely(!__pyx_v_self->occupancy.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(0, 86, __pyx_L1_error)}
-  __pyx_t_11 = __Pyx_MemoryView_Len(__pyx_v_self->occupancy); 
+  __pyx_t_1 = __pyx_v_self->occupancy;
+  __Pyx_INCREF(__pyx_t_1);
+  __pyx_t_11 = PyObject_Length(__pyx_t_1); if (unlikely(__pyx_t_11 == ((Py_ssize_t)-1))) __PYX_ERR(0, 88, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_12 = ((__pyx_v_f >= __pyx_t_11) != 0);
   if (__pyx_t_12) {
 
-    /* "openpifpaf/functional.pyx":87
+    /* "openpifpaf/functional.pyx":89
  *         """Getting needs to be done at the floor of (x, y)."""
  *         if f >= len(self.occupancy):
  *             return 1             # <<<<<<<<<<<<<<
@@ -3992,7 +4014,7 @@ unsigned char __pyx_f_10openpifpaf_10functional_9Occupancy_get(struct __pyx_obj_
     __pyx_r = 1;
     goto __pyx_L0;
 
-    /* "openpifpaf/functional.pyx":86
+    /* "openpifpaf/functional.pyx":88
  *     cpdef readonly unsigned char get(self, long f, float x, float y):
  *         """Getting needs to be done at the floor of (x, y)."""
  *         if f >= len(self.occupancy):             # <<<<<<<<<<<<<<
@@ -4001,37 +4023,37 @@ unsigned char __pyx_f_10openpifpaf_10functional_9Occupancy_get(struct __pyx_obj_
  */
   }
 
-  /* "openpifpaf/functional.pyx":90
+  /* "openpifpaf/functional.pyx":92
  * 
  *         # floor is done in scalar_nonzero_clipped below
- *         return scalar_nonzero_clipped_with_reduction(self.occupancy[f], x, y, self.reduction)             # <<<<<<<<<<<<<<
+ *         return scalar_nonzero_clipped_with_reduction(self.occupancy_view[f], x, y, self.reduction)             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  if (unlikely(!__pyx_v_self->occupancy.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(0, 90, __pyx_L1_error)}
-  __pyx_t_13.data = __pyx_v_self->occupancy.data;
-  __pyx_t_13.memview = __pyx_v_self->occupancy.memview;
+  if (unlikely(!__pyx_v_self->occupancy_view.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(0, 92, __pyx_L1_error)}
+  __pyx_t_13.data = __pyx_v_self->occupancy_view.data;
+  __pyx_t_13.memview = __pyx_v_self->occupancy_view.memview;
   __PYX_INC_MEMVIEW(&__pyx_t_13, 0);
   {
     Py_ssize_t __pyx_tmp_idx = __pyx_v_f;
-        Py_ssize_t __pyx_tmp_shape = __pyx_v_self->occupancy.shape[0];
-    Py_ssize_t __pyx_tmp_stride = __pyx_v_self->occupancy.strides[0];
+        Py_ssize_t __pyx_tmp_shape = __pyx_v_self->occupancy_view.shape[0];
+    Py_ssize_t __pyx_tmp_stride = __pyx_v_self->occupancy_view.strides[0];
         if (__pyx_tmp_idx < 0)
             __pyx_tmp_idx += __pyx_tmp_shape;
         if (unlikely(!__Pyx_is_valid_index(__pyx_tmp_idx, __pyx_tmp_shape))) {
             PyErr_SetString(PyExc_IndexError,
                             "Index out of bounds (axis 0)");
-            __PYX_ERR(0, 90, __pyx_L1_error)
+            __PYX_ERR(0, 92, __pyx_L1_error)
         }
         __pyx_t_13.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
 
-__pyx_t_13.shape[0] = __pyx_v_self->occupancy.shape[1];
-__pyx_t_13.strides[0] = __pyx_v_self->occupancy.strides[1];
+__pyx_t_13.shape[0] = __pyx_v_self->occupancy_view.shape[1];
+__pyx_t_13.strides[0] = __pyx_v_self->occupancy_view.strides[1];
     __pyx_t_13.suboffsets[0] = -1;
 
-__pyx_t_13.shape[1] = __pyx_v_self->occupancy.shape[2];
-__pyx_t_13.strides[1] = __pyx_v_self->occupancy.strides[2];
+__pyx_t_13.shape[1] = __pyx_v_self->occupancy_view.shape[2];
+__pyx_t_13.strides[1] = __pyx_v_self->occupancy_view.strides[2];
     __pyx_t_13.suboffsets[1] = -1;
 
 __pyx_r = __pyx_f_10openpifpaf_10functional_scalar_nonzero_clipped_with_reduction(__pyx_t_13, __pyx_v_x, __pyx_v_y, __pyx_v_self->reduction, 0);
@@ -4040,7 +4062,7 @@ __pyx_r = __pyx_f_10openpifpaf_10functional_scalar_nonzero_clipped_with_reductio
   __pyx_t_13.data = NULL;
   goto __pyx_L0;
 
-  /* "openpifpaf/functional.pyx":84
+  /* "openpifpaf/functional.pyx":86
  *                           reduction=self.reduction, min_sigma=self.min_scale_reduced)
  * 
  *     cpdef readonly unsigned char get(self, long f, float x, float y):             # <<<<<<<<<<<<<<
@@ -4104,17 +4126,17 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_9Occupancy_7get(PyObject *__
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_x)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("get", 1, 3, 3, 1); __PYX_ERR(0, 84, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("get", 1, 3, 3, 1); __PYX_ERR(0, 86, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_y)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("get", 1, 3, 3, 2); __PYX_ERR(0, 84, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("get", 1, 3, 3, 2); __PYX_ERR(0, 86, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get") < 0)) __PYX_ERR(0, 84, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get") < 0)) __PYX_ERR(0, 86, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -4123,13 +4145,13 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_9Occupancy_7get(PyObject *__
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
     }
-    __pyx_v_f = __Pyx_PyInt_As_long(values[0]); if (unlikely((__pyx_v_f == (long)-1) && PyErr_Occurred())) __PYX_ERR(0, 84, __pyx_L3_error)
-    __pyx_v_x = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_x == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 84, __pyx_L3_error)
-    __pyx_v_y = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_y == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 84, __pyx_L3_error)
+    __pyx_v_f = __Pyx_PyInt_As_long(values[0]); if (unlikely((__pyx_v_f == (long)-1) && PyErr_Occurred())) __PYX_ERR(0, 86, __pyx_L3_error)
+    __pyx_v_x = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_x == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 86, __pyx_L3_error)
+    __pyx_v_y = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_y == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 86, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("get", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 84, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("get", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 86, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("openpifpaf.functional.Occupancy.get", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -4151,7 +4173,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_9Occupancy_6get(struct __pyx
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("get", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_unsigned_char(__pyx_f_10openpifpaf_10functional_9Occupancy_get(__pyx_v_self, __pyx_v_f, __pyx_v_x, __pyx_v_y, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 84, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_unsigned_char(__pyx_f_10openpifpaf_10functional_9Occupancy_get(__pyx_v_self, __pyx_v_f, __pyx_v_x, __pyx_v_y, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 86, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -4173,7 +4195,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_9Occupancy_6get(struct __pyx
  * cdef class Occupancy:
  *     cdef public float reduction             # <<<<<<<<<<<<<<
  *     cdef public float min_scale_reduced
- *     cdef public unsigned char[:, :, :] occupancy
+ *     cdef public occupancy
  */
 
 /* Python wrapper */
@@ -4254,8 +4276,8 @@ static int __pyx_pf_10openpifpaf_10functional_9Occupancy_9reduction_2__set__(str
  * cdef class Occupancy:
  *     cdef public float reduction
  *     cdef public float min_scale_reduced             # <<<<<<<<<<<<<<
- *     cdef public unsigned char[:, :, :] occupancy
- * 
+ *     cdef public occupancy
+ *     cdef unsigned char[:, :, :] occupancy_view
  */
 
 /* Python wrapper */
@@ -4335,9 +4357,9 @@ static int __pyx_pf_10openpifpaf_10functional_9Occupancy_17min_scale_reduced_2__
 /* "openpifpaf/functional.pyx":55
  *     cdef public float reduction
  *     cdef public float min_scale_reduced
- *     cdef public unsigned char[:, :, :] occupancy             # <<<<<<<<<<<<<<
+ *     cdef public occupancy             # <<<<<<<<<<<<<<
+ *     cdef unsigned char[:, :, :] occupancy_view
  * 
- *     def __init__(self, shape, reduction, *, min_scale=None):
  */
 
 /* Python wrapper */
@@ -4356,24 +4378,13 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_9Occupancy_9occupancy_1__get
 static PyObject *__pyx_pf_10openpifpaf_10functional_9Occupancy_9occupancy___get__(struct __pyx_obj_10openpifpaf_10functional_Occupancy *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
-  PyObject *__pyx_t_1 = NULL;
-  int __pyx_lineno = 0;
-  const char *__pyx_filename = NULL;
-  int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__get__", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_self->occupancy.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(0, 55, __pyx_L1_error)}
-  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_v_self->occupancy, 3, (PyObject *(*)(char *)) __pyx_memview_get_unsigned_char, (int (*)(char *, PyObject *)) __pyx_memview_set_unsigned_char, 0);; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 55, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_r = __pyx_t_1;
-  __pyx_t_1 = 0;
+  __Pyx_INCREF(__pyx_v_self->occupancy);
+  __pyx_r = __pyx_v_self->occupancy;
   goto __pyx_L0;
 
   /* function exit code */
-  __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("openpifpaf.functional.Occupancy.occupancy.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
@@ -4396,25 +4407,44 @@ static int __pyx_pw_10openpifpaf_10functional_9Occupancy_9occupancy_3__set__(PyO
 static int __pyx_pf_10openpifpaf_10functional_9Occupancy_9occupancy_2__set__(struct __pyx_obj_10openpifpaf_10functional_Occupancy *__pyx_v_self, PyObject *__pyx_v_value) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
-  __Pyx_memviewslice __pyx_t_1 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  int __pyx_lineno = 0;
-  const char *__pyx_filename = NULL;
-  int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__set__", 0);
-  __pyx_t_1 = __Pyx_PyObject_to_MemoryviewSlice_dsdsds_unsigned_char(__pyx_v_value, PyBUF_WRITABLE); if (unlikely(!__pyx_t_1.memview)) __PYX_ERR(0, 55, __pyx_L1_error)
-  __PYX_XDEC_MEMVIEW(&__pyx_v_self->occupancy, 0);
-  __pyx_v_self->occupancy = __pyx_t_1;
-  __pyx_t_1.memview = NULL;
-  __pyx_t_1.data = NULL;
+  __Pyx_INCREF(__pyx_v_value);
+  __Pyx_GIVEREF(__pyx_v_value);
+  __Pyx_GOTREF(__pyx_v_self->occupancy);
+  __Pyx_DECREF(__pyx_v_self->occupancy);
+  __pyx_v_self->occupancy = __pyx_v_value;
 
   /* function exit code */
   __pyx_r = 0;
-  goto __pyx_L0;
-  __pyx_L1_error:;
-  __PYX_XDEC_MEMVIEW(&__pyx_t_1, 1);
-  __Pyx_AddTraceback("openpifpaf.functional.Occupancy.occupancy.__set__", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __pyx_r = -1;
-  __pyx_L0:;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* Python wrapper */
+static int __pyx_pw_10openpifpaf_10functional_9Occupancy_9occupancy_5__del__(PyObject *__pyx_v_self); /*proto*/
+static int __pyx_pw_10openpifpaf_10functional_9Occupancy_9occupancy_5__del__(PyObject *__pyx_v_self) {
+  int __pyx_r;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__del__ (wrapper)", 0);
+  __pyx_r = __pyx_pf_10openpifpaf_10functional_9Occupancy_9occupancy_4__del__(((struct __pyx_obj_10openpifpaf_10functional_Occupancy *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static int __pyx_pf_10openpifpaf_10functional_9Occupancy_9occupancy_4__del__(struct __pyx_obj_10openpifpaf_10functional_Occupancy *__pyx_v_self) {
+  int __pyx_r;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__del__", 0);
+  __Pyx_INCREF(Py_None);
+  __Pyx_GIVEREF(Py_None);
+  __Pyx_GOTREF(__pyx_v_self->occupancy);
+  __Pyx_DECREF(__pyx_v_self->occupancy);
+  __pyx_v_self->occupancy = Py_None;
+
+  /* function exit code */
+  __pyx_r = 0;
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
@@ -4458,25 +4488,28 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_9Occupancy_8__reduce_cython_
   /* "(tree fragment)":5
  *     cdef object _dict
  *     cdef bint use_setstate
- *     state = (self.min_scale_reduced, self.occupancy, self.reduction)             # <<<<<<<<<<<<<<
+ *     state = (self.min_scale_reduced, self.occupancy, self.occupancy_view, self.reduction)             # <<<<<<<<<<<<<<
  *     _dict = getattr(self, '__dict__', None)
  *     if _dict is not None:
  */
   __pyx_t_1 = PyFloat_FromDouble(__pyx_v_self->min_scale_reduced); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 5, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (unlikely(!__pyx_v_self->occupancy.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(1, 5, __pyx_L1_error)}
-  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_v_self->occupancy, 3, (PyObject *(*)(char *)) __pyx_memview_get_unsigned_char, (int (*)(char *, PyObject *)) __pyx_memview_set_unsigned_char, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 5, __pyx_L1_error)
+  if (unlikely(!__pyx_v_self->occupancy_view.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(1, 5, __pyx_L1_error)}
+  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_v_self->occupancy_view, 3, (PyObject *(*)(char *)) __pyx_memview_get_unsigned_char, (int (*)(char *, PyObject *)) __pyx_memview_set_unsigned_char, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 5, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = PyFloat_FromDouble(__pyx_v_self->reduction); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 5, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = PyTuple_New(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 5, __pyx_L1_error)
+  __pyx_t_4 = PyTuple_New(4); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 5, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1);
+  __Pyx_INCREF(__pyx_v_self->occupancy);
+  __Pyx_GIVEREF(__pyx_v_self->occupancy);
+  PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_v_self->occupancy);
   __Pyx_GIVEREF(__pyx_t_2);
-  PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_t_2);
+  PyTuple_SET_ITEM(__pyx_t_4, 2, __pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_4, 2, __pyx_t_3);
+  PyTuple_SET_ITEM(__pyx_t_4, 3, __pyx_t_3);
   __pyx_t_1 = 0;
   __pyx_t_2 = 0;
   __pyx_t_3 = 0;
@@ -4485,7 +4518,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_9Occupancy_8__reduce_cython_
 
   /* "(tree fragment)":6
  *     cdef bint use_setstate
- *     state = (self.min_scale_reduced, self.occupancy, self.reduction)
+ *     state = (self.min_scale_reduced, self.occupancy, self.occupancy_view, self.reduction)
  *     _dict = getattr(self, '__dict__', None)             # <<<<<<<<<<<<<<
  *     if _dict is not None:
  *         state += (_dict,)
@@ -4496,7 +4529,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_9Occupancy_8__reduce_cython_
   __pyx_t_4 = 0;
 
   /* "(tree fragment)":7
- *     state = (self.min_scale_reduced, self.occupancy, self.reduction)
+ *     state = (self.min_scale_reduced, self.occupancy, self.occupancy_view, self.reduction)
  *     _dict = getattr(self, '__dict__', None)
  *     if _dict is not None:             # <<<<<<<<<<<<<<
  *         state += (_dict,)
@@ -4529,12 +4562,12 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_9Occupancy_8__reduce_cython_
  *         state += (_dict,)
  *         use_setstate = True             # <<<<<<<<<<<<<<
  *     else:
- *         use_setstate = False
+ *         use_setstate = self.occupancy is not None
  */
     __pyx_v_use_setstate = 1;
 
     /* "(tree fragment)":7
- *     state = (self.min_scale_reduced, self.occupancy, self.reduction)
+ *     state = (self.min_scale_reduced, self.occupancy, self.occupancy_view, self.reduction)
  *     _dict = getattr(self, '__dict__', None)
  *     if _dict is not None:             # <<<<<<<<<<<<<<
  *         state += (_dict,)
@@ -4546,31 +4579,32 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_9Occupancy_8__reduce_cython_
   /* "(tree fragment)":11
  *         use_setstate = True
  *     else:
- *         use_setstate = False             # <<<<<<<<<<<<<<
+ *         use_setstate = self.occupancy is not None             # <<<<<<<<<<<<<<
  *     if use_setstate:
- *         return __pyx_unpickle_Occupancy, (type(self), 0x102a9c0, None), state
+ *         return __pyx_unpickle_Occupancy, (type(self), 0xbce0b81, None), state
  */
   /*else*/ {
-    __pyx_v_use_setstate = 0;
+    __pyx_t_6 = (__pyx_v_self->occupancy != Py_None);
+    __pyx_v_use_setstate = __pyx_t_6;
   }
   __pyx_L3:;
 
   /* "(tree fragment)":12
  *     else:
- *         use_setstate = False
+ *         use_setstate = self.occupancy is not None
  *     if use_setstate:             # <<<<<<<<<<<<<<
- *         return __pyx_unpickle_Occupancy, (type(self), 0x102a9c0, None), state
+ *         return __pyx_unpickle_Occupancy, (type(self), 0xbce0b81, None), state
  *     else:
  */
   __pyx_t_6 = (__pyx_v_use_setstate != 0);
   if (__pyx_t_6) {
 
     /* "(tree fragment)":13
- *         use_setstate = False
+ *         use_setstate = self.occupancy is not None
  *     if use_setstate:
- *         return __pyx_unpickle_Occupancy, (type(self), 0x102a9c0, None), state             # <<<<<<<<<<<<<<
+ *         return __pyx_unpickle_Occupancy, (type(self), 0xbce0b81, None), state             # <<<<<<<<<<<<<<
  *     else:
- *         return __pyx_unpickle_Occupancy, (type(self), 0x102a9c0, state)
+ *         return __pyx_unpickle_Occupancy, (type(self), 0xbce0b81, state)
  */
     __Pyx_XDECREF(__pyx_r);
     __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_pyx_unpickle_Occupancy); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 13, __pyx_L1_error)
@@ -4580,9 +4614,9 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_9Occupancy_8__reduce_cython_
     __Pyx_INCREF(((PyObject *)Py_TYPE(((PyObject *)__pyx_v_self))));
     __Pyx_GIVEREF(((PyObject *)Py_TYPE(((PyObject *)__pyx_v_self))));
     PyTuple_SET_ITEM(__pyx_t_4, 0, ((PyObject *)Py_TYPE(((PyObject *)__pyx_v_self))));
-    __Pyx_INCREF(__pyx_int_16951744);
-    __Pyx_GIVEREF(__pyx_int_16951744);
-    PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_int_16951744);
+    __Pyx_INCREF(__pyx_int_198052737);
+    __Pyx_GIVEREF(__pyx_int_198052737);
+    PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_int_198052737);
     __Pyx_INCREF(Py_None);
     __Pyx_GIVEREF(Py_None);
     PyTuple_SET_ITEM(__pyx_t_4, 2, Py_None);
@@ -4603,17 +4637,17 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_9Occupancy_8__reduce_cython_
 
     /* "(tree fragment)":12
  *     else:
- *         use_setstate = False
+ *         use_setstate = self.occupancy is not None
  *     if use_setstate:             # <<<<<<<<<<<<<<
- *         return __pyx_unpickle_Occupancy, (type(self), 0x102a9c0, None), state
+ *         return __pyx_unpickle_Occupancy, (type(self), 0xbce0b81, None), state
  *     else:
  */
   }
 
   /* "(tree fragment)":15
- *         return __pyx_unpickle_Occupancy, (type(self), 0x102a9c0, None), state
+ *         return __pyx_unpickle_Occupancy, (type(self), 0xbce0b81, None), state
  *     else:
- *         return __pyx_unpickle_Occupancy, (type(self), 0x102a9c0, state)             # <<<<<<<<<<<<<<
+ *         return __pyx_unpickle_Occupancy, (type(self), 0xbce0b81, state)             # <<<<<<<<<<<<<<
  * def __setstate_cython__(self, __pyx_state):
  *     __pyx_unpickle_Occupancy__set_state(self, __pyx_state)
  */
@@ -4626,9 +4660,9 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_9Occupancy_8__reduce_cython_
     __Pyx_INCREF(((PyObject *)Py_TYPE(((PyObject *)__pyx_v_self))));
     __Pyx_GIVEREF(((PyObject *)Py_TYPE(((PyObject *)__pyx_v_self))));
     PyTuple_SET_ITEM(__pyx_t_4, 0, ((PyObject *)Py_TYPE(((PyObject *)__pyx_v_self))));
-    __Pyx_INCREF(__pyx_int_16951744);
-    __Pyx_GIVEREF(__pyx_int_16951744);
-    PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_int_16951744);
+    __Pyx_INCREF(__pyx_int_198052737);
+    __Pyx_GIVEREF(__pyx_int_198052737);
+    PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_int_198052737);
     __Pyx_INCREF(__pyx_v_state);
     __Pyx_GIVEREF(__pyx_v_state);
     PyTuple_SET_ITEM(__pyx_t_4, 2, __pyx_v_state);
@@ -4669,7 +4703,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_9Occupancy_8__reduce_cython_
 
 /* "(tree fragment)":16
  *     else:
- *         return __pyx_unpickle_Occupancy, (type(self), 0x102a9c0, state)
+ *         return __pyx_unpickle_Occupancy, (type(self), 0xbce0b81, state)
  * def __setstate_cython__(self, __pyx_state):             # <<<<<<<<<<<<<<
  *     __pyx_unpickle_Occupancy__set_state(self, __pyx_state)
  */
@@ -4697,7 +4731,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_9Occupancy_10__setstate_cyth
   __Pyx_RefNannySetupContext("__setstate_cython__", 0);
 
   /* "(tree fragment)":17
- *         return __pyx_unpickle_Occupancy, (type(self), 0x102a9c0, state)
+ *         return __pyx_unpickle_Occupancy, (type(self), 0xbce0b81, state)
  * def __setstate_cython__(self, __pyx_state):
  *     __pyx_unpickle_Occupancy__set_state(self, __pyx_state)             # <<<<<<<<<<<<<<
  */
@@ -4708,7 +4742,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_9Occupancy_10__setstate_cyth
 
   /* "(tree fragment)":16
  *     else:
- *         return __pyx_unpickle_Occupancy, (type(self), 0x102a9c0, state)
+ *         return __pyx_unpickle_Occupancy, (type(self), 0xbce0b81, state)
  * def __setstate_cython__(self, __pyx_state):             # <<<<<<<<<<<<<<
  *     __pyx_unpickle_Occupancy__set_state(self, __pyx_state)
  */
@@ -4726,7 +4760,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_9Occupancy_10__setstate_cyth
   return __pyx_r;
 }
 
-/* "openpifpaf/functional.pyx":99
+/* "openpifpaf/functional.pyx":101
  * @cython.wraparound(False)
  * @cython.cdivision(True)
  * cpdef void cumulative_average(float[:, :] cuma, float[:, :] cumw, float[:] x, float[:] y, float[:] width, float[:] v, float[:] w) nogil:             # <<<<<<<<<<<<<<
@@ -4767,7 +4801,7 @@ static void __pyx_f_10openpifpaf_10functional_cumulative_average(__Pyx_memviewsl
   Py_ssize_t __pyx_t_17;
   Py_ssize_t __pyx_t_18;
 
-  /* "openpifpaf/functional.pyx":104
+  /* "openpifpaf/functional.pyx":106
  *     cdef Py_ssize_t i, xx, yy
  * 
  *     for i in range(x.shape[0]):             # <<<<<<<<<<<<<<
@@ -4779,7 +4813,7 @@ static void __pyx_f_10openpifpaf_10functional_cumulative_average(__Pyx_memviewsl
   for (__pyx_t_3 = 0; __pyx_t_3 < __pyx_t_2; __pyx_t_3+=1) {
     __pyx_v_i = __pyx_t_3;
 
-    /* "openpifpaf/functional.pyx":105
+    /* "openpifpaf/functional.pyx":107
  * 
  *     for i in range(x.shape[0]):
  *         cw = w[i]             # <<<<<<<<<<<<<<
@@ -4789,7 +4823,7 @@ static void __pyx_f_10openpifpaf_10functional_cumulative_average(__Pyx_memviewsl
     __pyx_t_4 = __pyx_v_i;
     __pyx_v_cw = (*((float *) ( /* dim=0 */ (__pyx_v_w.data + __pyx_t_4 * __pyx_v_w.strides[0]) )));
 
-    /* "openpifpaf/functional.pyx":106
+    /* "openpifpaf/functional.pyx":108
  *     for i in range(x.shape[0]):
  *         cw = w[i]
  *         if cw <= 0.0:             # <<<<<<<<<<<<<<
@@ -4799,7 +4833,7 @@ static void __pyx_f_10openpifpaf_10functional_cumulative_average(__Pyx_memviewsl
     __pyx_t_5 = ((__pyx_v_cw <= 0.0) != 0);
     if (__pyx_t_5) {
 
-      /* "openpifpaf/functional.pyx":107
+      /* "openpifpaf/functional.pyx":109
  *         cw = w[i]
  *         if cw <= 0.0:
  *             continue             # <<<<<<<<<<<<<<
@@ -4808,7 +4842,7 @@ static void __pyx_f_10openpifpaf_10functional_cumulative_average(__Pyx_memviewsl
  */
       goto __pyx_L3_continue;
 
-      /* "openpifpaf/functional.pyx":106
+      /* "openpifpaf/functional.pyx":108
  *     for i in range(x.shape[0]):
  *         cw = w[i]
  *         if cw <= 0.0:             # <<<<<<<<<<<<<<
@@ -4817,7 +4851,7 @@ static void __pyx_f_10openpifpaf_10functional_cumulative_average(__Pyx_memviewsl
  */
     }
 
-    /* "openpifpaf/functional.pyx":109
+    /* "openpifpaf/functional.pyx":111
  *             continue
  * 
  *         cv = v[i]             # <<<<<<<<<<<<<<
@@ -4827,7 +4861,7 @@ static void __pyx_f_10openpifpaf_10functional_cumulative_average(__Pyx_memviewsl
     __pyx_t_4 = __pyx_v_i;
     __pyx_v_cv = (*((float *) ( /* dim=0 */ (__pyx_v_v.data + __pyx_t_4 * __pyx_v_v.strides[0]) )));
 
-    /* "openpifpaf/functional.pyx":110
+    /* "openpifpaf/functional.pyx":112
  * 
  *         cv = v[i]
  *         cx = x[i]             # <<<<<<<<<<<<<<
@@ -4837,7 +4871,7 @@ static void __pyx_f_10openpifpaf_10functional_cumulative_average(__Pyx_memviewsl
     __pyx_t_4 = __pyx_v_i;
     __pyx_v_cx = (*((float *) ( /* dim=0 */ (__pyx_v_x.data + __pyx_t_4 * __pyx_v_x.strides[0]) )));
 
-    /* "openpifpaf/functional.pyx":111
+    /* "openpifpaf/functional.pyx":113
  *         cv = v[i]
  *         cx = x[i]
  *         cy = y[i]             # <<<<<<<<<<<<<<
@@ -4847,7 +4881,7 @@ static void __pyx_f_10openpifpaf_10functional_cumulative_average(__Pyx_memviewsl
     __pyx_t_4 = __pyx_v_i;
     __pyx_v_cy = (*((float *) ( /* dim=0 */ (__pyx_v_y.data + __pyx_t_4 * __pyx_v_y.strides[0]) )));
 
-    /* "openpifpaf/functional.pyx":112
+    /* "openpifpaf/functional.pyx":114
  *         cx = x[i]
  *         cy = y[i]
  *         cwidth = width[i]             # <<<<<<<<<<<<<<
@@ -4857,7 +4891,7 @@ static void __pyx_f_10openpifpaf_10functional_cumulative_average(__Pyx_memviewsl
     __pyx_t_4 = __pyx_v_i;
     __pyx_v_cwidth = (*((float *) ( /* dim=0 */ (__pyx_v_width.data + __pyx_t_4 * __pyx_v_width.strides[0]) )));
 
-    /* "openpifpaf/functional.pyx":114
+    /* "openpifpaf/functional.pyx":116
  *         cwidth = width[i]
  * 
  *         minx = (<long>clip(cx - cwidth, 0, cuma.shape[1] - 1))             # <<<<<<<<<<<<<<
@@ -4866,7 +4900,7 @@ static void __pyx_f_10openpifpaf_10functional_cumulative_average(__Pyx_memviewsl
  */
     __pyx_v_minx = ((long)__pyx_f_10openpifpaf_10functional_clip((__pyx_v_cx - __pyx_v_cwidth), 0.0, ((__pyx_v_cuma.shape[1]) - 1)));
 
-    /* "openpifpaf/functional.pyx":115
+    /* "openpifpaf/functional.pyx":117
  * 
  *         minx = (<long>clip(cx - cwidth, 0, cuma.shape[1] - 1))
  *         maxx = (<long>clip(cx + cwidth, minx + 1, cuma.shape[1]))             # <<<<<<<<<<<<<<
@@ -4875,7 +4909,7 @@ static void __pyx_f_10openpifpaf_10functional_cumulative_average(__Pyx_memviewsl
  */
     __pyx_v_maxx = ((long)__pyx_f_10openpifpaf_10functional_clip((__pyx_v_cx + __pyx_v_cwidth), (__pyx_v_minx + 1), (__pyx_v_cuma.shape[1])));
 
-    /* "openpifpaf/functional.pyx":116
+    /* "openpifpaf/functional.pyx":118
  *         minx = (<long>clip(cx - cwidth, 0, cuma.shape[1] - 1))
  *         maxx = (<long>clip(cx + cwidth, minx + 1, cuma.shape[1]))
  *         miny = (<long>clip(cy - cwidth, 0, cuma.shape[0] - 1))             # <<<<<<<<<<<<<<
@@ -4884,7 +4918,7 @@ static void __pyx_f_10openpifpaf_10functional_cumulative_average(__Pyx_memviewsl
  */
     __pyx_v_miny = ((long)__pyx_f_10openpifpaf_10functional_clip((__pyx_v_cy - __pyx_v_cwidth), 0.0, ((__pyx_v_cuma.shape[0]) - 1)));
 
-    /* "openpifpaf/functional.pyx":117
+    /* "openpifpaf/functional.pyx":119
  *         maxx = (<long>clip(cx + cwidth, minx + 1, cuma.shape[1]))
  *         miny = (<long>clip(cy - cwidth, 0, cuma.shape[0] - 1))
  *         maxy = (<long>clip(cy + cwidth, miny + 1, cuma.shape[0]))             # <<<<<<<<<<<<<<
@@ -4893,7 +4927,7 @@ static void __pyx_f_10openpifpaf_10functional_cumulative_average(__Pyx_memviewsl
  */
     __pyx_v_maxy = ((long)__pyx_f_10openpifpaf_10functional_clip((__pyx_v_cy + __pyx_v_cwidth), (__pyx_v_miny + 1), (__pyx_v_cuma.shape[0])));
 
-    /* "openpifpaf/functional.pyx":118
+    /* "openpifpaf/functional.pyx":120
  *         miny = (<long>clip(cy - cwidth, 0, cuma.shape[0] - 1))
  *         maxy = (<long>clip(cy + cwidth, miny + 1, cuma.shape[0]))
  *         for xx in range(minx, maxx):             # <<<<<<<<<<<<<<
@@ -4905,7 +4939,7 @@ static void __pyx_f_10openpifpaf_10functional_cumulative_average(__Pyx_memviewsl
     for (__pyx_t_8 = __pyx_v_minx; __pyx_t_8 < __pyx_t_7; __pyx_t_8+=1) {
       __pyx_v_xx = __pyx_t_8;
 
-      /* "openpifpaf/functional.pyx":119
+      /* "openpifpaf/functional.pyx":121
  *         maxy = (<long>clip(cy + cwidth, miny + 1, cuma.shape[0]))
  *         for xx in range(minx, maxx):
  *             for yy in range(miny, maxy):             # <<<<<<<<<<<<<<
@@ -4917,7 +4951,7 @@ static void __pyx_f_10openpifpaf_10functional_cumulative_average(__Pyx_memviewsl
       for (__pyx_t_11 = __pyx_v_miny; __pyx_t_11 < __pyx_t_10; __pyx_t_11+=1) {
         __pyx_v_yy = __pyx_t_11;
 
-        /* "openpifpaf/functional.pyx":120
+        /* "openpifpaf/functional.pyx":122
  *         for xx in range(minx, maxx):
  *             for yy in range(miny, maxy):
  *                 cuma[yy, xx] = (cw * cv + cumw[yy, xx] * cuma[yy, xx]) / (cumw[yy, xx] + cw)             # <<<<<<<<<<<<<<
@@ -4934,7 +4968,7 @@ static void __pyx_f_10openpifpaf_10functional_cumulative_average(__Pyx_memviewsl
         __pyx_t_18 = __pyx_v_xx;
         *((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_cuma.data + __pyx_t_17 * __pyx_v_cuma.strides[0]) ) + __pyx_t_18 * __pyx_v_cuma.strides[1]) )) = (((__pyx_v_cw * __pyx_v_cv) + ((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_cumw.data + __pyx_t_4 * __pyx_v_cumw.strides[0]) ) + __pyx_t_12 * __pyx_v_cumw.strides[1]) ))) * (*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_cuma.data + __pyx_t_13 * __pyx_v_cuma.strides[0]) ) + __pyx_t_14 * __pyx_v_cuma.strides[1]) ))))) / ((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_cumw.data + __pyx_t_15 * __pyx_v_cumw.strides[0]) ) + __pyx_t_16 * __pyx_v_cumw.strides[1]) ))) + __pyx_v_cw));
 
-        /* "openpifpaf/functional.pyx":121
+        /* "openpifpaf/functional.pyx":123
  *             for yy in range(miny, maxy):
  *                 cuma[yy, xx] = (cw * cv + cumw[yy, xx] * cuma[yy, xx]) / (cumw[yy, xx] + cw)
  *                 cumw[yy, xx] += cw             # <<<<<<<<<<<<<<
@@ -4949,7 +4983,7 @@ static void __pyx_f_10openpifpaf_10functional_cumulative_average(__Pyx_memviewsl
     __pyx_L3_continue:;
   }
 
-  /* "openpifpaf/functional.pyx":99
+  /* "openpifpaf/functional.pyx":101
  * @cython.wraparound(False)
  * @cython.cdivision(True)
  * cpdef void cumulative_average(float[:, :] cuma, float[:, :] cumw, float[:] x, float[:] y, float[:] width, float[:] v, float[:] w) nogil:             # <<<<<<<<<<<<<<
@@ -5009,41 +5043,41 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_5cumulative_average(PyObject
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_cumw)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("cumulative_average", 1, 7, 7, 1); __PYX_ERR(0, 99, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("cumulative_average", 1, 7, 7, 1); __PYX_ERR(0, 101, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_x)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("cumulative_average", 1, 7, 7, 2); __PYX_ERR(0, 99, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("cumulative_average", 1, 7, 7, 2); __PYX_ERR(0, 101, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_y)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("cumulative_average", 1, 7, 7, 3); __PYX_ERR(0, 99, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("cumulative_average", 1, 7, 7, 3); __PYX_ERR(0, 101, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
         if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_width)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("cumulative_average", 1, 7, 7, 4); __PYX_ERR(0, 99, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("cumulative_average", 1, 7, 7, 4); __PYX_ERR(0, 101, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  5:
         if (likely((values[5] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_v)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("cumulative_average", 1, 7, 7, 5); __PYX_ERR(0, 99, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("cumulative_average", 1, 7, 7, 5); __PYX_ERR(0, 101, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  6:
         if (likely((values[6] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_w)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("cumulative_average", 1, 7, 7, 6); __PYX_ERR(0, 99, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("cumulative_average", 1, 7, 7, 6); __PYX_ERR(0, 101, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "cumulative_average") < 0)) __PYX_ERR(0, 99, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "cumulative_average") < 0)) __PYX_ERR(0, 101, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 7) {
       goto __pyx_L5_argtuple_error;
@@ -5056,17 +5090,17 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_5cumulative_average(PyObject
       values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
       values[6] = PyTuple_GET_ITEM(__pyx_args, 6);
     }
-    __pyx_v_cuma = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_cuma.memview)) __PYX_ERR(0, 99, __pyx_L3_error)
-    __pyx_v_cumw = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_cumw.memview)) __PYX_ERR(0, 99, __pyx_L3_error)
-    __pyx_v_x = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_x.memview)) __PYX_ERR(0, 99, __pyx_L3_error)
-    __pyx_v_y = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_y.memview)) __PYX_ERR(0, 99, __pyx_L3_error)
-    __pyx_v_width = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_width.memview)) __PYX_ERR(0, 99, __pyx_L3_error)
-    __pyx_v_v = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[5], PyBUF_WRITABLE); if (unlikely(!__pyx_v_v.memview)) __PYX_ERR(0, 99, __pyx_L3_error)
-    __pyx_v_w = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[6], PyBUF_WRITABLE); if (unlikely(!__pyx_v_w.memview)) __PYX_ERR(0, 99, __pyx_L3_error)
+    __pyx_v_cuma = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_cuma.memview)) __PYX_ERR(0, 101, __pyx_L3_error)
+    __pyx_v_cumw = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_cumw.memview)) __PYX_ERR(0, 101, __pyx_L3_error)
+    __pyx_v_x = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_x.memview)) __PYX_ERR(0, 101, __pyx_L3_error)
+    __pyx_v_y = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_y.memview)) __PYX_ERR(0, 101, __pyx_L3_error)
+    __pyx_v_width = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_width.memview)) __PYX_ERR(0, 101, __pyx_L3_error)
+    __pyx_v_v = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[5], PyBUF_WRITABLE); if (unlikely(!__pyx_v_v.memview)) __PYX_ERR(0, 101, __pyx_L3_error)
+    __pyx_v_w = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[6], PyBUF_WRITABLE); if (unlikely(!__pyx_v_w.memview)) __PYX_ERR(0, 101, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("cumulative_average", 1, 7, 7, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 99, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("cumulative_average", 1, 7, 7, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 101, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("openpifpaf.functional.cumulative_average", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -5088,14 +5122,14 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_4cumulative_average(CYTHON_U
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("cumulative_average", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_cuma.memview)) { __Pyx_RaiseUnboundLocalError("cuma"); __PYX_ERR(0, 99, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_cumw.memview)) { __Pyx_RaiseUnboundLocalError("cumw"); __PYX_ERR(0, 99, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_x.memview)) { __Pyx_RaiseUnboundLocalError("x"); __PYX_ERR(0, 99, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_y.memview)) { __Pyx_RaiseUnboundLocalError("y"); __PYX_ERR(0, 99, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_width.memview)) { __Pyx_RaiseUnboundLocalError("width"); __PYX_ERR(0, 99, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_v.memview)) { __Pyx_RaiseUnboundLocalError("v"); __PYX_ERR(0, 99, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_w.memview)) { __Pyx_RaiseUnboundLocalError("w"); __PYX_ERR(0, 99, __pyx_L1_error) }
-  __pyx_t_1 = __Pyx_void_to_None(__pyx_f_10openpifpaf_10functional_cumulative_average(__pyx_v_cuma, __pyx_v_cumw, __pyx_v_x, __pyx_v_y, __pyx_v_width, __pyx_v_v, __pyx_v_w, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 99, __pyx_L1_error)
+  if (unlikely(!__pyx_v_cuma.memview)) { __Pyx_RaiseUnboundLocalError("cuma"); __PYX_ERR(0, 101, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_cumw.memview)) { __Pyx_RaiseUnboundLocalError("cumw"); __PYX_ERR(0, 101, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_x.memview)) { __Pyx_RaiseUnboundLocalError("x"); __PYX_ERR(0, 101, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_y.memview)) { __Pyx_RaiseUnboundLocalError("y"); __PYX_ERR(0, 101, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_width.memview)) { __Pyx_RaiseUnboundLocalError("width"); __PYX_ERR(0, 101, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_v.memview)) { __Pyx_RaiseUnboundLocalError("v"); __PYX_ERR(0, 101, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_w.memview)) { __Pyx_RaiseUnboundLocalError("w"); __PYX_ERR(0, 101, __pyx_L1_error) }
+  __pyx_t_1 = __Pyx_void_to_None(__pyx_f_10openpifpaf_10functional_cumulative_average(__pyx_v_cuma, __pyx_v_cumw, __pyx_v_x, __pyx_v_y, __pyx_v_width, __pyx_v_v, __pyx_v_w, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 101, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -5119,7 +5153,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_4cumulative_average(CYTHON_U
   return __pyx_r;
 }
 
-/* "openpifpaf/functional.pyx":124
+/* "openpifpaf/functional.pyx":126
  * 
  * 
  * cdef inline float approx_exp(float x) nogil:             # <<<<<<<<<<<<<<
@@ -5132,7 +5166,7 @@ static CYTHON_INLINE float __pyx_f_10openpifpaf_10functional_approx_exp(float __
   int __pyx_t_1;
   int __pyx_t_2;
 
-  /* "openpifpaf/functional.pyx":125
+  /* "openpifpaf/functional.pyx":127
  * 
  * cdef inline float approx_exp(float x) nogil:
  *     if x > 2.0 or x < -2.0:             # <<<<<<<<<<<<<<
@@ -5150,7 +5184,7 @@ static CYTHON_INLINE float __pyx_f_10openpifpaf_10functional_approx_exp(float __
   __pyx_L4_bool_binop_done:;
   if (__pyx_t_1) {
 
-    /* "openpifpaf/functional.pyx":126
+    /* "openpifpaf/functional.pyx":128
  * cdef inline float approx_exp(float x) nogil:
  *     if x > 2.0 or x < -2.0:
  *         return 0.0             # <<<<<<<<<<<<<<
@@ -5160,7 +5194,7 @@ static CYTHON_INLINE float __pyx_f_10openpifpaf_10functional_approx_exp(float __
     __pyx_r = 0.0;
     goto __pyx_L0;
 
-    /* "openpifpaf/functional.pyx":125
+    /* "openpifpaf/functional.pyx":127
  * 
  * cdef inline float approx_exp(float x) nogil:
  *     if x > 2.0 or x < -2.0:             # <<<<<<<<<<<<<<
@@ -5169,7 +5203,7 @@ static CYTHON_INLINE float __pyx_f_10openpifpaf_10functional_approx_exp(float __
  */
   }
 
-  /* "openpifpaf/functional.pyx":127
+  /* "openpifpaf/functional.pyx":129
  *     if x > 2.0 or x < -2.0:
  *         return 0.0
  *     x = 1.0 + x / 8.0             # <<<<<<<<<<<<<<
@@ -5178,7 +5212,7 @@ static CYTHON_INLINE float __pyx_f_10openpifpaf_10functional_approx_exp(float __
  */
   __pyx_v_x = (1.0 + (((double)__pyx_v_x) / 8.0));
 
-  /* "openpifpaf/functional.pyx":128
+  /* "openpifpaf/functional.pyx":130
  *         return 0.0
  *     x = 1.0 + x / 8.0
  *     x *= x             # <<<<<<<<<<<<<<
@@ -5187,7 +5221,7 @@ static CYTHON_INLINE float __pyx_f_10openpifpaf_10functional_approx_exp(float __
  */
   __pyx_v_x = (__pyx_v_x * __pyx_v_x);
 
-  /* "openpifpaf/functional.pyx":129
+  /* "openpifpaf/functional.pyx":131
  *     x = 1.0 + x / 8.0
  *     x *= x
  *     x *= x             # <<<<<<<<<<<<<<
@@ -5196,7 +5230,7 @@ static CYTHON_INLINE float __pyx_f_10openpifpaf_10functional_approx_exp(float __
  */
   __pyx_v_x = (__pyx_v_x * __pyx_v_x);
 
-  /* "openpifpaf/functional.pyx":130
+  /* "openpifpaf/functional.pyx":132
  *     x *= x
  *     x *= x
  *     x *= x             # <<<<<<<<<<<<<<
@@ -5205,7 +5239,7 @@ static CYTHON_INLINE float __pyx_f_10openpifpaf_10functional_approx_exp(float __
  */
   __pyx_v_x = (__pyx_v_x * __pyx_v_x);
 
-  /* "openpifpaf/functional.pyx":131
+  /* "openpifpaf/functional.pyx":133
  *     x *= x
  *     x *= x
  *     return x             # <<<<<<<<<<<<<<
@@ -5215,7 +5249,7 @@ static CYTHON_INLINE float __pyx_f_10openpifpaf_10functional_approx_exp(float __
   __pyx_r = __pyx_v_x;
   goto __pyx_L0;
 
-  /* "openpifpaf/functional.pyx":124
+  /* "openpifpaf/functional.pyx":126
  * 
  * 
  * cdef inline float approx_exp(float x) nogil:             # <<<<<<<<<<<<<<
@@ -5228,7 +5262,7 @@ static CYTHON_INLINE float __pyx_f_10openpifpaf_10functional_approx_exp(float __
   return __pyx_r;
 }
 
-/* "openpifpaf/functional.pyx":134
+/* "openpifpaf/functional.pyx":136
  * 
  * 
  * cdef inline float clip(float v, float minv, float maxv) nogil:             # <<<<<<<<<<<<<<
@@ -5239,7 +5273,7 @@ static CYTHON_INLINE float __pyx_f_10openpifpaf_10functional_approx_exp(float __
 static CYTHON_INLINE float __pyx_f_10openpifpaf_10functional_clip(float __pyx_v_v, float __pyx_v_minv, float __pyx_v_maxv) {
   float __pyx_r;
 
-  /* "openpifpaf/functional.pyx":135
+  /* "openpifpaf/functional.pyx":137
  * 
  * cdef inline float clip(float v, float minv, float maxv) nogil:
  *     return fmax(minv, fmin(maxv, v))             # <<<<<<<<<<<<<<
@@ -5249,7 +5283,7 @@ static CYTHON_INLINE float __pyx_f_10openpifpaf_10functional_clip(float __pyx_v_
   __pyx_r = fmax(__pyx_v_minv, fmin(__pyx_v_maxv, __pyx_v_v));
   goto __pyx_L0;
 
-  /* "openpifpaf/functional.pyx":134
+  /* "openpifpaf/functional.pyx":136
  * 
  * 
  * cdef inline float clip(float v, float minv, float maxv) nogil:             # <<<<<<<<<<<<<<
@@ -5262,7 +5296,7 @@ static CYTHON_INLINE float __pyx_f_10openpifpaf_10functional_clip(float __pyx_v_
   return __pyx_r;
 }
 
-/* "openpifpaf/functional.pyx":141
+/* "openpifpaf/functional.pyx":143
  * @cython.wraparound(False)
  * @cython.cdivision(True)
  * cpdef void scalar_square_add_gauss(float[:, :] field, float[:] x, float[:] y, float[:] sigma, float[:] v, float truncate=2.0) nogil:             # <<<<<<<<<<<<<<
@@ -5307,7 +5341,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss(__Pyx_memv
     }
   }
 
-  /* "openpifpaf/functional.pyx":147
+  /* "openpifpaf/functional.pyx":149
  *     cdef long minx, miny, maxx, maxy
  * 
  *     for i in range(x.shape[0]):             # <<<<<<<<<<<<<<
@@ -5319,7 +5353,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss(__Pyx_memv
   for (__pyx_t_3 = 0; __pyx_t_3 < __pyx_t_2; __pyx_t_3+=1) {
     __pyx_v_i = __pyx_t_3;
 
-    /* "openpifpaf/functional.pyx":148
+    /* "openpifpaf/functional.pyx":150
  * 
  *     for i in range(x.shape[0]):
  *         csigma = sigma[i]             # <<<<<<<<<<<<<<
@@ -5329,7 +5363,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss(__Pyx_memv
     __pyx_t_4 = __pyx_v_i;
     __pyx_v_csigma = (*((float *) ( /* dim=0 */ (__pyx_v_sigma.data + __pyx_t_4 * __pyx_v_sigma.strides[0]) )));
 
-    /* "openpifpaf/functional.pyx":149
+    /* "openpifpaf/functional.pyx":151
  *     for i in range(x.shape[0]):
  *         csigma = sigma[i]
  *         csigma2 = csigma * csigma             # <<<<<<<<<<<<<<
@@ -5338,7 +5372,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss(__Pyx_memv
  */
     __pyx_v_csigma2 = (__pyx_v_csigma * __pyx_v_csigma);
 
-    /* "openpifpaf/functional.pyx":150
+    /* "openpifpaf/functional.pyx":152
  *         csigma = sigma[i]
  *         csigma2 = csigma * csigma
  *         cx = x[i]             # <<<<<<<<<<<<<<
@@ -5348,7 +5382,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss(__Pyx_memv
     __pyx_t_4 = __pyx_v_i;
     __pyx_v_cx = (*((float *) ( /* dim=0 */ (__pyx_v_x.data + __pyx_t_4 * __pyx_v_x.strides[0]) )));
 
-    /* "openpifpaf/functional.pyx":151
+    /* "openpifpaf/functional.pyx":153
  *         csigma2 = csigma * csigma
  *         cx = x[i]
  *         cy = y[i]             # <<<<<<<<<<<<<<
@@ -5358,7 +5392,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss(__Pyx_memv
     __pyx_t_4 = __pyx_v_i;
     __pyx_v_cy = (*((float *) ( /* dim=0 */ (__pyx_v_y.data + __pyx_t_4 * __pyx_v_y.strides[0]) )));
 
-    /* "openpifpaf/functional.pyx":152
+    /* "openpifpaf/functional.pyx":154
  *         cx = x[i]
  *         cy = y[i]
  *         cv = v[i]             # <<<<<<<<<<<<<<
@@ -5368,7 +5402,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss(__Pyx_memv
     __pyx_t_4 = __pyx_v_i;
     __pyx_v_cv = (*((float *) ( /* dim=0 */ (__pyx_v_v.data + __pyx_t_4 * __pyx_v_v.strides[0]) )));
 
-    /* "openpifpaf/functional.pyx":154
+    /* "openpifpaf/functional.pyx":156
  *         cv = v[i]
  * 
  *         minx = (<long>clip(cx - truncate * csigma, 0, field.shape[1] - 1))             # <<<<<<<<<<<<<<
@@ -5377,7 +5411,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss(__Pyx_memv
  */
     __pyx_v_minx = ((long)__pyx_f_10openpifpaf_10functional_clip((__pyx_v_cx - (__pyx_v_truncate * __pyx_v_csigma)), 0.0, ((__pyx_v_field.shape[1]) - 1)));
 
-    /* "openpifpaf/functional.pyx":155
+    /* "openpifpaf/functional.pyx":157
  * 
  *         minx = (<long>clip(cx - truncate * csigma, 0, field.shape[1] - 1))
  *         maxx = (<long>clip(cx + truncate * csigma, minx + 1, field.shape[1]))             # <<<<<<<<<<<<<<
@@ -5386,7 +5420,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss(__Pyx_memv
  */
     __pyx_v_maxx = ((long)__pyx_f_10openpifpaf_10functional_clip((__pyx_v_cx + (__pyx_v_truncate * __pyx_v_csigma)), (__pyx_v_minx + 1), (__pyx_v_field.shape[1])));
 
-    /* "openpifpaf/functional.pyx":156
+    /* "openpifpaf/functional.pyx":158
  *         minx = (<long>clip(cx - truncate * csigma, 0, field.shape[1] - 1))
  *         maxx = (<long>clip(cx + truncate * csigma, minx + 1, field.shape[1]))
  *         miny = (<long>clip(cy - truncate * csigma, 0, field.shape[0] - 1))             # <<<<<<<<<<<<<<
@@ -5395,7 +5429,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss(__Pyx_memv
  */
     __pyx_v_miny = ((long)__pyx_f_10openpifpaf_10functional_clip((__pyx_v_cy - (__pyx_v_truncate * __pyx_v_csigma)), 0.0, ((__pyx_v_field.shape[0]) - 1)));
 
-    /* "openpifpaf/functional.pyx":157
+    /* "openpifpaf/functional.pyx":159
  *         maxx = (<long>clip(cx + truncate * csigma, minx + 1, field.shape[1]))
  *         miny = (<long>clip(cy - truncate * csigma, 0, field.shape[0] - 1))
  *         maxy = (<long>clip(cy + truncate * csigma, miny + 1, field.shape[0]))             # <<<<<<<<<<<<<<
@@ -5404,7 +5438,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss(__Pyx_memv
  */
     __pyx_v_maxy = ((long)__pyx_f_10openpifpaf_10functional_clip((__pyx_v_cy + (__pyx_v_truncate * __pyx_v_csigma)), (__pyx_v_miny + 1), (__pyx_v_field.shape[0])));
 
-    /* "openpifpaf/functional.pyx":158
+    /* "openpifpaf/functional.pyx":160
  *         miny = (<long>clip(cy - truncate * csigma, 0, field.shape[0] - 1))
  *         maxy = (<long>clip(cy + truncate * csigma, miny + 1, field.shape[0]))
  *         for xx in range(minx, maxx):             # <<<<<<<<<<<<<<
@@ -5416,7 +5450,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss(__Pyx_memv
     for (__pyx_t_7 = __pyx_v_minx; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
       __pyx_v_xx = __pyx_t_7;
 
-      /* "openpifpaf/functional.pyx":159
+      /* "openpifpaf/functional.pyx":161
  *         maxy = (<long>clip(cy + truncate * csigma, miny + 1, field.shape[0]))
  *         for xx in range(minx, maxx):
  *             deltax2 = (xx - cx)**2             # <<<<<<<<<<<<<<
@@ -5425,7 +5459,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss(__Pyx_memv
  */
       __pyx_v_deltax2 = powf((__pyx_v_xx - __pyx_v_cx), 2.0);
 
-      /* "openpifpaf/functional.pyx":160
+      /* "openpifpaf/functional.pyx":162
  *         for xx in range(minx, maxx):
  *             deltax2 = (xx - cx)**2
  *             for yy in range(miny, maxy):             # <<<<<<<<<<<<<<
@@ -5437,7 +5471,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss(__Pyx_memv
       for (__pyx_t_10 = __pyx_v_miny; __pyx_t_10 < __pyx_t_9; __pyx_t_10+=1) {
         __pyx_v_yy = __pyx_t_10;
 
-        /* "openpifpaf/functional.pyx":161
+        /* "openpifpaf/functional.pyx":163
  *             deltax2 = (xx - cx)**2
  *             for yy in range(miny, maxy):
  *                 deltay2 = (yy - cy)**2             # <<<<<<<<<<<<<<
@@ -5446,7 +5480,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss(__Pyx_memv
  */
         __pyx_v_deltay2 = powf((__pyx_v_yy - __pyx_v_cy), 2.0);
 
-        /* "openpifpaf/functional.pyx":163
+        /* "openpifpaf/functional.pyx":165
  *                 deltay2 = (yy - cy)**2
  * 
  *                 if deltax2 < 0.25 and deltay2 < 0.25:             # <<<<<<<<<<<<<<
@@ -5464,7 +5498,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss(__Pyx_memv
         __pyx_L10_bool_binop_done:;
         if (__pyx_t_11) {
 
-          /* "openpifpaf/functional.pyx":165
+          /* "openpifpaf/functional.pyx":167
  *                 if deltax2 < 0.25 and deltay2 < 0.25:
  *                     # this is the closest pixel
  *                     vv = cv             # <<<<<<<<<<<<<<
@@ -5473,7 +5507,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss(__Pyx_memv
  */
           __pyx_v_vv = __pyx_v_cv;
 
-          /* "openpifpaf/functional.pyx":163
+          /* "openpifpaf/functional.pyx":165
  *                 deltay2 = (yy - cy)**2
  * 
  *                 if deltax2 < 0.25 and deltay2 < 0.25:             # <<<<<<<<<<<<<<
@@ -5483,7 +5517,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss(__Pyx_memv
           goto __pyx_L9;
         }
 
-        /* "openpifpaf/functional.pyx":167
+        /* "openpifpaf/functional.pyx":169
  *                     vv = cv
  *                 else:
  *                     vv = cv * approx_exp(-0.5 * (deltax2 + deltay2) / csigma2)             # <<<<<<<<<<<<<<
@@ -5495,7 +5529,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss(__Pyx_memv
         }
         __pyx_L9:;
 
-        /* "openpifpaf/functional.pyx":169
+        /* "openpifpaf/functional.pyx":171
  *                     vv = cv * approx_exp(-0.5 * (deltax2 + deltay2) / csigma2)
  * 
  *                 field[yy, xx] += vv             # <<<<<<<<<<<<<<
@@ -5509,7 +5543,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss(__Pyx_memv
     }
   }
 
-  /* "openpifpaf/functional.pyx":141
+  /* "openpifpaf/functional.pyx":143
  * @cython.wraparound(False)
  * @cython.cdivision(True)
  * cpdef void scalar_square_add_gauss(float[:, :] field, float[:] x, float[:] y, float[:] sigma, float[:] v, float truncate=2.0) nogil:             # <<<<<<<<<<<<<<
@@ -5566,25 +5600,25 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_7scalar_square_add_gauss(PyO
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_x)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("scalar_square_add_gauss", 0, 5, 6, 1); __PYX_ERR(0, 141, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("scalar_square_add_gauss", 0, 5, 6, 1); __PYX_ERR(0, 143, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_y)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("scalar_square_add_gauss", 0, 5, 6, 2); __PYX_ERR(0, 141, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("scalar_square_add_gauss", 0, 5, 6, 2); __PYX_ERR(0, 143, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_sigma)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("scalar_square_add_gauss", 0, 5, 6, 3); __PYX_ERR(0, 141, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("scalar_square_add_gauss", 0, 5, 6, 3); __PYX_ERR(0, 143, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
         if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_v)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("scalar_square_add_gauss", 0, 5, 6, 4); __PYX_ERR(0, 141, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("scalar_square_add_gauss", 0, 5, 6, 4); __PYX_ERR(0, 143, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  5:
@@ -5594,7 +5628,7 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_7scalar_square_add_gauss(PyO
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "scalar_square_add_gauss") < 0)) __PYX_ERR(0, 141, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "scalar_square_add_gauss") < 0)) __PYX_ERR(0, 143, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -5609,20 +5643,20 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_7scalar_square_add_gauss(PyO
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_field.memview)) __PYX_ERR(0, 141, __pyx_L3_error)
-    __pyx_v_x = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_x.memview)) __PYX_ERR(0, 141, __pyx_L3_error)
-    __pyx_v_y = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_y.memview)) __PYX_ERR(0, 141, __pyx_L3_error)
-    __pyx_v_sigma = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_sigma.memview)) __PYX_ERR(0, 141, __pyx_L3_error)
-    __pyx_v_v = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_v.memview)) __PYX_ERR(0, 141, __pyx_L3_error)
+    __pyx_v_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_field.memview)) __PYX_ERR(0, 143, __pyx_L3_error)
+    __pyx_v_x = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_x.memview)) __PYX_ERR(0, 143, __pyx_L3_error)
+    __pyx_v_y = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_y.memview)) __PYX_ERR(0, 143, __pyx_L3_error)
+    __pyx_v_sigma = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_sigma.memview)) __PYX_ERR(0, 143, __pyx_L3_error)
+    __pyx_v_v = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_v.memview)) __PYX_ERR(0, 143, __pyx_L3_error)
     if (values[5]) {
-      __pyx_v_truncate = __pyx_PyFloat_AsFloat(values[5]); if (unlikely((__pyx_v_truncate == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 141, __pyx_L3_error)
+      __pyx_v_truncate = __pyx_PyFloat_AsFloat(values[5]); if (unlikely((__pyx_v_truncate == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 143, __pyx_L3_error)
     } else {
       __pyx_v_truncate = ((float)2.0);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("scalar_square_add_gauss", 0, 5, 6, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 141, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("scalar_square_add_gauss", 0, 5, 6, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 143, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("openpifpaf.functional.scalar_square_add_gauss", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -5645,15 +5679,15 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_6scalar_square_add_gauss(CYT
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("scalar_square_add_gauss", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_field.memview)) { __Pyx_RaiseUnboundLocalError("field"); __PYX_ERR(0, 141, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_x.memview)) { __Pyx_RaiseUnboundLocalError("x"); __PYX_ERR(0, 141, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_y.memview)) { __Pyx_RaiseUnboundLocalError("y"); __PYX_ERR(0, 141, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_sigma.memview)) { __Pyx_RaiseUnboundLocalError("sigma"); __PYX_ERR(0, 141, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_v.memview)) { __Pyx_RaiseUnboundLocalError("v"); __PYX_ERR(0, 141, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_field.memview)) { __Pyx_RaiseUnboundLocalError("field"); __PYX_ERR(0, 143, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_x.memview)) { __Pyx_RaiseUnboundLocalError("x"); __PYX_ERR(0, 143, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_y.memview)) { __Pyx_RaiseUnboundLocalError("y"); __PYX_ERR(0, 143, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_sigma.memview)) { __Pyx_RaiseUnboundLocalError("sigma"); __PYX_ERR(0, 143, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_v.memview)) { __Pyx_RaiseUnboundLocalError("v"); __PYX_ERR(0, 143, __pyx_L1_error) }
   __pyx_t_1.__pyx_n = 1;
   __pyx_t_1.truncate = __pyx_v_truncate;
   __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss(__pyx_v_field, __pyx_v_x, __pyx_v_y, __pyx_v_sigma, __pyx_v_v, 0, &__pyx_t_1); 
-  __pyx_t_2 = __Pyx_void_to_None(NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 141, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_void_to_None(NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 143, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_r = __pyx_t_2;
   __pyx_t_2 = 0;
@@ -5675,7 +5709,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_6scalar_square_add_gauss(CYT
   return __pyx_r;
 }
 
-/* "openpifpaf/functional.pyx":175
+/* "openpifpaf/functional.pyx":177
  * @cython.wraparound(False)
  * @cython.cdivision(True)
  * cpdef void scalar_square_add_gauss_with_max(float[:, :] field, float[:] x, float[:] y, float[:] sigma, float[:] v, float truncate=2.0, float max_value=1.0) nogil:             # <<<<<<<<<<<<<<
@@ -5730,7 +5764,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss_with_max(_
     }
   }
 
-  /* "openpifpaf/functional.pyx":180
+  /* "openpifpaf/functional.pyx":182
  *     cdef float cv, cx, cy, csigma, csigma2
  *     cdef long minx, miny, maxx, maxy
  *     cdef float truncate2 = truncate * truncate             # <<<<<<<<<<<<<<
@@ -5739,7 +5773,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss_with_max(_
  */
   __pyx_v_truncate2 = (__pyx_v_truncate * __pyx_v_truncate);
 
-  /* "openpifpaf/functional.pyx":183
+  /* "openpifpaf/functional.pyx":185
  *     cdef float truncate_csigma, truncate2_csigma2
  * 
  *     for i in range(x.shape[0]):             # <<<<<<<<<<<<<<
@@ -5751,7 +5785,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss_with_max(_
   for (__pyx_t_3 = 0; __pyx_t_3 < __pyx_t_2; __pyx_t_3+=1) {
     __pyx_v_i = __pyx_t_3;
 
-    /* "openpifpaf/functional.pyx":184
+    /* "openpifpaf/functional.pyx":186
  * 
  *     for i in range(x.shape[0]):
  *         csigma = sigma[i]             # <<<<<<<<<<<<<<
@@ -5761,7 +5795,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss_with_max(_
     __pyx_t_4 = __pyx_v_i;
     __pyx_v_csigma = (*((float *) ( /* dim=0 */ (__pyx_v_sigma.data + __pyx_t_4 * __pyx_v_sigma.strides[0]) )));
 
-    /* "openpifpaf/functional.pyx":185
+    /* "openpifpaf/functional.pyx":187
  *     for i in range(x.shape[0]):
  *         csigma = sigma[i]
  *         csigma2 = csigma * csigma             # <<<<<<<<<<<<<<
@@ -5770,7 +5804,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss_with_max(_
  */
     __pyx_v_csigma2 = (__pyx_v_csigma * __pyx_v_csigma);
 
-    /* "openpifpaf/functional.pyx":186
+    /* "openpifpaf/functional.pyx":188
  *         csigma = sigma[i]
  *         csigma2 = csigma * csigma
  *         truncate_csigma = truncate * csigma             # <<<<<<<<<<<<<<
@@ -5779,7 +5813,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss_with_max(_
  */
     __pyx_v_truncate_csigma = (__pyx_v_truncate * __pyx_v_csigma);
 
-    /* "openpifpaf/functional.pyx":187
+    /* "openpifpaf/functional.pyx":189
  *         csigma2 = csigma * csigma
  *         truncate_csigma = truncate * csigma
  *         truncate2_csigma2 = truncate2 * csigma2             # <<<<<<<<<<<<<<
@@ -5788,7 +5822,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss_with_max(_
  */
     __pyx_v_truncate2_csigma2 = (__pyx_v_truncate2 * __pyx_v_csigma2);
 
-    /* "openpifpaf/functional.pyx":188
+    /* "openpifpaf/functional.pyx":190
  *         truncate_csigma = truncate * csigma
  *         truncate2_csigma2 = truncate2 * csigma2
  *         cx = x[i]             # <<<<<<<<<<<<<<
@@ -5798,7 +5832,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss_with_max(_
     __pyx_t_4 = __pyx_v_i;
     __pyx_v_cx = (*((float *) ( /* dim=0 */ (__pyx_v_x.data + __pyx_t_4 * __pyx_v_x.strides[0]) )));
 
-    /* "openpifpaf/functional.pyx":189
+    /* "openpifpaf/functional.pyx":191
  *         truncate2_csigma2 = truncate2 * csigma2
  *         cx = x[i]
  *         cy = y[i]             # <<<<<<<<<<<<<<
@@ -5808,7 +5842,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss_with_max(_
     __pyx_t_4 = __pyx_v_i;
     __pyx_v_cy = (*((float *) ( /* dim=0 */ (__pyx_v_y.data + __pyx_t_4 * __pyx_v_y.strides[0]) )));
 
-    /* "openpifpaf/functional.pyx":190
+    /* "openpifpaf/functional.pyx":192
  *         cx = x[i]
  *         cy = y[i]
  *         cv = v[i]             # <<<<<<<<<<<<<<
@@ -5818,7 +5852,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss_with_max(_
     __pyx_t_4 = __pyx_v_i;
     __pyx_v_cv = (*((float *) ( /* dim=0 */ (__pyx_v_v.data + __pyx_t_4 * __pyx_v_v.strides[0]) )));
 
-    /* "openpifpaf/functional.pyx":192
+    /* "openpifpaf/functional.pyx":194
  *         cv = v[i]
  * 
  *         minx = (<long>clip(cx - truncate_csigma, 0, field.shape[1] - 1))             # <<<<<<<<<<<<<<
@@ -5827,7 +5861,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss_with_max(_
  */
     __pyx_v_minx = ((long)__pyx_f_10openpifpaf_10functional_clip((__pyx_v_cx - __pyx_v_truncate_csigma), 0.0, ((__pyx_v_field.shape[1]) - 1)));
 
-    /* "openpifpaf/functional.pyx":193
+    /* "openpifpaf/functional.pyx":195
  * 
  *         minx = (<long>clip(cx - truncate_csigma, 0, field.shape[1] - 1))
  *         maxx = (<long>clip(cx + truncate_csigma + 1, minx + 1, field.shape[1]))             # <<<<<<<<<<<<<<
@@ -5836,7 +5870,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss_with_max(_
  */
     __pyx_v_maxx = ((long)__pyx_f_10openpifpaf_10functional_clip(((__pyx_v_cx + __pyx_v_truncate_csigma) + 1.0), (__pyx_v_minx + 1), (__pyx_v_field.shape[1])));
 
-    /* "openpifpaf/functional.pyx":194
+    /* "openpifpaf/functional.pyx":196
  *         minx = (<long>clip(cx - truncate_csigma, 0, field.shape[1] - 1))
  *         maxx = (<long>clip(cx + truncate_csigma + 1, minx + 1, field.shape[1]))
  *         miny = (<long>clip(cy - truncate_csigma, 0, field.shape[0] - 1))             # <<<<<<<<<<<<<<
@@ -5845,7 +5879,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss_with_max(_
  */
     __pyx_v_miny = ((long)__pyx_f_10openpifpaf_10functional_clip((__pyx_v_cy - __pyx_v_truncate_csigma), 0.0, ((__pyx_v_field.shape[0]) - 1)));
 
-    /* "openpifpaf/functional.pyx":195
+    /* "openpifpaf/functional.pyx":197
  *         maxx = (<long>clip(cx + truncate_csigma + 1, minx + 1, field.shape[1]))
  *         miny = (<long>clip(cy - truncate_csigma, 0, field.shape[0] - 1))
  *         maxy = (<long>clip(cy + truncate_csigma + 1, miny + 1, field.shape[0]))             # <<<<<<<<<<<<<<
@@ -5854,7 +5888,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss_with_max(_
  */
     __pyx_v_maxy = ((long)__pyx_f_10openpifpaf_10functional_clip(((__pyx_v_cy + __pyx_v_truncate_csigma) + 1.0), (__pyx_v_miny + 1), (__pyx_v_field.shape[0])));
 
-    /* "openpifpaf/functional.pyx":196
+    /* "openpifpaf/functional.pyx":198
  *         miny = (<long>clip(cy - truncate_csigma, 0, field.shape[0] - 1))
  *         maxy = (<long>clip(cy + truncate_csigma + 1, miny + 1, field.shape[0]))
  *         for xx in range(minx, maxx):             # <<<<<<<<<<<<<<
@@ -5866,7 +5900,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss_with_max(_
     for (__pyx_t_7 = __pyx_v_minx; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
       __pyx_v_xx = __pyx_t_7;
 
-      /* "openpifpaf/functional.pyx":197
+      /* "openpifpaf/functional.pyx":199
  *         maxy = (<long>clip(cy + truncate_csigma + 1, miny + 1, field.shape[0]))
  *         for xx in range(minx, maxx):
  *             deltax2 = (xx - cx)**2             # <<<<<<<<<<<<<<
@@ -5875,7 +5909,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss_with_max(_
  */
       __pyx_v_deltax2 = powf((__pyx_v_xx - __pyx_v_cx), 2.0);
 
-      /* "openpifpaf/functional.pyx":198
+      /* "openpifpaf/functional.pyx":200
  *         for xx in range(minx, maxx):
  *             deltax2 = (xx - cx)**2
  *             for yy in range(miny, maxy):             # <<<<<<<<<<<<<<
@@ -5887,7 +5921,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss_with_max(_
       for (__pyx_t_10 = __pyx_v_miny; __pyx_t_10 < __pyx_t_9; __pyx_t_10+=1) {
         __pyx_v_yy = __pyx_t_10;
 
-        /* "openpifpaf/functional.pyx":199
+        /* "openpifpaf/functional.pyx":201
  *             deltax2 = (xx - cx)**2
  *             for yy in range(miny, maxy):
  *                 deltay2 = (yy - cy)**2             # <<<<<<<<<<<<<<
@@ -5896,7 +5930,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss_with_max(_
  */
         __pyx_v_deltay2 = powf((__pyx_v_yy - __pyx_v_cy), 2.0);
 
-        /* "openpifpaf/functional.pyx":201
+        /* "openpifpaf/functional.pyx":203
  *                 deltay2 = (yy - cy)**2
  * 
  *                 if deltax2 + deltay2 > truncate2_csigma2:             # <<<<<<<<<<<<<<
@@ -5906,7 +5940,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss_with_max(_
         __pyx_t_11 = (((__pyx_v_deltax2 + __pyx_v_deltay2) > __pyx_v_truncate2_csigma2) != 0);
         if (__pyx_t_11) {
 
-          /* "openpifpaf/functional.pyx":202
+          /* "openpifpaf/functional.pyx":204
  * 
  *                 if deltax2 + deltay2 > truncate2_csigma2:
  *                     continue             # <<<<<<<<<<<<<<
@@ -5915,7 +5949,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss_with_max(_
  */
           goto __pyx_L7_continue;
 
-          /* "openpifpaf/functional.pyx":201
+          /* "openpifpaf/functional.pyx":203
  *                 deltay2 = (yy - cy)**2
  * 
  *                 if deltax2 + deltay2 > truncate2_csigma2:             # <<<<<<<<<<<<<<
@@ -5924,7 +5958,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss_with_max(_
  */
         }
 
-        /* "openpifpaf/functional.pyx":204
+        /* "openpifpaf/functional.pyx":206
  *                     continue
  * 
  *                 if deltax2 < 0.25 and deltay2 < 0.25:             # <<<<<<<<<<<<<<
@@ -5942,7 +5976,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss_with_max(_
         __pyx_L11_bool_binop_done:;
         if (__pyx_t_11) {
 
-          /* "openpifpaf/functional.pyx":206
+          /* "openpifpaf/functional.pyx":208
  *                 if deltax2 < 0.25 and deltay2 < 0.25:
  *                     # this is the closest pixel
  *                     vv = cv             # <<<<<<<<<<<<<<
@@ -5951,7 +5985,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss_with_max(_
  */
           __pyx_v_vv = __pyx_v_cv;
 
-          /* "openpifpaf/functional.pyx":204
+          /* "openpifpaf/functional.pyx":206
  *                     continue
  * 
  *                 if deltax2 < 0.25 and deltay2 < 0.25:             # <<<<<<<<<<<<<<
@@ -5961,7 +5995,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss_with_max(_
           goto __pyx_L10;
         }
 
-        /* "openpifpaf/functional.pyx":208
+        /* "openpifpaf/functional.pyx":210
  *                     vv = cv
  *                 else:
  *                     vv = cv * approx_exp(-0.5 * (deltax2 + deltay2) / csigma2)             # <<<<<<<<<<<<<<
@@ -5973,7 +6007,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss_with_max(_
         }
         __pyx_L10:;
 
-        /* "openpifpaf/functional.pyx":210
+        /* "openpifpaf/functional.pyx":212
  *                     vv = cv * approx_exp(-0.5 * (deltax2 + deltay2) / csigma2)
  * 
  *                 field[yy, xx] += vv             # <<<<<<<<<<<<<<
@@ -5984,7 +6018,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss_with_max(_
         __pyx_t_13 = __pyx_v_xx;
         *((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_field.data + __pyx_t_4 * __pyx_v_field.strides[0]) ) + __pyx_t_13 * __pyx_v_field.strides[1]) )) += __pyx_v_vv;
 
-        /* "openpifpaf/functional.pyx":211
+        /* "openpifpaf/functional.pyx":213
  * 
  *                 field[yy, xx] += vv
  *                 field[yy, xx] = min(max_value, field[yy, xx])             # <<<<<<<<<<<<<<
@@ -6008,7 +6042,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss_with_max(_
     }
   }
 
-  /* "openpifpaf/functional.pyx":175
+  /* "openpifpaf/functional.pyx":177
  * @cython.wraparound(False)
  * @cython.cdivision(True)
  * cpdef void scalar_square_add_gauss_with_max(float[:, :] field, float[:] x, float[:] y, float[:] sigma, float[:] v, float truncate=2.0, float max_value=1.0) nogil:             # <<<<<<<<<<<<<<
@@ -6068,25 +6102,25 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_9scalar_square_add_gauss_wit
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_x)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("scalar_square_add_gauss_with_max", 0, 5, 7, 1); __PYX_ERR(0, 175, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("scalar_square_add_gauss_with_max", 0, 5, 7, 1); __PYX_ERR(0, 177, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_y)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("scalar_square_add_gauss_with_max", 0, 5, 7, 2); __PYX_ERR(0, 175, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("scalar_square_add_gauss_with_max", 0, 5, 7, 2); __PYX_ERR(0, 177, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_sigma)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("scalar_square_add_gauss_with_max", 0, 5, 7, 3); __PYX_ERR(0, 175, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("scalar_square_add_gauss_with_max", 0, 5, 7, 3); __PYX_ERR(0, 177, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
         if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_v)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("scalar_square_add_gauss_with_max", 0, 5, 7, 4); __PYX_ERR(0, 175, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("scalar_square_add_gauss_with_max", 0, 5, 7, 4); __PYX_ERR(0, 177, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  5:
@@ -6102,7 +6136,7 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_9scalar_square_add_gauss_wit
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "scalar_square_add_gauss_with_max") < 0)) __PYX_ERR(0, 175, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "scalar_square_add_gauss_with_max") < 0)) __PYX_ERR(0, 177, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -6119,25 +6153,25 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_9scalar_square_add_gauss_wit
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_field.memview)) __PYX_ERR(0, 175, __pyx_L3_error)
-    __pyx_v_x = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_x.memview)) __PYX_ERR(0, 175, __pyx_L3_error)
-    __pyx_v_y = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_y.memview)) __PYX_ERR(0, 175, __pyx_L3_error)
-    __pyx_v_sigma = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_sigma.memview)) __PYX_ERR(0, 175, __pyx_L3_error)
-    __pyx_v_v = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_v.memview)) __PYX_ERR(0, 175, __pyx_L3_error)
+    __pyx_v_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_field.memview)) __PYX_ERR(0, 177, __pyx_L3_error)
+    __pyx_v_x = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_x.memview)) __PYX_ERR(0, 177, __pyx_L3_error)
+    __pyx_v_y = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_y.memview)) __PYX_ERR(0, 177, __pyx_L3_error)
+    __pyx_v_sigma = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_sigma.memview)) __PYX_ERR(0, 177, __pyx_L3_error)
+    __pyx_v_v = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_v.memview)) __PYX_ERR(0, 177, __pyx_L3_error)
     if (values[5]) {
-      __pyx_v_truncate = __pyx_PyFloat_AsFloat(values[5]); if (unlikely((__pyx_v_truncate == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 175, __pyx_L3_error)
+      __pyx_v_truncate = __pyx_PyFloat_AsFloat(values[5]); if (unlikely((__pyx_v_truncate == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 177, __pyx_L3_error)
     } else {
       __pyx_v_truncate = ((float)2.0);
     }
     if (values[6]) {
-      __pyx_v_max_value = __pyx_PyFloat_AsFloat(values[6]); if (unlikely((__pyx_v_max_value == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 175, __pyx_L3_error)
+      __pyx_v_max_value = __pyx_PyFloat_AsFloat(values[6]); if (unlikely((__pyx_v_max_value == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 177, __pyx_L3_error)
     } else {
       __pyx_v_max_value = ((float)1.0);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("scalar_square_add_gauss_with_max", 0, 5, 7, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 175, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("scalar_square_add_gauss_with_max", 0, 5, 7, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 177, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("openpifpaf.functional.scalar_square_add_gauss_with_max", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -6160,16 +6194,16 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_8scalar_square_add_gauss_wit
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("scalar_square_add_gauss_with_max", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_field.memview)) { __Pyx_RaiseUnboundLocalError("field"); __PYX_ERR(0, 175, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_x.memview)) { __Pyx_RaiseUnboundLocalError("x"); __PYX_ERR(0, 175, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_y.memview)) { __Pyx_RaiseUnboundLocalError("y"); __PYX_ERR(0, 175, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_sigma.memview)) { __Pyx_RaiseUnboundLocalError("sigma"); __PYX_ERR(0, 175, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_v.memview)) { __Pyx_RaiseUnboundLocalError("v"); __PYX_ERR(0, 175, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_field.memview)) { __Pyx_RaiseUnboundLocalError("field"); __PYX_ERR(0, 177, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_x.memview)) { __Pyx_RaiseUnboundLocalError("x"); __PYX_ERR(0, 177, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_y.memview)) { __Pyx_RaiseUnboundLocalError("y"); __PYX_ERR(0, 177, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_sigma.memview)) { __Pyx_RaiseUnboundLocalError("sigma"); __PYX_ERR(0, 177, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_v.memview)) { __Pyx_RaiseUnboundLocalError("v"); __PYX_ERR(0, 177, __pyx_L1_error) }
   __pyx_t_1.__pyx_n = 2;
   __pyx_t_1.truncate = __pyx_v_truncate;
   __pyx_t_1.max_value = __pyx_v_max_value;
   __pyx_f_10openpifpaf_10functional_scalar_square_add_gauss_with_max(__pyx_v_field, __pyx_v_x, __pyx_v_y, __pyx_v_sigma, __pyx_v_v, 0, &__pyx_t_1); 
-  __pyx_t_2 = __Pyx_void_to_None(NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 175, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_void_to_None(NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 177, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_r = __pyx_t_2;
   __pyx_t_2 = 0;
@@ -6191,7 +6225,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_8scalar_square_add_gauss_wit
   return __pyx_r;
 }
 
-/* "openpifpaf/functional.pyx":217
+/* "openpifpaf/functional.pyx":219
  * @cython.wraparound(False)
  * @cython.cdivision(True)
  * cpdef void scalar_square_max_gauss(float[:, :] field, float[:] x, float[:] y, float[:] sigma, float[:] v, float truncate=2.0) nogil:             # <<<<<<<<<<<<<<
@@ -6236,7 +6270,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_max_gauss(__Pyx_memv
     }
   }
 
-  /* "openpifpaf/functional.pyx":223
+  /* "openpifpaf/functional.pyx":225
  *     cdef long minx, miny, maxx, maxy
  * 
  *     for i in range(x.shape[0]):             # <<<<<<<<<<<<<<
@@ -6248,7 +6282,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_max_gauss(__Pyx_memv
   for (__pyx_t_3 = 0; __pyx_t_3 < __pyx_t_2; __pyx_t_3+=1) {
     __pyx_v_i = __pyx_t_3;
 
-    /* "openpifpaf/functional.pyx":224
+    /* "openpifpaf/functional.pyx":226
  * 
  *     for i in range(x.shape[0]):
  *         csigma = sigma[i]             # <<<<<<<<<<<<<<
@@ -6258,7 +6292,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_max_gauss(__Pyx_memv
     __pyx_t_4 = __pyx_v_i;
     __pyx_v_csigma = (*((float *) ( /* dim=0 */ (__pyx_v_sigma.data + __pyx_t_4 * __pyx_v_sigma.strides[0]) )));
 
-    /* "openpifpaf/functional.pyx":225
+    /* "openpifpaf/functional.pyx":227
  *     for i in range(x.shape[0]):
  *         csigma = sigma[i]
  *         csigma2 = csigma * csigma             # <<<<<<<<<<<<<<
@@ -6267,7 +6301,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_max_gauss(__Pyx_memv
  */
     __pyx_v_csigma2 = (__pyx_v_csigma * __pyx_v_csigma);
 
-    /* "openpifpaf/functional.pyx":226
+    /* "openpifpaf/functional.pyx":228
  *         csigma = sigma[i]
  *         csigma2 = csigma * csigma
  *         cx = x[i]             # <<<<<<<<<<<<<<
@@ -6277,7 +6311,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_max_gauss(__Pyx_memv
     __pyx_t_4 = __pyx_v_i;
     __pyx_v_cx = (*((float *) ( /* dim=0 */ (__pyx_v_x.data + __pyx_t_4 * __pyx_v_x.strides[0]) )));
 
-    /* "openpifpaf/functional.pyx":227
+    /* "openpifpaf/functional.pyx":229
  *         csigma2 = csigma * csigma
  *         cx = x[i]
  *         cy = y[i]             # <<<<<<<<<<<<<<
@@ -6287,7 +6321,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_max_gauss(__Pyx_memv
     __pyx_t_4 = __pyx_v_i;
     __pyx_v_cy = (*((float *) ( /* dim=0 */ (__pyx_v_y.data + __pyx_t_4 * __pyx_v_y.strides[0]) )));
 
-    /* "openpifpaf/functional.pyx":228
+    /* "openpifpaf/functional.pyx":230
  *         cx = x[i]
  *         cy = y[i]
  *         cv = v[i]             # <<<<<<<<<<<<<<
@@ -6297,7 +6331,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_max_gauss(__Pyx_memv
     __pyx_t_4 = __pyx_v_i;
     __pyx_v_cv = (*((float *) ( /* dim=0 */ (__pyx_v_v.data + __pyx_t_4 * __pyx_v_v.strides[0]) )));
 
-    /* "openpifpaf/functional.pyx":230
+    /* "openpifpaf/functional.pyx":232
  *         cv = v[i]
  * 
  *         minx = (<long>clip(cx - truncate * csigma, 0, field.shape[1] - 1))             # <<<<<<<<<<<<<<
@@ -6306,7 +6340,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_max_gauss(__Pyx_memv
  */
     __pyx_v_minx = ((long)__pyx_f_10openpifpaf_10functional_clip((__pyx_v_cx - (__pyx_v_truncate * __pyx_v_csigma)), 0.0, ((__pyx_v_field.shape[1]) - 1)));
 
-    /* "openpifpaf/functional.pyx":231
+    /* "openpifpaf/functional.pyx":233
  * 
  *         minx = (<long>clip(cx - truncate * csigma, 0, field.shape[1] - 1))
  *         maxx = (<long>clip(cx + truncate * csigma, minx + 1, field.shape[1]))             # <<<<<<<<<<<<<<
@@ -6315,7 +6349,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_max_gauss(__Pyx_memv
  */
     __pyx_v_maxx = ((long)__pyx_f_10openpifpaf_10functional_clip((__pyx_v_cx + (__pyx_v_truncate * __pyx_v_csigma)), (__pyx_v_minx + 1), (__pyx_v_field.shape[1])));
 
-    /* "openpifpaf/functional.pyx":232
+    /* "openpifpaf/functional.pyx":234
  *         minx = (<long>clip(cx - truncate * csigma, 0, field.shape[1] - 1))
  *         maxx = (<long>clip(cx + truncate * csigma, minx + 1, field.shape[1]))
  *         miny = (<long>clip(cy - truncate * csigma, 0, field.shape[0] - 1))             # <<<<<<<<<<<<<<
@@ -6324,7 +6358,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_max_gauss(__Pyx_memv
  */
     __pyx_v_miny = ((long)__pyx_f_10openpifpaf_10functional_clip((__pyx_v_cy - (__pyx_v_truncate * __pyx_v_csigma)), 0.0, ((__pyx_v_field.shape[0]) - 1)));
 
-    /* "openpifpaf/functional.pyx":233
+    /* "openpifpaf/functional.pyx":235
  *         maxx = (<long>clip(cx + truncate * csigma, minx + 1, field.shape[1]))
  *         miny = (<long>clip(cy - truncate * csigma, 0, field.shape[0] - 1))
  *         maxy = (<long>clip(cy + truncate * csigma, miny + 1, field.shape[0]))             # <<<<<<<<<<<<<<
@@ -6333,7 +6367,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_max_gauss(__Pyx_memv
  */
     __pyx_v_maxy = ((long)__pyx_f_10openpifpaf_10functional_clip((__pyx_v_cy + (__pyx_v_truncate * __pyx_v_csigma)), (__pyx_v_miny + 1), (__pyx_v_field.shape[0])));
 
-    /* "openpifpaf/functional.pyx":234
+    /* "openpifpaf/functional.pyx":236
  *         miny = (<long>clip(cy - truncate * csigma, 0, field.shape[0] - 1))
  *         maxy = (<long>clip(cy + truncate * csigma, miny + 1, field.shape[0]))
  *         for xx in range(minx, maxx):             # <<<<<<<<<<<<<<
@@ -6345,7 +6379,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_max_gauss(__Pyx_memv
     for (__pyx_t_7 = __pyx_v_minx; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
       __pyx_v_xx = __pyx_t_7;
 
-      /* "openpifpaf/functional.pyx":235
+      /* "openpifpaf/functional.pyx":237
  *         maxy = (<long>clip(cy + truncate * csigma, miny + 1, field.shape[0]))
  *         for xx in range(minx, maxx):
  *             deltax2 = (xx - cx)**2             # <<<<<<<<<<<<<<
@@ -6354,7 +6388,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_max_gauss(__Pyx_memv
  */
       __pyx_v_deltax2 = powf((__pyx_v_xx - __pyx_v_cx), 2.0);
 
-      /* "openpifpaf/functional.pyx":236
+      /* "openpifpaf/functional.pyx":238
  *         for xx in range(minx, maxx):
  *             deltax2 = (xx - cx)**2
  *             for yy in range(miny, maxy):             # <<<<<<<<<<<<<<
@@ -6366,7 +6400,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_max_gauss(__Pyx_memv
       for (__pyx_t_10 = __pyx_v_miny; __pyx_t_10 < __pyx_t_9; __pyx_t_10+=1) {
         __pyx_v_yy = __pyx_t_10;
 
-        /* "openpifpaf/functional.pyx":237
+        /* "openpifpaf/functional.pyx":239
  *             deltax2 = (xx - cx)**2
  *             for yy in range(miny, maxy):
  *                 deltay2 = (yy - cy)**2             # <<<<<<<<<<<<<<
@@ -6375,7 +6409,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_max_gauss(__Pyx_memv
  */
         __pyx_v_deltay2 = powf((__pyx_v_yy - __pyx_v_cy), 2.0);
 
-        /* "openpifpaf/functional.pyx":238
+        /* "openpifpaf/functional.pyx":240
  *             for yy in range(miny, maxy):
  *                 deltay2 = (yy - cy)**2
  *                 vv = cv * approx_exp(-0.5 * (deltax2 + deltay2) / csigma2)             # <<<<<<<<<<<<<<
@@ -6384,7 +6418,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_max_gauss(__Pyx_memv
  */
         __pyx_v_vv = (__pyx_v_cv * __pyx_f_10openpifpaf_10functional_approx_exp(((-0.5 * (__pyx_v_deltax2 + __pyx_v_deltay2)) / ((double)__pyx_v_csigma2))));
 
-        /* "openpifpaf/functional.pyx":239
+        /* "openpifpaf/functional.pyx":241
  *                 deltay2 = (yy - cy)**2
  *                 vv = cv * approx_exp(-0.5 * (deltax2 + deltay2) / csigma2)
  *                 field[yy, xx] = fmax(field[yy, xx], vv)             # <<<<<<<<<<<<<<
@@ -6400,7 +6434,7 @@ static void __pyx_f_10openpifpaf_10functional_scalar_square_max_gauss(__Pyx_memv
     }
   }
 
-  /* "openpifpaf/functional.pyx":217
+  /* "openpifpaf/functional.pyx":219
  * @cython.wraparound(False)
  * @cython.cdivision(True)
  * cpdef void scalar_square_max_gauss(float[:, :] field, float[:] x, float[:] y, float[:] sigma, float[:] v, float truncate=2.0) nogil:             # <<<<<<<<<<<<<<
@@ -6457,25 +6491,25 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_11scalar_square_max_gauss(Py
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_x)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("scalar_square_max_gauss", 0, 5, 6, 1); __PYX_ERR(0, 217, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("scalar_square_max_gauss", 0, 5, 6, 1); __PYX_ERR(0, 219, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_y)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("scalar_square_max_gauss", 0, 5, 6, 2); __PYX_ERR(0, 217, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("scalar_square_max_gauss", 0, 5, 6, 2); __PYX_ERR(0, 219, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_sigma)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("scalar_square_max_gauss", 0, 5, 6, 3); __PYX_ERR(0, 217, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("scalar_square_max_gauss", 0, 5, 6, 3); __PYX_ERR(0, 219, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
         if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_v)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("scalar_square_max_gauss", 0, 5, 6, 4); __PYX_ERR(0, 217, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("scalar_square_max_gauss", 0, 5, 6, 4); __PYX_ERR(0, 219, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  5:
@@ -6485,7 +6519,7 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_11scalar_square_max_gauss(Py
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "scalar_square_max_gauss") < 0)) __PYX_ERR(0, 217, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "scalar_square_max_gauss") < 0)) __PYX_ERR(0, 219, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -6500,20 +6534,20 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_11scalar_square_max_gauss(Py
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_field.memview)) __PYX_ERR(0, 217, __pyx_L3_error)
-    __pyx_v_x = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_x.memview)) __PYX_ERR(0, 217, __pyx_L3_error)
-    __pyx_v_y = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_y.memview)) __PYX_ERR(0, 217, __pyx_L3_error)
-    __pyx_v_sigma = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_sigma.memview)) __PYX_ERR(0, 217, __pyx_L3_error)
-    __pyx_v_v = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_v.memview)) __PYX_ERR(0, 217, __pyx_L3_error)
+    __pyx_v_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_field.memview)) __PYX_ERR(0, 219, __pyx_L3_error)
+    __pyx_v_x = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_x.memview)) __PYX_ERR(0, 219, __pyx_L3_error)
+    __pyx_v_y = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_y.memview)) __PYX_ERR(0, 219, __pyx_L3_error)
+    __pyx_v_sigma = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_sigma.memview)) __PYX_ERR(0, 219, __pyx_L3_error)
+    __pyx_v_v = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_v.memview)) __PYX_ERR(0, 219, __pyx_L3_error)
     if (values[5]) {
-      __pyx_v_truncate = __pyx_PyFloat_AsFloat(values[5]); if (unlikely((__pyx_v_truncate == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 217, __pyx_L3_error)
+      __pyx_v_truncate = __pyx_PyFloat_AsFloat(values[5]); if (unlikely((__pyx_v_truncate == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 219, __pyx_L3_error)
     } else {
       __pyx_v_truncate = ((float)2.0);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("scalar_square_max_gauss", 0, 5, 6, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 217, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("scalar_square_max_gauss", 0, 5, 6, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 219, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("openpifpaf.functional.scalar_square_max_gauss", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -6536,15 +6570,15 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_10scalar_square_max_gauss(CY
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("scalar_square_max_gauss", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_field.memview)) { __Pyx_RaiseUnboundLocalError("field"); __PYX_ERR(0, 217, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_x.memview)) { __Pyx_RaiseUnboundLocalError("x"); __PYX_ERR(0, 217, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_y.memview)) { __Pyx_RaiseUnboundLocalError("y"); __PYX_ERR(0, 217, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_sigma.memview)) { __Pyx_RaiseUnboundLocalError("sigma"); __PYX_ERR(0, 217, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_v.memview)) { __Pyx_RaiseUnboundLocalError("v"); __PYX_ERR(0, 217, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_field.memview)) { __Pyx_RaiseUnboundLocalError("field"); __PYX_ERR(0, 219, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_x.memview)) { __Pyx_RaiseUnboundLocalError("x"); __PYX_ERR(0, 219, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_y.memview)) { __Pyx_RaiseUnboundLocalError("y"); __PYX_ERR(0, 219, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_sigma.memview)) { __Pyx_RaiseUnboundLocalError("sigma"); __PYX_ERR(0, 219, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_v.memview)) { __Pyx_RaiseUnboundLocalError("v"); __PYX_ERR(0, 219, __pyx_L1_error) }
   __pyx_t_1.__pyx_n = 1;
   __pyx_t_1.truncate = __pyx_v_truncate;
   __pyx_f_10openpifpaf_10functional_scalar_square_max_gauss(__pyx_v_field, __pyx_v_x, __pyx_v_y, __pyx_v_sigma, __pyx_v_v, 0, &__pyx_t_1); 
-  __pyx_t_2 = __Pyx_void_to_None(NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 217, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_void_to_None(NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 219, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_r = __pyx_t_2;
   __pyx_t_2 = 0;
@@ -6566,7 +6600,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_10scalar_square_max_gauss(CY
   return __pyx_r;
 }
 
-/* "openpifpaf/functional.pyx":245
+/* "openpifpaf/functional.pyx":247
  * @cython.wraparound(False)
  * @cython.cdivision(True)
  * def weiszfeld_nd(x_np, y_np, float[:] weights=None, float epsilon=1e-8, Py_ssize_t max_steps=20):             # <<<<<<<<<<<<<<
@@ -6619,7 +6653,7 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_13weiszfeld_nd(PyObject *__p
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_y_np)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("weiszfeld_nd", 0, 2, 5, 1); __PYX_ERR(0, 245, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("weiszfeld_nd", 0, 2, 5, 1); __PYX_ERR(0, 247, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
@@ -6641,7 +6675,7 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_13weiszfeld_nd(PyObject *__p
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "weiszfeld_nd") < 0)) __PYX_ERR(0, 245, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "weiszfeld_nd") < 0)) __PYX_ERR(0, 247, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -6660,25 +6694,25 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_13weiszfeld_nd(PyObject *__p
     __pyx_v_x_np = values[0];
     __pyx_v_y_np = values[1];
     if (values[2]) {
-      __pyx_v_weights = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_weights.memview)) __PYX_ERR(0, 245, __pyx_L3_error)
+      __pyx_v_weights = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_weights.memview)) __PYX_ERR(0, 247, __pyx_L3_error)
     } else {
       __pyx_v_weights = __pyx_k_;
       __PYX_INC_MEMVIEW(&__pyx_v_weights, 1);
     }
     if (values[3]) {
-      __pyx_v_epsilon = __pyx_PyFloat_AsFloat(values[3]); if (unlikely((__pyx_v_epsilon == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 245, __pyx_L3_error)
+      __pyx_v_epsilon = __pyx_PyFloat_AsFloat(values[3]); if (unlikely((__pyx_v_epsilon == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 247, __pyx_L3_error)
     } else {
       __pyx_v_epsilon = ((float)1e-8);
     }
     if (values[4]) {
-      __pyx_v_max_steps = __Pyx_PyIndex_AsSsize_t(values[4]); if (unlikely((__pyx_v_max_steps == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 245, __pyx_L3_error)
+      __pyx_v_max_steps = __Pyx_PyIndex_AsSsize_t(values[4]); if (unlikely((__pyx_v_max_steps == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 247, __pyx_L3_error)
     } else {
       __pyx_v_max_steps = ((Py_ssize_t)20);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("weiszfeld_nd", 0, 2, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 245, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("weiszfeld_nd", 0, 2, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 247, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("openpifpaf.functional.weiszfeld_nd", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -6730,7 +6764,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_12weiszfeld_nd(CYTHON_UNUSED
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("weiszfeld_nd", 0);
 
-  /* "openpifpaf/functional.pyx":247
+  /* "openpifpaf/functional.pyx":249
  * def weiszfeld_nd(x_np, y_np, float[:] weights=None, float epsilon=1e-8, Py_ssize_t max_steps=20):
  *     """Weighted Weiszfeld algorithm."""
  *     if weights is None:             # <<<<<<<<<<<<<<
@@ -6740,21 +6774,21 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_12weiszfeld_nd(CYTHON_UNUSED
   __pyx_t_1 = ((((PyObject *) __pyx_v_weights.memview) == Py_None) != 0);
   if (__pyx_t_1) {
 
-    /* "openpifpaf/functional.pyx":248
+    /* "openpifpaf/functional.pyx":250
  *     """Weighted Weiszfeld algorithm."""
  *     if weights is None:
  *         weights = np.ones(x_np.shape[0])             # <<<<<<<<<<<<<<
  * 
  *     cdef float[:, :] x = x_np
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 248, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 250, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_ones); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 248, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_ones); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 250, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_x_np, __pyx_n_s_shape); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 248, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_x_np, __pyx_n_s_shape); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 250, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_5 = __Pyx_GetItemInt(__pyx_t_3, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 248, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_GetItemInt(__pyx_t_3, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 250, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __pyx_t_3 = NULL;
@@ -6770,17 +6804,17 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_12weiszfeld_nd(CYTHON_UNUSED
     __pyx_t_2 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_4, __pyx_t_3, __pyx_t_5) : __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5);
     __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 248, __pyx_L1_error)
+    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 250, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_t_2, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 248, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_t_2, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 250, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __PYX_XDEC_MEMVIEW(&__pyx_v_weights, 1);
     __pyx_v_weights = __pyx_t_6;
     __pyx_t_6.memview = NULL;
     __pyx_t_6.data = NULL;
 
-    /* "openpifpaf/functional.pyx":247
+    /* "openpifpaf/functional.pyx":249
  * def weiszfeld_nd(x_np, y_np, float[:] weights=None, float epsilon=1e-8, Py_ssize_t max_steps=20):
  *     """Weighted Weiszfeld algorithm."""
  *     if weights is None:             # <<<<<<<<<<<<<<
@@ -6789,43 +6823,43 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_12weiszfeld_nd(CYTHON_UNUSED
  */
   }
 
-  /* "openpifpaf/functional.pyx":250
+  /* "openpifpaf/functional.pyx":252
  *         weights = np.ones(x_np.shape[0])
  * 
  *     cdef float[:, :] x = x_np             # <<<<<<<<<<<<<<
  *     cdef float[:] y = y_np
  *     cdef float[:, :] weights_x = np.zeros_like(x)
  */
-  __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(__pyx_v_x_np, PyBUF_WRITABLE); if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 250, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(__pyx_v_x_np, PyBUF_WRITABLE); if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 252, __pyx_L1_error)
   __pyx_v_x = __pyx_t_7;
   __pyx_t_7.memview = NULL;
   __pyx_t_7.data = NULL;
 
-  /* "openpifpaf/functional.pyx":251
+  /* "openpifpaf/functional.pyx":253
  * 
  *     cdef float[:, :] x = x_np
  *     cdef float[:] y = y_np             # <<<<<<<<<<<<<<
  *     cdef float[:, :] weights_x = np.zeros_like(x)
  *     for i in range(weights_x.shape[0]):
  */
-  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_v_y_np, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 251, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_v_y_np, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 253, __pyx_L1_error)
   __pyx_v_y = __pyx_t_6;
   __pyx_t_6.memview = NULL;
   __pyx_t_6.data = NULL;
 
-  /* "openpifpaf/functional.pyx":252
+  /* "openpifpaf/functional.pyx":254
  *     cdef float[:, :] x = x_np
  *     cdef float[:] y = y_np
  *     cdef float[:, :] weights_x = np.zeros_like(x)             # <<<<<<<<<<<<<<
  *     for i in range(weights_x.shape[0]):
  *         for j in range(weights_x.shape[1]):
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 252, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 254, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_zeros_like); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 252, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_zeros_like); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 254, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __pyx_memoryview_fromslice(__pyx_v_x, 2, (PyObject *(*)(char *)) __pyx_memview_get_float, (int (*)(char *, PyObject *)) __pyx_memview_set_float, 0);; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 252, __pyx_L1_error)
+  __pyx_t_4 = __pyx_memoryview_fromslice(__pyx_v_x, 2, (PyObject *(*)(char *)) __pyx_memview_get_float, (int (*)(char *, PyObject *)) __pyx_memview_set_float, 0);; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 254, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_5))) {
@@ -6840,16 +6874,16 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_12weiszfeld_nd(CYTHON_UNUSED
   __pyx_t_2 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_5, __pyx_t_3, __pyx_t_4) : __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_4);
   __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 252, __pyx_L1_error)
+  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 254, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(__pyx_t_2, PyBUF_WRITABLE); if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 252, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(__pyx_t_2, PyBUF_WRITABLE); if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 254, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_weights_x = __pyx_t_7;
   __pyx_t_7.memview = NULL;
   __pyx_t_7.data = NULL;
 
-  /* "openpifpaf/functional.pyx":253
+  /* "openpifpaf/functional.pyx":255
  *     cdef float[:] y = y_np
  *     cdef float[:, :] weights_x = np.zeros_like(x)
  *     for i in range(weights_x.shape[0]):             # <<<<<<<<<<<<<<
@@ -6861,7 +6895,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_12weiszfeld_nd(CYTHON_UNUSED
   for (__pyx_t_10 = 0; __pyx_t_10 < __pyx_t_9; __pyx_t_10+=1) {
     __pyx_v_i = __pyx_t_10;
 
-    /* "openpifpaf/functional.pyx":254
+    /* "openpifpaf/functional.pyx":256
  *     cdef float[:, :] weights_x = np.zeros_like(x)
  *     for i in range(weights_x.shape[0]):
  *         for j in range(weights_x.shape[1]):             # <<<<<<<<<<<<<<
@@ -6873,7 +6907,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_12weiszfeld_nd(CYTHON_UNUSED
     for (__pyx_t_13 = 0; __pyx_t_13 < __pyx_t_12; __pyx_t_13+=1) {
       __pyx_v_j = __pyx_t_13;
 
-      /* "openpifpaf/functional.pyx":255
+      /* "openpifpaf/functional.pyx":257
  *     for i in range(weights_x.shape[0]):
  *         for j in range(weights_x.shape[1]):
  *             weights_x[i, j] = weights[i] * x[i, j]             # <<<<<<<<<<<<<<
@@ -6889,19 +6923,19 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_12weiszfeld_nd(CYTHON_UNUSED
     }
   }
 
-  /* "openpifpaf/functional.pyx":257
+  /* "openpifpaf/functional.pyx":259
  *             weights_x[i, j] = weights[i] * x[i, j]
  * 
  *     cdef float[:] prev_y = np.zeros_like(y)             # <<<<<<<<<<<<<<
  *     cdef float[:] y_top = np.zeros_like(y)
  *     cdef float y_bottom
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 257, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 259, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_zeros_like); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 257, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_zeros_like); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 259, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = __pyx_memoryview_fromslice(__pyx_v_y, 1, (PyObject *(*)(char *)) __pyx_memview_get_float, (int (*)(char *, PyObject *)) __pyx_memview_set_float, 0);; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 257, __pyx_L1_error)
+  __pyx_t_5 = __pyx_memoryview_fromslice(__pyx_v_y, 1, (PyObject *(*)(char *)) __pyx_memview_get_float, (int (*)(char *, PyObject *)) __pyx_memview_set_float, 0);; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 259, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
@@ -6916,28 +6950,28 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_12weiszfeld_nd(CYTHON_UNUSED
   __pyx_t_2 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_4, __pyx_t_3, __pyx_t_5) : __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5);
   __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 257, __pyx_L1_error)
+  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 259, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_t_2, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 257, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_t_2, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 259, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_prev_y = __pyx_t_6;
   __pyx_t_6.memview = NULL;
   __pyx_t_6.data = NULL;
 
-  /* "openpifpaf/functional.pyx":258
+  /* "openpifpaf/functional.pyx":260
  * 
  *     cdef float[:] prev_y = np.zeros_like(y)
  *     cdef float[:] y_top = np.zeros_like(y)             # <<<<<<<<<<<<<<
  *     cdef float y_bottom
  *     denom_np = np.zeros_like(weights)
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 258, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 260, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_zeros_like); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 258, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_zeros_like); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 260, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __pyx_memoryview_fromslice(__pyx_v_y, 1, (PyObject *(*)(char *)) __pyx_memview_get_float, (int (*)(char *, PyObject *)) __pyx_memview_set_float, 0);; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 258, __pyx_L1_error)
+  __pyx_t_4 = __pyx_memoryview_fromslice(__pyx_v_y, 1, (PyObject *(*)(char *)) __pyx_memview_get_float, (int (*)(char *, PyObject *)) __pyx_memview_set_float, 0);; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 260, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_5))) {
@@ -6952,28 +6986,28 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_12weiszfeld_nd(CYTHON_UNUSED
   __pyx_t_2 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_5, __pyx_t_3, __pyx_t_4) : __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_4);
   __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 258, __pyx_L1_error)
+  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 260, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_t_2, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 258, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_t_2, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 260, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_y_top = __pyx_t_6;
   __pyx_t_6.memview = NULL;
   __pyx_t_6.data = NULL;
 
-  /* "openpifpaf/functional.pyx":260
+  /* "openpifpaf/functional.pyx":262
  *     cdef float[:] y_top = np.zeros_like(y)
  *     cdef float y_bottom
  *     denom_np = np.zeros_like(weights)             # <<<<<<<<<<<<<<
  *     cdef float[:] denom = denom_np
  * 
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 260, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 262, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_zeros_like); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 260, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_zeros_like); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 262, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = __pyx_memoryview_fromslice(__pyx_v_weights, 1, (PyObject *(*)(char *)) __pyx_memview_get_float, (int (*)(char *, PyObject *)) __pyx_memview_set_float, 0);; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 260, __pyx_L1_error)
+  __pyx_t_5 = __pyx_memoryview_fromslice(__pyx_v_weights, 1, (PyObject *(*)(char *)) __pyx_memview_get_float, (int (*)(char *, PyObject *)) __pyx_memview_set_float, 0);; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 262, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
@@ -6988,25 +7022,25 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_12weiszfeld_nd(CYTHON_UNUSED
   __pyx_t_2 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_4, __pyx_t_3, __pyx_t_5) : __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5);
   __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 260, __pyx_L1_error)
+  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 262, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_v_denom_np = __pyx_t_2;
   __pyx_t_2 = 0;
 
-  /* "openpifpaf/functional.pyx":261
+  /* "openpifpaf/functional.pyx":263
  *     cdef float y_bottom
  *     denom_np = np.zeros_like(weights)
  *     cdef float[:] denom = denom_np             # <<<<<<<<<<<<<<
  * 
  *     for s in range(max_steps):
  */
-  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_v_denom_np, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 261, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_v_denom_np, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 263, __pyx_L1_error)
   __pyx_v_denom = __pyx_t_6;
   __pyx_t_6.memview = NULL;
   __pyx_t_6.data = NULL;
 
-  /* "openpifpaf/functional.pyx":263
+  /* "openpifpaf/functional.pyx":265
  *     cdef float[:] denom = denom_np
  * 
  *     for s in range(max_steps):             # <<<<<<<<<<<<<<
@@ -7018,16 +7052,16 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_12weiszfeld_nd(CYTHON_UNUSED
   for (__pyx_t_10 = 0; __pyx_t_10 < __pyx_t_9; __pyx_t_10+=1) {
     __pyx_v_s = __pyx_t_10;
 
-    /* "openpifpaf/functional.pyx":264
+    /* "openpifpaf/functional.pyx":266
  * 
  *     for s in range(max_steps):
  *         prev_y[:] = y             # <<<<<<<<<<<<<<
  * 
  *         for i in range(denom.shape[0]):
  */
-    if (unlikely(__pyx_memoryview_copy_contents(__pyx_v_y, __pyx_v_prev_y, 1, 1, 0) < 0)) __PYX_ERR(0, 264, __pyx_L1_error)
+    if (unlikely(__pyx_memoryview_copy_contents(__pyx_v_y, __pyx_v_prev_y, 1, 1, 0) < 0)) __PYX_ERR(0, 266, __pyx_L1_error)
 
-    /* "openpifpaf/functional.pyx":266
+    /* "openpifpaf/functional.pyx":268
  *         prev_y[:] = y
  * 
  *         for i in range(denom.shape[0]):             # <<<<<<<<<<<<<<
@@ -7039,7 +7073,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_12weiszfeld_nd(CYTHON_UNUSED
     for (__pyx_t_13 = 0; __pyx_t_13 < __pyx_t_12; __pyx_t_13+=1) {
       __pyx_v_i = __pyx_t_13;
 
-      /* "openpifpaf/functional.pyx":267
+      /* "openpifpaf/functional.pyx":269
  * 
  *         for i in range(denom.shape[0]):
  *             denom[i] = sqrt((x[i][0] - prev_y[0])**2 + (x[i][1] - prev_y[1])**2) + epsilon             # <<<<<<<<<<<<<<
@@ -7056,7 +7090,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_12weiszfeld_nd(CYTHON_UNUSED
       *((float *) ( /* dim=0 */ (__pyx_v_denom.data + __pyx_t_20 * __pyx_v_denom.strides[0]) )) = (sqrt((powf(((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_x.data + __pyx_t_16 * __pyx_v_x.strides[0]) ) + __pyx_t_15 * __pyx_v_x.strides[1]) ))) - (*((float *) ( /* dim=0 */ (__pyx_v_prev_y.data + __pyx_t_14 * __pyx_v_prev_y.strides[0]) )))), 2.0) + powf(((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_x.data + __pyx_t_18 * __pyx_v_x.strides[0]) ) + __pyx_t_17 * __pyx_v_x.strides[1]) ))) - (*((float *) ( /* dim=0 */ (__pyx_v_prev_y.data + __pyx_t_19 * __pyx_v_prev_y.strides[0]) )))), 2.0))) + __pyx_v_epsilon);
     }
 
-    /* "openpifpaf/functional.pyx":269
+    /* "openpifpaf/functional.pyx":271
  *             denom[i] = sqrt((x[i][0] - prev_y[0])**2 + (x[i][1] - prev_y[1])**2) + epsilon
  * 
  *         y_top[:] = 0.0             # <<<<<<<<<<<<<<
@@ -7078,7 +7112,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_12weiszfeld_nd(CYTHON_UNUSED
         }
     }
 
-    /* "openpifpaf/functional.pyx":270
+    /* "openpifpaf/functional.pyx":272
  * 
  *         y_top[:] = 0.0
  *         y_bottom = 0.0             # <<<<<<<<<<<<<<
@@ -7087,7 +7121,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_12weiszfeld_nd(CYTHON_UNUSED
  */
     __pyx_v_y_bottom = 0.0;
 
-    /* "openpifpaf/functional.pyx":271
+    /* "openpifpaf/functional.pyx":273
  *         y_top[:] = 0.0
  *         y_bottom = 0.0
  *         for j in range(denom.shape[0]):             # <<<<<<<<<<<<<<
@@ -7099,7 +7133,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_12weiszfeld_nd(CYTHON_UNUSED
     for (__pyx_t_13 = 0; __pyx_t_13 < __pyx_t_12; __pyx_t_13+=1) {
       __pyx_v_j = __pyx_t_13;
 
-      /* "openpifpaf/functional.pyx":272
+      /* "openpifpaf/functional.pyx":274
  *         y_bottom = 0.0
  *         for j in range(denom.shape[0]):
  *             y_top[0] += weights_x[j, 0] / denom[j]             # <<<<<<<<<<<<<<
@@ -7112,7 +7146,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_12weiszfeld_nd(CYTHON_UNUSED
       __pyx_t_14 = 0;
       *((float *) ( /* dim=0 */ (__pyx_v_y_top.data + __pyx_t_14 * __pyx_v_y_top.strides[0]) )) += ((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_weights_x.data + __pyx_t_19 * __pyx_v_weights_x.strides[0]) ) + __pyx_t_17 * __pyx_v_weights_x.strides[1]) ))) / (*((float *) ( /* dim=0 */ (__pyx_v_denom.data + __pyx_t_18 * __pyx_v_denom.strides[0]) ))));
 
-      /* "openpifpaf/functional.pyx":273
+      /* "openpifpaf/functional.pyx":275
  *         for j in range(denom.shape[0]):
  *             y_top[0] += weights_x[j, 0] / denom[j]
  *             y_top[1] += weights_x[j, 1] / denom[j]             # <<<<<<<<<<<<<<
@@ -7125,7 +7159,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_12weiszfeld_nd(CYTHON_UNUSED
       __pyx_t_14 = 1;
       *((float *) ( /* dim=0 */ (__pyx_v_y_top.data + __pyx_t_14 * __pyx_v_y_top.strides[0]) )) += ((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_weights_x.data + __pyx_t_18 * __pyx_v_weights_x.strides[0]) ) + __pyx_t_17 * __pyx_v_weights_x.strides[1]) ))) / (*((float *) ( /* dim=0 */ (__pyx_v_denom.data + __pyx_t_19 * __pyx_v_denom.strides[0]) ))));
 
-      /* "openpifpaf/functional.pyx":274
+      /* "openpifpaf/functional.pyx":276
  *             y_top[0] += weights_x[j, 0] / denom[j]
  *             y_top[1] += weights_x[j, 1] / denom[j]
  *             y_bottom += weights[j] / denom[j]             # <<<<<<<<<<<<<<
@@ -7137,7 +7171,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_12weiszfeld_nd(CYTHON_UNUSED
       __pyx_v_y_bottom = (__pyx_v_y_bottom + ((*((float *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_19 * __pyx_v_weights.strides[0]) ))) / (*((float *) ( /* dim=0 */ (__pyx_v_denom.data + __pyx_t_17 * __pyx_v_denom.strides[0]) )))));
     }
 
-    /* "openpifpaf/functional.pyx":275
+    /* "openpifpaf/functional.pyx":277
  *             y_top[1] += weights_x[j, 1] / denom[j]
  *             y_bottom += weights[j] / denom[j]
  *         y[0] = y_top[0] / y_bottom             # <<<<<<<<<<<<<<
@@ -7148,7 +7182,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_12weiszfeld_nd(CYTHON_UNUSED
     __pyx_t_19 = 0;
     *((float *) ( /* dim=0 */ (__pyx_v_y.data + __pyx_t_19 * __pyx_v_y.strides[0]) )) = ((*((float *) ( /* dim=0 */ (__pyx_v_y_top.data + __pyx_t_17 * __pyx_v_y_top.strides[0]) ))) / __pyx_v_y_bottom);
 
-    /* "openpifpaf/functional.pyx":276
+    /* "openpifpaf/functional.pyx":278
  *             y_bottom += weights[j] / denom[j]
  *         y[0] = y_top[0] / y_bottom
  *         y[1] = y_top[1] / y_bottom             # <<<<<<<<<<<<<<
@@ -7159,7 +7193,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_12weiszfeld_nd(CYTHON_UNUSED
     __pyx_t_19 = 1;
     *((float *) ( /* dim=0 */ (__pyx_v_y.data + __pyx_t_19 * __pyx_v_y.strides[0]) )) = ((*((float *) ( /* dim=0 */ (__pyx_v_y_top.data + __pyx_t_17 * __pyx_v_y_top.strides[0]) ))) / __pyx_v_y_bottom);
 
-    /* "openpifpaf/functional.pyx":278
+    /* "openpifpaf/functional.pyx":280
  *         y[1] = y_top[1] / y_bottom
  * 
  *         if fabs(y[0] - prev_y[0]) + fabs(y[1] - prev_y[1]) < 1e-2:             # <<<<<<<<<<<<<<
@@ -7173,7 +7207,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_12weiszfeld_nd(CYTHON_UNUSED
     __pyx_t_1 = (((fabs(((*((float *) ( /* dim=0 */ (__pyx_v_y.data + __pyx_t_17 * __pyx_v_y.strides[0]) ))) - (*((float *) ( /* dim=0 */ (__pyx_v_prev_y.data + __pyx_t_19 * __pyx_v_prev_y.strides[0]) ))))) + fabs(((*((float *) ( /* dim=0 */ (__pyx_v_y.data + __pyx_t_18 * __pyx_v_y.strides[0]) ))) - (*((float *) ( /* dim=0 */ (__pyx_v_prev_y.data + __pyx_t_14 * __pyx_v_prev_y.strides[0]) )))))) < 1e-2) != 0);
     if (__pyx_t_1) {
 
-      /* "openpifpaf/functional.pyx":279
+      /* "openpifpaf/functional.pyx":281
  * 
  *         if fabs(y[0] - prev_y[0]) + fabs(y[1] - prev_y[1]) < 1e-2:
  *             return y_np, denom_np             # <<<<<<<<<<<<<<
@@ -7181,7 +7215,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_12weiszfeld_nd(CYTHON_UNUSED
  *     return y_np, denom_np
  */
       __Pyx_XDECREF(__pyx_r);
-      __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 279, __pyx_L1_error)
+      __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 281, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_INCREF(__pyx_v_y_np);
       __Pyx_GIVEREF(__pyx_v_y_np);
@@ -7193,7 +7227,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_12weiszfeld_nd(CYTHON_UNUSED
       __pyx_t_2 = 0;
       goto __pyx_L0;
 
-      /* "openpifpaf/functional.pyx":278
+      /* "openpifpaf/functional.pyx":280
  *         y[1] = y_top[1] / y_bottom
  * 
  *         if fabs(y[0] - prev_y[0]) + fabs(y[1] - prev_y[1]) < 1e-2:             # <<<<<<<<<<<<<<
@@ -7203,7 +7237,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_12weiszfeld_nd(CYTHON_UNUSED
     }
   }
 
-  /* "openpifpaf/functional.pyx":281
+  /* "openpifpaf/functional.pyx":283
  *             return y_np, denom_np
  * 
  *     return y_np, denom_np             # <<<<<<<<<<<<<<
@@ -7211,7 +7245,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_12weiszfeld_nd(CYTHON_UNUSED
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 281, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 283, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_v_y_np);
   __Pyx_GIVEREF(__pyx_v_y_np);
@@ -7223,7 +7257,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_12weiszfeld_nd(CYTHON_UNUSED
   __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "openpifpaf/functional.pyx":245
+  /* "openpifpaf/functional.pyx":247
  * @cython.wraparound(False)
  * @cython.cdivision(True)
  * def weiszfeld_nd(x_np, y_np, float[:] weights=None, float epsilon=1e-8, Py_ssize_t max_steps=20):             # <<<<<<<<<<<<<<
@@ -7255,7 +7289,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_12weiszfeld_nd(CYTHON_UNUSED
   return __pyx_r;
 }
 
-/* "openpifpaf/functional.pyx":286
+/* "openpifpaf/functional.pyx":288
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * def paf_mask_center(float[:, :] paf_field, float x, float y, float sigma=1.0):             # <<<<<<<<<<<<<<
@@ -7304,13 +7338,13 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_15paf_mask_center(PyObject *
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_x)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("paf_mask_center", 0, 3, 4, 1); __PYX_ERR(0, 286, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("paf_mask_center", 0, 3, 4, 1); __PYX_ERR(0, 288, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_y)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("paf_mask_center", 0, 3, 4, 2); __PYX_ERR(0, 286, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("paf_mask_center", 0, 3, 4, 2); __PYX_ERR(0, 288, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
@@ -7320,7 +7354,7 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_15paf_mask_center(PyObject *
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "paf_mask_center") < 0)) __PYX_ERR(0, 286, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "paf_mask_center") < 0)) __PYX_ERR(0, 288, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -7333,18 +7367,18 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_15paf_mask_center(PyObject *
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_paf_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_paf_field.memview)) __PYX_ERR(0, 286, __pyx_L3_error)
-    __pyx_v_x = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_x == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 286, __pyx_L3_error)
-    __pyx_v_y = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_y == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 286, __pyx_L3_error)
+    __pyx_v_paf_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_paf_field.memview)) __PYX_ERR(0, 288, __pyx_L3_error)
+    __pyx_v_x = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_x == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 288, __pyx_L3_error)
+    __pyx_v_y = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_y == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 288, __pyx_L3_error)
     if (values[3]) {
-      __pyx_v_sigma = __pyx_PyFloat_AsFloat(values[3]); if (unlikely((__pyx_v_sigma == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 286, __pyx_L3_error)
+      __pyx_v_sigma = __pyx_PyFloat_AsFloat(values[3]); if (unlikely((__pyx_v_sigma == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 288, __pyx_L3_error)
     } else {
       __pyx_v_sigma = ((float)1.0);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("paf_mask_center", 0, 3, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 286, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("paf_mask_center", 0, 3, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 288, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("openpifpaf.functional.paf_mask_center", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -7383,40 +7417,40 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_14paf_mask_center(CYTHON_UNU
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("paf_mask_center", 0);
 
-  /* "openpifpaf/functional.pyx":287
+  /* "openpifpaf/functional.pyx":289
  * @cython.wraparound(False)
  * def paf_mask_center(float[:, :] paf_field, float x, float y, float sigma=1.0):
  *     mask_np = np.zeros((paf_field.shape[1],), dtype=np.uint8)             # <<<<<<<<<<<<<<
  *     cdef unsigned char[:] mask = mask_np
  * 
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 287, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 289, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_zeros); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 287, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_zeros); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 289, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyInt_FromSsize_t((__pyx_v_paf_field.shape[1])); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 287, __pyx_L1_error)
+  __pyx_t_1 = PyInt_FromSsize_t((__pyx_v_paf_field.shape[1])); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 289, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 287, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 289, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 287, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 289, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_3);
   __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 287, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 289, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 287, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 289, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_uint8); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 287, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_uint8); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 289, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_t_5) < 0) __PYX_ERR(0, 287, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_t_5) < 0) __PYX_ERR(0, 289, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 287, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 289, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -7424,19 +7458,19 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_14paf_mask_center(CYTHON_UNU
   __pyx_v_mask_np = __pyx_t_5;
   __pyx_t_5 = 0;
 
-  /* "openpifpaf/functional.pyx":288
+  /* "openpifpaf/functional.pyx":290
  * def paf_mask_center(float[:, :] paf_field, float x, float y, float sigma=1.0):
  *     mask_np = np.zeros((paf_field.shape[1],), dtype=np.uint8)
  *     cdef unsigned char[:] mask = mask_np             # <<<<<<<<<<<<<<
  * 
  *     for i in range(mask.shape[0]):
  */
-  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_unsigned_char(__pyx_v_mask_np, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 288, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_unsigned_char(__pyx_v_mask_np, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 290, __pyx_L1_error)
   __pyx_v_mask = __pyx_t_6;
   __pyx_t_6.memview = NULL;
   __pyx_t_6.data = NULL;
 
-  /* "openpifpaf/functional.pyx":290
+  /* "openpifpaf/functional.pyx":292
  *     cdef unsigned char[:] mask = mask_np
  * 
  *     for i in range(mask.shape[0]):             # <<<<<<<<<<<<<<
@@ -7448,7 +7482,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_14paf_mask_center(CYTHON_UNU
   for (__pyx_t_9 = 0; __pyx_t_9 < __pyx_t_8; __pyx_t_9+=1) {
     __pyx_v_i = __pyx_t_9;
 
-    /* "openpifpaf/functional.pyx":292
+    /* "openpifpaf/functional.pyx":294
  *     for i in range(mask.shape[0]):
  *         mask[i] = (
  *             paf_field[1, i] > x - sigma * paf_field[3, i] and             # <<<<<<<<<<<<<<
@@ -7466,7 +7500,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_14paf_mask_center(CYTHON_UNU
       goto __pyx_L5_bool_binop_done;
     }
 
-    /* "openpifpaf/functional.pyx":293
+    /* "openpifpaf/functional.pyx":295
  *         mask[i] = (
  *             paf_field[1, i] > x - sigma * paf_field[3, i] and
  *             paf_field[1, i] < x + sigma * paf_field[3, i] and             # <<<<<<<<<<<<<<
@@ -7484,7 +7518,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_14paf_mask_center(CYTHON_UNU
       goto __pyx_L5_bool_binop_done;
     }
 
-    /* "openpifpaf/functional.pyx":294
+    /* "openpifpaf/functional.pyx":296
  *             paf_field[1, i] > x - sigma * paf_field[3, i] and
  *             paf_field[1, i] < x + sigma * paf_field[3, i] and
  *             paf_field[2, i] > y - sigma * paf_field[3, i] and             # <<<<<<<<<<<<<<
@@ -7502,7 +7536,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_14paf_mask_center(CYTHON_UNU
       goto __pyx_L5_bool_binop_done;
     }
 
-    /* "openpifpaf/functional.pyx":295
+    /* "openpifpaf/functional.pyx":297
  *             paf_field[1, i] < x + sigma * paf_field[3, i] and
  *             paf_field[2, i] > y - sigma * paf_field[3, i] and
  *             paf_field[2, i] < y + sigma * paf_field[3, i]             # <<<<<<<<<<<<<<
@@ -7517,7 +7551,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_14paf_mask_center(CYTHON_UNU
     __pyx_t_10 = __pyx_t_15;
     __pyx_L5_bool_binop_done:;
 
-    /* "openpifpaf/functional.pyx":291
+    /* "openpifpaf/functional.pyx":293
  * 
  *     for i in range(mask.shape[0]):
  *         mask[i] = (             # <<<<<<<<<<<<<<
@@ -7528,7 +7562,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_14paf_mask_center(CYTHON_UNU
     *((unsigned char *) ( /* dim=0 */ (__pyx_v_mask.data + __pyx_t_11 * __pyx_v_mask.strides[0]) )) = __pyx_t_10;
   }
 
-  /* "openpifpaf/functional.pyx":298
+  /* "openpifpaf/functional.pyx":300
  *         )
  * 
  *     return mask_np != 0             # <<<<<<<<<<<<<<
@@ -7536,13 +7570,13 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_14paf_mask_center(CYTHON_UNU
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_5 = __Pyx_PyInt_NeObjC(__pyx_v_mask_np, __pyx_int_0, 0, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 298, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyInt_NeObjC(__pyx_v_mask_np, __pyx_int_0, 0, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 300, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_r = __pyx_t_5;
   __pyx_t_5 = 0;
   goto __pyx_L0;
 
-  /* "openpifpaf/functional.pyx":286
+  /* "openpifpaf/functional.pyx":288
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * def paf_mask_center(float[:, :] paf_field, float x, float y, float sigma=1.0):             # <<<<<<<<<<<<<<
@@ -7569,7 +7603,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_14paf_mask_center(CYTHON_UNU
   return __pyx_r;
 }
 
-/* "openpifpaf/functional.pyx":303
+/* "openpifpaf/functional.pyx":305
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * def scalar_values(float[:, :] field, float[:] x, float[:] y, float default=-1):             # <<<<<<<<<<<<<<
@@ -7618,13 +7652,13 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_17scalar_values(PyObject *__
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_x)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("scalar_values", 0, 3, 4, 1); __PYX_ERR(0, 303, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("scalar_values", 0, 3, 4, 1); __PYX_ERR(0, 305, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_y)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("scalar_values", 0, 3, 4, 2); __PYX_ERR(0, 303, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("scalar_values", 0, 3, 4, 2); __PYX_ERR(0, 305, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
@@ -7634,7 +7668,7 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_17scalar_values(PyObject *__
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "scalar_values") < 0)) __PYX_ERR(0, 303, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "scalar_values") < 0)) __PYX_ERR(0, 305, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -7647,18 +7681,18 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_17scalar_values(PyObject *__
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_field.memview)) __PYX_ERR(0, 303, __pyx_L3_error)
-    __pyx_v_x = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_x.memview)) __PYX_ERR(0, 303, __pyx_L3_error)
-    __pyx_v_y = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_y.memview)) __PYX_ERR(0, 303, __pyx_L3_error)
+    __pyx_v_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_field.memview)) __PYX_ERR(0, 305, __pyx_L3_error)
+    __pyx_v_x = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_x.memview)) __PYX_ERR(0, 305, __pyx_L3_error)
+    __pyx_v_y = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_y.memview)) __PYX_ERR(0, 305, __pyx_L3_error)
     if (values[3]) {
-      __pyx_v_default = __pyx_PyFloat_AsFloat(values[3]); if (unlikely((__pyx_v_default == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 303, __pyx_L3_error)
+      __pyx_v_default = __pyx_PyFloat_AsFloat(values[3]); if (unlikely((__pyx_v_default == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 305, __pyx_L3_error)
     } else {
       __pyx_v_default = ((float)-1.0);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("scalar_values", 0, 3, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 303, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("scalar_values", 0, 3, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 305, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("openpifpaf.functional.scalar_values", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -7700,28 +7734,28 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_16scalar_values(CYTHON_UNUSE
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("scalar_values", 0);
 
-  /* "openpifpaf/functional.pyx":304
+  /* "openpifpaf/functional.pyx":306
  * @cython.wraparound(False)
  * def scalar_values(float[:, :] field, float[:] x, float[:] y, float default=-1):
  *     values_np = np.full((x.shape[0],), default, dtype=np.float32)             # <<<<<<<<<<<<<<
  *     cdef float[:] values = values_np
  *     cdef float maxx = <float>field.shape[1] - 1, maxy = <float>field.shape[0] - 1
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 304, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 306, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_full); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 304, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_full); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 306, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyInt_FromSsize_t((__pyx_v_x.shape[0])); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 304, __pyx_L1_error)
+  __pyx_t_1 = PyInt_FromSsize_t((__pyx_v_x.shape[0])); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 306, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 304, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 306, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_default); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 304, __pyx_L1_error)
+  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_default); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 306, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 304, __pyx_L1_error)
+  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 306, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3);
@@ -7729,16 +7763,16 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_16scalar_values(CYTHON_UNUSE
   PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_t_1);
   __pyx_t_3 = 0;
   __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 304, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 306, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 304, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 306, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_float32); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 304, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_float32); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 306, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_t_5) < 0) __PYX_ERR(0, 304, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_t_5) < 0) __PYX_ERR(0, 306, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, __pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 304, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, __pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 306, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
@@ -7746,19 +7780,19 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_16scalar_values(CYTHON_UNUSE
   __pyx_v_values_np = __pyx_t_5;
   __pyx_t_5 = 0;
 
-  /* "openpifpaf/functional.pyx":305
+  /* "openpifpaf/functional.pyx":307
  * def scalar_values(float[:, :] field, float[:] x, float[:] y, float default=-1):
  *     values_np = np.full((x.shape[0],), default, dtype=np.float32)
  *     cdef float[:] values = values_np             # <<<<<<<<<<<<<<
  *     cdef float maxx = <float>field.shape[1] - 1, maxy = <float>field.shape[0] - 1
  * 
  */
-  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_v_values_np, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 305, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_v_values_np, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 307, __pyx_L1_error)
   __pyx_v_values = __pyx_t_6;
   __pyx_t_6.memview = NULL;
   __pyx_t_6.data = NULL;
 
-  /* "openpifpaf/functional.pyx":306
+  /* "openpifpaf/functional.pyx":308
  *     values_np = np.full((x.shape[0],), default, dtype=np.float32)
  *     cdef float[:] values = values_np
  *     cdef float maxx = <float>field.shape[1] - 1, maxy = <float>field.shape[0] - 1             # <<<<<<<<<<<<<<
@@ -7768,7 +7802,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_16scalar_values(CYTHON_UNUSE
   __pyx_v_maxx = (((float)(__pyx_v_field.shape[1])) - 1.0);
   __pyx_v_maxy = (((float)(__pyx_v_field.shape[0])) - 1.0);
 
-  /* "openpifpaf/functional.pyx":308
+  /* "openpifpaf/functional.pyx":310
  *     cdef float maxx = <float>field.shape[1] - 1, maxy = <float>field.shape[0] - 1
  * 
  *     for i in range(values.shape[0]):             # <<<<<<<<<<<<<<
@@ -7780,7 +7814,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_16scalar_values(CYTHON_UNUSE
   for (__pyx_t_9 = 0; __pyx_t_9 < __pyx_t_8; __pyx_t_9+=1) {
     __pyx_v_i = __pyx_t_9;
 
-    /* "openpifpaf/functional.pyx":309
+    /* "openpifpaf/functional.pyx":311
  * 
  *     for i in range(values.shape[0]):
  *         if x[i] < 0.0 or y[i] < 0.0 or x[i] > maxx or y[i] > maxy:             # <<<<<<<<<<<<<<
@@ -7814,7 +7848,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_16scalar_values(CYTHON_UNUSE
     __pyx_L6_bool_binop_done:;
     if (__pyx_t_10) {
 
-      /* "openpifpaf/functional.pyx":310
+      /* "openpifpaf/functional.pyx":312
  *     for i in range(values.shape[0]):
  *         if x[i] < 0.0 or y[i] < 0.0 or x[i] > maxx or y[i] > maxy:
  *             continue             # <<<<<<<<<<<<<<
@@ -7823,7 +7857,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_16scalar_values(CYTHON_UNUSE
  */
       goto __pyx_L3_continue;
 
-      /* "openpifpaf/functional.pyx":309
+      /* "openpifpaf/functional.pyx":311
  * 
  *     for i in range(values.shape[0]):
  *         if x[i] < 0.0 or y[i] < 0.0 or x[i] > maxx or y[i] > maxy:             # <<<<<<<<<<<<<<
@@ -7832,7 +7866,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_16scalar_values(CYTHON_UNUSE
  */
     }
 
-    /* "openpifpaf/functional.pyx":312
+    /* "openpifpaf/functional.pyx":314
  *             continue
  * 
  *         values[i] = field[<Py_ssize_t>y[i], <Py_ssize_t>x[i]]             # <<<<<<<<<<<<<<
@@ -7848,7 +7882,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_16scalar_values(CYTHON_UNUSE
     __pyx_L3_continue:;
   }
 
-  /* "openpifpaf/functional.pyx":314
+  /* "openpifpaf/functional.pyx":316
  *         values[i] = field[<Py_ssize_t>y[i], <Py_ssize_t>x[i]]
  * 
  *     return values_np             # <<<<<<<<<<<<<<
@@ -7860,7 +7894,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_16scalar_values(CYTHON_UNUSE
   __pyx_r = __pyx_v_values_np;
   goto __pyx_L0;
 
-  /* "openpifpaf/functional.pyx":303
+  /* "openpifpaf/functional.pyx":305
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * def scalar_values(float[:, :] field, float[:] x, float[:] y, float default=-1):             # <<<<<<<<<<<<<<
@@ -7889,7 +7923,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_16scalar_values(CYTHON_UNUSE
   return __pyx_r;
 }
 
-/* "openpifpaf/functional.pyx":319
+/* "openpifpaf/functional.pyx":321
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * cpdef float scalar_value(float[:, :] field, float x, float y, float default=-1):             # <<<<<<<<<<<<<<
@@ -7913,7 +7947,7 @@ static float __pyx_f_10openpifpaf_10functional_scalar_value(__Pyx_memviewslice _
     }
   }
 
-  /* "openpifpaf/functional.pyx":320
+  /* "openpifpaf/functional.pyx":322
  * @cython.wraparound(False)
  * cpdef float scalar_value(float[:, :] field, float x, float y, float default=-1):
  *     if x < 0.0 or y < 0.0 or x > field.shape[1] - 1 or y > field.shape[0] - 1:             # <<<<<<<<<<<<<<
@@ -7943,7 +7977,7 @@ static float __pyx_f_10openpifpaf_10functional_scalar_value(__Pyx_memviewslice _
   __pyx_L4_bool_binop_done:;
   if (__pyx_t_1) {
 
-    /* "openpifpaf/functional.pyx":321
+    /* "openpifpaf/functional.pyx":323
  * cpdef float scalar_value(float[:, :] field, float x, float y, float default=-1):
  *     if x < 0.0 or y < 0.0 or x > field.shape[1] - 1 or y > field.shape[0] - 1:
  *         return default             # <<<<<<<<<<<<<<
@@ -7953,7 +7987,7 @@ static float __pyx_f_10openpifpaf_10functional_scalar_value(__Pyx_memviewslice _
     __pyx_r = __pyx_v_default;
     goto __pyx_L0;
 
-    /* "openpifpaf/functional.pyx":320
+    /* "openpifpaf/functional.pyx":322
  * @cython.wraparound(False)
  * cpdef float scalar_value(float[:, :] field, float x, float y, float default=-1):
  *     if x < 0.0 or y < 0.0 or x > field.shape[1] - 1 or y > field.shape[0] - 1:             # <<<<<<<<<<<<<<
@@ -7962,7 +7996,7 @@ static float __pyx_f_10openpifpaf_10functional_scalar_value(__Pyx_memviewslice _
  */
   }
 
-  /* "openpifpaf/functional.pyx":323
+  /* "openpifpaf/functional.pyx":325
  *         return default
  * 
  *     return field[<Py_ssize_t>y, <Py_ssize_t>x]             # <<<<<<<<<<<<<<
@@ -7974,7 +8008,7 @@ static float __pyx_f_10openpifpaf_10functional_scalar_value(__Pyx_memviewslice _
   __pyx_r = (*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_field.data + __pyx_t_3 * __pyx_v_field.strides[0]) ) + __pyx_t_4 * __pyx_v_field.strides[1]) )));
   goto __pyx_L0;
 
-  /* "openpifpaf/functional.pyx":319
+  /* "openpifpaf/functional.pyx":321
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * cpdef float scalar_value(float[:, :] field, float x, float y, float default=-1):             # <<<<<<<<<<<<<<
@@ -8028,13 +8062,13 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_19scalar_value(PyObject *__p
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_x)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("scalar_value", 0, 3, 4, 1); __PYX_ERR(0, 319, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("scalar_value", 0, 3, 4, 1); __PYX_ERR(0, 321, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_y)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("scalar_value", 0, 3, 4, 2); __PYX_ERR(0, 319, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("scalar_value", 0, 3, 4, 2); __PYX_ERR(0, 321, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
@@ -8044,7 +8078,7 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_19scalar_value(PyObject *__p
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "scalar_value") < 0)) __PYX_ERR(0, 319, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "scalar_value") < 0)) __PYX_ERR(0, 321, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -8057,18 +8091,18 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_19scalar_value(PyObject *__p
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_field.memview)) __PYX_ERR(0, 319, __pyx_L3_error)
-    __pyx_v_x = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_x == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 319, __pyx_L3_error)
-    __pyx_v_y = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_y == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 319, __pyx_L3_error)
+    __pyx_v_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_field.memview)) __PYX_ERR(0, 321, __pyx_L3_error)
+    __pyx_v_x = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_x == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 321, __pyx_L3_error)
+    __pyx_v_y = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_y == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 321, __pyx_L3_error)
     if (values[3]) {
-      __pyx_v_default = __pyx_PyFloat_AsFloat(values[3]); if (unlikely((__pyx_v_default == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 319, __pyx_L3_error)
+      __pyx_v_default = __pyx_PyFloat_AsFloat(values[3]); if (unlikely((__pyx_v_default == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 321, __pyx_L3_error)
     } else {
       __pyx_v_default = ((float)-1.0);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("scalar_value", 0, 3, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 319, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("scalar_value", 0, 3, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 321, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("openpifpaf.functional.scalar_value", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -8092,11 +8126,11 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_18scalar_value(CYTHON_UNUSED
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("scalar_value", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_field.memview)) { __Pyx_RaiseUnboundLocalError("field"); __PYX_ERR(0, 319, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_field.memview)) { __Pyx_RaiseUnboundLocalError("field"); __PYX_ERR(0, 321, __pyx_L1_error) }
   __pyx_t_2.__pyx_n = 1;
   __pyx_t_2.__pyx_default = __pyx_v_default;
   __pyx_t_1 = __pyx_f_10openpifpaf_10functional_scalar_value(__pyx_v_field, __pyx_v_x, __pyx_v_y, 0, &__pyx_t_2); 
-  __pyx_t_3 = PyFloat_FromDouble(__pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 319, __pyx_L1_error)
+  __pyx_t_3 = PyFloat_FromDouble(__pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 321, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_r = __pyx_t_3;
   __pyx_t_3 = 0;
@@ -8114,7 +8148,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_18scalar_value(CYTHON_UNUSED
   return __pyx_r;
 }
 
-/* "openpifpaf/functional.pyx":328
+/* "openpifpaf/functional.pyx":330
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * cpdef float scalar_value_clipped(float[:, :] field, float x, float y):             # <<<<<<<<<<<<<<
@@ -8130,7 +8164,7 @@ static float __pyx_f_10openpifpaf_10functional_scalar_value_clipped(__Pyx_memvie
   Py_ssize_t __pyx_t_2;
   __Pyx_RefNannySetupContext("scalar_value_clipped", 0);
 
-  /* "openpifpaf/functional.pyx":329
+  /* "openpifpaf/functional.pyx":331
  * @cython.wraparound(False)
  * cpdef float scalar_value_clipped(float[:, :] field, float x, float y):
  *     x = clip(x, 0.0, field.shape[1] - 1)             # <<<<<<<<<<<<<<
@@ -8139,7 +8173,7 @@ static float __pyx_f_10openpifpaf_10functional_scalar_value_clipped(__Pyx_memvie
  */
   __pyx_v_x = __pyx_f_10openpifpaf_10functional_clip(__pyx_v_x, 0.0, ((__pyx_v_field.shape[1]) - 1));
 
-  /* "openpifpaf/functional.pyx":330
+  /* "openpifpaf/functional.pyx":332
  * cpdef float scalar_value_clipped(float[:, :] field, float x, float y):
  *     x = clip(x, 0.0, field.shape[1] - 1)
  *     y = clip(y, 0.0, field.shape[0] - 1)             # <<<<<<<<<<<<<<
@@ -8148,7 +8182,7 @@ static float __pyx_f_10openpifpaf_10functional_scalar_value_clipped(__Pyx_memvie
  */
   __pyx_v_y = __pyx_f_10openpifpaf_10functional_clip(__pyx_v_y, 0.0, ((__pyx_v_field.shape[0]) - 1));
 
-  /* "openpifpaf/functional.pyx":331
+  /* "openpifpaf/functional.pyx":333
  *     x = clip(x, 0.0, field.shape[1] - 1)
  *     y = clip(y, 0.0, field.shape[0] - 1)
  *     return field[<Py_ssize_t>y, <Py_ssize_t>x]             # <<<<<<<<<<<<<<
@@ -8160,7 +8194,7 @@ static float __pyx_f_10openpifpaf_10functional_scalar_value_clipped(__Pyx_memvie
   __pyx_r = (*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_field.data + __pyx_t_1 * __pyx_v_field.strides[0]) ) + __pyx_t_2 * __pyx_v_field.strides[1]) )));
   goto __pyx_L0;
 
-  /* "openpifpaf/functional.pyx":328
+  /* "openpifpaf/functional.pyx":330
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * cpdef float scalar_value_clipped(float[:, :] field, float x, float y):             # <<<<<<<<<<<<<<
@@ -8211,17 +8245,17 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_21scalar_value_clipped(PyObj
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_x)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("scalar_value_clipped", 1, 3, 3, 1); __PYX_ERR(0, 328, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("scalar_value_clipped", 1, 3, 3, 1); __PYX_ERR(0, 330, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_y)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("scalar_value_clipped", 1, 3, 3, 2); __PYX_ERR(0, 328, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("scalar_value_clipped", 1, 3, 3, 2); __PYX_ERR(0, 330, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "scalar_value_clipped") < 0)) __PYX_ERR(0, 328, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "scalar_value_clipped") < 0)) __PYX_ERR(0, 330, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -8230,13 +8264,13 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_21scalar_value_clipped(PyObj
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
     }
-    __pyx_v_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_field.memview)) __PYX_ERR(0, 328, __pyx_L3_error)
-    __pyx_v_x = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_x == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 328, __pyx_L3_error)
-    __pyx_v_y = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_y == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 328, __pyx_L3_error)
+    __pyx_v_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_field.memview)) __PYX_ERR(0, 330, __pyx_L3_error)
+    __pyx_v_x = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_x == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 330, __pyx_L3_error)
+    __pyx_v_y = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_y == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 330, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("scalar_value_clipped", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 328, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("scalar_value_clipped", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 330, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("openpifpaf.functional.scalar_value_clipped", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -8258,8 +8292,8 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_20scalar_value_clipped(CYTHO
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("scalar_value_clipped", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_field.memview)) { __Pyx_RaiseUnboundLocalError("field"); __PYX_ERR(0, 328, __pyx_L1_error) }
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_f_10openpifpaf_10functional_scalar_value_clipped(__pyx_v_field, __pyx_v_x, __pyx_v_y, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 328, __pyx_L1_error)
+  if (unlikely(!__pyx_v_field.memview)) { __Pyx_RaiseUnboundLocalError("field"); __PYX_ERR(0, 330, __pyx_L1_error) }
+  __pyx_t_1 = PyFloat_FromDouble(__pyx_f_10openpifpaf_10functional_scalar_value_clipped(__pyx_v_field, __pyx_v_x, __pyx_v_y, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 330, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -8277,7 +8311,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_20scalar_value_clipped(CYTHO
   return __pyx_r;
 }
 
-/* "openpifpaf/functional.pyx":336
+/* "openpifpaf/functional.pyx":338
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * cpdef unsigned char scalar_nonzero(unsigned char[:, :] field, float x, float y, unsigned char default=0):             # <<<<<<<<<<<<<<
@@ -8301,7 +8335,7 @@ static unsigned char __pyx_f_10openpifpaf_10functional_scalar_nonzero(__Pyx_memv
     }
   }
 
-  /* "openpifpaf/functional.pyx":337
+  /* "openpifpaf/functional.pyx":339
  * @cython.wraparound(False)
  * cpdef unsigned char scalar_nonzero(unsigned char[:, :] field, float x, float y, unsigned char default=0):
  *     if x < 0.0 or y < 0.0 or x > field.shape[1] - 1 or y > field.shape[0] - 1:             # <<<<<<<<<<<<<<
@@ -8331,7 +8365,7 @@ static unsigned char __pyx_f_10openpifpaf_10functional_scalar_nonzero(__Pyx_memv
   __pyx_L4_bool_binop_done:;
   if (__pyx_t_1) {
 
-    /* "openpifpaf/functional.pyx":338
+    /* "openpifpaf/functional.pyx":340
  * cpdef unsigned char scalar_nonzero(unsigned char[:, :] field, float x, float y, unsigned char default=0):
  *     if x < 0.0 or y < 0.0 or x > field.shape[1] - 1 or y > field.shape[0] - 1:
  *         return default             # <<<<<<<<<<<<<<
@@ -8341,7 +8375,7 @@ static unsigned char __pyx_f_10openpifpaf_10functional_scalar_nonzero(__Pyx_memv
     __pyx_r = __pyx_v_default;
     goto __pyx_L0;
 
-    /* "openpifpaf/functional.pyx":337
+    /* "openpifpaf/functional.pyx":339
  * @cython.wraparound(False)
  * cpdef unsigned char scalar_nonzero(unsigned char[:, :] field, float x, float y, unsigned char default=0):
  *     if x < 0.0 or y < 0.0 or x > field.shape[1] - 1 or y > field.shape[0] - 1:             # <<<<<<<<<<<<<<
@@ -8350,7 +8384,7 @@ static unsigned char __pyx_f_10openpifpaf_10functional_scalar_nonzero(__Pyx_memv
  */
   }
 
-  /* "openpifpaf/functional.pyx":340
+  /* "openpifpaf/functional.pyx":342
  *         return default
  * 
  *     return field[<Py_ssize_t>y, <Py_ssize_t>x]             # <<<<<<<<<<<<<<
@@ -8362,7 +8396,7 @@ static unsigned char __pyx_f_10openpifpaf_10functional_scalar_nonzero(__Pyx_memv
   __pyx_r = (*((unsigned char *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_field.data + __pyx_t_3 * __pyx_v_field.strides[0]) ) + __pyx_t_4 * __pyx_v_field.strides[1]) )));
   goto __pyx_L0;
 
-  /* "openpifpaf/functional.pyx":336
+  /* "openpifpaf/functional.pyx":338
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * cpdef unsigned char scalar_nonzero(unsigned char[:, :] field, float x, float y, unsigned char default=0):             # <<<<<<<<<<<<<<
@@ -8416,13 +8450,13 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_23scalar_nonzero(PyObject *_
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_x)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("scalar_nonzero", 0, 3, 4, 1); __PYX_ERR(0, 336, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("scalar_nonzero", 0, 3, 4, 1); __PYX_ERR(0, 338, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_y)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("scalar_nonzero", 0, 3, 4, 2); __PYX_ERR(0, 336, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("scalar_nonzero", 0, 3, 4, 2); __PYX_ERR(0, 338, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
@@ -8432,7 +8466,7 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_23scalar_nonzero(PyObject *_
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "scalar_nonzero") < 0)) __PYX_ERR(0, 336, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "scalar_nonzero") < 0)) __PYX_ERR(0, 338, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -8445,18 +8479,18 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_23scalar_nonzero(PyObject *_
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_unsigned_char(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_field.memview)) __PYX_ERR(0, 336, __pyx_L3_error)
-    __pyx_v_x = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_x == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 336, __pyx_L3_error)
-    __pyx_v_y = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_y == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 336, __pyx_L3_error)
+    __pyx_v_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_unsigned_char(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_field.memview)) __PYX_ERR(0, 338, __pyx_L3_error)
+    __pyx_v_x = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_x == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 338, __pyx_L3_error)
+    __pyx_v_y = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_y == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 338, __pyx_L3_error)
     if (values[3]) {
-      __pyx_v_default = __Pyx_PyInt_As_unsigned_char(values[3]); if (unlikely((__pyx_v_default == (unsigned char)-1) && PyErr_Occurred())) __PYX_ERR(0, 336, __pyx_L3_error)
+      __pyx_v_default = __Pyx_PyInt_As_unsigned_char(values[3]); if (unlikely((__pyx_v_default == (unsigned char)-1) && PyErr_Occurred())) __PYX_ERR(0, 338, __pyx_L3_error)
     } else {
       __pyx_v_default = ((unsigned char)0);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("scalar_nonzero", 0, 3, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 336, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("scalar_nonzero", 0, 3, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 338, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("openpifpaf.functional.scalar_nonzero", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -8480,11 +8514,11 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_22scalar_nonzero(CYTHON_UNUS
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("scalar_nonzero", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_field.memview)) { __Pyx_RaiseUnboundLocalError("field"); __PYX_ERR(0, 336, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_field.memview)) { __Pyx_RaiseUnboundLocalError("field"); __PYX_ERR(0, 338, __pyx_L1_error) }
   __pyx_t_2.__pyx_n = 1;
   __pyx_t_2.__pyx_default = __pyx_v_default;
   __pyx_t_1 = __pyx_f_10openpifpaf_10functional_scalar_nonzero(__pyx_v_field, __pyx_v_x, __pyx_v_y, 0, &__pyx_t_2); 
-  __pyx_t_3 = __Pyx_PyInt_From_unsigned_char(__pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 336, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_unsigned_char(__pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 338, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_r = __pyx_t_3;
   __pyx_t_3 = 0;
@@ -8502,7 +8536,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_22scalar_nonzero(CYTHON_UNUS
   return __pyx_r;
 }
 
-/* "openpifpaf/functional.pyx":345
+/* "openpifpaf/functional.pyx":347
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * cpdef unsigned char scalar_nonzero_clipped(unsigned char[:, :] field, float x, float y):             # <<<<<<<<<<<<<<
@@ -8518,7 +8552,7 @@ static unsigned char __pyx_f_10openpifpaf_10functional_scalar_nonzero_clipped(__
   Py_ssize_t __pyx_t_2;
   __Pyx_RefNannySetupContext("scalar_nonzero_clipped", 0);
 
-  /* "openpifpaf/functional.pyx":346
+  /* "openpifpaf/functional.pyx":348
  * @cython.wraparound(False)
  * cpdef unsigned char scalar_nonzero_clipped(unsigned char[:, :] field, float x, float y):
  *     x = clip(x, 0.0, field.shape[1] - 1)             # <<<<<<<<<<<<<<
@@ -8527,7 +8561,7 @@ static unsigned char __pyx_f_10openpifpaf_10functional_scalar_nonzero_clipped(__
  */
   __pyx_v_x = __pyx_f_10openpifpaf_10functional_clip(__pyx_v_x, 0.0, ((__pyx_v_field.shape[1]) - 1));
 
-  /* "openpifpaf/functional.pyx":347
+  /* "openpifpaf/functional.pyx":349
  * cpdef unsigned char scalar_nonzero_clipped(unsigned char[:, :] field, float x, float y):
  *     x = clip(x, 0.0, field.shape[1] - 1)
  *     y = clip(y, 0.0, field.shape[0] - 1)             # <<<<<<<<<<<<<<
@@ -8536,7 +8570,7 @@ static unsigned char __pyx_f_10openpifpaf_10functional_scalar_nonzero_clipped(__
  */
   __pyx_v_y = __pyx_f_10openpifpaf_10functional_clip(__pyx_v_y, 0.0, ((__pyx_v_field.shape[0]) - 1));
 
-  /* "openpifpaf/functional.pyx":348
+  /* "openpifpaf/functional.pyx":350
  *     x = clip(x, 0.0, field.shape[1] - 1)
  *     y = clip(y, 0.0, field.shape[0] - 1)
  *     return field[<Py_ssize_t>y, <Py_ssize_t>x]             # <<<<<<<<<<<<<<
@@ -8548,7 +8582,7 @@ static unsigned char __pyx_f_10openpifpaf_10functional_scalar_nonzero_clipped(__
   __pyx_r = (*((unsigned char *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_field.data + __pyx_t_1 * __pyx_v_field.strides[0]) ) + __pyx_t_2 * __pyx_v_field.strides[1]) )));
   goto __pyx_L0;
 
-  /* "openpifpaf/functional.pyx":345
+  /* "openpifpaf/functional.pyx":347
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * cpdef unsigned char scalar_nonzero_clipped(unsigned char[:, :] field, float x, float y):             # <<<<<<<<<<<<<<
@@ -8599,17 +8633,17 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_25scalar_nonzero_clipped(PyO
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_x)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("scalar_nonzero_clipped", 1, 3, 3, 1); __PYX_ERR(0, 345, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("scalar_nonzero_clipped", 1, 3, 3, 1); __PYX_ERR(0, 347, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_y)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("scalar_nonzero_clipped", 1, 3, 3, 2); __PYX_ERR(0, 345, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("scalar_nonzero_clipped", 1, 3, 3, 2); __PYX_ERR(0, 347, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "scalar_nonzero_clipped") < 0)) __PYX_ERR(0, 345, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "scalar_nonzero_clipped") < 0)) __PYX_ERR(0, 347, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -8618,13 +8652,13 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_25scalar_nonzero_clipped(PyO
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
     }
-    __pyx_v_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_unsigned_char(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_field.memview)) __PYX_ERR(0, 345, __pyx_L3_error)
-    __pyx_v_x = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_x == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 345, __pyx_L3_error)
-    __pyx_v_y = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_y == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 345, __pyx_L3_error)
+    __pyx_v_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_unsigned_char(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_field.memview)) __PYX_ERR(0, 347, __pyx_L3_error)
+    __pyx_v_x = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_x == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 347, __pyx_L3_error)
+    __pyx_v_y = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_y == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 347, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("scalar_nonzero_clipped", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 345, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("scalar_nonzero_clipped", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 347, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("openpifpaf.functional.scalar_nonzero_clipped", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -8646,8 +8680,8 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_24scalar_nonzero_clipped(CYT
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("scalar_nonzero_clipped", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_field.memview)) { __Pyx_RaiseUnboundLocalError("field"); __PYX_ERR(0, 345, __pyx_L1_error) }
-  __pyx_t_1 = __Pyx_PyInt_From_unsigned_char(__pyx_f_10openpifpaf_10functional_scalar_nonzero_clipped(__pyx_v_field, __pyx_v_x, __pyx_v_y, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 345, __pyx_L1_error)
+  if (unlikely(!__pyx_v_field.memview)) { __Pyx_RaiseUnboundLocalError("field"); __PYX_ERR(0, 347, __pyx_L1_error) }
+  __pyx_t_1 = __Pyx_PyInt_From_unsigned_char(__pyx_f_10openpifpaf_10functional_scalar_nonzero_clipped(__pyx_v_field, __pyx_v_x, __pyx_v_y, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 347, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -8665,7 +8699,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_24scalar_nonzero_clipped(CYT
   return __pyx_r;
 }
 
-/* "openpifpaf/functional.pyx":353
+/* "openpifpaf/functional.pyx":355
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * cpdef unsigned char scalar_nonzero_clipped_with_reduction(unsigned char[:, :] field, float x, float y, float r):             # <<<<<<<<<<<<<<
@@ -8684,7 +8718,7 @@ static unsigned char __pyx_f_10openpifpaf_10functional_scalar_nonzero_clipped_wi
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("scalar_nonzero_clipped_with_reduction", 0);
 
-  /* "openpifpaf/functional.pyx":354
+  /* "openpifpaf/functional.pyx":356
  * @cython.wraparound(False)
  * cpdef unsigned char scalar_nonzero_clipped_with_reduction(unsigned char[:, :] field, float x, float y, float r):
  *     x = clip(x / r, 0.0, field.shape[1] - 1)             # <<<<<<<<<<<<<<
@@ -8693,11 +8727,11 @@ static unsigned char __pyx_f_10openpifpaf_10functional_scalar_nonzero_clipped_wi
  */
   if (unlikely(__pyx_v_r == 0)) {
     PyErr_SetString(PyExc_ZeroDivisionError, "float division");
-    __PYX_ERR(0, 354, __pyx_L1_error)
+    __PYX_ERR(0, 356, __pyx_L1_error)
   }
   __pyx_v_x = __pyx_f_10openpifpaf_10functional_clip((__pyx_v_x / __pyx_v_r), 0.0, ((__pyx_v_field.shape[1]) - 1));
 
-  /* "openpifpaf/functional.pyx":355
+  /* "openpifpaf/functional.pyx":357
  * cpdef unsigned char scalar_nonzero_clipped_with_reduction(unsigned char[:, :] field, float x, float y, float r):
  *     x = clip(x / r, 0.0, field.shape[1] - 1)
  *     y = clip(y / r, 0.0, field.shape[0] - 1)             # <<<<<<<<<<<<<<
@@ -8706,11 +8740,11 @@ static unsigned char __pyx_f_10openpifpaf_10functional_scalar_nonzero_clipped_wi
  */
   if (unlikely(__pyx_v_r == 0)) {
     PyErr_SetString(PyExc_ZeroDivisionError, "float division");
-    __PYX_ERR(0, 355, __pyx_L1_error)
+    __PYX_ERR(0, 357, __pyx_L1_error)
   }
   __pyx_v_y = __pyx_f_10openpifpaf_10functional_clip((__pyx_v_y / __pyx_v_r), 0.0, ((__pyx_v_field.shape[0]) - 1));
 
-  /* "openpifpaf/functional.pyx":356
+  /* "openpifpaf/functional.pyx":358
  *     x = clip(x / r, 0.0, field.shape[1] - 1)
  *     y = clip(y / r, 0.0, field.shape[0] - 1)
  *     return field[<Py_ssize_t>y, <Py_ssize_t>x]             # <<<<<<<<<<<<<<
@@ -8722,7 +8756,7 @@ static unsigned char __pyx_f_10openpifpaf_10functional_scalar_nonzero_clipped_wi
   __pyx_r = (*((unsigned char *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_field.data + __pyx_t_1 * __pyx_v_field.strides[0]) ) + __pyx_t_2 * __pyx_v_field.strides[1]) )));
   goto __pyx_L0;
 
-  /* "openpifpaf/functional.pyx":353
+  /* "openpifpaf/functional.pyx":355
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * cpdef unsigned char scalar_nonzero_clipped_with_reduction(unsigned char[:, :] field, float x, float y, float r):             # <<<<<<<<<<<<<<
@@ -8779,23 +8813,23 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_27scalar_nonzero_clipped_wit
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_x)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("scalar_nonzero_clipped_with_reduction", 1, 4, 4, 1); __PYX_ERR(0, 353, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("scalar_nonzero_clipped_with_reduction", 1, 4, 4, 1); __PYX_ERR(0, 355, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_y)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("scalar_nonzero_clipped_with_reduction", 1, 4, 4, 2); __PYX_ERR(0, 353, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("scalar_nonzero_clipped_with_reduction", 1, 4, 4, 2); __PYX_ERR(0, 355, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_r)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("scalar_nonzero_clipped_with_reduction", 1, 4, 4, 3); __PYX_ERR(0, 353, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("scalar_nonzero_clipped_with_reduction", 1, 4, 4, 3); __PYX_ERR(0, 355, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "scalar_nonzero_clipped_with_reduction") < 0)) __PYX_ERR(0, 353, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "scalar_nonzero_clipped_with_reduction") < 0)) __PYX_ERR(0, 355, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 4) {
       goto __pyx_L5_argtuple_error;
@@ -8805,14 +8839,14 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_27scalar_nonzero_clipped_wit
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
       values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
     }
-    __pyx_v_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_unsigned_char(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_field.memview)) __PYX_ERR(0, 353, __pyx_L3_error)
-    __pyx_v_x = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_x == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 353, __pyx_L3_error)
-    __pyx_v_y = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_y == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 353, __pyx_L3_error)
-    __pyx_v_r = __pyx_PyFloat_AsFloat(values[3]); if (unlikely((__pyx_v_r == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 353, __pyx_L3_error)
+    __pyx_v_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_unsigned_char(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_field.memview)) __PYX_ERR(0, 355, __pyx_L3_error)
+    __pyx_v_x = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_x == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 355, __pyx_L3_error)
+    __pyx_v_y = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_y == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 355, __pyx_L3_error)
+    __pyx_v_r = __pyx_PyFloat_AsFloat(values[3]); if (unlikely((__pyx_v_r == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 355, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("scalar_nonzero_clipped_with_reduction", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 353, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("scalar_nonzero_clipped_with_reduction", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 355, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("openpifpaf.functional.scalar_nonzero_clipped_with_reduction", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -8834,8 +8868,8 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_26scalar_nonzero_clipped_wit
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("scalar_nonzero_clipped_with_reduction", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_field.memview)) { __Pyx_RaiseUnboundLocalError("field"); __PYX_ERR(0, 353, __pyx_L1_error) }
-  __pyx_t_1 = __Pyx_PyInt_From_unsigned_char(__pyx_f_10openpifpaf_10functional_scalar_nonzero_clipped_with_reduction(__pyx_v_field, __pyx_v_x, __pyx_v_y, __pyx_v_r, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 353, __pyx_L1_error)
+  if (unlikely(!__pyx_v_field.memview)) { __Pyx_RaiseUnboundLocalError("field"); __PYX_ERR(0, 355, __pyx_L1_error) }
+  __pyx_t_1 = __Pyx_PyInt_From_unsigned_char(__pyx_f_10openpifpaf_10functional_scalar_nonzero_clipped_with_reduction(__pyx_v_field, __pyx_v_x, __pyx_v_y, __pyx_v_r, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 355, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -8853,7 +8887,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_26scalar_nonzero_clipped_wit
   return __pyx_r;
 }
 
-/* "openpifpaf/functional.pyx":361
+/* "openpifpaf/functional.pyx":363
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * def paf_center_b(float[:, :] paf_field, float x, float y, float sigma=1.0):             # <<<<<<<<<<<<<<
@@ -8902,13 +8936,13 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_29paf_center_b(PyObject *__p
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_x)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("paf_center_b", 0, 3, 4, 1); __PYX_ERR(0, 361, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("paf_center_b", 0, 3, 4, 1); __PYX_ERR(0, 363, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_y)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("paf_center_b", 0, 3, 4, 2); __PYX_ERR(0, 361, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("paf_center_b", 0, 3, 4, 2); __PYX_ERR(0, 363, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
@@ -8918,7 +8952,7 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_29paf_center_b(PyObject *__p
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "paf_center_b") < 0)) __PYX_ERR(0, 361, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "paf_center_b") < 0)) __PYX_ERR(0, 363, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -8931,18 +8965,18 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_29paf_center_b(PyObject *__p
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_paf_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_paf_field.memview)) __PYX_ERR(0, 361, __pyx_L3_error)
-    __pyx_v_x = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_x == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 361, __pyx_L3_error)
-    __pyx_v_y = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_y == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 361, __pyx_L3_error)
+    __pyx_v_paf_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_paf_field.memview)) __PYX_ERR(0, 363, __pyx_L3_error)
+    __pyx_v_x = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_x == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 363, __pyx_L3_error)
+    __pyx_v_y = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_y == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 363, __pyx_L3_error)
     if (values[3]) {
-      __pyx_v_sigma = __pyx_PyFloat_AsFloat(values[3]); if (unlikely((__pyx_v_sigma == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 361, __pyx_L3_error)
+      __pyx_v_sigma = __pyx_PyFloat_AsFloat(values[3]); if (unlikely((__pyx_v_sigma == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 363, __pyx_L3_error)
     } else {
       __pyx_v_sigma = ((float)1.0);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("paf_center_b", 0, 3, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 361, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("paf_center_b", 0, 3, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 363, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("openpifpaf.functional.paf_center_b", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -8984,19 +9018,19 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_28paf_center_b(CYTHON_UNUSED
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("paf_center_b", 0);
 
-  /* "openpifpaf/functional.pyx":362
+  /* "openpifpaf/functional.pyx":364
  * @cython.wraparound(False)
  * def paf_center_b(float[:, :] paf_field, float x, float y, float sigma=1.0):
  *     result_np = np.empty_like(paf_field)             # <<<<<<<<<<<<<<
  *     cdef float[:, :] result = result_np
  *     cdef unsigned int result_i = 0
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 362, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 364, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_empty_like); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 362, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_empty_like); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 364, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_v_paf_field, 2, (PyObject *(*)(char *)) __pyx_memview_get_float, (int (*)(char *, PyObject *)) __pyx_memview_set_float, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 362, __pyx_L1_error)
+  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_v_paf_field, 2, (PyObject *(*)(char *)) __pyx_memview_get_float, (int (*)(char *, PyObject *)) __pyx_memview_set_float, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 364, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_4 = NULL;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
@@ -9011,25 +9045,25 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_28paf_center_b(CYTHON_UNUSED
   __pyx_t_1 = (__pyx_t_4) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_4, __pyx_t_2) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_2);
   __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 362, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 364, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_v_result_np = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "openpifpaf/functional.pyx":363
+  /* "openpifpaf/functional.pyx":365
  * def paf_center_b(float[:, :] paf_field, float x, float y, float sigma=1.0):
  *     result_np = np.empty_like(paf_field)
  *     cdef float[:, :] result = result_np             # <<<<<<<<<<<<<<
  *     cdef unsigned int result_i = 0
  *     cdef bint take
  */
-  __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(__pyx_v_result_np, PyBUF_WRITABLE); if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 363, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(__pyx_v_result_np, PyBUF_WRITABLE); if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 365, __pyx_L1_error)
   __pyx_v_result = __pyx_t_5;
   __pyx_t_5.memview = NULL;
   __pyx_t_5.data = NULL;
 
-  /* "openpifpaf/functional.pyx":364
+  /* "openpifpaf/functional.pyx":366
  *     result_np = np.empty_like(paf_field)
  *     cdef float[:, :] result = result_np
  *     cdef unsigned int result_i = 0             # <<<<<<<<<<<<<<
@@ -9038,7 +9072,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_28paf_center_b(CYTHON_UNUSED
  */
   __pyx_v_result_i = 0;
 
-  /* "openpifpaf/functional.pyx":367
+  /* "openpifpaf/functional.pyx":369
  *     cdef bint take
  * 
  *     for i in range(paf_field.shape[1]):             # <<<<<<<<<<<<<<
@@ -9050,7 +9084,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_28paf_center_b(CYTHON_UNUSED
   for (__pyx_t_8 = 0; __pyx_t_8 < __pyx_t_7; __pyx_t_8+=1) {
     __pyx_v_i = __pyx_t_8;
 
-    /* "openpifpaf/functional.pyx":369
+    /* "openpifpaf/functional.pyx":371
  *     for i in range(paf_field.shape[1]):
  *         take = (
  *             paf_field[1, i] > x - sigma * paf_field[3, i] and             # <<<<<<<<<<<<<<
@@ -9068,7 +9102,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_28paf_center_b(CYTHON_UNUSED
       goto __pyx_L5_bool_binop_done;
     }
 
-    /* "openpifpaf/functional.pyx":370
+    /* "openpifpaf/functional.pyx":372
  *         take = (
  *             paf_field[1, i] > x - sigma * paf_field[3, i] and
  *             paf_field[1, i] < x + sigma * paf_field[3, i] and             # <<<<<<<<<<<<<<
@@ -9086,7 +9120,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_28paf_center_b(CYTHON_UNUSED
       goto __pyx_L5_bool_binop_done;
     }
 
-    /* "openpifpaf/functional.pyx":371
+    /* "openpifpaf/functional.pyx":373
  *             paf_field[1, i] > x - sigma * paf_field[3, i] and
  *             paf_field[1, i] < x + sigma * paf_field[3, i] and
  *             paf_field[2, i] > y - sigma * paf_field[3, i] and             # <<<<<<<<<<<<<<
@@ -9104,7 +9138,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_28paf_center_b(CYTHON_UNUSED
       goto __pyx_L5_bool_binop_done;
     }
 
-    /* "openpifpaf/functional.pyx":372
+    /* "openpifpaf/functional.pyx":374
  *             paf_field[1, i] < x + sigma * paf_field[3, i] and
  *             paf_field[2, i] > y - sigma * paf_field[3, i] and
  *             paf_field[2, i] < y + sigma * paf_field[3, i]             # <<<<<<<<<<<<<<
@@ -9120,7 +9154,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_28paf_center_b(CYTHON_UNUSED
     __pyx_L5_bool_binop_done:;
     __pyx_v_take = __pyx_t_9;
 
-    /* "openpifpaf/functional.pyx":374
+    /* "openpifpaf/functional.pyx":376
  *             paf_field[2, i] < y + sigma * paf_field[3, i]
  *         )
  *         if not take:             # <<<<<<<<<<<<<<
@@ -9130,7 +9164,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_28paf_center_b(CYTHON_UNUSED
     __pyx_t_9 = ((!(__pyx_v_take != 0)) != 0);
     if (__pyx_t_9) {
 
-      /* "openpifpaf/functional.pyx":375
+      /* "openpifpaf/functional.pyx":377
  *         )
  *         if not take:
  *             continue             # <<<<<<<<<<<<<<
@@ -9139,7 +9173,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_28paf_center_b(CYTHON_UNUSED
  */
       goto __pyx_L3_continue;
 
-      /* "openpifpaf/functional.pyx":374
+      /* "openpifpaf/functional.pyx":376
  *             paf_field[2, i] < y + sigma * paf_field[3, i]
  *         )
  *         if not take:             # <<<<<<<<<<<<<<
@@ -9148,7 +9182,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_28paf_center_b(CYTHON_UNUSED
  */
     }
 
-    /* "openpifpaf/functional.pyx":377
+    /* "openpifpaf/functional.pyx":379
  *             continue
  * 
  *         result[:, result_i] = paf_field[:, i]             # <<<<<<<<<<<<<<
@@ -9181,7 +9215,7 @@ __pyx_t_16.strides[0] = __pyx_v_result.strides[0];
         __pyx_t_16.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
 
-if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_15, __pyx_t_16, 1, 1, 0) < 0)) __PYX_ERR(0, 377, __pyx_L1_error)
+if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_15, __pyx_t_16, 1, 1, 0) < 0)) __PYX_ERR(0, 379, __pyx_L1_error)
     __PYX_XDEC_MEMVIEW(&__pyx_t_16, 1);
     __pyx_t_16.memview = NULL;
     __pyx_t_16.data = NULL;
@@ -9189,7 +9223,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_15, __pyx_t_16, 1, 1, 0) < 0
     __pyx_t_15.memview = NULL;
     __pyx_t_15.data = NULL;
 
-    /* "openpifpaf/functional.pyx":378
+    /* "openpifpaf/functional.pyx":380
  * 
  *         result[:, result_i] = paf_field[:, i]
  *         result_i += 1             # <<<<<<<<<<<<<<
@@ -9200,7 +9234,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_15, __pyx_t_16, 1, 1, 0) < 0
     __pyx_L3_continue:;
   }
 
-  /* "openpifpaf/functional.pyx":380
+  /* "openpifpaf/functional.pyx":382
  *         result_i += 1
  * 
  *     return result_np[:, :result_i]             # <<<<<<<<<<<<<<
@@ -9208,12 +9242,12 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_15, __pyx_t_16, 1, 1, 0) < 0
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_unsigned_int(__pyx_v_result_i); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 380, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_unsigned_int(__pyx_v_result_i); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 382, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PySlice_New(Py_None, __pyx_t_1, Py_None); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 380, __pyx_L1_error)
+  __pyx_t_3 = PySlice_New(Py_None, __pyx_t_1, Py_None); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 382, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 380, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 382, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_slice__2);
   __Pyx_GIVEREF(__pyx_slice__2);
@@ -9221,14 +9255,14 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_15, __pyx_t_16, 1, 1, 0) < 0
   __Pyx_GIVEREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_t_3);
   __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyObject_GetItem(__pyx_v_result_np, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 380, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetItem(__pyx_v_result_np, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 382, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_r = __pyx_t_3;
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "openpifpaf/functional.pyx":361
+  /* "openpifpaf/functional.pyx":363
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * def paf_center_b(float[:, :] paf_field, float x, float y, float sigma=1.0):             # <<<<<<<<<<<<<<
@@ -9256,7 +9290,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_15, __pyx_t_16, 1, 1, 0) < 0
   return __pyx_r;
 }
 
-/* "openpifpaf/functional.pyx":385
+/* "openpifpaf/functional.pyx":387
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * def paf_center(float[:, :] paf_field, float x, float y, float sigma):             # <<<<<<<<<<<<<<
@@ -9305,23 +9339,23 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_31paf_center(PyObject *__pyx
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_x)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("paf_center", 1, 4, 4, 1); __PYX_ERR(0, 385, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("paf_center", 1, 4, 4, 1); __PYX_ERR(0, 387, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_y)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("paf_center", 1, 4, 4, 2); __PYX_ERR(0, 385, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("paf_center", 1, 4, 4, 2); __PYX_ERR(0, 387, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_sigma)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("paf_center", 1, 4, 4, 3); __PYX_ERR(0, 385, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("paf_center", 1, 4, 4, 3); __PYX_ERR(0, 387, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "paf_center") < 0)) __PYX_ERR(0, 385, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "paf_center") < 0)) __PYX_ERR(0, 387, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 4) {
       goto __pyx_L5_argtuple_error;
@@ -9331,14 +9365,14 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_31paf_center(PyObject *__pyx
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
       values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
     }
-    __pyx_v_paf_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_paf_field.memview)) __PYX_ERR(0, 385, __pyx_L3_error)
-    __pyx_v_x = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_x == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 385, __pyx_L3_error)
-    __pyx_v_y = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_y == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 385, __pyx_L3_error)
-    __pyx_v_sigma = __pyx_PyFloat_AsFloat(values[3]); if (unlikely((__pyx_v_sigma == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 385, __pyx_L3_error)
+    __pyx_v_paf_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_paf_field.memview)) __PYX_ERR(0, 387, __pyx_L3_error)
+    __pyx_v_x = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_x == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 387, __pyx_L3_error)
+    __pyx_v_y = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_y == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 387, __pyx_L3_error)
+    __pyx_v_sigma = __pyx_PyFloat_AsFloat(values[3]); if (unlikely((__pyx_v_sigma == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 387, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("paf_center", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 385, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("paf_center", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 387, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("openpifpaf.functional.paf_center", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -9376,19 +9410,19 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_30paf_center(CYTHON_UNUSED P
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("paf_center", 0);
 
-  /* "openpifpaf/functional.pyx":386
+  /* "openpifpaf/functional.pyx":388
  * @cython.wraparound(False)
  * def paf_center(float[:, :] paf_field, float x, float y, float sigma):
  *     result_np = np.empty_like(paf_field)             # <<<<<<<<<<<<<<
  *     cdef float[:, :] result = result_np
  *     cdef unsigned int result_i = 0
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 386, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 388, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_empty_like); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 386, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_empty_like); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 388, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_v_paf_field, 2, (PyObject *(*)(char *)) __pyx_memview_get_float, (int (*)(char *, PyObject *)) __pyx_memview_set_float, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 386, __pyx_L1_error)
+  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_v_paf_field, 2, (PyObject *(*)(char *)) __pyx_memview_get_float, (int (*)(char *, PyObject *)) __pyx_memview_set_float, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 388, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_4 = NULL;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
@@ -9403,25 +9437,25 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_30paf_center(CYTHON_UNUSED P
   __pyx_t_1 = (__pyx_t_4) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_4, __pyx_t_2) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_2);
   __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 386, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 388, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_v_result_np = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "openpifpaf/functional.pyx":387
+  /* "openpifpaf/functional.pyx":389
  * def paf_center(float[:, :] paf_field, float x, float y, float sigma):
  *     result_np = np.empty_like(paf_field)
  *     cdef float[:, :] result = result_np             # <<<<<<<<<<<<<<
  *     cdef unsigned int result_i = 0
  *     cdef bint take
  */
-  __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(__pyx_v_result_np, PyBUF_WRITABLE); if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 387, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(__pyx_v_result_np, PyBUF_WRITABLE); if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 389, __pyx_L1_error)
   __pyx_v_result = __pyx_t_5;
   __pyx_t_5.memview = NULL;
   __pyx_t_5.data = NULL;
 
-  /* "openpifpaf/functional.pyx":388
+  /* "openpifpaf/functional.pyx":390
  *     result_np = np.empty_like(paf_field)
  *     cdef float[:, :] result = result_np
  *     cdef unsigned int result_i = 0             # <<<<<<<<<<<<<<
@@ -9430,7 +9464,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_30paf_center(CYTHON_UNUSED P
  */
   __pyx_v_result_i = 0;
 
-  /* "openpifpaf/functional.pyx":392
+  /* "openpifpaf/functional.pyx":394
  *     cdef Py_ssize_t i
  * 
  *     for i in range(paf_field.shape[1]):             # <<<<<<<<<<<<<<
@@ -9442,7 +9476,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_30paf_center(CYTHON_UNUSED P
   for (__pyx_t_8 = 0; __pyx_t_8 < __pyx_t_7; __pyx_t_8+=1) {
     __pyx_v_i = __pyx_t_8;
 
-    /* "openpifpaf/functional.pyx":393
+    /* "openpifpaf/functional.pyx":395
  * 
  *     for i in range(paf_field.shape[1]):
  *         if paf_field[1, i] < x - sigma:             # <<<<<<<<<<<<<<
@@ -9454,7 +9488,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_30paf_center(CYTHON_UNUSED P
     __pyx_t_11 = (((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_9 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_10 * __pyx_v_paf_field.strides[1]) ))) < (__pyx_v_x - __pyx_v_sigma)) != 0);
     if (__pyx_t_11) {
 
-      /* "openpifpaf/functional.pyx":394
+      /* "openpifpaf/functional.pyx":396
  *     for i in range(paf_field.shape[1]):
  *         if paf_field[1, i] < x - sigma:
  *             continue             # <<<<<<<<<<<<<<
@@ -9463,7 +9497,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_30paf_center(CYTHON_UNUSED P
  */
       goto __pyx_L3_continue;
 
-      /* "openpifpaf/functional.pyx":393
+      /* "openpifpaf/functional.pyx":395
  * 
  *     for i in range(paf_field.shape[1]):
  *         if paf_field[1, i] < x - sigma:             # <<<<<<<<<<<<<<
@@ -9472,7 +9506,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_30paf_center(CYTHON_UNUSED P
  */
     }
 
-    /* "openpifpaf/functional.pyx":395
+    /* "openpifpaf/functional.pyx":397
  *         if paf_field[1, i] < x - sigma:
  *             continue
  *         if paf_field[1, i] > x + sigma:             # <<<<<<<<<<<<<<
@@ -9484,7 +9518,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_30paf_center(CYTHON_UNUSED P
     __pyx_t_11 = (((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_10 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_9 * __pyx_v_paf_field.strides[1]) ))) > (__pyx_v_x + __pyx_v_sigma)) != 0);
     if (__pyx_t_11) {
 
-      /* "openpifpaf/functional.pyx":396
+      /* "openpifpaf/functional.pyx":398
  *             continue
  *         if paf_field[1, i] > x + sigma:
  *             continue             # <<<<<<<<<<<<<<
@@ -9493,7 +9527,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_30paf_center(CYTHON_UNUSED P
  */
       goto __pyx_L3_continue;
 
-      /* "openpifpaf/functional.pyx":395
+      /* "openpifpaf/functional.pyx":397
  *         if paf_field[1, i] < x - sigma:
  *             continue
  *         if paf_field[1, i] > x + sigma:             # <<<<<<<<<<<<<<
@@ -9502,7 +9536,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_30paf_center(CYTHON_UNUSED P
  */
     }
 
-    /* "openpifpaf/functional.pyx":397
+    /* "openpifpaf/functional.pyx":399
  *         if paf_field[1, i] > x + sigma:
  *             continue
  *         if paf_field[2, i] < y - sigma:             # <<<<<<<<<<<<<<
@@ -9514,7 +9548,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_30paf_center(CYTHON_UNUSED P
     __pyx_t_11 = (((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_9 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_10 * __pyx_v_paf_field.strides[1]) ))) < (__pyx_v_y - __pyx_v_sigma)) != 0);
     if (__pyx_t_11) {
 
-      /* "openpifpaf/functional.pyx":398
+      /* "openpifpaf/functional.pyx":400
  *             continue
  *         if paf_field[2, i] < y - sigma:
  *             continue             # <<<<<<<<<<<<<<
@@ -9523,7 +9557,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_30paf_center(CYTHON_UNUSED P
  */
       goto __pyx_L3_continue;
 
-      /* "openpifpaf/functional.pyx":397
+      /* "openpifpaf/functional.pyx":399
  *         if paf_field[1, i] > x + sigma:
  *             continue
  *         if paf_field[2, i] < y - sigma:             # <<<<<<<<<<<<<<
@@ -9532,7 +9566,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_30paf_center(CYTHON_UNUSED P
  */
     }
 
-    /* "openpifpaf/functional.pyx":399
+    /* "openpifpaf/functional.pyx":401
  *         if paf_field[2, i] < y - sigma:
  *             continue
  *         if paf_field[2, i] > y + sigma:             # <<<<<<<<<<<<<<
@@ -9544,7 +9578,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_30paf_center(CYTHON_UNUSED P
     __pyx_t_11 = (((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_paf_field.data + __pyx_t_10 * __pyx_v_paf_field.strides[0]) ) + __pyx_t_9 * __pyx_v_paf_field.strides[1]) ))) > (__pyx_v_y + __pyx_v_sigma)) != 0);
     if (__pyx_t_11) {
 
-      /* "openpifpaf/functional.pyx":400
+      /* "openpifpaf/functional.pyx":402
  *             continue
  *         if paf_field[2, i] > y + sigma:
  *             continue             # <<<<<<<<<<<<<<
@@ -9553,7 +9587,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_30paf_center(CYTHON_UNUSED P
  */
       goto __pyx_L3_continue;
 
-      /* "openpifpaf/functional.pyx":399
+      /* "openpifpaf/functional.pyx":401
  *         if paf_field[2, i] < y - sigma:
  *             continue
  *         if paf_field[2, i] > y + sigma:             # <<<<<<<<<<<<<<
@@ -9562,7 +9596,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_30paf_center(CYTHON_UNUSED P
  */
     }
 
-    /* "openpifpaf/functional.pyx":402
+    /* "openpifpaf/functional.pyx":404
  *             continue
  * 
  *         result[:, result_i] = paf_field[:, i]             # <<<<<<<<<<<<<<
@@ -9595,7 +9629,7 @@ __pyx_t_13.strides[0] = __pyx_v_result.strides[0];
         __pyx_t_13.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
 
-if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_12, __pyx_t_13, 1, 1, 0) < 0)) __PYX_ERR(0, 402, __pyx_L1_error)
+if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_12, __pyx_t_13, 1, 1, 0) < 0)) __PYX_ERR(0, 404, __pyx_L1_error)
     __PYX_XDEC_MEMVIEW(&__pyx_t_13, 1);
     __pyx_t_13.memview = NULL;
     __pyx_t_13.data = NULL;
@@ -9603,7 +9637,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_12, __pyx_t_13, 1, 1, 0) < 0
     __pyx_t_12.memview = NULL;
     __pyx_t_12.data = NULL;
 
-    /* "openpifpaf/functional.pyx":403
+    /* "openpifpaf/functional.pyx":405
  * 
  *         result[:, result_i] = paf_field[:, i]
  *         result_i += 1             # <<<<<<<<<<<<<<
@@ -9614,7 +9648,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_12, __pyx_t_13, 1, 1, 0) < 0
     __pyx_L3_continue:;
   }
 
-  /* "openpifpaf/functional.pyx":405
+  /* "openpifpaf/functional.pyx":407
  *         result_i += 1
  * 
  *     return result_np[:, :result_i]             # <<<<<<<<<<<<<<
@@ -9622,12 +9656,12 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_12, __pyx_t_13, 1, 1, 0) < 0
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_unsigned_int(__pyx_v_result_i); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 405, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_unsigned_int(__pyx_v_result_i); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 407, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PySlice_New(Py_None, __pyx_t_1, Py_None); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 405, __pyx_L1_error)
+  __pyx_t_3 = PySlice_New(Py_None, __pyx_t_1, Py_None); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 407, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 405, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 407, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_slice__2);
   __Pyx_GIVEREF(__pyx_slice__2);
@@ -9635,14 +9669,14 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_12, __pyx_t_13, 1, 1, 0) < 0
   __Pyx_GIVEREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_t_3);
   __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyObject_GetItem(__pyx_v_result_np, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 405, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetItem(__pyx_v_result_np, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 407, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_r = __pyx_t_3;
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "openpifpaf/functional.pyx":385
+  /* "openpifpaf/functional.pyx":387
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * def paf_center(float[:, :] paf_field, float x, float y, float sigma):             # <<<<<<<<<<<<<<
@@ -9670,7 +9704,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_12, __pyx_t_13, 1, 1, 0) < 0
   return __pyx_r;
 }
 
-/* "openpifpaf/functional.pyx":410
+/* "openpifpaf/functional.pyx":412
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * def caf_center_s(float[:, :] caf_field, float x, float y, float sigma):             # <<<<<<<<<<<<<<
@@ -9719,23 +9753,23 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_33caf_center_s(PyObject *__p
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_x)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("caf_center_s", 1, 4, 4, 1); __PYX_ERR(0, 410, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("caf_center_s", 1, 4, 4, 1); __PYX_ERR(0, 412, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_y)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("caf_center_s", 1, 4, 4, 2); __PYX_ERR(0, 410, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("caf_center_s", 1, 4, 4, 2); __PYX_ERR(0, 412, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_sigma)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("caf_center_s", 1, 4, 4, 3); __PYX_ERR(0, 410, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("caf_center_s", 1, 4, 4, 3); __PYX_ERR(0, 412, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "caf_center_s") < 0)) __PYX_ERR(0, 410, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "caf_center_s") < 0)) __PYX_ERR(0, 412, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 4) {
       goto __pyx_L5_argtuple_error;
@@ -9745,14 +9779,14 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_33caf_center_s(PyObject *__p
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
       values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
     }
-    __pyx_v_caf_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_caf_field.memview)) __PYX_ERR(0, 410, __pyx_L3_error)
-    __pyx_v_x = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_x == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 410, __pyx_L3_error)
-    __pyx_v_y = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_y == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 410, __pyx_L3_error)
-    __pyx_v_sigma = __pyx_PyFloat_AsFloat(values[3]); if (unlikely((__pyx_v_sigma == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 410, __pyx_L3_error)
+    __pyx_v_caf_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_caf_field.memview)) __PYX_ERR(0, 412, __pyx_L3_error)
+    __pyx_v_x = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_x == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 412, __pyx_L3_error)
+    __pyx_v_y = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_y == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 412, __pyx_L3_error)
+    __pyx_v_sigma = __pyx_PyFloat_AsFloat(values[3]); if (unlikely((__pyx_v_sigma == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 412, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("caf_center_s", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 410, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("caf_center_s", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 412, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("openpifpaf.functional.caf_center_s", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -9790,19 +9824,19 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_32caf_center_s(CYTHON_UNUSED
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("caf_center_s", 0);
 
-  /* "openpifpaf/functional.pyx":411
+  /* "openpifpaf/functional.pyx":413
  * @cython.wraparound(False)
  * def caf_center_s(float[:, :] caf_field, float x, float y, float sigma):
  *     result_np = np.empty_like(caf_field)             # <<<<<<<<<<<<<<
  *     cdef float[:, :] result = result_np
  *     cdef unsigned int result_i = 0
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 411, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 413, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_empty_like); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 411, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_empty_like); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 413, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_v_caf_field, 2, (PyObject *(*)(char *)) __pyx_memview_get_float, (int (*)(char *, PyObject *)) __pyx_memview_set_float, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 411, __pyx_L1_error)
+  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_v_caf_field, 2, (PyObject *(*)(char *)) __pyx_memview_get_float, (int (*)(char *, PyObject *)) __pyx_memview_set_float, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 413, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_4 = NULL;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
@@ -9817,25 +9851,25 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_32caf_center_s(CYTHON_UNUSED
   __pyx_t_1 = (__pyx_t_4) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_4, __pyx_t_2) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_2);
   __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 411, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 413, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_v_result_np = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "openpifpaf/functional.pyx":412
+  /* "openpifpaf/functional.pyx":414
  * def caf_center_s(float[:, :] caf_field, float x, float y, float sigma):
  *     result_np = np.empty_like(caf_field)
  *     cdef float[:, :] result = result_np             # <<<<<<<<<<<<<<
  *     cdef unsigned int result_i = 0
  *     cdef Py_ssize_t i
  */
-  __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(__pyx_v_result_np, PyBUF_WRITABLE); if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 412, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(__pyx_v_result_np, PyBUF_WRITABLE); if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 414, __pyx_L1_error)
   __pyx_v_result = __pyx_t_5;
   __pyx_t_5.memview = NULL;
   __pyx_t_5.data = NULL;
 
-  /* "openpifpaf/functional.pyx":413
+  /* "openpifpaf/functional.pyx":415
  *     result_np = np.empty_like(caf_field)
  *     cdef float[:, :] result = result_np
  *     cdef unsigned int result_i = 0             # <<<<<<<<<<<<<<
@@ -9844,7 +9878,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_32caf_center_s(CYTHON_UNUSED
  */
   __pyx_v_result_i = 0;
 
-  /* "openpifpaf/functional.pyx":416
+  /* "openpifpaf/functional.pyx":418
  *     cdef Py_ssize_t i
  * 
  *     for i in range(caf_field.shape[1]):             # <<<<<<<<<<<<<<
@@ -9856,7 +9890,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_32caf_center_s(CYTHON_UNUSED
   for (__pyx_t_8 = 0; __pyx_t_8 < __pyx_t_7; __pyx_t_8+=1) {
     __pyx_v_i = __pyx_t_8;
 
-    /* "openpifpaf/functional.pyx":417
+    /* "openpifpaf/functional.pyx":419
  * 
  *     for i in range(caf_field.shape[1]):
  *         if caf_field[1, i] < x - sigma:             # <<<<<<<<<<<<<<
@@ -9868,7 +9902,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_32caf_center_s(CYTHON_UNUSED
     __pyx_t_11 = (((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_caf_field.data + __pyx_t_9 * __pyx_v_caf_field.strides[0]) ) + __pyx_t_10 * __pyx_v_caf_field.strides[1]) ))) < (__pyx_v_x - __pyx_v_sigma)) != 0);
     if (__pyx_t_11) {
 
-      /* "openpifpaf/functional.pyx":418
+      /* "openpifpaf/functional.pyx":420
  *     for i in range(caf_field.shape[1]):
  *         if caf_field[1, i] < x - sigma:
  *             continue             # <<<<<<<<<<<<<<
@@ -9877,7 +9911,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_32caf_center_s(CYTHON_UNUSED
  */
       goto __pyx_L3_continue;
 
-      /* "openpifpaf/functional.pyx":417
+      /* "openpifpaf/functional.pyx":419
  * 
  *     for i in range(caf_field.shape[1]):
  *         if caf_field[1, i] < x - sigma:             # <<<<<<<<<<<<<<
@@ -9886,7 +9920,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_32caf_center_s(CYTHON_UNUSED
  */
     }
 
-    /* "openpifpaf/functional.pyx":419
+    /* "openpifpaf/functional.pyx":421
  *         if caf_field[1, i] < x - sigma:
  *             continue
  *         if caf_field[1, i] > x + sigma:             # <<<<<<<<<<<<<<
@@ -9898,7 +9932,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_32caf_center_s(CYTHON_UNUSED
     __pyx_t_11 = (((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_caf_field.data + __pyx_t_10 * __pyx_v_caf_field.strides[0]) ) + __pyx_t_9 * __pyx_v_caf_field.strides[1]) ))) > (__pyx_v_x + __pyx_v_sigma)) != 0);
     if (__pyx_t_11) {
 
-      /* "openpifpaf/functional.pyx":420
+      /* "openpifpaf/functional.pyx":422
  *             continue
  *         if caf_field[1, i] > x + sigma:
  *             continue             # <<<<<<<<<<<<<<
@@ -9907,7 +9941,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_32caf_center_s(CYTHON_UNUSED
  */
       goto __pyx_L3_continue;
 
-      /* "openpifpaf/functional.pyx":419
+      /* "openpifpaf/functional.pyx":421
  *         if caf_field[1, i] < x - sigma:
  *             continue
  *         if caf_field[1, i] > x + sigma:             # <<<<<<<<<<<<<<
@@ -9916,7 +9950,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_32caf_center_s(CYTHON_UNUSED
  */
     }
 
-    /* "openpifpaf/functional.pyx":421
+    /* "openpifpaf/functional.pyx":423
  *         if caf_field[1, i] > x + sigma:
  *             continue
  *         if caf_field[2, i] < y - sigma:             # <<<<<<<<<<<<<<
@@ -9928,7 +9962,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_32caf_center_s(CYTHON_UNUSED
     __pyx_t_11 = (((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_caf_field.data + __pyx_t_9 * __pyx_v_caf_field.strides[0]) ) + __pyx_t_10 * __pyx_v_caf_field.strides[1]) ))) < (__pyx_v_y - __pyx_v_sigma)) != 0);
     if (__pyx_t_11) {
 
-      /* "openpifpaf/functional.pyx":422
+      /* "openpifpaf/functional.pyx":424
  *             continue
  *         if caf_field[2, i] < y - sigma:
  *             continue             # <<<<<<<<<<<<<<
@@ -9937,7 +9971,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_32caf_center_s(CYTHON_UNUSED
  */
       goto __pyx_L3_continue;
 
-      /* "openpifpaf/functional.pyx":421
+      /* "openpifpaf/functional.pyx":423
  *         if caf_field[1, i] > x + sigma:
  *             continue
  *         if caf_field[2, i] < y - sigma:             # <<<<<<<<<<<<<<
@@ -9946,7 +9980,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_32caf_center_s(CYTHON_UNUSED
  */
     }
 
-    /* "openpifpaf/functional.pyx":423
+    /* "openpifpaf/functional.pyx":425
  *         if caf_field[2, i] < y - sigma:
  *             continue
  *         if caf_field[2, i] > y + sigma:             # <<<<<<<<<<<<<<
@@ -9958,7 +9992,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_32caf_center_s(CYTHON_UNUSED
     __pyx_t_11 = (((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_caf_field.data + __pyx_t_10 * __pyx_v_caf_field.strides[0]) ) + __pyx_t_9 * __pyx_v_caf_field.strides[1]) ))) > (__pyx_v_y + __pyx_v_sigma)) != 0);
     if (__pyx_t_11) {
 
-      /* "openpifpaf/functional.pyx":424
+      /* "openpifpaf/functional.pyx":426
  *             continue
  *         if caf_field[2, i] > y + sigma:
  *             continue             # <<<<<<<<<<<<<<
@@ -9967,7 +10001,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_32caf_center_s(CYTHON_UNUSED
  */
       goto __pyx_L3_continue;
 
-      /* "openpifpaf/functional.pyx":423
+      /* "openpifpaf/functional.pyx":425
  *         if caf_field[2, i] < y - sigma:
  *             continue
  *         if caf_field[2, i] > y + sigma:             # <<<<<<<<<<<<<<
@@ -9976,7 +10010,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_32caf_center_s(CYTHON_UNUSED
  */
     }
 
-    /* "openpifpaf/functional.pyx":426
+    /* "openpifpaf/functional.pyx":428
  *             continue
  * 
  *         result[:, result_i] = caf_field[:, i]             # <<<<<<<<<<<<<<
@@ -10009,7 +10043,7 @@ __pyx_t_13.strides[0] = __pyx_v_result.strides[0];
         __pyx_t_13.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
 
-if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_12, __pyx_t_13, 1, 1, 0) < 0)) __PYX_ERR(0, 426, __pyx_L1_error)
+if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_12, __pyx_t_13, 1, 1, 0) < 0)) __PYX_ERR(0, 428, __pyx_L1_error)
     __PYX_XDEC_MEMVIEW(&__pyx_t_13, 1);
     __pyx_t_13.memview = NULL;
     __pyx_t_13.data = NULL;
@@ -10017,7 +10051,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_12, __pyx_t_13, 1, 1, 0) < 0
     __pyx_t_12.memview = NULL;
     __pyx_t_12.data = NULL;
 
-    /* "openpifpaf/functional.pyx":427
+    /* "openpifpaf/functional.pyx":429
  * 
  *         result[:, result_i] = caf_field[:, i]
  *         result_i += 1             # <<<<<<<<<<<<<<
@@ -10028,7 +10062,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_12, __pyx_t_13, 1, 1, 0) < 0
     __pyx_L3_continue:;
   }
 
-  /* "openpifpaf/functional.pyx":429
+  /* "openpifpaf/functional.pyx":431
  *         result_i += 1
  * 
  *     return result_np[:, :result_i]             # <<<<<<<<<<<<<<
@@ -10036,12 +10070,12 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_12, __pyx_t_13, 1, 1, 0) < 0
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_unsigned_int(__pyx_v_result_i); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 429, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_unsigned_int(__pyx_v_result_i); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 431, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PySlice_New(Py_None, __pyx_t_1, Py_None); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 429, __pyx_L1_error)
+  __pyx_t_3 = PySlice_New(Py_None, __pyx_t_1, Py_None); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 431, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 429, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 431, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_slice__2);
   __Pyx_GIVEREF(__pyx_slice__2);
@@ -10049,14 +10083,14 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_12, __pyx_t_13, 1, 1, 0) < 0
   __Pyx_GIVEREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_t_3);
   __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyObject_GetItem(__pyx_v_result_np, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 429, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetItem(__pyx_v_result_np, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 431, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_r = __pyx_t_3;
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "openpifpaf/functional.pyx":410
+  /* "openpifpaf/functional.pyx":412
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * def caf_center_s(float[:, :] caf_field, float x, float y, float sigma):             # <<<<<<<<<<<<<<
@@ -10084,7 +10118,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_12, __pyx_t_13, 1, 1, 0) < 0
   return __pyx_r;
 }
 
-/* "openpifpaf/functional.pyx":435
+/* "openpifpaf/functional.pyx":437
  * @cython.wraparound(False)
  * @cython.cdivision(True)
  * def grow_connection_blend(float[:, :] caf_field, float x, float y, float xy_scale, bint only_max=False):             # <<<<<<<<<<<<<<
@@ -10137,19 +10171,19 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_35grow_connection_blend(PyOb
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_x)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("grow_connection_blend", 0, 4, 5, 1); __PYX_ERR(0, 435, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("grow_connection_blend", 0, 4, 5, 1); __PYX_ERR(0, 437, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_y)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("grow_connection_blend", 0, 4, 5, 2); __PYX_ERR(0, 435, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("grow_connection_blend", 0, 4, 5, 2); __PYX_ERR(0, 437, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_xy_scale)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("grow_connection_blend", 0, 4, 5, 3); __PYX_ERR(0, 435, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("grow_connection_blend", 0, 4, 5, 3); __PYX_ERR(0, 437, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
@@ -10159,7 +10193,7 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_35grow_connection_blend(PyOb
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "grow_connection_blend") < 0)) __PYX_ERR(0, 435, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "grow_connection_blend") < 0)) __PYX_ERR(0, 437, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -10173,19 +10207,19 @@ static PyObject *__pyx_pw_10openpifpaf_10functional_35grow_connection_blend(PyOb
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_caf_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_caf_field.memview)) __PYX_ERR(0, 435, __pyx_L3_error)
-    __pyx_v_x = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_x == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 435, __pyx_L3_error)
-    __pyx_v_y = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_y == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 435, __pyx_L3_error)
-    __pyx_v_xy_scale = __pyx_PyFloat_AsFloat(values[3]); if (unlikely((__pyx_v_xy_scale == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 435, __pyx_L3_error)
+    __pyx_v_caf_field = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_caf_field.memview)) __PYX_ERR(0, 437, __pyx_L3_error)
+    __pyx_v_x = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_x == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 437, __pyx_L3_error)
+    __pyx_v_y = __pyx_PyFloat_AsFloat(values[2]); if (unlikely((__pyx_v_y == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 437, __pyx_L3_error)
+    __pyx_v_xy_scale = __pyx_PyFloat_AsFloat(values[3]); if (unlikely((__pyx_v_xy_scale == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 437, __pyx_L3_error)
     if (values[4]) {
-      __pyx_v_only_max = __Pyx_PyObject_IsTrue(values[4]); if (unlikely((__pyx_v_only_max == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 435, __pyx_L3_error)
+      __pyx_v_only_max = __Pyx_PyObject_IsTrue(values[4]); if (unlikely((__pyx_v_only_max == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 437, __pyx_L3_error)
     } else {
       __pyx_v_only_max = ((int)0);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("grow_connection_blend", 0, 4, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 435, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("grow_connection_blend", 0, 4, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 437, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("openpifpaf.functional.grow_connection_blend", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -10236,7 +10270,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("grow_connection_blend", 0);
 
-  /* "openpifpaf/functional.pyx":441
+  /* "openpifpaf/functional.pyx":443
  *     "BlazeFace: Sub-millisecond Neural Face Detection on Mobile GPUs".
  *     """
  *     cdef float sigma_filter = 2.0 * xy_scale  # 2.0 = 4 sigma             # <<<<<<<<<<<<<<
@@ -10245,7 +10279,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
  */
   __pyx_v_sigma_filter = (2.0 * __pyx_v_xy_scale);
 
-  /* "openpifpaf/functional.pyx":442
+  /* "openpifpaf/functional.pyx":444
  *     """
  *     cdef float sigma_filter = 2.0 * xy_scale  # 2.0 = 4 sigma
  *     cdef float sigma2 = 0.25 * xy_scale * xy_scale             # <<<<<<<<<<<<<<
@@ -10254,7 +10288,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
  */
   __pyx_v_sigma2 = ((0.25 * __pyx_v_xy_scale) * __pyx_v_xy_scale);
 
-  /* "openpifpaf/functional.pyx":445
+  /* "openpifpaf/functional.pyx":447
  *     cdef float d2, v, score
  * 
  *     cdef unsigned int score_1_i = 0             # <<<<<<<<<<<<<<
@@ -10263,7 +10297,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
  */
   __pyx_v_score_1_i = 0;
 
-  /* "openpifpaf/functional.pyx":446
+  /* "openpifpaf/functional.pyx":448
  * 
  *     cdef unsigned int score_1_i = 0
  *     cdef unsigned int score_2_i = 0             # <<<<<<<<<<<<<<
@@ -10272,7 +10306,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
  */
   __pyx_v_score_2_i = 0;
 
-  /* "openpifpaf/functional.pyx":447
+  /* "openpifpaf/functional.pyx":449
  *     cdef unsigned int score_1_i = 0
  *     cdef unsigned int score_2_i = 0
  *     cdef float score_1 = 0.0             # <<<<<<<<<<<<<<
@@ -10281,7 +10315,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
  */
   __pyx_v_score_1 = 0.0;
 
-  /* "openpifpaf/functional.pyx":448
+  /* "openpifpaf/functional.pyx":450
  *     cdef unsigned int score_2_i = 0
  *     cdef float score_1 = 0.0
  *     cdef float score_2 = 0.0             # <<<<<<<<<<<<<<
@@ -10290,7 +10324,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
  */
   __pyx_v_score_2 = 0.0;
 
-  /* "openpifpaf/functional.pyx":450
+  /* "openpifpaf/functional.pyx":452
  *     cdef float score_2 = 0.0
  *     cdef Py_ssize_t i
  *     for i in range(caf_field.shape[1]):             # <<<<<<<<<<<<<<
@@ -10302,7 +10336,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
   for (__pyx_t_3 = 0; __pyx_t_3 < __pyx_t_2; __pyx_t_3+=1) {
     __pyx_v_i = __pyx_t_3;
 
-    /* "openpifpaf/functional.pyx":451
+    /* "openpifpaf/functional.pyx":453
  *     cdef Py_ssize_t i
  *     for i in range(caf_field.shape[1]):
  *         if caf_field[1, i] < x - sigma_filter:             # <<<<<<<<<<<<<<
@@ -10314,7 +10348,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
     __pyx_t_6 = (((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_caf_field.data + __pyx_t_4 * __pyx_v_caf_field.strides[0]) ) + __pyx_t_5 * __pyx_v_caf_field.strides[1]) ))) < (__pyx_v_x - __pyx_v_sigma_filter)) != 0);
     if (__pyx_t_6) {
 
-      /* "openpifpaf/functional.pyx":452
+      /* "openpifpaf/functional.pyx":454
  *     for i in range(caf_field.shape[1]):
  *         if caf_field[1, i] < x - sigma_filter:
  *             continue             # <<<<<<<<<<<<<<
@@ -10323,7 +10357,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
  */
       goto __pyx_L3_continue;
 
-      /* "openpifpaf/functional.pyx":451
+      /* "openpifpaf/functional.pyx":453
  *     cdef Py_ssize_t i
  *     for i in range(caf_field.shape[1]):
  *         if caf_field[1, i] < x - sigma_filter:             # <<<<<<<<<<<<<<
@@ -10332,7 +10366,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
  */
     }
 
-    /* "openpifpaf/functional.pyx":453
+    /* "openpifpaf/functional.pyx":455
  *         if caf_field[1, i] < x - sigma_filter:
  *             continue
  *         if caf_field[1, i] > x + sigma_filter:             # <<<<<<<<<<<<<<
@@ -10344,7 +10378,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
     __pyx_t_6 = (((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_caf_field.data + __pyx_t_5 * __pyx_v_caf_field.strides[0]) ) + __pyx_t_4 * __pyx_v_caf_field.strides[1]) ))) > (__pyx_v_x + __pyx_v_sigma_filter)) != 0);
     if (__pyx_t_6) {
 
-      /* "openpifpaf/functional.pyx":454
+      /* "openpifpaf/functional.pyx":456
  *             continue
  *         if caf_field[1, i] > x + sigma_filter:
  *             continue             # <<<<<<<<<<<<<<
@@ -10353,7 +10387,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
  */
       goto __pyx_L3_continue;
 
-      /* "openpifpaf/functional.pyx":453
+      /* "openpifpaf/functional.pyx":455
  *         if caf_field[1, i] < x - sigma_filter:
  *             continue
  *         if caf_field[1, i] > x + sigma_filter:             # <<<<<<<<<<<<<<
@@ -10362,7 +10396,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
  */
     }
 
-    /* "openpifpaf/functional.pyx":455
+    /* "openpifpaf/functional.pyx":457
  *         if caf_field[1, i] > x + sigma_filter:
  *             continue
  *         if caf_field[2, i] < y - sigma_filter:             # <<<<<<<<<<<<<<
@@ -10374,7 +10408,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
     __pyx_t_6 = (((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_caf_field.data + __pyx_t_4 * __pyx_v_caf_field.strides[0]) ) + __pyx_t_5 * __pyx_v_caf_field.strides[1]) ))) < (__pyx_v_y - __pyx_v_sigma_filter)) != 0);
     if (__pyx_t_6) {
 
-      /* "openpifpaf/functional.pyx":456
+      /* "openpifpaf/functional.pyx":458
  *             continue
  *         if caf_field[2, i] < y - sigma_filter:
  *             continue             # <<<<<<<<<<<<<<
@@ -10383,7 +10417,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
  */
       goto __pyx_L3_continue;
 
-      /* "openpifpaf/functional.pyx":455
+      /* "openpifpaf/functional.pyx":457
  *         if caf_field[1, i] > x + sigma_filter:
  *             continue
  *         if caf_field[2, i] < y - sigma_filter:             # <<<<<<<<<<<<<<
@@ -10392,7 +10426,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
  */
     }
 
-    /* "openpifpaf/functional.pyx":457
+    /* "openpifpaf/functional.pyx":459
  *         if caf_field[2, i] < y - sigma_filter:
  *             continue
  *         if caf_field[2, i] > y + sigma_filter:             # <<<<<<<<<<<<<<
@@ -10404,7 +10438,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
     __pyx_t_6 = (((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_caf_field.data + __pyx_t_5 * __pyx_v_caf_field.strides[0]) ) + __pyx_t_4 * __pyx_v_caf_field.strides[1]) ))) > (__pyx_v_y + __pyx_v_sigma_filter)) != 0);
     if (__pyx_t_6) {
 
-      /* "openpifpaf/functional.pyx":458
+      /* "openpifpaf/functional.pyx":460
  *             continue
  *         if caf_field[2, i] > y + sigma_filter:
  *             continue             # <<<<<<<<<<<<<<
@@ -10413,7 +10447,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
  */
       goto __pyx_L3_continue;
 
-      /* "openpifpaf/functional.pyx":457
+      /* "openpifpaf/functional.pyx":459
  *         if caf_field[2, i] < y - sigma_filter:
  *             continue
  *         if caf_field[2, i] > y + sigma_filter:             # <<<<<<<<<<<<<<
@@ -10422,7 +10456,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
  */
     }
 
-    /* "openpifpaf/functional.pyx":461
+    /* "openpifpaf/functional.pyx":463
  * 
  *         # source distance
  *         d2 = (caf_field[1, i] - x)**2 + (caf_field[2, i] - y)**2             # <<<<<<<<<<<<<<
@@ -10435,7 +10469,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
     __pyx_t_8 = __pyx_v_i;
     __pyx_v_d2 = (powf(((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_caf_field.data + __pyx_t_4 * __pyx_v_caf_field.strides[0]) ) + __pyx_t_5 * __pyx_v_caf_field.strides[1]) ))) - __pyx_v_x), 2.0) + powf(((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_caf_field.data + __pyx_t_7 * __pyx_v_caf_field.strides[0]) ) + __pyx_t_8 * __pyx_v_caf_field.strides[1]) ))) - __pyx_v_y), 2.0));
 
-    /* "openpifpaf/functional.pyx":464
+    /* "openpifpaf/functional.pyx":466
  * 
  *         # combined value and source distance
  *         score = exp(-0.5 * d2 / sigma2) * caf_field[0, i]             # <<<<<<<<<<<<<<
@@ -10446,7 +10480,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
     __pyx_t_7 = __pyx_v_i;
     __pyx_v_score = (exp(((-0.5 * __pyx_v_d2) / ((double)__pyx_v_sigma2))) * (*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_caf_field.data + __pyx_t_8 * __pyx_v_caf_field.strides[0]) ) + __pyx_t_7 * __pyx_v_caf_field.strides[1]) ))));
 
-    /* "openpifpaf/functional.pyx":466
+    /* "openpifpaf/functional.pyx":468
  *         score = exp(-0.5 * d2 / sigma2) * caf_field[0, i]
  * 
  *         if score >= score_1:  # if score is equal to score_1, make sure score_2 is filled             # <<<<<<<<<<<<<<
@@ -10456,7 +10490,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
     __pyx_t_6 = ((__pyx_v_score >= __pyx_v_score_1) != 0);
     if (__pyx_t_6) {
 
-      /* "openpifpaf/functional.pyx":467
+      /* "openpifpaf/functional.pyx":469
  * 
  *         if score >= score_1:  # if score is equal to score_1, make sure score_2 is filled
  *             score_2_i = score_1_i             # <<<<<<<<<<<<<<
@@ -10465,7 +10499,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
  */
       __pyx_v_score_2_i = __pyx_v_score_1_i;
 
-      /* "openpifpaf/functional.pyx":468
+      /* "openpifpaf/functional.pyx":470
  *         if score >= score_1:  # if score is equal to score_1, make sure score_2 is filled
  *             score_2_i = score_1_i
  *             score_2 = score_1             # <<<<<<<<<<<<<<
@@ -10474,7 +10508,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
  */
       __pyx_v_score_2 = __pyx_v_score_1;
 
-      /* "openpifpaf/functional.pyx":469
+      /* "openpifpaf/functional.pyx":471
  *             score_2_i = score_1_i
  *             score_2 = score_1
  *             score_1_i = i             # <<<<<<<<<<<<<<
@@ -10483,7 +10517,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
  */
       __pyx_v_score_1_i = __pyx_v_i;
 
-      /* "openpifpaf/functional.pyx":470
+      /* "openpifpaf/functional.pyx":472
  *             score_2 = score_1
  *             score_1_i = i
  *             score_1 = score             # <<<<<<<<<<<<<<
@@ -10492,7 +10526,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
  */
       __pyx_v_score_1 = __pyx_v_score;
 
-      /* "openpifpaf/functional.pyx":466
+      /* "openpifpaf/functional.pyx":468
  *         score = exp(-0.5 * d2 / sigma2) * caf_field[0, i]
  * 
  *         if score >= score_1:  # if score is equal to score_1, make sure score_2 is filled             # <<<<<<<<<<<<<<
@@ -10502,7 +10536,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
       goto __pyx_L9;
     }
 
-    /* "openpifpaf/functional.pyx":471
+    /* "openpifpaf/functional.pyx":473
  *             score_1_i = i
  *             score_1 = score
  *         elif score > score_2:             # <<<<<<<<<<<<<<
@@ -10512,7 +10546,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
     __pyx_t_6 = ((__pyx_v_score > __pyx_v_score_2) != 0);
     if (__pyx_t_6) {
 
-      /* "openpifpaf/functional.pyx":472
+      /* "openpifpaf/functional.pyx":474
  *             score_1 = score
  *         elif score > score_2:
  *             score_2_i = i             # <<<<<<<<<<<<<<
@@ -10521,7 +10555,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
  */
       __pyx_v_score_2_i = __pyx_v_i;
 
-      /* "openpifpaf/functional.pyx":473
+      /* "openpifpaf/functional.pyx":475
  *         elif score > score_2:
  *             score_2_i = i
  *             score_2 = score             # <<<<<<<<<<<<<<
@@ -10530,7 +10564,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
  */
       __pyx_v_score_2 = __pyx_v_score;
 
-      /* "openpifpaf/functional.pyx":471
+      /* "openpifpaf/functional.pyx":473
  *             score_1_i = i
  *             score_1 = score
  *         elif score > score_2:             # <<<<<<<<<<<<<<
@@ -10542,7 +10576,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
     __pyx_L3_continue:;
   }
 
-  /* "openpifpaf/functional.pyx":475
+  /* "openpifpaf/functional.pyx":477
  *             score_2 = score
  * 
  *     cdef (float, float, float, float) r = (0.0, 0.0, 0.0, 0.0)             # <<<<<<<<<<<<<<
@@ -10555,7 +10589,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
   __pyx_t_9.f3 = 0.0;
   __pyx_v_r = __pyx_t_9;
 
-  /* "openpifpaf/functional.pyx":476
+  /* "openpifpaf/functional.pyx":478
  * 
  *     cdef (float, float, float, float) r = (0.0, 0.0, 0.0, 0.0)
  *     if score_1 == 0.0:             # <<<<<<<<<<<<<<
@@ -10565,7 +10599,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
   __pyx_t_6 = ((__pyx_v_score_1 == 0.0) != 0);
   if (__pyx_t_6) {
 
-    /* "openpifpaf/functional.pyx":477
+    /* "openpifpaf/functional.pyx":479
  *     cdef (float, float, float, float) r = (0.0, 0.0, 0.0, 0.0)
  *     if score_1 == 0.0:
  *         return r             # <<<<<<<<<<<<<<
@@ -10573,13 +10607,13 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
  *     cdef float[4] entry_1 = [  # xybs
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_10 = __pyx_convert__to_py___pyx_ctuple_float__and_float__and_float__and_float(__pyx_v_r); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 477, __pyx_L1_error)
+    __pyx_t_10 = __pyx_convert__to_py___pyx_ctuple_float__and_float__and_float__and_float(__pyx_v_r); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 479, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_10);
     __pyx_r = __pyx_t_10;
     __pyx_t_10 = 0;
     goto __pyx_L0;
 
-    /* "openpifpaf/functional.pyx":476
+    /* "openpifpaf/functional.pyx":478
  * 
  *     cdef (float, float, float, float) r = (0.0, 0.0, 0.0, 0.0)
  *     if score_1 == 0.0:             # <<<<<<<<<<<<<<
@@ -10588,7 +10622,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
  */
   }
 
-  /* "openpifpaf/functional.pyx":480
+  /* "openpifpaf/functional.pyx":482
  * 
  *     cdef float[4] entry_1 = [  # xybs
  *         caf_field[3, score_1_i], caf_field[4, score_1_i],             # <<<<<<<<<<<<<<
@@ -10600,7 +10634,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
   __pyx_t_8 = 4;
   __pyx_t_12 = __pyx_v_score_1_i;
 
-  /* "openpifpaf/functional.pyx":481
+  /* "openpifpaf/functional.pyx":483
  *     cdef float[4] entry_1 = [  # xybs
  *         caf_field[3, score_1_i], caf_field[4, score_1_i],
  *         caf_field[6, score_1_i], caf_field[8, score_1_i]]             # <<<<<<<<<<<<<<
@@ -10612,7 +10646,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
   __pyx_t_4 = 8;
   __pyx_t_14 = __pyx_v_score_1_i;
 
-  /* "openpifpaf/functional.pyx":479
+  /* "openpifpaf/functional.pyx":481
  *         return r
  * 
  *     cdef float[4] entry_1 = [  # xybs             # <<<<<<<<<<<<<<
@@ -10625,7 +10659,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
   __pyx_t_15[3] = (*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_caf_field.data + __pyx_t_4 * __pyx_v_caf_field.strides[0]) ) + __pyx_t_14 * __pyx_v_caf_field.strides[1]) )));
   memcpy(&(__pyx_v_entry_1[0]), __pyx_t_15, sizeof(__pyx_v_entry_1[0]) * (4));
 
-  /* "openpifpaf/functional.pyx":482
+  /* "openpifpaf/functional.pyx":484
  *         caf_field[3, score_1_i], caf_field[4, score_1_i],
  *         caf_field[6, score_1_i], caf_field[8, score_1_i]]
  *     if only_max:             # <<<<<<<<<<<<<<
@@ -10635,7 +10669,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
   __pyx_t_6 = (__pyx_v_only_max != 0);
   if (__pyx_t_6) {
 
-    /* "openpifpaf/functional.pyx":483
+    /* "openpifpaf/functional.pyx":485
  *         caf_field[6, score_1_i], caf_field[8, score_1_i]]
  *     if only_max:
  *         r = entry_1[0], entry_1[1], entry_1[3], score_1             # <<<<<<<<<<<<<<
@@ -10648,7 +10682,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
     __pyx_t_9.f3 = __pyx_v_score_1;
     __pyx_v_r = __pyx_t_9;
 
-    /* "openpifpaf/functional.pyx":484
+    /* "openpifpaf/functional.pyx":486
  *     if only_max:
  *         r = entry_1[0], entry_1[1], entry_1[3], score_1
  *         return r             # <<<<<<<<<<<<<<
@@ -10656,13 +10690,13 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
  *         r = entry_1[0], entry_1[1], entry_1[3], score_1 * 0.5
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_10 = __pyx_convert__to_py___pyx_ctuple_float__and_float__and_float__and_float(__pyx_v_r); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 484, __pyx_L1_error)
+    __pyx_t_10 = __pyx_convert__to_py___pyx_ctuple_float__and_float__and_float__and_float(__pyx_v_r); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 486, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_10);
     __pyx_r = __pyx_t_10;
     __pyx_t_10 = 0;
     goto __pyx_L0;
 
-    /* "openpifpaf/functional.pyx":482
+    /* "openpifpaf/functional.pyx":484
  *         caf_field[3, score_1_i], caf_field[4, score_1_i],
  *         caf_field[6, score_1_i], caf_field[8, score_1_i]]
  *     if only_max:             # <<<<<<<<<<<<<<
@@ -10671,7 +10705,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
  */
   }
 
-  /* "openpifpaf/functional.pyx":485
+  /* "openpifpaf/functional.pyx":487
  *         r = entry_1[0], entry_1[1], entry_1[3], score_1
  *         return r
  *     if score_2 < 0.01 or score_2 < 0.5 * score_1:             # <<<<<<<<<<<<<<
@@ -10689,7 +10723,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
   __pyx_L13_bool_binop_done:;
   if (__pyx_t_6) {
 
-    /* "openpifpaf/functional.pyx":486
+    /* "openpifpaf/functional.pyx":488
  *         return r
  *     if score_2 < 0.01 or score_2 < 0.5 * score_1:
  *         r = entry_1[0], entry_1[1], entry_1[3], score_1 * 0.5             # <<<<<<<<<<<<<<
@@ -10702,7 +10736,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
     __pyx_t_9.f3 = (__pyx_v_score_1 * 0.5);
     __pyx_v_r = __pyx_t_9;
 
-    /* "openpifpaf/functional.pyx":487
+    /* "openpifpaf/functional.pyx":489
  *     if score_2 < 0.01 or score_2 < 0.5 * score_1:
  *         r = entry_1[0], entry_1[1], entry_1[3], score_1 * 0.5
  *         return r             # <<<<<<<<<<<<<<
@@ -10710,13 +10744,13 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
  *     # blend
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_10 = __pyx_convert__to_py___pyx_ctuple_float__and_float__and_float__and_float(__pyx_v_r); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 487, __pyx_L1_error)
+    __pyx_t_10 = __pyx_convert__to_py___pyx_ctuple_float__and_float__and_float__and_float(__pyx_v_r); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 489, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_10);
     __pyx_r = __pyx_t_10;
     __pyx_t_10 = 0;
     goto __pyx_L0;
 
-    /* "openpifpaf/functional.pyx":485
+    /* "openpifpaf/functional.pyx":487
  *         r = entry_1[0], entry_1[1], entry_1[3], score_1
  *         return r
  *     if score_2 < 0.01 or score_2 < 0.5 * score_1:             # <<<<<<<<<<<<<<
@@ -10725,7 +10759,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
  */
   }
 
-  /* "openpifpaf/functional.pyx":491
+  /* "openpifpaf/functional.pyx":493
  *     # blend
  *     cdef float[4] entry_2 = [  # xybs
  *         caf_field[3, score_2_i], caf_field[4, score_2_i],             # <<<<<<<<<<<<<<
@@ -10737,7 +10771,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
   __pyx_t_5 = 4;
   __pyx_t_13 = __pyx_v_score_2_i;
 
-  /* "openpifpaf/functional.pyx":492
+  /* "openpifpaf/functional.pyx":494
  *     cdef float[4] entry_2 = [  # xybs
  *         caf_field[3, score_2_i], caf_field[4, score_2_i],
  *         caf_field[6, score_2_i], caf_field[8, score_2_i]]             # <<<<<<<<<<<<<<
@@ -10749,7 +10783,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
   __pyx_t_7 = 8;
   __pyx_t_11 = __pyx_v_score_2_i;
 
-  /* "openpifpaf/functional.pyx":490
+  /* "openpifpaf/functional.pyx":492
  * 
  *     # blend
  *     cdef float[4] entry_2 = [  # xybs             # <<<<<<<<<<<<<<
@@ -10762,7 +10796,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
   __pyx_t_17[3] = (*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_caf_field.data + __pyx_t_7 * __pyx_v_caf_field.strides[0]) ) + __pyx_t_11 * __pyx_v_caf_field.strides[1]) )));
   memcpy(&(__pyx_v_entry_2[0]), __pyx_t_17, sizeof(__pyx_v_entry_2[0]) * (4));
 
-  /* "openpifpaf/functional.pyx":494
+  /* "openpifpaf/functional.pyx":496
  *         caf_field[6, score_2_i], caf_field[8, score_2_i]]
  * 
  *     cdef float blend_d2 = (entry_1[0] - entry_2[0])**2 + (entry_1[1] - entry_2[1])**2             # <<<<<<<<<<<<<<
@@ -10771,7 +10805,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
  */
   __pyx_v_blend_d2 = (powf(((__pyx_v_entry_1[0]) - (__pyx_v_entry_2[0])), 2.0) + powf(((__pyx_v_entry_1[1]) - (__pyx_v_entry_2[1])), 2.0));
 
-  /* "openpifpaf/functional.pyx":495
+  /* "openpifpaf/functional.pyx":497
  * 
  *     cdef float blend_d2 = (entry_1[0] - entry_2[0])**2 + (entry_1[1] - entry_2[1])**2
  *     if blend_d2 > entry_1[3]**2 / 4.0:             # <<<<<<<<<<<<<<
@@ -10781,7 +10815,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
   __pyx_t_6 = ((__pyx_v_blend_d2 > (((double)powf((__pyx_v_entry_1[3]), 2.0)) / 4.0)) != 0);
   if (__pyx_t_6) {
 
-    /* "openpifpaf/functional.pyx":496
+    /* "openpifpaf/functional.pyx":498
  *     cdef float blend_d2 = (entry_1[0] - entry_2[0])**2 + (entry_1[1] - entry_2[1])**2
  *     if blend_d2 > entry_1[3]**2 / 4.0:
  *         r = entry_1[0], entry_1[1], entry_1[3], score_1 * 0.5             # <<<<<<<<<<<<<<
@@ -10794,7 +10828,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
     __pyx_t_9.f3 = (__pyx_v_score_1 * 0.5);
     __pyx_v_r = __pyx_t_9;
 
-    /* "openpifpaf/functional.pyx":497
+    /* "openpifpaf/functional.pyx":499
  *     if blend_d2 > entry_1[3]**2 / 4.0:
  *         r = entry_1[0], entry_1[1], entry_1[3], score_1 * 0.5
  *         return r             # <<<<<<<<<<<<<<
@@ -10802,13 +10836,13 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
  *     r = (  # xysv
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_10 = __pyx_convert__to_py___pyx_ctuple_float__and_float__and_float__and_float(__pyx_v_r); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 497, __pyx_L1_error)
+    __pyx_t_10 = __pyx_convert__to_py___pyx_ctuple_float__and_float__and_float__and_float(__pyx_v_r); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 499, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_10);
     __pyx_r = __pyx_t_10;
     __pyx_t_10 = 0;
     goto __pyx_L0;
 
-    /* "openpifpaf/functional.pyx":495
+    /* "openpifpaf/functional.pyx":497
  * 
  *     cdef float blend_d2 = (entry_1[0] - entry_2[0])**2 + (entry_1[1] - entry_2[1])**2
  *     if blend_d2 > entry_1[3]**2 / 4.0:             # <<<<<<<<<<<<<<
@@ -10817,7 +10851,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
  */
   }
 
-  /* "openpifpaf/functional.pyx":500
+  /* "openpifpaf/functional.pyx":502
  * 
  *     r = (  # xysv
  *         (score_1 * entry_1[0] + score_2 * entry_2[0]) / (score_1 + score_2),             # <<<<<<<<<<<<<<
@@ -10830,19 +10864,19 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_34grow_connection_blend(CYTH
   __pyx_t_9.f3 = (0.5 * (__pyx_v_score_1 + __pyx_v_score_2));
   __pyx_v_r = __pyx_t_9;
 
-  /* "openpifpaf/functional.pyx":505
+  /* "openpifpaf/functional.pyx":507
  *         0.5 * (score_1 + score_2),
  *     )
  *     return r             # <<<<<<<<<<<<<<
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_10 = __pyx_convert__to_py___pyx_ctuple_float__and_float__and_float__and_float(__pyx_v_r); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 505, __pyx_L1_error)
+  __pyx_t_10 = __pyx_convert__to_py___pyx_ctuple_float__and_float__and_float__and_float(__pyx_v_r); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 507, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_10);
   __pyx_r = __pyx_t_10;
   __pyx_t_10 = 0;
   goto __pyx_L0;
 
-  /* "openpifpaf/functional.pyx":435
+  /* "openpifpaf/functional.pyx":437
  * @cython.wraparound(False)
  * @cython.cdivision(True)
  * def grow_connection_blend(float[:, :] caf_field, float x, float y, float xy_scale, bint only_max=False):             # <<<<<<<<<<<<<<
@@ -10963,18 +10997,18 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_36__pyx_unpickle_Occupancy(C
   /* "(tree fragment)":4
  *     cdef object __pyx_PickleError
  *     cdef object __pyx_result
- *     if __pyx_checksum != 0x102a9c0:             # <<<<<<<<<<<<<<
+ *     if __pyx_checksum != 0xbce0b81:             # <<<<<<<<<<<<<<
  *         from pickle import PickleError as __pyx_PickleError
- *         raise __pyx_PickleError("Incompatible checksums (%s vs 0x102a9c0 = (min_scale_reduced, occupancy, reduction))" % __pyx_checksum)
+ *         raise __pyx_PickleError("Incompatible checksums (%s vs 0xbce0b81 = (min_scale_reduced, occupancy, occupancy_view, reduction))" % __pyx_checksum)
  */
-  __pyx_t_1 = ((__pyx_v___pyx_checksum != 0x102a9c0) != 0);
+  __pyx_t_1 = ((__pyx_v___pyx_checksum != 0xbce0b81) != 0);
   if (__pyx_t_1) {
 
     /* "(tree fragment)":5
  *     cdef object __pyx_result
- *     if __pyx_checksum != 0x102a9c0:
+ *     if __pyx_checksum != 0xbce0b81:
  *         from pickle import PickleError as __pyx_PickleError             # <<<<<<<<<<<<<<
- *         raise __pyx_PickleError("Incompatible checksums (%s vs 0x102a9c0 = (min_scale_reduced, occupancy, reduction))" % __pyx_checksum)
+ *         raise __pyx_PickleError("Incompatible checksums (%s vs 0xbce0b81 = (min_scale_reduced, occupancy, occupancy_view, reduction))" % __pyx_checksum)
  *     __pyx_result = Occupancy.__new__(__pyx_type)
  */
     __pyx_t_2 = PyList_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 5, __pyx_L1_error)
@@ -10993,15 +11027,15 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_36__pyx_unpickle_Occupancy(C
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
     /* "(tree fragment)":6
- *     if __pyx_checksum != 0x102a9c0:
+ *     if __pyx_checksum != 0xbce0b81:
  *         from pickle import PickleError as __pyx_PickleError
- *         raise __pyx_PickleError("Incompatible checksums (%s vs 0x102a9c0 = (min_scale_reduced, occupancy, reduction))" % __pyx_checksum)             # <<<<<<<<<<<<<<
+ *         raise __pyx_PickleError("Incompatible checksums (%s vs 0xbce0b81 = (min_scale_reduced, occupancy, occupancy_view, reduction))" % __pyx_checksum)             # <<<<<<<<<<<<<<
  *     __pyx_result = Occupancy.__new__(__pyx_type)
  *     if __pyx_state is not None:
  */
     __pyx_t_2 = __Pyx_PyInt_From_long(__pyx_v___pyx_checksum); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 6, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_4 = __Pyx_PyString_Format(__pyx_kp_s_Incompatible_checksums_s_vs_0x10, __pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 6, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyString_Format(__pyx_kp_s_Incompatible_checksums_s_vs_0xbc, __pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 6, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_INCREF(__pyx_v___pyx_PickleError);
@@ -11028,15 +11062,15 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_36__pyx_unpickle_Occupancy(C
     /* "(tree fragment)":4
  *     cdef object __pyx_PickleError
  *     cdef object __pyx_result
- *     if __pyx_checksum != 0x102a9c0:             # <<<<<<<<<<<<<<
+ *     if __pyx_checksum != 0xbce0b81:             # <<<<<<<<<<<<<<
  *         from pickle import PickleError as __pyx_PickleError
- *         raise __pyx_PickleError("Incompatible checksums (%s vs 0x102a9c0 = (min_scale_reduced, occupancy, reduction))" % __pyx_checksum)
+ *         raise __pyx_PickleError("Incompatible checksums (%s vs 0xbce0b81 = (min_scale_reduced, occupancy, occupancy_view, reduction))" % __pyx_checksum)
  */
   }
 
   /* "(tree fragment)":7
  *         from pickle import PickleError as __pyx_PickleError
- *         raise __pyx_PickleError("Incompatible checksums (%s vs 0x102a9c0 = (min_scale_reduced, occupancy, reduction))" % __pyx_checksum)
+ *         raise __pyx_PickleError("Incompatible checksums (%s vs 0xbce0b81 = (min_scale_reduced, occupancy, occupancy_view, reduction))" % __pyx_checksum)
  *     __pyx_result = Occupancy.__new__(__pyx_type)             # <<<<<<<<<<<<<<
  *     if __pyx_state is not None:
  *         __pyx_unpickle_Occupancy__set_state(<Occupancy> __pyx_result, __pyx_state)
@@ -11062,7 +11096,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_36__pyx_unpickle_Occupancy(C
   __pyx_t_3 = 0;
 
   /* "(tree fragment)":8
- *         raise __pyx_PickleError("Incompatible checksums (%s vs 0x102a9c0 = (min_scale_reduced, occupancy, reduction))" % __pyx_checksum)
+ *         raise __pyx_PickleError("Incompatible checksums (%s vs 0xbce0b81 = (min_scale_reduced, occupancy, occupancy_view, reduction))" % __pyx_checksum)
  *     __pyx_result = Occupancy.__new__(__pyx_type)
  *     if __pyx_state is not None:             # <<<<<<<<<<<<<<
  *         __pyx_unpickle_Occupancy__set_state(<Occupancy> __pyx_result, __pyx_state)
@@ -11085,7 +11119,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_36__pyx_unpickle_Occupancy(C
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
     /* "(tree fragment)":8
- *         raise __pyx_PickleError("Incompatible checksums (%s vs 0x102a9c0 = (min_scale_reduced, occupancy, reduction))" % __pyx_checksum)
+ *         raise __pyx_PickleError("Incompatible checksums (%s vs 0xbce0b81 = (min_scale_reduced, occupancy, occupancy_view, reduction))" % __pyx_checksum)
  *     __pyx_result = Occupancy.__new__(__pyx_type)
  *     if __pyx_state is not None:             # <<<<<<<<<<<<<<
  *         __pyx_unpickle_Occupancy__set_state(<Occupancy> __pyx_result, __pyx_state)
@@ -11098,7 +11132,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_36__pyx_unpickle_Occupancy(C
  *         __pyx_unpickle_Occupancy__set_state(<Occupancy> __pyx_result, __pyx_state)
  *     return __pyx_result             # <<<<<<<<<<<<<<
  * cdef __pyx_unpickle_Occupancy__set_state(Occupancy __pyx_result, tuple __pyx_state):
- *     __pyx_result.min_scale_reduced = __pyx_state[0]; __pyx_result.occupancy = __pyx_state[1]; __pyx_result.reduction = __pyx_state[2]
+ *     __pyx_result.min_scale_reduced = __pyx_state[0]; __pyx_result.occupancy = __pyx_state[1]; __pyx_result.occupancy_view = __pyx_state[2]; __pyx_result.reduction = __pyx_state[3]
  */
   __Pyx_XDECREF(__pyx_r);
   __Pyx_INCREF(__pyx_v___pyx_result);
@@ -11131,8 +11165,8 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_36__pyx_unpickle_Occupancy(C
  *         __pyx_unpickle_Occupancy__set_state(<Occupancy> __pyx_result, __pyx_state)
  *     return __pyx_result
  * cdef __pyx_unpickle_Occupancy__set_state(Occupancy __pyx_result, tuple __pyx_state):             # <<<<<<<<<<<<<<
- *     __pyx_result.min_scale_reduced = __pyx_state[0]; __pyx_result.occupancy = __pyx_state[1]; __pyx_result.reduction = __pyx_state[2]
- *     if len(__pyx_state) > 3 and hasattr(__pyx_result, '__dict__'):
+ *     __pyx_result.min_scale_reduced = __pyx_state[0]; __pyx_result.occupancy = __pyx_state[1]; __pyx_result.occupancy_view = __pyx_state[2]; __pyx_result.reduction = __pyx_state[3]
+ *     if len(__pyx_state) > 4 and hasattr(__pyx_result, '__dict__'):
  */
 
 static PyObject *__pyx_f_10openpifpaf_10functional___pyx_unpickle_Occupancy__set_state(struct __pyx_obj_10openpifpaf_10functional_Occupancy *__pyx_v___pyx_result, PyObject *__pyx_v___pyx_state) {
@@ -11156,9 +11190,9 @@ static PyObject *__pyx_f_10openpifpaf_10functional___pyx_unpickle_Occupancy__set
   /* "(tree fragment)":12
  *     return __pyx_result
  * cdef __pyx_unpickle_Occupancy__set_state(Occupancy __pyx_result, tuple __pyx_state):
- *     __pyx_result.min_scale_reduced = __pyx_state[0]; __pyx_result.occupancy = __pyx_state[1]; __pyx_result.reduction = __pyx_state[2]             # <<<<<<<<<<<<<<
- *     if len(__pyx_state) > 3 and hasattr(__pyx_result, '__dict__'):
- *         __pyx_result.__dict__.update(__pyx_state[3])
+ *     __pyx_result.min_scale_reduced = __pyx_state[0]; __pyx_result.occupancy = __pyx_state[1]; __pyx_result.occupancy_view = __pyx_state[2]; __pyx_result.reduction = __pyx_state[3]             # <<<<<<<<<<<<<<
+ *     if len(__pyx_state) > 4 and hasattr(__pyx_result, '__dict__'):
+ *         __pyx_result.__dict__.update(__pyx_state[4])
  */
   if (unlikely(__pyx_v___pyx_state == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
@@ -11175,17 +11209,28 @@ static PyObject *__pyx_f_10openpifpaf_10functional___pyx_unpickle_Occupancy__set
   }
   __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 12, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_GIVEREF(__pyx_t_1);
+  __Pyx_GOTREF(__pyx_v___pyx_result->occupancy);
+  __Pyx_DECREF(__pyx_v___pyx_result->occupancy);
+  __pyx_v___pyx_result->occupancy = __pyx_t_1;
+  __pyx_t_1 = 0;
+  if (unlikely(__pyx_v___pyx_state == Py_None)) {
+    PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
+    __PYX_ERR(1, 12, __pyx_L1_error)
+  }
+  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 2, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 12, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_3 = __Pyx_PyObject_to_MemoryviewSlice_dsdsds_unsigned_char(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_3.memview)) __PYX_ERR(1, 12, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __PYX_XDEC_MEMVIEW(&__pyx_v___pyx_result->occupancy, 0);
-  __pyx_v___pyx_result->occupancy = __pyx_t_3;
+  __PYX_XDEC_MEMVIEW(&__pyx_v___pyx_result->occupancy_view, 0);
+  __pyx_v___pyx_result->occupancy_view = __pyx_t_3;
   __pyx_t_3.memview = NULL;
   __pyx_t_3.data = NULL;
   if (unlikely(__pyx_v___pyx_state == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
     __PYX_ERR(1, 12, __pyx_L1_error)
   }
-  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 2, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 12, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 3, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 12, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_2 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_2 == (float)-1) && PyErr_Occurred())) __PYX_ERR(1, 12, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -11193,16 +11238,16 @@ static PyObject *__pyx_f_10openpifpaf_10functional___pyx_unpickle_Occupancy__set
 
   /* "(tree fragment)":13
  * cdef __pyx_unpickle_Occupancy__set_state(Occupancy __pyx_result, tuple __pyx_state):
- *     __pyx_result.min_scale_reduced = __pyx_state[0]; __pyx_result.occupancy = __pyx_state[1]; __pyx_result.reduction = __pyx_state[2]
- *     if len(__pyx_state) > 3 and hasattr(__pyx_result, '__dict__'):             # <<<<<<<<<<<<<<
- *         __pyx_result.__dict__.update(__pyx_state[3])
+ *     __pyx_result.min_scale_reduced = __pyx_state[0]; __pyx_result.occupancy = __pyx_state[1]; __pyx_result.occupancy_view = __pyx_state[2]; __pyx_result.reduction = __pyx_state[3]
+ *     if len(__pyx_state) > 4 and hasattr(__pyx_result, '__dict__'):             # <<<<<<<<<<<<<<
+ *         __pyx_result.__dict__.update(__pyx_state[4])
  */
   if (unlikely(__pyx_v___pyx_state == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
     __PYX_ERR(1, 13, __pyx_L1_error)
   }
   __pyx_t_5 = PyTuple_GET_SIZE(__pyx_v___pyx_state); if (unlikely(__pyx_t_5 == ((Py_ssize_t)-1))) __PYX_ERR(1, 13, __pyx_L1_error)
-  __pyx_t_6 = ((__pyx_t_5 > 3) != 0);
+  __pyx_t_6 = ((__pyx_t_5 > 4) != 0);
   if (__pyx_t_6) {
   } else {
     __pyx_t_4 = __pyx_t_6;
@@ -11215,9 +11260,9 @@ static PyObject *__pyx_f_10openpifpaf_10functional___pyx_unpickle_Occupancy__set
   if (__pyx_t_4) {
 
     /* "(tree fragment)":14
- *     __pyx_result.min_scale_reduced = __pyx_state[0]; __pyx_result.occupancy = __pyx_state[1]; __pyx_result.reduction = __pyx_state[2]
- *     if len(__pyx_state) > 3 and hasattr(__pyx_result, '__dict__'):
- *         __pyx_result.__dict__.update(__pyx_state[3])             # <<<<<<<<<<<<<<
+ *     __pyx_result.min_scale_reduced = __pyx_state[0]; __pyx_result.occupancy = __pyx_state[1]; __pyx_result.occupancy_view = __pyx_state[2]; __pyx_result.reduction = __pyx_state[3]
+ *     if len(__pyx_state) > 4 and hasattr(__pyx_result, '__dict__'):
+ *         __pyx_result.__dict__.update(__pyx_state[4])             # <<<<<<<<<<<<<<
  */
     __pyx_t_8 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v___pyx_result), __pyx_n_s_dict); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 14, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
@@ -11228,7 +11273,7 @@ static PyObject *__pyx_f_10openpifpaf_10functional___pyx_unpickle_Occupancy__set
       PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
       __PYX_ERR(1, 14, __pyx_L1_error)
     }
-    __pyx_t_8 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 3, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 14, __pyx_L1_error)
+    __pyx_t_8 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 4, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 14, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
     __pyx_t_10 = NULL;
     if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_9))) {
@@ -11250,9 +11295,9 @@ static PyObject *__pyx_f_10openpifpaf_10functional___pyx_unpickle_Occupancy__set
 
     /* "(tree fragment)":13
  * cdef __pyx_unpickle_Occupancy__set_state(Occupancy __pyx_result, tuple __pyx_state):
- *     __pyx_result.min_scale_reduced = __pyx_state[0]; __pyx_result.occupancy = __pyx_state[1]; __pyx_result.reduction = __pyx_state[2]
- *     if len(__pyx_state) > 3 and hasattr(__pyx_result, '__dict__'):             # <<<<<<<<<<<<<<
- *         __pyx_result.__dict__.update(__pyx_state[3])
+ *     __pyx_result.min_scale_reduced = __pyx_state[0]; __pyx_result.occupancy = __pyx_state[1]; __pyx_result.occupancy_view = __pyx_state[2]; __pyx_result.reduction = __pyx_state[3]
+ *     if len(__pyx_state) > 4 and hasattr(__pyx_result, '__dict__'):             # <<<<<<<<<<<<<<
+ *         __pyx_result.__dict__.update(__pyx_state[4])
  */
   }
 
@@ -11260,8 +11305,8 @@ static PyObject *__pyx_f_10openpifpaf_10functional___pyx_unpickle_Occupancy__set
  *         __pyx_unpickle_Occupancy__set_state(<Occupancy> __pyx_result, __pyx_state)
  *     return __pyx_result
  * cdef __pyx_unpickle_Occupancy__set_state(Occupancy __pyx_result, tuple __pyx_state):             # <<<<<<<<<<<<<<
- *     __pyx_result.min_scale_reduced = __pyx_state[0]; __pyx_result.occupancy = __pyx_state[1]; __pyx_result.reduction = __pyx_state[2]
- *     if len(__pyx_state) > 3 and hasattr(__pyx_result, '__dict__'):
+ *     __pyx_result.min_scale_reduced = __pyx_state[0]; __pyx_result.occupancy = __pyx_state[1]; __pyx_result.occupancy_view = __pyx_state[2]; __pyx_result.reduction = __pyx_state[3]
+ *     if len(__pyx_state) > 4 and hasattr(__pyx_result, '__dict__'):
  */
 
   /* function exit code */
@@ -24311,20 +24356,41 @@ static PyObject *__pyx_tp_new_10openpifpaf_10functional_Occupancy(PyTypeObject *
   if (unlikely(!o)) return 0;
   p = ((struct __pyx_obj_10openpifpaf_10functional_Occupancy *)o);
   p->__pyx_vtab = __pyx_vtabptr_10openpifpaf_10functional_Occupancy;
-  p->occupancy.data = NULL;
-  p->occupancy.memview = NULL;
+  p->occupancy = Py_None; Py_INCREF(Py_None);
+  p->occupancy_view.data = NULL;
+  p->occupancy_view.memview = NULL;
   return o;
 }
 
 static void __pyx_tp_dealloc_10openpifpaf_10functional_Occupancy(PyObject *o) {
   struct __pyx_obj_10openpifpaf_10functional_Occupancy *p = (struct __pyx_obj_10openpifpaf_10functional_Occupancy *)o;
   #if CYTHON_USE_TP_FINALIZE
-  if (unlikely(PyType_HasFeature(Py_TYPE(o), Py_TPFLAGS_HAVE_FINALIZE) && Py_TYPE(o)->tp_finalize) && (!PyType_IS_GC(Py_TYPE(o)) || !_PyGC_FINALIZED(o))) {
+  if (unlikely(PyType_HasFeature(Py_TYPE(o), Py_TPFLAGS_HAVE_FINALIZE) && Py_TYPE(o)->tp_finalize) && !_PyGC_FINALIZED(o)) {
     if (PyObject_CallFinalizerFromDealloc(o)) return;
   }
   #endif
-  __PYX_XDEC_MEMVIEW(&p->occupancy, 1);
+  PyObject_GC_UnTrack(o);
+  Py_CLEAR(p->occupancy);
+  __PYX_XDEC_MEMVIEW(&p->occupancy_view, 1);
   (*Py_TYPE(o)->tp_free)(o);
+}
+
+static int __pyx_tp_traverse_10openpifpaf_10functional_Occupancy(PyObject *o, visitproc v, void *a) {
+  int e;
+  struct __pyx_obj_10openpifpaf_10functional_Occupancy *p = (struct __pyx_obj_10openpifpaf_10functional_Occupancy *)o;
+  if (p->occupancy) {
+    e = (*v)(p->occupancy, a); if (e) return e;
+  }
+  return 0;
+}
+
+static int __pyx_tp_clear_10openpifpaf_10functional_Occupancy(PyObject *o) {
+  PyObject* tmp;
+  struct __pyx_obj_10openpifpaf_10functional_Occupancy *p = (struct __pyx_obj_10openpifpaf_10functional_Occupancy *)o;
+  tmp = ((PyObject*)p->occupancy);
+  p->occupancy = Py_None; Py_INCREF(Py_None);
+  Py_XDECREF(tmp);
+  return 0;
 }
 
 static PyObject *__pyx_getprop_10openpifpaf_10functional_9Occupancy_reduction(PyObject *o, CYTHON_UNUSED void *x) {
@@ -24364,8 +24430,7 @@ static int __pyx_setprop_10openpifpaf_10functional_9Occupancy_occupancy(PyObject
     return __pyx_pw_10openpifpaf_10functional_9Occupancy_9occupancy_3__set__(o, v);
   }
   else {
-    PyErr_SetString(PyExc_NotImplementedError, "__del__");
-    return -1;
+    return __pyx_pw_10openpifpaf_10functional_9Occupancy_9occupancy_5__del__(o);
   }
 }
 
@@ -24433,10 +24498,10 @@ static PyTypeObject __pyx_type_10openpifpaf_10functional_Occupancy = {
   0, /*tp_getattro*/
   0, /*tp_setattro*/
   0, /*tp_as_buffer*/
-  Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_VERSION_TAG|Py_TPFLAGS_CHECKTYPES|Py_TPFLAGS_HAVE_NEWBUFFER|Py_TPFLAGS_BASETYPE, /*tp_flags*/
+  Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_VERSION_TAG|Py_TPFLAGS_CHECKTYPES|Py_TPFLAGS_HAVE_NEWBUFFER|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_HAVE_GC, /*tp_flags*/
   0, /*tp_doc*/
-  0, /*tp_traverse*/
-  0, /*tp_clear*/
+  __pyx_tp_traverse_10openpifpaf_10functional_Occupancy, /*tp_traverse*/
+  __pyx_tp_clear_10openpifpaf_10functional_Occupancy, /*tp_clear*/
   0, /*tp_richcompare*/
   0, /*tp_weaklistoffset*/
   0, /*tp_iter*/
@@ -25252,8 +25317,8 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_Cannot_index_with_type_s, __pyx_k_Cannot_index_with_type_s, sizeof(__pyx_k_Cannot_index_with_type_s), 0, 0, 1, 0},
   {&__pyx_n_s_Ellipsis, __pyx_k_Ellipsis, sizeof(__pyx_k_Ellipsis), 0, 0, 1, 1},
   {&__pyx_kp_s_Empty_shape_tuple_for_cython_arr, __pyx_k_Empty_shape_tuple_for_cython_arr, sizeof(__pyx_k_Empty_shape_tuple_for_cython_arr), 0, 0, 1, 0},
-  {&__pyx_kp_s_Incompatible_checksums_s_vs_0x10, __pyx_k_Incompatible_checksums_s_vs_0x10, sizeof(__pyx_k_Incompatible_checksums_s_vs_0x10), 0, 0, 1, 0},
   {&__pyx_kp_s_Incompatible_checksums_s_vs_0xb0, __pyx_k_Incompatible_checksums_s_vs_0xb0, sizeof(__pyx_k_Incompatible_checksums_s_vs_0xb0), 0, 0, 1, 0},
+  {&__pyx_kp_s_Incompatible_checksums_s_vs_0xbc, __pyx_k_Incompatible_checksums_s_vs_0xbc, sizeof(__pyx_k_Incompatible_checksums_s_vs_0xbc), 0, 0, 1, 0},
   {&__pyx_n_s_IndexError, __pyx_k_IndexError, sizeof(__pyx_k_IndexError), 0, 0, 1, 1},
   {&__pyx_kp_s_Indirect_dimensions_not_supporte, __pyx_k_Indirect_dimensions_not_supporte, sizeof(__pyx_k_Indirect_dimensions_not_supporte), 0, 0, 1, 0},
   {&__pyx_kp_s_Invalid_mode_expected_c_or_fortr, __pyx_k_Invalid_mode_expected_c_or_fortr, sizeof(__pyx_k_Invalid_mode_expected_c_or_fortr), 0, 0, 1, 0},
@@ -25430,14 +25495,14 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "openpifpaf/functional.pyx":380
+  /* "openpifpaf/functional.pyx":382
  *         result_i += 1
  * 
  *     return result_np[:, :result_i]             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_slice__2 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__2)) __PYX_ERR(0, 380, __pyx_L1_error)
+  __pyx_slice__2 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__2)) __PYX_ERR(0, 382, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_slice__2);
   __Pyx_GIVEREF(__pyx_slice__2);
 
@@ -25622,89 +25687,89 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__19);
   __Pyx_GIVEREF(__pyx_tuple__19);
 
-  /* "openpifpaf/functional.pyx":245
+  /* "openpifpaf/functional.pyx":247
  * @cython.wraparound(False)
  * @cython.cdivision(True)
  * def weiszfeld_nd(x_np, y_np, float[:] weights=None, float epsilon=1e-8, Py_ssize_t max_steps=20):             # <<<<<<<<<<<<<<
  *     """Weighted Weiszfeld algorithm."""
  *     if weights is None:
  */
-  __pyx_tuple__20 = PyTuple_Pack(16, __pyx_n_s_x_np, __pyx_n_s_y_np, __pyx_n_s_weights, __pyx_n_s_epsilon, __pyx_n_s_max_steps, __pyx_n_s_x, __pyx_n_s_y, __pyx_n_s_weights_x, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_prev_y, __pyx_n_s_y_top, __pyx_n_s_y_bottom, __pyx_n_s_denom_np, __pyx_n_s_denom, __pyx_n_s_s); if (unlikely(!__pyx_tuple__20)) __PYX_ERR(0, 245, __pyx_L1_error)
+  __pyx_tuple__20 = PyTuple_Pack(16, __pyx_n_s_x_np, __pyx_n_s_y_np, __pyx_n_s_weights, __pyx_n_s_epsilon, __pyx_n_s_max_steps, __pyx_n_s_x, __pyx_n_s_y, __pyx_n_s_weights_x, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_prev_y, __pyx_n_s_y_top, __pyx_n_s_y_bottom, __pyx_n_s_denom_np, __pyx_n_s_denom, __pyx_n_s_s); if (unlikely(!__pyx_tuple__20)) __PYX_ERR(0, 247, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__20);
   __Pyx_GIVEREF(__pyx_tuple__20);
-  __pyx_codeobj__21 = (PyObject*)__Pyx_PyCode_New(5, 0, 16, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__20, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_openpifpaf_functional_pyx, __pyx_n_s_weiszfeld_nd, 245, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__21)) __PYX_ERR(0, 245, __pyx_L1_error)
+  __pyx_codeobj__21 = (PyObject*)__Pyx_PyCode_New(5, 0, 16, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__20, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_openpifpaf_functional_pyx, __pyx_n_s_weiszfeld_nd, 247, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__21)) __PYX_ERR(0, 247, __pyx_L1_error)
 
-  /* "openpifpaf/functional.pyx":286
+  /* "openpifpaf/functional.pyx":288
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * def paf_mask_center(float[:, :] paf_field, float x, float y, float sigma=1.0):             # <<<<<<<<<<<<<<
  *     mask_np = np.zeros((paf_field.shape[1],), dtype=np.uint8)
  *     cdef unsigned char[:] mask = mask_np
  */
-  __pyx_tuple__22 = PyTuple_Pack(7, __pyx_n_s_paf_field, __pyx_n_s_x, __pyx_n_s_y, __pyx_n_s_sigma, __pyx_n_s_mask_np, __pyx_n_s_mask, __pyx_n_s_i); if (unlikely(!__pyx_tuple__22)) __PYX_ERR(0, 286, __pyx_L1_error)
+  __pyx_tuple__22 = PyTuple_Pack(7, __pyx_n_s_paf_field, __pyx_n_s_x, __pyx_n_s_y, __pyx_n_s_sigma, __pyx_n_s_mask_np, __pyx_n_s_mask, __pyx_n_s_i); if (unlikely(!__pyx_tuple__22)) __PYX_ERR(0, 288, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__22);
   __Pyx_GIVEREF(__pyx_tuple__22);
-  __pyx_codeobj__23 = (PyObject*)__Pyx_PyCode_New(4, 0, 7, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__22, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_openpifpaf_functional_pyx, __pyx_n_s_paf_mask_center, 286, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__23)) __PYX_ERR(0, 286, __pyx_L1_error)
+  __pyx_codeobj__23 = (PyObject*)__Pyx_PyCode_New(4, 0, 7, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__22, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_openpifpaf_functional_pyx, __pyx_n_s_paf_mask_center, 288, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__23)) __PYX_ERR(0, 288, __pyx_L1_error)
 
-  /* "openpifpaf/functional.pyx":303
+  /* "openpifpaf/functional.pyx":305
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * def scalar_values(float[:, :] field, float[:] x, float[:] y, float default=-1):             # <<<<<<<<<<<<<<
  *     values_np = np.full((x.shape[0],), default, dtype=np.float32)
  *     cdef float[:] values = values_np
  */
-  __pyx_tuple__24 = PyTuple_Pack(9, __pyx_n_s_field, __pyx_n_s_x, __pyx_n_s_y, __pyx_n_s_default, __pyx_n_s_values_np, __pyx_n_s_values, __pyx_n_s_maxx, __pyx_n_s_maxy, __pyx_n_s_i); if (unlikely(!__pyx_tuple__24)) __PYX_ERR(0, 303, __pyx_L1_error)
+  __pyx_tuple__24 = PyTuple_Pack(9, __pyx_n_s_field, __pyx_n_s_x, __pyx_n_s_y, __pyx_n_s_default, __pyx_n_s_values_np, __pyx_n_s_values, __pyx_n_s_maxx, __pyx_n_s_maxy, __pyx_n_s_i); if (unlikely(!__pyx_tuple__24)) __PYX_ERR(0, 305, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__24);
   __Pyx_GIVEREF(__pyx_tuple__24);
-  __pyx_codeobj__25 = (PyObject*)__Pyx_PyCode_New(4, 0, 9, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__24, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_openpifpaf_functional_pyx, __pyx_n_s_scalar_values, 303, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__25)) __PYX_ERR(0, 303, __pyx_L1_error)
+  __pyx_codeobj__25 = (PyObject*)__Pyx_PyCode_New(4, 0, 9, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__24, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_openpifpaf_functional_pyx, __pyx_n_s_scalar_values, 305, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__25)) __PYX_ERR(0, 305, __pyx_L1_error)
 
-  /* "openpifpaf/functional.pyx":361
+  /* "openpifpaf/functional.pyx":363
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * def paf_center_b(float[:, :] paf_field, float x, float y, float sigma=1.0):             # <<<<<<<<<<<<<<
  *     result_np = np.empty_like(paf_field)
  *     cdef float[:, :] result = result_np
  */
-  __pyx_tuple__26 = PyTuple_Pack(9, __pyx_n_s_paf_field, __pyx_n_s_x, __pyx_n_s_y, __pyx_n_s_sigma, __pyx_n_s_result_np, __pyx_n_s_result, __pyx_n_s_result_i, __pyx_n_s_take, __pyx_n_s_i); if (unlikely(!__pyx_tuple__26)) __PYX_ERR(0, 361, __pyx_L1_error)
+  __pyx_tuple__26 = PyTuple_Pack(9, __pyx_n_s_paf_field, __pyx_n_s_x, __pyx_n_s_y, __pyx_n_s_sigma, __pyx_n_s_result_np, __pyx_n_s_result, __pyx_n_s_result_i, __pyx_n_s_take, __pyx_n_s_i); if (unlikely(!__pyx_tuple__26)) __PYX_ERR(0, 363, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__26);
   __Pyx_GIVEREF(__pyx_tuple__26);
-  __pyx_codeobj__27 = (PyObject*)__Pyx_PyCode_New(4, 0, 9, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__26, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_openpifpaf_functional_pyx, __pyx_n_s_paf_center_b, 361, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__27)) __PYX_ERR(0, 361, __pyx_L1_error)
+  __pyx_codeobj__27 = (PyObject*)__Pyx_PyCode_New(4, 0, 9, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__26, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_openpifpaf_functional_pyx, __pyx_n_s_paf_center_b, 363, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__27)) __PYX_ERR(0, 363, __pyx_L1_error)
 
-  /* "openpifpaf/functional.pyx":385
+  /* "openpifpaf/functional.pyx":387
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * def paf_center(float[:, :] paf_field, float x, float y, float sigma):             # <<<<<<<<<<<<<<
  *     result_np = np.empty_like(paf_field)
  *     cdef float[:, :] result = result_np
  */
-  __pyx_tuple__28 = PyTuple_Pack(9, __pyx_n_s_paf_field, __pyx_n_s_x, __pyx_n_s_y, __pyx_n_s_sigma, __pyx_n_s_result_np, __pyx_n_s_result, __pyx_n_s_result_i, __pyx_n_s_take, __pyx_n_s_i); if (unlikely(!__pyx_tuple__28)) __PYX_ERR(0, 385, __pyx_L1_error)
+  __pyx_tuple__28 = PyTuple_Pack(9, __pyx_n_s_paf_field, __pyx_n_s_x, __pyx_n_s_y, __pyx_n_s_sigma, __pyx_n_s_result_np, __pyx_n_s_result, __pyx_n_s_result_i, __pyx_n_s_take, __pyx_n_s_i); if (unlikely(!__pyx_tuple__28)) __PYX_ERR(0, 387, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__28);
   __Pyx_GIVEREF(__pyx_tuple__28);
-  __pyx_codeobj__29 = (PyObject*)__Pyx_PyCode_New(4, 0, 9, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__28, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_openpifpaf_functional_pyx, __pyx_n_s_paf_center, 385, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__29)) __PYX_ERR(0, 385, __pyx_L1_error)
+  __pyx_codeobj__29 = (PyObject*)__Pyx_PyCode_New(4, 0, 9, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__28, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_openpifpaf_functional_pyx, __pyx_n_s_paf_center, 387, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__29)) __PYX_ERR(0, 387, __pyx_L1_error)
 
-  /* "openpifpaf/functional.pyx":410
+  /* "openpifpaf/functional.pyx":412
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * def caf_center_s(float[:, :] caf_field, float x, float y, float sigma):             # <<<<<<<<<<<<<<
  *     result_np = np.empty_like(caf_field)
  *     cdef float[:, :] result = result_np
  */
-  __pyx_tuple__30 = PyTuple_Pack(8, __pyx_n_s_caf_field, __pyx_n_s_x, __pyx_n_s_y, __pyx_n_s_sigma, __pyx_n_s_result_np, __pyx_n_s_result, __pyx_n_s_result_i, __pyx_n_s_i); if (unlikely(!__pyx_tuple__30)) __PYX_ERR(0, 410, __pyx_L1_error)
+  __pyx_tuple__30 = PyTuple_Pack(8, __pyx_n_s_caf_field, __pyx_n_s_x, __pyx_n_s_y, __pyx_n_s_sigma, __pyx_n_s_result_np, __pyx_n_s_result, __pyx_n_s_result_i, __pyx_n_s_i); if (unlikely(!__pyx_tuple__30)) __PYX_ERR(0, 412, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__30);
   __Pyx_GIVEREF(__pyx_tuple__30);
-  __pyx_codeobj__31 = (PyObject*)__Pyx_PyCode_New(4, 0, 8, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__30, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_openpifpaf_functional_pyx, __pyx_n_s_caf_center_s, 410, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__31)) __PYX_ERR(0, 410, __pyx_L1_error)
+  __pyx_codeobj__31 = (PyObject*)__Pyx_PyCode_New(4, 0, 8, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__30, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_openpifpaf_functional_pyx, __pyx_n_s_caf_center_s, 412, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__31)) __PYX_ERR(0, 412, __pyx_L1_error)
 
-  /* "openpifpaf/functional.pyx":435
+  /* "openpifpaf/functional.pyx":437
  * @cython.wraparound(False)
  * @cython.cdivision(True)
  * def grow_connection_blend(float[:, :] caf_field, float x, float y, float xy_scale, bint only_max=False):             # <<<<<<<<<<<<<<
  *     """Blending the top two candidates with a weighted average.
  * 
  */
-  __pyx_tuple__32 = PyTuple_Pack(19, __pyx_n_s_caf_field, __pyx_n_s_x, __pyx_n_s_y, __pyx_n_s_xy_scale, __pyx_n_s_only_max, __pyx_n_s_sigma_filter, __pyx_n_s_sigma2, __pyx_n_s_d2, __pyx_n_s_v, __pyx_n_s_score, __pyx_n_s_score_1_i, __pyx_n_s_score_2_i, __pyx_n_s_score_1, __pyx_n_s_score_2, __pyx_n_s_i, __pyx_n_s_r, __pyx_n_s_entry_1, __pyx_n_s_entry_2, __pyx_n_s_blend_d2); if (unlikely(!__pyx_tuple__32)) __PYX_ERR(0, 435, __pyx_L1_error)
+  __pyx_tuple__32 = PyTuple_Pack(19, __pyx_n_s_caf_field, __pyx_n_s_x, __pyx_n_s_y, __pyx_n_s_xy_scale, __pyx_n_s_only_max, __pyx_n_s_sigma_filter, __pyx_n_s_sigma2, __pyx_n_s_d2, __pyx_n_s_v, __pyx_n_s_score, __pyx_n_s_score_1_i, __pyx_n_s_score_2_i, __pyx_n_s_score_1, __pyx_n_s_score_2, __pyx_n_s_i, __pyx_n_s_r, __pyx_n_s_entry_1, __pyx_n_s_entry_2, __pyx_n_s_blend_d2); if (unlikely(!__pyx_tuple__32)) __PYX_ERR(0, 437, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__32);
   __Pyx_GIVEREF(__pyx_tuple__32);
-  __pyx_codeobj__33 = (PyObject*)__Pyx_PyCode_New(5, 0, 19, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__32, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_openpifpaf_functional_pyx, __pyx_n_s_grow_connection_blend, 435, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__33)) __PYX_ERR(0, 435, __pyx_L1_error)
+  __pyx_codeobj__33 = (PyObject*)__Pyx_PyCode_New(5, 0, 19, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__32, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_openpifpaf_functional_pyx, __pyx_n_s_grow_connection_blend, 437, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__33)) __PYX_ERR(0, 437, __pyx_L1_error)
 
   /* "(tree fragment)":1
  * def __pyx_unpickle_Occupancy(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
@@ -25791,8 +25856,8 @@ static CYTHON_SMALL_CODE int __Pyx_InitGlobals(void) {
   if (__Pyx_InitStrings(__pyx_string_tab) < 0) __PYX_ERR(0, 1, __pyx_L1_error);
   __pyx_int_0 = PyInt_FromLong(0); if (unlikely(!__pyx_int_0)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_1 = PyInt_FromLong(1); if (unlikely(!__pyx_int_1)) __PYX_ERR(0, 1, __pyx_L1_error)
-  __pyx_int_16951744 = PyInt_FromLong(16951744L); if (unlikely(!__pyx_int_16951744)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_184977713 = PyInt_FromLong(184977713L); if (unlikely(!__pyx_int_184977713)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __pyx_int_198052737 = PyInt_FromLong(198052737L); if (unlikely(!__pyx_int_198052737)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_neg_1 = PyInt_FromLong(-1); if (unlikely(!__pyx_int_neg_1)) __PYX_ERR(0, 1, __pyx_L1_error)
   return 0;
   __pyx_L1_error:;
@@ -26155,92 +26220,92 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_np, __pyx_t_1) < 0) __PYX_ERR(0, 4, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "openpifpaf/functional.pyx":245
+  /* "openpifpaf/functional.pyx":247
  * @cython.wraparound(False)
  * @cython.cdivision(True)
  * def weiszfeld_nd(x_np, y_np, float[:] weights=None, float epsilon=1e-8, Py_ssize_t max_steps=20):             # <<<<<<<<<<<<<<
  *     """Weighted Weiszfeld algorithm."""
  *     if weights is None:
  */
-  __pyx_t_2 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(Py_None, PyBUF_WRITABLE); if (unlikely(!__pyx_t_2.memview)) __PYX_ERR(0, 245, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(Py_None, PyBUF_WRITABLE); if (unlikely(!__pyx_t_2.memview)) __PYX_ERR(0, 247, __pyx_L1_error)
   __pyx_k_ = __pyx_t_2;
   __pyx_t_2.memview = NULL;
   __pyx_t_2.data = NULL;
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_10openpifpaf_10functional_13weiszfeld_nd, NULL, __pyx_n_s_openpifpaf_functional); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 245, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_10openpifpaf_10functional_13weiszfeld_nd, NULL, __pyx_n_s_openpifpaf_functional); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 247, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_weiszfeld_nd, __pyx_t_1) < 0) __PYX_ERR(0, 245, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_weiszfeld_nd, __pyx_t_1) < 0) __PYX_ERR(0, 247, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "openpifpaf/functional.pyx":286
+  /* "openpifpaf/functional.pyx":288
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * def paf_mask_center(float[:, :] paf_field, float x, float y, float sigma=1.0):             # <<<<<<<<<<<<<<
  *     mask_np = np.zeros((paf_field.shape[1],), dtype=np.uint8)
  *     cdef unsigned char[:] mask = mask_np
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_10openpifpaf_10functional_15paf_mask_center, NULL, __pyx_n_s_openpifpaf_functional); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 286, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_10openpifpaf_10functional_15paf_mask_center, NULL, __pyx_n_s_openpifpaf_functional); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 288, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_paf_mask_center, __pyx_t_1) < 0) __PYX_ERR(0, 286, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_paf_mask_center, __pyx_t_1) < 0) __PYX_ERR(0, 288, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "openpifpaf/functional.pyx":303
+  /* "openpifpaf/functional.pyx":305
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * def scalar_values(float[:, :] field, float[:] x, float[:] y, float default=-1):             # <<<<<<<<<<<<<<
  *     values_np = np.full((x.shape[0],), default, dtype=np.float32)
  *     cdef float[:] values = values_np
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_10openpifpaf_10functional_17scalar_values, NULL, __pyx_n_s_openpifpaf_functional); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 303, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_10openpifpaf_10functional_17scalar_values, NULL, __pyx_n_s_openpifpaf_functional); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 305, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_scalar_values, __pyx_t_1) < 0) __PYX_ERR(0, 303, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_scalar_values, __pyx_t_1) < 0) __PYX_ERR(0, 305, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "openpifpaf/functional.pyx":361
+  /* "openpifpaf/functional.pyx":363
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * def paf_center_b(float[:, :] paf_field, float x, float y, float sigma=1.0):             # <<<<<<<<<<<<<<
  *     result_np = np.empty_like(paf_field)
  *     cdef float[:, :] result = result_np
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_10openpifpaf_10functional_29paf_center_b, NULL, __pyx_n_s_openpifpaf_functional); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 361, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_10openpifpaf_10functional_29paf_center_b, NULL, __pyx_n_s_openpifpaf_functional); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 363, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_paf_center_b, __pyx_t_1) < 0) __PYX_ERR(0, 361, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_paf_center_b, __pyx_t_1) < 0) __PYX_ERR(0, 363, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "openpifpaf/functional.pyx":385
+  /* "openpifpaf/functional.pyx":387
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * def paf_center(float[:, :] paf_field, float x, float y, float sigma):             # <<<<<<<<<<<<<<
  *     result_np = np.empty_like(paf_field)
  *     cdef float[:, :] result = result_np
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_10openpifpaf_10functional_31paf_center, NULL, __pyx_n_s_openpifpaf_functional); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 385, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_10openpifpaf_10functional_31paf_center, NULL, __pyx_n_s_openpifpaf_functional); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 387, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_paf_center, __pyx_t_1) < 0) __PYX_ERR(0, 385, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_paf_center, __pyx_t_1) < 0) __PYX_ERR(0, 387, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "openpifpaf/functional.pyx":410
+  /* "openpifpaf/functional.pyx":412
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * def caf_center_s(float[:, :] caf_field, float x, float y, float sigma):             # <<<<<<<<<<<<<<
  *     result_np = np.empty_like(caf_field)
  *     cdef float[:, :] result = result_np
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_10openpifpaf_10functional_33caf_center_s, NULL, __pyx_n_s_openpifpaf_functional); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 410, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_10openpifpaf_10functional_33caf_center_s, NULL, __pyx_n_s_openpifpaf_functional); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 412, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_caf_center_s, __pyx_t_1) < 0) __PYX_ERR(0, 410, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_caf_center_s, __pyx_t_1) < 0) __PYX_ERR(0, 412, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "openpifpaf/functional.pyx":435
+  /* "openpifpaf/functional.pyx":437
  * @cython.wraparound(False)
  * @cython.cdivision(True)
  * def grow_connection_blend(float[:, :] caf_field, float x, float y, float xy_scale, bint only_max=False):             # <<<<<<<<<<<<<<
  *     """Blending the top two candidates with a weighted average.
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_10openpifpaf_10functional_35grow_connection_blend, NULL, __pyx_n_s_openpifpaf_functional); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 435, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_10openpifpaf_10functional_35grow_connection_blend, NULL, __pyx_n_s_openpifpaf_functional); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 437, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_grow_connection_blend, __pyx_t_1) < 0) __PYX_ERR(0, 435, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_grow_connection_blend, __pyx_t_1) < 0) __PYX_ERR(0, 437, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "(tree fragment)":1

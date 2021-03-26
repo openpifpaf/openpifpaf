@@ -52,7 +52,8 @@ cpdef void scalar_square_set(unsigned char[:, :] field, float x, float y, float 
 cdef class Occupancy:
     cdef public float reduction
     cdef public float min_scale_reduced
-    cdef public unsigned char[:, :, :] occupancy
+    cdef public occupancy
+    cdef unsigned char[:, :, :] occupancy_view
 
     def __init__(self, shape, reduction, *, min_scale=None):
         assert len(shape) == 3
@@ -68,6 +69,7 @@ cdef class Occupancy:
             int(shape[1] / reduction) + 1,
             int(shape[2] / reduction) + 1,
         ), dtype=np.uint8)
+        self.occupancy_view = self.occupancy
         # LOG.debug('shape = %s, min_scale = %d', self.occupancy.shape, self.min_scale_reduced)
 
     def __len__(self):
@@ -78,7 +80,7 @@ cdef class Occupancy:
         if f >= len(self.occupancy):
             return
 
-        scalar_square_set(self.occupancy[f], x, y, sigma,
+        scalar_square_set(self.occupancy_view[f], x, y, sigma,
                           reduction=self.reduction, min_sigma=self.min_scale_reduced)
 
     cpdef readonly unsigned char get(self, long f, float x, float y):
@@ -87,7 +89,7 @@ cdef class Occupancy:
             return 1
 
         # floor is done in scalar_nonzero_clipped below
-        return scalar_nonzero_clipped_with_reduction(self.occupancy[f], x, y, self.reduction)
+        return scalar_nonzero_clipped_with_reduction(self.occupancy_view[f], x, y, self.reduction)
 
 
 
