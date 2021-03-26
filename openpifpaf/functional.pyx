@@ -50,9 +50,9 @@ cpdef void scalar_square_set(unsigned char[:, :] field, float x, float y, float 
 
 
 cdef class Occupancy:
-    cdef float reduction
-    cdef float min_scale_reduced
-    cdef unsigned char[:, :, :] occupancy
+    cdef public float reduction
+    cdef public float min_scale_reduced
+    cdef public unsigned char[:, :, :] occupancy
 
     def __init__(self, shape, reduction, *, min_scale=None):
         assert len(shape) == 3

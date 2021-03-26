@@ -1054,8 +1054,8 @@ struct __pyx_ctuple_float__and_float__and_float__and_float {
  * 
  * 
  * cdef class Occupancy:             # <<<<<<<<<<<<<<
- *     cdef float reduction
- *     cdef float min_scale_reduced
+ *     cdef public float reduction
+ *     cdef public float min_scale_reduced
  */
 struct __pyx_obj_10openpifpaf_10functional_Occupancy {
   PyObject_HEAD
@@ -1148,8 +1148,8 @@ struct __pyx_memoryviewslice_obj {
  * 
  * 
  * cdef class Occupancy:             # <<<<<<<<<<<<<<
- *     cdef float reduction
- *     cdef float min_scale_reduced
+ *     cdef public float reduction
+ *     cdef public float min_scale_reduced
  */
 
 struct __pyx_vtabstruct_10openpifpaf_10functional_Occupancy {
@@ -2293,6 +2293,12 @@ static int __pyx_pf_10openpifpaf_10functional_9Occupancy___init__(struct __pyx_o
 static Py_ssize_t __pyx_pf_10openpifpaf_10functional_9Occupancy_2__len__(struct __pyx_obj_10openpifpaf_10functional_Occupancy *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_10openpifpaf_10functional_9Occupancy_4set(struct __pyx_obj_10openpifpaf_10functional_Occupancy *__pyx_v_self, long __pyx_v_f, float __pyx_v_x, float __pyx_v_y, float __pyx_v_sigma); /* proto */
 static PyObject *__pyx_pf_10openpifpaf_10functional_9Occupancy_6get(struct __pyx_obj_10openpifpaf_10functional_Occupancy *__pyx_v_self, long __pyx_v_f, float __pyx_v_x, float __pyx_v_y); /* proto */
+static PyObject *__pyx_pf_10openpifpaf_10functional_9Occupancy_9reduction___get__(struct __pyx_obj_10openpifpaf_10functional_Occupancy *__pyx_v_self); /* proto */
+static int __pyx_pf_10openpifpaf_10functional_9Occupancy_9reduction_2__set__(struct __pyx_obj_10openpifpaf_10functional_Occupancy *__pyx_v_self, PyObject *__pyx_v_value); /* proto */
+static PyObject *__pyx_pf_10openpifpaf_10functional_9Occupancy_17min_scale_reduced___get__(struct __pyx_obj_10openpifpaf_10functional_Occupancy *__pyx_v_self); /* proto */
+static int __pyx_pf_10openpifpaf_10functional_9Occupancy_17min_scale_reduced_2__set__(struct __pyx_obj_10openpifpaf_10functional_Occupancy *__pyx_v_self, PyObject *__pyx_v_value); /* proto */
+static PyObject *__pyx_pf_10openpifpaf_10functional_9Occupancy_9occupancy___get__(struct __pyx_obj_10openpifpaf_10functional_Occupancy *__pyx_v_self); /* proto */
+static int __pyx_pf_10openpifpaf_10functional_9Occupancy_9occupancy_2__set__(struct __pyx_obj_10openpifpaf_10functional_Occupancy *__pyx_v_self, PyObject *__pyx_v_value); /* proto */
 static PyObject *__pyx_pf_10openpifpaf_10functional_9Occupancy_8__reduce_cython__(struct __pyx_obj_10openpifpaf_10functional_Occupancy *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_10openpifpaf_10functional_9Occupancy_10__setstate_cython__(struct __pyx_obj_10openpifpaf_10functional_Occupancy *__pyx_v_self, PyObject *__pyx_v___pyx_state); /* proto */
 static PyObject *__pyx_pf_10openpifpaf_10functional_4cumulative_average(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_cuma, __Pyx_memviewslice __pyx_v_cumw, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_y, __Pyx_memviewslice __pyx_v_width, __Pyx_memviewslice __pyx_v_v, __Pyx_memviewslice __pyx_v_w); /* proto */
@@ -3089,7 +3095,7 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_2scalar_square_set(CYTHON_UN
 }
 
 /* "openpifpaf/functional.pyx":57
- *     cdef unsigned char[:, :, :] occupancy
+ *     cdef public unsigned char[:, :, :] occupancy
  * 
  *     def __init__(self, shape, reduction, *, min_scale=None):             # <<<<<<<<<<<<<<
  *         assert len(shape) == 3
@@ -3406,7 +3412,7 @@ static int __pyx_pf_10openpifpaf_10functional_9Occupancy___init__(struct __pyx_o
   __pyx_t_10.data = NULL;
 
   /* "openpifpaf/functional.pyx":57
- *     cdef unsigned char[:, :, :] occupancy
+ *     cdef public unsigned char[:, :, :] occupancy
  * 
  *     def __init__(self, shape, reduction, *, min_scale=None):             # <<<<<<<<<<<<<<
  *         assert len(shape) == 3
@@ -4158,6 +4164,257 @@ static PyObject *__pyx_pf_10openpifpaf_10functional_9Occupancy_6get(struct __pyx
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "openpifpaf/functional.pyx":53
+ * 
+ * cdef class Occupancy:
+ *     cdef public float reduction             # <<<<<<<<<<<<<<
+ *     cdef public float min_scale_reduced
+ *     cdef public unsigned char[:, :, :] occupancy
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_10openpifpaf_10functional_9Occupancy_9reduction_1__get__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_10openpifpaf_10functional_9Occupancy_9reduction_1__get__(PyObject *__pyx_v_self) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__get__ (wrapper)", 0);
+  __pyx_r = __pyx_pf_10openpifpaf_10functional_9Occupancy_9reduction___get__(((struct __pyx_obj_10openpifpaf_10functional_Occupancy *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_10openpifpaf_10functional_9Occupancy_9reduction___get__(struct __pyx_obj_10openpifpaf_10functional_Occupancy *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("__get__", 0);
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_self->reduction); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 53, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("openpifpaf.functional.Occupancy.reduction.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* Python wrapper */
+static int __pyx_pw_10openpifpaf_10functional_9Occupancy_9reduction_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value); /*proto*/
+static int __pyx_pw_10openpifpaf_10functional_9Occupancy_9reduction_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value) {
+  int __pyx_r;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__set__ (wrapper)", 0);
+  __pyx_r = __pyx_pf_10openpifpaf_10functional_9Occupancy_9reduction_2__set__(((struct __pyx_obj_10openpifpaf_10functional_Occupancy *)__pyx_v_self), ((PyObject *)__pyx_v_value));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static int __pyx_pf_10openpifpaf_10functional_9Occupancy_9reduction_2__set__(struct __pyx_obj_10openpifpaf_10functional_Occupancy *__pyx_v_self, PyObject *__pyx_v_value) {
+  int __pyx_r;
+  __Pyx_RefNannyDeclarations
+  float __pyx_t_1;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("__set__", 0);
+  __pyx_t_1 = __pyx_PyFloat_AsFloat(__pyx_v_value); if (unlikely((__pyx_t_1 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 53, __pyx_L1_error)
+  __pyx_v_self->reduction = __pyx_t_1;
+
+  /* function exit code */
+  __pyx_r = 0;
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_AddTraceback("openpifpaf.functional.Occupancy.reduction.__set__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = -1;
+  __pyx_L0:;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "openpifpaf/functional.pyx":54
+ * cdef class Occupancy:
+ *     cdef public float reduction
+ *     cdef public float min_scale_reduced             # <<<<<<<<<<<<<<
+ *     cdef public unsigned char[:, :, :] occupancy
+ * 
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_10openpifpaf_10functional_9Occupancy_17min_scale_reduced_1__get__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_10openpifpaf_10functional_9Occupancy_17min_scale_reduced_1__get__(PyObject *__pyx_v_self) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__get__ (wrapper)", 0);
+  __pyx_r = __pyx_pf_10openpifpaf_10functional_9Occupancy_17min_scale_reduced___get__(((struct __pyx_obj_10openpifpaf_10functional_Occupancy *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_10openpifpaf_10functional_9Occupancy_17min_scale_reduced___get__(struct __pyx_obj_10openpifpaf_10functional_Occupancy *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("__get__", 0);
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_self->min_scale_reduced); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 54, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("openpifpaf.functional.Occupancy.min_scale_reduced.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* Python wrapper */
+static int __pyx_pw_10openpifpaf_10functional_9Occupancy_17min_scale_reduced_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value); /*proto*/
+static int __pyx_pw_10openpifpaf_10functional_9Occupancy_17min_scale_reduced_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value) {
+  int __pyx_r;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__set__ (wrapper)", 0);
+  __pyx_r = __pyx_pf_10openpifpaf_10functional_9Occupancy_17min_scale_reduced_2__set__(((struct __pyx_obj_10openpifpaf_10functional_Occupancy *)__pyx_v_self), ((PyObject *)__pyx_v_value));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static int __pyx_pf_10openpifpaf_10functional_9Occupancy_17min_scale_reduced_2__set__(struct __pyx_obj_10openpifpaf_10functional_Occupancy *__pyx_v_self, PyObject *__pyx_v_value) {
+  int __pyx_r;
+  __Pyx_RefNannyDeclarations
+  float __pyx_t_1;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("__set__", 0);
+  __pyx_t_1 = __pyx_PyFloat_AsFloat(__pyx_v_value); if (unlikely((__pyx_t_1 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 54, __pyx_L1_error)
+  __pyx_v_self->min_scale_reduced = __pyx_t_1;
+
+  /* function exit code */
+  __pyx_r = 0;
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_AddTraceback("openpifpaf.functional.Occupancy.min_scale_reduced.__set__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = -1;
+  __pyx_L0:;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "openpifpaf/functional.pyx":55
+ *     cdef public float reduction
+ *     cdef public float min_scale_reduced
+ *     cdef public unsigned char[:, :, :] occupancy             # <<<<<<<<<<<<<<
+ * 
+ *     def __init__(self, shape, reduction, *, min_scale=None):
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_10openpifpaf_10functional_9Occupancy_9occupancy_1__get__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_10openpifpaf_10functional_9Occupancy_9occupancy_1__get__(PyObject *__pyx_v_self) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__get__ (wrapper)", 0);
+  __pyx_r = __pyx_pf_10openpifpaf_10functional_9Occupancy_9occupancy___get__(((struct __pyx_obj_10openpifpaf_10functional_Occupancy *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_10openpifpaf_10functional_9Occupancy_9occupancy___get__(struct __pyx_obj_10openpifpaf_10functional_Occupancy *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("__get__", 0);
+  __Pyx_XDECREF(__pyx_r);
+  if (unlikely(!__pyx_v_self->occupancy.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(0, 55, __pyx_L1_error)}
+  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_v_self->occupancy, 3, (PyObject *(*)(char *)) __pyx_memview_get_unsigned_char, (int (*)(char *, PyObject *)) __pyx_memview_set_unsigned_char, 0);; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 55, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("openpifpaf.functional.Occupancy.occupancy.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* Python wrapper */
+static int __pyx_pw_10openpifpaf_10functional_9Occupancy_9occupancy_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value); /*proto*/
+static int __pyx_pw_10openpifpaf_10functional_9Occupancy_9occupancy_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value) {
+  int __pyx_r;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__set__ (wrapper)", 0);
+  __pyx_r = __pyx_pf_10openpifpaf_10functional_9Occupancy_9occupancy_2__set__(((struct __pyx_obj_10openpifpaf_10functional_Occupancy *)__pyx_v_self), ((PyObject *)__pyx_v_value));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static int __pyx_pf_10openpifpaf_10functional_9Occupancy_9occupancy_2__set__(struct __pyx_obj_10openpifpaf_10functional_Occupancy *__pyx_v_self, PyObject *__pyx_v_value) {
+  int __pyx_r;
+  __Pyx_RefNannyDeclarations
+  __Pyx_memviewslice __pyx_t_1 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("__set__", 0);
+  __pyx_t_1 = __Pyx_PyObject_to_MemoryviewSlice_dsdsds_unsigned_char(__pyx_v_value, PyBUF_WRITABLE); if (unlikely(!__pyx_t_1.memview)) __PYX_ERR(0, 55, __pyx_L1_error)
+  __PYX_XDEC_MEMVIEW(&__pyx_v_self->occupancy, 0);
+  __pyx_v_self->occupancy = __pyx_t_1;
+  __pyx_t_1.memview = NULL;
+  __pyx_t_1.data = NULL;
+
+  /* function exit code */
+  __pyx_r = 0;
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __PYX_XDEC_MEMVIEW(&__pyx_t_1, 1);
+  __Pyx_AddTraceback("openpifpaf.functional.Occupancy.occupancy.__set__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = -1;
+  __pyx_L0:;
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
@@ -24070,12 +24327,61 @@ static void __pyx_tp_dealloc_10openpifpaf_10functional_Occupancy(PyObject *o) {
   (*Py_TYPE(o)->tp_free)(o);
 }
 
+static PyObject *__pyx_getprop_10openpifpaf_10functional_9Occupancy_reduction(PyObject *o, CYTHON_UNUSED void *x) {
+  return __pyx_pw_10openpifpaf_10functional_9Occupancy_9reduction_1__get__(o);
+}
+
+static int __pyx_setprop_10openpifpaf_10functional_9Occupancy_reduction(PyObject *o, PyObject *v, CYTHON_UNUSED void *x) {
+  if (v) {
+    return __pyx_pw_10openpifpaf_10functional_9Occupancy_9reduction_3__set__(o, v);
+  }
+  else {
+    PyErr_SetString(PyExc_NotImplementedError, "__del__");
+    return -1;
+  }
+}
+
+static PyObject *__pyx_getprop_10openpifpaf_10functional_9Occupancy_min_scale_reduced(PyObject *o, CYTHON_UNUSED void *x) {
+  return __pyx_pw_10openpifpaf_10functional_9Occupancy_17min_scale_reduced_1__get__(o);
+}
+
+static int __pyx_setprop_10openpifpaf_10functional_9Occupancy_min_scale_reduced(PyObject *o, PyObject *v, CYTHON_UNUSED void *x) {
+  if (v) {
+    return __pyx_pw_10openpifpaf_10functional_9Occupancy_17min_scale_reduced_3__set__(o, v);
+  }
+  else {
+    PyErr_SetString(PyExc_NotImplementedError, "__del__");
+    return -1;
+  }
+}
+
+static PyObject *__pyx_getprop_10openpifpaf_10functional_9Occupancy_occupancy(PyObject *o, CYTHON_UNUSED void *x) {
+  return __pyx_pw_10openpifpaf_10functional_9Occupancy_9occupancy_1__get__(o);
+}
+
+static int __pyx_setprop_10openpifpaf_10functional_9Occupancy_occupancy(PyObject *o, PyObject *v, CYTHON_UNUSED void *x) {
+  if (v) {
+    return __pyx_pw_10openpifpaf_10functional_9Occupancy_9occupancy_3__set__(o, v);
+  }
+  else {
+    PyErr_SetString(PyExc_NotImplementedError, "__del__");
+    return -1;
+  }
+}
+
 static PyMethodDef __pyx_methods_10openpifpaf_10functional_Occupancy[] = {
   {"set", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_10openpifpaf_10functional_9Occupancy_5set, METH_VARARGS|METH_KEYWORDS, __pyx_doc_10openpifpaf_10functional_9Occupancy_4set},
   {"get", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_10openpifpaf_10functional_9Occupancy_7get, METH_VARARGS|METH_KEYWORDS, __pyx_doc_10openpifpaf_10functional_9Occupancy_6get},
   {"__reduce_cython__", (PyCFunction)__pyx_pw_10openpifpaf_10functional_9Occupancy_9__reduce_cython__, METH_NOARGS, 0},
   {"__setstate_cython__", (PyCFunction)__pyx_pw_10openpifpaf_10functional_9Occupancy_11__setstate_cython__, METH_O, 0},
   {0, 0, 0, 0}
+};
+
+static struct PyGetSetDef __pyx_getsets_10openpifpaf_10functional_Occupancy[] = {
+  {(char *)"reduction", __pyx_getprop_10openpifpaf_10functional_9Occupancy_reduction, __pyx_setprop_10openpifpaf_10functional_9Occupancy_reduction, (char *)0, 0},
+  {(char *)"min_scale_reduced", __pyx_getprop_10openpifpaf_10functional_9Occupancy_min_scale_reduced, __pyx_setprop_10openpifpaf_10functional_9Occupancy_min_scale_reduced, (char *)0, 0},
+  {(char *)"occupancy", __pyx_getprop_10openpifpaf_10functional_9Occupancy_occupancy, __pyx_setprop_10openpifpaf_10functional_9Occupancy_occupancy, (char *)0, 0},
+  {0, 0, 0, 0, 0}
 };
 
 static PySequenceMethods __pyx_tp_as_sequence_Occupancy = {
@@ -24137,7 +24443,7 @@ static PyTypeObject __pyx_type_10openpifpaf_10functional_Occupancy = {
   0, /*tp_iternext*/
   __pyx_methods_10openpifpaf_10functional_Occupancy, /*tp_methods*/
   0, /*tp_members*/
-  0, /*tp_getset*/
+  __pyx_getsets_10openpifpaf_10functional_Occupancy, /*tp_getset*/
   0, /*tp_base*/
   0, /*tp_dict*/
   0, /*tp_descr_get*/
