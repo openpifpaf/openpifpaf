@@ -38,26 +38,28 @@ else:
                             extra_compile_args=['-std=c99'])]
 
 
-EXTRA_COMPILE_ARGS = [
-    '-std=c++17' if not sys.platform.startswith("win") else '/std:c++17',
-]
-if sys.platform.startswith('win'):
-    EXTRA_COMPILE_ARGS += [
-        '/permissive',
-    ]
-EXTENSIONS.append(
-    torch.utils.cpp_extension.CppExtension(
-        'openpifpafcpp',
-        [
-            'cpp/module.cpp',
-            'cpp/examples/cifcafdecoder/occupancy.cpp',
-        ],
-        extra_compile_args=EXTRA_COMPILE_ARGS,
-    )
-)
 CMD_CLASS = versioneer.get_cmdclass()
-assert 'build_ext' not in CMD_CLASS
-CMD_CLASS['build_ext'] = torch.utils.cpp_extension.BuildExtension.with_options(no_python_abi_suffix=True)
+
+if not sys.platform.startswith('win'):
+    EXTRA_COMPILE_ARGS = [
+        '-std=c++17' if not sys.platform.startswith("win") else '/std:c++17',
+    ]
+    if sys.platform.startswith('win'):
+        EXTRA_COMPILE_ARGS += [
+            '/permissive',
+        ]
+    EXTENSIONS.append(
+        torch.utils.cpp_extension.CppExtension(
+            'openpifpafcpp',
+            [
+                'cpp/module.cpp',
+                'cpp/examples/cifcafdecoder/occupancy.cpp',
+            ],
+            extra_compile_args=EXTRA_COMPILE_ARGS,
+        )
+    )
+    assert 'build_ext' not in CMD_CLASS
+    CMD_CLASS['build_ext'] = torch.utils.cpp_extension.BuildExtension.with_options(no_python_abi_suffix=True)
 
 
 setup(

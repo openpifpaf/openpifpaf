@@ -63,6 +63,8 @@ jobs:
           ~/.cache
           data-cifar10
         key: ${{ runner.os }}-${{ hashFiles('setup.py') }}
+    - uses: ilammy/msvc-dev-cmd@v1
+      if: matrix.os == 'windows-latest'
     - name: Set up Python ${{ matrix.python }}
       if: ${{ !matrix.conda }}
       uses: actions/setup-python@v2
