@@ -106,6 +106,8 @@ setup(
         ],
         'coreml': [
             'coremltools>=4.1',
+            'numpy>=1.16,<1.20',  # incompatible with coremltools
+            'torch>=1.7.1,<1.8',  # for numpy compatibility
         ],
         'test': [
             'nbconvert',

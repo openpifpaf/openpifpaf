@@ -1,6 +1,12 @@
 [build-system]
 build-backend = "setuptools.build_meta"
-requires = ["cython", "numpy", "setuptools", "torch", "wheel"]
+requires = [
+    "cython",
+    "numpy>=1.16,<1.20",  # incompatible with coremltools
+    "setuptools",
+    "torch>=1.7.1,<1.8",  # incompatible with numpy
+    "wheel",
+]
 
 [tool.pytest.ini_options]
 minversion = "6.0"
