@@ -1,5 +1,6 @@
 from setuptools import setup, find_packages
 from setuptools.extension import Extension
+import torch.utils.cpp_extension
 
 
 # This is needed for versioneer to be importable when building with PEP 517.
@@ -25,20 +26,44 @@ except ImportError as e:
 if cythonize is not None:
     EXTENSIONS = cythonize([Extension('openpifpaf.functional',
                                       ['openpifpaf/functional.pyx'],
-                                      include_dirs=[numpy.get_include()]),
+                                      include_dirs=[numpy.get_include()],
+                                      extra_compile_args=['-std=c99']),
                             ],
                            annotate=True,
                            compiler_directives={'language_level': 3})
 else:
     EXTENSIONS = [Extension('openpifpaf.functional',
                             ['openpifpaf/functional.c'],
-                            include_dirs=[numpy.get_include()])]
+                            include_dirs=[numpy.get_include()],
+                            extra_compile_args=['-std=c99'])]
+
+
+EXTRA_COMPILE_ARGS = [
+    '-std=c++17' if not sys.platform.startswith("win") else '/std:c++17',
+]
+if sys.platform.startswith('win'):
+    EXTRA_COMPILE_ARGS += [
+        '/permissive',
+    ]
+EXTENSIONS.append(
+    torch.utils.cpp_extension.CppExtension(
+        'openpifpafcpp',
+        [
+            'cpp/module.cpp',
+            'cpp/examples/cifcafdecoder/occupancy.cpp',
+        ],
+        extra_compile_args=EXTRA_COMPILE_ARGS,
+    )
+)
+CMD_CLASS = versioneer.get_cmdclass()
+assert 'build_ext' not in CMD_CLASS
+CMD_CLASS['build_ext'] = torch.utils.cpp_extension.BuildExtension.with_options(no_python_abi_suffix=True)
 
 
 setup(
     name='openpifpaf',
     version=versioneer.get_version(),
-    cmdclass=versioneer.get_cmdclass(),
+    cmdclass=CMD_CLASS,
     packages=find_packages(),
     license='GNU AGPLv3',
     description='PifPaf: Composite Fields for Human Pose Estimation',

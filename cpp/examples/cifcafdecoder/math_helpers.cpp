@@ -3,7 +3,7 @@
 #include <cassert>
 
 #ifdef __APPLE__
-#define MATH_HELPERS_ACCELERATE 1
+#define MATH_HELPERS_ACCELERATE 0
 #else
 #define MATH_HELPERS_ACCELERATE 0
 #endif
