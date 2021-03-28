@@ -26,9 +26,8 @@ struct Occupancy : torch::CustomClassHolder {
         min_scale_reduced(min_scale / reduction)
     { }
 
-    // torch::Tensor forward(const torch::Tensor& x);
     void set(int64_t f, double x, double y, double sigma);
-    unsigned char get(int64_t f, double x, double y);
+    bool get(int64_t f, double x, double y);
 };
 
 

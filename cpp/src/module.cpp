@@ -1,6 +1,6 @@
 #include <torch/extension.h>
 
-#include "examples/cifcafdecoder/occupancy.hpp"
+#include "openpifpaf.hpp"
 
 
 // PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
@@ -25,15 +25,7 @@ TORCH_LIBRARY(my_classes, m) {
     // .def("top", [](const c10::intrusive_ptr<MyStackClass<std::string>>& self) {
     //   return self->stack_.back();
     // })
-    // // The following four lines expose methods of the MyStackClass<std::string>
-    // // class as-is. `torch::class_` will automatically examine the
-    // // argument and return types of the passed-in method pointers and
-    // // expose these to Python and TorchScript accordingly. Finally, notice
-    // // that we must take the *address* of the fully-qualified method name,
-    // // i.e. use the unary `&` operator, due to C++ typing rules.
-    // .def("push", &MyStackClass<std::string>::push)
-    // .def("pop", &MyStackClass<std::string>::pop)
-    // .def("clone", &MyStackClass<std::string>::clone)
-    // .def("merge", &MyStackClass<std::string>::merge)
+    .def("get", &openpifpaf::decoder::utils::Occupancy::get)
+    .def("set", &openpifpaf::decoder::utils::Occupancy::set)
   ;
 }
