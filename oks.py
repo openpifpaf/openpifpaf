@@ -261,18 +261,17 @@ def main():
         predictions = [PlayerSkeleton(**p) for p in json.load(open(f"{filename}.predictions.json", "r"))]
         predictions = [p for p in predictions if p.projects_in_court(view.calib, court) and p.visible]
         annotations = [PlayerAnnotation2D(a, view.calib) for a in view.annotations if a.type == "player" and a.camera == key.camera]
-        if not predictions or not annotations:
-            continue
-
+        
         matching = {}
         oks_list = []
-        for p in sorted(predictions, key=lambda p: p.confidence, reverse=True):
-            if not annotations:
-                break
-            idx = np.argmax([OKS(a, p) for a in annotations])
-            matching[p] = annotations[idx]
-            oks_list.append(OKS(annotations[idx], p, alpha=0.8))
-            del annotations[idx]
+        if predictions:
+            for p in sorted(predictions, key=lambda p: p.confidence, reverse=True):
+                if not annotations:
+                    break
+                idx = np.argmax([OKS(a, p) for a in annotations])
+                matching[p] = annotations[idx]
+                oks_list.append(OKS(annotations[idx], p, alpha=0.8))
+                del annotations[idx]
 
         # remove remaining annotations that lie outside the court
         annotations = [a for a in annotations if a.projects_in_court(view.calib, court)]
