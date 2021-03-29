@@ -53,6 +53,11 @@ KiHIPS = 0.2
 KiFEET = 0.1
 
 
+class ScaleDownFactor2Transform():
+    def __call__(self, view_key, view):
+        view.image = view.image[::2,::2]
+        return view
+
 class HiddenKeypointError(BaseException):
     pass
 
@@ -222,7 +227,7 @@ def main():
 
     shape = (641,641)
     ds = PickledDataset(args.pickled_dataset)
-    ds = TransformedDataset(ds, [ViewCropperTransform(def_min=30, def_max=80, output_shape=shape, focus_object="player")])
+    ds = TransformedDataset(ds, [ScaleDownFactor2Transform()])#[ViewCropperTransform(def_min=30, def_max=80, output_shape=shape, focus_object="player")])
     keys = ds.keys.all()
     print("OKS metric computed on whole dataset since pose estimation is trained on COCO")
     result_list = []
