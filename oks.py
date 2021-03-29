@@ -42,7 +42,7 @@ class OutputInhibitor():
         if self.name:
             print("Done.")
 
-with OutputInhibitor:
+with OutputInhibitor():
     from openpifpaf.datasets.constants import COCO_KEYPOINTS
     from openpifpaf.datasets.deepsport import deepsportlab_dataset_splitter
     from openpifpaf.predict import main as predict
@@ -187,7 +187,8 @@ def compute_metrics(result_list):
     }
 
 def dist(p1, p2):
-    return np.sqrt(np.sum((p1-p2)**2))
+    # return np.sqrt(np.sum((p1-p2)**2))
+    return np.sum((p1-p2)**2)
 
 def OKS(a: PlayerAnnotation2D, p: PlayerSkeleton, alpha=0.8):
     def KS(a, p, name, kapa, s, name2=None):
@@ -212,6 +213,11 @@ def main():
     parser.add_argument("weights_file")
     parser.add_argument("--pickled-dataset", required=True)
     parser.add_argument("--verbose", action='store_true', default=False)
+    
+    parser.add_argument('--adaptive-max-pool-th', action='store_true')
+    parser.add_argument('--max-pool-th', default=0.1)
+    parser.add_argument('--print-every', default=0, type=int)
+    
     args = parser.parse_args()
 
     shape = (641,641)
@@ -230,12 +236,24 @@ def main():
         filename = f"{args.weights_file}_input_image.png"
         imageio.imwrite(filename, view.image)
 
-        sys.argv = [
+        if args.adaptive_max_pool_th:
+            sys.argv = [
             "aue",
             filename,
             "--checkpoint", args.weights_file, "--image-output",
-            "--debug-images", "--debug-cif-c", "--debug", "--json-output"
-        ]
+            "--debug-images", "--debug-cif-c", "--debug", "--json-output",
+            "--adaptive-max-pool-th",
+            "--max-pool-th", args.max_pool_th,
+            ]
+        else:
+            sys.argv = [
+            "aue",
+            filename,
+            "--checkpoint", args.weights_file, "--image-output",
+            "--debug-images", "--debug-cif-c", "--debug", "--json-output",
+            "--max-pool-th", args.max_pool_th,
+            ]
+        
 
         with OutputInhibitor():
             predict()
@@ -266,7 +284,7 @@ def main():
             "oks_list": oks_list,
         })
 
-        if (k_index%10) == 0:
+        if args.print_every > 0 and (k_index%args.print_every) == 0:
             pprint(compute_metrics(result_list))
 
     filename = f"{args.weights_file}_OKS_tmp_results.pickle"

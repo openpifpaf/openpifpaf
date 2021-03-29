@@ -42,6 +42,9 @@ def cli(parser, *,
     group.add_argument('--caf-seeds', default=False, action='store_true',
                        help='[experimental]')
 
+    parser.add_argument('--adaptive-max-pool-th', action='store_true')
+    group.add_argument('--max-pool-th', default=0.1)
+
     if force_complete_pose:
         group.add_argument('--no-force-complete-pose', dest='force_complete_pose',
                            default=True, action='store_false')
@@ -112,7 +115,8 @@ def factory_from_args(args, model):
                             caf_seeds=args.caf_seeds,
                             multi_scale=args.multi_scale,
                             multi_scale_hflip=args.multi_scale_hflip,
-                            worker_pool=args.decoder_workers)
+                            worker_pool=args.decoder_workers,
+                            args=args)
 
     if args.profile_decoder is not None:
         decode.__class__.__call__ = Profiler(
@@ -130,7 +134,8 @@ def factory_decode(head_nets, *,
                    caf_seeds=False,
                    multi_scale=False,
                    multi_scale_hflip=True,
-                   worker_pool=None):
+                   worker_pool=None,
+                   args=None):
     """Instantiate a decoder."""
     assert not caf_seeds, 'not implemented'
 
@@ -212,6 +217,8 @@ def factory_decode(head_nets, *,
                     out_skeleton=head_nets[1].meta.skeleton,
                     worker_pool=worker_pool,
                     kp_ball=head_nets[2].meta.keypoints,
+                    adaptive_max_pool_th=args.adaptive_max_pool_th,
+                    max_pool_th=args.max_pool_th
                 )
 
         return CifPan(

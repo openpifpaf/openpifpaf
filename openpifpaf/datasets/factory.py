@@ -33,13 +33,13 @@ KEEMOTION_DIR = '/data/mistasse/keemotion/km_complete_player_ball_full_res/'
 # COCO_IMAGE_DIR_VAL = '/scratch/mistasse/coco/images/val2017/'
 # KEEMOTION_DIR = '/scratch/mistasse/keemotion/km_complete_player_ball_full_res/'
 
-# COCOKP_ANNOTATIONS_TRAIN = 'data-mscoco/annotations/person_keypoints_train2017.json'
-# COCOKP_ANNOTATIONS_VAL = 'data-mscoco/annotations/person_keypoints_val2017.json'
-# COCODET_ANNOTATIONS_TRAIN = 'data-mscoco/annotations/instances_train2017.json'
-# COCODET_ANNOTATIONS_VAL = 'data-mscoco/annotations/instances_val2017.json'
-# COCO_IMAGE_DIR_TRAIN = 'data-mscoco/images/train2017/'
-# COCO_IMAGE_DIR_VAL = 'data-mscoco/images/val2017/'
-# KEEMOTION_DIR = 'keemotion/'
+COCOKP_ANNOTATIONS_TRAIN = 'data-mscoco/annotations/person_keypoints_train2017.json'
+COCOKP_ANNOTATIONS_VAL = 'data-mscoco/annotations/person_keypoints_val2017.json'
+COCODET_ANNOTATIONS_TRAIN = 'data-mscoco/annotations/instances_train2017.json'
+COCODET_ANNOTATIONS_VAL = 'data-mscoco/annotations/instances_val2017.json'
+COCO_IMAGE_DIR_TRAIN = 'data-mscoco/images/train2017/'
+COCO_IMAGE_DIR_VAL = 'data-mscoco/images/val2017/'
+KEEMOTION_DIR = 'keemotion/'
 
 
 def train_cli(parser):

@@ -197,7 +197,7 @@ class KFoldsTestingKeysSplitter(DeepSportKeysSplitter):
 
 
 
-def deepsportlab_dataset_splitter(keys, method=None, fold=0):
+def deepsportlab_dataset_splitter(keys, method=None, fold=0,validation_set_size_pc=None):
     print(f"splitting the dataset with '{method}' strategy")
     if method == "Niels":
         split = niels_split(keys)
@@ -240,7 +240,7 @@ def build_DeepSportBall_datasets(pickled_dataset_filename, validation_set_size_p
     else:
         method = "KFoldTesting"
         fold = dataset_fold
-    split = deepsportlab_dataset_splitter(keys, method, fold)
+    split = deepsportlab_dataset_splitter(keys, method, fold, validation_set_size_pc)
 
     transforms = [
         ViewCropperTransform(output_shape=(square_edge,square_edge), def_min=30, def_max=80, max_angle=8, focus_object=focus_object),
