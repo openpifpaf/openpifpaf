@@ -19,8 +19,9 @@ from openpifpaf.datasets import DataModule
 from openpifpaf import encoder, headmeta, metric, transforms
 from openpifpaf.datasets import collate_images_anns_meta, collate_images_targets_meta
 
-from .constants import CAR_KEYPOINTS, CAR_SKELETON, HFLIP, CAR_SIGMAS, CAR_POSE, CAR_CATEGORIES, CAR_SCORE_WEIGHTS
-from .dataloader import Apollo
+from .constants import get_constants
+#from .dataloader import Apollo
+from openpifpaf.plugins.coco import CocoDataset as CocoLoader
 from .metrics import MeanPixelError
 
 
@@ -34,8 +35,8 @@ class ApolloKp(DataModule):
     _testdev2017_annotations = 'data-mscoco/annotations/image_info_test-dev2017.json'
     _test2017_image_dir = 'data-mscoco/images/test2017/'
 
-    train_annotations = 'data/apollo-coco/annotations/apollo_keypoints_24_train.json'
-    val_annotations = 'data/apollo-coco/annotations/apollo_keypoints_24_val.json'
+    train_annotations = 'data/apollo-coco/annotations/apollo_keypoints_66_train.json'
+    val_annotations = 'data/apollo-coco/annotations/apollo_keypoints_66_val.json'
     eval_annotations = val_annotations
     train_image_dir = 'data/apollo-coco/images/train/'
     val_image_dir = 'data/apollo-coco/images/val/'
@@ -61,16 +62,16 @@ class ApolloKp(DataModule):
         super().__init__()
 
         cif = headmeta.Cif('cif', 'apollo',
-                           keypoints=CAR_KEYPOINTS,
-                           sigmas=CAR_SIGMAS,
-                           pose=CAR_POSE,
-                           draw_skeleton=CAR_SKELETON,
-                           score_weights=CAR_SCORE_WEIGHTS)
+                           keypoints=self.CAR_KEYPOINTS,
+                           sigmas=self.CAR_SIGMAS,
+                           pose=self.CAR_POSE,
+                           draw_skeleton=self.CAR_SKELETON,
+                           score_weights=self.CAR_SCORE_WEIGHTS)
         caf = headmeta.Caf('caf', 'apollo',
-                           keypoints=CAR_KEYPOINTS,
-                           sigmas=CAR_SIGMAS,
-                           pose=CAR_POSE,
-                           skeleton=CAR_SKELETON)
+                           keypoints=self.CAR_KEYPOINTS,
+                           sigmas=self.CAR_SIGMAS,
+                           pose=self.CAR_POSE,
+                           skeleton=self.CAR_SKELETON)
 
         cif.upsample_stride = self.upsample_stride
         caf.upsample_stride = self.upsample_stride
@@ -136,6 +137,11 @@ class ApolloKp(DataModule):
         group.add_argument('--apollo-eval-orientation-invariant',
                            default=cls.eval_orientation_invariant, type=float,
                            dest='coco_eval_orientation_invariant')
+        group.add_argument('--apollo-use-24-kps', default=False, action='store_true',
+                           dest='apollo_use_24_kps', help="The ApolloCar3D dataset can" \
+                               "be trained with 24 or 66 kps. If you want to train a model"\
+                               " with 24 kps activate this flag. Change the annotations"\
+                               " path to the json files with 24 kps.")
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
@@ -158,7 +164,12 @@ class ApolloKp(DataModule):
         cls.upsample_stride = args.apollo_upsample
         cls.min_kp_anns = args.apollo_min_kp_anns
         cls.b_min = args.apollo_bmin
-
+        if args.apollo_use_24_kps:
+            (cls.CAR_KEYPOINTS, cls.CAR_SKELETON, cls.HFLIP, cls.CAR_SIGMAS, cls.CAR_POSE,
+             cls.CAR_CATEGORIES, cls.CAR_SCORE_WEIGHTS) = get_constants(24)
+        else:
+            (cls.CAR_KEYPOINTS, cls.CAR_SKELETON, cls.HFLIP, cls.CAR_SIGMAS, cls.CAR_POSE,
+             cls.CAR_CATEGORIES, cls.CAR_SCORE_WEIGHTS) = get_constants(66)
         # evaluation
         cls.eval_annotation_filter = args.coco_eval_annotation_filter  # the destination is for coco
         if args.apollo_eval_test2017:
@@ -214,7 +225,7 @@ class ApolloKp(DataModule):
         return transforms.Compose([
             transforms.NormalizeAnnotations(),
             transforms.AnnotationJitter(),
-            transforms.RandomApply(transforms.HFlip(CAR_KEYPOINTS, HFLIP), 0.5),
+            transforms.RandomApply(transforms.HFlip(self.CAR_KEYPOINTS, self.HFLIP), 0.5),
             rescale_t,
             blur_t,
             transforms.Crop(self.square_edge, use_area_of_interest=True),
@@ -225,7 +236,7 @@ class ApolloKp(DataModule):
         ])
 
     def train_loader(self):
-        train_data = Apollo(
+        train_data = CocoLoader(
             image_dir=self.train_image_dir,
             ann_file=self.train_annotations,
             preprocess=self._preprocess(),
@@ -239,7 +250,7 @@ class ApolloKp(DataModule):
             collate_fn=collate_images_targets_meta)
 
     def val_loader(self):
-        val_data = Apollo(
+        val_data = CocoLoader(
             image_dir=self.val_image_dir,
             ann_file=self.val_annotations,
             preprocess=self._preprocess(),
@@ -293,17 +304,17 @@ class ApolloKp(DataModule):
             *self.common_eval_preprocess(),
             transforms.ToAnnotations([
                 transforms.ToKpAnnotations(
-                    CAR_CATEGORIES,
+                    self.CAR_CATEGORIES,
                     keypoints_by_category={1: self.head_metas[0].keypoints},
                     skeleton_by_category={1: self.head_metas[1].skeleton},
                 ),
-                transforms.ToCrowdAnnotations(CAR_CATEGORIES),
+                transforms.ToCrowdAnnotations(self.CAR_CATEGORIES),
             ]),
             transforms.EVAL_TRANSFORM,
         ])
 
     def eval_loader(self):
-        eval_data = Apollo(
+        eval_data = CocoLoader(
             image_dir=self.eval_image_dir,
             ann_file=self.eval_annotations,
             preprocess=self._eval_preprocess(),
@@ -323,6 +334,6 @@ class ApolloKp(DataModule):
             max_per_image=20,
             category_ids=[1],
             iou_type='keypoints',
-            keypoint_oks_sigmas=CAR_SIGMAS
+            keypoint_oks_sigmas=self.CAR_SIGMAS
         ),
             MeanPixelError()]
