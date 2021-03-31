@@ -218,10 +218,10 @@ class MultiHeadLoss(torch.nn.Module):
         print('multihead loss: %s, %s', self.field_names, self.lambdas)
         LOG.info('multihead loss: %s, %s', self.field_names, self.lambdas)
 
-    def batch_meta(self):
-        return {
-            'lambdas': self.lambdas
-        } 
+    # def batch_meta(self):
+    #     return {
+    #         'lambdas': self.lambdas
+    #     } 
 
     def forward(self, head_fields, head_targets):  # pylint: disable=arguments-differ
         assert len(self.losses) == len(head_fields)
