@@ -83,13 +83,14 @@ class DeepSportDataset(torch.utils.data.Dataset):
 
     map_categories = {1:1,3:37}
 
-    def __init__(self, dataset, keys, target_transforms=None, preprocess=None, config=None):
+    def __init__(self, dataset, keys, target_transforms=None, preprocess=None, config=None, oks_computation=False):
         self.dataset = dataset
         self.keys = keys
         self.target_transforms = target_transforms
         self.preprocess = preprocess
         self.ball = False
         
+        self.oks_computation = oks_computation
 
         print('deepsport config', config)
         if 'ball' in config:
@@ -184,6 +185,7 @@ class DeepSportDataset(torch.utils.data.Dataset):
         
         if data is None:
             # print("Warning: failed to query {}. Using another key.".format(key), file=sys.stderr)
+            # TODO it will be problematic for oks comupatation
             return self[random.randint(0, len(self)-1)]
         image_id = key[0].timestamp
         image = data["input_image"]
@@ -345,6 +347,9 @@ class DeepSportDataset(torch.utils.data.Dataset):
         # import time
         # print("sleeping 0.1 second")
         # time.sleep(0.1)
+
+        if self.oks_computation:
+            return image, anns, meta, data, key      # return the view for oks computation
         return image, anns, meta
 
 

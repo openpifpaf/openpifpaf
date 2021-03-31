@@ -28,6 +28,12 @@ KiFEET = 0.1
 class HiddenKeypointError(BaseException):
     pass
 
+class ScaleDownFactor2Transform():
+    def __call__(self, view_key, view):
+        view.image = view.image[::2,::2]
+        return view
+
+
 class Keypoints():
     def __init__(self, keypoints):
         self.keypoints = keypoints
@@ -213,6 +219,7 @@ def main():
     shape = (641,641)
     ds = PickledDataset("/data/mistasse/abolfazl/keemotion/pickled/camera_views_with_human_masks_ball_mask.pickle")
     ds = TransformedDataset(ds, [ViewCropperTransform(def_min=30, def_max=80, output_shape=shape, focus_object="player")])
+    # ds = TransformedDataset(ds, [ScaleDownFactor2Transform()])
     keys = ds.keys.all()
     result_list = []
 
@@ -238,18 +245,20 @@ def main():
         predictions = [PlayerSkeleton(**p) for p in json.load(open(f"{filename}.predictions.json", "r"))]
         predictions = [p for p in predictions if p.projects_in_court(view.calib, court) and p.visible]
         annotations = [PlayerAnnotation2D(a, view.calib) for a in view.annotations if a.type == "player" and a.camera == key.camera]
-        if not predictions or not annotations:
-            continue
+        # if not predictions or not annotations:
+        #     continue
 
         matching = {}
         oks_list = []
-        for p in sorted(predictions, key=lambda p: p.confidence, reverse=True):
-            if not annotations:
-                break
-            idx = np.argmax([OKS(a, p) for a in annotations])
-            matching[p] = annotations[idx]
-            oks_list.append(OKS(annotations[idx], p, alpha=0.8))
-            del annotations[idx]
+
+        if predictions:
+            for p in sorted(predictions, key=lambda p: p.confidence, reverse=True):
+                if not annotations:
+                    break
+                idx = np.argmax([OKS(a, p) for a in annotations])
+                matching[p] = annotations[idx]
+                oks_list.append(OKS(annotations[idx], p, alpha=0.8))
+                del annotations[idx]
 
         # remove remaining annotations that lie outside the court
         annotations = [a for a in annotations if a.projects_in_court(view.calib, court)]

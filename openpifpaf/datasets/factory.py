@@ -603,6 +603,10 @@ def train_factory(args, target_transforms, heads=None):
         batch_sizes = [int(dw / sum(dataset_weights) * args.batch_size) for dw in dataset_weights]
     else:
         batch_sizes = [args.batch_size]
+
+        ## without the multi dataset
+
+        return train_single_factory(args, target_transforms, dataset=args.dataset, heads=heads, batch_size=args.batch_size)
     # print('train_factory',args.dataset)
     dataloaders = [train_single_factory(args, target_transforms, dataset=ds, heads=heads, batch_size=btch_sz) for ds, btch_sz in zip(args.dataset.split('-'), batch_sizes)]
     train_dataloaders = [tr_dl for tr_dl, _ in dataloaders]

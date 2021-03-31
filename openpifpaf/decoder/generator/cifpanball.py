@@ -128,7 +128,7 @@ class CifPanBall(Generator):
 
         Ñ = None
 
-        def cif_local_max(cif, kernel_size=7, pad=3):
+        def cif_local_max(cif, kernel_size=13, pad=6):
             """Use torch for max pooling"""
             cif = torch.tensor(cif)
             cif_m = torch.max_pool2d(cif[None], kernel_size, stride=1, padding=pad)[0] == cif      #### 7 padding=3
@@ -171,8 +171,7 @@ class CifPanBall(Generator):
                 fields=fields,
             )
 
-
-
+        
         if len(keypoints_yx[Ci]) == 0:
             return []
 
@@ -196,6 +195,7 @@ class CifPanBall(Generator):
 
         distances2 = np.square(difference).sum(axis=1)      # [I,H,W]
         instances = distances2.argmin(axis=0)               # [H,W]
+        # instances += 1  # to make sure the ids start from 1 and not 0
         # plt.imshow(instances)
         # plt.show()
 

@@ -357,6 +357,17 @@ class Trainer(object):
             'time': round(time.time() - start_time, 1),
         })
 
+        if not self.train_args.disable_wandb:
+            in_dict = {
+                "Epoch/train loss":  epoch_loss / len(scenes),
+                "epoch": epoch+1
+                }
+
+            for hd_idx, head_ls in enumerate(head_epoch_losses):
+                in_dict["Epoch/train loss head "+self.LOSS_NAMES[hd_idx]] = head_ls / max(1, head_epoch_counts[hd_idx])
+            
+            log_wandb(in_dict)
+
         # wandb.log({"train loss": epoch_loss/len(scenes), 'lr': self.lr()})
         # if hasattr(self.loss, 'batch_meta'):
         #     sigmas = self.loss.batch_meta()
@@ -463,6 +474,17 @@ class Trainer(object):
                             for l, c in zip(head_epoch_losses, head_epoch_counts)],
             'time': round(eval_time, 1),
         })
+
+        if not self.train_args.disable_wandb:
+            in_dict = {
+                "Epoch/val loss":  epoch_loss / len(scenes),
+                "epoch": epoch
+                }
+
+            for hd_idx, head_ls in enumerate(head_epoch_losses):
+                in_dict["Epoch/val loss head "+self.LOSS_NAMES[hd_idx]] = head_ls / max(1, head_epoch_counts[hd_idx])
+            
+            log_wandb(in_dict)
 
         # wandb.log({"val loss": epoch_loss/len(scenes), 'epoch': epoch})
         # for hd_idx, head_ls in enumerate(head_epoch_losses):
