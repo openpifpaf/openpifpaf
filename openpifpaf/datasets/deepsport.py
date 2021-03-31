@@ -22,6 +22,83 @@ STAT_LOG = logging.getLogger(__name__.replace('openpifpaf.', 'openpifpaf.stats.'
 
 BALL_DIAMETER = 23
 
+
+def niels_split(keys):
+    l = [(f'{k.instant_key.arena_label }_{k.instant_key.game_id}_{k.instant_key.timestamp}',k) for k in keys]
+    l = sorted(l, key=lambda kv: kv[0])
+    return {
+        "testing": [x[1] for x in l[-100:]],
+        "validation": [x[1] for x in l[-200:-100]],
+        "training": [x[1] for x in l[:-200]]
+    }
+
+class DeepSportKeysSplitter():
+    @staticmethod
+    def split_equally(d, K):
+        """
+            splits equally the keys of d given their values
+            arguments:
+                d: a dict {"label1": 30, "label2": 45, "label3": 22, ... "label20": 14}
+            returns:
+                a list of list splitting equally their value:
+                [[label1, label12, label19], [label2, label15], [label3, label10, label11], ...]
+        """
+        s = sorted(d.items(), key=lambda kv: kv[1])
+        f = [{"count": 0, "list": []} for _ in range(K)]
+        while s:
+            arena_label, count = s.pop(-1)
+            index, _ = min(enumerate(f), key=(lambda x: x[1]["count"]))
+            f[index]["count"] += count
+            f[index]["list"].append(arena_label)
+        return [x["list"] for x in f]
+
+    @staticmethod
+    def count_keys_per_arena_label(keys):
+        """returns a dict of (arena_label: number of keys of that arena)"""
+        bins = {}
+        for key in keys:
+            bins[key.arena_label] = bins.get(key.arena_label, 0) + 1
+        return bins
+    @staticmethod
+    def count_keys_per_game_id(keys):
+        """returns a dict of (game_id: number of keys of that game)"""
+        bins = {}
+        for key in keys:
+            bins[key.game_id] = bins.get(key.game_id, 0) + 1
+        return bins
+
+class KFoldsTestingKeysSplitter(DeepSportKeysSplitter):
+    def __init__(self, fold_count=8, validation_pc=15):
+        self.fold_count = fold_count
+        self.validation_pc = validation_pc
+
+    def __call__(self, keys, fold=0):
+        assert fold >= 0 and fold < self.fold_count
+
+        keys_dict = self.count_keys_per_arena_label(keys)
+        keys_lists = self.split_equally(keys_dict, self.fold_count)
+
+        testing_keys = [k for k in keys if k.arena_label in keys_lists[fold]]
+        remaining_keys = [k for k in keys if k not in testing_keys]
+
+        # Backup random seed
+        random_state = random.getstate()
+        random.seed(fold)
+
+        validation_keys = random.sample(remaining_keys, len(keys)*self.validation_pc//100)
+
+        # Restore random seed
+        random.setstate(random_state)
+
+        training_keys = [k for k in remaining_keys if k not in validation_keys]
+
+        return {
+            "training": training_keys,
+            "validation": validation_keys,
+            "testing": testing_keys
+        }
+
+
 class AddBallSegmentationTargetViewFactory():
     def __call__(self, view_key, view):
         calib = view.calib
@@ -52,16 +129,118 @@ class AddHumansSegmentationTargetViewFactory():
         return {"human_masks": view.human_masks}
 
 
-def build_DeepSportBall_datasets(pickled_dataset_filename, validation_set_size_pc, square_edge, target_transforms, preprocess, focus_object=None, config=None):
+class DeepSportKeysSplitter():
+    @staticmethod
+    def split_equally(d, K):
+        """
+            splits equally the keys of d given their values
+            arguments:
+                d: a dict {"label1": 30, "label2": 45, "label3": 22, ... "label20": 14}
+            returns:
+                a list of list splitting equally their value:
+                [[label1, label12, label19], [label2, label15], [label3, label10, label11], ...]
+        """
+        s = sorted(d.items(), key=lambda kv: kv[1])
+        f = [{"count": 0, "list": []} for _ in range(K)]
+        while s:
+            arena_label, count = s.pop(-1)
+            index, _ = min(enumerate(f), key=(lambda x: x[1]["count"]))
+            f[index]["count"] += count
+            f[index]["list"].append(arena_label)
+        return [x["list"] for x in f]
+
+    @staticmethod
+    def count_keys_per_arena_label(keys):
+        """returns a dict of (arena_label: number of keys of that arena)"""
+        bins = {}
+        for key in keys:
+            bins[key.arena_label] = bins.get(key.arena_label, 0) + 1
+        return bins
+    @staticmethod
+    def count_keys_per_game_id(keys):
+        """returns a dict of (game_id: number of keys of that game)"""
+        bins = {}
+        for key in keys:
+            bins[key.game_id] = bins.get(key.game_id, 0) + 1
+        return bins
+
+class KFoldsTestingKeysSplitter(DeepSportKeysSplitter):
+    def __init__(self, fold_count=8, validation_pc=15):
+        self.fold_count = fold_count
+        self.validation_pc = validation_pc
+
+    def __call__(self, keys, fold=0):
+        assert fold >= 0 and fold < self.fold_count
+
+        keys_dict = self.count_keys_per_arena_label(keys)
+        keys_lists = self.split_equally(keys_dict, self.fold_count)
+
+        testing_keys = [k for k in keys if k.arena_label in keys_lists[fold]]
+        remaining_keys = [k for k in keys if k not in testing_keys]
+
+        # Backup random seed
+        random_state = random.getstate()
+        random.seed(fold)
+
+        validation_keys = random.sample(remaining_keys, len(keys)*self.validation_pc//100)
+
+        # Restore random seed
+        random.setstate(random_state)
+
+        training_keys = [k for k in remaining_keys if k not in validation_keys]
+
+        return {
+            "training": training_keys,
+            "validation": validation_keys,
+            "testing": testing_keys
+        }
+
+
+
+def deepsportlab_dataset_splitter(keys, method=None, fold=0,validation_set_size_pc=None):
+    print(f"splitting the dataset with '{method}' strategy")
+    if method == "Niels":
+        split = niels_split(keys)
+        training_keys = split["training"]
+        testing_keys = split["testing"]
+        validation_keys = split["validation"]
+        assert 460 < len(training_keys) <= 472, "This split is supposed to occur on the dataset of 661 views"
+    elif method == "KFoldTesting":
+        sets = KFoldsTestingKeysSplitter(validation_pc=validation_set_size_pc)(keys, fold=fold)
+        training_keys = sets["training"]
+        validation_keys = sets["validation"]
+        testing_keys = set["testing"]
+    elif method == "NoTestSet":
+        random_state = random.getstate()
+        random.seed(0)
+        random.shuffle(keys)
+        lim = len(keys)*validation_set_size_pc//100
+        training_keys = keys[lim:]
+        validation_keys = keys[:lim]
+        random.seed(random_state)
+        testing_keys = []
+    else:
+        raise BaseException("method not found")
+    return {
+        "training": training_keys,
+        "validation": validation_keys,
+        "testing": testing_keys
+    }
+
+def build_DeepSportBall_datasets(pickled_dataset_filename, validation_set_size_pc, square_edge, target_transforms, preprocess, focus_object=None, config=None, dataset_fold=None):
     dataset = PickledDataset(pickled_dataset_filename)
+
     keys = list(dataset.keys.all())
-    random_state = random.getstate()
-    random.seed(0)
-    random.shuffle(keys)
-    lim = len(keys)*validation_set_size_pc//100
-    training_keys = keys[lim:]
-    validation_keys = keys[:lim]
-    random.seed(random_state)
+    if dataset_fold is None:
+        method = "NoTestSet"
+        fold = 0
+    elif dataset_fold == "Niels":
+        method = "Niels"
+        fold = 0
+    else:
+        method = "KFoldTesting"
+        fold = dataset_fold
+    split = deepsportlab_dataset_splitter(keys, method, fold, validation_set_size_pc)
 
     transforms = [
         ViewCropperTransform(output_shape=(square_edge,square_edge), def_min=30, def_max=80, max_angle=8, focus_object=focus_object),
@@ -76,8 +255,8 @@ def build_DeepSportBall_datasets(pickled_dataset_filename, validation_set_size_p
     dataset = TransformedDataset(dataset, transforms)
 
     return \
-        DeepSportDataset(dataset, training_keys, target_transforms, preprocess, config), \
-        DeepSportDataset(dataset, validation_keys, target_transforms, preprocess, config)
+        DeepSportDataset(dataset, split["training"], target_transforms, preprocess, config), \
+        DeepSportDataset(dataset, split["validation"], target_transforms, preprocess, config)
 
 class DeepSportDataset(torch.utils.data.Dataset):
 

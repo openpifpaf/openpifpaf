@@ -1,4 +1,5 @@
 /env
+slurm*.out
 
 # system
 .DS_Store

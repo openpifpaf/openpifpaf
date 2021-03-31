@@ -140,9 +140,6 @@ class Trainer(object):
             self.writer.flush()
 
 
-
-
-
     def train_batch(self, data, targets, apply_gradients=True, batch_idx=None, epoch=None):  # pylint: disable=method-hidden
 
         # device_to_check = [0,1]
@@ -378,6 +375,9 @@ class Trainer(object):
 
         ########### tensorboard stuff 
         self.writer.add_scalar('Learning Rate/lr ', self.lr(), epoch + 1)
+        if hasattr(self.loss, 'batch_meta'):
+            for lambda_index, lambda_value in enumerate(self.loss.batch_meta()["lambdas"]):
+                self.writer.add_scalar(f'Lambdas/{self.LOSS_NAMES[lambda_index]} ', lambda_value, epoch + 1)
         try:
             self.writer.add_scalar('Train Loss/Total loss', epoch_loss / len(scenes), epoch + 1)
             if hasattr(self.loss, 'batch_meta'):

@@ -67,6 +67,8 @@ class CifPanBall(Generator):
                  worker_pool=None,
                  nms=True,
                  kp_ball=None,
+                 adaptive_max_pool_th=False,
+                 max_pool_th=0.1,
                 ):
         super().__init__(worker_pool)
         if nms is True:
@@ -86,6 +88,9 @@ class CifPanBall(Generator):
         self.nms = nms
 
         self.timers = defaultdict(float)
+
+        self.adaptive_max_pool_th = adaptive_max_pool_th
+        self.max_pool_th = max_pool_th
 
         # init by_target and by_source
         # self.by_target = defaultdict(dict)

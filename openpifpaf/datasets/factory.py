@@ -12,13 +12,17 @@ from .. import transforms
 from .multidataset import MultiDataset
 
 
-#### Mannback changes
-COCOKP_ANNOTATIONS_TRAIN = '/data/mistasse/coco/annotations/person_keypoints_train2017.json'
-COCOKP_ANNOTATIONS_VAL = '/data/mistasse/coco/annotations/person_keypoints_val2017.json'
-COCODET_ANNOTATIONS_TRAIN = '/data/mistasse/coco/annotations/instances_train2017.json'
-COCODET_ANNOTATIONS_VAL = '/data/mistasse/coco/annotations/instances_val2017.json'
-COCO_IMAGE_DIR_TRAIN = '/data/mistasse/coco/images/train2017/'
-COCO_IMAGE_DIR_VAL = '/data/mistasse/coco/images/val2017/'
+# YOU SHOULD MAKE SYMBOLIC LINKS in a COCO folder
+# $ mkdir COCO
+# $ cd COCO
+# $ ln -s /data/mistasse/coco/annotations annotations
+# $ ln -s /data/mistasse/coco/images images
+COCOKP_ANNOTATIONS_TRAIN = 'COCO/annotations/person_keypoints_train2017.json'
+COCOKP_ANNOTATIONS_VAL = 'COCO/annotations/person_keypoints_val2017.json'
+COCODET_ANNOTATIONS_TRAIN = 'COCO/annotations/instances_train2017.json'
+COCODET_ANNOTATIONS_VAL = 'COCO/annotations/instances_val2017.json'
+COCO_IMAGE_DIR_TRAIN = 'COCO/images/train2017/'
+COCO_IMAGE_DIR_VAL = 'COCO/images/val2017/'
 KEEMOTION_DIR = '/data/mistasse/keemotion/km_complete_player_ball_full_res/'
 
 COCOKP_ANNOTATIONS_TRAIN = '/scratch/mistasse/coco/annotations/person_keypoints_train2017.json'
@@ -29,21 +33,13 @@ COCO_IMAGE_DIR_TRAIN = '/scratch/mistasse/coco/images/train2017/'
 COCO_IMAGE_DIR_VAL = '/scratch/mistasse/coco/images/val2017/'
 KEEMOTION_DIR = '/scratch/mistasse/keemotion/km_complete_player_ball_full_res/'
 
-# COCOKP_ANNOTATIONS_TRAIN = 'data-mscoco/annotations/person_keypoints_train2017.json'
-# COCOKP_ANNOTATIONS_VAL = 'data-mscoco/annotations/person_keypoints_val2017.json'
-# COCODET_ANNOTATIONS_TRAIN = 'data-mscoco/annotations/instances_train2017.json'
-# COCODET_ANNOTATIONS_VAL = 'data-mscoco/annotations/instances_val2017.json'
-# COCO_IMAGE_DIR_TRAIN = 'data-mscoco/images/train2017/'
-# COCO_IMAGE_DIR_VAL = 'data-mscoco/images/val2017/'
-# KEEMOTION_DIR = 'keemotion/'
-
-# import gc
-# from mlworkflow import PickledDataset
-# def reset_pickled_datasets(*args):
-#     for obj in gc.get_objects():
-#         if isinstance(obj, PickledDataset):
-#             obj.__init__(obj.file_handler.name)
-
+COCOKP_ANNOTATIONS_TRAIN = 'data-mscoco/annotations/person_keypoints_train2017.json'
+COCOKP_ANNOTATIONS_VAL = 'data-mscoco/annotations/person_keypoints_val2017.json'
+COCODET_ANNOTATIONS_TRAIN = 'data-mscoco/annotations/instances_train2017.json'
+COCODET_ANNOTATIONS_VAL = 'data-mscoco/annotations/instances_val2017.json'
+COCO_IMAGE_DIR_TRAIN = 'data-mscoco/images/train2017/'
+COCO_IMAGE_DIR_VAL = 'data-mscoco/images/val2017/'
+KEEMOTION_DIR = 'keemotion/'
 
 
 def train_cli(parser):
@@ -83,6 +79,7 @@ def train_cli(parser):
                        help='n-1 weights for the datasets')
 
     group.add_argument('--focus-object', default=None)
+    group.add_argument('--dataset-fold', default=None)
 
     
 
@@ -330,18 +327,16 @@ def train_deepsport_factory(args, target_transforms, heads=None, batch_size=None
 
     train_data, val_data = build_DeepSportBall_datasets(
         pickled_dataset_filename=args.deepsport_pickled_dataset,
-        validation_set_size_pc=15, square_edge=args.square_edge, target_transforms=target_transforms, preprocess=preprocess, focus_object=args.focus_object, config=heads)
+        validation_set_size_pc=15, square_edge=args.square_edge, target_transforms=target_transforms, preprocess=preprocess, focus_object=args.focus_object, config=heads, dataset_fold=args.dataset_fold)
 
     train_loader = torch.utils.data.DataLoader(
         train_data, batch_size=batch_size, shuffle=not args.debug,
-        pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
-        # worker_init_fn=reset_pickled_datasets,
+        pin_memory=args.pin_memory, num_workers=0, drop_last=True,
         collate_fn=collate_images_targets_inst_meta,)
 
     val_loader = torch.utils.data.DataLoader(
         val_data, batch_size=batch_size, shuffle=False,
-        pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
-        # worker_init_fn=reset_pickled_datasets,
+        pin_memory=args.pin_memory, num_workers=0, drop_last=True,
         collate_fn=collate_images_targets_inst_meta,)
 
     return train_loader, val_loader

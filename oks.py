@@ -15,15 +15,48 @@ from mlworkflow import PickledDataset, TransformedDataset
 
 from dataset_utilities.court import Court
 from dataset_utilities.calib import Calib, Point2D
-from dataset_utilities.ds.instants_dataset import PlayerAnnotation, ViewCropperTransform
+from dataset_utilities.ds.instants_dataset import ViewCropperTransform
+from dataset_utilities.ds.instants_dataset.instants_dataset import PlayerAnnotation
 
-from openpifpaf.datasets.constants import COCO_KEYPOINTS
-from openpifpaf.predict import main as predict
+class OutputInhibitor():
+    def __init__(self, name=None):
+        self.name = name
+    def __enter__(self):
+        if self.name:
+            print("Launching {}... ".format(self.name), end="")
+        self.ps1, self.ps2 = getattr(sys, "ps1", None), getattr(sys, "ps2", None)
+        if self.ps1:
+            del sys.ps1
+        if self.ps2:
+            del sys.ps2
+        self.stderr = sys.stderr
+        self.fp = open(os.devnull, "w")
+        sys.stderr = self.fp
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.ps1:
+            sys.ps1 = self.ps1
+        if self.ps2:
+            sys.ps2 = self.ps2
+        sys.stderr = self.stderr
+        self.fp.close()
+        if self.name:
+            print("Done.")
+
+with OutputInhibitor():
+    from openpifpaf.datasets.constants import COCO_KEYPOINTS
+    from openpifpaf.datasets.deepsport import deepsportlab_dataset_splitter
+    from openpifpaf.predict import main as predict
+
 
 KiHEAD = 0.15
 KiHIPS = 0.2
 KiFEET = 0.1
 
+
+class ScaleDownFactor2Transform():
+    def __call__(self, view_key, view):
+        view.image = view.image[::2,::2]
+        return view
 
 class HiddenKeypointError(BaseException):
     pass
@@ -159,7 +192,8 @@ def compute_metrics(result_list):
     }
 
 def dist(p1, p2):
-    return np.sqrt(np.sum((p1-p2)**2))
+    # return np.sqrt(np.sum((p1-p2)**2))
+    return np.sum((p1-p2)**2)
 
 def OKS(a: PlayerAnnotation2D, p: PlayerSkeleton, alpha=0.8):
     def KS(a, p, name, kapa, s, name2=None):
@@ -179,40 +213,23 @@ def OKS(a: PlayerAnnotation2D, p: PlayerSkeleton, alpha=0.8):
     return max(pair1, pair2)
 
 
-class OutputInhibitor():
-    def __init__(self, name=None):
-        self.name = name
-    def __enter__(self):
-        if self.name:
-            print("Launching {}... ".format(self.name), end="")
-        self.ps1, self.ps2 = getattr(sys, "ps1", None), getattr(sys, "ps2", None)
-        if self.ps1:
-            del sys.ps1
-        if self.ps2:
-            del sys.ps2
-        self.stderr = sys.stderr
-        self.fp = open(os.devnull, "w")
-        sys.stderr = self.fp
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        if self.ps1:
-            sys.ps1 = self.ps1
-        if self.ps2:
-            sys.ps2 = self.ps2
-        sys.stderr = self.stderr
-        self.fp.close()
-        if self.name:
-            print("Done.")
-
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("weights_file")
+    parser.add_argument("--pickled-dataset", required=True)
+    parser.add_argument("--verbose", action='store_true', default=False)
+    
+    parser.add_argument('--adaptive-max-pool-th', action='store_true')
+    parser.add_argument('--max-pool-th', default=0.1)
+    parser.add_argument('--print-every', default=0, type=int)
+    
     args = parser.parse_args()
 
     shape = (641,641)
-    ds = PickledDataset("/data/mistasse/abolfazl/keemotion/pickled/camera_views_with_human_masks_ball_mask.pickle")
-    ds = TransformedDataset(ds, [ViewCropperTransform(def_min=30, def_max=80, output_shape=shape, focus_object="player")])
+    ds = PickledDataset(args.pickled_dataset)
+    ds = TransformedDataset(ds, [ScaleDownFactor2Transform()])#[ViewCropperTransform(def_min=30, def_max=80, output_shape=shape, focus_object="player")])
     keys = ds.keys.all()
+    print("OKS metric computed on whole dataset since pose estimation is trained on COCO")
     result_list = []
 
     for k_index, key in enumerate(tqdm(keys)):
@@ -224,12 +241,24 @@ def main():
         filename = f"{args.weights_file}_input_image.png"
         imageio.imwrite(filename, view.image)
 
-        sys.argv = [
+        if args.adaptive_max_pool_th:
+            sys.argv = [
             "aue",
             filename,
             "--checkpoint", args.weights_file, "--image-output",
-            "--debug-images", "--debug-cif-c", "--debug", "--json-output"
-        ]
+            "--debug-images", "--debug-cif-c", "--debug", "--json-output",
+            "--adaptive-max-pool-th",
+            "--max-pool-th", args.max_pool_th,
+            ]
+        else:
+            sys.argv = [
+            "aue",
+            filename,
+            "--checkpoint", args.weights_file, "--image-output",
+            "--debug-images", "--debug-cif-c", "--debug", "--json-output",
+            "--max-pool-th", args.max_pool_th,
+            ]
+        
 
         with OutputInhibitor():
             predict()
@@ -237,18 +266,17 @@ def main():
         predictions = [PlayerSkeleton(**p) for p in json.load(open(f"{filename}.predictions.json", "r"))]
         predictions = [p for p in predictions if p.projects_in_court(view.calib, court) and p.visible]
         annotations = [PlayerAnnotation2D(a, view.calib) for a in view.annotations if a.type == "player" and a.camera == key.camera]
-        if not predictions or not annotations:
-            continue
-
+        
         matching = {}
         oks_list = []
-        for p in sorted(predictions, key=lambda p: p.confidence, reverse=True):
-            if not annotations:
-                break
-            idx = np.argmax([OKS(a, p) for a in annotations])
-            matching[p] = annotations[idx]
-            oks_list.append(OKS(annotations[idx], p, alpha=0.8))
-            del annotations[idx]
+        if predictions:
+            for p in sorted(predictions, key=lambda p: p.confidence, reverse=True):
+                if not annotations:
+                    break
+                idx = np.argmax([OKS(a, p) for a in annotations])
+                matching[p] = annotations[idx]
+                oks_list.append(OKS(annotations[idx], p, alpha=0.8))
+                del annotations[idx]
 
         # remove remaining annotations that lie outside the court
         annotations = [a for a in annotations if a.projects_in_court(view.calib, court)]
@@ -260,11 +288,13 @@ def main():
             "oks_list": oks_list,
         })
 
-        if k_index%10 == 0:
+        if args.print_every > 0 and (k_index%args.print_every) == 0:
             pprint(compute_metrics(result_list))
 
-    pickle.dump(result_list, open(f"{args.weights_file}_OKS_tmp_results.pickle", "wb"))
+    filename = f"{args.weights_file}_OKS_tmp_results.pickle"
+    pickle.dump(result_list, open(filename, "wb"))
     pprint(compute_metrics(result_list))
+    print(f"Temporary results have been saved in {filename}. To recompute the metric later, just call the 'compute_metrics' function on the content of that file.")
 
 if __name__ == "__main__":
     main()
