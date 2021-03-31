@@ -33,12 +33,12 @@ COCO_IMAGE_DIR_TRAIN = '/data/mistasse/coco/images/train2017/'
 COCO_IMAGE_DIR_VAL = '/data/mistasse/coco/images/val2017/'
 # KEEMOTION_DIR = '/scratch/mistasse/keemotion/km_complete_player_ball_full_res/'
 
-# COCOKP_ANNOTATIONS_TRAIN = 'data-mscoco/annotations/person_keypoints_train2017.json'
-# COCOKP_ANNOTATIONS_VAL = 'data-mscoco/annotations/person_keypoints_val2017.json'
-# COCODET_ANNOTATIONS_TRAIN = 'data-mscoco/annotations/instances_train2017.json'
-# COCODET_ANNOTATIONS_VAL = 'data-mscoco/annotations/instances_val2017.json'
-# COCO_IMAGE_DIR_TRAIN = 'data-mscoco/images/train2017/'
-# COCO_IMAGE_DIR_VAL = 'data-mscoco/images/val2017/'
+COCOKP_ANNOTATIONS_TRAIN = 'coco/annotations/person_keypoints_train2017.json'
+COCOKP_ANNOTATIONS_VAL = 'coco/annotations/person_keypoints_val2017.json'
+COCODET_ANNOTATIONS_TRAIN = 'coco/annotations/instances_train2017.json'
+COCODET_ANNOTATIONS_VAL = 'coco/annotations/instances_val2017.json'
+COCO_IMAGE_DIR_TRAIN = 'coco/images/train2017/'
+COCO_IMAGE_DIR_VAL = 'coco/images/val2017/'
 # KEEMOTION_DIR = 'keemotion/'
 
 
