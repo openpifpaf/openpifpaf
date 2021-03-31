@@ -3,18 +3,6 @@
 #include "openpifpaf.hpp"
 
 
-// PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
-//     // py::module decoder = m.def_submodule("decoder");
-//     // py::module decoder_utils = decoder.def_submodule("utils");
-//     torch::python::bind_module<decoder::utils::Occupancy>(m, "Occupancy");
-//         // .def(py::init<int, int>())
-//         // .def("forward", &decoder::utils::Occupancy::forward);
-//     // torch::python::add_module_bindings(
-//     //     py::class_<decoder::utils::Occupancy, std::shared_ptr<decoder::utils::Occupancy>>(decoder_utils, "Occupancy")
-//     // );
-// }
-
-
 TORCH_LIBRARY(my_classes, m) {
   m.class_<openpifpaf::decoder::utils::Occupancy>("Occupancy")
     .def(torch::init<const at::IntArrayRef&, double, double>())
@@ -27,5 +15,10 @@ TORCH_LIBRARY(my_classes, m) {
     // })
     .def("get", &openpifpaf::decoder::utils::Occupancy::get)
     .def("set", &openpifpaf::decoder::utils::Occupancy::set)
+  ;
+
+  m.class_<openpifpaf::decoder::utils::CifHr>("CifHr")
+    .def(torch::init<const at::IntArrayRef&, int64_t>())
+    .def("accumulate", &openpifpaf::decoder::utils::CifHr::accumulate)
   ;
 }

@@ -52,6 +52,7 @@ if not sys.platform.startswith('win'):
         torch.utils.cpp_extension.CppExtension(
             'openpifpafcpp',
             [
+                'cpp/src/cif_hr.cpp',
                 'cpp/src/module.cpp',
                 'cpp/src/occupancy.cpp',
             ],
