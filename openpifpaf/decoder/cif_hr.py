@@ -76,7 +76,7 @@ class CifHr:
         LOG.debug("accumulated hr heatmap can be created by uncommenting the following line")
 
         # print("dumping pif hr map into image/test.accumulated.png")
-        imageio.imwrite("image/test.accumulated.png", self.accumulated[kp_id,v_start:v_stop, h_start:h_stop])
+        # imageio.imwrite("image/test.accumulated.png", self.accumulated[kp_id,v_start:v_stop, h_start:h_stop])
         #import pickle
         #pickle.dump(self.accumulated, open("/home/gva/pifhr.pickle","wb"))
 

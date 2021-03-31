@@ -262,25 +262,38 @@ class DeepSportDataset(torch.utils.data.Dataset):
 
     map_categories = {1:1,3:37}
 
-    def __init__(self, dataset, keys, target_transforms=None, preprocess=None, config=None):
+    def __init__(self, dataset, keys, target_transforms=None, preprocess=None, config=None, oks_computation=False):
         self.dataset = dataset
         self.keys = keys
         self.target_transforms = target_transforms
         self.preprocess = preprocess
         self.ball = False
         
+        self.oks_computation = oks_computation
 
         print('deepsport config', config)
         if 'ball' in config:
             self.ball = True
 
         self.config = config[0]
-        print('Number of images deepsport:', len(self.keys))
+        
         # self.Get_number_of_images_with_ball()
         # print('Number of images deepsport:', len(self.keys))
 
+        # KS-FR-LEMANS_24652_1513026063427_1_0
+        # self.keys=[ViewKey(instant_key=InstantKey(arena_label='KS-FR-LEMANS', game_id=24652, timestamp=1513026063427), camera=1, index=0)]
+        # keyss = []
+        # for key in self.keys:
+        #     if key.instant_key.arena_label == 'KS-FR-LEMANS' and key.instant_key.game_id == 24652 and \
+        #                 key.instant_key.timestamp == 1513026063427 and key.camera == 1 and key.index==0:
+        #         keyss.append(key)
+
+        # self.keys = keyss
+        print('Number of images deepsport:', len(self.keys))
+
     def __len__(self):
         return len(self.keys)
+        # return 24
 
 
     def Get_number_of_images_with_ball(self):
@@ -351,6 +364,7 @@ class DeepSportDataset(torch.utils.data.Dataset):
         
         if data is None:
             # print("Warning: failed to query {}. Using another key.".format(key), file=sys.stderr)
+            # TODO it will be problematic for oks comupatation
             return self[random.randint(0, len(self)-1)]
         image_id = key[0].timestamp
         image = data["input_image"]
@@ -364,8 +378,10 @@ class DeepSportDataset(torch.utils.data.Dataset):
         meta = {
             'dataset_index': index,
             'image_id': image_id,
-            'file_name': str(key),
+            'file_name': str(key.instant_key.arena_label)+'_'+str(key.instant_key.game_id)+
+                        '_'+str(key.instant_key.timestamp)+'_'+str(key.camera)+'_'+str(key.index),
         }
+        # ViewKey(instant_key=InstantKey(arena_label='KS-AT-VIENNA', game_id=29887, timestamp=1513447440420), camera=0, index=0)
         # print(str(key))
         if "ball_size" in data:
             meta['ball_size'] = data["size"]
@@ -510,6 +526,9 @@ class DeepSportDataset(torch.utils.data.Dataset):
         # import time
         # print("sleeping 0.1 second")
         # time.sleep(0.1)
+
+        if self.oks_computation:
+            return image, anns, meta, data, key      # return the view for oks computation
         return image, anns, meta
 
 

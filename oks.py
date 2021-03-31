@@ -61,6 +61,12 @@ class ScaleDownFactor2Transform():
 class HiddenKeypointError(BaseException):
     pass
 
+class ScaleDownFactor2Transform():
+    def __call__(self, view_key, view):
+        view.image = view.image[::2,::2]
+        return view
+
+
 class Keypoints():
     def __init__(self, keypoints):
         self.keypoints = keypoints
@@ -192,8 +198,8 @@ def compute_metrics(result_list):
     }
 
 def dist(p1, p2):
-    # return np.sqrt(np.sum((p1-p2)**2))
-    return np.sum((p1-p2)**2)
+    return np.sqrt(np.sum((p1-p2)**2))
+    # return np.sum((p1-p2)**2)
 
 def OKS(a: PlayerAnnotation2D, p: PlayerSkeleton, alpha=0.8):
     def KS(a, p, name, kapa, s, name2=None):
@@ -226,8 +232,9 @@ def main():
     args = parser.parse_args()
 
     shape = (641,641)
-    ds = PickledDataset(args.pickled_dataset)
-    ds = TransformedDataset(ds, [ScaleDownFactor2Transform()])#[ViewCropperTransform(def_min=30, def_max=80, output_shape=shape, focus_object="player")])
+    ds = PickledDataset("/data/mistasse/abolfazl/keemotion/pickled/camera_views_with_human_masks_ball_mask.pickle")
+    ds = TransformedDataset(ds, [ViewCropperTransform(def_min=30, def_max=80, output_shape=shape, focus_object="player")])
+    # ds = TransformedDataset(ds, [ScaleDownFactor2Transform()])
     keys = ds.keys.all()
     print("OKS metric computed on whole dataset since pose estimation is trained on COCO")
     result_list = []
@@ -266,9 +273,18 @@ def main():
         predictions = [PlayerSkeleton(**p) for p in json.load(open(f"{filename}.predictions.json", "r"))]
         predictions = [p for p in predictions if p.projects_in_court(view.calib, court) and p.visible]
         annotations = [PlayerAnnotation2D(a, view.calib) for a in view.annotations if a.type == "player" and a.camera == key.camera]
+<<<<<<< HEAD
         
         matching = {}
         oks_list = []
+=======
+        # if not predictions or not annotations:
+        #     continue
+
+        matching = {}
+        oks_list = []
+
+>>>>>>> WandB
         if predictions:
             for p in sorted(predictions, key=lambda p: p.confidence, reverse=True):
                 if not annotations:

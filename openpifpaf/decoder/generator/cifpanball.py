@@ -137,7 +137,7 @@ class CifPanBall(Generator):
             """Use torch for max pooling"""
             cif = torch.tensor(cif)
             cif_m = torch.max_pool2d(cif[None], kernel_size, stride=1, padding=pad)[0] == cif      #### 7 padding=3
-            cif_m &= cif > 0.1
+            cif_m &= cif > 0.1# * cif.max()
             return np.asarray(cif_m)
 
         # Get coordinates of keypoints of every type
@@ -176,8 +176,7 @@ class CifPanBall(Generator):
                 fields=fields,
             )
 
-
-
+        
         if len(keypoints_yx[Ci]) == 0:
             return []
 
@@ -201,6 +200,7 @@ class CifPanBall(Generator):
 
         distances2 = np.square(difference).sum(axis=1)      # [I,H,W]
         instances = distances2.argmin(axis=0)               # [H,W]
+        # instances += 1  # to make sure the ids start from 1 and not 0
         # plt.imshow(instances)
         # plt.show()
 
@@ -245,6 +245,7 @@ class CifPanBall(Generator):
         # plt.show()
         
         # from matplotlib import pyplot as plt
+        # print('semantic shape', semantic.shape)
         classes = semantic.argmax(axis=0)   # [H,W]
         # plt.imshow(softmax(semantic[None])[0,1])
         # plt.colorbar()
@@ -301,6 +302,14 @@ class CifPanBall(Generator):
 
         # if self.nms is not None:
         #     annotations = self.nms.annotations(annotations)
+        filtered_annotations = []
+        for ann in annotations:
+            if ann.category_id != 1:
+                filtered_annotations.append(ann)
+                continue
+            if np.count_nonzero(ann.mask) > 100 and np.count_nonzero(ann.data[:,2]) >= 5:
+                filtered_annotations.append(ann)
+        annotations = filtered_annotations
 
         LOG.info('%d annotations: %s', len(annotations),
                  [np.sum(ann.data[:, 2] > 0.1) for ann in annotations])

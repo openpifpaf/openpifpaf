@@ -8,4 +8,3 @@ from . import headmeta
 from .image_list import ImageList, PilImageList
 from .multidataset import MultiDataset
 
-

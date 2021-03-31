@@ -25,13 +25,13 @@ COCO_IMAGE_DIR_TRAIN = 'COCO/images/train2017/'
 COCO_IMAGE_DIR_VAL = 'COCO/images/val2017/'
 KEEMOTION_DIR = '/data/mistasse/keemotion/km_complete_player_ball_full_res/'
 
-COCOKP_ANNOTATIONS_TRAIN = '/scratch/mistasse/coco/annotations/person_keypoints_train2017.json'
-COCOKP_ANNOTATIONS_VAL = '/scratch/mistasse/coco/annotations/person_keypoints_val2017.json'
-COCODET_ANNOTATIONS_TRAIN = '/scratch/mistasse/coco/annotations/instances_train2017.json'
-COCODET_ANNOTATIONS_VAL = '/scratch/mistasse/coco/annotations/instances_val2017.json'
-COCO_IMAGE_DIR_TRAIN = '/scratch/mistasse/coco/images/train2017/'
-COCO_IMAGE_DIR_VAL = '/scratch/mistasse/coco/images/val2017/'
-KEEMOTION_DIR = '/scratch/mistasse/keemotion/km_complete_player_ball_full_res/'
+# COCOKP_ANNOTATIONS_TRAIN = '/scratch/mistasse/coco/annotations/person_keypoints_train2017.json'
+# COCOKP_ANNOTATIONS_VAL = '/scratch/mistasse/coco/annotations/person_keypoints_val2017.json'
+# COCODET_ANNOTATIONS_TRAIN = '/scratch/mistasse/coco/annotations/instances_train2017.json'
+# COCODET_ANNOTATIONS_VAL = '/scratch/mistasse/coco/annotations/instances_val2017.json'
+# COCO_IMAGE_DIR_TRAIN = '/scratch/mistasse/coco/images/train2017/'
+# COCO_IMAGE_DIR_VAL = '/scratch/mistasse/coco/images/val2017/'
+# KEEMOTION_DIR = '/scratch/mistasse/keemotion/km_complete_player_ball_full_res/'
 
 COCOKP_ANNOTATIONS_TRAIN = 'data-mscoco/annotations/person_keypoints_train2017.json'
 COCOKP_ANNOTATIONS_VAL = 'data-mscoco/annotations/person_keypoints_val2017.json'
@@ -503,7 +503,7 @@ def train_cocokpinst_factory(args, target_transforms, heads=None, batch_size=Non
             [train_data for _ in range(args.duplicate_data)])
     train_loader = torch.utils.data.DataLoader(
         train_data, batch_size=batch_size, shuffle=not args.debug,
-        pin_memory=args.pin_memory, num_workers=3, drop_last=True,
+        pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
         collate_fn=collate_images_targets_inst_meta,)
         # timeout=10000.)
 
@@ -598,6 +598,10 @@ def train_factory(args, target_transforms, heads=None):
         batch_sizes = [int(dw / sum(dataset_weights) * args.batch_size) for dw in dataset_weights]
     else:
         batch_sizes = [args.batch_size]
+
+        ## without the multi dataset
+
+        return train_single_factory(args, target_transforms, dataset=args.dataset, heads=heads, batch_size=args.batch_size)
     # print('train_factory',args.dataset)
     dataloaders = [train_single_factory(args, target_transforms, dataset=ds, heads=heads, batch_size=btch_sz) for ds, btch_sz in zip(args.dataset.split('-'), batch_sizes)]
     train_dataloaders = [tr_dl for tr_dl, _ in dataloaders]

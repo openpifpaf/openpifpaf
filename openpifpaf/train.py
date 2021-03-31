@@ -39,7 +39,8 @@ def default_output_file(args, net_cpu):
         if args.extended_scale:
             out += 's'
 
-    return out + '.pkl'
+    # return out + '.pkl'
+    return out + '.pth'
 
 
 def cli():
@@ -84,6 +85,10 @@ def cli():
                        help='print debug messages and enable all debug images')
     group.add_argument('--comment', nargs="*",
                        help='write comment about that run')
+
+    group.add_argument('--slurm-job-id', default=None)
+
+    group.add_argument('--disable-wandb', action='store_true')
 
     args = parser.parse_args()
 
@@ -154,7 +159,7 @@ def main():
             'version': __version__,
             'hostname': socket.gethostname(),
         },
-        train_args=args
+        train_args=args,
     )
     trainer.loop(train_loader, val_loader, args.epochs, start_epoch=start_epoch)
     trainer.close_tb()

@@ -41,7 +41,7 @@ class Generator:
         }
 
     @staticmethod
-    def fields_batch(model, image_batch, *, device=None):
+    def fields_batch(model, image_batch, *, device=None, target_batch=None):
         """From image batch to field batch."""
         start = time.time()
 
@@ -65,7 +65,34 @@ class Generator:
             # to numpy
             with torch.autograd.profiler.record_function('tonumpy'):
                 heads = apply(lambda x: x.cpu().numpy(), heads)
+        # print('len heads', len(heads))
+        # print('len heads', heads[0].shape)
+        # print('len heads', heads[1].keys())
+        # print('len heads', heads[2].shape)
 
+        # print('len target_batch', len(target_batch))
+        # print('len target_batch', len(target_batch[0]))
+        # print('len target_batch', target_batch[0][0].shape)
+        # print('len target_batch', target_batch[0][1].shape)
+        # print('len target_batch', target_batch[0][2].shape)
+        # print('len heads', heads[1]['semantic'].shape)
+        # print('len heads', heads[1]['offset'].shape)
+        # print('len target_batch', target_batch[1]['semantic'].shape)
+        # print('len target_batch', target_batch[1]['offset'].shape)
+        # print('heads', type(heads[1]['semantic']))
+        # print('heads', type(target_batch[1]['semantic']))
+        if target_batch is not None:
+            import numpy as np
+            def classes_from_target(semantic_target):
+                ''' converting [B,H,W] to [B,C,H,W] '''
+                B, H, W = semantic_target.shape
+                C = semantic_target.max() + 1
+                target = np.zeros((B, C, H, W))
+                for cc in range(C):
+                    target[:,cc,:,:] = np.where(semantic_target == cc, 1, 0)
+                return target
+            heads[1]['semantic'] = classes_from_target(target_batch[1]['semantic'].numpy())
+            heads[1]['offset'] = target_batch[1]['offset'].numpy()
         # index by frame (item in batch)
         head_iter = apply(iter, heads)
         heads = []
@@ -83,10 +110,10 @@ class Generator:
         """For single image, from fields to annotations."""
         raise NotImplementedError()
 
-    def batch(self, model, image_batch, *, device=None):
+    def batch(self, model, image_batch, *, device=None, target_batch=None):
         """From image batch straight to annotations batch."""
         start_nn = time.perf_counter()
-        fields_batch = self.fields_batch(model, image_batch, device=device)
+        fields_batch = self.fields_batch(model, image_batch, device=device, target_batch=target_batch)
         # print('fields batch',len(fields_batch[0]))
         # print('fields batch',fields_batch)
         self.last_nn_time = time.perf_counter() - start_nn

@@ -10,6 +10,7 @@ from PIL import Image
 from .. import transforms, utils
 
 import scipy.ndimage
+import matplotlib.pyplot as plt
 
 LOG = logging.getLogger(__name__)
 STAT_LOG = logging.getLogger(__name__.replace('openpifpaf.', 'openpifpaf.stats.'))
@@ -73,7 +74,7 @@ class Coco(torch.utils.data.Dataset):
                 # self.ids_inst = self.coco_inst.getImgIds(catIds=self.category_ids[0])
                 self.ids_ball = self.coco_inst.getImgIds(catIds=self.category_ids[1])
                 self.filter_for_keypoint_annotations()
-                self.filter_for_medium_people()
+                # self.filter_for_medium_people()
                 # self.filter_for_kp_ball_annotations()
                 self.ids += self.ids_ball
                 # for i in self.ids_ball:
@@ -135,18 +136,63 @@ class Coco(torch.utils.data.Dataset):
 
     def filter_for_medium_people(self):
         LOG.info('filter for medium people ...')
-        def is_medium(image_id):
+        def is_medium(image_id,n_t_plot):
             ann_ids = self.coco.getAnnIds(imgIds=image_id, catIds=[1])
             anns = self.coco.loadAnns(ann_ids)
-            for ann in anns:
+            for ix, ann in enumerate(anns):
                 # mask = self.coco_inst.annToMask(ann)
                 if 'keypoints' not in ann:
                     continue
-                if len([v for v in ann['keypoints'][2::3] if v > 0.0]) > 10:
-                    return True
+                if ann.get('iscrowd'):
+                    continue
+                mask = self.coco_inst.annToMask(ann)
+                if mask.sum() < 0.01 * (np.ones_like(mask)).sum():
+                    if ix == len(anns) - 1 and len(anns) > 1:
+                        # if n_t_plot:
+                        #     print('image id (kept 1):', image_id)
+                        #     image_info = self.coco.loadImgs(image_id)[0]
+                        #     with open(os.path.join(self.image_dir, image_info['file_name']), 'rb') as f:
+                        #         image = Image.open(f).convert('RGB')
+                        #         plt.imshow(image)
+                        #         plt.show()
+                        return True
+                    else:
+                        continue
+                if len([v for v in ann['keypoints'][2::3] if v > 0.0]) > 5:
+                    if ix == len(anns) - 1:
+                        # if n_t_plot:
+                        #     print('image id (kept 2):', image_id)
+                        #     image_info = self.coco.loadImgs(image_id)[0]
+                        #     with open(os.path.join(self.image_dir, image_info['file_name']), 'rb') as f:
+                        #         image = Image.open(f).convert('RGB')
+                        #         plt.imshow(image)
+                        #         plt.show()
+                        return True
+                    else:
+                        continue
+                # if n_t_plot:
+                #     print('image id (1):', image_id)
+                #     image_info = self.coco.loadImgs(image_id)[0]
+                #     with open(os.path.join(self.image_dir, image_info['file_name']), 'rb') as f:
+                #         image = Image.open(f).convert('RGB')
+                #         plt.imshow(image)
+                #         plt.show()
+                return False
+            # if n_t_plot:
+            #     print('image id (2):', image_id)
+            #     image_info = self.coco.loadImgs(image_id)[0]
+            #     with open(os.path.join(self.image_dir, image_info['file_name']), 'rb') as f:
+            #         image = Image.open(f).convert('RGB')
+            #         plt.imshow(image)
+            #         plt.show()
             return False
-        self.ids = [image_id for image_id in self.ids
-                    if is_medium(image_id)]
+        num_to_plot = [False for _ in self.ids]
+        for i in range(30):
+            num_to_plot[i] = True
+        print('number of images before removing large people: ', len(self.ids))
+        self.ids = [image_id for image_id, n_t_plot in zip(self.ids, num_to_plot)
+                    if is_medium(image_id,n_t_plot)]
+        print('number of images after removing large people: ', len(self.ids))
         LOG.info('... done.')
 
     def filter_for_keypoint_annotations(self):
