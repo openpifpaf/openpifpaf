@@ -154,8 +154,8 @@ class SmoothL1Loss(object):
             losses = losses * weight
 
         self.scale = None
-        # return torch.sum(losses)
-        return torch.mean(losses)
+        return torch.sum(losses)
+        # return torch.mean(losses)
 
 ## AMA
 
@@ -533,7 +533,7 @@ class CompositeLoss(torch.nn.Module):
                 torch.masked_select(target_reg[:, :, 3], reg_masks),
                 torch.masked_select(target_reg[:, :, 4], reg_masks),
                 torch.masked_select(target_reg[:, :, 5], reg_masks),
-            ) )#/ (100.0 * batch_size))
+            ) / (100.0 * batch_size))
         return margin_losses
 
     def forward(self, *args):
