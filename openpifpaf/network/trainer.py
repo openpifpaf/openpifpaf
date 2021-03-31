@@ -89,7 +89,7 @@ class Trainer(object):
                 print('new wandb_id', self.wandb_id)
     
             # self.wandb_id = wandb.util.generate_id() if wandb_id is None else wandb_id
-            wandb.init(project='DeepSportLab', id=self.wandb_id, config=train_args, resume='allow')
+            wandb.init(project='DeepSportLab', entity='deepsport', id=self.wandb_id, config=train_args, resume='allow')
 
             wandb.watch(self.model, log="all", log_freq=5000)
 
