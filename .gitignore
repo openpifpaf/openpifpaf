@@ -43,6 +43,7 @@ data/
 *.pkl
 *.pkl-*
 *.pkl.*
+*.pt
 *.log
 *.zip
 outputs/
