@@ -146,10 +146,9 @@ class CompositeLoss(torch.nn.Module):
 
         return losses
 
-    def forward(self, *args):
+    def forward(self, x, t):
         LOG.debug('loss for %s', self.field_names)
 
-        x, t = args
         if t is None:
             return [None for _ in range(1 + self.n_vectors + self.n_scales)]
         assert x.shape[2] == 1 + self.n_vectors * 3 + self.n_scales
