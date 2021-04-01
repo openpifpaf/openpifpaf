@@ -19,6 +19,7 @@ class DummyDecoder(torch.nn.Module):
         self.cifhr = torch.zeros((17, 300, 400))
 
     def forward(self, cif_head, caf_head):
+        self.cifhr[:] = 0.0
         torch.ops.my_ops.cif_hr_accumulate_op(self.cifhr, cif_head, 8, 0.1, 16, 0.0, 1.0)
         return self.cifhr
 
@@ -30,8 +31,9 @@ class EncoderDecoder(torch.nn.Module):
         self.decoder = decoder
 
     def forward(self, x):
-        cif_head, caf_head = self.traced_encoder(x)
-        o = self.decoder(cif_head, caf_head)
+        cif_head_batch, caf_head_batch = self.traced_encoder(x)
+        o = [self.decoder(cif_head, caf_head)
+             for cif_head, caf_head in zip(cif_head_batch, caf_head_batch)]
         return o
 
 
