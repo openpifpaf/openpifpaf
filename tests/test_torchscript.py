@@ -1,3 +1,5 @@
+import os
+
 import pytest
 import torch
 
@@ -33,3 +35,28 @@ def test_torchscript_decoder():
     decoder = openpifpaf.decoder.factory(datamodule.head_metas)
     with torch.no_grad():
         torch.jit.script(decoder)
+
+
+class ModuleWithCifHrOp(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+
+        self.cifhr = torch.zeros((17, 300, 400))
+
+    def forward(self, x):
+        torch.ops.my_ops.cif_hr_accumulate_op(self.cifhr, x, 8, 0.1, 16, 0.0, 1.0)
+        return x
+
+
+def test_torchscript_cifhrop(tmpdir):
+    openpifpaf.plugin.register()
+    torch.ops.load_library('openpifpafcpp.so')
+
+    outfile = str(tmpdir.join('cifhrop.pt'))
+    assert not os.path.exists(outfile)
+
+    model = ModuleWithCifHrOp()
+
+    scripted_model = torch.jit.script(model)
+    torch.jit.save(scripted_model, outfile)
+    assert os.path.exists(outfile)
