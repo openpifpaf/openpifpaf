@@ -182,7 +182,7 @@ class Trainer():
 
         # train encoder
         with torch.autograd.profiler.record_function('model'):
-            outputs = self.model(data, [t is not None for t in targets])
+            outputs = self.model(data, head_mask=[t is not None for t in targets])
         with torch.autograd.profiler.record_function('loss'):
             loss, head_losses = self.loss(outputs, targets)
         if loss is not None:
