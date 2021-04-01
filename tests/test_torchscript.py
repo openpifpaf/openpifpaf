@@ -1,6 +1,3 @@
-import os
-import sys
-
 import pytest
 import torch
 
@@ -8,7 +5,7 @@ import openpifpaf
 
 
 @pytest.mark.xfail
-def test_torchscript_script(tmpdir):
+def test_torchscript_script():
     openpifpaf.plugin.register()
     openpifpaf.network.heads.CompositeField3.inplace_ops = False
 
@@ -20,7 +17,7 @@ def test_torchscript_script(tmpdir):
         torch.jit.script(model)
 
 
-def test_torchscript_trace(tmpdir):
+def test_torchscript_trace():
     openpifpaf.plugin.register()
     openpifpaf.network.heads.CompositeField3.inplace_ops = False
 
@@ -33,7 +30,7 @@ def test_torchscript_trace(tmpdir):
 
 
 @pytest.mark.xfail
-def test_torchscript_decoder(tmpdir):
+def test_torchscript_decoder():
     openpifpaf.plugin.register()
 
     datamodule = openpifpaf.datasets.factory('cocokp')
