@@ -30,26 +30,32 @@ CAR_KEYPOINTS_24 = [
     'rear_plate_right',     # 22
     'mirror_edge_left',     # 23
     'mirror_edge_right',    # 24
-
 ]
 
 SKELETON_ORIG = [
-    [49, 46], [49, 8], [49, 57], [8, 0], [8, 11], [57, 0], [57, 52], [0, 5], [52, 5], [5, 7],            # frontal
-    [7, 20], [11, 23], [20, 23], [23, 25], [34, 32], [9, 11], [9, 7], [9, 20], [7, 0], [9, 0], [9, 8],  # L-lat
-    [24, 33], [24, 25], [24, 11], [25, 32], [25, 28], [33, 32], [33, 46], [32, 29], [28, 29],            # rear
-    [65, 64], [65, 25], [65, 28], [65, 20], [64, 29], [64, 32], [64, 37], [29, 37], [28, 20],         # new rear
-    [34, 37], [34, 46], [37, 50], [50, 52], [46, 48], [48, 37], [48, 49], [50, 57], [48, 57], [48, 50]
+    [49, 46], [49, 8], [49, 57], [8, 0], [8, 11], [57, 0],
+    [57, 52], [0, 5], [52, 5], [5, 7],  # frontal
+    [7, 20], [11, 23], [20, 23], [23, 25], [34, 32],
+    [9, 11], [9, 7], [9, 20], [7, 0], [9, 0], [9, 8],  # L-lat
+    [24, 33], [24, 25], [24, 11], [25, 32], [25, 28],
+    [33, 32], [33, 46], [32, 29], [28, 29],  # rear
+    [65, 64], [65, 25], [65, 28], [65, 20], [64, 29],
+    [64, 32], [64, 37], [29, 37], [28, 20],  # new rear
+    [34, 37], [34, 46], [37, 50], [50, 52], [46, 48], [48, 37],
+    [48, 49], [50, 57], [48, 57], [48, 50]
 ]
 
 
-KPS_MAPPING = [49, 8, 57, 0, 52, 5, 11, 7, 20, 23, 24, 33, 25, 32, 28, 29, 46, 34, 37, 50, 65, 64, 9, 48]
+KPS_MAPPING = [49, 8, 57, 0, 52, 5, 11, 7, 20, 23, 24, 33, 25, 32, 28,
+               29, 46, 34, 37, 50, 65, 64, 9, 48]
 
 CAR_SKELETON_24 = transform_skeleton(SKELETON_ORIG, KPS_MAPPING)
 
 CAR_SIGMAS_24 = [0.05] * len(KPS_MAPPING)
 
 split, error = divmod(len(CAR_KEYPOINTS_24), 4)
-CAR_SCORE_WEIGHTS_24 = [10.0] * split + [3.0] * split + [1.0] * split + [0.1] * split + [0.1] * error
+CAR_SCORE_WEIGHTS_24 = [10.0] * split + [3.0] * split + \
+    [1.0] * split + [0.1] * split + [0.1] * error
 assert len(CAR_SCORE_WEIGHTS_24) == len(CAR_KEYPOINTS_24)
 
 HFLIP_24 = {
@@ -82,35 +88,35 @@ HFLIP_24 = {
 CAR_CATEGORIES_24 = ['car']
 
 p = 0.25
-front = -6.0
-back = 4.5
+FRONT = -6.0
+BACK = 4.5
 
 # CAR POSE is used for joint rescaling. x = [-3, 3] y = [0,4]
 CAR_POSE_24 = np.array([
-    [-2.9, 4.0, front * 0.5],  # 'front_up_right',              # 1
-    [2.9, 4.0, front * 0.5],   # 'front_up_left',               # 2
-    [-2.0, 2.0, front],  # 'front_light_right',           # 3
-    [2.0, 2.0, front],  # 'front_light_left',             # 4
-    [-2.5, 0.0, front],  # 'front_low_right',             # 5
-    [2.5, 0.0, front],  # 'front_low_left',              # 6
+    [-2.9, 4.0, FRONT * 0.5],  # 'front_up_right',              # 1
+    [2.9, 4.0, FRONT * 0.5],   # 'front_up_left',               # 2
+    [-2.0, 2.0, FRONT],  # 'front_light_right',           # 3
+    [2.0, 2.0, FRONT],  # 'front_light_left',             # 4
+    [-2.5, 0.0, FRONT],  # 'front_low_right',             # 5
+    [2.5, 0.0, FRONT],  # 'front_low_left',              # 6
     [2.6, 4.2, 0.0],  # 'central_up_left'     # 7
-    [3.2, 0.2, front * 0.7],  # 'front_wheel_left',           # 8
-    [3.0, 0.3, back * 0.7],   # 'rear_wheel_left'      # 9
-    [3.1, 2.1, back * 0.5],   # 'rear_corner_left',          # 10
-    [2.4, 4.3, back * 0.35],  # 'rear_up_left',       # 11
-    [-2.4, 4.3, back * 0.35],  # 'rear_up_right'      # 12
-    [2.5, 2.2, back],   # 'rear_light_left',             # 13
-    [-2.5, 2.2, back],  # 'rear_light_right',            # 14
-    [2.1, 0.1, back],  # 'rear_low_left',            # 15
-    [-2.1, 0.1, back],  # 'rear_low_right',          # 16
+    [3.2, 0.2, FRONT * 0.7],  # 'front_wheel_left',           # 8
+    [3.0, 0.3, BACK * 0.7],   # 'rear_wheel_left'      # 9
+    [3.1, 2.1, BACK * 0.5],   # 'rear_corner_left',          # 10
+    [2.4, 4.3, BACK * 0.35],  # 'rear_up_left',       # 11
+    [-2.4, 4.3, BACK * 0.35],  # 'rear_up_right'      # 12
+    [2.5, 2.2, BACK],   # 'rear_light_left',             # 13
+    [-2.5, 2.2, BACK],  # 'rear_light_right',            # 14
+    [2.1, 0.1, BACK],  # 'rear_low_left',            # 15
+    [-2.1, 0.1, BACK],  # 'rear_low_right',          # 16
     [-2.6, 4.2, 0.0],  # 'central_up_right'    # 17
-    [-3.1, 2.1, back * 0.5],  # 'rear_corner_right',         # 18
-    [-3.0, 0.3, back * 0.7],  # 'rear_wheel_right'       # 19
-    [-3.2, 0.2, front * 0.7],  # 'front_wheel_right',          # 20
-    [1.0, 1.3, back],  # 'rear_plate_left',              # 21
-    [-1.0, 1.3, back],  # 'rear_plate_right',            # 22
-    [2.8, 3, front * 0.35],  # 'mirror_edge_left'          # 23
-    [-2.8, 3, front * 0.35],  # 'mirror_edge_right'        # 24
+    [-3.1, 2.1, BACK * 0.5],  # 'rear_corner_right',         # 18
+    [-3.0, 0.3, BACK * 0.7],  # 'rear_wheel_right'       # 19
+    [-3.2, 0.2, FRONT * 0.7],  # 'front_wheel_right',          # 20
+    [1.0, 1.3, BACK],  # 'rear_plate_left',              # 21
+    [-1.0, 1.3, BACK],  # 'rear_plate_right',            # 22
+    [2.8, 3, FRONT * 0.35],  # 'mirror_edge_left'          # 23
+    [-2.8, 3, FRONT * 0.35],  # 'mirror_edge_right'        # 24
 ])
 
 CAR_POSE_FRONT_24 = np.array([
@@ -263,7 +269,7 @@ CAR_KEYPOINTS_66 = [
     "top_left_c_right_fog_light",           # 53
     "bottom_left_c_right_front_car_light",  # 54
     "top_left_c_right_front_car_light",     # 55
-    "bottom_right_c_right_front_car_light", # 56
+    "bottom_right_c_right_front_car_light",  # 56
     "top_right_c_right_front_car_light",     # 57
     "top_right_c_front_lplate",             # 58
     "top_left_c_front_lplate",              # 59
@@ -272,8 +278,7 @@ CAR_KEYPOINTS_66 = [
     "top_left_c_rear_lplate",               # 62
     "top_right_c_rear_lplate",              # 63
     "bottom_right_c_rear_lplate",           # 64
-    "bottom_left_c_rear_lplate",            # 65
-    ]
+    "bottom_left_c_rear_lplate", ]            # 65
 
 
 HFLIP_ids = {
@@ -325,21 +330,19 @@ assert len(HFLIP_66) == len(CAR_KEYPOINTS_66)
 CAR_CATEGORIES_66 = ['car']
 
 SKELETON_LEFT = [
-    [59, 61], [59,1], [61, 5], [0,1], [0,2], [2,3], [3,1], [3,4], [4,5], #front
-    [5, 6], [6,7], [4, 7], [2,9], [9,8], [8,11], [7,10], [6, 10], [9,10], #side front part
-    [11,12], [11,24], [9,12], [10,15], [12,15], 
-    [9, 13], [13,14], [14,12], [14,15], #side middle part
-    [24,16], [12,16], [12, 17], [17, 18], [18, 16], 
-    [15, 19], [19, 20], [19,18], [20, 21], [16,21], # side back part
-    [16, 22], [21, 28], [22, 23], [23,28], [22,25], [25,26], 
-    [23,26], [26,27], [25,62], [27,65], [62, 65], [28, 65]
-    ]
+    [59, 61], [59, 1], [61, 5], [0, 1], [0, 2], [2, 3], [3, 1], [3, 4], [4, 5],  # front
+    [5, 6], [6, 7], [4, 7], [2, 9], [9, 8], [8, 11], [7, 10], [6, 10], [9, 10],  # side front part
+    [11, 12], [11, 24], [9, 12], [10, 15], [12, 15],
+    [9, 13], [13, 14], [14, 12], [14, 15],  # side middle part
+    [24, 16], [12, 16], [12, 17], [17, 18], [18, 16],
+    [15, 19], [19, 20], [19, 18], [20, 21], [16, 21],  # side back part
+    [16, 22], [21, 28], [22, 23], [23, 28], [22, 25], [25, 26],
+    [23, 26], [26, 27], [25, 62], [27, 65], [62, 65], [28, 65]]
 
 SKELETON_RIGHT = [[HFLIP_ids[bone[0]], HFLIP_ids[bone[1]]] for bone in SKELETON_LEFT]
 
 SKELETON_CONNECT = [
-    [28, 29], [62,63], [65,64], [24,33], [46, 11], [48,9], [59, 58], [60, 61], [0, 57], [49, 8]
-    ]
+    [28, 29], [62, 63], [65, 64], [24, 33], [46, 11], [48, 9], [59, 58], [60, 61], [0, 57], [49, 8]]
 
 SKELETON_ALL = SKELETON_LEFT + SKELETON_RIGHT + SKELETON_CONNECT
 
@@ -348,92 +351,94 @@ CAR_SKELETON_66 = [(bone[0] + 1, bone[1] + 1) for bone in SKELETON_ALL]  # COCO 
 CAR_SIGMAS_66 = [0.05] * len(CAR_KEYPOINTS_66)
 
 split, error = divmod(len(CAR_KEYPOINTS_66), 4)
-CAR_SCORE_WEIGHTS_66 = [10.0] * split + [3.0] * split + [1.0] * split + [0.1] * split + [0.1] * error
+CAR_SCORE_WEIGHTS_66 = [10.0] * split + [3.0] * split + \
+    [1.0] * split + [0.1] * split + [0.1] * error
 assert len(CAR_SCORE_WEIGHTS_66) == len(CAR_KEYPOINTS_66)
 
 
-#number plate offsets
-p_x = 0.3
-p_y_top = -0.2
-p_y_bottom = -0.4
+# number plate offsets
+P_X = 0.3
+P_Y_TOP = -0.2
+P_Y_BOTTOM = -0.4
 
 # z for front
-front_z = -2.0
-front_z_side = -1.8
-front_z_corner = -1.7
-front_z_wheel = -1.4
-front_z_door = -1.0
+FRONT_Z = -2.0
+FRONT_Z_SIDE = -1.8
+FRONT_Z_CORNER = -1.7
+FRONT_Z_WHEEL = -1.4
+FRONT_Z_DOOR = -1.0
 
 # lights x offset
-light_x_inside = 0.8
-x_outside = 1.0
+LIGHT_X_INSIDE = 0.8
+X_OUTSIDE = 1.0
 
 # y offsets
-top_car = 0.5
-bottom_line = -0.75
-top_line = 0.1
+TOP_CAR = 0.5
+BOTTOM_LINE = -0.75
+TOP_LINE = 0.1
 
 # z for the back
-back_z_wheel = 1.0
-back_z = 1.5
-back_z_side = 1.3
+BACK_Z_WHEEL = 1.0
+BACK_Z = 1.5
+BACK_Z_SIDE = 1.3
 
 CAR_POSE_HALF = np.array([
-    [-light_x_inside, 0.0, front_z],    # 0
-    [-light_x_inside, -0.2, front_z],  # 1
-    [-x_outside, 0.0, front_z_side],  # 2 
-    [-x_outside, -0.2, front_z_side],  # 3
-    [-x_outside, p_y_bottom, front_z_side],  # 4
-    [-x_outside, p_y_bottom - 0.2, front_z_side],  # 5
-    [-x_outside, bottom_line, front_z_corner],  # 6
-    [-x_outside, bottom_line + 0.1, front_z_wheel,],  # 7
-    [-x_outside + 0.1, top_car, front_z_door + 0.5,],  # 8
-    [-x_outside, top_line, front_z_door,],  # 9
-    [-x_outside, bottom_line,  front_z_door,],  # 10
-    [-x_outside + 0.1,  top_car, 0.1,],  # 11
-    [-x_outside, top_line, 0.05,],  # 12
-    [-x_outside, 0.0, -0.1,],  # 13
-    [-x_outside, 0.0, 0.0,],  # 14
-    [-x_outside, bottom_line, 0.0,],  # 15
-    [-x_outside, top_line, back_z_wheel,],  # 16
-    [-x_outside, 0.0, back_z_wheel * 0.8,],  # 17
-    [-x_outside, 0.0, back_z_wheel * 0.9,],  # 18
-    [-x_outside, bottom_line, back_z_wheel * 0.6,],  # 19
-    [-x_outside, bottom_line + 0.1, back_z_wheel,],  # 20
-    [-x_outside, bottom_line, back_z_side - 0.2,],  # 21
-    [-x_outside, 0.0, back_z_side,],  # 22
-    [-x_outside, -0.2, back_z_side,],  # 23
-    [-x_outside + 0.1,  top_car - 0.1, back_z_wheel,],  # 24
-    [-light_x_inside, 0.0, back_z,],  # 25
-    [-light_x_inside, -0.2, back_z,],  # 26
-    [-light_x_inside + 0.1, -0.3, back_z,],  # 27
-    [-x_outside + 0.1, bottom_line, back_z,]]  # 28
-    + [[np.nan, np.nan, np.nan,]] * 30 + # will later be mirrored, see figure 3, ApolloCar 3D paper
-    [[-p_x, p_y_top, front_z],]  # 59
-    + [[np.nan, np.nan, np.nan,]] * 1 + # will later be mirrored, see figure 3, ApolloCar 3D paper
-    [[-p_x, p_y_bottom, front_z],  # 61
-    [-p_x, p_y_top, back_z]] +  # 62
-    [[np.nan, np.nan, np.nan,]] * 2 + # will later be mirrored, see figure 3, ApolloCar 3D paper
-    [[-p_x, p_y_bottom, back_z],]  # 65
-)
+    [-LIGHT_X_INSIDE, 0.0, FRONT_Z],    # 0
+    [-LIGHT_X_INSIDE, -0.2, FRONT_Z],  # 1
+    [-X_OUTSIDE, 0.0, FRONT_Z_SIDE],  # 2
+    [-X_OUTSIDE, -0.2, FRONT_Z_SIDE],  # 3
+    [-X_OUTSIDE, P_Y_BOTTOM, FRONT_Z_SIDE],  # 4
+    [-X_OUTSIDE, P_Y_BOTTOM - 0.2, FRONT_Z_SIDE],  # 5
+    [-X_OUTSIDE, BOTTOM_LINE, FRONT_Z_CORNER],  # 6
+    [-X_OUTSIDE, BOTTOM_LINE + 0.1, FRONT_Z_WHEEL],  # 7
+    [-X_OUTSIDE + 0.1, TOP_CAR, FRONT_Z_DOOR + 0.5],  # 8
+    [-X_OUTSIDE, TOP_LINE, FRONT_Z_DOOR],  # 9
+    [-X_OUTSIDE, BOTTOM_LINE, FRONT_Z_DOOR],  # 10
+    [-X_OUTSIDE + 0.1, TOP_CAR, 0.1],  # 11
+    [-X_OUTSIDE, TOP_LINE, 0.05],  # 12
+    [-X_OUTSIDE, 0.0, -0.1],  # 13
+    [-X_OUTSIDE, 0.0, 0.0],  # 14
+    [-X_OUTSIDE, BOTTOM_LINE, 0.0],  # 15
+    [-X_OUTSIDE, TOP_LINE, BACK_Z_WHEEL],  # 16
+    [-X_OUTSIDE, 0.0, BACK_Z_WHEEL * 0.8],  # 17
+    [-X_OUTSIDE, 0.0, BACK_Z_WHEEL * 0.9],  # 18
+    [-X_OUTSIDE, BOTTOM_LINE, BACK_Z_WHEEL * 0.6],  # 19
+    [-X_OUTSIDE, BOTTOM_LINE + 0.1, BACK_Z_WHEEL],  # 20
+    [-X_OUTSIDE, BOTTOM_LINE, BACK_Z_SIDE - 0.2],  # 21
+    [-X_OUTSIDE, 0.0, BACK_Z_SIDE],  # 22
+    [-X_OUTSIDE, -0.2, BACK_Z_SIDE],  # 23
+    [-X_OUTSIDE + 0.1, TOP_CAR - 0.1, BACK_Z_WHEEL],  # 24
+    [-LIGHT_X_INSIDE, 0.0, BACK_Z],  # 25
+    [-LIGHT_X_INSIDE, -0.2, BACK_Z],  # 26
+    [-LIGHT_X_INSIDE + 0.1, -0.3, BACK_Z],  # 27
+    [-X_OUTSIDE + 0.1, BOTTOM_LINE, BACK_Z]] + \
+    [[np.nan, np.nan, np.nan]] * 30 + \
+    [[-P_X, P_Y_TOP, FRONT_Z]] + \
+    [[np.nan, np.nan, np.nan]] + \
+    [[-P_X, P_Y_BOTTOM, FRONT_Z],  # 61
+     [-P_X, P_Y_TOP, BACK_Z]] + \
+    [[np.nan, np.nan, np.nan]] * 2 + \
+    [[-P_X, P_Y_BOTTOM, BACK_Z]])  # 65
 
 CAR_POSE_66 = CAR_POSE_HALF
 for key in HFLIP_ids:
-    CAR_POSE_66[HFLIP_ids[key],:] = CAR_POSE_HALF[key,:]
-    CAR_POSE_66[HFLIP_ids[key],0] = -CAR_POSE_HALF[key,0]
-assert not np.any(CAR_POSE_66==np.nan)
+    CAR_POSE_66[HFLIP_ids[key], :] = CAR_POSE_HALF[key, :]
+    CAR_POSE_66[HFLIP_ids[key], 0] = -CAR_POSE_HALF[key, 0]
+assert not np.any(CAR_POSE_66 == np.nan)
+
 
 def get_constants(num_kps):
-    if num_kps==24:
-        CAR_POSE_24[:,2] = 2.0
+    if num_kps == 24:
+        CAR_POSE_24[:, 2] = 2.0
         return [CAR_KEYPOINTS_24, CAR_SKELETON_24, HFLIP_24, CAR_SIGMAS_24,
                 CAR_POSE_24, CAR_CATEGORIES_24, CAR_SCORE_WEIGHTS_24]
-    elif num_kps==66:
-        CAR_POSE_66[:,2] = 2.0
+    elif num_kps == 66:
+        CAR_POSE_66[:, 2] = 2.0
         return [CAR_KEYPOINTS_66, CAR_SKELETON_66, HFLIP_66, CAR_SIGMAS_66,
                 CAR_POSE_66, CAR_CATEGORIES_66, CAR_SCORE_WEIGHTS_66]
     else:
         raise Exception("Only poses with 24 or 66 keypoints are available.")
+
 
 def draw_ann(ann, *, keypoint_painter, filename=None, margin=0.5, aspect=None, **kwargs):
     from openpifpaf import show  # pylint: disable=import-outside-toplevel
@@ -473,42 +478,45 @@ def draw_skeletons(pose, sigmas, skel, kps, scr_weights):
     ann.set(pose, np.array(sigmas) * scale)
     draw_ann(ann, filename='docs/skeleton_car.png', keypoint_painter=keypoint_painter)
 
+
 def plot3d_red(p3d, skeleton, save_gif=''):
-    skeleton = [(bone[0]-1, bone[1]-1) for bone in skeleton]
+    skeleton = [(bone[0] - 1, bone[1] - 1) for bone in skeleton]
     fig = plt.figure()
     ax = Axes3D(fig)
     ax.set_axis_off()
-    
+
     ax.view_init(azim=-90, elev=20)
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
-    max_range = np.array([p3d[:, 0].max()-p3d[:, 0].min(), 
-                          p3d[:, 1].max()-p3d[:, 1].min(), 
-                          p3d[:, 2].max()-p3d[:, 2].min()]).max() / 2.0
-    mid_x = (p3d[:, 0].max()+ p3d[:, 0].min()) * 0.5
-    mid_y = ( p3d[:, 1].max()+ p3d[:, 1].min()) * 0.5
-    mid_z = ( p3d[:, 2].max()+ p3d[:, 2].min()) * 0.5
-    
+    max_range = np.array([p3d[:, 0].max() - p3d[:, 0].min(),
+                          p3d[:, 1].max() - p3d[:, 1].min(),
+                          p3d[:, 2].max() - p3d[:, 2].min()]).max() / 2.0
+    mid_x = (p3d[:, 0].max() + p3d[:, 0].min()) * 0.5
+    mid_y = (p3d[:, 1].max() + p3d[:, 1].min()) * 0.5
+    mid_z = (p3d[:, 2].max() + p3d[:, 2].min()) * 0.5
+
     ax.set_xlim(mid_x - max_range, mid_x + max_range)
     ax.set_ylim(mid_y - max_range, mid_y + max_range)
     ax.set_zlim(mid_z - max_range, mid_z + max_range)
-    
+
     def init():
         for ci, bone in enumerate(skeleton):
-            c = mplcm.get_cmap('tab20')((ci % 20 + 0.05) / 20) # Same coloring as Pifpaf preds
-            ax.plot(p3d[bone,0],p3d[bone,1],p3d[bone,2], color = c)
+            c = mplcm.get_cmap('tab20')((ci % 20 + 0.05) / 20)  # Same coloring as Pifpaf preds
+            ax.plot(p3d[bone, 0], p3d[bone, 1], p3d[bone, 2], color=c)
         return [fig]
+
     def animate(i):
         ax.view_init(elev=10., azim=i)
         return fig
-    
+
     if save_gif:
         anim = FuncAnimation(fig, animate, init_func=init, frames=360, interval=100)
         anim.save(save_gif, fps=30)
-    else: # if no gif required just show
+    else:  # if no gif required just show
         init()
         plt.show()
+
 
 def print_associations():
     print("\nAssociations of the car skeleton with 24 keypoints")
@@ -518,17 +526,17 @@ def print_associations():
     for j1, j2 in CAR_SKELETON_66:
         print(CAR_KEYPOINTS_66[j1 - 1], '-', CAR_KEYPOINTS_66[j2 - 1])
 
+
 if __name__ == '__main__':
     print_associations()
 # =============================================================================
-#     draw_skeletons(CAR_POSE_24, sigmas = CAR_SIGMAS_24, skel = CAR_SKELETON_24, 
+#     draw_skeletons(CAR_POSE_24, sigmas = CAR_SIGMAS_24, skel = CAR_SKELETON_24,
 #                    kps = CAR_KEYPOINTS_24, scr_weights = CAR_SCORE_WEIGHTS_24)
-#     draw_skeletons(CAR_POSE_66, sigmas = CAR_SIGMAS_66, skel = CAR_SKELETON_66, 
+#     draw_skeletons(CAR_POSE_66, sigmas = CAR_SIGMAS_66, skel = CAR_SKELETON_66,
 #                    kps = CAR_KEYPOINTS_66, scr_weights = CAR_SCORE_WEIGHTS_66)
 # =============================================================================
-    rot_p90_x = np.array([[1, 0, 0], [0, 0, 1], [0, 1, 0],])
-    plot3d_red(CAR_POSE_66@rot_p90_x, CAR_SKELETON_66, 
+    rot_p90_x = np.array([[1, 0, 0], [0, 0, 1], [0, 1, 0], ])
+    plot3d_red(CAR_POSE_66 @ rot_p90_x, CAR_SKELETON_66,
                save_gif='openpifpaf/plugins/apollocar3d/docs/CAR_66_Pose.gif')
-    plot3d_red(CAR_POSE_24@rot_p90_x, CAR_SKELETON_24, 
+    plot3d_red(CAR_POSE_24 @ rot_p90_x, CAR_SKELETON_24,
                save_gif='openpifpaf/plugins/apollocar3d/docs/CAR_24_Pose.gif')
-    

@@ -10,7 +10,6 @@ The particular configuration of keypoints and skeleton is specified in the headm
 import argparse
 import torch
 try:
-    import pycocotools.coco
     from pycocotools.coco import COCO
 except ImportError:
     COCO = None
@@ -18,10 +17,9 @@ except ImportError:
 from openpifpaf.datasets import DataModule
 from openpifpaf import encoder, headmeta, metric, transforms
 from openpifpaf.datasets import collate_images_anns_meta, collate_images_targets_meta
+from openpifpaf.plugins.coco import CocoDataset as CocoLoader
 
 from .constants import get_constants
-#from .dataloader import Apollo
-from openpifpaf.plugins.coco import CocoDataset as CocoLoader
 from .metrics import MeanPixelError
 
 
@@ -138,10 +136,10 @@ class ApolloKp(DataModule):
                            default=cls.eval_orientation_invariant, type=float,
                            dest='coco_eval_orientation_invariant')
         group.add_argument('--apollo-use-24-kps', default=False, action='store_true',
-                           dest='apollo_use_24_kps', help="The ApolloCar3D dataset can" \
-                               "be trained with 24 or 66 kps. If you want to train a model"\
-                               " with 24 kps activate this flag. Change the annotations"\
-                               " path to the json files with 24 kps.")
+                           dest='apollo_use_24_kps', help="The ApolloCar3D dataset can"
+                           "be trained with 24 or 66 kps. If you want to train a model"
+                           " with 24 kps activate this flag. Change the annotations"
+                           " path to the json files with 24 kps.")
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
@@ -152,8 +150,10 @@ class ApolloKp(DataModule):
         # Apollo specific
         cls.train_annotations = args.apollo_train_annotations
         cls.val_annotations = args.apollo_val_annotations
+        cls.eval_annotations = cls.val_annotations
         cls.train_image_dir = args.apollo_train_image_dir
         cls.val_image_dir = args.apollo_val_image_dir
+        cls.eval_image_dir = cls.val_image_dir
 
         cls.square_edge = args.apollo_square_edge
         cls.extended_scale = args.apollo_extended_scale
@@ -318,7 +318,6 @@ class ApolloKp(DataModule):
             image_dir=self.eval_image_dir,
             ann_file=self.eval_annotations,
             preprocess=self._eval_preprocess(),
-            n_images=self.n_images,
             annotation_filter=self.eval_annotation_filter,
             min_kp_anns=self.min_kp_anns if self.eval_annotation_filter else 0,
             category_ids=[1] if self.eval_annotation_filter else [],
@@ -328,6 +327,7 @@ class ApolloKp(DataModule):
             pin_memory=self.pin_memory, num_workers=self.loader_workers, drop_last=False,
             collate_fn=collate_images_anns_meta)
 
+# TODO: make sure that 24kp flag is activated when evaluating a 24kp model
     def metrics(self):
         return [metric.Coco(
             COCO(self.eval_annotations),
@@ -335,5 +335,4 @@ class ApolloKp(DataModule):
             category_ids=[1],
             iou_type='keypoints',
             keypoint_oks_sigmas=self.CAR_SIGMAS
-        ),
-            MeanPixelError()]
+        ), MeanPixelError()]

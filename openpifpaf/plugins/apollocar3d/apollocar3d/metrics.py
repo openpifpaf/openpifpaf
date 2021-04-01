@@ -11,7 +11,8 @@ LOG = logging.getLogger(__name__)
 
 class MeanPixelError(Base):
     """
-    Calculate mean pixel error and detection rate for a given image and category in an "all-vs-all setting"
+    Calculate mean pixel error and detection rate for a given image
+    and category in an "all-vs-all setting"
     """
     predictions = []
     image_ids = []
@@ -88,7 +89,8 @@ class MeanPixelError(Base):
         mpe_scaled = average(self.errors_scaled)
         det_rate = 100 * average(self.detections)
         det_rate_scaled = 100 * average(self.detections_scaled)
-        LOG.info('Final Results: \nMean Pixel Error [scaled] : %f [%f] \nDetection Rate [scaled]: %f [%f]',
+        LOG.info('Final Results: \nMean Pixel Error [scaled] : %f [%f] '
+                 '\nDetection Rate [scaled]: %f [%f]',
                  mpe, mpe_scaled, det_rate, det_rate_scaled)
         data = {
             'stats': [mpe, det_rate],
@@ -97,7 +99,6 @@ class MeanPixelError(Base):
                             'Detection Rate [%]',
                             'Detection Rate Scaled[%]'],
         }
-
         return data
 
 
