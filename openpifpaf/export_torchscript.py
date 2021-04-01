@@ -15,9 +15,12 @@ LOG = logging.getLogger(__name__)
 class DummyDecoder(torch.nn.Module):
     def __init__(self):
         super().__init__()
+        torch.ops.load_library('openpifpafcpp.so')
+        self.cifhr = torch.zeros((17, 300, 400))
 
     def forward(self, cif_head, caf_head):
-        return cif_head
+        torch.ops.my_ops.cif_hr_accumulate_op(self.cifhr, cif_head, 8, 0.1, 16, 0.0, 1.0)
+        return self.cifhr
 
 
 class EncoderDecoder(torch.nn.Module):
