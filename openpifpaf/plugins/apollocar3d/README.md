@@ -25,7 +25,7 @@ Prediction runs as standard openpifpaf predict command, but using the pretrained
 ```
 python -m openpifpaf.predict \
 <image path> \
---checkpoint <model path> -o \
+--checkpoint <model path> -o <output directory> \
 --instance-threshold 0.07 --seed-threshold 0.07 \
 --line-width 3 --font-size 0 --white-overlay 0.6 
 ```
