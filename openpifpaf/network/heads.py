@@ -116,7 +116,7 @@ class HeadNetwork(torch.nn.Module):
     def configure(cls, args: argparse.Namespace):
         """Take the parsed argument parser output and configure class variables."""
 
-    def forward(self, *args):
+    def forward(self, x):
         raise NotImplementedError
 
 

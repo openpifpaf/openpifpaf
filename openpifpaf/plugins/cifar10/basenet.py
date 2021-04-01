@@ -12,8 +12,7 @@ class Cifar10Net(openpifpaf.network.BaseNetwork):
         self.conv3 = torch.nn.Conv2d(32, 64, 3, 2, 1)
         self.conv4 = torch.nn.Conv2d(64, 128, 3, 2, 1)
 
-    def forward(self, *args):
-        x = args[0]
+    def forward(self, x):
         x = torch.nn.functional.relu(self.conv1(x))
         x = torch.nn.functional.relu(self.conv2(x))
         x = torch.nn.functional.relu(self.conv3(x))
