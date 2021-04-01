@@ -20,7 +20,7 @@
   - file: plugins_crowdpose
   - file: tutorial_opencv
   - file: plugins_cifar10
-    - file: plugins_custom
+  - file: plugins_custom
 
 - part: Reference
   chapters:
