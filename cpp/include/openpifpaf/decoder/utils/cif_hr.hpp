@@ -8,6 +8,24 @@ namespace decoder {
 namespace utils {
 
 
+void cif_hr_accumulate_op(const torch::Tensor& accumulated,
+                          const torch::Tensor& cif_field,
+                          int64_t stride,
+                          double v_threshold,
+                          int64_t neighbors,
+                          double min_scale=0.0,
+                          double factor=1.0);
+
+
+void cif_hr_add_gauss_op(const torch::Tensor& accumulated,
+                         int64_t f,
+                         float v,
+                         float x,
+                         float y,
+                         float sigma,
+                         float truncate=3.0);
+
+
 struct CifHr : torch::CustomClassHolder {
     torch::Tensor accumulated;
     static int64_t neighbors;

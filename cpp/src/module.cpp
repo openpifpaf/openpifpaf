@@ -3,6 +3,12 @@
 #include "openpifpaf.hpp"
 
 
+
+TORCH_LIBRARY(my_ops, m) {
+    m.def("cif_hr_accumulate_op", openpifpaf::decoder::utils::cif_hr_accumulate_op);
+}
+
+
 TORCH_LIBRARY(my_classes, m) {
   m.class_<openpifpaf::decoder::utils::Occupancy>("Occupancy")
     .def(torch::init<const at::IntArrayRef&, double, double>())
