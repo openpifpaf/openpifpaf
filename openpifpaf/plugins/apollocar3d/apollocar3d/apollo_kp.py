@@ -115,7 +115,9 @@ class ApolloKp(DataModule):
                            help='b minimum in pixels')
 
         # evaluation
+        assert cls.eval_annotation_filter
         group.add_argument('--apollo-no-eval-annotation-filter',
+                           dest='apollo_eval_annotation_filter',
                            default=True, action='store_false')
         group.add_argument('--apollo-eval-long-edge', default=cls.eval_long_edge, type=int,
                            help='set to zero to deactivate rescaling')
