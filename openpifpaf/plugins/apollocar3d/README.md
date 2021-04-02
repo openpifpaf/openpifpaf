@@ -29,9 +29,12 @@ python -m openpifpaf.predict \
 ## Preprocess Dataset
 The preprocessing step converts the annotations into the standard COCO format. It creates a version with all 66 keypoints and also creates a sparsified version with 24 keypoints. The resulting pose can be obtained running:
 `python -m openpifpaf_apollocar3d.utils.constants`
-
-<img src="docs/CAR_24_Pose.gif" width="600"/>
-<img src="docs/CAR_66_Pose.gif" width="600"/>
+<!---
+@Lorenzo: I am not showing this in the readme as the gif files are to big for version control.
+More info here:  https://github.com/vita-epfl/openpifpaf/pull/376#issuecomment-812492917
+//<img src="docs/CAR_24_Pose.gif" width="600"/>
+//<img src="docs/CAR_66_Pose.gif" width="600"/>
+-->
 
 Create (or soft link) the following directories:
 * `mkdir data outputs apollo-coco, apollo-coco/images apollo-coco/annotations`
