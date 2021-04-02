@@ -28,11 +28,6 @@ class ApolloKp(DataModule):
     Adapted from the standard CocoKp class to work as external plugin
     """
 
-    # cli configurable (TODO)
-    _test2017_annotations = 'data-mscoco/annotations/image_info_test2017.json'
-    _testdev2017_annotations = 'data-mscoco/annotations/image_info_test-dev2017.json'
-    _test2017_image_dir = 'data-mscoco/images/test2017/'
-
     train_annotations = 'data/apollo-coco/annotations/apollo_keypoints_66_train.json'
     val_annotations = 'data/apollo-coco/annotations/apollo_keypoints_66_val.json'
     eval_annotations = val_annotations
@@ -119,27 +114,20 @@ class ApolloKp(DataModule):
                            default=cls.b_min, type=int,
                            help='b minimum in pixels')
 
-        # evaluation  (TO setup directly)
-        eval_set_group = group.add_mutually_exclusive_group()
-        eval_set_group.add_argument('--apollo-eval-test2017', default=False, action='store_true')
-        eval_set_group.add_argument('--apollo-eval-testdev2017', default=False, action='store_true')
-
+        # evaluation
         group.add_argument('--apollo-no-eval-annotation-filter',
-                           dest='coco_eval_annotation_filter',
                            default=True, action='store_false')
         group.add_argument('--apollo-eval-long-edge', default=cls.eval_long_edge, type=int,
-                           dest='coco_eval_long_edge', help='set to zero to deactivate rescaling')
+                           help='set to zero to deactivate rescaling')
         assert not cls.eval_extended_scale
-        group.add_argument('--apollo-eval-extended-scale', default=False, action='store_true',
-                           dest='coco_eval_extended_scale',)
+        group.add_argument('--apollo-eval-extended-scale', default=False, action='store_true')
         group.add_argument('--apollo-eval-orientation-invariant',
-                           default=cls.eval_orientation_invariant, type=float,
-                           dest='coco_eval_orientation_invariant')
+                           default=cls.eval_orientation_invariant, type=float)
         group.add_argument('--apollo-use-24-kps', default=False, action='store_true',
-                           dest='apollo_use_24_kps', help="The ApolloCar3D dataset can"
-                           "be trained with 24 or 66 kps. If you want to train a model"
-                           " with 24 kps activate this flag. Change the annotations"
-                           " path to the json files with 24 kps.")
+                           help=('The ApolloCar3D dataset can '
+                                 'be trained with 24 or 66 kps. If you want to train a model '
+                                 'with 24 kps activate this flag. Change the annotations '
+                                 'path to the json files with 24 kps.'))
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
@@ -171,27 +159,14 @@ class ApolloKp(DataModule):
             (cls.CAR_KEYPOINTS, cls.CAR_SKELETON, cls.HFLIP, cls.CAR_SIGMAS, cls.CAR_POSE,
              cls.CAR_CATEGORIES, cls.CAR_SCORE_WEIGHTS) = get_constants(66)
         # evaluation
-        cls.eval_annotation_filter = args.coco_eval_annotation_filter  # the destination is for coco
-        if args.apollo_eval_test2017:
-            cls.eval_image_dir = cls._test2017_image_dir
-            cls.eval_annotations = cls._test2017_annotations
-            cls.annotation_filter = False
-        if args.apollo_eval_testdev2017:
-            cls.eval_image_dir = cls._test2017_image_dir
-            cls.eval_annotations = cls._testdev2017_annotations
-            cls.annotation_filter = False
-        cls.eval_long_edge = args.coco_eval_long_edge
-        cls.eval_orientation_invariant = args.coco_eval_orientation_invariant
-        cls.eval_extended_scale = args.coco_eval_extended_scale
-
-        if (args.cocokp_eval_test2017 or args.cocokp_eval_testdev2017) \
-                and not args.write_predictions and not args.debug:
-            raise Exception('have to use --write-predictions for this dataset')
+        cls.eval_annotation_filter = args.apollo_eval_annotation_filter
+        cls.eval_long_edge = args.apollo_eval_long_edge
+        cls.eval_orientation_invariant = args.apollo_eval_orientation_invariant
+        cls.eval_extended_scale = args.apollo_eval_extended_scale
 
     def _preprocess(self):
-        encoders = (encoder.Cif(self.head_metas[0],
-                                bmin=self.b_min),
-                    encoder.Caf(self.head_metas[1]))
+        encoders = (encoder.Cif(self.head_metas[0], bmin=self.b_min),
+                    encoder.Caf(self.head_metas[1], bmin=self.b_min))
 
         if not self.augmentation:
             return transforms.Compose([
