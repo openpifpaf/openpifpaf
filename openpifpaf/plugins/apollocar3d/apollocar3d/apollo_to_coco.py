@@ -24,13 +24,13 @@ try:
 except ModuleNotFoundError as err:
     if err.name != 'pandas':
         raise err
-    pd = None
+    pd = None  # pylint: disable=invalid-name
 try:
     import cv2  # pylint: disable=import-error
 except ModuleNotFoundError as err:
     if err.name != 'cv2':
         raise err
-    cv2 = None
+    cv2 = None  # pylint: disable=invalid-name
 
 from .constants import CAR_KEYPOINTS_24, CAR_SKELETON_24,\
     CAR_KEYPOINTS_66, CAR_SKELETON_66, KPS_MAPPING

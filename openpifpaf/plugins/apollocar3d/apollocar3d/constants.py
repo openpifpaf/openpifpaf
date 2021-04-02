@@ -1,8 +1,11 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.cm as mplcm
-from matplotlib.animation import FuncAnimation
-from mpl_toolkits.mplot3d import Axes3D
+try:
+    import matplotlib.pyplot as plt
+    import matplotlib.cm as mplcm
+    from matplotlib.animation import FuncAnimation
+    from mpl_toolkits.mplot3d import Axes3D
+except ImportError:
+    pass
 from .transforms import transform_skeleton
 
 CAR_KEYPOINTS_24 = [
@@ -432,12 +435,12 @@ def get_constants(num_kps):
         CAR_POSE_24[:, 2] = 2.0
         return [CAR_KEYPOINTS_24, CAR_SKELETON_24, HFLIP_24, CAR_SIGMAS_24,
                 CAR_POSE_24, CAR_CATEGORIES_24, CAR_SCORE_WEIGHTS_24]
-    elif num_kps == 66:
+    if num_kps == 66:
         CAR_POSE_66[:, 2] = 2.0
         return [CAR_KEYPOINTS_66, CAR_SKELETON_66, HFLIP_66, CAR_SIGMAS_66,
                 CAR_POSE_66, CAR_CATEGORIES_66, CAR_SCORE_WEIGHTS_66]
-    else:
-        raise Exception("Only poses with 24 or 66 keypoints are available.")
+    # using no if-elif-else construction due to pylint no-else-return error
+    raise Exception("Only poses with 24 or 66 keypoints are available.")
 
 
 def draw_ann(ann, *, keypoint_painter, filename=None, margin=0.5, aspect=None, **kwargs):
