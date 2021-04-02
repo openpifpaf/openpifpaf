@@ -501,7 +501,7 @@ def plot3d_red(p3d, skeleton, save_gif=''):
 
     ax.set_xlim(mid_x - max_range, mid_x + max_range)
     ax.set_ylim(mid_y - max_range, mid_y + max_range)
-    ax.set_zlim(mid_z - max_range, mid_z + max_range)
+    ax.set_zlim(mid_z - max_range, mid_z + max_range)  # pylint: disable=no-member
 
     def init():
         for ci, bone in enumerate(skeleton):
