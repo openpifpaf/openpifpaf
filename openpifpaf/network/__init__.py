@@ -6,5 +6,5 @@ from . import losses
 
 from .panoptic_losses import RegularCE, OhemCE, DeepLabCE
 from torch import nn
-
+from .heads import index_field_torch
 

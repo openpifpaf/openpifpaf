@@ -370,7 +370,7 @@ class DeepSportDataset(torch.utils.data.Dataset):
         image = data["input_image"]
         
         anns = []
-        n_keypoints = 18 #if self.config == 'cifcent' else 17
+        n_keypoints = 18 if self.config == 'cifcent' else 17
         if self.ball:
             if "x" in data:
                 anns = [add_ball_keypoint(build_empty_person(image_id,n_keypoints=n_keypoints), image.shape, data["x"], data["y"], data["visible"], data["mask"])]
@@ -513,14 +513,13 @@ class DeepSportDataset(torch.utils.data.Dataset):
         # plt.show
         # raise
         # transform targets
-        if self.target_transforms is not None:
-            anns = [t(image, anns, meta) for t in self.target_transforms]
-            # anns_dict = dict()
-            # for t in self.target_transforms:
-            #     # print(type(anns))
-            #     ann = t(image, anns, meta)
-            #     anns_dict[ann['name']] = ann['value']
-
+        if False:# self.oks_computation:
+            if self.target_transforms is not None:
+                anns = [t(image, anns, meta, pq_computation=False) for t in self.target_transforms]
+        else:
+            if self.target_transforms is not None:
+                anns = [t(image, anns, meta) for t in self.target_transforms]
+        
         # import pickle
         # pickle.dump((anns, image, meta), open("/tmp/auie.pickle", "wb"))
         # import time

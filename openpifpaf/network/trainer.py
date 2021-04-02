@@ -360,7 +360,7 @@ class Trainer(object):
         if not self.train_args.disable_wandb:
             in_dict = {
                 "Epoch/train loss":  epoch_loss / len(scenes),
-                "epoch": epoch+1
+                "Epoch/epoch": epoch+1
                 }
 
             for hd_idx, head_ls in enumerate(head_epoch_losses):
@@ -481,7 +481,7 @@ class Trainer(object):
         if not self.train_args.disable_wandb:
             in_dict = {
                 "Epoch/val loss":  epoch_loss / len(scenes),
-                "epoch": epoch
+                "Epoch/epoch": epoch
                 }
 
             for hd_idx, head_ls in enumerate(head_epoch_losses):

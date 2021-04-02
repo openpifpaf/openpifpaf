@@ -60,7 +60,7 @@ class PanopticTargetGenerator(object):
             raise Exception('Incorrect catId')
 
     # def __call__(self, panoptic, segments):
-    def __call__(self, image, anns, meta):
+    def __call__(self, image, anns, meta, pq_computation=False):
         """Generates the training target.
         reference: https://github.com/mcordts/cityscapesScripts/blob/master/cityscapesscripts/preparation/createPanopticImgs.py
         reference: https://github.com/facebookresearch/detectron2/blob/master/datasets/prepare_panoptic_fpn.py#L18
@@ -192,6 +192,19 @@ class PanopticTargetGenerator(object):
                     offset[offset_x_index] = center_x - x_coord[mask_index]
         
         # print('PAN time: ', time.time() - start_time)
+
+        if pq_computation:
+                return dict(
+                semantic=torch.as_tensor(semantic.astype('long')),
+                panoptic=torch.as_tensor(panoptic.astype(np.float32)),
+                # foreground=torch.as_tensor(foreground.astype('long')),
+                # center=torch.as_tensor(center.astype(np.float32)),
+                # center_points=center_pts,
+                offset=torch.as_tensor(offset.astype(np.float32)),
+                semantic_weights=torch.as_tensor(semantic_weights.astype(np.float32)),
+                # center_weights=torch.as_tensor(center_weights.astype(np.float32)),
+                offset_weights=torch.as_tensor(offset_weights.astype(np.float32))
+            )    
 
         return dict(
             semantic=torch.as_tensor(semantic.astype('long')),

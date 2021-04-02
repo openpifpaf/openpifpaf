@@ -7,6 +7,7 @@ import time
 import torch
 
 from ... import visualizer
+from ... import network
 
 LOG = logging.getLogger(__name__)
 
@@ -91,8 +92,54 @@ class Generator:
                 for cc in range(C):
                     target[:,cc,:,:] = np.where(semantic_target == cc, 1, 0)
                 return target
-            heads[1]['semantic'] = classes_from_target(target_batch[1]['semantic'].numpy())
-            heads[1]['offset'] = target_batch[1]['offset'].numpy()
+
+            def denan(t):
+                return torch.where(torch.isnan(t), torch.zeros_like(t), t)
+
+            
+            pan_target = {}
+            pan_target['semantic'] = classes_from_target(target_batch[1]['semantic'].numpy())
+            pan_target['offset'] = target_batch[1]['offset'].numpy()
+            
+            gt = [torch.cat([denan(target_batch[0][0])[:,:,None],
+                            denan(target_batch[0][1])[:,:,:2]+network.index_field_torch(target_batch[0][1].shape[-2:]),
+                            torch.ones_like(target_batch[0][2][:,:,None])*0,
+                            denan(target_batch[0][2])[:,:,None]
+                            ], dim=2),
+                    pan_target,
+                    torch.cat([denan(target_batch[2][0])[:,:,None],
+                            denan(target_batch[2][1])[:,:,:2]+network.index_field_torch(target_batch[2][1].shape[-2:]),
+                            torch.ones_like(target_batch[2][2][:,:,None])*0,
+                            denan(target_batch[2][2])[:,:,None]
+                            ], dim=2),]
+
+            # heads[1]['semantic'] = gt[1]['semantic']
+            # heads[1]['offset'] = gt[1]['offset']
+            # print('head type',heads[0].shape)
+            # print('gt type',gt[0].shape)
+            # print('type heads', type(heads))
+            # print('type gt', type(gt))
+            # import matplotlib.pyplot as plt
+            # import scipy
+            # con = scipy.ndimage.zoom(heads[0][0,-1,0,:,:], (8, 8))
+            # plt.imshow(con, cmap='jet')
+            # plt.colorbar()
+            # image = image_batch[0].cpu().permute(1,2,0).numpy()
+            # image = (image - image.min())/(image.max() - image.min())
+            # plt.imshow(image, alpha=.2)
+            # plt.show()
+            # plt.savefig('image/before_.png')
+            import copy
+            heads[0][:,-1,:,:,:] = copy.deepcopy(gt[0][:,-1,:,:,:].numpy())    # [B,K,5,W_L,H_L]
+            
+            # con = scipy.ndimage.zoom(heads[0][0,-1,0,:,:], (8, 8))
+            # plt.imshow(con, cmap='jet')
+            # # plt.colorbar()
+            # plt.imshow(image, alpha=.2)
+            # plt.show()
+            # plt.savefig('image/after_.png')
+            # raise
+
         # index by frame (item in batch)
         head_iter = apply(iter, heads)
         heads = []

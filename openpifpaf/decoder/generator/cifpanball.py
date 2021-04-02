@@ -199,6 +199,7 @@ class CifPanBall(Generator):
                       )
 
         distances2 = np.square(difference).sum(axis=1)      # [I,H,W]
+        instances_score = distances2.min(axis=0)
         instances = distances2.argmin(axis=0)               # [H,W]
         # instances += 1  # to make sure the ids start from 1 and not 0
         # plt.imshow(instances)
@@ -263,7 +264,7 @@ class CifPanBall(Generator):
         ids = np.random.permutation(len(annotations))
         for i in range(len(annotations)):
             annotation = annotations[i]
-            centroid_mask = (classes == 1) & (instances == i)
+            centroid_mask = (classes == 1) & (instances == i) #& (instances_score > 0.1)
             # print(semantic.shape)
             annotation.cls = 1# semantic[:,centroid_mask].sum(axis=1).argmax(axis=0)
             annotation.mask = centroid_mask
@@ -302,12 +303,14 @@ class CifPanBall(Generator):
 
         # if self.nms is not None:
         #     annotations = self.nms.annotations(annotations)
+
+
         filtered_annotations = []
         for ann in annotations:
             if ann.category_id != 1:
                 filtered_annotations.append(ann)
                 continue
-            if np.count_nonzero(ann.mask) > 100 and np.count_nonzero(ann.data[:,2]) >= 5:
+            if np.count_nonzero(ann.mask) > 100: #and np.count_nonzero(ann.data[:,2]) >= 5:
                 filtered_annotations.append(ann)
         annotations = filtered_annotations
 
@@ -319,11 +322,13 @@ class CifPanBall(Generator):
                 cifhr=cifhr,
                 has_ball=self.ball,
                 instances=instances,
+                instances_score=instances_score,
                 keypoints_yx=keypoints_yx,
                 keypoints_fyxiv=keypoints_fyxiv,
                 centers_fyxv=centers_fyxv,
                 annotations=annotations,
                 fields=fields,
+                panoptic=panoptic
             )
         return annotations
     
