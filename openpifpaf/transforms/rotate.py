@@ -37,7 +37,8 @@ def rotate(image, anns, meta, angle):
             im_np = np.flip(im_np, axis=0)
             im_np = np.flip(im_np, axis=1)
         else:
-            im_np = scipy.ndimage.rotate(im_np, angle=angle, cval=127, reshape=False)
+            fill_value = int(torch.randint(0, 255, (1,)).item())
+            im_np = scipy.ndimage.rotate(im_np, angle=angle, cval=fill_value, reshape=False)
         image = PIL.Image.fromarray(im_np)
     LOG.debug('rotated by = %f degrees', angle)
 
