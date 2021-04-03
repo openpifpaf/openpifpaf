@@ -12,7 +12,7 @@ from .minsize import MinSize
 from .multi_scale import MultiScale
 from .pad import CenterPad, CenterPadTight, SquarePad
 from .preprocess import Preprocess
-from .random import DeterministicEqualChoice, RandomApply
+from .random import DeterministicEqualChoice, RandomApply, RandomChoice
 from .rotate import RotateBy90, RotateUniform
 from .scale import RescaleAbsolute, RescaleRelative, ScaleMix
 from .toannotations import ToAnnotations, ToCrowdAnnotations, ToDetAnnotations, ToKpAnnotations
