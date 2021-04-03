@@ -223,7 +223,11 @@ class CocoKp(openpifpaf.datasets.DataModule, openpifpaf.Configurable):
             openpifpaf.transforms.Crop(self.square_edge, use_area_of_interest=True),
             openpifpaf.transforms.CenterPad(self.square_edge),
             openpifpaf.transforms.RandomApply(
-                openpifpaf.transforms.RotateBy90(), self.orientation_invariant),
+                openpifpaf.transforms.DeterministicEqualChoice((
+                    openpifpaf.transforms.RotateBy90(),
+                    openpifpaf.transforms.RotateUniform(30.0),
+                )),
+                self.orientation_invariant),
             openpifpaf.transforms.TRAIN_TRANSFORM,
             openpifpaf.transforms.Encoders(encoders),
         ])
