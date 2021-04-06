@@ -8,7 +8,12 @@ LOG = logging.getLogger(__name__)
 
 
 class RandomApply(Preprocess):
-    def __init__(self, transform, probability):
+    """Randomly apply another transformation.
+
+    :param transform: another transformation
+    :param probability: probability to apply the given transform
+    """
+    def __init__(self, transform: Preprocess, probability: float):
         self.transform = transform
         self.probability = probability
 
@@ -19,7 +24,8 @@ class RandomApply(Preprocess):
 
 
 class RandomChoice(Preprocess):
-    def __init__(self, transforms, probabilities):
+    """Choose a single random transform."""
+    def __init__(self, transforms: list[Preprocess], probabilities: list[float]):
         if sum(probabilities) < 1.0 and len(transforms) == len(probabilities):
             transforms.append(None)
         self.transforms = transforms
@@ -44,7 +50,12 @@ class RandomChoice(Preprocess):
 
 
 class DeterministicEqualChoice(Preprocess):
-    def __init__(self, transforms, salt=0):
+    """Deterministically choose one of the transforms.
+
+    :param transforms: a list of transforms
+    :param salt: integer that combined with meta['image_id] determines the choice of the transform
+    """
+    def __init__(self, transforms: list[Preprocess], salt: int = 0):
         self.transforms = transforms
         self.salt = salt
 

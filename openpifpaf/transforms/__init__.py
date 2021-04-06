@@ -38,3 +38,11 @@ TRAIN_TRANSFORM = Compose([
     ImageTransform(torchvision.transforms.RandomGrayscale(p=0.01)),
     EVAL_TRANSFORM,
 ])
+
+
+__all__ = [
+    'Preprocess',
+    'Compose',
+    'Encoders',
+    'DeterministicEqualChoice', 'RandomApply', 'RandomChoice',
+]
