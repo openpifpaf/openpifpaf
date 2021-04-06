@@ -36,6 +36,7 @@ sphinx:
   extra_extensions: [sphinx.ext.autodoc]
   config:
     autodoc_member_order: bysource
+    autodoc_inherit_docstrings: False
     language: en
 
 execute:
