@@ -459,9 +459,16 @@ def main():
         
         # unbatch
         assert len(pred_batch)==len(views_batch)
-        for pred, target, meta, view, key in zip(pred_batch, target_batch, meta_batch, views_batch, keys_batch):
+        # print('len pred batch',len(pred_batch))
+        # print('len pred batch',len(target_batch))
+        # print('len pred batch',len(meta_batch))
+        # print('len pred batch',len(views_batch))
+        # print('len pred batch',len(keys_batch))
 
-            # print('pred len',len(pred))
+
+        for pred, meta, view, key in zip(pred_batch, meta_batch, views_batch, keys_batch):
+
+            print('pred',len(pred))
             # print('pred',len(pred[0].shape))
             # print('pred',len(pred[1].shape))
             # print('pred',len(pred[2].shape))
@@ -470,7 +477,7 @@ def main():
             LOG.info('batch %d: %s', batch_i, meta['file_name'])
             # print(view.keys())
             court = Court(view['rule_type'])
-            # print('Pred:', len([ann.json_data() for ann in pred]))
+            # print('Pred:', len([ann.mask for ann in pred]))
             # raise
             
             

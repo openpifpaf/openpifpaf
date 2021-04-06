@@ -113,8 +113,8 @@ class Generator:
                             denan(target_batch[2][2])[:,:,None]
                             ], dim=2),]
 
-            # heads[1]['semantic'] = gt[1]['semantic']
-            # heads[1]['offset'] = gt[1]['offset']
+            heads[1]['semantic'] = gt[1]['semantic']
+            heads[1]['offset'] = gt[1]['offset']
             # print('head type',heads[0].shape)
             # print('gt type',gt[0].shape)
             # print('type heads', type(heads))

@@ -248,6 +248,20 @@ class CifPanBall(Generator):
         # from matplotlib import pyplot as plt
         # print('semantic shape', semantic.shape)
         classes = semantic.argmax(axis=0)   # [H,W]
+
+        
+        ###########
+        # pad_left, pad_top, pad_right, pad_bottom = 0, 4, 1, 5 # padding copied from logs
+        # _, height, width = semantic.shape
+        # v_start = pad_top
+        # v_stop = height-pad_bottom
+        # h_start = pad_left
+        # h_stop = width-pad_right
+        ball_from_mask = [np.unravel_index(semantic[2].argmax(), semantic[2].shape)]
+        ball_fyxv_from_mask = [
+            (Bi, y, x, semantic[2,y,x])
+            for y, x in ball_from_mask
+        ]
         # plt.imshow(softmax(semantic[None])[0,1])
         # plt.colorbar()
         # plt.show()
@@ -275,7 +289,7 @@ class CifPanBall(Generator):
         # print('show')
 
         # if self.ball:
-        for f, y, x, v in ball_fyxv:
+        for f, y, x, v in ball_fyxv_from_mask: #ball_fyxv:
             f = 18
             # print('fff', f)
             
