@@ -1,8 +1,11 @@
+from typing import List
+
 from .preprocess import Preprocess
 
 
 class Compose(Preprocess):
-    def __init__(self, preprocess_list):
+    """Execute given transforms in sequential order."""
+    def __init__(self, preprocess_list: List[Preprocess]):
         self.preprocess_list = preprocess_list
 
     def __call__(self, *args):

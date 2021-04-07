@@ -2,6 +2,7 @@ import copy
 import math
 import logging
 
+import torch
 import torchvision
 
 from .preprocess import Preprocess
@@ -47,8 +48,9 @@ class CenterPad(Preprocess):
         LOG.debug('pad with %s', ltrb)
 
         # pad image
+        fill_value = int(torch.randint(0, 255, (1,)).item())
         image = torchvision.transforms.functional.pad(
-            image, ltrb, fill=(124, 116, 104))
+            image, ltrb, fill=(fill_value, fill_value, fill_value))
 
         # pad annotations
         for ann in anns:
