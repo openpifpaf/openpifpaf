@@ -1,7 +1,7 @@
-from __future__ import annotations
-
 import itertools
 import logging
+from typing import List
+
 import torch
 
 from .preprocess import Preprocess
@@ -27,7 +27,7 @@ class RandomApply(Preprocess):
 
 class RandomChoice(Preprocess):
     """Choose a single random transform."""
-    def __init__(self, transforms: list[Preprocess], probabilities: list[float]):
+    def __init__(self, transforms: List[Preprocess], probabilities: List[float]):
         if sum(probabilities) < 1.0 and len(transforms) == len(probabilities):
             transforms.append(None)
         self.transforms = transforms
@@ -57,7 +57,7 @@ class DeterministicEqualChoice(Preprocess):
     :param transforms: a list of transforms
     :param salt: integer that combined with meta['image_id] determines the choice of the transform
     """
-    def __init__(self, transforms: list[Preprocess], salt: int = 0):
+    def __init__(self, transforms: List[Preprocess], salt: int = 0):
         self.transforms = transforms
         self.salt = salt
 
