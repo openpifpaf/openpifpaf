@@ -24,6 +24,7 @@
 - part: Reference
   chapters:
   - file: moduledocs
+  - file: bibliography
 
 - part: Development
   chapters:

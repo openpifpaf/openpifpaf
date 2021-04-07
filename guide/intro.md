@@ -142,12 +142,6 @@ References: {cite}`kreiss2021openpifpaf, kreiss2019pifpaf`
 [CC-BY-2.0]: https://creativecommons.org/licenses/by/2.0/
 
 
-
-```{bibliography}
-:style: unsrtalpha
-```
-
-
 ## Commercial License
 
 This software is available for licensing via the EPFL Technology Transfer
