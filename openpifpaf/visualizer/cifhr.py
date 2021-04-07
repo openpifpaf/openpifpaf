@@ -6,6 +6,8 @@ LOG = logging.getLogger(__name__)
 
 
 class CifHr(Base):
+    """Visualize the CifHr map."""
+
     def __init__(self, *, stride=1, field_names=None):
         super().__init__('cif')
 

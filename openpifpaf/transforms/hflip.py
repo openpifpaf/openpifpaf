@@ -38,6 +38,7 @@ class _HorizontalSwap():
 
 
 class HFlip(Preprocess):
+    """Horizontally flip image and annotations."""
     def __init__(self, keypoints, hflip):
         self.swap = _HorizontalSwap(keypoints, hflip)
 

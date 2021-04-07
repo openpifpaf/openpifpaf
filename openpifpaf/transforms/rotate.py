@@ -69,6 +69,8 @@ def rotate(image, anns, meta, angle):
 
 
 class RotateBy90(Preprocess):
+    """Randomly rotate by multiples of 90 degrees."""
+
     def __init__(self, angle_perturbation=0.0, fixed_angle=None):
         super().__init__()
 
@@ -88,6 +90,8 @@ class RotateBy90(Preprocess):
 
 
 class RotateUniform(Preprocess):
+    """Rotate by a random angle uniformly drawn from a given angle range."""
+
     def __init__(self, max_angle=30.0):
         super().__init__()
         self.max_angle = max_angle

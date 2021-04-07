@@ -87,6 +87,8 @@ def _scale(image, anns, meta, target_w, target_h, resample, *, fast=False):
 
 
 class RescaleRelative(Preprocess):
+    """Rescale relative to input image."""
+
     def __init__(self, scale_range=(0.5, 1.0), *,
                  resample=PIL.Image.BILINEAR,
                  absolute_reference=None,
@@ -141,6 +143,8 @@ class RescaleRelative(Preprocess):
 
 
 class RescaleAbsolute(Preprocess):
+    """Rescale to a given size."""
+
     def __init__(self, long_edge, *, fast=False, resample=PIL.Image.BILINEAR):
         self.long_edge = long_edge
         self.fast = fast

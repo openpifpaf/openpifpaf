@@ -16,6 +16,8 @@ LOG = logging.getLogger(__name__)
 
 
 class Cif(Base):
+    """Visualize a CIF field."""
+
     def __init__(self, meta: headmeta.Cif):
         super().__init__(meta.name)
         self.meta = meta

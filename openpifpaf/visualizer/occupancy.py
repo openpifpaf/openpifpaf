@@ -8,6 +8,8 @@ LOG = logging.getLogger(__name__)
 
 
 class Occupancy(Base):
+    """Visualize occupancy map."""
+
     def __init__(self, *, field_names=None):
         super().__init__('occupancy')
         self.field_names = field_names

@@ -42,7 +42,18 @@ TRAIN_TRANSFORM = Compose([
 
 __all__ = [
     'Preprocess',
+    'AnnotationJitter', 'NormalizeAnnotations',
     'Compose',
+    'Crop',
     'Encoders',
+    'HFlip',
+    'Blur', 'ImageTransform', 'JpegCompression',
+    'MinSize',
+    'MultiScale',
+    'CenterPad', 'CenterPadTight', 'SquarePad',
     'DeterministicEqualChoice', 'RandomApply', 'RandomChoice',
+    'RotateBy90', 'RotateUniform',
+    'RescaleAbsolute', 'RescaleRelative', 'ScaleMix',
+    'ToAnnotations', 'ToCrowdAnnotations', 'ToDetAnnotations', 'ToKpAnnotations',
+    'UnclippedArea', 'UnclippedSides',
 ]

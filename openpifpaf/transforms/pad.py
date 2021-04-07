@@ -11,7 +11,9 @@ LOG = logging.getLogger(__name__)
 
 
 class CenterPad(Preprocess):
-    def __init__(self, target_size):
+    """Pad to a square of given size."""
+
+    def __init__(self, target_size: int):
         if isinstance(target_size, int):
             target_size = (target_size, target_size)
         self.target_size = target_size

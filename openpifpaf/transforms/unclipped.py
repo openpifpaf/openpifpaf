@@ -9,6 +9,8 @@ LOG = logging.getLogger(__name__)
 
 
 class UnclippedSides(Preprocess):
+    """Only keep annotations with given number of unclipped sides."""
+
     def __init__(self, *, margin=10, clipped_sides_okay=2):
         self.margin = margin
         self.clipped_sides_okay = clipped_sides_okay
@@ -38,6 +40,8 @@ class UnclippedSides(Preprocess):
 
 
 class UnclippedArea(Preprocess):
+    """Only keep annotations that have a certain fraction of the original area."""
+
     def __init__(self, *, threshold=0.5):
         self.threshold = threshold
 
