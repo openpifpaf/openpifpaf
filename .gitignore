@@ -17,6 +17,7 @@ dist/
 .ipynb_checkpoints/
 openpifpaf/functional.cpython-*
 openpifpaf/functional.html
+openpifpaf/functional.c
 
 # guide
 guide/_build/
