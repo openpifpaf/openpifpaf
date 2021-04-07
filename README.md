@@ -46,6 +46,10 @@ python3 -m openpifpaf.predict docs/coco/000000081988.jpg --image-min-dpi=200 --s
 
 Continue to our __[OpenPifPaf Guide](https://vita-epfl.github.io/openpifpaf/intro.html)__.
 
+For developers, there is also the
+__[DEV Guide](https://vita-epfl.github.io/openpifpaf/dev/intro.html)__
+which is the same guide but based on the latest code in the `main` branch.
+
 
 [CC-BY-2.0]: https://creativecommons.org/licenses/by/2.0/
 

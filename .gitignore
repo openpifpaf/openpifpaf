@@ -17,6 +17,7 @@ dist/
 .ipynb_checkpoints/
 openpifpaf/functional.cpython-*
 openpifpaf/functional.html
+openpifpaf/functional.c
 
 # guide
 guide/_build/
@@ -43,6 +44,7 @@ data/
 *.pkl
 *.pkl-*
 *.pkl.*
+*.pt
 *.log
 *.zip
 outputs/
@@ -56,3 +58,4 @@ test-clis-*/
 *.mlmodel
 guide/cifar10_*.predictions.json
 slurm*
+profile_decoder*

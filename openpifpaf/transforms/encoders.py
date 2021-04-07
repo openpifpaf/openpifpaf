@@ -2,6 +2,7 @@ from .preprocess import Preprocess
 
 
 class Encoders(Preprocess):
+    """Preprocess operation that runs encoders."""
     def __init__(self, encoders):
         self.encoders = encoders
 

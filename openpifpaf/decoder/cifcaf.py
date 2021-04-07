@@ -218,12 +218,15 @@ class CifCaf(Decoder):
         annotations = []
 
         def mark_occupied(ann):
-            for joint_i, xyv in enumerate(ann.data):
-                if xyv[2] == 0.0:
-                    continue
-
+            joint_is = np.flatnonzero(ann.data[:, 2])
+            for joint_i in joint_is:
                 width = ann.joint_scales[joint_i]
-                occupied.set(joint_i, xyv[0], xyv[1], width)  # width = 2 * sigma
+                occupied.set(
+                    joint_i,
+                    ann.data[joint_i, 0],
+                    ann.data[joint_i, 1],
+                    width,  # width = 2 * sigma
+                )
 
         for ann in initial_annotations:
             self._grow(ann, caf_scored)

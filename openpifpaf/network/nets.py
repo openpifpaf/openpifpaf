@@ -18,6 +18,12 @@ class Shell(torch.nn.Module):
 
         self.set_head_nets(head_nets)
 
+    @property
+    def head_metas(self):
+        if self.head_nets is None:
+            return None
+        return [hn.meta for hn in self.head_nets]
+
     def set_head_nets(self, head_nets):
         if not isinstance(head_nets, torch.nn.ModuleList):
             head_nets = torch.nn.ModuleList(head_nets)
@@ -28,15 +34,12 @@ class Shell(torch.nn.Module):
 
         self.head_nets = head_nets
 
-    def forward(self, *args):
-        image_batch = args[0]
-
+    def forward(self, image_batch, *, head_mask=None):
         if self.process_input is not None:
             image_batch = self.process_input(image_batch)
 
         x = self.base_net(image_batch)
-        if len(args) >= 2:
-            head_mask = args[1]
+        if head_mask is not None:
             head_outputs = tuple(hn(x) if m else None for hn, m in zip(self.head_nets, head_mask))
         else:
             head_outputs = tuple(hn(x) for hn in self.head_nets)
@@ -52,8 +55,7 @@ class CrossTalk(torch.nn.Module):
         super().__init__()
         self.strength = strength
 
-    def forward(self, *args):
-        image_batch = args[0]
+    def forward(self, image_batch):
         if self.training and self.strength:
             rolled_images = torch.cat((image_batch[-1:], image_batch[:-1]))
             image_batch += rolled_images * self.cross_talk
@@ -70,6 +72,12 @@ def model_migration(net_cpu):
     for m in net_cpu.modules():
         if not hasattr(m, '_non_persistent_buffers_set'):
             m._non_persistent_buffers_set = set()
+
+    for m in net_cpu.modules():
+        if m.__class__.__name__ != 'InvertedResidualK':
+            continue
+        if not hasattr(m, 'branch1'):
+            m.branch1 = None
 
     if not hasattr(net_cpu, 'head_nets') and hasattr(net_cpu, '_head_nets'):
         net_cpu.head_nets = net_cpu._head_nets

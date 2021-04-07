@@ -83,7 +83,7 @@ The code on the page is all the code required to reproduce that particular page.
 
 ## Pre-trained Models
 
-Performance metrics with version 0.11 on the COCO val set obtained with a GTX1080Ti:
+Performance metrics on the COCO val set obtained with a GTX1080Ti:
 
 | Checkpoint                | AP       | APᴹ      | APᴸ      | t_{total} [ms]  | t_{dec} [ms] |     size |
 |--------------------------:|:--------:|:--------:|:--------:|:---------------:|:------------:|---------:|

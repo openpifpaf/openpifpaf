@@ -52,6 +52,7 @@ setup(
 
     python_requires='>=3.6',
     install_requires=[
+        'importlib_metadata!=3.8.0',  # temporary for pytest
         'numpy>=1.16',
         'pysparkling',  # for log analysis
         'python-json-logger',

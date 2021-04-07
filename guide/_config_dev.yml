@@ -9,6 +9,13 @@ logo: logo.png
 #   latex_documents:
 #     targetname: book.tex
 
+parse:
+  myst_enable_extensions:
+    # don't forget to list any other extensions you want enabled,
+    # including those that are enabled by default!
+    - amsmath
+    - dollarmath
+
 html:
   favicon: favicon.png
   extra_navbar: This is the dev version of the Guide. Here is the <a href="https://vita-epfl.github.io/openpifpaf/">stable version</a>.
@@ -29,6 +36,7 @@ sphinx:
   extra_extensions: [sphinx.ext.autodoc]
   config:
     autodoc_member_order: bysource
+    autodoc_inherit_docstrings: False
     language: en
 
 execute:

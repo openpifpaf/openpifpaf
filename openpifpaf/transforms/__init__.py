@@ -12,8 +12,8 @@ from .minsize import MinSize
 from .multi_scale import MultiScale
 from .pad import CenterPad, CenterPadTight, SquarePad
 from .preprocess import Preprocess
-from .random import DeterministicEqualChoice, RandomApply
-from .rotate import RotateBy90
+from .random import DeterministicEqualChoice, RandomApply, RandomChoice
+from .rotate import RotateBy90, RotateUniform
 from .scale import RescaleAbsolute, RescaleRelative, ScaleMix
 from .toannotations import ToAnnotations, ToCrowdAnnotations, ToDetAnnotations, ToKpAnnotations
 from .unclipped import UnclippedArea, UnclippedSides
@@ -38,3 +38,11 @@ TRAIN_TRANSFORM = Compose([
     ImageTransform(torchvision.transforms.RandomGrayscale(p=0.01)),
     EVAL_TRANSFORM,
 ])
+
+
+__all__ = [
+    'Preprocess',
+    'Compose',
+    'Encoders',
+    'DeterministicEqualChoice', 'RandomApply', 'RandomChoice',
+]

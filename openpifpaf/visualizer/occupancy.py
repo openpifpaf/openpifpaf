@@ -1,5 +1,7 @@
 import logging
 
+import scipy
+
 from .base import Base
 
 LOG = logging.getLogger(__name__)
@@ -17,7 +19,8 @@ class Occupancy(Base):
 
             # occupancy maps are at a reduced scale wrt the processed image
             # pylint: disable=unsubscriptable-object
-            reduced_image = self._processed_image[::occupancy.reduction, ::occupancy.reduction]
+            factor = 1.0 / occupancy.reduction
+            reduced_image = scipy.ndimage.zoom(self._processed_image, (factor, factor, 1), order=1)
 
             with self.image_canvas(reduced_image) as ax:
                 occ = occupancy.occupancy[f].copy()

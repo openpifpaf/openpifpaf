@@ -4,7 +4,7 @@ name: deploy-guide-dev
 on:
   push:
     branches:
-    - dev
+    - main
 
 # This job installs dependencies, build the guide, and pushes it to `gh-pages`
 jobs:
