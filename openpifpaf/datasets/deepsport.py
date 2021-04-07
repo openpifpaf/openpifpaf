@@ -129,7 +129,10 @@ class AddHumansSegmentationTargetViewFactory():
         return {"human_masks": view.human_masks}
 
 
-class DeepSportKeysSplitter():
+class DeepSportKeysSplitter(KeysSplitter): # pylint: disable=too-few-public-methods
+    def __init__(self, validation_pc=15, eval_frequency=5):
+        self.validation_pc = validation_pc
+        self.eval_frequency = eval_frequency
     @staticmethod
     def split_equally(d, K):
         """
@@ -163,6 +166,42 @@ class DeepSportKeysSplitter():
         for key in keys:
             bins[key.game_id] = bins.get(key.game_id, 0) + 1
         return bins
+    def __call__(self, keys, fold=0):
+        split = {
+            "A": ['KS-FR-CAEN', 'KS-FR-LIMOGES', 'KS-FR-ROANNE'],
+            "B": ['KS-FR-NANTES', 'KS-FR-BLOIS', 'KS-FR-FOS'],
+            "C": ['KS-FR-LEMANS', 'KS-FR-MONACO', 'KS-FR-STRASBOURG'],
+            "D": ['KS-FR-GRAVELINES', 'KS-FR-STCHAMOND', 'KS-FR-POITIERS'],
+            "E": ['KS-FR-NANCY', 'KS-FR-BOURGEB', 'KS-FR-VICHY'],
+            "F": ['KS-US-RUTGERS', 'KS-CH-FRIBOURG'],
+            "G": ['KS-AT-VIENNA', 'KS-FI-KOTKA'],
+            "H": ['KS-FI-ESPOO', 'KS-BE-MONS'],
+            "I": ['KS-BE-OSTENDE', 'KS-FI-TAMPERE', 'KS-FI-LAPUA'],
+            "J": ['KS-FI-SALO', 'KS-AT-KLOSTERNEUBURG', 'KS-BE-SPIROU'],
+            "K": ['KS-FI-FORSSA', 'KS-US-IPSWICH'],
+        }
+        assert 0 <= fold <= len(split)-1, "Invalid fold index"
+        fold = chr(ord("A")+fold)
+        testing_keys = [k for k in keys if k.arena_label in split[fold]]
+        remaining_keys = [k for k in keys if k not in testing_keys]
+
+        # Backup random seed
+        random_state = random.getstate()
+        random.seed(fold)
+
+        validation_keys = random.sample(remaining_keys, len(keys)*self.validation_pc//100)
+
+        # Restore random seed
+        random.setstate(random_state)
+
+        training_keys = [k for k in remaining_keys if k not in validation_keys]
+
+        return {
+            "training": Subset("training", "TRAIN", training_keys),
+            "validation": Subset("validation", "EVAL", validation_keys, repetitions=self.eval_frequency, frequency=self.eval_frequency),
+            "testing": Subset("testing", "EVAL", testing_keys, repetitions=self.eval_frequency, frequency=self.eval_frequency),
+        }
+
 
 class KFoldsTestingKeysSplitter(DeepSportKeysSplitter):
     def __init__(self, fold_count=8, validation_pc=15):
@@ -197,7 +236,7 @@ class KFoldsTestingKeysSplitter(DeepSportKeysSplitter):
 
 
 
-def deepsportlab_dataset_splitter(keys, method=None, fold=0,validation_set_size_pc=None):
+def deepsportlab_dataset_splitter(keys, method=None, fold=0, validation_set_size_pc=None):
     print(f"splitting the dataset with '{method}' strategy")
     if method == "Niels":
         split = niels_split(keys)
@@ -219,6 +258,11 @@ def deepsportlab_dataset_splitter(keys, method=None, fold=0,validation_set_size_
         validation_keys = keys[:lim]
         random.seed(random_state)
         testing_keys = []
+    elif method == "DeepSport":
+        sets = DeepSportKeysSplitter()(keys, fold=fold)
+        training_keys = sets["training"]
+        validation_keys = sets["validation"]
+        testing_keys = set["testing"]
     else:
         raise BaseException("method not found")
     return {
@@ -236,6 +280,9 @@ def build_DeepSportBall_datasets(pickled_dataset_filename, validation_set_size_p
         fold = 0
     elif dataset_fold == "Niels":
         method = "Niels"
+        fold = 0
+    elif dataset_fold == "DeepSport":
+        method = "DeepSport"
         fold = 0
     else:
         method = "KFoldTesting"
@@ -370,7 +417,7 @@ class DeepSportDataset(torch.utils.data.Dataset):
         image = data["input_image"]
         
         anns = []
-        n_keypoints = 18 #if self.config == 'cifcent' else 17
+        n_keypoints = 18 if self.config == 'cifcent' else 17
         if self.ball:
             if "x" in data:
                 anns = [add_ball_keypoint(build_empty_person(image_id,n_keypoints=n_keypoints), image.shape, data["x"], data["y"], data["visible"], data["mask"])]
