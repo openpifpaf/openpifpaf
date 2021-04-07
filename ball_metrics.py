@@ -244,12 +244,14 @@ class ComputeTopkMetrics(Callback):
 def infer(weights_file, data, basenet, headnets, verbose=False):
     image_filename = "image/tmp_image_ball_metric.png"
     imageio.imwrite(image_filename, data["input_image"])
+    basenet_kwargs = [] if basenet is None else ["--basenet", basenet]
+    headnets_kwargs = [] if headnets is None else ["--headnets", *headnets]
     sys.argv = [
         "aue",
         image_filename,
         "--checkpoint", weights_file,
-        "--basenet", basenet,
-        "--headnets", *headnets,
+        *basenet_kwargs,
+        *headnets_kwargs,
         "--image-output",
         "--debug-images", "--debug-cif-c", "--debug"
     ]
@@ -265,8 +267,8 @@ def main():
     parser.add_argument("weights_file")
     parser.add_argument("--pickled-dataset-of-masks", required=True)
     parser.add_argument("--pickled-dataset-of-balls", required=True)
-    parser.add_argument("--basenet", required=True)
-    parser.add_argument("--headnets", nargs="*", required=True)
+    parser.add_argument("--basenet")
+    parser.add_argument("--headnets", nargs="*")
     parser.add_argument("--dataset-split", required=True)
     parser.add_argument("--test-fold", default=0)
     parser.add_argument("--verbose", action='store_true', default=False)
@@ -281,11 +283,10 @@ def main():
     ])
 
     human_masks_keys = list(PickledDataset(args.pickled_dataset_of_masks).keys.all())
-    split = deepsportlab_dataset_splitter(human_masks_keys, args.dataset_split, args.test_fold, validation_set_size_pc=5)
+    split = deepsportlab_dataset_splitter(human_masks_keys, args.dataset_split, args.test_fold, validation_set_size_pc=15)
     split["testing"] = [k for k in ds.keys.all() if k not in human_masks_keys]
     split["training"] = [k for k in ds.keys.all() if k in split["training"]]
     split["validation"] = [k for k in ds.keys.all() if k in split["validation"]]
-    print({k:len(v) for k,v in split.items()})
 
     # TENSORFLOW METRIC EVALUATION MODEL
     chunk = {}

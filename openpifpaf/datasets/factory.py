@@ -126,14 +126,18 @@ def train_cocokp_preprocess_factory(
     if orientation_invariant:
         orientation_t = transforms.RandomApply(transforms.RotateBy90(), orientation_invariant)
 
-    coco_keypoints_ = COCO_KEYPOINTS[:17]
+    BALL_KP_IDX = 18
+    CENTER_KP_IDX = 17
+    BODY_KPS = slice(0, 17)
+    coco_keypoints_ = COCO_KEYPOINTS[BODY_KPS]
     if 'cifball' in heads:
-        coco_keypoints_ = COCO_KEYPOINTS[:17] + [COCO_KEYPOINTS[-1]]
+        coco_keypoints_ = COCO_KEYPOINTS[BODY_KPS] + [COCO_KEYPOINTS[BALL_KP_IDX]]
     elif 'cifcentball' in heads:
         coco_keypoints_ = COCO_KEYPOINTS
     elif 'cifcent' in heads:
-        print('yeay')
-        coco_keypoints_ = COCO_KEYPOINTS[:18]
+        coco_keypoints_ = COCO_KEYPOINTS[BODY_KPS] + [COCO_KEYPOINTS[CENTER_KP_IDX]]
+    elif False:#'ball' in heads:
+        coco_keypoints_ = [COCO_KEYPOINTS[BALL_KP_IDX]]
 
     return transforms.Compose([
         transforms.NormalizeAnnotations(),

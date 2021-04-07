@@ -91,7 +91,6 @@ def factory(
                 old_model = checkpoint['model']
                 state_dict = old_model.base_net.state_dict()
                 net_cpu.base_net.load_state_dict(state_dict)
-
         else:
             checkpoint = torch.load(checkpoint)
             if 'model_state_dict' in checkpoint:
