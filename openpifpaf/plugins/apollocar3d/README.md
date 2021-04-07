@@ -88,10 +88,10 @@ python3 -m openpifpaf.train --dataset apollo \
 
 
 ## Evaluation
-With 66 kps:
+With 66 kps, replace shufflenetv2k16-apollo-66 (AP= with a path to your own checkpoint, if you want to evaluate on your own model:
 ```
 CUDA_VISIBLE_DEVICES=0,1 python3 -m openpifpaf.eval --dataset=apollo \
---checkpoint <PathToYourCheckpoint> \
+--checkpoint shufflenetv2k16-apollo-66 \
 --force-complete-pose --seed-threshold=0.01 --instance-threshold=0.01 \
 --apollo-eval-long-edge 0
 ```
