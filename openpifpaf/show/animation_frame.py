@@ -51,9 +51,11 @@ class VirtualCamWriter:
 
 
 class AnimationFrame:
-    video_fps = 10
-    video_dpi = 100
-    show = False
+    """Animations."""
+
+    video_fps = 10  #: frames per second
+    video_dpi = 100  #: video dpi
+    show = False  #: call matplotlib show()
 
     def __init__(self, *,
                  fig_width=8.0,
