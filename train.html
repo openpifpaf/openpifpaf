@@ -1,0 +1,669 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Training &#8212; OpenPifPaf Guide</title>
+    
+  <link rel="stylesheet" href="_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/sphinx-book-theme.37f24b989f4638ff9c27c22dc7559d4f.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystyle.css" />
+    <link rel="stylesheet" type="text/css" href="_static/panels-main.c949a650a448cc0ae9fd3441c0e17fb0.css" />
+    <link rel="stylesheet" type="text/css" href="_static/panels-variables.06eb56fa6e07937060861dad626602ad.css" />
+    
+  <link rel="preload" as="script" href="_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/togglebutton.js"></script>
+    <script src="_static/clipboard.min.js"></script>
+    <script src="_static/copybutton.js"></script>
+    <script >var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <script src="_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
+    <script async="async" src="https://unpkg.com/thebelab@latest/lib/index.js"></script>
+    <script >
+        const thebe_selector = ".thebe"
+        const thebe_selector_input = "pre"
+        const thebe_selector_output = ".output"
+    </script>
+    <script async="async" src="_static/sphinx-thebe.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]], "processRefs": false, "processEnvironments": false}})</script>
+    <link rel="shortcut icon" href="_static/favicon.png"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Command Line" href="cli_help.html" />
+    <link rel="prev" title="Datasets" href="datasets.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="index.html">
+  
+  <img src="_static/logo.png" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">OpenPifPaf Guide</h1>
+  
+</a>
+</div><form class="bd-search d-flex align-items-center" action="search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search this book..." aria-label="Search this book..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+    <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="intro.html">
+   Introduction
+  </a>
+ </li>
+</ul>
+<p class="caption collapsible-parent">
+ <span class="caption-text">
+  Getting Started
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="predict_cli.html">
+   Prediction
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="examples.html">
+   Examples
+  </a>
+ </li>
+</ul>
+<p class="caption collapsible-parent">
+ <span class="caption-text">
+  Chapters
+ </span>
+</p>
+<ul class="current nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="predict_api.html">
+   Prediction API
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="models.html">
+   Models
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="datasets.html">
+   Datasets
+  </a>
+ </li>
+ <li class="toctree-l1 current active">
+  <a class="current reference internal" href="#">
+   Training
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="cli_help.html">
+   Command Line
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="plugins_overview.html">
+   Plugins
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="faq.html">
+   FAQ
+  </a>
+ </li>
+</ul>
+<p class="caption collapsible-parent">
+ <span class="caption-text">
+  Tutorials
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="plugins_crowdpose.html">
+   CrowdPose
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tutorial_opencv.html">
+   OpenCV
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="plugins_cifar10.html">
+   Cifar10
+  </a>
+ </li>
+</ul>
+<p class="caption collapsible-parent">
+ <span class="caption-text">
+  Reference
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="moduledocs.html">
+   Modules
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="bibliography.html">
+   Bibliography
+  </a>
+ </li>
+</ul>
+<p class="caption collapsible-parent">
+ <span class="caption-text">
+  Development
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="dev.html">
+   Contribute
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="performance.html">
+   Performance
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference external" href="https://github.com/vita-epfl/openpifpaf">
+   GitHub
+   <i class="fas fa-external-link-alt">
+   </i>
+  </a>
+ </li>
+</ul>
+
+</nav> <!-- To handle the deprecated key -->
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="topbar container-xl fixed-top">
+    <div class="topbar-contents row">
+        <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show"></div>
+        <div class="col pl-md-4 topbar-main">
+            
+            <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+                data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+                aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+                title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+                <i class="fas fa-bars"></i>
+                <i class="fas fa-arrow-left"></i>
+                <i class="fas fa-arrow-up"></i>
+            </button>
+            
+            
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="_sources/train.ipynb"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.ipynb</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+</div>
+
+            <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/vita-epfl/openpifpaf"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        
+        
+    </div>
+</div>
+
+
+            <!-- Full screen (wrap in <a> to have style consistency -->
+            <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                    data-placement="bottom" onclick="toggleFullScreen()" aria-label="Fullscreen mode"
+                    title="Fullscreen mode"><i
+                        class="fas fa-expand"></i></button></a>
+
+            <!-- Launch buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Launch interactive content"><i class="fas fa-rocket"></i></button>
+    <div class="dropdown-buttons">
+        
+        <a class="binder-button" href="https://mybinder.org/v2/gh/vita-epfl/openpifpaf/stable?urlpath=tree/guide/train.ipynb"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Launch Binder" data-toggle="tooltip"
+                data-placement="left"><img class="binder-button-logo"
+                    src="_static/images/logo_binder.svg"
+                    alt="Interact on binder">Binder</button></a>
+        
+        
+        
+        
+    </div>
+</div>
+
+        </div>
+
+        <!-- Table of contents -->
+        <div class="d-none d-md-block col-md-2 bd-toc show">
+            
+        <div class="tocsection onthispage pt-5 pb-3">
+            <i class="fas fa-list"></i> On this page
+        </div>
+        <nav id="bd-toc-nav">
+            <ul class="nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#training-crop-size">
+   Training Crop Size
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#reproducibility">
+   Reproducibility
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#multiple-datasets">
+   Multiple Datasets
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#overfitting">
+   Overfitting
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#shufflenet">
+   ShuffleNet
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#resnet">
+   ResNet
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#debug-plots">
+   Debug Plots
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#logs">
+   Logs
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#testset-submission">
+   Testset Submission
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#detection-experimental">
+   Detection (experimental)
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#cloud-and-hpc">
+   Cloud and HPC
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#distributeddataparallel">
+   DistributedDataParallel
+  </a>
+ </li>
+</ul>
+
+        </nav>
+        
+        </div>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="training">
+<h1>Training<a class="headerlink" href="#training" title="Permalink to this headline">¶</a></h1>
+<p>This section introduces training to create your own models. You don’t need to do this step
+if you use pre-trained models for <a class="reference internal" href="predict_cli.html"><span class="doc">Prediction</span></a> on your own images.
+For training, you will need a dataset. See <a class="reference internal" href="datasets.html"><span class="doc">Datasets</span></a> for instructions about a few popular datasets.</p>
+<p>Training a model can take several days even with a good GPU. Many times existing models can be refined to avoid training from scratch.</p>
+<p>The main interface for training with OpenPifPaf is the command line tool <a class="reference internal" href="cli_help.html#cli-help-train"><span class="std std-ref">openpifpaf.train</span></a>.
+A quick way to get started is with the training commands of the pre-trained models.
+The exact training command that was used for a model is in the first
+line of the training log file. Below are a few examples for various backbones.</p>
+<div class="section" id="training-crop-size">
+<h2>Training Crop Size<a class="headerlink" href="#training-crop-size" title="Permalink to this headline">¶</a></h2>
+<p>Training and evaluation image sizes are <em>unrelated</em> in fully convolutional architectures like OpenPifPaf. <em>Instance size distribution</em> between training and evaluation needs to be preserved. The size of the image that surrounds the instance to detect has little impact: for humans of height 100px, it does not matter whether that is inside a <span class="math notranslate nohighlight">\(640\times480\)</span> image or inside a 4k or 8k image. Therefore, you can keep the size of your training crops (selected with <code class="docutils literal notranslate"><span class="pre">--square-edge</span></code>) quite small even when evaluating on large images. The default is <code class="docutils literal notranslate"><span class="pre">--square-edge=385</span></code> for <code class="docutils literal notranslate"><span class="pre">cocokp</span></code> and that is reasonable when most of the humans are not larger than 300px during evaluation.
+<img alt="training crop size" src="_images/trainingcrop.png" /></p>
+<p>The training crop size is a major factor for GPU memory consumption and for training time.</p>
+</div>
+<div class="section" id="reproducibility">
+<h2>Reproducibility<a class="headerlink" href="#reproducibility" title="Permalink to this headline">¶</a></h2>
+<p>Every training log file contains the command that was used to train under the key <code class="docutils literal notranslate"><span class="pre">args</span></code>. There is also a <code class="docutils literal notranslate"><span class="pre">version</span></code> key that specifies the precise version of OpenPifPaf that was used to train, like “0.11.9+204.g987345” (generated by <a class="reference external" href="https://github.com/python-versioneer/python-versioneer">versioneer</a>). This means that the last tag was 0.11.9, that there are 204 additional commits beyond that tag, and that the hash of the current commit is “987345” (without the “g” as that simply stands for <code class="docutils literal notranslate"><span class="pre">git</span></code>). If you had uncommitted changes, there is an additional “dirty” suffix. Try to avoid “dirty” version numbers for training as it is impossible to tell whether you were just correcting a typo in the readme or had a substantial change that influences the training. Your local git command line client but also GitHub can compare to the short git hashes.</p>
+</div>
+<div class="section" id="multiple-datasets">
+<h2>Multiple Datasets<a class="headerlink" href="#multiple-datasets" title="Permalink to this headline">¶</a></h2>
+<p>OpenPifPaf supports simultaneous training on multiple datasets. You specify multiple datasets by concatenating them with a <code class="docutils literal notranslate"><span class="pre">-</span></code>, e.g. to train on COCO Keypoints <code class="docutils literal notranslate"><span class="pre">cocokp</span></code> and on COCO Detections <code class="docutils literal notranslate"><span class="pre">cocodet</span></code> you specify in your training command <code class="docutils literal notranslate"><span class="pre">--dataset=cocokp-cocodet</span></code>. This also works for custom datasets defined in plugins.</p>
+<p>The samples from each dataset are tracked with weighted counters and the dataset for the next batch is chosen by the lowest counter. You specify the dataset weights (or you can think of it as an importance), for example, as <code class="docutils literal notranslate"><span class="pre">--dataset-weights</span> <span class="pre">1.0</span> <span class="pre">0.5</span></code>. That means that the first dataset (<code class="docutils literal notranslate"><span class="pre">cocokp</span></code> in the above example) is twice as important as the second one (e.g. <code class="docutils literal notranslate"><span class="pre">cocodet</span></code>) and two-thirds of the batches will be from the first dataset and one-third will be from the second.</p>
+<p>An epoch is over once the first of the datasets is out of samples. As the datasets are randomized during training, a different set of samples will be used from epoch to epoch. That means that eventually all data will be utilized of the larger datasets even if not all data is used during a single epoch.</p>
+</div>
+<div class="section" id="overfitting">
+<h2>Overfitting<a class="headerlink" href="#overfitting" title="Permalink to this headline">¶</a></h2>
+<p>An effective way to validate the pipeline is working, loss functions are implemented correctly, encoders are correct, etc. is to overfit on a single image. You should be able to produce perfect predictions for that image. Some caveats: you need to deactivate augmentations, you must evaluate at the exact trained image size and the image should not contain crowd annotations (i.e. areas that will be ignored during training). Here is an example training command for a <code class="docutils literal notranslate"><span class="pre">cocokp</span></code> overfitting experiment:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">time</span> <span class="nv">CUDA_VISIBLE_DEVICES</span><span class="o">=</span><span class="m">1</span> python3 -m openpifpaf.train <span class="se">\</span>
+  --lr<span class="o">=</span><span class="m">0</span>.01 --momentum<span class="o">=</span><span class="m">0</span>.9 --b-scale<span class="o">=</span><span class="m">5</span>.0 <span class="se">\</span>
+  --epochs<span class="o">=</span><span class="m">1000</span> --lr-warm-up-epochs<span class="o">=</span><span class="m">100</span> <span class="se">\</span>
+  --batch-size<span class="o">=</span><span class="m">4</span> --train-batches<span class="o">=</span><span class="m">1</span> --val-batches<span class="o">=</span><span class="m">1</span> --val-interval<span class="o">=</span><span class="m">100</span> <span class="se">\</span>
+  --weight-decay<span class="o">=</span>1e-5 <span class="se">\</span>
+  --dataset<span class="o">=</span>cocokp --cocokp-upsample<span class="o">=</span><span class="m">2</span> --cocokp-no-augmentation <span class="se">\</span>
+  --basenet<span class="o">=</span>shufflenetv2k16
+</pre></div>
+</div>
+<p>The very first image in the training set has a large crowd annotation. Therefore, the above command overfits on four images.
+Here is the corresponding predict command for the <a class="reference external" href="https://www.flickr.com/photos/infiniteworld/5341741494/">second image</a> in the training set:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>python3 -m openpifpaf.predict <span class="se">\</span>
+  --checkpoint outputs/shufflenetv2k16-201007-153356-cocokp-1de9503b.pkl <span class="se">\</span>
+  --debug-indices cif:5 caf:5 --debug-images --long-edge<span class="o">=</span><span class="m">385</span> --loader-workers<span class="o">=</span><span class="m">0</span> <span class="se">\</span>
+  --save-all --image-output all-images/overfitted.jpeg <span class="se">\</span>
+  data-mscoco/images/train2017/000000262146.jpg
+</pre></div>
+</div>
+<p>While the field predictions are almost perfect, it will predict two annotations while there is only one ground truth annotation. That is because the standard skeleton has no connection that goes directly from left-ear to nose and the left-eye is not visible and not annotated. You can add <code class="docutils literal notranslate"><span class="pre">--dense-connections</span></code> to include additional connections in the skeleton which will connect the nose keypoint to the rest of the skeleton.</p>
+</div>
+<div class="section" id="shufflenet">
+<h2>ShuffleNet<a class="headerlink" href="#shufflenet" title="Permalink to this headline">¶</a></h2>
+<p>ShuffleNet models are trained without ImageNet pretraining:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">time</span> <span class="nv">CUDA_VISIBLE_DEVICES</span><span class="o">=</span><span class="m">0</span>,1 python3 -m openpifpaf.train <span class="se">\</span>
+  --lr<span class="o">=</span><span class="m">0</span>.0003 --momentum<span class="o">=</span><span class="m">0</span>.95 --b-scale<span class="o">=</span><span class="m">10</span>.0 --clip-grad-value<span class="o">=</span><span class="m">10</span> <span class="se">\</span>
+  --epochs<span class="o">=</span><span class="m">250</span> --lr-decay <span class="m">220</span> <span class="m">240</span> --lr-decay-epochs<span class="o">=</span><span class="m">10</span> <span class="se">\</span>
+  --batch-size<span class="o">=</span><span class="m">32</span> <span class="se">\</span>
+  --weight-decay<span class="o">=</span>1e-5 <span class="se">\</span>
+  --dataset<span class="o">=</span>cocokp --cocokp-upsample<span class="o">=</span><span class="m">2</span> --cocokp-extended-scale --cocokp-orientation-invariant<span class="o">=</span><span class="m">0</span>.1 <span class="se">\</span>
+  --basenet<span class="o">=</span>shufflenetv2k16
+</pre></div>
+</div>
+<p>You can refine an existing model with the <code class="docutils literal notranslate"><span class="pre">--checkpoint</span></code> option.
+We found that for stable training, the learning rate <span class="math notranslate nohighlight">\(\lambda\)</span>,
+the <code class="docutils literal notranslate"><span class="pre">clip-grad-value</span></code> <span class="math notranslate nohighlight">\(c\)</span> and the <span class="math notranslate nohighlight">\(\epsilon\)</span> from the denominator of the
+BatchNorm should obey:</p>
+<div class="amsmath math notranslate nohighlight" id="equation-17504b55-6905-40bd-b67f-e746a8d60da3">
+<span class="eqno">(1)<a class="headerlink" href="#equation-17504b55-6905-40bd-b67f-e746a8d60da3" title="Permalink to this equation">¶</a></span>\[\begin{align}
+    \lambda \cdot c &amp;\leq \sqrt{\epsilon}
+\end{align}\]</div>
+<p>where the default <span class="math notranslate nohighlight">\(\epsilon\)</span> is <span class="math notranslate nohighlight">\(10^{-4}\)</span> (different from the PyTorch default).
+To fit large models in your GPU memory, reduce the batch size and learning rate by the same factor.</p>
+</div>
+<div class="section" id="resnet">
+<h2>ResNet<a class="headerlink" href="#resnet" title="Permalink to this headline">¶</a></h2>
+<p>ResNet models are initialized with weights pre-trained on ImageNet.
+That makes their training characteristics different from ShuffleNet (i.e. they look great at the beginning of training).</p>
+</div>
+<div class="section" id="debug-plots">
+<h2>Debug Plots<a class="headerlink" href="#debug-plots" title="Permalink to this headline">¶</a></h2>
+<p>As for all commands, you need to decide whether you want to interactively show the plots in matplotlib with <code class="docutils literal notranslate"><span class="pre">--show</span></code> (I use <a class="reference external" href="https://github.com/daleroberts/itermplot">itermplot</a>) or to save image files with <code class="docutils literal notranslate"><span class="pre">--save-all</span></code> (defaults to the <code class="docutils literal notranslate"><span class="pre">all-images/</span></code> directory).</p>
+<p>You can inspect the ground truth fields that are used for training. Add <code class="docutils literal notranslate"><span class="pre">--debug-images</span></code> to activate all types of debug plots and, for example, select to visualize field 5 of CIF and field 5 of CAF with <code class="docutils literal notranslate"><span class="pre">--debug-indices</span> <span class="pre">cif:5</span> <span class="pre">caf:5</span></code>.</p>
+<p>You can run this on your laptop without a GPU. When debug is enabled, the training dataset is not randomized and therefore you only need the first few images in your dataset locally.</p>
+</div>
+<div class="section" id="logs">
+<h2>Logs<a class="headerlink" href="#logs" title="Permalink to this headline">¶</a></h2>
+<p>For reference, check out the log files of the pretrained models. Models with their log files are shared as release “Assets” in the separate <a class="reference external" href="https://github.com/vita-epfl/openpifpaf-torchhub">openpifpaf-torchhub</a> repository: click on “releases” and expand “Assets” on the latest release.</p>
+<p>To visualize log files with <a class="reference internal" href="cli_help.html#cli-help-logs"><span class="std std-ref">openpifpaf.logs</span></a>:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>python3 -m openpifpaf.logs <span class="se">\</span>
+  outputs/resnet50block5-pif-paf-edge401-190424-122009.pkl.log <span class="se">\</span>
+  outputs/resnet101block5-pif-paf-edge401-190412-151013.pkl.log <span class="se">\</span>
+  outputs/resnet152block5-pif-paf-edge401-190412-121848.pkl.log
+</pre></div>
+</div>
+<p>Evaluation metrics like average precision (AP) are created with the <a class="reference internal" href="cli_help.html#cli-help-eval"><span class="std std-ref">openpifpaf.eval</span></a> tool.
+To produce evaluation metrics every five epochs for every new checkpoint that is created:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nv">CUDA_VISIBLE_DEVICES</span><span class="o">=</span><span class="m">0</span> python3 -m openpifpaf.eval <span class="se">\</span>
+  --watch --checkpoint <span class="s2">&quot;outputs/shufflenetv2k??-*-cocokp*.pkl.epoch??[0,5]&quot;</span> <span class="se">\</span>
+  --loader-workers<span class="o">=</span><span class="m">2</span> <span class="se">\</span>
+  --decoder<span class="o">=</span>cifcaf:0 <span class="se">\</span>
+  --dataset<span class="o">=</span>cocokp --force-complete-pose --seed-threshold<span class="o">=</span><span class="m">0</span>.2
+</pre></div>
+</div>
+</div>
+<div class="section" id="testset-submission">
+<h2>Testset Submission<a class="headerlink" href="#testset-submission" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nv">CUDA_VISIBLE_DEVICES</span><span class="o">=</span><span class="m">0</span> python3 -m openpifpaf.eval <span class="se">\</span>
+  --checkpoint shufflenetv2k30 <span class="se">\</span>
+  --loader-workers<span class="o">=</span><span class="m">2</span> <span class="se">\</span>
+  --decoder<span class="o">=</span>cifcaf:0 <span class="se">\</span>
+  --dataset<span class="o">=</span>cocokp --force-complete-pose --seed-threshold<span class="o">=</span><span class="m">0</span>.2 <span class="se">\</span>
+  --cocokp-eval-testdev2017 --coco-no-eval-annotation-filter --write-predictions
+</pre></div>
+</div>
+<p>This will produce the file <code class="docutils literal notranslate"><span class="pre">shufflenetv2k30.eval-cocokp.zip</span></code> which you can submit to the competition on codalab.</p>
+</div>
+<div class="section" id="detection-experimental">
+<h2>Detection (experimental)<a class="headerlink" href="#detection-experimental" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">time</span> <span class="nv">CUDA_VISIBLE_DEVICES</span><span class="o">=</span><span class="m">0</span>,1 python3 -m openpifpaf.train <span class="se">\</span>
+  --lr<span class="o">=</span><span class="m">0</span>.0003 --momentum<span class="o">=</span><span class="m">0</span>.95 --clip-grad-value<span class="o">=</span><span class="m">10</span> <span class="se">\</span>
+  --epochs<span class="o">=</span><span class="m">150</span> <span class="se">\</span>
+  --lr-decay <span class="m">130</span> <span class="m">140</span> --lr-decay-epochs<span class="o">=</span><span class="m">10</span> <span class="se">\</span>
+  --batch-size<span class="o">=</span><span class="m">64</span> <span class="se">\</span>
+  --weight-decay<span class="o">=</span>1e-5 <span class="se">\</span>
+  --dataset<span class="o">=</span>cocodet --cocodet-upsample<span class="o">=</span><span class="m">2</span> <span class="se">\</span>
+  --basenet<span class="o">=</span>resnet18 --resnet-input-conv2-stride<span class="o">=</span><span class="m">2</span> --resnet-block5-dilation<span class="o">=</span><span class="m">2</span>
+</pre></div>
+</div>
+<p>with eval code:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nv">CUDA_VISIBLE_DEVICES</span><span class="o">=</span><span class="m">0</span> python3 -m openpifpaf.eval <span class="se">\</span>
+  --watch --checkpoint <span class="s2">&quot;outputs/resnet??-*-cocodet*.pkl.epoch??[0,5]&quot;</span> <span class="se">\</span>
+  --loader-workers<span class="o">=</span><span class="m">2</span> <span class="se">\</span>
+  --dataset<span class="o">=</span>cocodet --decoder<span class="o">=</span>cifdet:0 <span class="se">\</span>
+  --seed-threshold<span class="o">=</span><span class="m">0</span>.1 --instance-threshold<span class="o">=</span><span class="m">0</span>.1
+</pre></div>
+</div>
+<p>COCO AP=24.3% at epoch 90 (now outdated).</p>
+</div>
+<div class="section" id="cloud-and-hpc">
+<h2>Cloud and HPC<a class="headerlink" href="#cloud-and-hpc" title="Permalink to this headline">¶</a></h2>
+<p>OpenPifPaf can be trained on cloud infrastructure and in high performance computing (HPC) environments. We have good experience with the <a class="reference external" href="https://hub.docker.com/r/pytorch/pytorch/tags">pytorch/pytorch docker containers</a>. The <code class="docutils literal notranslate"><span class="pre">latest</span></code> tag does not include any development packages like <code class="docutils literal notranslate"><span class="pre">gcc</span></code>. For that, you need a “devel” package (e.g. <a class="reference external" href="https://hub.docker.com/layers/pytorch/pytorch/1.6.0-cuda10.1-cudnn7-devel/images/sha256-ccebb46f954b1d32a4700aaeae0e24bd68653f92c6f276a608bf592b660b63d7?context=explore">pytorch/1.6.0-cuda10.1-cudnn7-devel</a>).</p>
+<p>This is a development flow that worked well for us:</p>
+<ul class="simple">
+<li><p>start with an empty directory</p></li>
+<li><p>launch the “devel” container and bind/link your current empty directory</p></li>
+<li><p>create a Python virtualenv and install all software from within the devel container into the virtualenv</p></li>
+<li><p>never modify this virtualenv from the host, always from within the devel container</p></li>
+</ul>
+<p>After setting up your environment, you can execute the training. You can even use the container without the “devel” tools to submit the job.</p>
+<p><strong>HPC job submission</strong>: Our environment supports <a class="reference external" href="https://slurm.schedmd.com/quickstart.html">Slurm</a> and <a class="reference external" href="https://sylabs.io/guides/3.6/user-guide/">Singularity</a>. Run</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>sbatch ./train.sh <span class="se">\</span>
+  --lr<span class="o">=</span><span class="m">0</span>.0003  <span class="c1"># and all the other parameters for training from above</span>
+</pre></div>
+</div>
+<p>with <code class="docutils literal notranslate"><span class="pre">train.sh</span></code> containing:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash -l</span>
+<span class="c1">#SBATCH --nodes 1</span>
+<span class="c1">#SBATCH --ntasks 1</span>
+<span class="c1">#SBATCH --cpus-per-task 40</span>
+<span class="c1">#SBATCH --mem 96G</span>
+<span class="c1">#SBATCH --time 72:00:00</span>
+<span class="c1">#SBATCH --account=&lt;your-account-name&gt;</span>
+<span class="c1">#SBATCH --gres gpu:2</span>
+
+srun singularity <span class="nb">exec</span> --bind &lt;make-host-dir-available&gt; --nv pytorch_latest.sif <span class="se">\</span>
+  /bin/bash -c <span class="s2">&quot;source ./venv3/bin/activate &amp;&amp; python3 -u -m openpifpaf.train </span><span class="k">$(</span><span class="nb">printf</span> <span class="s1">&#39;%q &#39;</span> <span class="s2">&quot;</span><span class="nv">$@</span><span class="s2">&quot;</span><span class="k">)</span><span class="s2">&quot;</span>
+</pre></div>
+</div>
+<p>Similarly, an <code class="docutils literal notranslate"><span class="pre">eval.sh</span></code> script might be run with</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>sbatch ./eval.sh <span class="se">\</span>
+  --watch --checkpoint <span class="s2">&quot;outputs/shufflenetv2k16-201023-163830-cocokp.pkl.epoch??[0,5]&quot;</span> <span class="se">\</span>
+  --dataset<span class="o">=</span>cocokp <span class="se">\</span>
+  --loader-workers<span class="o">=</span><span class="m">2</span> <span class="se">\</span>
+  --force-complete-pose --seed-threshold<span class="o">=</span><span class="m">0</span>.2
+</pre></div>
+</div>
+<p>and look like this:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash -l</span>
+<span class="c1">#SBATCH --nodes 1</span>
+<span class="c1">#SBATCH --ntasks 1</span>
+<span class="c1">#SBATCH --cpus-per-task 20</span>
+<span class="c1">#SBATCH --mem 48G</span>
+<span class="c1">#SBATCH --time 06:00:00</span>
+<span class="c1">#SBATCH --account=&lt;your-account-name&gt;</span>
+<span class="c1">#SBATCH --gres gpu:1</span>
+
+<span class="nv">pattern</span><span class="o">=</span><span class="nv">$1</span>
+<span class="nb">shift</span>
+
+srun singularity <span class="nb">exec</span> --bind &lt;make-host-dir-available&gt; --nv pytorch_latest.sif <span class="se">\</span>
+  /bin/bash -c <span class="s2">&quot;source ./venv3/bin/activate &amp;&amp; python3 -m openpifpaf.eval </span><span class="k">$(</span><span class="nb">printf</span> <span class="s1">&#39;%q &#39;</span> <span class="s2">&quot;</span><span class="nv">$@</span><span class="s2">&quot;</span><span class="k">)</span><span class="s2">&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="distributeddataparallel">
+<h2>DistributedDataParallel<a class="headerlink" href="#distributeddataparallel" title="Permalink to this headline">¶</a></h2>
+<p>This mode of parallelization is activated with the <code class="docutils literal notranslate"><span class="pre">--ddp</span></code> argument.
+With <code class="docutils literal notranslate"><span class="pre">torch.distributed.launch</span></code>:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>python -m torch.distributed.launch <span class="se">\</span>
+  -m openpifpaf.train --ddp <span class="se">\</span>
+  --all-other-args
+</pre></div>
+</div>
+<p>By default, this will replace all BatchNorms in the model with SyncBatchNorms.
+The only argument that behaves differently is <code class="docutils literal notranslate"><span class="pre">--batch-size</span></code> which is
+the total batch size across all GPUs with DataParallel but here with
+DistributedDataParallel it is the batch size of a single process/GPU.
+This is the behavior of PyTorch in these two modes and we did not add
+any code to change that.
+On SLURM, the equivalent sbatch script is:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash -l</span>
+<span class="c1">#SBATCH --ntasks 4</span>
+<span class="c1">#SBATCH --cpus-per-task 20</span>
+<span class="c1">#SBATCH --mem 48G</span>
+<span class="c1">#SBATCH --time 72:00:00</span>
+<span class="c1">#SBATCH --gres gpu:2  # or as many GPUs as you have in a node</span>
+
+srun --gpu-bind<span class="o">=</span>closest singularity <span class="nb">exec</span> --bind /scratch/izar --nv pytorch_latest.sif <span class="se">\</span>
+  /bin/bash -c <span class="s2">&quot;source ./venv3/bin/activate &amp;&amp; MASTER_ADDR=</span><span class="k">$(</span>hostname<span class="k">)</span><span class="s2"> MASTER_PORT=7142 python3 -u -m openpifpaf.train --ddp </span><span class="k">$(</span><span class="nb">printf</span> <span class="s2">&quot;%s &quot;</span> <span class="s2">&quot;</span><span class="nv">$@</span><span class="s2">&quot;</span><span class="k">)</span><span class="s2">&quot;</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            kernelName: "python3",
+            path: "./."
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+              </div>
+              
+        
+        <div class='prev-next-bottom'>
+            
+    <a class='left-prev' id="prev-link" href="datasets.html" title="previous page">Datasets</a>
+    <a class='right-next' id="next-link" href="cli_help.html" title="next page">Command Line</a>
+
+        </div>
+        
+        </div>
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By <a href="https://www.svenkreiss.com">Sven Kreiss</a> and <a href="https://github.com/vita-epfl/openpifpaf/graphs/contributors">contributors</a>.<br/>
+        
+            &copy; Copyright 2020-2021.<br/>
+          <div class="extra_footer">
+            <div>Powered by <a href="https://jupyterbook.org/">Jupyter Book</a>.</div>
+
+          </div>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    
+  <script src="_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    
+  </body>
+</html>

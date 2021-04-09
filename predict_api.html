@@ -1,0 +1,619 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prediction API &#8212; OpenPifPaf Guide</title>
+    
+  <link rel="stylesheet" href="_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/sphinx-book-theme.37f24b989f4638ff9c27c22dc7559d4f.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystyle.css" />
+    <link rel="stylesheet" type="text/css" href="_static/panels-main.c949a650a448cc0ae9fd3441c0e17fb0.css" />
+    <link rel="stylesheet" type="text/css" href="_static/panels-variables.06eb56fa6e07937060861dad626602ad.css" />
+    
+  <link rel="preload" as="script" href="_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/togglebutton.js"></script>
+    <script src="_static/clipboard.min.js"></script>
+    <script src="_static/copybutton.js"></script>
+    <script >var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <script src="_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
+    <script async="async" src="https://unpkg.com/thebelab@latest/lib/index.js"></script>
+    <script >
+        const thebe_selector = ".thebe"
+        const thebe_selector_input = "pre"
+        const thebe_selector_output = ".output"
+    </script>
+    <script async="async" src="_static/sphinx-thebe.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]], "processRefs": false, "processEnvironments": false}})</script>
+    <link rel="shortcut icon" href="_static/favicon.png"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Models" href="models.html" />
+    <link rel="prev" title="Examples" href="examples.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="index.html">
+  
+  <img src="_static/logo.png" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">OpenPifPaf Guide</h1>
+  
+</a>
+</div><form class="bd-search d-flex align-items-center" action="search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search this book..." aria-label="Search this book..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+    <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="intro.html">
+   Introduction
+  </a>
+ </li>
+</ul>
+<p class="caption collapsible-parent">
+ <span class="caption-text">
+  Getting Started
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="predict_cli.html">
+   Prediction
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="examples.html">
+   Examples
+  </a>
+ </li>
+</ul>
+<p class="caption collapsible-parent">
+ <span class="caption-text">
+  Chapters
+ </span>
+</p>
+<ul class="current nav sidenav_l1">
+ <li class="toctree-l1 current active">
+  <a class="current reference internal" href="#">
+   Prediction API
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="models.html">
+   Models
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="datasets.html">
+   Datasets
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="train.html">
+   Training
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="cli_help.html">
+   Command Line
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="plugins_overview.html">
+   Plugins
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="faq.html">
+   FAQ
+  </a>
+ </li>
+</ul>
+<p class="caption collapsible-parent">
+ <span class="caption-text">
+  Tutorials
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="plugins_crowdpose.html">
+   CrowdPose
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tutorial_opencv.html">
+   OpenCV
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="plugins_cifar10.html">
+   Cifar10
+  </a>
+ </li>
+</ul>
+<p class="caption collapsible-parent">
+ <span class="caption-text">
+  Reference
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="moduledocs.html">
+   Modules
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="bibliography.html">
+   Bibliography
+  </a>
+ </li>
+</ul>
+<p class="caption collapsible-parent">
+ <span class="caption-text">
+  Development
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="dev.html">
+   Contribute
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="performance.html">
+   Performance
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference external" href="https://github.com/vita-epfl/openpifpaf">
+   GitHub
+   <i class="fas fa-external-link-alt">
+   </i>
+  </a>
+ </li>
+</ul>
+
+</nav> <!-- To handle the deprecated key -->
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="topbar container-xl fixed-top">
+    <div class="topbar-contents row">
+        <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show"></div>
+        <div class="col pl-md-4 topbar-main">
+            
+            <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+                data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+                aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+                title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+                <i class="fas fa-bars"></i>
+                <i class="fas fa-arrow-left"></i>
+                <i class="fas fa-arrow-up"></i>
+            </button>
+            
+            
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="_sources/predict_api.ipynb"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.ipynb</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+</div>
+
+            <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/vita-epfl/openpifpaf"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        
+        
+    </div>
+</div>
+
+
+            <!-- Full screen (wrap in <a> to have style consistency -->
+            <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                    data-placement="bottom" onclick="toggleFullScreen()" aria-label="Fullscreen mode"
+                    title="Fullscreen mode"><i
+                        class="fas fa-expand"></i></button></a>
+
+            <!-- Launch buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Launch interactive content"><i class="fas fa-rocket"></i></button>
+    <div class="dropdown-buttons">
+        
+        <a class="binder-button" href="https://mybinder.org/v2/gh/vita-epfl/openpifpaf/stable?urlpath=tree/guide/predict_api.ipynb"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Launch Binder" data-toggle="tooltip"
+                data-placement="left"><img class="binder-button-logo"
+                    src="_static/images/logo_binder.svg"
+                    alt="Interact on binder">Binder</button></a>
+        
+        
+        
+        
+    </div>
+</div>
+
+        </div>
+
+        <!-- Table of contents -->
+        <div class="d-none d-md-block col-md-2 bd-toc show">
+            
+        <div class="tocsection onthispage pt-5 pb-3">
+            <i class="fas fa-list"></i> On this page
+        </div>
+        <nav id="bd-toc-nav">
+            <ul class="nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#load-an-example-image">
+   Load an Example Image
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#load-a-trained-neural-network">
+   Load a Trained Neural Network
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#preprocessing-dataset">
+   Preprocessing, Dataset
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#dataloader-visualizer">
+   Dataloader, Visualizer
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#prediction">
+   Prediction
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#fields">
+   Fields
+  </a>
+ </li>
+</ul>
+
+        </nav>
+        
+        </div>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="prediction-api">
+<h1>Prediction API<a class="headerlink" href="#prediction-api" title="Permalink to this headline">¶</a></h1>
+<p>This page documents how you can use OpenPifPaf from your own Python code.
+It focuses on single-image prediction.
+This API interface is for more advanced use cases. Please refer to
+<a class="reference internal" href="predict_cli.html"><span class="doc">Getting Started: Prediction</span></a> for documentation on
+the command line interface.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">io</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">PIL</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+
+<span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
+<span class="c1"># device = torch.device(&#39;cuda&#39;)  # if cuda is available</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;OpenPifPaf version&#39;</span><span class="p">,</span> <span class="n">openpifpaf</span><span class="o">.</span><span class="n">__version__</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;PyTorch version&#39;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">__version__</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>OpenPifPaf version 0.12.7
+PyTorch version 1.7.1+cpu
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="load-an-example-image">
+<h2>Load an Example Image<a class="headerlink" href="#load-an-example-image" title="Permalink to this headline">¶</a></h2>
+<p>Image credit: “<a class="reference external" href="https://www.flickr.com/photos/fotologic/6038911779/in/photostream/">Learning to surf</a>” by fotologic which is licensed under <a class="reference external" href="https://creativecommons.org/licenses/by/2.0/">CC-BY-2.0</a>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">image_response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;https://raw.githubusercontent.com/vita-epfl/openpifpaf/main/docs/coco/000000081988.jpg&#39;</span><span class="p">)</span>
+<span class="n">pil_im</span> <span class="o">=</span> <span class="n">PIL</span><span class="o">.</span><span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">image_response</span><span class="o">.</span><span class="n">content</span><span class="p">))</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s1">&#39;RGB&#39;</span><span class="p">)</span>
+<span class="n">im</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">pil_im</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="n">openpifpaf</span><span class="o">.</span><span class="n">show</span><span class="o">.</span><span class="n">image_canvas</span><span class="p">(</span><span class="n">im</span><span class="p">)</span> <span class="k">as</span> <span class="n">ax</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="_images/predict_api_4_0.png" src="_images/predict_api_4_0.png" />
+</div>
+</div>
+</div>
+<div class="section" id="load-a-trained-neural-network">
+<h2>Load a Trained Neural Network<a class="headerlink" href="#load-a-trained-neural-network" title="Permalink to this headline">¶</a></h2>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">net_cpu</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">openpifpaf</span><span class="o">.</span><span class="n">network</span><span class="o">.</span><span class="n">Factory</span><span class="p">(</span><span class="n">checkpoint</span><span class="o">=</span><span class="s1">&#39;shufflenetv2k16&#39;</span><span class="p">,</span> <span class="n">download_progress</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">factory</span><span class="p">()</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">net_cpu</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+<span class="n">decoder</span> <span class="o">=</span> <span class="n">openpifpaf</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="n">factory</span><span class="p">([</span><span class="n">hn</span><span class="o">.</span><span class="n">meta</span> <span class="k">for</span> <span class="n">hn</span> <span class="ow">in</span> <span class="n">net_cpu</span><span class="o">.</span><span class="n">head_nets</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="preprocessing-dataset">
+<h2>Preprocessing, Dataset<a class="headerlink" href="#preprocessing-dataset" title="Permalink to this headline">¶</a></h2>
+<p>Specify the image preprocossing. Beyond the default transforms, we also use <code class="docutils literal notranslate"><span class="pre">CenterPadTight(16)</span></code> which adds padding to the image such that both the height and width are multiples of 16 plus 1. With this padding, the feature map covers the entire image. Without it, there would be a gap on the right and bottom of the image that the feature map does not cover.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">preprocess</span> <span class="o">=</span> <span class="n">openpifpaf</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+    <span class="n">openpifpaf</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">NormalizeAnnotations</span><span class="p">(),</span>
+    <span class="n">openpifpaf</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">CenterPadTight</span><span class="p">(</span><span class="mi">16</span><span class="p">),</span>
+    <span class="n">openpifpaf</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">EVAL_TRANSFORM</span><span class="p">,</span>
+<span class="p">])</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">openpifpaf</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">PilImageList</span><span class="p">([</span><span class="n">pil_im</span><span class="p">],</span> <span class="n">preprocess</span><span class="o">=</span><span class="n">preprocess</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="dataloader-visualizer">
+<h2>Dataloader, Visualizer<a class="headerlink" href="#dataloader-visualizer" title="Permalink to this headline">¶</a></h2>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span>
+    <span class="n">data</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">pin_memory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
+    <span class="n">collate_fn</span><span class="o">=</span><span class="n">openpifpaf</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">collate_images_anns_meta</span><span class="p">)</span>
+
+<span class="n">annotation_painter</span> <span class="o">=</span> <span class="n">openpifpaf</span><span class="o">.</span><span class="n">show</span><span class="o">.</span><span class="n">AnnotationPainter</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="prediction">
+<h2>Prediction<a class="headerlink" href="#prediction" title="Permalink to this headline">¶</a></h2>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">images_batch</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">__</span> <span class="ow">in</span> <span class="n">loader</span><span class="p">:</span>
+    <span class="n">predictions</span> <span class="o">=</span> <span class="n">decoder</span><span class="o">.</span><span class="n">batch</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">images_batch</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">with</span> <span class="n">openpifpaf</span><span class="o">.</span><span class="n">show</span><span class="o">.</span><span class="n">image_canvas</span><span class="p">(</span><span class="n">im</span><span class="p">)</span> <span class="k">as</span> <span class="n">ax</span><span class="p">:</span>
+        <span class="n">annotation_painter</span><span class="o">.</span><span class="n">annotations</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">predictions</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="_images/predict_api_12_0.png" src="_images/predict_api_12_0.png" />
+</div>
+</div>
+<p>Each prediction in the <code class="docutils literal notranslate"><span class="pre">predictions</span></code> list above is of type <code class="docutils literal notranslate"><span class="pre">Annotation</span></code>. You can access the joint coordinates in the <code class="docutils literal notranslate"><span class="pre">data</span></code> attribute. It is a numpy array that contains the <span class="math notranslate nohighlight">\(x\)</span> and <span class="math notranslate nohighlight">\(y\)</span> coordinates and the confidence for every joint:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">predictions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>array([[ 81.05423   , 319.7505    ,   0.76443535],
+       [ 85.045204  , 316.0166    ,   0.8613466 ],
+       [ 79.32331   , 315.25885   ,   0.5076463 ],
+       [ 99.83703   , 312.39368   ,   0.91851234],
+       [  0.        ,   0.        ,   0.        ],
+       [122.562065  , 319.91125   ,   0.83303505],
+       [ 78.57219   , 326.51193   ,   0.827177  ],
+       [145.52835   , 351.64584   ,   0.84586257],
+       [ 57.845856  , 354.27237   ,   0.77353954],
+       [125.43358   , 358.20248   ,   0.74660194],
+       [ 51.845222  , 384.3738    ,   0.8085414 ],
+       [122.16235   , 364.6663    ,   0.7604634 ],
+       [ 95.93819   , 366.63358   ,   0.77250564],
+       [150.77547   , 363.01898   ,   0.7061176 ],
+       [ 73.45239   , 370.07568   ,   0.70078725],
+       [104.37234   , 383.8147    ,   0.50967926],
+       [  0.        ,   0.        ,   0.        ]], dtype=float32)
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="fields">
+<span id="predict-fields"></span><h2>Fields<a class="headerlink" href="#fields" title="Permalink to this headline">¶</a></h2>
+<p>Below are visualizations of the fields.
+When using the API here, the visualization types are individually enabled.
+Then, the index for every field to visualize must be specified. In the example below, the fifth CIF (left shoulder) and the fifth CAF (left shoulder to left hip) are activated.</p>
+<p>These plots are also accessible from the command line: use <code class="docutils literal notranslate"><span class="pre">--debug-indices</span> <span class="pre">cif:5</span> <span class="pre">caf:5</span></code> to select which joints and connections to visualize.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">openpifpaf</span><span class="o">.</span><span class="n">visualizer</span><span class="o">.</span><span class="n">Base</span><span class="o">.</span><span class="n">set_all_indices</span><span class="p">([</span><span class="s1">&#39;cif,caf:5:confidence&#39;</span><span class="p">])</span>
+
+<span class="k">for</span> <span class="n">images_batch</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">__</span> <span class="ow">in</span> <span class="n">loader</span><span class="p">:</span>
+    <span class="n">predictions</span> <span class="o">=</span> <span class="n">decoder</span><span class="o">.</span><span class="n">batch</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">images_batch</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="_images/predict_api_16_0.png" src="_images/predict_api_16_0.png" />
+<img alt="_images/predict_api_16_1.png" src="_images/predict_api_16_1.png" />
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">openpifpaf</span><span class="o">.</span><span class="n">visualizer</span><span class="o">.</span><span class="n">Base</span><span class="o">.</span><span class="n">set_all_indices</span><span class="p">([</span><span class="s1">&#39;cif,caf:5:regression&#39;</span><span class="p">])</span>
+
+<span class="k">for</span> <span class="n">images_batch</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">__</span> <span class="ow">in</span> <span class="n">loader</span><span class="p">:</span>
+    <span class="n">predictions</span> <span class="o">=</span> <span class="n">decoder</span><span class="o">.</span><span class="n">batch</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">images_batch</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="_images/predict_api_17_0.png" src="_images/predict_api_17_0.png" />
+<img alt="_images/predict_api_17_1.png" src="_images/predict_api_17_1.png" />
+</div>
+</div>
+<p>From the CIF field, a high resolution accumulation (in the code it’s called <code class="docutils literal notranslate"><span class="pre">CifHr</span></code>) is generated.
+This is also the basis for the seeds. Both are shown below.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">openpifpaf</span><span class="o">.</span><span class="n">visualizer</span><span class="o">.</span><span class="n">Base</span><span class="o">.</span><span class="n">set_all_indices</span><span class="p">([</span><span class="s1">&#39;cif:5:hr&#39;</span><span class="p">,</span> <span class="s1">&#39;seeds&#39;</span><span class="p">])</span>
+
+<span class="k">for</span> <span class="n">images_batch</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">__</span> <span class="ow">in</span> <span class="n">loader</span><span class="p">:</span>
+    <span class="n">predictions</span> <span class="o">=</span> <span class="n">decoder</span><span class="o">.</span><span class="n">batch</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">images_batch</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="_images/predict_api_19_0.png" src="_images/predict_api_19_0.png" />
+<img alt="_images/predict_api_19_1.png" src="_images/predict_api_19_1.png" />
+</div>
+</div>
+<p>Starting from a seed, the poses are constructed. At every joint position, an occupancy map marks whether a previous pose was already constructed here. This reduces the number of poses that are constructed from multiple seeds for the same person. The final occupancy map is below:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">openpifpaf</span><span class="o">.</span><span class="n">visualizer</span><span class="o">.</span><span class="n">Base</span><span class="o">.</span><span class="n">set_all_indices</span><span class="p">([</span><span class="s1">&#39;occupancy:5&#39;</span><span class="p">])</span>
+
+<span class="k">for</span> <span class="n">images_batch</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">__</span> <span class="ow">in</span> <span class="n">loader</span><span class="p">:</span>
+    <span class="n">predictions</span> <span class="o">=</span> <span class="n">decoder</span><span class="o">.</span><span class="n">batch</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">images_batch</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="_images/predict_api_21_0.png" src="_images/predict_api_21_0.png" />
+</div>
+</div>
+</div>
+</div>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            kernelName: "python3",
+            path: "./."
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+              </div>
+              
+        
+        <div class='prev-next-bottom'>
+            
+    <a class='left-prev' id="prev-link" href="examples.html" title="previous page">Examples</a>
+    <a class='right-next' id="next-link" href="models.html" title="next page">Models</a>
+
+        </div>
+        
+        </div>
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By <a href="https://www.svenkreiss.com">Sven Kreiss</a> and <a href="https://github.com/vita-epfl/openpifpaf/graphs/contributors">contributors</a>.<br/>
+        
+            &copy; Copyright 2020-2021.<br/>
+          <div class="extra_footer">
+            <div>Powered by <a href="https://jupyterbook.org/">Jupyter Book</a>.</div>
+
+          </div>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    
+  <script src="_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    
+  </body>
+</html>
