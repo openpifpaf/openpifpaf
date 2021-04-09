@@ -35,6 +35,12 @@ jobs:
             torch: 1.7.1
             torchvision: 0.8.2
             torch-source: https://download.pytorch.org/whl/torch_stable.html
+          - os: macos-latest
+            python: 3.9
+            torch: 1.8.1
+            torchvision: 0.9.0
+            torch-source: https://download.pytorch.org/whl/torch_stable.html
+            conda: True
           - os: windows-latest
             python: 3.7
             torch: 1.7.1+cpu
@@ -53,8 +59,15 @@ jobs:
           data-cifar10
         key: ${{ runner.os }}-${{ hashFiles('setup.py') }}
     - name: Set up Python ${{ matrix.python }}
+      if: matrix.conda != True
       uses: actions/setup-python@v2
       with:
+        python-version: ${{ matrix.python }}
+    - name: Set up Conda
+      if: matrix.conda
+      uses: conda-incubator/setup-miniconda@v2
+      with:
+        auto-update-conda: true
         python-version: ${{ matrix.python }}
     - name: Python version
       run: |
