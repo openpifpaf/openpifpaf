@@ -47,6 +47,9 @@ jobs:
             torchvision: 0.8.2+cpu
             torch-source: https://download.pytorch.org/whl/torch_stable.html
 
+    defaults:
+      run:
+        shell: bash -l {0}  # conda does not activate properly in sh so bash in necessary
     steps:
     - uses: actions/checkout@v2
       with:
