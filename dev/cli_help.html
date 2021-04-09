@@ -1,0 +1,2008 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Command Line &#8212; OpenPifPaf Guide DEV</title>
+    
+  <link rel="stylesheet" href="_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/sphinx-book-theme.37f24b989f4638ff9c27c22dc7559d4f.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystyle.css" />
+    <link rel="stylesheet" type="text/css" href="_static/panels-main.c949a650a448cc0ae9fd3441c0e17fb0.css" />
+    <link rel="stylesheet" type="text/css" href="_static/panels-variables.06eb56fa6e07937060861dad626602ad.css" />
+    
+  <link rel="preload" as="script" href="_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/togglebutton.js"></script>
+    <script src="_static/clipboard.min.js"></script>
+    <script src="_static/copybutton.js"></script>
+    <script >var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <script src="_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
+    <script async="async" src="https://unpkg.com/thebelab@latest/lib/index.js"></script>
+    <script >
+        const thebe_selector = ".thebe"
+        const thebe_selector_input = "pre"
+        const thebe_selector_output = ".output"
+    </script>
+    <script async="async" src="_static/sphinx-thebe.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.png"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Plugins" href="plugins_overview.html" />
+    <link rel="prev" title="Training" href="train.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="index.html">
+  
+  <img src="_static/logo.png" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">OpenPifPaf Guide DEV</h1>
+  
+</a>
+</div><form class="bd-search d-flex align-items-center" action="search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search this book..." aria-label="Search this book..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+    <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="intro.html">
+   Introduction
+  </a>
+ </li>
+</ul>
+<p class="caption collapsible-parent">
+ <span class="caption-text">
+  Getting Started
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="predict_cli.html">
+   Prediction
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="examples.html">
+   Examples
+  </a>
+ </li>
+</ul>
+<p class="caption collapsible-parent">
+ <span class="caption-text">
+  Chapters
+ </span>
+</p>
+<ul class="current nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="predict_api.html">
+   Prediction API
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="models.html">
+   Models
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="datasets.html">
+   Datasets
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="train.html">
+   Training
+  </a>
+ </li>
+ <li class="toctree-l1 current active">
+  <a class="current reference internal" href="#">
+   Command Line
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="plugins_overview.html">
+   Plugins
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="faq.html">
+   FAQ
+  </a>
+ </li>
+</ul>
+<p class="caption collapsible-parent">
+ <span class="caption-text">
+  Tutorials
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="plugins_crowdpose.html">
+   CrowdPose
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tutorial_opencv.html">
+   OpenCV
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="plugins_cifar10.html">
+   Cifar10
+  </a>
+ </li>
+</ul>
+<p class="caption collapsible-parent">
+ <span class="caption-text">
+  Reference
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="moduledocs.html">
+   Modules
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="bibliography.html">
+   Bibliography
+  </a>
+ </li>
+</ul>
+<p class="caption collapsible-parent">
+ <span class="caption-text">
+  Development
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="dev.html">
+   Contribute
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="performance.html">
+   Performance
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference external" href="https://github.com/vita-epfl/openpifpaf">
+   GitHub
+   <i class="fas fa-external-link-alt">
+   </i>
+  </a>
+ </li>
+</ul>
+
+</nav> <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  This is the dev version of the Guide. Here is the <a href="https://vita-epfl.github.io/openpifpaf/">stable version</a>.
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="topbar container-xl fixed-top">
+    <div class="topbar-contents row">
+        <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show"></div>
+        <div class="col pl-md-4 topbar-main">
+            
+            <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+                data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+                aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+                title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+                <i class="fas fa-bars"></i>
+                <i class="fas fa-arrow-left"></i>
+                <i class="fas fa-arrow-up"></i>
+            </button>
+            
+            
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="_sources/cli_help.ipynb"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.ipynb</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+</div>
+
+            <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/vita-epfl/openpifpaf"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        
+        
+    </div>
+</div>
+
+
+            <!-- Full screen (wrap in <a> to have style consistency -->
+            <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                    data-placement="bottom" onclick="toggleFullScreen()" aria-label="Fullscreen mode"
+                    title="Fullscreen mode"><i
+                        class="fas fa-expand"></i></button></a>
+
+            <!-- Launch buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Launch interactive content"><i class="fas fa-rocket"></i></button>
+    <div class="dropdown-buttons">
+        
+        <a class="binder-button" href="https://mybinder.org/v2/gh/vita-epfl/openpifpaf/dev?urlpath=tree/guide/cli_help.ipynb"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Launch Binder" data-toggle="tooltip"
+                data-placement="left"><img class="binder-button-logo"
+                    src="_static/images/logo_binder.svg"
+                    alt="Interact on binder">Binder</button></a>
+        
+        
+        
+        
+    </div>
+</div>
+
+        </div>
+
+        <!-- Table of contents -->
+        <div class="d-none d-md-block col-md-2 bd-toc show">
+            
+        <div class="tocsection onthispage pt-5 pb-3">
+            <i class="fas fa-list"></i> On this page
+        </div>
+        <nav id="bd-toc-nav">
+            <ul class="nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#predict">
+   predict
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#video">
+   video
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#train">
+   train
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#eval">
+   eval
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#export-onnx">
+   export_onnx
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#export-coreml">
+   export_coreml
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#benchmark">
+   benchmark
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#logs">
+   logs
+  </a>
+ </li>
+</ul>
+
+        </nav>
+        
+        </div>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="command-line">
+<h1>Command Line<a class="headerlink" href="#command-line" title="Permalink to this headline">¶</a></h1>
+<p>This is a reference for all the <code class="docutils literal notranslate"><span class="pre">--help</span></code> message from all of OpenPifPaf’s command line interfaces (CLIs).</p>
+<div class="section" id="predict">
+<span id="cli-help-predict"></span><h2>predict<a class="headerlink" href="#predict" title="Permalink to this headline">¶</a></h2>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%%</span><span class="k">bash</span>
+python3 -m openpifpaf.predict --help
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>usage: python3 -m openpifpaf.predict [options] images
+
+Predict poses for given images.
+
+positional arguments:
+  images                input images (default: None)
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --version             show program&#39;s version number and exit
+  --glob GLOB           glob expression for input images (for many images)
+                        (default: None)
+  -o [IMAGE_OUTPUT], --image-output [IMAGE_OUTPUT]
+                        Whether to output an image, with the option to specify
+                        the output path or directory (default: None)
+  --json-output [JSON_OUTPUT]
+                        Whether to output a json file, with the option to
+                        specify the output path or directory (default: None)
+  --batch-size BATCH_SIZE
+                        processing batch size (default: 1)
+  --long-edge LONG_EDGE
+                        rescale the long side of the image (aspect ratio
+                        maintained) (default: None)
+  --loader-workers LOADER_WORKERS
+                        number of workers for data loading (default: None)
+  --disable-cuda        disable CUDA (default: False)
+
+decoder configuration:
+  --decoder DECODER [DECODER ...]
+                        Decoders to be considered: [&#39;cifcaf&#39;, &#39;cifdet&#39;].
+                        (default: None)
+  --seed-threshold SEED_THRESHOLD
+                        minimum threshold for seeds (default: 0.5)
+  --instance-threshold INSTANCE_THRESHOLD
+                        filter instances by score (0.0 with --force-complete-
+                        pose else 0.15) (default: None)
+  --decoder-workers DECODER_WORKERS
+                        number of workers for pose decoding (default: None)
+  --caf-seeds           [experimental] (default: False)
+  --profile-decoder [PROFILE_DECODER]
+                        specify out .prof file or nothing for default file
+                        name (default: None)
+
+CifCaf decoders:
+  --cif-th CIF_TH       cif threshold (default: 0.1)
+  --caf-th CAF_TH       caf threshold (default: 0.2)
+
+CifCaf decoder:
+  --force-complete-pose
+  --force-complete-caf-th FORCE_COMPLETE_CAF_TH
+                        CAF threshold for force complete. Set to -1 to
+                        deactivate. (default: 0.001)
+  --nms-before-force-complete
+                        run an additional NMS before completing poses
+                        (default: False)
+  --keypoint-threshold KEYPOINT_THRESHOLD
+                        filter keypoints by score (default: 0.15)
+  --keypoint-threshold-rel KEYPOINT_THRESHOLD_REL
+                        filter keypoint connections by relative score
+                        (default: 0.5)
+  --greedy              greedy decoding (default: False)
+  --connection-method {max,blend}
+                        connection method to use, max is faster (default:
+                        blend)
+  --dense-connections [DENSE_CONNECTIONS]
+  --no-reverse-match
+  --ablation-cifseeds-nms
+  --ablation-cifseeds-no-rescore
+  --ablation-caf-no-rescore
+  --ablation-independent-kp
+
+logger:
+  -q, --quiet           only show warning messages or above (default: False)
+  --debug               print debug messages (default: False)
+  --log-stats           enable stats logging (default: False)
+
+SqueezeNet:
+  --squeezenet-no-pretrain
+                        use randomly initialized models (default: True)
+
+ShuffleNetv2:
+  --shufflenetv2-no-pretrain
+                        use randomly initialized models (default: True)
+
+shufflenetv2k:
+  --shufflenetv2k-input-conv2-stride SHUFFLENETV2K_INPUT_CONV2_STRIDE
+                        stride of the optional 2nd input convolution (default:
+                        0)
+  --shufflenetv2k-input-conv2-outchannels SHUFFLENETV2K_INPUT_CONV2_OUTCHANNELS
+                        out channels of the optional 2nd input convolution
+                        (default: None)
+  --shufflenetv2k-stage4-dilation SHUFFLENETV2K_STAGE4_DILATION
+                        dilation factor of stage 4 (default: 1)
+  --shufflenetv2k-kernel SHUFFLENETV2K_KERNEL
+                        kernel width (default: 5)
+  --shufflenetv2k-conv5-as-stage
+  --shufflenetv2k-instance-norm
+  --shufflenetv2k-group-norm
+  --shufflenetv2k-leaky-relu
+
+MobileNetV2:
+  --mobilenetv2-no-pretrain
+                        use randomly initialized models (default: True)
+
+ResNet:
+  --resnet-no-pretrain  use randomly initialized models (default: True)
+  --resnet-pool0-stride RESNET_POOL0_STRIDE
+                        stride of zero removes the pooling op (default: 0)
+  --resnet-input-conv-stride RESNET_INPUT_CONV_STRIDE
+                        stride of the input convolution (default: 2)
+  --resnet-input-conv2-stride RESNET_INPUT_CONV2_STRIDE
+                        stride of the optional 2nd input convolution (default:
+                        0)
+  --resnet-block5-dilation RESNET_BLOCK5_DILATION
+                        use dilated convs in block5 (default: 1)
+  --resnet-remove-last-block
+                        create a network without the last block (default:
+                        False)
+
+CompositeField3:
+  --cf3-dropout CF3_DROPOUT
+                        [experimental] zeroing probability of feature in head
+                        input (default: 0.0)
+  --cf3-no-inplace-ops  alternative graph without inplace ops (default: True)
+
+network configuration:
+  --checkpoint CHECKPOINT
+                        Path to a local checkpoint. Or provide one of the
+                        following to download a pretrained model:
+                        &quot;mobilenetv2&quot;, &quot;resnet50&quot;, &quot;shufflenetv2k16&quot;,
+                        &quot;shufflenetv2k16-withdense&quot;, &quot;shufflenetv2k30&quot;,
+                        &quot;shufflenetv2k16-apollo-24&quot;,
+                        &quot;shufflenetv2k16-apollo-66&quot;, &quot;resnet50-crowdpose&quot;
+                        (default: None)
+  --basenet BASENET     base network, e.g. resnet50 (default: None)
+  --cross-talk CROSS_TALK
+                        [experimental] (default: 0.0)
+  --no-download-progress
+                        suppress model download progress bar (default: True)
+  --head-consolidation {keep,create,filter_and_extend}
+                        consolidation strategy for a checkpoint&#39;s head
+                        networks and the heads specified by the datamodule
+                        (default: filter_and_extend)
+
+show:
+  --save-all [SAVE_ALL]
+                        every plot is saved (optional to specify directory)
+                        (default: None)
+  --show                show every plot, i.e., call matplotlib show()
+                        (default: False)
+  --image-width IMAGE_WIDTH
+                        image width for matplotlib (in inches) (default: None)
+  --image-height IMAGE_HEIGHT
+                        image height for matplotlib (in inches) (default:
+                        None)
+  --image-dpi-factor IMAGE_DPI_FACTOR
+                        increase dpi of output image by this factor (default:
+                        1.0)
+  --image-min-dpi IMAGE_MIN_DPI
+                        minimum dpi of image output (default: 50.0)
+  --show-file-extension SHOW_FILE_EXTENSION
+                        default file extension (default: png)
+  --textbox-alpha TEXTBOX_ALPHA
+                        transparency of annotation text box (default: 0.5)
+  --text-color TEXT_COLOR
+                        annotation text color (default: white)
+  --font-size FONT_SIZE
+                        annotation font size (default: 8)
+  --monocolor-connections
+                        use a single color per instance (default: False)
+  --line-width LINE_WIDTH
+                        skeleton line width (default: None)
+  --skeleton-solid-threshold SKELETON_SOLID_THRESHOLD
+                        set to 0.0 to draw all connections as solid lines
+                        (default: 0.5)
+  --show-box            show annotation bounding boxes (default: False)
+  --white-overlay [WHITE_OVERLAY]
+                        increase contrast to annotations by making image
+                        whiter (default: False)
+  --show-joint-scales   show boxes representing joint sizes (default: False)
+  --show-joint-confidences
+                        print per-joint confidences on skeleton annotations
+                        (default: False)
+  --show-decoding-order
+  --show-frontier-order
+  --show-only-decoded-connections
+                        to debug which connections were used for decoding
+                        (default: False)
+  --video-fps VIDEO_FPS
+                        output video frame rate (frames per second) (default:
+                        10)
+  --video-dpi VIDEO_DPI
+                        output video resolution (dots per inch) (default: 100)
+
+visualizer:
+  --debug-indices DEBUG_INDICES [DEBUG_INDICES ...]
+                        Indices of fields to create debug plots for of the
+                        form headname:fieldindex, e.g. cif:5. Optionally,
+                        specify the visualization type, e.g. cif:5:hr for the
+                        high resolution plot only. Use comma separation to
+                        specify multiple head names, field indices or
+                        visualization types, e.g. cif:5,6:confidence,hr to
+                        visualize CIF fields 5 and 6 but only show confidence
+                        and hr. (default: [])
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="video">
+<span id="cli-help-video"></span><h2>video<a class="headerlink" href="#video" title="Permalink to this headline">¶</a></h2>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%%</span><span class="k">bash</span>
+python3 -m openpifpaf.video --help
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>usage: python3 -m openpifpaf.video [options]
+
+Video demo application.
+
+Use --scale=0.2 to reduce the input image size to 20%.
+Use --json-output for headless processing.
+
+Example commands:
+    python3 -m pifpaf.video --source=0  # default webcam
+    python3 -m pifpaf.video --source=1  # another webcam
+
+    # streaming source
+    python3 -m pifpaf.video --source=http://127.0.0.1:8080/video
+
+    # file system source (any valid OpenCV source)
+    python3 -m pifpaf.video --source=docs/coco/000000081988.jpg
+
+Trouble shooting:
+* MacOSX: try to prefix the command with &quot;MPLBACKEND=MACOSX&quot;.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --version             show program&#39;s version number and exit
+  --source SOURCE       OpenCV source url. Integer for webcams. Or ipwebcam
+                        urls (rtsp/rtmp). Use &quot;screen&quot; for screen grabs.
+                        (default: 0)
+  --video-output [VIDEO_OUTPUT]
+                        video output file or &quot;virtualcam&quot; (default: None)
+  --json-output [JSON_OUTPUT]
+                        json output file (default: None)
+  --long-edge LONG_EDGE
+                        long edge of input images (default: None)
+  --separate-debug-ax
+  --disable-cuda        disable CUDA (default: False)
+
+SqueezeNet:
+  --squeezenet-no-pretrain
+                        use randomly initialized models (default: True)
+
+MobileNetV2:
+  --mobilenetv2-no-pretrain
+                        use randomly initialized models (default: True)
+
+shufflenetv2k:
+  --shufflenetv2k-input-conv2-stride SHUFFLENETV2K_INPUT_CONV2_STRIDE
+                        stride of the optional 2nd input convolution (default:
+                        0)
+  --shufflenetv2k-input-conv2-outchannels SHUFFLENETV2K_INPUT_CONV2_OUTCHANNELS
+                        out channels of the optional 2nd input convolution
+                        (default: None)
+  --shufflenetv2k-stage4-dilation SHUFFLENETV2K_STAGE4_DILATION
+                        dilation factor of stage 4 (default: 1)
+  --shufflenetv2k-kernel SHUFFLENETV2K_KERNEL
+                        kernel width (default: 5)
+  --shufflenetv2k-conv5-as-stage
+  --shufflenetv2k-instance-norm
+  --shufflenetv2k-group-norm
+  --shufflenetv2k-leaky-relu
+
+ResNet:
+  --resnet-no-pretrain  use randomly initialized models (default: True)
+  --resnet-pool0-stride RESNET_POOL0_STRIDE
+                        stride of zero removes the pooling op (default: 0)
+  --resnet-input-conv-stride RESNET_INPUT_CONV_STRIDE
+                        stride of the input convolution (default: 2)
+  --resnet-input-conv2-stride RESNET_INPUT_CONV2_STRIDE
+                        stride of the optional 2nd input convolution (default:
+                        0)
+  --resnet-block5-dilation RESNET_BLOCK5_DILATION
+                        use dilated convs in block5 (default: 1)
+  --resnet-remove-last-block
+                        create a network without the last block (default:
+                        False)
+
+ShuffleNetv2:
+  --shufflenetv2-no-pretrain
+                        use randomly initialized models (default: True)
+
+CompositeField3:
+  --cf3-dropout CF3_DROPOUT
+                        [experimental] zeroing probability of feature in head
+                        input (default: 0.0)
+  --cf3-no-inplace-ops  alternative graph without inplace ops (default: True)
+
+network configuration:
+  --checkpoint CHECKPOINT
+                        Path to a local checkpoint. Or provide one of the
+                        following to download a pretrained model:
+                        &quot;mobilenetv2&quot;, &quot;resnet50&quot;, &quot;shufflenetv2k16&quot;,
+                        &quot;shufflenetv2k16-withdense&quot;, &quot;shufflenetv2k30&quot;,
+                        &quot;shufflenetv2k16-apollo-24&quot;,
+                        &quot;shufflenetv2k16-apollo-66&quot;, &quot;resnet50-crowdpose&quot;
+                        (default: None)
+  --basenet BASENET     base network, e.g. resnet50 (default: None)
+  --cross-talk CROSS_TALK
+                        [experimental] (default: 0.0)
+  --no-download-progress
+                        suppress model download progress bar (default: True)
+  --head-consolidation {keep,create,filter_and_extend}
+                        consolidation strategy for a checkpoint&#39;s head
+                        networks and the heads specified by the datamodule
+                        (default: filter_and_extend)
+
+decoder configuration:
+  --decoder DECODER [DECODER ...]
+                        Decoders to be considered: [&#39;cifcaf&#39;, &#39;cifdet&#39;].
+                        (default: None)
+  --seed-threshold SEED_THRESHOLD
+                        minimum threshold for seeds (default: 0.5)
+  --instance-threshold INSTANCE_THRESHOLD
+                        filter instances by score (0.0 with --force-complete-
+                        pose else 0.15) (default: None)
+  --decoder-workers DECODER_WORKERS
+                        number of workers for pose decoding (default: None)
+  --caf-seeds           [experimental] (default: False)
+  --profile-decoder [PROFILE_DECODER]
+                        specify out .prof file or nothing for default file
+                        name (default: None)
+
+CifCaf decoders:
+  --cif-th CIF_TH       cif threshold (default: 0.1)
+  --caf-th CAF_TH       caf threshold (default: 0.2)
+
+CifCaf decoder:
+  --force-complete-pose
+  --force-complete-caf-th FORCE_COMPLETE_CAF_TH
+                        CAF threshold for force complete. Set to -1 to
+                        deactivate. (default: 0.001)
+  --nms-before-force-complete
+                        run an additional NMS before completing poses
+                        (default: False)
+  --keypoint-threshold KEYPOINT_THRESHOLD
+                        filter keypoints by score (default: 0.15)
+  --keypoint-threshold-rel KEYPOINT_THRESHOLD_REL
+                        filter keypoint connections by relative score
+                        (default: 0.5)
+  --greedy              greedy decoding (default: False)
+  --connection-method {max,blend}
+                        connection method to use, max is faster (default:
+                        blend)
+  --dense-connections [DENSE_CONNECTIONS]
+  --no-reverse-match
+  --ablation-cifseeds-nms
+  --ablation-cifseeds-no-rescore
+  --ablation-caf-no-rescore
+  --ablation-independent-kp
+
+logger:
+  -q, --quiet           only show warning messages or above (default: False)
+  --debug               print debug messages (default: False)
+  --log-stats           enable stats logging (default: False)
+
+show:
+  --save-all [SAVE_ALL]
+                        every plot is saved (optional to specify directory)
+                        (default: None)
+  --show                show every plot, i.e., call matplotlib show()
+                        (default: False)
+  --image-width IMAGE_WIDTH
+                        image width for matplotlib (in inches) (default: None)
+  --image-height IMAGE_HEIGHT
+                        image height for matplotlib (in inches) (default:
+                        None)
+  --image-dpi-factor IMAGE_DPI_FACTOR
+                        increase dpi of output image by this factor (default:
+                        1.0)
+  --image-min-dpi IMAGE_MIN_DPI
+                        minimum dpi of image output (default: 50.0)
+  --show-file-extension SHOW_FILE_EXTENSION
+                        default file extension (default: png)
+  --textbox-alpha TEXTBOX_ALPHA
+                        transparency of annotation text box (default: 0.5)
+  --text-color TEXT_COLOR
+                        annotation text color (default: white)
+  --font-size FONT_SIZE
+                        annotation font size (default: 8)
+  --monocolor-connections
+                        use a single color per instance (default: False)
+  --line-width LINE_WIDTH
+                        skeleton line width (default: None)
+  --skeleton-solid-threshold SKELETON_SOLID_THRESHOLD
+                        set to 0.0 to draw all connections as solid lines
+                        (default: 0.5)
+  --show-box            show annotation bounding boxes (default: False)
+  --white-overlay [WHITE_OVERLAY]
+                        increase contrast to annotations by making image
+                        whiter (default: False)
+  --show-joint-scales   show boxes representing joint sizes (default: False)
+  --show-joint-confidences
+                        print per-joint confidences on skeleton annotations
+                        (default: False)
+  --show-decoding-order
+  --show-frontier-order
+  --show-only-decoded-connections
+                        to debug which connections were used for decoding
+                        (default: False)
+  --video-fps VIDEO_FPS
+                        output video frame rate (frames per second) (default:
+                        10)
+  --video-dpi VIDEO_DPI
+                        output video resolution (dots per inch) (default: 100)
+
+Stream:
+  --horizontal-flip     mirror input image (default: False)
+  --scale SCALE         input image scale factor (default: 1.0)
+  --start-frame START_FRAME
+                        start frame (default: None)
+  --start-msec START_MSEC
+                        start millisecond (default: None)
+  --crop CROP CROP CROP CROP
+                        left top right bottom (default: None)
+  --rotate {left,right,180}
+                        rotate (default: None)
+  --max-frames MAX_FRAMES
+                        max frames (default: None)
+
+visualizer:
+  --debug-indices DEBUG_INDICES [DEBUG_INDICES ...]
+                        Indices of fields to create debug plots for of the
+                        form headname:fieldindex, e.g. cif:5. Optionally,
+                        specify the visualization type, e.g. cif:5:hr for the
+                        high resolution plot only. Use comma separation to
+                        specify multiple head names, field indices or
+                        visualization types, e.g. cif:5,6:confidence,hr to
+                        visualize CIF fields 5 and 6 but only show confidence
+                        and hr. (default: [])
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="train">
+<span id="cli-help-train"></span><h2>train<a class="headerlink" href="#train" title="Permalink to this headline">¶</a></h2>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%%</span><span class="k">bash</span>
+python3 -m openpifpaf.train --help
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>usage: python3 -m openpifpaf.train [options]
+
+Train a pifpaf network.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --version             show program&#39;s version number and exit
+  -o OUTPUT, --output OUTPUT
+                        output file (default: None)
+  --disable-cuda        disable CUDA (default: False)
+  --ddp                 [experimental] DistributedDataParallel (default:
+                        False)
+  --local_rank LOCAL_RANK
+                        [experimental] for torch.distributed.launch (default:
+                        None)
+  --no-sync-batchnorm   [experimental] in ddp, to not use syncbatchnorm
+                        (default: True)
+
+logger:
+  -q, --quiet           only show warning messages or above (default: False)
+  --debug               print debug messages (default: False)
+  --log-stats           enable stats logging (default: False)
+
+shufflenetv2k:
+  --shufflenetv2k-input-conv2-stride SHUFFLENETV2K_INPUT_CONV2_STRIDE
+                        stride of the optional 2nd input convolution (default:
+                        0)
+  --shufflenetv2k-input-conv2-outchannels SHUFFLENETV2K_INPUT_CONV2_OUTCHANNELS
+                        out channels of the optional 2nd input convolution
+                        (default: None)
+  --shufflenetv2k-stage4-dilation SHUFFLENETV2K_STAGE4_DILATION
+                        dilation factor of stage 4 (default: 1)
+  --shufflenetv2k-kernel SHUFFLENETV2K_KERNEL
+                        kernel width (default: 5)
+  --shufflenetv2k-conv5-as-stage
+  --shufflenetv2k-instance-norm
+  --shufflenetv2k-group-norm
+  --shufflenetv2k-leaky-relu
+
+ShuffleNetv2:
+  --shufflenetv2-no-pretrain
+                        use randomly initialized models (default: True)
+
+SqueezeNet:
+  --squeezenet-no-pretrain
+                        use randomly initialized models (default: True)
+
+MobileNetV2:
+  --mobilenetv2-no-pretrain
+                        use randomly initialized models (default: True)
+
+ResNet:
+  --resnet-no-pretrain  use randomly initialized models (default: True)
+  --resnet-pool0-stride RESNET_POOL0_STRIDE
+                        stride of zero removes the pooling op (default: 0)
+  --resnet-input-conv-stride RESNET_INPUT_CONV_STRIDE
+                        stride of the input convolution (default: 2)
+  --resnet-input-conv2-stride RESNET_INPUT_CONV2_STRIDE
+                        stride of the optional 2nd input convolution (default:
+                        0)
+  --resnet-block5-dilation RESNET_BLOCK5_DILATION
+                        use dilated convs in block5 (default: 1)
+  --resnet-remove-last-block
+                        create a network without the last block (default:
+                        False)
+
+CompositeField3:
+  --cf3-dropout CF3_DROPOUT
+                        [experimental] zeroing probability of feature in head
+                        input (default: 0.0)
+  --cf3-no-inplace-ops  alternative graph without inplace ops (default: True)
+
+network configuration:
+  --checkpoint CHECKPOINT
+                        Path to a local checkpoint. Or provide one of the
+                        following to download a pretrained model:
+                        &quot;mobilenetv2&quot;, &quot;resnet50&quot;, &quot;shufflenetv2k16&quot;,
+                        &quot;shufflenetv2k16-withdense&quot;, &quot;shufflenetv2k30&quot;,
+                        &quot;shufflenetv2k16-apollo-24&quot;,
+                        &quot;shufflenetv2k16-apollo-66&quot;, &quot;resnet50-crowdpose&quot;
+                        (default: None)
+  --basenet BASENET     base network, e.g. resnet50 (default: None)
+  --cross-talk CROSS_TALK
+                        [experimental] (default: 0.0)
+  --no-download-progress
+                        suppress model download progress bar (default: True)
+  --head-consolidation {keep,create,filter_and_extend}
+                        consolidation strategy for a checkpoint&#39;s head
+                        networks and the heads specified by the datamodule
+                        (default: filter_and_extend)
+
+losses:
+  --lambdas LAMBDAS [LAMBDAS ...]
+                        prefactor for head losses by head (default: None)
+  --component-lambdas COMPONENT_LAMBDAS [COMPONENT_LAMBDAS ...]
+                        prefactor for head losses by component (default: None)
+  --auto-tune-mtl       [experimental] use Kendall&#39;s prescription for
+                        adjusting the multitask weight (default: False)
+  --auto-tune-mtl-variance
+                        [experimental] use Variance prescription for adjusting
+                        the multitask weight (default: False)
+  --task-sparsity-weight TASK_SPARSITY_WEIGHT
+                        [experimental] (default: 0.0)
+
+Composite Loss:
+  --loss-prescale LOSS_PRESCALE
+  --regression-loss {smoothl1,l1,laplace}
+                        type of regression loss (default: laplace)
+
+Bce Loss:
+  --r-smooth R_SMOOTH   r_{smooth} for SmoothL1 regressions (default: 0.0)
+
+Scale Loss:
+  --b-scale B_SCALE     Laplace width b for scale loss (default: 1.0)
+  --scale-log
+  --scale-soft-clamp SCALE_SOFT_CLAMP
+                        soft clamp for scale (default: 5.0)
+
+Bce Loss:
+  --background-weight BACKGROUND_WEIGHT
+                        BCE weight where ground truth is background (default:
+                        1.0)
+  --focal-alpha FOCAL_ALPHA
+                        scale parameter of focal loss (default: 0.5)
+  --focal-gamma FOCAL_GAMMA
+                        use focal loss with the given gamma (default: 1.0)
+  --focal-detach
+  --no-focal-clamp
+  --bce-min BCE_MIN     gradient clipped below (default: 0.0)
+  --bce-soft-clamp BCE_SOFT_CLAMP
+                        soft clamp for BCE (default: 5.0)
+
+Laplace Loss:
+  --laplace-soft-clamp LAPLACE_SOFT_CLAMP
+                        soft clamp for Laplace (default: 5.0)
+
+trainer:
+  --epochs EPOCHS       number of epochs to train (default: None)
+  --train-batches TRAIN_BATCHES
+                        number of train batches (default: None)
+  --val-batches VAL_BATCHES
+                        number of val batches (default: None)
+  --clip-grad-norm CLIP_GRAD_NORM
+                        clip grad norm: specify largest change for single
+                        param (default: 0.0)
+  --clip-grad-value CLIP_GRAD_VALUE
+                        clip grad value: specify largest change for single
+                        param (default: 0.0)
+  --log-interval LOG_INTERVAL
+                        log loss every n steps (default: 11)
+  --val-interval VAL_INTERVAL
+                        validation run every n epochs (default: 1)
+  --stride-apply STRIDE_APPLY
+                        apply and reset gradients every n batches (default: 1)
+  --fix-batch-norm [FIX_BATCH_NORM]
+                        fix batch norm running statistics (optionally specify
+                        epoch) (default: False)
+  --ema EMA             ema decay constant (default: 0.01)
+  --profile PROFILE     enables profiling. specify path for chrome tracing
+                        file (default: None)
+
+encoders:
+  --cif-side-length CIF_SIDE_LENGTH
+                        side length of the CIF field (default: 4)
+  --caf-min-size CAF_MIN_SIZE
+                        min side length of the CAF field (default: 3)
+  --caf-fixed-size      fixed caf size (default: False)
+  --caf-aspect-ratio CAF_ASPECT_RATIO
+                        CAF width relative to its length (default: 0.0)
+  --encoder-no-suppress-selfhidden
+                        [experimental] (default: True)
+
+optimizer:
+  --momentum MOMENTUM   SGD momentum, beta1 in Adam (default: 0.9)
+  --beta2 BETA2         beta2 for Adam/AMSGrad (default: 0.999)
+  --adam-eps ADAM_EPS   eps value for Adam/AMSGrad (default: 1e-06)
+  --no-nesterov         do not use Nesterov momentum for SGD update (default:
+                        True)
+  --weight-decay WEIGHT_DECAY
+                        SGD/Adam/AMSGrad weight decay (default: 0.0)
+  --adam                use Adam optimizer (default: False)
+  --amsgrad             use Adam optimizer with AMSGrad option (default:
+                        False)
+
+learning rate scheduler:
+  --lr LR               learning rate (default: 0.001)
+  --lr-decay LR_DECAY [LR_DECAY ...]
+                        epochs at which to decay the learning rate (default:
+                        [])
+  --lr-decay-factor LR_DECAY_FACTOR
+                        learning rate decay factor (default: 0.1)
+  --lr-decay-epochs LR_DECAY_EPOCHS
+                        learning rate decay duration in epochs (default: 1.0)
+  --lr-warm-up-start-epoch LR_WARM_UP_START_EPOCH
+                        starting epoch for warm-up (default: 0)
+  --lr-warm-up-epochs LR_WARM_UP_EPOCHS
+                        number of epochs at the beginning with lower learning
+                        rate (default: 1)
+  --lr-warm-up-factor LR_WARM_UP_FACTOR
+                        learning pre-factor during warm-up (default: 0.001)
+  --lr-warm-restarts LR_WARM_RESTARTS [LR_WARM_RESTARTS ...]
+                        list of epochs to do a warm restart (default: [])
+  --lr-warm-restart-duration LR_WARM_RESTART_DURATION
+                        duration of a warm restart (default: 0.5)
+
+generic data module parameters:
+  --dataset DATASET
+  --loader-workers LOADER_WORKERS
+                        number of workers for data loading (default: None)
+  --batch-size BATCH_SIZE
+                        batch size (default: 1)
+  --dataset-weights DATASET_WEIGHTS [DATASET_WEIGHTS ...]
+                        n-1 weights for the datasets (default: None)
+
+data module Apollo:
+  --apollo-train-annotations APOLLO_TRAIN_ANNOTATIONS
+  --apollo-val-annotations APOLLO_VAL_ANNOTATIONS
+  --apollo-train-image-dir APOLLO_TRAIN_IMAGE_DIR
+  --apollo-val-image-dir APOLLO_VAL_IMAGE_DIR
+  --apollo-square-edge APOLLO_SQUARE_EDGE
+                        square edge of input images (default: 513)
+  --apollo-extended-scale
+                        augment with an extended scale range (default: False)
+  --apollo-orientation-invariant APOLLO_ORIENTATION_INVARIANT
+                        augment with random orientations (default: 0.0)
+  --apollo-blur APOLLO_BLUR
+                        augment with blur (default: 0.0)
+  --apollo-no-augmentation
+                        do not apply data augmentation (default: True)
+  --apollo-rescale-images APOLLO_RESCALE_IMAGES
+                        overall rescale factor for images (default: 1.0)
+  --apollo-upsample APOLLO_UPSAMPLE
+                        head upsample stride (default: 1)
+  --apollo-min-kp-anns APOLLO_MIN_KP_ANNS
+                        filter images with fewer keypoint annotations
+                        (default: 1)
+  --apollo-bmin APOLLO_BMIN
+                        b minimum in pixels (default: 1)
+  --apollo-no-eval-annotation-filter
+  --apollo-eval-long-edge APOLLO_EVAL_LONG_EDGE
+                        set to zero to deactivate rescaling (default: 0)
+  --apollo-eval-extended-scale
+  --apollo-eval-orientation-invariant APOLLO_EVAL_ORIENTATION_INVARIANT
+  --apollo-use-24-kps   The ApolloCar3D dataset can be trained with 24 or 66
+                        kps. If you want to train a model with 24 kps activate
+                        this flag. Change the annotations path to the json
+                        files with 24 kps. (default: False)
+
+data module Cifar10:
+  --cifar10-root-dir CIFAR10_ROOT_DIR
+  --cifar10-download
+
+data module CocoDet:
+  --cocodet-train-annotations COCODET_TRAIN_ANNOTATIONS
+  --cocodet-val-annotations COCODET_VAL_ANNOTATIONS
+  --cocodet-train-image-dir COCODET_TRAIN_IMAGE_DIR
+  --cocodet-val-image-dir COCODET_VAL_IMAGE_DIR
+  --cocodet-square-edge COCODET_SQUARE_EDGE
+                        square edge of input images (default: 513)
+  --cocodet-extended-scale
+                        augment with an extended scale range (default: False)
+  --cocodet-orientation-invariant COCODET_ORIENTATION_INVARIANT
+                        augment with random orientations (default: 0.0)
+  --cocodet-blur COCODET_BLUR
+                        augment with blur (default: 0.0)
+  --cocodet-no-augmentation
+                        do not apply data augmentation (default: True)
+  --cocodet-rescale-images COCODET_RESCALE_IMAGES
+                        overall rescale factor for images (default: 1.0)
+  --cocodet-upsample COCODET_UPSAMPLE
+                        head upsample stride (default: 1)
+
+data module CocoKp:
+  --cocokp-train-annotations COCOKP_TRAIN_ANNOTATIONS
+  --cocokp-val-annotations COCOKP_VAL_ANNOTATIONS
+  --cocokp-train-image-dir COCOKP_TRAIN_IMAGE_DIR
+  --cocokp-val-image-dir COCOKP_VAL_IMAGE_DIR
+  --cocokp-square-edge COCOKP_SQUARE_EDGE
+                        square edge of input images (default: 385)
+  --cocokp-with-dense   train with dense connections (default: False)
+  --cocokp-extended-scale
+                        augment with an extended scale range (default: False)
+  --cocokp-orientation-invariant COCOKP_ORIENTATION_INVARIANT
+                        augment with random orientations (default: 0.0)
+  --cocokp-blur COCOKP_BLUR
+                        augment with blur (default: 0.0)
+  --cocokp-no-augmentation
+                        do not apply data augmentation (default: True)
+  --cocokp-rescale-images COCOKP_RESCALE_IMAGES
+                        overall rescale factor for images (default: 1.0)
+  --cocokp-upsample COCOKP_UPSAMPLE
+                        head upsample stride (default: 1)
+  --cocokp-min-kp-anns COCOKP_MIN_KP_ANNS
+                        filter images with fewer keypoint annotations
+                        (default: 1)
+  --cocokp-bmin COCOKP_BMIN
+                        bmin (default: 0.1)
+  --cocokp-eval-test2017
+  --cocokp-eval-testdev2017
+  --coco-no-eval-annotation-filter
+  --coco-eval-long-edge COCO_EVAL_LONG_EDGE
+                        set to zero to deactivate rescaling (default: 641)
+  --coco-eval-extended-scale
+  --coco-eval-orientation-invariant COCO_EVAL_ORIENTATION_INVARIANT
+
+data module CrowdPose:
+  --crowdpose-train-annotations CROWDPOSE_TRAIN_ANNOTATIONS
+  --crowdpose-val-annotations CROWDPOSE_VAL_ANNOTATIONS
+  --crowdpose-image-dir CROWDPOSE_IMAGE_DIR
+  --crowdpose-square-edge CROWDPOSE_SQUARE_EDGE
+                        square edge of input images (default: 385)
+  --crowdpose-extended-scale
+                        augment with an extended scale range (default: False)
+  --crowdpose-orientation-invariant CROWDPOSE_ORIENTATION_INVARIANT
+                        augment with random orientations (default: 0.0)
+  --crowdpose-no-augmentation
+                        do not apply data augmentation (default: True)
+  --crowdpose-rescale-images CROWDPOSE_RESCALE_IMAGES
+                        overall rescale factor for images (default: 1.0)
+  --crowdpose-upsample CROWDPOSE_UPSAMPLE
+                        head upsample stride (default: 1)
+  --crowdpose-min-kp-anns CROWDPOSE_MIN_KP_ANNS
+                        filter images with fewer keypoint annotations
+                        (default: 1)
+  --crowdpose-eval-test
+  --crowdpose-eval-long-edge CROWDPOSE_EVAL_LONG_EDGE
+  --crowdpose-eval-extended-scale
+  --crowdpose-eval-orientation-invariant CROWDPOSE_EVAL_ORIENTATION_INVARIANT
+  --crowdpose-index {easy,medium,hard}
+
+show:
+  --save-all [SAVE_ALL]
+                        every plot is saved (optional to specify directory)
+                        (default: None)
+  --show                show every plot, i.e., call matplotlib show()
+                        (default: False)
+  --image-width IMAGE_WIDTH
+                        image width for matplotlib (in inches) (default: None)
+  --image-height IMAGE_HEIGHT
+                        image height for matplotlib (in inches) (default:
+                        None)
+  --image-dpi-factor IMAGE_DPI_FACTOR
+                        increase dpi of output image by this factor (default:
+                        1.0)
+  --image-min-dpi IMAGE_MIN_DPI
+                        minimum dpi of image output (default: 50.0)
+  --show-file-extension SHOW_FILE_EXTENSION
+                        default file extension (default: png)
+  --textbox-alpha TEXTBOX_ALPHA
+                        transparency of annotation text box (default: 0.5)
+  --text-color TEXT_COLOR
+                        annotation text color (default: white)
+  --font-size FONT_SIZE
+                        annotation font size (default: 8)
+  --monocolor-connections
+                        use a single color per instance (default: False)
+  --line-width LINE_WIDTH
+                        skeleton line width (default: None)
+  --skeleton-solid-threshold SKELETON_SOLID_THRESHOLD
+                        set to 0.0 to draw all connections as solid lines
+                        (default: 0.5)
+  --show-box            show annotation bounding boxes (default: False)
+  --white-overlay [WHITE_OVERLAY]
+                        increase contrast to annotations by making image
+                        whiter (default: False)
+  --show-joint-scales   show boxes representing joint sizes (default: False)
+  --show-joint-confidences
+                        print per-joint confidences on skeleton annotations
+                        (default: False)
+  --show-decoding-order
+  --show-frontier-order
+  --show-only-decoded-connections
+                        to debug which connections were used for decoding
+                        (default: False)
+  --video-fps VIDEO_FPS
+                        output video frame rate (frames per second) (default:
+                        10)
+  --video-dpi VIDEO_DPI
+                        output video resolution (dots per inch) (default: 100)
+
+visualizer:
+  --debug-indices DEBUG_INDICES [DEBUG_INDICES ...]
+                        Indices of fields to create debug plots for of the
+                        form headname:fieldindex, e.g. cif:5. Optionally,
+                        specify the visualization type, e.g. cif:5:hr for the
+                        high resolution plot only. Use comma separation to
+                        specify multiple head names, field indices or
+                        visualization types, e.g. cif:5,6:confidence,hr to
+                        visualize CIF fields 5 and 6 but only show confidence
+                        and hr. (default: [])
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="eval">
+<span id="cli-help-eval"></span><h2>eval<a class="headerlink" href="#eval" title="Permalink to this headline">¶</a></h2>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%%</span><span class="k">bash</span>
+python3 -m openpifpaf.eval --help
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>usage: python3 -m openpifpaf.eval [options]
+
+Evaluation on COCO data.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --version             show program&#39;s version number and exit
+  --output OUTPUT       output filename without file extension (default: None)
+  --skip-existing       skip if output eval file exists already (default:
+                        False)
+  --no-skip-epoch0      do not skip eval for epoch 0 (default: True)
+  --watch [WATCH]
+  --disable-cuda        disable CUDA (default: False)
+  --write-predictions   write a json and a zip file of the predictions
+                        (default: False)
+  --show-final-image
+  --show-final-ground-truth
+
+generic data module parameters:
+  --dataset DATASET
+  --loader-workers LOADER_WORKERS
+                        number of workers for data loading (default: None)
+  --batch-size BATCH_SIZE
+                        batch size (default: 1)
+  --dataset-weights DATASET_WEIGHTS [DATASET_WEIGHTS ...]
+                        n-1 weights for the datasets (default: None)
+
+data module Apollo:
+  --apollo-train-annotations APOLLO_TRAIN_ANNOTATIONS
+  --apollo-val-annotations APOLLO_VAL_ANNOTATIONS
+  --apollo-train-image-dir APOLLO_TRAIN_IMAGE_DIR
+  --apollo-val-image-dir APOLLO_VAL_IMAGE_DIR
+  --apollo-square-edge APOLLO_SQUARE_EDGE
+                        square edge of input images (default: 513)
+  --apollo-extended-scale
+                        augment with an extended scale range (default: False)
+  --apollo-orientation-invariant APOLLO_ORIENTATION_INVARIANT
+                        augment with random orientations (default: 0.0)
+  --apollo-blur APOLLO_BLUR
+                        augment with blur (default: 0.0)
+  --apollo-no-augmentation
+                        do not apply data augmentation (default: True)
+  --apollo-rescale-images APOLLO_RESCALE_IMAGES
+                        overall rescale factor for images (default: 1.0)
+  --apollo-upsample APOLLO_UPSAMPLE
+                        head upsample stride (default: 1)
+  --apollo-min-kp-anns APOLLO_MIN_KP_ANNS
+                        filter images with fewer keypoint annotations
+                        (default: 1)
+  --apollo-bmin APOLLO_BMIN
+                        b minimum in pixels (default: 1)
+  --apollo-no-eval-annotation-filter
+  --apollo-eval-long-edge APOLLO_EVAL_LONG_EDGE
+                        set to zero to deactivate rescaling (default: 0)
+  --apollo-eval-extended-scale
+  --apollo-eval-orientation-invariant APOLLO_EVAL_ORIENTATION_INVARIANT
+  --apollo-use-24-kps   The ApolloCar3D dataset can be trained with 24 or 66
+                        kps. If you want to train a model with 24 kps activate
+                        this flag. Change the annotations path to the json
+                        files with 24 kps. (default: False)
+
+data module Cifar10:
+  --cifar10-root-dir CIFAR10_ROOT_DIR
+  --cifar10-download
+
+data module CocoDet:
+  --cocodet-train-annotations COCODET_TRAIN_ANNOTATIONS
+  --cocodet-val-annotations COCODET_VAL_ANNOTATIONS
+  --cocodet-train-image-dir COCODET_TRAIN_IMAGE_DIR
+  --cocodet-val-image-dir COCODET_VAL_IMAGE_DIR
+  --cocodet-square-edge COCODET_SQUARE_EDGE
+                        square edge of input images (default: 513)
+  --cocodet-extended-scale
+                        augment with an extended scale range (default: False)
+  --cocodet-orientation-invariant COCODET_ORIENTATION_INVARIANT
+                        augment with random orientations (default: 0.0)
+  --cocodet-blur COCODET_BLUR
+                        augment with blur (default: 0.0)
+  --cocodet-no-augmentation
+                        do not apply data augmentation (default: True)
+  --cocodet-rescale-images COCODET_RESCALE_IMAGES
+                        overall rescale factor for images (default: 1.0)
+  --cocodet-upsample COCODET_UPSAMPLE
+                        head upsample stride (default: 1)
+
+data module CocoKp:
+  --cocokp-train-annotations COCOKP_TRAIN_ANNOTATIONS
+  --cocokp-val-annotations COCOKP_VAL_ANNOTATIONS
+  --cocokp-train-image-dir COCOKP_TRAIN_IMAGE_DIR
+  --cocokp-val-image-dir COCOKP_VAL_IMAGE_DIR
+  --cocokp-square-edge COCOKP_SQUARE_EDGE
+                        square edge of input images (default: 385)
+  --cocokp-with-dense   train with dense connections (default: False)
+  --cocokp-extended-scale
+                        augment with an extended scale range (default: False)
+  --cocokp-orientation-invariant COCOKP_ORIENTATION_INVARIANT
+                        augment with random orientations (default: 0.0)
+  --cocokp-blur COCOKP_BLUR
+                        augment with blur (default: 0.0)
+  --cocokp-no-augmentation
+                        do not apply data augmentation (default: True)
+  --cocokp-rescale-images COCOKP_RESCALE_IMAGES
+                        overall rescale factor for images (default: 1.0)
+  --cocokp-upsample COCOKP_UPSAMPLE
+                        head upsample stride (default: 1)
+  --cocokp-min-kp-anns COCOKP_MIN_KP_ANNS
+                        filter images with fewer keypoint annotations
+                        (default: 1)
+  --cocokp-bmin COCOKP_BMIN
+                        bmin (default: 0.1)
+  --cocokp-eval-test2017
+  --cocokp-eval-testdev2017
+  --coco-no-eval-annotation-filter
+  --coco-eval-long-edge COCO_EVAL_LONG_EDGE
+                        set to zero to deactivate rescaling (default: 641)
+  --coco-eval-extended-scale
+  --coco-eval-orientation-invariant COCO_EVAL_ORIENTATION_INVARIANT
+
+data module CrowdPose:
+  --crowdpose-train-annotations CROWDPOSE_TRAIN_ANNOTATIONS
+  --crowdpose-val-annotations CROWDPOSE_VAL_ANNOTATIONS
+  --crowdpose-image-dir CROWDPOSE_IMAGE_DIR
+  --crowdpose-square-edge CROWDPOSE_SQUARE_EDGE
+                        square edge of input images (default: 385)
+  --crowdpose-extended-scale
+                        augment with an extended scale range (default: False)
+  --crowdpose-orientation-invariant CROWDPOSE_ORIENTATION_INVARIANT
+                        augment with random orientations (default: 0.0)
+  --crowdpose-no-augmentation
+                        do not apply data augmentation (default: True)
+  --crowdpose-rescale-images CROWDPOSE_RESCALE_IMAGES
+                        overall rescale factor for images (default: 1.0)
+  --crowdpose-upsample CROWDPOSE_UPSAMPLE
+                        head upsample stride (default: 1)
+  --crowdpose-min-kp-anns CROWDPOSE_MIN_KP_ANNS
+                        filter images with fewer keypoint annotations
+                        (default: 1)
+  --crowdpose-eval-test
+  --crowdpose-eval-long-edge CROWDPOSE_EVAL_LONG_EDGE
+  --crowdpose-eval-extended-scale
+  --crowdpose-eval-orientation-invariant CROWDPOSE_EVAL_ORIENTATION_INVARIANT
+  --crowdpose-index {easy,medium,hard}
+
+decoder configuration:
+  --decoder DECODER [DECODER ...]
+                        Decoders to be considered: [&#39;cifcaf&#39;, &#39;cifdet&#39;].
+                        (default: None)
+  --seed-threshold SEED_THRESHOLD
+                        minimum threshold for seeds (default: 0.5)
+  --instance-threshold INSTANCE_THRESHOLD
+                        filter instances by score (0.0 with --force-complete-
+                        pose else 0.15) (default: None)
+  --decoder-workers DECODER_WORKERS
+                        number of workers for pose decoding (default: None)
+  --caf-seeds           [experimental] (default: False)
+  --profile-decoder [PROFILE_DECODER]
+                        specify out .prof file or nothing for default file
+                        name (default: None)
+
+CifCaf decoders:
+  --cif-th CIF_TH       cif threshold (default: 0.1)
+  --caf-th CAF_TH       caf threshold (default: 0.2)
+
+CifCaf decoder:
+  --force-complete-pose
+  --force-complete-caf-th FORCE_COMPLETE_CAF_TH
+                        CAF threshold for force complete. Set to -1 to
+                        deactivate. (default: 0.001)
+  --nms-before-force-complete
+                        run an additional NMS before completing poses
+                        (default: False)
+  --keypoint-threshold KEYPOINT_THRESHOLD
+                        filter keypoints by score (default: 0.15)
+  --keypoint-threshold-rel KEYPOINT_THRESHOLD_REL
+                        filter keypoint connections by relative score
+                        (default: 0.5)
+  --greedy              greedy decoding (default: False)
+  --connection-method {max,blend}
+                        connection method to use, max is faster (default:
+                        blend)
+  --dense-connections [DENSE_CONNECTIONS]
+  --no-reverse-match
+  --ablation-cifseeds-nms
+  --ablation-cifseeds-no-rescore
+  --ablation-caf-no-rescore
+  --ablation-independent-kp
+
+logger:
+  -q, --quiet           only show warning messages or above (default: False)
+  --debug               print debug messages (default: False)
+  --log-stats           enable stats logging (default: False)
+
+MobileNetV2:
+  --mobilenetv2-no-pretrain
+                        use randomly initialized models (default: True)
+
+shufflenetv2k:
+  --shufflenetv2k-input-conv2-stride SHUFFLENETV2K_INPUT_CONV2_STRIDE
+                        stride of the optional 2nd input convolution (default:
+                        0)
+  --shufflenetv2k-input-conv2-outchannels SHUFFLENETV2K_INPUT_CONV2_OUTCHANNELS
+                        out channels of the optional 2nd input convolution
+                        (default: None)
+  --shufflenetv2k-stage4-dilation SHUFFLENETV2K_STAGE4_DILATION
+                        dilation factor of stage 4 (default: 1)
+  --shufflenetv2k-kernel SHUFFLENETV2K_KERNEL
+                        kernel width (default: 5)
+  --shufflenetv2k-conv5-as-stage
+  --shufflenetv2k-instance-norm
+  --shufflenetv2k-group-norm
+  --shufflenetv2k-leaky-relu
+
+ResNet:
+  --resnet-no-pretrain  use randomly initialized models (default: True)
+  --resnet-pool0-stride RESNET_POOL0_STRIDE
+                        stride of zero removes the pooling op (default: 0)
+  --resnet-input-conv-stride RESNET_INPUT_CONV_STRIDE
+                        stride of the input convolution (default: 2)
+  --resnet-input-conv2-stride RESNET_INPUT_CONV2_STRIDE
+                        stride of the optional 2nd input convolution (default:
+                        0)
+  --resnet-block5-dilation RESNET_BLOCK5_DILATION
+                        use dilated convs in block5 (default: 1)
+  --resnet-remove-last-block
+                        create a network without the last block (default:
+                        False)
+
+ShuffleNetv2:
+  --shufflenetv2-no-pretrain
+                        use randomly initialized models (default: True)
+
+SqueezeNet:
+  --squeezenet-no-pretrain
+                        use randomly initialized models (default: True)
+
+CompositeField3:
+  --cf3-dropout CF3_DROPOUT
+                        [experimental] zeroing probability of feature in head
+                        input (default: 0.0)
+  --cf3-no-inplace-ops  alternative graph without inplace ops (default: True)
+
+network configuration:
+  --checkpoint CHECKPOINT
+                        Path to a local checkpoint. Or provide one of the
+                        following to download a pretrained model:
+                        &quot;mobilenetv2&quot;, &quot;resnet50&quot;, &quot;shufflenetv2k16&quot;,
+                        &quot;shufflenetv2k16-withdense&quot;, &quot;shufflenetv2k30&quot;,
+                        &quot;shufflenetv2k16-apollo-24&quot;,
+                        &quot;shufflenetv2k16-apollo-66&quot;, &quot;resnet50-crowdpose&quot;
+                        (default: None)
+  --basenet BASENET     base network, e.g. resnet50 (default: None)
+  --cross-talk CROSS_TALK
+                        [experimental] (default: 0.0)
+  --no-download-progress
+                        suppress model download progress bar (default: True)
+  --head-consolidation {keep,create,filter_and_extend}
+                        consolidation strategy for a checkpoint&#39;s head
+                        networks and the heads specified by the datamodule
+                        (default: filter_and_extend)
+
+show:
+  --save-all [SAVE_ALL]
+                        every plot is saved (optional to specify directory)
+                        (default: None)
+  --show                show every plot, i.e., call matplotlib show()
+                        (default: False)
+  --image-width IMAGE_WIDTH
+                        image width for matplotlib (in inches) (default: None)
+  --image-height IMAGE_HEIGHT
+                        image height for matplotlib (in inches) (default:
+                        None)
+  --image-dpi-factor IMAGE_DPI_FACTOR
+                        increase dpi of output image by this factor (default:
+                        1.0)
+  --image-min-dpi IMAGE_MIN_DPI
+                        minimum dpi of image output (default: 50.0)
+  --show-file-extension SHOW_FILE_EXTENSION
+                        default file extension (default: png)
+  --textbox-alpha TEXTBOX_ALPHA
+                        transparency of annotation text box (default: 0.5)
+  --text-color TEXT_COLOR
+                        annotation text color (default: white)
+  --font-size FONT_SIZE
+                        annotation font size (default: 8)
+  --monocolor-connections
+                        use a single color per instance (default: False)
+  --line-width LINE_WIDTH
+                        skeleton line width (default: None)
+  --skeleton-solid-threshold SKELETON_SOLID_THRESHOLD
+                        set to 0.0 to draw all connections as solid lines
+                        (default: 0.5)
+  --show-box            show annotation bounding boxes (default: False)
+  --white-overlay [WHITE_OVERLAY]
+                        increase contrast to annotations by making image
+                        whiter (default: False)
+  --show-joint-scales   show boxes representing joint sizes (default: False)
+  --show-joint-confidences
+                        print per-joint confidences on skeleton annotations
+                        (default: False)
+  --show-decoding-order
+  --show-frontier-order
+  --show-only-decoded-connections
+                        to debug which connections were used for decoding
+                        (default: False)
+  --video-fps VIDEO_FPS
+                        output video frame rate (frames per second) (default:
+                        10)
+  --video-dpi VIDEO_DPI
+                        output video resolution (dots per inch) (default: 100)
+
+visualizer:
+  --debug-indices DEBUG_INDICES [DEBUG_INDICES ...]
+                        Indices of fields to create debug plots for of the
+                        form headname:fieldindex, e.g. cif:5. Optionally,
+                        specify the visualization type, e.g. cif:5:hr for the
+                        high resolution plot only. Use comma separation to
+                        specify multiple head names, field indices or
+                        visualization types, e.g. cif:5,6:confidence,hr to
+                        visualize CIF fields 5 and 6 but only show confidence
+                        and hr. (default: [])
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="export-onnx">
+<span id="cli-help-export-onnx"></span><h2>export_onnx<a class="headerlink" href="#export-onnx" title="Permalink to this headline">¶</a></h2>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%%</span><span class="k">bash</span>
+python3 -m openpifpaf.export_onnx --help
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>usage: python3 -m openpifpaf.export_onnx [-h] [--version]
+                                         [--resnet-no-pretrain]
+                                         [--resnet-pool0-stride RESNET_POOL0_STRIDE]
+                                         [--resnet-input-conv-stride RESNET_INPUT_CONV_STRIDE]
+                                         [--resnet-input-conv2-stride RESNET_INPUT_CONV2_STRIDE]
+                                         [--resnet-block5-dilation RESNET_BLOCK5_DILATION]
+                                         [--resnet-remove-last-block]
+                                         [--shufflenetv2k-input-conv2-stride SHUFFLENETV2K_INPUT_CONV2_STRIDE]
+                                         [--shufflenetv2k-input-conv2-outchannels SHUFFLENETV2K_INPUT_CONV2_OUTCHANNELS]
+                                         [--shufflenetv2k-stage4-dilation SHUFFLENETV2K_STAGE4_DILATION]
+                                         [--shufflenetv2k-kernel SHUFFLENETV2K_KERNEL]
+                                         [--shufflenetv2k-conv5-as-stage]
+                                         [--shufflenetv2k-instance-norm | --shufflenetv2k-group-norm]
+                                         [--shufflenetv2k-leaky-relu]
+                                         [--squeezenet-no-pretrain]
+                                         [--mobilenetv2-no-pretrain]
+                                         [--shufflenetv2-no-pretrain]
+                                         [--cf3-dropout CF3_DROPOUT]
+                                         [--cf3-no-inplace-ops]
+                                         [--checkpoint CHECKPOINT]
+                                         [--basenet BASENET]
+                                         [--cross-talk CROSS_TALK]
+                                         [--no-download-progress]
+                                         [--head-consolidation {keep,create,filter_and_extend}]
+                                         [--outfile OUTFILE] [--simplify]
+                                         [--polish] [--optimize] [--check]
+                                         [--input-width INPUT_WIDTH]
+                                         [--input-height INPUT_HEIGHT]
+
+Export a checkpoint as an ONNX model.
+
+Applies onnx utilities to improve the exported model and
+also tries to simplify the model with onnx-simplifier.
+
+https://github.com/onnx/onnx/blob/master/docs/PythonAPIOverview.md
+https://github.com/daquexian/onnx-simplifier
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --version             show program&#39;s version number and exit
+  --outfile OUTFILE
+  --simplify
+  --polish              runs checker, optimizer and shape inference (default:
+                        False)
+  --optimize
+  --check
+  --input-width INPUT_WIDTH
+  --input-height INPUT_HEIGHT
+
+ResNet:
+  --resnet-no-pretrain  use randomly initialized models (default: True)
+  --resnet-pool0-stride RESNET_POOL0_STRIDE
+                        stride of zero removes the pooling op (default: 0)
+  --resnet-input-conv-stride RESNET_INPUT_CONV_STRIDE
+                        stride of the input convolution (default: 2)
+  --resnet-input-conv2-stride RESNET_INPUT_CONV2_STRIDE
+                        stride of the optional 2nd input convolution (default:
+                        0)
+  --resnet-block5-dilation RESNET_BLOCK5_DILATION
+                        use dilated convs in block5 (default: 1)
+  --resnet-remove-last-block
+                        create a network without the last block (default:
+                        False)
+
+shufflenetv2k:
+  --shufflenetv2k-input-conv2-stride SHUFFLENETV2K_INPUT_CONV2_STRIDE
+                        stride of the optional 2nd input convolution (default:
+                        0)
+  --shufflenetv2k-input-conv2-outchannels SHUFFLENETV2K_INPUT_CONV2_OUTCHANNELS
+                        out channels of the optional 2nd input convolution
+                        (default: None)
+  --shufflenetv2k-stage4-dilation SHUFFLENETV2K_STAGE4_DILATION
+                        dilation factor of stage 4 (default: 1)
+  --shufflenetv2k-kernel SHUFFLENETV2K_KERNEL
+                        kernel width (default: 5)
+  --shufflenetv2k-conv5-as-stage
+  --shufflenetv2k-instance-norm
+  --shufflenetv2k-group-norm
+  --shufflenetv2k-leaky-relu
+
+SqueezeNet:
+  --squeezenet-no-pretrain
+                        use randomly initialized models (default: True)
+
+MobileNetV2:
+  --mobilenetv2-no-pretrain
+                        use randomly initialized models (default: True)
+
+ShuffleNetv2:
+  --shufflenetv2-no-pretrain
+                        use randomly initialized models (default: True)
+
+CompositeField3:
+  --cf3-dropout CF3_DROPOUT
+                        [experimental] zeroing probability of feature in head
+                        input (default: 0.0)
+  --cf3-no-inplace-ops  alternative graph without inplace ops (default: True)
+
+network configuration:
+  --checkpoint CHECKPOINT
+                        Path to a local checkpoint. Or provide one of the
+                        following to download a pretrained model:
+                        &quot;mobilenetv2&quot;, &quot;resnet50&quot;, &quot;shufflenetv2k16&quot;,
+                        &quot;shufflenetv2k16-withdense&quot;, &quot;shufflenetv2k30&quot;
+                        (default: None)
+  --basenet BASENET     base network, e.g. resnet50 (default: None)
+  --cross-talk CROSS_TALK
+                        [experimental] (default: 0.0)
+  --no-download-progress
+                        suppress model download progress bar (default: True)
+  --head-consolidation {keep,create,filter_and_extend}
+                        consolidation strategy for a checkpoint&#39;s head
+                        networks and the heads specified by the datamodule
+                        (default: filter_and_extend)
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="export-coreml">
+<span id="cli-help-export-coreml"></span><h2>export_coreml<a class="headerlink" href="#export-coreml" title="Permalink to this headline">¶</a></h2>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%%</span><span class="k">bash</span>
+python3 -m openpifpaf.export_coreml --help
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>usage: python3 -m openpifpaf.export_coreml [-h] [--version]
+                                           [--squeezenet-no-pretrain]
+                                           [--shufflenetv2k-input-conv2-stride SHUFFLENETV2K_INPUT_CONV2_STRIDE]
+                                           [--shufflenetv2k-input-conv2-outchannels SHUFFLENETV2K_INPUT_CONV2_OUTCHANNELS]
+                                           [--shufflenetv2k-stage4-dilation SHUFFLENETV2K_STAGE4_DILATION]
+                                           [--shufflenetv2k-kernel SHUFFLENETV2K_KERNEL]
+                                           [--shufflenetv2k-conv5-as-stage]
+                                           [--shufflenetv2k-instance-norm | --shufflenetv2k-group-norm]
+                                           [--shufflenetv2k-leaky-relu]
+                                           [--mobilenetv2-no-pretrain]
+                                           [--shufflenetv2-no-pretrain]
+                                           [--resnet-no-pretrain]
+                                           [--resnet-pool0-stride RESNET_POOL0_STRIDE]
+                                           [--resnet-input-conv-stride RESNET_INPUT_CONV_STRIDE]
+                                           [--resnet-input-conv2-stride RESNET_INPUT_CONV2_STRIDE]
+                                           [--resnet-block5-dilation RESNET_BLOCK5_DILATION]
+                                           [--resnet-remove-last-block]
+                                           [--cf3-dropout CF3_DROPOUT]
+                                           [--cf3-no-inplace-ops]
+                                           [--checkpoint CHECKPOINT]
+                                           [--basenet BASENET]
+                                           [--cross-talk CROSS_TALK]
+                                           [--no-download-progress]
+                                           [--head-consolidation {keep,create,filter_and_extend}]
+                                           [--outfile OUTFILE]
+                                           [--input-width INPUT_WIDTH]
+                                           [--input-height INPUT_HEIGHT]
+                                           [--minimum-deployment-target {iOS13,iOS14}]
+
+Export a checkpoint as a CoreML model.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --version             show program&#39;s version number and exit
+  --outfile OUTFILE
+  --input-width INPUT_WIDTH
+  --input-height INPUT_HEIGHT
+  --minimum-deployment-target {iOS13,iOS14}
+
+SqueezeNet:
+  --squeezenet-no-pretrain
+                        use randomly initialized models (default: True)
+
+shufflenetv2k:
+  --shufflenetv2k-input-conv2-stride SHUFFLENETV2K_INPUT_CONV2_STRIDE
+                        stride of the optional 2nd input convolution (default:
+                        0)
+  --shufflenetv2k-input-conv2-outchannels SHUFFLENETV2K_INPUT_CONV2_OUTCHANNELS
+                        out channels of the optional 2nd input convolution
+                        (default: None)
+  --shufflenetv2k-stage4-dilation SHUFFLENETV2K_STAGE4_DILATION
+                        dilation factor of stage 4 (default: 1)
+  --shufflenetv2k-kernel SHUFFLENETV2K_KERNEL
+                        kernel width (default: 5)
+  --shufflenetv2k-conv5-as-stage
+  --shufflenetv2k-instance-norm
+  --shufflenetv2k-group-norm
+  --shufflenetv2k-leaky-relu
+
+MobileNetV2:
+  --mobilenetv2-no-pretrain
+                        use randomly initialized models (default: True)
+
+ShuffleNetv2:
+  --shufflenetv2-no-pretrain
+                        use randomly initialized models (default: True)
+
+ResNet:
+  --resnet-no-pretrain  use randomly initialized models (default: True)
+  --resnet-pool0-stride RESNET_POOL0_STRIDE
+                        stride of zero removes the pooling op (default: 0)
+  --resnet-input-conv-stride RESNET_INPUT_CONV_STRIDE
+                        stride of the input convolution (default: 2)
+  --resnet-input-conv2-stride RESNET_INPUT_CONV2_STRIDE
+                        stride of the optional 2nd input convolution (default:
+                        0)
+  --resnet-block5-dilation RESNET_BLOCK5_DILATION
+                        use dilated convs in block5 (default: 1)
+  --resnet-remove-last-block
+                        create a network without the last block (default:
+                        False)
+
+CompositeField3:
+  --cf3-dropout CF3_DROPOUT
+                        [experimental] zeroing probability of feature in head
+                        input (default: 0.0)
+  --cf3-no-inplace-ops  alternative graph without inplace ops (default: True)
+
+network configuration:
+  --checkpoint CHECKPOINT
+                        Path to a local checkpoint. Or provide one of the
+                        following to download a pretrained model:
+                        &quot;mobilenetv2&quot;, &quot;resnet50&quot;, &quot;shufflenetv2k16&quot;,
+                        &quot;shufflenetv2k16-withdense&quot;, &quot;shufflenetv2k30&quot;
+                        (default: None)
+  --basenet BASENET     base network, e.g. resnet50 (default: None)
+  --cross-talk CROSS_TALK
+                        [experimental] (default: 0.0)
+  --no-download-progress
+                        suppress model download progress bar (default: True)
+  --head-consolidation {keep,create,filter_and_extend}
+                        consolidation strategy for a checkpoint&#39;s head
+                        networks and the heads specified by the datamodule
+                        (default: filter_and_extend)
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="benchmark">
+<span id="cli-help-benchmark"></span><h2>benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%%</span><span class="k">bash</span>
+python3 -m openpifpaf.benchmark --help
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>usage: python3 -m openpifpaf.benchmark [-h] [--version] [--output OUTPUT]
+                                       [--checkpoints CHECKPOINTS [CHECKPOINTS ...]]
+                                       [--iccv2019-ablation]
+                                       [--v012-ablation-1] [--v012-ablation-2]
+                                       [--v012-ablation-3] [--v012-ablation-4]
+                                       [--debug]
+
+Benchmark.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --version             show program&#39;s version number and exit
+  --output OUTPUT       output file name (default: None)
+  --checkpoints CHECKPOINTS [CHECKPOINTS ...]
+                        checkpoints to evaluate (default: [&#39;resnet50&#39;,
+                        &#39;shufflenetv2k16&#39;, &#39;shufflenetv2k30&#39;])
+  --iccv2019-ablation
+  --v012-ablation-1
+  --v012-ablation-2
+  --v012-ablation-3
+  --v012-ablation-4
+
+logging:
+  --debug               print debug messages (default: False)
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="logs">
+<span id="cli-help-logs"></span><h2>logs<a class="headerlink" href="#logs" title="Permalink to this headline">¶</a></h2>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%%</span><span class="k">bash</span>
+python3 -m openpifpaf.logs --help
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>usage: python3 -m openpifpaf.logs [options] log_files
+
+Configuring and visualizing log files.
+
+positional arguments:
+  log_file              path to log file(s)
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --version             show program&#39;s version number and exit
+  --label LABEL [LABEL ...]
+                        label(s) in the same order as files (default: None)
+  --eval-suffix EVAL_SUFFIX
+                        suffix of evaluation files to look for (default:
+                        .eval-*.stats.json)
+  --first-epoch FIRST_EPOCH
+                        epoch (can be float) of first data point to plot
+                        (default: 1e-06)
+  --no-share-y          dont share y access (default: True)
+  -o OUTPUT, --output OUTPUT
+                        output prefix (default is log_file + .) (default:
+                        None)
+  --show-mtl-sigmas
+
+show:
+  --save-all [SAVE_ALL]
+                        every plot is saved (optional to specify directory)
+                        (default: None)
+  --show                show every plot, i.e., call matplotlib show()
+                        (default: False)
+  --image-width IMAGE_WIDTH
+                        image width for matplotlib (in inches) (default: None)
+  --image-height IMAGE_HEIGHT
+                        image height for matplotlib (in inches) (default:
+                        None)
+  --image-dpi-factor IMAGE_DPI_FACTOR
+                        increase dpi of output image by this factor (default:
+                        1.0)
+  --image-min-dpi IMAGE_MIN_DPI
+                        minimum dpi of image output (default: 50.0)
+  --show-file-extension SHOW_FILE_EXTENSION
+                        default file extension (default: png)
+  --textbox-alpha TEXTBOX_ALPHA
+                        transparency of annotation text box (default: 0.5)
+  --text-color TEXT_COLOR
+                        annotation text color (default: white)
+  --font-size FONT_SIZE
+                        annotation font size (default: 8)
+  --monocolor-connections
+                        use a single color per instance (default: False)
+  --line-width LINE_WIDTH
+                        skeleton line width (default: None)
+  --skeleton-solid-threshold SKELETON_SOLID_THRESHOLD
+                        set to 0.0 to draw all connections as solid lines
+                        (default: 0.5)
+  --show-box            show annotation bounding boxes (default: False)
+  --white-overlay [WHITE_OVERLAY]
+                        increase contrast to annotations by making image
+                        whiter (default: False)
+  --show-joint-scales   show boxes representing joint sizes (default: False)
+  --show-joint-confidences
+                        print per-joint confidences on skeleton annotations
+                        (default: False)
+  --show-decoding-order
+  --show-frontier-order
+  --show-only-decoded-connections
+                        to debug which connections were used for decoding
+                        (default: False)
+  --video-fps VIDEO_FPS
+                        output video frame rate (frames per second) (default:
+                        10)
+  --video-dpi VIDEO_DPI
+                        output video resolution (dots per inch) (default: 100)
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            kernelName: "python3",
+            path: "./."
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+              </div>
+              
+        
+        <div class='prev-next-bottom'>
+            
+    <a class='left-prev' id="prev-link" href="train.html" title="previous page">Training</a>
+    <a class='right-next' id="next-link" href="plugins_overview.html" title="next page">Plugins</a>
+
+        </div>
+        
+        </div>
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By <a href="https://www.svenkreiss.com">Sven Kreiss</a> and <a href="https://github.com/vita-epfl/openpifpaf/graphs/contributors">contributors</a>.<br/>
+        
+            &copy; Copyright 2020-2021.<br/>
+          <div class="extra_footer">
+            <div>Powered by <a href="https://jupyterbook.org/">Jupyter Book</a>.</div>
+
+          </div>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    
+  <script src="_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    
+  </body>
+</html>

@@ -1,0 +1,1105 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prediction &#8212; OpenPifPaf Guide DEV</title>
+    
+  <link rel="stylesheet" href="_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/sphinx-book-theme.37f24b989f4638ff9c27c22dc7559d4f.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystyle.css" />
+    <link rel="stylesheet" type="text/css" href="_static/panels-main.c949a650a448cc0ae9fd3441c0e17fb0.css" />
+    <link rel="stylesheet" type="text/css" href="_static/panels-variables.06eb56fa6e07937060861dad626602ad.css" />
+    
+  <link rel="preload" as="script" href="_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/togglebutton.js"></script>
+    <script src="_static/clipboard.min.js"></script>
+    <script src="_static/copybutton.js"></script>
+    <script >var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <script src="_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
+    <script async="async" src="https://unpkg.com/thebelab@latest/lib/index.js"></script>
+    <script >
+        const thebe_selector = ".thebe"
+        const thebe_selector_input = "pre"
+        const thebe_selector_output = ".output"
+    </script>
+    <script async="async" src="_static/sphinx-thebe.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]], "processRefs": false, "processEnvironments": false}})</script>
+    <link rel="shortcut icon" href="_static/favicon.png"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Examples" href="examples.html" />
+    <link rel="prev" title="Introduction" href="intro.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="index.html">
+  
+  <img src="_static/logo.png" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">OpenPifPaf Guide DEV</h1>
+  
+</a>
+</div><form class="bd-search d-flex align-items-center" action="search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search this book..." aria-label="Search this book..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+    <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="intro.html">
+   Introduction
+  </a>
+ </li>
+</ul>
+<p class="caption collapsible-parent">
+ <span class="caption-text">
+  Getting Started
+ </span>
+</p>
+<ul class="current nav sidenav_l1">
+ <li class="toctree-l1 current active">
+  <a class="current reference internal" href="#">
+   Prediction
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="examples.html">
+   Examples
+  </a>
+ </li>
+</ul>
+<p class="caption collapsible-parent">
+ <span class="caption-text">
+  Chapters
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="predict_api.html">
+   Prediction API
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="models.html">
+   Models
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="datasets.html">
+   Datasets
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="train.html">
+   Training
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="cli_help.html">
+   Command Line
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="plugins_overview.html">
+   Plugins
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="faq.html">
+   FAQ
+  </a>
+ </li>
+</ul>
+<p class="caption collapsible-parent">
+ <span class="caption-text">
+  Tutorials
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="plugins_crowdpose.html">
+   CrowdPose
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tutorial_opencv.html">
+   OpenCV
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="plugins_cifar10.html">
+   Cifar10
+  </a>
+ </li>
+</ul>
+<p class="caption collapsible-parent">
+ <span class="caption-text">
+  Reference
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="moduledocs.html">
+   Modules
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="bibliography.html">
+   Bibliography
+  </a>
+ </li>
+</ul>
+<p class="caption collapsible-parent">
+ <span class="caption-text">
+  Development
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="dev.html">
+   Contribute
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="performance.html">
+   Performance
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference external" href="https://github.com/vita-epfl/openpifpaf">
+   GitHub
+   <i class="fas fa-external-link-alt">
+   </i>
+  </a>
+ </li>
+</ul>
+
+</nav> <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  This is the dev version of the Guide. Here is the <a href="https://vita-epfl.github.io/openpifpaf/">stable version</a>.
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="topbar container-xl fixed-top">
+    <div class="topbar-contents row">
+        <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show"></div>
+        <div class="col pl-md-4 topbar-main">
+            
+            <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+                data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+                aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+                title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+                <i class="fas fa-bars"></i>
+                <i class="fas fa-arrow-left"></i>
+                <i class="fas fa-arrow-up"></i>
+            </button>
+            
+            
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="_sources/predict_cli.ipynb"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.ipynb</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+</div>
+
+            <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/vita-epfl/openpifpaf"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        
+        
+    </div>
+</div>
+
+
+            <!-- Full screen (wrap in <a> to have style consistency -->
+            <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                    data-placement="bottom" onclick="toggleFullScreen()" aria-label="Fullscreen mode"
+                    title="Fullscreen mode"><i
+                        class="fas fa-expand"></i></button></a>
+
+            <!-- Launch buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Launch interactive content"><i class="fas fa-rocket"></i></button>
+    <div class="dropdown-buttons">
+        
+        <a class="binder-button" href="https://mybinder.org/v2/gh/vita-epfl/openpifpaf/dev?urlpath=tree/guide/predict_cli.ipynb"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Launch Binder" data-toggle="tooltip"
+                data-placement="left"><img class="binder-button-logo"
+                    src="_static/images/logo_binder.svg"
+                    alt="Interact on binder">Binder</button></a>
+        
+        
+        
+        
+    </div>
+</div>
+
+        </div>
+
+        <!-- Table of contents -->
+        <div class="d-none d-md-block col-md-2 bd-toc show">
+            
+        <div class="tocsection onthispage pt-5 pb-3">
+            <i class="fas fa-list"></i> On this page
+        </div>
+        <nav id="bd-toc-nav">
+            <ul class="nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#images">
+   Images
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#videos">
+   Videos
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#debug">
+   Debug
+  </a>
+ </li>
+</ul>
+
+        </nav>
+        
+        </div>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="prediction">
+<h1>Prediction<a class="headerlink" href="#prediction" title="Permalink to this headline">¶</a></h1>
+<p>Use the <a class="reference internal" href="cli_help.html#cli-help-predict"><span class="std std-ref">openpifpaf.predict</span></a> tool on the command line to run
+multi-person pose estimation on images.
+To create predictions from other Python modules, please refer to <a class="reference internal" href="predict_api.html"><span class="doc">Prediction API</span></a>.
+First we present the command line tool for predictions on images,
+<a class="reference internal" href="cli_help.html#cli-help-predict"><span class="std std-ref">openpifpaf.predict</span></a>. Then follows
+a short introduction to OpenPifPaf predictions on videos with
+<a class="reference internal" href="cli_help.html#cli-help-video"><span class="std std-ref">openpifpaf.video</span></a>.</p>
+<div class="section" id="images">
+<h2>Images<a class="headerlink" href="#images" title="Permalink to this headline">¶</a></h2>
+<p>Run <a class="reference internal" href="cli_help.html#cli-help-predict"><span class="std std-ref">openpifpaf.predict</span></a> on an image:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%%</span><span class="k">bash</span>
+python -m openpifpaf.predict coco/000000081988.jpg --image-output --json-output --image-min-dpi=200 --show-file-extension=jpeg
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:__main__:neural network device: cpu (CUDA available: False, count: 0)
+INFO:openpifpaf.decoder.cifcaf:5 annotations: [15, 13, 15, 12, 13]
+INFO:__main__:batch 0: coco/000000081988.jpg
+</pre></div>
+</div>
+</div>
+</div>
+<p>This command produced two outputs: an image and a json file.
+You can provide file or folder arguments to the <code class="docutils literal notranslate"><span class="pre">--image-output</span></code> and <code class="docutils literal notranslate"><span class="pre">--json-output</span></code> flags.
+Here, we used the default which created these two files:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>coco/000000081988.jpg.predictions.jpeg
+coco/000000081988.jpg.predictions.json
+</pre></div>
+</div>
+<p>Here is the image:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">IPython</span>
+<span class="n">IPython</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="s1">&#39;coco/000000081988.jpg.predictions.jpeg&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="_images/predict_cli_3_0.jpg" src="_images/predict_cli_3_0.jpg" />
+</div>
+</div>
+<p>Image credit: “<a class="reference external" href="https://www.flickr.com/photos/fotologic/6038911779/in/photostream/">Learning to surf</a>” by fotologic which is licensed under <a class="reference external" href="https://creativecommons.org/licenses/by/2.0/">CC-BY-2.0</a>.</p>
+<p>And below is the json output. The json data is a list where each entry in the list corresponds to one pose annotation. In this case, there are five entries corresponding to the five people in the image. Each annotation contains information on <code class="docutils literal notranslate"><span class="pre">&quot;keypoints&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;bbox&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;score&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;category_id&quot;</span></code>.</p>
+<p>All coordinates are in pixel coordinates. The <code class="docutils literal notranslate"><span class="pre">&quot;keypoints&quot;</span></code> entry is in COCO format with triples of <code class="docutils literal notranslate"><span class="pre">(x,</span> <span class="pre">y,</span> <span class="pre">c)</span></code> (<code class="docutils literal notranslate"><span class="pre">c</span></code> for confidence) for every joint as listed under <a class="reference internal" href="datasets.html#coco-person-keypoints"><span class="std std-ref">COCO Person Keypoints</span></a>. The pixel coordinates have sub-pixel accuracy, i.e. 10.5 means the joint is between pixel 10 and 11.
+In rare cases, joints can be localized outside the field of view and then the pixel coordinates can be negative. When <code class="docutils literal notranslate"><span class="pre">c</span></code> is zero, the joint was not detected.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">&quot;bbox&quot;</span></code> (bounding box) format is <code class="docutils literal notranslate"><span class="pre">(x,</span> <span class="pre">y,</span> <span class="pre">w,</span> <span class="pre">h)</span></code>: the <span class="math notranslate nohighlight">\((x, y)\)</span> coordinate of the top-left corner followed by width and height.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">&quot;score&quot;</span></code> is a number between zero and one.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%%</span><span class="k">bash</span>
+python -m json.tool coco/000000081988.jpg.predictions.json
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[
+    {
+        &quot;keypoints&quot;: [
+            81.05,
+            316.75,
+            0.76,
+            85.05,
+            313.02,
+            0.86,
+            79.32,
+            312.26,
+            0.51,
+            99.84,
+            309.39,
+            0.92,
+            0.0,
+            -3.0,
+            0.0,
+            122.56,
+            316.91,
+            0.83,
+            78.57,
+            323.51,
+            0.83,
+            145.53,
+            348.65,
+            0.85,
+            57.85,
+            351.27,
+            0.77,
+            125.43,
+            355.2,
+            0.75,
+            51.85,
+            381.37,
+            0.81,
+            122.16,
+            361.67,
+            0.76,
+            95.94,
+            363.63,
+            0.77,
+            150.78,
+            360.02,
+            0.71,
+            73.45,
+            367.08,
+            0.7,
+            104.37,
+            380.81,
+            0.51,
+            0.0,
+            -3.0,
+            0.0
+        ],
+        &quot;bbox&quot;: [
+            46.28,
+            306.1,
+            112.46,
+            82.12
+        ],
+        &quot;score&quot;: 0.721,
+        &quot;category_id&quot;: 1
+    },
+    {
+        &quot;keypoints&quot;: [
+            0.0,
+            -3.0,
+            0.0,
+            0.0,
+            -3.0,
+            0.0,
+            0.0,
+            -3.0,
+            0.0,
+            388.3,
+            149.17,
+            0.87,
+            410.57,
+            149.43,
+            0.78,
+            376.69,
+            177.4,
+            0.87,
+            426.38,
+            178.2,
+            0.88,
+            337.78,
+            190.26,
+            0.86,
+            465.85,
+            193.14,
+            0.88,
+            300.4,
+            193.46,
+            0.84,
+            495.3,
+            185.92,
+            0.96,
+            388.79,
+            251.98,
+            0.81,
+            415.7,
+            252.36,
+            0.83,
+            385.18,
+            315.79,
+            0.56,
+            409.09,
+            317.39,
+            0.79,
+            0.0,
+            -3.0,
+            0.0,
+            402.77,
+            366.04,
+            0.46
+        ],
+        &quot;bbox&quot;: [
+            289.69,
+            142.93,
+            214.73,
+            234.25
+        ],
+        &quot;score&quot;: 0.689,
+        &quot;category_id&quot;: 1
+    },
+    {
+        &quot;keypoints&quot;: [
+            360.19,
+            299.24,
+            0.88,
+            364.0,
+            294.43,
+            0.93,
+            355.15,
+            294.86,
+            0.81,
+            370.5,
+            296.33,
+            0.69,
+            348.11,
+            298.06,
+            0.82,
+            381.18,
+            319.06,
+            0.76,
+            340.15,
+            322.18,
+            0.81,
+            385.63,
+            345.9,
+            0.49,
+            334.85,
+            350.04,
+            0.77,
+            374.45,
+            357.05,
+            0.37,
+            334.55,
+            364.27,
+            0.74,
+            376.55,
+            362.55,
+            0.71,
+            352.5,
+            363.32,
+            0.76,
+            392.25,
+            359.75,
+            0.4,
+            328.03,
+            370.88,
+            0.44,
+            0.0,
+            -3.0,
+            0.0,
+            0.0,
+            -3.0,
+            0.0
+        ],
+        &quot;bbox&quot;: [
+            321.4,
+            292.26,
+            77.76,
+            85.25
+        ],
+        &quot;score&quot;: 0.679,
+        &quot;category_id&quot;: 1
+    },
+    {
+        &quot;keypoints&quot;: [
+            240.05,
+            319.75,
+            0.4,
+            0.0,
+            -3.0,
+            0.0,
+            235.65,
+            317.24,
+            0.54,
+            0.0,
+            -3.0,
+            0.0,
+            221.8,
+            315.29,
+            0.61,
+            238.35,
+            316.56,
+            0.55,
+            201.4,
+            319.57,
+            0.68,
+            241.53,
+            346.43,
+            0.51,
+            195.06,
+            348.27,
+            0.69,
+            241.09,
+            375.42,
+            0.56,
+            194.18,
+            375.16,
+            0.84,
+            221.58,
+            334.72,
+            0.55,
+            199.2,
+            334.38,
+            0.58,
+            224.83,
+            368.69,
+            0.44,
+            0.0,
+            -3.0,
+            0.0,
+            0.0,
+            -3.0,
+            0.0,
+            0.0,
+            -3.0,
+            0.0
+        ],
+        &quot;bbox&quot;: [
+            190.05,
+            311.28,
+            56.53,
+            68.81
+        ],
+        &quot;score&quot;: 0.495,
+        &quot;category_id&quot;: 1
+    },
+    {
+        &quot;keypoints&quot;: [
+            493.32,
+            349.64,
+            0.39,
+            494.7,
+            346.12,
+            0.43,
+            0.0,
+            -3.0,
+            0.0,
+            504.23,
+            334.34,
+            0.5,
+            0.0,
+            -3.0,
+            0.0,
+            522.09,
+            331.23,
+            0.45,
+            493.33,
+            334.16,
+            0.37,
+            549.75,
+            351.93,
+            0.43,
+            490.79,
+            353.4,
+            0.66,
+            0.0,
+            -3.0,
+            0.0,
+            488.61,
+            378.36,
+            0.88,
+            544.22,
+            342.05,
+            0.46,
+            523.28,
+            345.58,
+            0.47,
+            524.03,
+            379.89,
+            0.52,
+            502.76,
+            380.13,
+            0.49,
+            570.11,
+            383.78,
+            0.41,
+            0.0,
+            -3.0,
+            0.0
+        ],
+        &quot;bbox&quot;: [
+            484.46,
+            325.19,
+            92.29,
+            65.22
+        ],
+        &quot;score&quot;: 0.461,
+        &quot;category_id&quot;: 1
+    }
+]
+</pre></div>
+</div>
+</div>
+</div>
+<p>Optional Arguments:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--show</span></code>: show interactive matplotlib output</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--debug-indices</span></code>: enable debug messages and debug plots (see <a class="reference internal" href="examples.html#example-debug"><span class="std std-ref">Examples</span></a>)</p></li>
+</ul>
+<p>Full list of arguments is available with <code class="docutils literal notranslate"><span class="pre">--help</span></code>: <a class="reference internal" href="cli_help.html#cli-help-predict"><span class="std std-ref">CLI help for predict</span></a>.</p>
+</div>
+<div class="section" id="videos">
+<h2>Videos<a class="headerlink" href="#videos" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>python3 -m openpifpaf.video --source myvideotoprocess.mp4 --video-output --json-output
+</pre></div>
+</div>
+<p>Requires OpenCV. The <code class="docutils literal notranslate"><span class="pre">--video-output</span></code> option also requires matplotlib.
+Replace <code class="docutils literal notranslate"><span class="pre">myvideotoprocess.mp4</span></code> with <code class="docutils literal notranslate"><span class="pre">0</span></code> for webcam0 or other OpenCV compatible sources.
+The full list of arguments is available with <code class="docutils literal notranslate"><span class="pre">--help</span></code>: <a class="reference internal" href="cli_help.html#cli-help-video"><span class="std std-ref">CLI help for video</span></a>.</p>
+<p>In v0.12.6, we introduced the ability to pipe the output to a virtual camera.
+This virtual camera can then be used as the source camera in Zoom and other
+conferencing softwares. You need a virtual camera on your system, e.g.
+from <a class="reference external" href="https://obsproject.com">OBS Studio</a> and need to
+install <code class="docutils literal notranslate"><span class="pre">pip3</span> <span class="pre">install</span> <span class="pre">pyvirtualcam</span></code>. Then you can use the
+<code class="docutils literal notranslate"><span class="pre">--video-output=virtualcam</span></code> argument.</p>
+</div>
+<div class="section" id="debug">
+<h2>Debug<a class="headerlink" href="#debug" title="Permalink to this headline">¶</a></h2>
+<p>Obtain extra information by adding <code class="docutils literal notranslate"><span class="pre">--debug</span></code> to the command line. It will
+show the structure of the neural network and timing information in the decoder.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%%</span><span class="k">bash</span>
+python -m openpifpaf.predict coco/000000081988.jpg --image-output --json-output --debug --image-min-dpi=200 --show-file-extension=jpeg
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:__main__:neural network device: cpu (CUDA available: False, count: 0)
+DEBUG:openpifpaf.network.factory:Shell(
+  (base_net): ShuffleNetV2K(
+    (input_block): Sequential(
+      (0): Sequential(
+        (0): Conv2d(3, 24, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+        (1): BatchNorm2d(24, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+        (2): ReLU(inplace=True)
+      )
+    )
+    (stage2): Sequential(
+      (0): InvertedResidualK(
+        (branch1): Sequential(
+          (0): Conv2d(24, 24, kernel_size=(5, 5), stride=(2, 2), padding=(2, 2), groups=24, bias=False)
+          (1): BatchNorm2d(24, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (2): Conv2d(24, 174, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (3): BatchNorm2d(174, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (4): ReLU(inplace=True)
+        )
+        (branch2): Sequential(
+          (0): Conv2d(24, 174, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (1): BatchNorm2d(174, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (2): ReLU(inplace=True)
+          (3): Conv2d(174, 174, kernel_size=(5, 5), stride=(2, 2), padding=(2, 2), groups=174, bias=False)
+          (4): BatchNorm2d(174, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (5): Conv2d(174, 174, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (6): BatchNorm2d(174, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (7): ReLU(inplace=True)
+        )
+      )
+      (1): InvertedResidualK(
+        (branch2): Sequential(
+          (0): Conv2d(174, 174, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (1): BatchNorm2d(174, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (2): ReLU(inplace=True)
+          (3): Conv2d(174, 174, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2), groups=174, bias=False)
+          (4): BatchNorm2d(174, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (5): Conv2d(174, 174, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (6): BatchNorm2d(174, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (7): ReLU(inplace=True)
+        )
+      )
+      (2): InvertedResidualK(
+        (branch2): Sequential(
+          (0): Conv2d(174, 174, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (1): BatchNorm2d(174, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (2): ReLU(inplace=True)
+          (3): Conv2d(174, 174, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2), groups=174, bias=False)
+          (4): BatchNorm2d(174, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (5): Conv2d(174, 174, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (6): BatchNorm2d(174, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (7): ReLU(inplace=True)
+        )
+      )
+      (3): InvertedResidualK(
+        (branch2): Sequential(
+          (0): Conv2d(174, 174, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (1): BatchNorm2d(174, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (2): ReLU(inplace=True)
+          (3): Conv2d(174, 174, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2), groups=174, bias=False)
+          (4): BatchNorm2d(174, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (5): Conv2d(174, 174, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (6): BatchNorm2d(174, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (7): ReLU(inplace=True)
+        )
+      )
+    )
+    (stage3): Sequential(
+      (0): InvertedResidualK(
+        (branch1): Sequential(
+          (0): Conv2d(348, 348, kernel_size=(5, 5), stride=(2, 2), padding=(2, 2), groups=348, bias=False)
+          (1): BatchNorm2d(348, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (2): Conv2d(348, 348, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (3): BatchNorm2d(348, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (4): ReLU(inplace=True)
+        )
+        (branch2): Sequential(
+          (0): Conv2d(348, 348, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (1): BatchNorm2d(348, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (2): ReLU(inplace=True)
+          (3): Conv2d(348, 348, kernel_size=(5, 5), stride=(2, 2), padding=(2, 2), groups=348, bias=False)
+          (4): BatchNorm2d(348, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (5): Conv2d(348, 348, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (6): BatchNorm2d(348, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (7): ReLU(inplace=True)
+        )
+      )
+      (1): InvertedResidualK(
+        (branch2): Sequential(
+          (0): Conv2d(348, 348, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (1): BatchNorm2d(348, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (2): ReLU(inplace=True)
+          (3): Conv2d(348, 348, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2), groups=348, bias=False)
+          (4): BatchNorm2d(348, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (5): Conv2d(348, 348, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (6): BatchNorm2d(348, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (7): ReLU(inplace=True)
+        )
+      )
+      (2): InvertedResidualK(
+        (branch2): Sequential(
+          (0): Conv2d(348, 348, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (1): BatchNorm2d(348, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (2): ReLU(inplace=True)
+          (3): Conv2d(348, 348, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2), groups=348, bias=False)
+          (4): BatchNorm2d(348, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (5): Conv2d(348, 348, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (6): BatchNorm2d(348, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (7): ReLU(inplace=True)
+        )
+      )
+      (3): InvertedResidualK(
+        (branch2): Sequential(
+          (0): Conv2d(348, 348, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (1): BatchNorm2d(348, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (2): ReLU(inplace=True)
+          (3): Conv2d(348, 348, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2), groups=348, bias=False)
+          (4): BatchNorm2d(348, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (5): Conv2d(348, 348, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (6): BatchNorm2d(348, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (7): ReLU(inplace=True)
+        )
+      )
+      (4): InvertedResidualK(
+        (branch2): Sequential(
+          (0): Conv2d(348, 348, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (1): BatchNorm2d(348, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (2): ReLU(inplace=True)
+          (3): Conv2d(348, 348, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2), groups=348, bias=False)
+          (4): BatchNorm2d(348, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (5): Conv2d(348, 348, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (6): BatchNorm2d(348, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (7): ReLU(inplace=True)
+        )
+      )
+      (5): InvertedResidualK(
+        (branch2): Sequential(
+          (0): Conv2d(348, 348, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (1): BatchNorm2d(348, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (2): ReLU(inplace=True)
+          (3): Conv2d(348, 348, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2), groups=348, bias=False)
+          (4): BatchNorm2d(348, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (5): Conv2d(348, 348, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (6): BatchNorm2d(348, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (7): ReLU(inplace=True)
+        )
+      )
+      (6): InvertedResidualK(
+        (branch2): Sequential(
+          (0): Conv2d(348, 348, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (1): BatchNorm2d(348, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (2): ReLU(inplace=True)
+          (3): Conv2d(348, 348, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2), groups=348, bias=False)
+          (4): BatchNorm2d(348, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (5): Conv2d(348, 348, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (6): BatchNorm2d(348, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (7): ReLU(inplace=True)
+        )
+      )
+      (7): InvertedResidualK(
+        (branch2): Sequential(
+          (0): Conv2d(348, 348, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (1): BatchNorm2d(348, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (2): ReLU(inplace=True)
+          (3): Conv2d(348, 348, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2), groups=348, bias=False)
+          (4): BatchNorm2d(348, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (5): Conv2d(348, 348, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (6): BatchNorm2d(348, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (7): ReLU(inplace=True)
+        )
+      )
+    )
+    (stage4): Sequential(
+      (0): InvertedResidualK(
+        (branch1): Sequential(
+          (0): Conv2d(696, 696, kernel_size=(5, 5), stride=(2, 2), padding=(2, 2), groups=696, bias=False)
+          (1): BatchNorm2d(696, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (2): Conv2d(696, 696, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (3): BatchNorm2d(696, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (4): ReLU(inplace=True)
+        )
+        (branch2): Sequential(
+          (0): Conv2d(696, 696, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (1): BatchNorm2d(696, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (2): ReLU(inplace=True)
+          (3): Conv2d(696, 696, kernel_size=(5, 5), stride=(2, 2), padding=(2, 2), groups=696, bias=False)
+          (4): BatchNorm2d(696, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (5): Conv2d(696, 696, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (6): BatchNorm2d(696, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (7): ReLU(inplace=True)
+        )
+      )
+      (1): InvertedResidualK(
+        (branch2): Sequential(
+          (0): Conv2d(696, 696, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (1): BatchNorm2d(696, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (2): ReLU(inplace=True)
+          (3): Conv2d(696, 696, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2), groups=696, bias=False)
+          (4): BatchNorm2d(696, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (5): Conv2d(696, 696, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (6): BatchNorm2d(696, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (7): ReLU(inplace=True)
+        )
+      )
+      (2): InvertedResidualK(
+        (branch2): Sequential(
+          (0): Conv2d(696, 696, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (1): BatchNorm2d(696, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (2): ReLU(inplace=True)
+          (3): Conv2d(696, 696, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2), groups=696, bias=False)
+          (4): BatchNorm2d(696, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (5): Conv2d(696, 696, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (6): BatchNorm2d(696, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (7): ReLU(inplace=True)
+        )
+      )
+      (3): InvertedResidualK(
+        (branch2): Sequential(
+          (0): Conv2d(696, 696, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (1): BatchNorm2d(696, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (2): ReLU(inplace=True)
+          (3): Conv2d(696, 696, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2), groups=696, bias=False)
+          (4): BatchNorm2d(696, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (5): Conv2d(696, 696, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (6): BatchNorm2d(696, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+          (7): ReLU(inplace=True)
+        )
+      )
+    )
+    (conv5): Sequential(
+      (0): Conv2d(1392, 1392, kernel_size=(1, 1), stride=(1, 1), bias=False)
+      (1): BatchNorm2d(1392, eps=0.0001, momentum=0.01, affine=True, track_running_stats=True)
+      (2): ReLU(inplace=True)
+    )
+  )
+  (head_nets): ModuleList(
+    (0): CompositeField3(
+      (dropout): Dropout2d(p=0.0, inplace=False)
+      (conv): Conv2d(1392, 340, kernel_size=(1, 1), stride=(1, 1))
+      (upsample_op): PixelShuffle(upscale_factor=2)
+    )
+    (1): CompositeField3(
+      (dropout): Dropout2d(p=0.0, inplace=False)
+      (conv): Conv2d(1392, 684, kernel_size=(1, 1), stride=(1, 1))
+      (upsample_op): PixelShuffle(upscale_factor=2)
+    )
+  )
+)
+DEBUG:openpifpaf.decoder.factory:head names = [&#39;cif&#39;, &#39;caf&#39;]
+DEBUG:openpifpaf.visualizer.base:cif: indices = []
+DEBUG:openpifpaf.show.painters:color connections = True, lw = 2, marker = 6
+DEBUG:openpifpaf.show.painters:color connections = False, lw = 6, marker = 3
+DEBUG:openpifpaf.visualizer.base:caf: indices = []
+DEBUG:openpifpaf.show.painters:color connections = True, lw = 2, marker = 6
+DEBUG:openpifpaf.show.painters:color connections = False, lw = 6, marker = 3
+DEBUG:openpifpaf.decoder.factory:created 1 decoders
+DEBUG:openpifpaf.show.painters:color connections = False, lw = 6, marker = 3
+DEBUG:openpifpaf.transforms.pad:valid area before pad: [  0.   0. 639. 426.], image size = (640, 427)
+DEBUG:openpifpaf.transforms.pad:pad with (0, 3, 1, 3)
+DEBUG:openpifpaf.transforms.pad:valid area after pad: [  0.   3. 639. 426.], image size = (641, 433)
+DEBUG:openpifpaf.decoder.decoder:nn processing time: 0.828s
+DEBUG:openpifpaf.decoder.decoder:parallel execution with worker &lt;openpifpaf.decoder.decoder.DummyPool object at 0x7f24d50b4250&gt;
+DEBUG:openpifpaf.decoder.multi:task 0
+DEBUG:openpifpaf.decoder.cifcaf:initial annotations = 0
+DEBUG:openpifpaf.decoder.utils.cif_hr:target_intensities 0.006s
+DEBUG:openpifpaf.decoder.utils.cif_seeds:seeds 742, 0.002s (C++ 0.001s)
+DEBUG:openpifpaf.decoder.utils.caf_scored:scored caf (1096, 1028) in 0.004s
+DEBUG:openpifpaf.decoder.cifcaf:annotations 5, 0.020s
+DEBUG:openpifpaf.decoder.utils.nms:nms = 0.001s
+INFO:openpifpaf.decoder.cifcaf:5 annotations: [15, 13, 15, 12, 13]
+DEBUG:openpifpaf.decoder.decoder:time: nn = 0.829s, dec = 0.024s
+INFO:__main__:batch 0: coco/000000081988.jpg
+DEBUG:__main__:json output = coco/000000081988.jpg.predictions.json
+DEBUG:__main__:image output = coco/000000081988.jpg.predictions.jpeg
+DEBUG:openpifpaf.show.canvas:writing image to coco/000000081988.jpg.predictions.jpeg
+</pre></div>
+</div>
+</div>
+</div>
+<p>You can enable debug plots with <code class="docutils literal notranslate"><span class="pre">--debug-indices</span></code>.
+Please refer to <a class="reference internal" href="examples.html#example-debug"><span class="std std-ref">the debug outputs in the Examples</span></a> and
+some further <a class="reference internal" href="predict_api.html#predict-fields"><span class="std std-ref">debug outputs in the prediction API</span></a>.</p>
+</div>
+</div>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            kernelName: "python3",
+            path: "./."
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+              </div>
+              
+        
+        <div class='prev-next-bottom'>
+            
+    <a class='left-prev' id="prev-link" href="intro.html" title="previous page">Introduction</a>
+    <a class='right-next' id="next-link" href="examples.html" title="next page">Examples</a>
+
+        </div>
+        
+        </div>
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By <a href="https://www.svenkreiss.com">Sven Kreiss</a> and <a href="https://github.com/vita-epfl/openpifpaf/graphs/contributors">contributors</a>.<br/>
+        
+            &copy; Copyright 2020-2021.<br/>
+          <div class="extra_footer">
+            <div>Powered by <a href="https://jupyterbook.org/">Jupyter Book</a>.</div>
+
+          </div>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    
+  <script src="_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    
+  </body>
+</html>
