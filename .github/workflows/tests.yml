@@ -36,7 +36,7 @@ jobs:
             torchvision: 0.8.2
             torch-source: https://download.pytorch.org/whl/torch_stable.html
           - os: macos-latest
-            python: 3.9
+            python: 3.8
             torch: 1.8.1
             torchvision: 0.9.1
             torch-source: https://download.pytorch.org/whl/torch_stable.html
@@ -59,7 +59,7 @@ jobs:
           data-cifar10
         key: ${{ runner.os }}-${{ hashFiles('setup.py') }}
     - name: Set up Python ${{ matrix.python }}
-      if: matrix.conda != 'True'
+      if: ${{ !matrix.conda }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python }}
