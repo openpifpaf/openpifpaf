@@ -65,7 +65,7 @@ You need to install `matplotlib` to produce visual outputs.
 To modify openpifpaf itself, please follow {ref}`modify-code`.
 
 For a live demo, we recommend to try the
-[openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo) project.
+[openpifpafwebdemo](https://github.com/openpifpaf/openpifpafwebdemo) project.
 Alternatively, {ref}`python3 -m openpifpaf.video <cli-help-video>` (requires OpenCV)
 provides a live demo as well.
 
