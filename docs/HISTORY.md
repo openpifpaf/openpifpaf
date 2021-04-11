@@ -1,6 +1,8 @@
 # History
 
-* [main](https://github.com/vita-epfl/openpifpaf/compare/v0.12.7...main)
+* [main](https://github.com/openpifpaf/openpifpaf/compare/v0.12.8...main)
+* [0.12.8](https://github.com/openpifpaf/openpifpaf/compare/v0.12.7...v0.12.8) (2021-04-11)
+    * moved to github.com/openpifpaf/openpifpaf
 * [0.12.7](https://github.com/vita-epfl/openpifpaf/compare/v0.12.6...v0.12.7) (2021-04-09)
     * Apollo3D car model with 66 keypoints [#376](https://github.com/vita-epfl/openpifpaf/pull/376)
     * new pretrained models for shufflenetv2k16 and shufflenetv2k30
