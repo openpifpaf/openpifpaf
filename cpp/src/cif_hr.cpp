@@ -106,6 +106,11 @@ void CifHr::add_gauss(int64_t f, double v, double x, double y, double sigma, dou
 }
 
 
+torch::Tensor CifHr::get_accumulated(void) {
+    return accumulated;
+}
+
+
 } // namespace utils
 } // namespace decoder
 } // namespace openpifpaf

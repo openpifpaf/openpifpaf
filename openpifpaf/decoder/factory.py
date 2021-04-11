@@ -3,6 +3,7 @@ import logging
 from typing import Optional
 
 from .cifcaf import CifCaf
+from .cifcaf_torch import CifCafTorch
 from .cifdet import CifDet
 from .decoder import Decoder
 from .multi import Multi
@@ -12,7 +13,7 @@ from .profiler_autograd import ProfilerAutograd
 
 LOG = logging.getLogger(__name__)
 
-DECODERS = {CifDet, CifCaf}
+DECODERS = {CifDet, CifCaf, CifCafTorch}
 
 
 def cli(parser, *, workers=None):

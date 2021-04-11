@@ -25,6 +25,7 @@ class Decoder:
     When creating a new generator, the main implementation goes into `__call__()`.
     """
     default_worker_pool = None
+    torch_decoder = True
 
     def __init__(self):
         self.worker_pool = self.default_worker_pool
@@ -72,8 +73,8 @@ class Decoder:
             if k not in ('worker_pool',)
         }
 
-    @staticmethod
-    def fields_batch(model, image_batch, *, device=None):
+    @classmethod
+    def fields_batch(cls, model, image_batch, *, device=None):
         """From image batch to field batch."""
         start = time.time()
 
@@ -94,7 +95,10 @@ class Decoder:
 
             # to numpy
             with torch.autograd.profiler.record_function('tonumpy'):
-                heads = apply(lambda x: x.cpu().numpy(), heads)
+                if cls.torch_decoder:
+                    heads = apply(lambda x: x.cpu(), heads)
+                else:
+                    heads = apply(lambda x: x.cpu().numpy(), heads)
 
         # index by frame (item in batch)
         head_iter = apply(iter, heads)

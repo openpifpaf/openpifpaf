@@ -10,6 +10,7 @@ import os, sys
 sys.path.append(os.path.dirname(__file__))
 import versioneer
 
+import glob
 
 try:
     from Cython.Build import cythonize
@@ -51,11 +52,8 @@ if not sys.platform.startswith('win'):
     EXTENSIONS.append(
         torch.utils.cpp_extension.CppExtension(
             'openpifpafcpp',
-            [
-                'cpp/src/cif_hr.cpp',
-                'cpp/src/module.cpp',
-                'cpp/src/occupancy.cpp',
-            ],
+            glob.glob('cpp/src/**/*.cpp', recursive=True),
+            depends=glob.glob('cpp/include/**/*.hpp', recursive=True),
             include_dirs=['cpp/include/'],
             extra_compile_args=EXTRA_COMPILE_ARGS,
         )
