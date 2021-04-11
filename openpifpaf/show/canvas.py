@@ -62,6 +62,10 @@ class Canvas:
                 kwargs['gridspec_kw'] = {}
             kwargs['gridspec_kw']['wspace'] = 0
             kwargs['gridspec_kw']['hspace'] = 0
+            kwargs['gridspec_kw']['left'] = 0.0
+            kwargs['gridspec_kw']['right'] = 1.0
+            kwargs['gridspec_kw']['top'] = 1.0
+            kwargs['gridspec_kw']['bottom'] = 0.0
         fig, ax = plt.subplots(dpi=dpi, **kwargs)
 
         yield ax
