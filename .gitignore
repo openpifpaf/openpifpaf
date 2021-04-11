@@ -26,6 +26,7 @@ guide/coco/*.predictions*.jpeg
 guide/coco/*.predictions*.json
 guide/coco_debug_example
 guide/logo.png
+guide/logo_square.png
 guide/favicon.png
 guide/profile_decoder.1.json
 guide/profile_decoder.prof
