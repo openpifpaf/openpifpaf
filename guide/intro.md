@@ -2,8 +2,8 @@
 # Introduction
 
 Continuously tested on Linux, MacOS and Windows:
-[![Tests](https://github.com/vita-epfl/openpifpaf/workflows/Tests/badge.svg?branch=main)](https://github.com/vita-epfl/openpifpaf/actions?query=workflow%3ATests)
-[![deploy-guide](https://github.com/vita-epfl/openpifpaf/workflows/deploy-guide/badge.svg)](https://github.com/vita-epfl/openpifpaf/actions?query=workflow%3Adeploy-guide)
+[![Tests](https://github.com/openpifpaf/openpifpaf/workflows/Tests/badge.svg?branch=main)](https://github.com/openpifpaf/openpifpaf/actions?query=workflow%3ATests)
+[![deploy-guide](https://github.com/openpifpaf/openpifpaf/workflows/deploy-guide/badge.svg)](https://github.com/openpifpaf/openpifpaf/actions?query=workflow%3Adeploy-guide)
 [![Downloads](https://pepy.tech/badge/openpifpaf)](https://pepy.tech/project/openpifpaf)
 <br />
 [__New__ 2021 paper](https://arxiv.org/abs/2103.02440):
@@ -40,8 +40,8 @@ Created with
 {ref}`python3 -m openpifpaf.predict docs/coco/000000081988.jpg --image-min-dpi=200 --show-file-extension=jpeg --image-output <cli-help-predict>`.
 
 More demos:
-* [openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo) project (best performance). [Live](https://vitademo.epfl.ch).
-* OpenPifPaf [running in your browser: vita-epfl.github.io/openpifpafwebdemo](https://vita-epfl.github.io/openpifpafwebdemo/) (experimental)
+* [openpifpafwebdemo](https://github.com/openpifpaf/openpifpafwebdemo) project (best performance). [Live](https://vitademo.epfl.ch).
+* OpenPifPaf [running in your browser: openpifpaf.github.io/openpifpafwebdemo](https://openpifpaf.github.io/openpifpafwebdemo/) (experimental)
 * the {ref}`python3 -m openpifpaf.video <cli-help-video>` command (requires OpenCV)
 * [Google Colab demo](https://colab.research.google.com/drive/1H8T4ZE6wc0A9xJE4oGnhgHpUpAH5HL7W)
 
@@ -106,16 +106,16 @@ using the command line option `--checkpoint checkpointasintableabove`.
 
 ## Related Projects
 
-* [pose tracker](https://github.com/vita-epfl/openpifpaf_posetrack): "OpenPifPaf: Composite Fields for Semantic Keypoint Detection and Spatio-Temporal Association".
+* [pose tracker](https://github.com/openpifpaf/openpifpaf_posetrack): "OpenPifPaf: Composite Fields for Semantic Keypoint Detection and Spatio-Temporal Association".
 * [neuralet](https://neuralet.com/article/pose-estimation-on-nvidia-jetson-platforms-using-openpifpaf/): TensorRT execution, including Docker images for NVidia Jetson.
 * [fall detection using pose estimation](https://towardsdatascience.com/fall-detection-using-pose-estimation-a8f7fd77081d): illustrated with many example video clips.
 * [physio pose](https://medium.com/@_samkitjain/physio-pose-a-virtual-physiotherapy-assistant-7d1c17db3159): "A virtual physiotherapy assistant".
 * [monstereo](https://github.com/vita-epfl/monstereo): "MonStereo: When Monocular and Stereo Meet at the Tail of 3D Human Localization".
 * [monoloco](https://github.com/vita-epfl/monoloco): "Monocular 3D Pedestrian Localization and Uncertainty Estimation".
-* [openpifpafwebdemo](https://github.com/vita-epfl/openpifpafwebdemo): Web server and frontend. Docker image. Kubernetes config. [Live](https://vitademo.epfl.ch).
-* [GitHub dependency graph](https://github.com/vita-epfl/openpifpaf/network/dependents): auto-detected Github repositories that use OpenPifPaf.
+* [openpifpafwebdemo](https://github.com/openpifpaf/openpifpafwebdemo): Web server and frontend. Docker image. Kubernetes config. [Live](https://vitademo.epfl.ch).
+* [GitHub dependency graph](https://github.com/openpifpaf/openpifpaf/network/dependents): auto-detected Github repositories that use OpenPifPaf.
 
-Open an [issue](https://github.com/vita-epfl/openpifpaf/issues) to suggest more projects.
+Open an [issue](https://github.com/openpifpaf/openpifpaf/issues) to suggest more projects.
 
 
 ## Citation

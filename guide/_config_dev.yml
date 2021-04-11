@@ -1,6 +1,6 @@
 # Book settings
 title: OpenPifPaf Guide DEV
-author: <a href="https://www.svenkreiss.com">Sven Kreiss</a> and <a href="https://github.com/vita-epfl/openpifpaf/graphs/contributors">contributors</a>.
+author: <a href="https://www.svenkreiss.com">Sven Kreiss</a> and <a href="https://github.com/openpifpaf/openpifpaf/graphs/contributors">contributors</a>.
 copyright: "2020-2021"
 email: research@svenkreiss.com
 logo: logo.png
@@ -18,14 +18,14 @@ parse:
 
 html:
   favicon: favicon.png
-  extra_navbar: This is the dev version of the Guide. Here is the <a href="https://vita-epfl.github.io/openpifpaf/">stable version</a>.
+  extra_navbar: This is the dev version of the Guide. Here is the <a href="https://openpifpaf.github.io">stable version</a>.
   use_repository_button: True
   extra_footer: |
     <div>Powered by <a href="https://jupyterbook.org/">Jupyter Book</a>.</div>
 
 # Information about where the book exists on the web
 repository:
-  url                       : https://github.com/vita-epfl/openpifpaf  # Online location of your book
+  url                       : https://github.com/openpifpaf/openpifpaf  # Online location of your book
   path_to_book              : guide  # Optional path to your book, relative to the repository root
   branch                    : dev  # Which branch of the repository should be used when creating links (optional)
 

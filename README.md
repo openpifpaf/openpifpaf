@@ -1,8 +1,8 @@
 # openpifpaf
 
 Continuously tested on Linux, MacOS and Windows:
-[![Tests](https://github.com/vita-epfl/openpifpaf/workflows/Tests/badge.svg?branch=main)](https://github.com/vita-epfl/openpifpaf/actions?query=workflow%3ATests)
-[![deploy-guide](https://github.com/vita-epfl/openpifpaf/workflows/deploy-guide/badge.svg)](https://github.com/vita-epfl/openpifpaf/actions?query=workflow%3Adeploy-guide)
+[![Tests](https://github.com/openpifpaf/openpifpaf/workflows/Tests/badge.svg?branch=main)](https://github.com/openpifpaf/openpifpaf/actions?query=workflow%3ATests)
+[![deploy-guide](https://github.com/openpifpaf/openpifpaf/workflows/deploy-guide/badge.svg)](https://github.com/openpifpaf/openpifpaf/actions?query=workflow%3Adeploy-guide)
 [![Downloads](https://pepy.tech/badge/openpifpaf)](https://pepy.tech/project/openpifpaf)
 <br />
 [__New__ 2021 paper](https://arxiv.org/abs/2103.02440):
@@ -32,7 +32,7 @@ Previous [CVPR 2019 paper](http://openaccess.thecvf.com/content_CVPR_2019/html/K
 
 # Example
 
-![example image with overlaid pose predictions](https://github.com/vita-epfl/openpifpaf/raw/main/docs/coco/000000081988.jpg.predictions.jpeg)
+![example image with overlaid pose predictions](https://github.com/openpifpaf/openpifpaf/raw/main/docs/coco/000000081988.jpg.predictions.jpeg)
 
 Image credit: "[Learning to surf](https://www.flickr.com/photos/fotologic/6038911779/in/photostream/)" by fotologic which is licensed under [CC-BY-2.0].<br />
 Created with:
@@ -42,12 +42,12 @@ python3 -m openpifpaf.predict docs/coco/000000081988.jpg --image-min-dpi=200 --s
 ```
 
 
-# [Guide](https://vita-epfl.github.io/openpifpaf/intro.html)
+# [Guide](https://openpifpaf.github.io/)
 
-Continue to our __[OpenPifPaf Guide](https://vita-epfl.github.io/openpifpaf/intro.html)__.
+Continue to our __[OpenPifPaf Guide](https://openpifpaf.github.io/)__.
 
 For developers, there is also the
-__[DEV Guide](https://vita-epfl.github.io/openpifpaf/dev/intro.html)__
+__[DEV Guide](https://openpifpaf.github.io/dev/)__
 which is the same guide but based on the latest code in the `main` branch.
 
 
