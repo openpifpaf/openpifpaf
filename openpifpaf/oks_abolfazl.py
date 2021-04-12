@@ -35,6 +35,13 @@ KiHEAD = 0.15
 KiHIPS = 0.2
 KiFEET = 0.1
 
+KAPAS = {
+    'head': KiHEAD,
+    'hips': KiHIPS,
+    'foot1': KiFEET,
+    'foot2': KiFEET,
+}
+
 LOG = logging.getLogger(__name__)
 
 class HiddenKeypointError(BaseException):
@@ -120,6 +127,22 @@ class PlayerSkeleton():
                 continue
         return acc/17
 
+    @property
+    def predicted_keypoints(self):
+        pred_kps = []
+        pred_kps_names = []
+        for name in ["head", "hips", "foot1", "foot2"]:
+            try:
+                pr_kp = getattr(self, name)
+                pred_kps.append(pr_kp)
+                pred_kps_names.append(name)
+            except HiddenKeypointError:
+                print('HIDDEN KEYPOINT ERROR!!!!!!!!!!!!!!!!!!!')
+                continue
+        return pred_kps, pred_kps_names
+        # else:
+        #     return [], []
+
 class PlayerAnnotation2D():
     def __init__(self, annotation: PlayerAnnotation, calib: Calib):
         self.annotation = annotation
@@ -159,7 +182,7 @@ def compute_metrics(result_list):
         annotations = d["annotations"]
         predictions = d["predictions"]
         TP = TP + np.sum(np.array(d["oks_list"])[np.newaxis] >= thresholds[:,np.newaxis], axis=1)
-        FP = FP + np.sum(np.array(d["oks_list"])[np.newaxis] <  thresholds[:,np.newaxis], axis=1)
+        # FP = FP + np.sum(np.array(d["oks_list"])[np.newaxis] <  thresholds[:,np.newaxis], axis=1)
         Np = Np + len(predictions)
         Na = Na + len(annotations)
     return {
@@ -310,6 +333,8 @@ def cli():
     group.add_argument('--debug-images', default=False, action='store_true',
                        help='print debug messages and enable all debug images')
 
+    group.add_argument('--disable-error-detail', default=False, action='store_true')
+
     
     # group.add_argument("--pickled-dataset", required=True)
     # group.add_argument('--focus-object', default=None)
@@ -454,25 +479,26 @@ def main():
     # keys = ds.keys.all()
     result_list = []
 
+    error_detail_dict = {}
+    sum_all_cases_true = 0
+    # nan_counter = 0
+    for error_type in ['Good', 'Jitter', 'Inversion', 'Swap', 'Miss', 'Nan']:
+        error_detail_dict[error_type] = {}
+        for name in ['head','hips','foot1','foot2']:
+            error_detail_dict[error_type][name] = 0
+    Background_FP = 0
+    Total_people_pred = 0
+
     for batch_i, (image_tensors_batch, target_batch, meta_batch, views_batch, keys_batch) in enumerate(tqdm(data_loader)):
-        pred_batch = processor.batch(model, image_tensors_batch, device=args.device, target_batch=target_batch)
+        pred_batch = processor.batch(model, image_tensors_batch, device=args.device)#, target_batch=target_batch)
         
         # unbatch
         assert len(pred_batch)==len(views_batch)
-        # print('len pred batch',len(pred_batch))
-        # print('len pred batch',len(target_batch))
-        # print('len pred batch',len(meta_batch))
-        # print('len pred batch',len(views_batch))
-        # print('len pred batch',len(keys_batch))
 
 
         for pred, meta, view, key in zip(pred_batch, meta_batch, views_batch, keys_batch):
-
-            print('pred',len(pred))
-            # print('pred',len(pred[0].shape))
-            # print('pred',len(pred[1].shape))
-            # print('pred',len(pred[2].shape))
-            # raise
+            print('-------------------------new Image----------------------------')
+            print('Number of people in this image',len(pred))
 
             LOG.info('batch %d: %s', batch_i, meta['file_name'])
             # print(view.keys())
@@ -484,20 +510,22 @@ def main():
             predictions = [PlayerSkeleton(**ann.json_data()) for ann in pred]
             predictions = [p for p in predictions if p.projects_in_court(view['calib'], court) and p.visible]
             annotations = [PlayerAnnotation2D(a, view['calib']) for a in view['annotations'] if a.type == "player" and a.camera == key.camera]
-            # print('Predictions', len(predictions))
+            print('Number of people in this image after deleting outside of the court',len(predictions))
             # print('Annotations', len(annotations))
-            if not predictions or not annotations:
-                continue
+            # if not predictions or not annotations:
+            #     continue
 
             matching = {}
             oks_list = []
-            for p in sorted(predictions, key=lambda p: p.confidence, reverse=True):
-                if not annotations:
-                    break
-                idx = np.argmax([OKS(a, p) for a in annotations])
-                matching[p] = annotations[idx]
-                oks_list.append(OKS(annotations[idx], p, alpha=0.8))
-                del annotations[idx]
+            
+            if predictions:
+                for p in sorted(predictions, key=lambda p: p.confidence, reverse=True):
+                    if not annotations:
+                        break
+                    idx = np.argmax([OKS(a, p) for a in annotations])
+                    matching[p] = annotations[idx]
+                    oks_list.append(OKS(annotations[idx], p, alpha=0.8))
+                    del annotations[idx]
 
             # remove remaining annotations that lie outside the court
             annotations = [a for a in annotations if a.projects_in_court(view['calib'], court)]
@@ -508,14 +536,151 @@ def main():
                 "matching": matching,
                 "oks_list": oks_list,
             })
+            
+            if not args.disable_error_detail:
+                print('number of people after OKS computations', len(predictions))
+                for p_id, p in enumerate(predictions):
+                    try:
+                        match = matching[p]
+                    except KeyError:
+                        print('Matching missing', p_id)
+                        Background_FP += 1
+                        continue
+                    print('~~~~~ person # ', p_id)
+                    print('prediction:', p.predicted_keypoints)
+
+                    for idddx, (kp, kp_name) in enumerate(zip(*p.predicted_keypoints)):
+                        km = getattr(match, kp_name)
+                        print('start for ', idddx, kp_name)
+                        ks_result = KS(match, kp, kp_name)
+                        if np.isnan(ks_result):
+                            # nan_counter += 1
+                            # nan_count[kp_name] += 1
+                            error_detail_dict['Nan'][kp_name] += 1
+                            print('idx nan:', idddx)
+                            continue
+                        if ks_result >= 0.85:
+                            print('idx good:', idddx)
+                            error_detail_dict['Good'][kp_name] += 1
+                            # good[kp_name] += 1
+                        elif 0.5 <= ks_result < 0.85:
+                            print('idx jitter:', idddx)
+                            error_detail_dict['Jitter'][kp_name] += 1
+                            # jitter[kp_name] += 1
+                        else:
+                            for ka_name in list(set(['head','hips','foot1','foot2']) - set([kp_name])):
+                                # if ka_name == kp_name:
+                                    # continue
+                                for_done = False
+                                ks_result = KS(match, kp, ka_name)
+                                if np.isnan(ks_result):
+                                    continue
+                                elif ks_result >= 0.5:
+                                    print('idx inversion:', idddx)
+                                    error_detail_dict['Inversion'][kp_name] += 1
+                                    # inversion[kp_name] += 1
+                                    for_done = True
+                                    break
+
+                            if for_done:
+                                continue
+
+                            for a in list(set(annotations + list(matching.values())) -set([match])):
+                                for ka_name in ['head','hips','foot1','foot2']:
+                                    for_done = False
+                                    ks_result = KS(a, kp, ka_name)
+                                    if np.isnan(ks_result):
+                                        continue
+                                    elif ks_result >= 0.5:
+                                        print('idx swap:', idddx)
+                                        error_detail_dict['Swap'][kp_name] += 1
+                                        # swap[kp_name] += 1
+                                        for_done = True
+                                        break
+                                if for_done:
+                                    break
+                            if for_done:
+                                continue
+
+                            print('idx miss:', idddx)
+                            error_detail_dict['Miss'][kp_name] += 1
+                            # miss[kp_name] += 1
+
+                    # sum_all_cases = sum(good.values())+sum(jitter.values())+sum(inversion.values())+sum(swap.values())+sum(miss.values())+sum(nan_count.values())
+                    sum_all_cases = sum([sum(edd.values()) for edd in error_detail_dict.values()])
+                    sum_all_cases_true += len(p.predicted_keypoints[0]) 
+                    print('Error detail:', error_detail_dict)
+                    print('Backgound FP:', Background_FP)
+                    print('Total People pred:', Total_people_pred)
+                    if Total_people_pred > 0:
+                        print('Backgound FP rate:', round((Background_FP/Total_people_pred)*100, 3))
+                    assert sum_all_cases_true == sum_all_cases, str(sum_all_cases_true)+ "\n"+ str(sum_all_cases)
+            
+                Total_people_pred += len(predictions)
 
         if batch_i%10 == 0:
             pprint(compute_metrics(result_list))
+            if not args.disable_error_detail:
+                plot_pie_chart(error_detail_dict, Background_FP, Total_people_pred)
 
 
 
     pickle.dump(result_list, open(f"{args.weights_file}_OKS_tmp_results.pickle", "wb"))
     pprint(compute_metrics(result_list))
+    if not args.disable_error_detail:
+        plot_pie_chart(error_detail_dict, Background_FP, Total_people_pred)
+
+def plot_pie_chart(error_detail_dict, Background_FP, Total_people_pred):
+    import matplotlib.pyplot as plt
+    fig1, axes = plt.subplots(1,6, figsize=(40,5))
+    #add colors
+    colors = ['#ff9999','#66b3ff','#99ff99','#ffcc99']
+
+    for idx, ax in zip(error_detail.keys(),axes):
+        # Pie chart, where the slices will be ordered and plotted counter-clockwise:
+        labels = [l for l in error_detail[idx].keys()]
+        sizes = [l for l in error_detail[idx].values()]
+        ax.pie(sizes, colors=colors, labels=labels, autopct='%1.1f',
+                shadow=False, startangle=90)
+        ax.legend(loc='lower left',)
+        ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+        ax.set_title(idx)
+    plt.savefig('image/pie_chart_detail.png')
+
+    fig1, ax = plt.subplots(1,1)#, figsize=(15,2))
+
+    # for idx, ax in zip(error_detail['good'].keys(),axes):
+        # Pie chart, where the slices will be ordered and plotted counter-clockwise:
+    colors = ['#BBCCEE', '#CCEEFF', '#CCDDAA', '#EEEEBB', '#FFCCCC', '#DDDDDD']
+    labels = [l for l in error_detail.keys()]
+    sizes = [sum(l.values()) for l in error_detail.values()]
+    ax.pie(sizes, colors=colors,labels=labels, autopct='%1.1f',
+            shadow=False, startangle=90)
+    ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+    ax.legend(loc='upper left',)
+    ax.set_title('Total')
+    plt.savefig('image/pie_chart_total.png')
+
+    print('Backgound FP:', Background_FP)
+    print('Total People pred:', Total_people_pred)
+    if Total_people_pred > 0:
+        print('Backgound FP rate:', round((Background_FP/Total_people_pred)*100, 3))
+
+def KS(a, p, name):
+    
+    keypoints = Point2D([a.head, a.hips, a.foot1, a.foot2])
+    # scale 
+    s = (np.max(keypoints.x)-np.min(keypoints.x))*(np.max(keypoints.y)-np.min(keypoints.y)) # BB area in pixels
+
+    try:
+        a = getattr(a, name)
+    except HiddenKeypointError:
+        return np.nan
+    kapa = KAPAS[name]
+    try: 
+        return np.exp(-dist(a, p)/(2*s*kapa**2))
+    except HiddenKeypointError:
+        return np.nan
 
 if __name__ == "__main__":
     main()
