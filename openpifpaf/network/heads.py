@@ -619,7 +619,6 @@ class CompositeFieldFused(torch.nn.Module):
             self.out_features.append(
                 (self.out_features[-1] if self.out_features else 0) + fg)
 
-        print('heads.py!!!!!!!', self.out_features[0])
         self.conv = torch.nn.Conv2d(in_features, self.out_features[-1] * (4 ** self._quad),
                                     kernel_size, padding=padding, dilation=dilation)
 

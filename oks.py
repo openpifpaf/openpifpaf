@@ -273,18 +273,10 @@ def main():
         predictions = [PlayerSkeleton(**p) for p in json.load(open(f"{filename}.predictions.json", "r"))]
         predictions = [p for p in predictions if p.projects_in_court(view.calib, court) and p.visible]
         annotations = [PlayerAnnotation2D(a, view.calib) for a in view.annotations if a.type == "player" and a.camera == key.camera]
-<<<<<<< HEAD
-        
-        matching = {}
-        oks_list = []
-=======
-        # if not predictions or not annotations:
-        #     continue
 
         matching = {}
         oks_list = []
 
->>>>>>> WandB
         if predictions:
             for p in sorted(predictions, key=lambda p: p.confidence, reverse=True):
                 if not annotations:
