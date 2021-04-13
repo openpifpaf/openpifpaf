@@ -31,9 +31,9 @@ void cif_hr_accumulate_op(const torch::Tensor& accumulated,
                           double min_scale,
                           double factor) {
     auto cif_field_a = cif_field.accessor<float, 4>();
-    double min_scale_f = min_scale / stride;
+    float min_scale_f = min_scale / stride;
 
-    double v, x, y, scale, sigma;
+    float v, x, y, scale, sigma;
     for (int64_t f=0; f < cif_field_a.size(0); f++) {
         for (int64_t j=0; j < cif_field_a.size(2); j++) {
             for (int64_t i=0; i < cif_field_a.size(3); i++) {
