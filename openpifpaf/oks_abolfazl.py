@@ -421,7 +421,7 @@ def main():
     # parser.add_argument("weights_file")
     # args = parser.parse_args()
     args = cli()
-    # args.checkpoint = args.weights_file
+    args.checkpoint = args.weights_file
 
     processor, model = processor_factory(args)
     preprocess = preprocess_factory(args)
