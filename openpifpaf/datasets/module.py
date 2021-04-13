@@ -13,7 +13,7 @@ class DataModule:
     """
     Base class to extend OpenPifPaf with custom data.
 
-    This class gives you all the handles to train OpenPifPaf on a new dataset`.
+    This class gives you all the handles to train OpenPifPaf on a new dataset.
     Create a new class that inherits from this to handle a new datasets.
 
 
@@ -62,10 +62,10 @@ class DataModule:
 
         Make sure to use unique CLI arguments for your dataset.
         For clarity, we suggest to start every CLI argument with the name of your new dataset,
-        i.e. --NameOfNewDataset-train-annotations.
+        i.e. -\-\<dataset_name>-train-annotations.
 
         All PifPaf commands will still work.
-        E.g. to load a model, there is no need to implement --checkpoint
+        E.g. to load a model, there is no need to implement the command -\-\checkpoint
         """
 
     @classmethod
