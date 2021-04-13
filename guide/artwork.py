@@ -23,6 +23,9 @@ def main():
         line_width=12)
     with openpifpaf.show.Canvas.annotation(ann, filename='logo.png') as ax:
         keypoint_painter.annotation(ax, ann)
+    with openpifpaf.show.Canvas.annotation(ann, filename='logo_square.png', frameon=False, fig_w=5) as ax:
+        ax.set_aspect('equal')
+        keypoint_painter.annotation(ax, ann)
 
 
 if __name__ == '__main__':

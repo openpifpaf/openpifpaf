@@ -29,7 +29,7 @@ class BaseNetwork(torch.nn.Module):
     def configure(cls, args: argparse.Namespace):
         """Take the parsed argument parser output and configure class variables."""
 
-    def forward(self, *args):
+    def forward(self, x):
         raise NotImplementedError
 
 
@@ -47,8 +47,7 @@ class ShuffleNetV2(BaseNetwork):
         self.stage4 = base_vision.stage4
         self.conv5 = base_vision.conv5
 
-    def forward(self, *args):
-        x = args[0]
+    def forward(self, x):
         x = self.conv1(x)
         x = self.stage2(x)
         x = self.stage3(x)
@@ -142,8 +141,7 @@ class Resnet(BaseNetwork):
         self.block4 = modules[6]
         self.block5 = block5
 
-    def forward(self, *args):
-        x = args[0]
+    def forward(self, x):
         x = self.input_block(x)
         x = self.block2(x)
         x = self.block3(x)
@@ -199,6 +197,7 @@ class InvertedResidualK(torch.nn.Module):
         branch_features = oup // 2
         padding = (kernel_size - 1) // 2 * dilation
 
+        self.branch1 = None
         if self.first_in_stage:
             self.branch1 = torch.nn.Sequential(
                 self.depthwise_conv(inp, inp,
@@ -231,9 +230,8 @@ class InvertedResidualK(torch.nn.Module):
         return torch.nn.Conv2d(in_f, out_f, kernel_size, stride, padding,
                                bias=bias, groups=in_f, dilation=dilation)
 
-    def forward(self, *args):
-        x = args[0]
-        if not self.first_in_stage:
+    def forward(self, x):
+        if self.branch1 is None:
             x1, x2 = x.chunk(2, dim=1)
             out = torch.cat((x1, self.branch2(x2)), dim=1)
         else:
@@ -347,8 +345,7 @@ class ShuffleNetV2K(BaseNetwork):
         self.stage4 = stages[2]
         self.conv5 = conv5
 
-    def forward(self, *args):
-        x = args[0]
+    def forward(self, x):
         x = self.input_block(x)
         x = self.stage2(x)
         x = self.stage3(x)
@@ -414,8 +411,7 @@ class MobileNetV2(BaseNetwork):
         base_vision = torchvision_mobilenetv2(self.pretrained)
         self.backbone = list(base_vision.children())[0]  # remove output classifier
 
-    def forward(self, *args):
-        x = args[0]
+    def forward(self, x):
         x = self.backbone(x)
         return x
 
@@ -456,8 +452,7 @@ class SqueezeNet(BaseNetwork):
 
         self.backbone = list(base_vision.children())[0]  # remove output classifier
 
-    def forward(self, *args):
-        x = args[0]
+    def forward(self, x):
         x = self.backbone(x)
         return x
 

@@ -17,6 +17,7 @@ dist/
 .ipynb_checkpoints/
 openpifpaf/functional.cpython-*
 openpifpaf/functional.html
+openpifpaf/functional.c
 
 # guide
 guide/_build/
@@ -25,6 +26,7 @@ guide/coco/*.predictions*.jpeg
 guide/coco/*.predictions*.json
 guide/coco_debug_example
 guide/logo.png
+guide/logo_square.png
 guide/favicon.png
 guide/profile_decoder.1.json
 guide/profile_decoder.prof
@@ -43,6 +45,7 @@ data/
 *.pkl
 *.pkl-*
 *.pkl.*
+*.pt
 *.log
 *.zip
 outputs/

@@ -2,6 +2,7 @@ import copy
 import math
 import logging
 
+import torch
 import torchvision
 
 from .preprocess import Preprocess
@@ -10,7 +11,9 @@ LOG = logging.getLogger(__name__)
 
 
 class CenterPad(Preprocess):
-    def __init__(self, target_size):
+    """Pad to a square of given size."""
+
+    def __init__(self, target_size: int):
         if isinstance(target_size, int):
             target_size = (target_size, target_size)
         self.target_size = target_size
@@ -47,8 +50,9 @@ class CenterPad(Preprocess):
         LOG.debug('pad with %s', ltrb)
 
         # pad image
+        fill_value = int(torch.randint(0, 255, (1,)).item())
         image = torchvision.transforms.functional.pad(
-            image, ltrb, fill=(124, 116, 104))
+            image, ltrb, fill=(fill_value, fill_value, fill_value))
 
         # pad annotations
         for ann in anns:

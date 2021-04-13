@@ -12,9 +12,7 @@ class SoftClamp(torch.nn.Module):
         super().__init__()
         self.max_value = max_value
 
-    def forward(self, *args):
-        x = args[0]
-
+    def forward(self, x):
         # Backprop rule pre-multiplies by input. Therefore, for a constant
         # gradient above the max bce threshold, need to divide by the input.
         # Just like gradient-clipping, but inline:
@@ -206,9 +204,7 @@ class Laplace(torch.nn.Module):
     def configure(cls, args: argparse.Namespace):
         cls.soft_clamp_value = args.laplace_soft_clamp
 
-    def forward(self, *args):
-        x1, x2, logb, t1, t2, bmin = args
-
+    def forward(self, x1, x2, logb, t1, t2, bmin):
         # left derivative of sqrt at zero is not defined, so prefer torch.norm():
         # https://github.com/pytorch/pytorch/issues/2421
         # norm = torch.sqrt((x1 - t1)**2 + (x2 - t2)**2)

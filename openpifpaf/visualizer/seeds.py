@@ -7,6 +7,8 @@ LOG = logging.getLogger(__name__)
 
 
 class Seeds(Base):
+    """Visualize seeds."""
+
     def __init__(self, *, stride=1):
         super().__init__('seeds')
         self.stride = stride

@@ -63,8 +63,11 @@ jobs:
 
     # Push the book's HTML to gh-pages
     - name: GitHub Pages action
-      uses: peaceiris/actions-gh-pages@v3.5.9
+      uses: peaceiris/actions-gh-pages@v3
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+        personal_token: ${{ secrets.PERSONAL_TOKEN }}
+        external_repository: openpifpaf/openpifpaf.github.io
+        publish_branch: main  # default: gh-pages
         publish_dir: ./guide/_build/html
-        force_orphan: true
+        keep_files: true
+        # force_orphan: true  # https://github.com/peaceiris/actions-gh-pages/issues/455

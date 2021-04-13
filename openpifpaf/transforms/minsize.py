@@ -7,6 +7,8 @@ LOG = logging.getLogger(__name__)
 
 
 class MinSize(Preprocess):
+    """Convert annotations below a size to crowd annotations."""
+
     def __init__(self, min_side=1.0):
         self.min_side = min_side
 

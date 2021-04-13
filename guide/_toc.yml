@@ -25,10 +25,11 @@
 - part: Reference
   chapters:
   - file: moduledocs
+  - file: bibliography
 
 - part: Development
   chapters:
   - file: dev
   - file: performance
   - title: GitHub
-    url: https://github.com/vita-epfl/openpifpaf
+    url: https://github.com/openpifpaf/openpifpaf

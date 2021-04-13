@@ -10,6 +10,8 @@ LOG = logging.getLogger(__name__)
 
 
 class Crop(Preprocess):
+    """Random cropping."""
+
     def __init__(self, long_edge, use_area_of_interest=True):
         self.long_edge = long_edge
         self.use_area_of_interest = use_area_of_interest

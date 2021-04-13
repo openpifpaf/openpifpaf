@@ -29,6 +29,75 @@ cpdef void scalar_square_add_constant(float[:, :] field, float[:] x, float[:] y,
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.cdivision(True)
+cpdef void scalar_square_set(unsigned char[:, :] field, float x, float y, float sigma, float reduction=1.0, float min_sigma=0.0):
+    cdef long minx, miny, maxx, maxy
+
+    if reduction != 1.0:
+        x /= reduction
+        y /= reduction
+        sigma = fmax(min_sigma, sigma / reduction)
+
+    minx = <long>clip(int(x - sigma), 0, field.shape[1] - 1)
+    miny = <long>clip(int(y - sigma), 0, field.shape[0] - 1)
+    # +1: for non-inclusive boundary
+    # There is __not__ another plus one for rounding up:
+    # The query in occupancy does not round to nearest integer but only
+    # rounds down.
+    maxx = <long>clip(int(x + sigma) + 1, minx + 1, field.shape[1])
+    maxy = <long>clip(int(y + sigma) + 1, miny + 1, field.shape[0])
+    field[miny:maxy, minx:maxx] = 1
+
+
+
+cdef class Occupancy:
+    cdef public float reduction
+    cdef public float min_scale_reduced
+    cdef public occupancy
+    cdef unsigned char[:, :, :] occupancy_view
+
+    def __init__(self, shape, reduction, *, min_scale=None):
+        assert len(shape) == 3
+        if min_scale is None:
+            min_scale = reduction
+        assert min_scale >= reduction
+
+        self.reduction = reduction
+        self.min_scale_reduced = min_scale / reduction
+
+        self.occupancy = np.zeros((
+            shape[0],
+            int(shape[1] / reduction) + 1,
+            int(shape[2] / reduction) + 1,
+        ), dtype=np.uint8)
+        self.occupancy_view = self.occupancy
+        # LOG.debug('shape = %s, min_scale = %d', self.occupancy.shape, self.min_scale_reduced)
+
+    def __len__(self):
+        return len(self.occupancy)
+
+    cpdef public set(self, long f, float x, float y, float sigma):
+        """Setting needs to be centered at the rounded (x, y)."""
+        if f >= len(self.occupancy):
+            return
+
+        scalar_square_set(self.occupancy_view[f], x, y, sigma,
+                          reduction=self.reduction, min_sigma=self.min_scale_reduced)
+
+    cpdef readonly unsigned char get(self, long f, float x, float y):
+        """Getting needs to be done at the floor of (x, y)."""
+        if f >= len(self.occupancy):
+            return 1
+
+        # floor is done in scalar_nonzero_clipped below
+        return scalar_nonzero_clipped_with_reduction(self.occupancy_view[f], x, y, self.reduction)
+
+
+
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.cdivision(True)
 cpdef void cumulative_average(float[:, :] cuma, float[:, :] cumw, float[:] x, float[:] y, float[:] width, float[:] v, float[:] w) nogil:
     cdef long minx, miny, maxx, maxy
     cdef float cv, cw, cx, cy, cwidth
