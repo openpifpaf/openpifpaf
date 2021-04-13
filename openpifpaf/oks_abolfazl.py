@@ -58,6 +58,13 @@ class Keypoints():
     def all(self):
         return [self(name) for name in COCO_KEYPOINTS[0:17]]
 
+    def swap_feet(self):
+        RIGHT_ANKLE_IDX = 15
+        LEFT_ANKLE_IDX = 16        
+        self.keypoints[LEFT_ANKLE_IDX*3:LEFT_ANKLE_IDX*3+2], self.keypoints[RIGHT_ANKLE_IDX*3:RIGHT_ANKLE_IDX*3+2] = \
+            self.keypoints[RIGHT_ANKLE_IDX*3:RIGHT_ANKLE_IDX*3+2], self.keypoints[LEFT_ANKLE_IDX*3:LEFT_ANKLE_IDX*3+2]
+
+
 class PlayerSkeleton():
     def __init__(self, keypoints, category_id, score, bbox):
         n_keypoints = len(keypoints)//3
@@ -93,6 +100,9 @@ class PlayerSkeleton():
     @property
     def foot2(self):
         return self.keypoints('right_ankle')[0]
+
+    def swap_feet(self):
+        self.keypoints.swap_feet()
     @property
     def visible(self):
         for name in ["head", "hips", "foot1", "foot2"]:
@@ -212,6 +222,14 @@ def OKS(a: PlayerAnnotation2D, p: PlayerSkeleton, alpha=0.8):
 
     pair1 = np.nanmean([KS(a, p, "head", KiHEAD*alpha, s), KS(a, p, "hips", KiHIPS*alpha, s), KS(a, p, "foot1", KiFEET*alpha, s), KS(a, p, "foot2", KiFEET*alpha, s)])
     pair2 = np.nanmean([KS(a, p, "head", KiHEAD*alpha, s), KS(a, p, "hips", KiHIPS*alpha, s), KS(a, p, "foot1", KiFEET*alpha, s, "foot2"), KS(a, p, "foot2", KiFEET*alpha, s, "foot1")])
+    # if pair2 > pair1:
+    #     # print('about to swap:')
+    #     # print(getattr(p, 'foot1'))
+    #     # print(getattr(p, 'foot2'))
+    #     p.swap_feet()   # swap feet predictions
+    #     # print('swapped:')
+    #     # print(getattr(p, 'foot1'))
+    #     # print(getattr(p, 'foot2'))
     return max(pair1, pair2)
 
 
@@ -446,7 +464,7 @@ def main():
     # parser.add_argument("weights_file")
     # args = parser.parse_args()
     args = cli()
-    args.checkpoint = args.weights_file
+    # args.checkpoint = args.weights_file
 
     processor, model = processor_factory(args)
     preprocess = preprocess_factory(args)
@@ -487,7 +505,9 @@ def main():
         for name in ['head','hips','foot1','foot2']:
             error_detail_dict[error_type][name] = 0
     Background_FP = 0
+    Background_FN = 0
     Total_people_pred = 0
+    Total_people_annot = 0
 
     for batch_i, (image_tensors_batch, target_batch, meta_batch, views_batch, keys_batch) in enumerate(tqdm(data_loader)):
         pred_batch = processor.batch(model, image_tensors_batch, device=args.device)#, target_batch=target_batch)
@@ -514,6 +534,7 @@ def main():
             # print('Annotations', len(annotations))
             # if not predictions or not annotations:
             #     continue
+            Total_people_annot += len(annotations)      # to have count of people in annotations
 
             matching = {}
             oks_list = []
@@ -536,6 +557,9 @@ def main():
                 "matching": matching,
                 "oks_list": oks_list,
             })
+
+            Background_FN += len(annotations)       # to have count of people after matching
+            
             
             if not args.disable_error_detail:
                 print('number of people after OKS computations', len(predictions))
@@ -612,59 +636,147 @@ def main():
                     print('Error detail:', error_detail_dict)
                     print('Backgound FP:', Background_FP)
                     print('Total People pred:', Total_people_pred)
+                    print('Backgound FN:', Background_FN)
+                    print('Total People annot:', Total_people_annot)
                     if Total_people_pred > 0:
                         print('Backgound FP rate:', round((Background_FP/Total_people_pred)*100, 3))
+                    if Total_people_annot > 0:
+                        print('Backgound FN rate:', round((Background_FN/Total_people_annot)*100, 3))
                     assert sum_all_cases_true == sum_all_cases, str(sum_all_cases_true)+ "\n"+ str(sum_all_cases)
             
                 Total_people_pred += len(predictions)
 
         if batch_i%10 == 0:
             pprint(compute_metrics(result_list))
-            if not args.disable_error_detail:
-                plot_pie_chart(error_detail_dict, Background_FP, Total_people_pred)
+            # if not args.disable_error_detail:
+            #     plot_pie_chart(error_detail_dict, Background_FP, Total_people_pred, Background_FN, Total_people_pred)
 
 
 
     pickle.dump(result_list, open(f"{args.weights_file}_OKS_tmp_results.pickle", "wb"))
     pprint(compute_metrics(result_list))
     if not args.disable_error_detail:
-        plot_pie_chart(error_detail_dict, Background_FP, Total_people_pred)
+        plot_pie_chart(error_detail_dict, Background_FP, Total_people_pred, Background_FN, Total_people_annot)
 
-def plot_pie_chart(error_detail_dict, Background_FP, Total_people_pred):
+def plot_pie_chart(error_detail, Background_FP, Total_people_pred, Background_FN, Total_people_annot):
     import matplotlib.pyplot as plt
-    fig1, axes = plt.subplots(1,6, figsize=(40,5))
+    fig1, axes = plt.subplots(1,6, figsize=(50,5))
     #add colors
     colors = ['#ff9999','#66b3ff','#99ff99','#ffcc99']
-
+    def func(pct, sizes):
+        absolute = int(round(pct/100.*np.sum(sizes)))
+        if pct >= 5:
+            return "{:.1f}".format(pct)
+        else:
+            return ''
+        
+        
     for idx, ax in zip(error_detail.keys(),axes):
+        
         # Pie chart, where the slices will be ordered and plotted counter-clockwise:
         labels = [l for l in error_detail[idx].keys()]
         sizes = [l for l in error_detail[idx].values()]
-        ax.pie(sizes, colors=colors, labels=labels, autopct='%1.1f',
+        explode = []
+        for s in sizes:
+            if s/sum(sizes) > .05:
+                explode.append(0)
+            else:
+                explode.append(0.05)
+        wedges, texts, data = ax.pie(sizes, colors=colors, explode=explode, autopct=lambda pct: func(pct,sizes),
                 shadow=False, startangle=90)
-        ax.legend(loc='lower left',)
+        
         ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
         ax.set_title(idx)
+
+        bbox_props = dict(boxstyle="square,pad=0.3", fc="w", ec="k", lw=0.72)
+        kw = dict(arrowprops=dict(arrowstyle="-"),
+                bbox=bbox_props, zorder=0, va="center")
+        
+        for i, p in enumerate(wedges):
+            p.set_edgecolor('black')
+            if 0<sizes[i]/sum(sizes)<0.05:
+                ang = (p.theta2 - p.theta1)/2. + p.theta1
+                y = np.sin(np.deg2rad(ang))
+                x = np.cos(np.deg2rad(ang))
+                horizontalalignment = {-1: "right", 1: "left"}[int(np.sign(x))]
+                connectionstyle = "angle,angleA=0,angleB={}".format(ang)
+        #         connectionstyle = "angle,angleA=0,angleB=90"
+                kw["arrowprops"].update({"connectionstyle": connectionstyle})
+                ax.annotate(round((sizes[i]/sum(sizes)) *100,1), xy=(x, y), xytext=(1.25*np.sign(x), 1.4*y),
+                            horizontalalignment=horizontalalignment, **kw)
+                
+    axes[0].legend(wedges, labels,
+            title="Detection Type",
+            loc="center left",
+            ncol=4,
+            bbox_to_anchor=(0, 0, 0, -.5))
     plt.savefig('image/pie_chart_detail.png')
 
-    fig1, ax = plt.subplots(1,1)#, figsize=(15,2))
+
+    explode = (0, 0.1, 0, 0, 0, 0)  # only "explode" the 2nd slice (i.e. 'Hogs')
+
+    fig1, ax = plt.subplots(1,1, figsize=(10,10))
 
     # for idx, ax in zip(error_detail['good'].keys(),axes):
         # Pie chart, where the slices will be ordered and plotted counter-clockwise:
     colors = ['#BBCCEE', '#CCEEFF', '#CCDDAA', '#EEEEBB', '#FFCCCC', '#DDDDDD']
     labels = [l for l in error_detail.keys()]
     sizes = [sum(l.values()) for l in error_detail.values()]
-    ax.pie(sizes, colors=colors,labels=labels, autopct='%1.1f',
+    explode = []
+    for s in sizes:
+        if s/sum(sizes) > .05:
+            explode.append(0)
+        else:
+            explode.append(0.05)
+
+    def func(pct, sizes):
+        absolute = int(round(pct/100.*np.sum(sizes)))
+        if pct >= 5:
+            return "{:.1f}".format(pct)
+        else:
+            return ''
+        
+
+
+    wedges, texts, data = ax.pie(sizes, explode=explode, colors=colors, autopct=lambda pct: func(pct,sizes) ,
             shadow=False, startangle=90)
     ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
-    ax.legend(loc='upper left',)
+    # ax.legend(loc='lower left',ncol=6)
     ax.set_title('Total')
+    ax.legend(wedges, labels,
+            title="Detection Type",
+            loc="center left",
+            ncol=6,
+            bbox_to_anchor=(1, 0, 0.5, 1))
+
+    bbox_props = dict(boxstyle="square,pad=0.3", fc="w", ec="k", lw=0.72)
+    kw = dict(arrowprops=dict(arrowstyle="-"),
+            bbox=bbox_props, zorder=0, va="center")
+
+    for i, p in enumerate(wedges):
+        p.set_edgecolor('black')
+        if sizes[i]/sum(sizes)<0.05:
+            ang = (p.theta2 - p.theta1)/2. + p.theta1
+            y = np.sin(np.deg2rad(ang))
+            x = np.cos(np.deg2rad(ang))
+            horizontalalignment = {-1: "right", 1: "left"}[int(np.sign(x))]
+            connectionstyle = "angle,angleA=0,angleB={}".format(ang)
+    #         connectionstyle = "angle,angleA=0,angleB=90"
+            kw["arrowprops"].update({"connectionstyle": connectionstyle})
+            ax.annotate(round((sizes[i]/sum(sizes)) *100,1), xy=(x, y), xytext=(1.25*np.sign(x), 1.4*y),
+                        horizontalalignment=horizontalalignment, **kw)
     plt.savefig('image/pie_chart_total.png')
 
     print('Backgound FP:', Background_FP)
     print('Total People pred:', Total_people_pred)
     if Total_people_pred > 0:
         print('Backgound FP rate:', round((Background_FP/Total_people_pred)*100, 3))
+    
+
+    print('Backgound FN:', Background_FN)
+    print('Total People annot:', Total_people_annot)
+    if Total_people_annot > 0:
+        print('Backgound FN rate:', round((Background_FN/Total_people_annot)*100, 3))
 
 def KS(a, p, name):
     
@@ -672,6 +784,7 @@ def KS(a, p, name):
     # scale 
     s = (np.max(keypoints.x)-np.min(keypoints.x))*(np.max(keypoints.y)-np.min(keypoints.y)) # BB area in pixels
 
+    # if name in ['hips', 'head']:
     try:
         a = getattr(a, name)
     except HiddenKeypointError:
@@ -681,6 +794,28 @@ def KS(a, p, name):
         return np.exp(-dist(a, p)/(2*s*kapa**2))
     except HiddenKeypointError:
         return np.nan
+
+    # else:
+    #     flag1 = False
+    #     flag2 = False
+    #     kapa = KAPAS[name]
+    #     try:
+    #         a1 = getattr(a, 'foot1')
+    #         ks1 = np.exp(-dist(a1, p)/(2*s*kapa**2))
+    #     except HiddenKeypointError:
+    #         flag1 = True
+    #         ks1 = np.nan
+    #     try:
+    #         a2 = getattr(a, 'foot2')
+    #         ks2 = np.exp(-dist(a2, p)/(2*s*kapa**2))
+    #     except HiddenKeypointError:
+    #         flag2 = True
+    #         ks2 = np.nan
+    #     if flag1==True and flag2==True:
+    #         return np.nan
+    #     else:   
+    #         return np.nanmax([ks1,ks2])
+
 
 if __name__ == "__main__":
     main()
