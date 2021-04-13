@@ -530,6 +530,9 @@ def main():
             predictions = [PlayerSkeleton(**ann.json_data()) for ann in pred]
             predictions = [p for p in predictions if p.projects_in_court(view['calib'], court) and p.visible]
             annotations = [PlayerAnnotation2D(a, view['calib']) for a in view['annotations'] if a.type == "player" and a.camera == key.camera]
+
+            # remove remaining annotations that lie outside the court
+            annotations = [a for a in annotations if a.projects_in_court(view['calib'], court)]
             print('Number of people in this image after deleting outside of the court',len(predictions))
             # print('Annotations', len(annotations))
             # if not predictions or not annotations:
@@ -548,8 +551,7 @@ def main():
                     oks_list.append(OKS(annotations[idx], p, alpha=0.8))
                     del annotations[idx]
 
-            # remove remaining annotations that lie outside the court
-            annotations = [a for a in annotations if a.projects_in_court(view['calib'], court)]
+            
 
             result_list.append({
                 "predictions": predictions,
