@@ -32,104 +32,8 @@ def niels_split(keys):
         "training": [x[1] for x in l[:-200]]
     }
 
-class DeepSportKeysSplitter():
-    @staticmethod
-    def split_equally(d, K):
-        """
-            splits equally the keys of d given their values
-            arguments:
-                d: a dict {"label1": 30, "label2": 45, "label3": 22, ... "label20": 14}
-            returns:
-                a list of list splitting equally their value:
-                [[label1, label12, label19], [label2, label15], [label3, label10, label11], ...]
-        """
-        s = sorted(d.items(), key=lambda kv: kv[1])
-        f = [{"count": 0, "list": []} for _ in range(K)]
-        while s:
-            arena_label, count = s.pop(-1)
-            index, _ = min(enumerate(f), key=(lambda x: x[1]["count"]))
-            f[index]["count"] += count
-            f[index]["list"].append(arena_label)
-        return [x["list"] for x in f]
 
-    @staticmethod
-    def count_keys_per_arena_label(keys):
-        """returns a dict of (arena_label: number of keys of that arena)"""
-        bins = {}
-        for key in keys:
-            bins[key.arena_label] = bins.get(key.arena_label, 0) + 1
-        return bins
-    @staticmethod
-    def count_keys_per_game_id(keys):
-        """returns a dict of (game_id: number of keys of that game)"""
-        bins = {}
-        for key in keys:
-            bins[key.game_id] = bins.get(key.game_id, 0) + 1
-        return bins
-
-class KFoldsTestingKeysSplitter(DeepSportKeysSplitter):
-    def __init__(self, fold_count=8, validation_pc=15):
-        self.fold_count = fold_count
-        self.validation_pc = validation_pc
-
-    def __call__(self, keys, fold=0):
-        assert fold >= 0 and fold < self.fold_count
-
-        keys_dict = self.count_keys_per_arena_label(keys)
-        keys_lists = self.split_equally(keys_dict, self.fold_count)
-
-        testing_keys = [k for k in keys if k.arena_label in keys_lists[fold]]
-        remaining_keys = [k for k in keys if k not in testing_keys]
-
-        # Backup random seed
-        random_state = random.getstate()
-        random.seed(fold)
-
-        validation_keys = random.sample(remaining_keys, len(keys)*self.validation_pc//100)
-
-        # Restore random seed
-        random.setstate(random_state)
-
-        training_keys = [k for k in remaining_keys if k not in validation_keys]
-
-        return {
-            "training": training_keys,
-            "validation": validation_keys,
-            "testing": testing_keys
-        }
-
-
-class AddBallSegmentationTargetViewFactory():
-    def __call__(self, view_key, view):
-        calib = view.calib
-        target = np.zeros((calib.height, calib.width), dtype=np.uint8)
-        for ball in [a for a in view.annotations if a.type == "ball" and calib.projects_in(a.center) and a.visible]:
-            diameter = calib.compute_length2D(BALL_DIAMETER, ball.center)
-            center = calib.project_3D_to_2D(ball.center)
-            cv2.circle(target, center.to_int_tuple(), radius=int(diameter/2), color=1, thickness=-1)
-        return {
-            "mask": target
-        }
-
-class AddBallPositionFactory():
-    def __call__(self, view_key, view):
-        balls = [a for a in view.annotations if a.type == "ball"]
-        ball = balls[0]
-        if view_key.camera != ball.camera:
-            return {}
-        ball_2D = view.calib.project_3D_to_2D(ball.center)
-        size = view.calib.compute_length2D(BALL_DIAMETER, ball.center)
-        return {"x": ball_2D.x, "y": ball_2D.y, "visible": ball.visible, "size": size}
-
-
-class AddHumansSegmentationTargetViewFactory():
-    def __call__(self, view_key, view):
-        if not hasattr(view, "human_masks"):
-            view.human_masks = np.zeros(view.image.shape[0:2])
-        return {"human_masks": view.human_masks}
-
-
-class DeepSportKeysSplitter(KeysSplitter): # pylint: disable=too-few-public-methods
+class DeepSportKeysSplitter(): # pylint: disable=too-few-public-methods
     def __init__(self, validation_pc=15, eval_frequency=5):
         self.validation_pc = validation_pc
         self.eval_frequency = eval_frequency
@@ -202,7 +106,6 @@ class DeepSportKeysSplitter(KeysSplitter): # pylint: disable=too-few-public-meth
             "testing": Subset("testing", "EVAL", testing_keys, repetitions=self.eval_frequency, frequency=self.eval_frequency),
         }
 
-
 class KFoldsTestingKeysSplitter(DeepSportKeysSplitter):
     def __init__(self, fold_count=8, validation_pc=15):
         self.fold_count = fold_count
@@ -233,6 +136,35 @@ class KFoldsTestingKeysSplitter(DeepSportKeysSplitter):
             "validation": validation_keys,
             "testing": testing_keys
         }
+
+class AddBallSegmentationTargetViewFactory():
+    def __call__(self, view_key, view):
+        calib = view.calib
+        target = np.zeros((calib.height, calib.width), dtype=np.uint8)
+        for ball in [a for a in view.annotations if a.type == "ball" and calib.projects_in(a.center) and a.visible]:
+            diameter = calib.compute_length2D(BALL_DIAMETER, ball.center)
+            center = calib.project_3D_to_2D(ball.center)
+            cv2.circle(target, center.to_int_tuple(), radius=int(diameter/2), color=1, thickness=-1)
+        return {
+            "mask": target
+        }
+
+class AddBallPositionFactory():
+    def __call__(self, view_key, view):
+        balls = [a for a in view.annotations if a.type == "ball"]
+        ball = balls[0]
+        if view_key.camera != ball.camera:
+            return {}
+        ball_2D = view.calib.project_3D_to_2D(ball.center)
+        size = view.calib.compute_length2D(BALL_DIAMETER, ball.center)
+        return {"x": ball_2D.x, "y": ball_2D.y, "visible": ball.visible, "size": size}
+
+class AddHumansSegmentationTargetViewFactory():
+    def __call__(self, view_key, view):
+        if not hasattr(view, "human_masks"):
+            view.human_masks = np.zeros(view.image.shape[0:2])
+        return {"human_masks": view.human_masks}
+
 
 
 
@@ -573,7 +505,7 @@ class DeepSportDataset(torch.utils.data.Dataset):
         # import time
         # print("sleeping 0.1 second")
         # time.sleep(0.1)
-
+        print("has ball?:", np.any(data["mask"]))
         if self.oks_computation:
             return image, anns, meta, data, key      # return the view for oks computation
         return image, anns, meta
