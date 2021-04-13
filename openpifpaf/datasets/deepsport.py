@@ -101,9 +101,9 @@ class DeepSportKeysSplitter(): # pylint: disable=too-few-public-methods
         training_keys = [k for k in remaining_keys if k not in validation_keys]
 
         return {
-            "training": Subset("training", "TRAIN", training_keys),
-            "validation": Subset("validation", "EVAL", validation_keys, repetitions=self.eval_frequency, frequency=self.eval_frequency),
-            "testing": Subset("testing", "EVAL", testing_keys, repetitions=self.eval_frequency, frequency=self.eval_frequency),
+            "training": training_keys,
+            "validation": validation_keys,
+            "testing": testing_keys,
         }
 
 class KFoldsTestingKeysSplitter(DeepSportKeysSplitter):
@@ -180,7 +180,7 @@ def deepsportlab_dataset_splitter(keys, method=None, fold=0, validation_set_size
         sets = KFoldsTestingKeysSplitter(validation_pc=validation_set_size_pc)(keys, fold=fold)
         training_keys = sets["training"]
         validation_keys = sets["validation"]
-        testing_keys = set["testing"]
+        testing_keys = sets["testing"]
     elif method == "NoTestSet":
         random_state = random.getstate()
         random.seed(0)
@@ -194,7 +194,7 @@ def deepsportlab_dataset_splitter(keys, method=None, fold=0, validation_set_size
         sets = DeepSportKeysSplitter()(keys, fold=fold)
         training_keys = sets["training"]
         validation_keys = sets["validation"]
-        testing_keys = set["testing"]
+        testing_keys = sets["testing"]
     else:
         raise BaseException("method not found")
     return {
