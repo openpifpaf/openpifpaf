@@ -1,6 +1,16 @@
 # History
 
-* [main](https://github.com/vita-epfl/openpifpaf/compare/v0.12.6...main)
+* [main](https://github.com/openpifpaf/openpifpaf/compare/v0.12.8...main)
+* [0.12.8](https://github.com/openpifpaf/openpifpaf/compare/v0.12.7...v0.12.8) (2021-04-11)
+    * moved to github.com/openpifpaf/openpifpaf
+* [0.12.7](https://github.com/vita-epfl/openpifpaf/compare/v0.12.6...v0.12.7) (2021-04-09)
+    * Apollo3D car model with 66 keypoints [#376](https://github.com/vita-epfl/openpifpaf/pull/376)
+    * new pretrained models for shufflenetv2k16 and shufflenetv2k30
+    * new transforms.RotateUniform and transforms.RandomChoice [#380](https://github.com/vita-epfl/openpifpaf/pull/380)
+    * cython decoder.utils.Occupancy [#381](https://github.com/vita-epfl/openpifpaf/pull/381)
+    * refactor Stream source for video data [#371](https://github.com/vita-epfl/openpifpaf/pull/371)
+    * additional tests and minor changes for jit.script compatibility [#377](https://github.com/vita-epfl/openpifpaf/pull/377)
+    * improve visualization of occupancy map for debugging
 * [0.12.6](https://github.com/vita-epfl/openpifpaf/compare/v0.12.5...v0.12.6) (2021-03-24)
     * new training option: `--clip-grad-value`
     * faster training startup when training from checkpoint: [#363](https://github.com/vita-epfl/openpifpaf/pull/363)

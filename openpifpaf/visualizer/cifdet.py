@@ -16,6 +16,8 @@ LOG = logging.getLogger(__name__)
 
 
 class CifDet(Base):
+    """Visualize a CifDet field."""
+
     def __init__(self, meta: headmeta.CifDet):
         super().__init__(meta.name)
         self.meta = meta

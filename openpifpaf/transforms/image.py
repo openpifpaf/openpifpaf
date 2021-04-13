@@ -12,6 +12,7 @@ LOG = logging.getLogger(__name__)
 
 
 class ImageTransform(Preprocess):
+    """Transform image without modifying annotations or meta."""
     def __init__(self, image_transform):
         self.image_transform = image_transform
 
@@ -21,6 +22,7 @@ class ImageTransform(Preprocess):
 
 
 class JpegCompression(Preprocess):
+    """Add jpeg compression."""
     def __init__(self, quality=50):
         self.quality = quality
 
@@ -31,6 +33,7 @@ class JpegCompression(Preprocess):
 
 
 class Blur(Preprocess):
+    """Blur image."""
     def __init__(self, max_sigma=5.0):
         self.max_sigma = max_sigma
 

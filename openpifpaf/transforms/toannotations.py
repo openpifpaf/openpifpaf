@@ -5,6 +5,8 @@ from .preprocess import Preprocess
 
 
 class ToAnnotations(Preprocess):
+    """Convert inputs to annotation objects."""
+
     def __init__(self, converters):
         self.converters = converters
 
@@ -18,6 +20,8 @@ class ToAnnotations(Preprocess):
 
 
 class ToKpAnnotations:
+    """Input to keypoint annotations."""
+
     def __init__(self, categories, keypoints_by_category, skeleton_by_category):
         self.keypoints_by_category = keypoints_by_category
         self.skeleton_by_category = skeleton_by_category
@@ -42,6 +46,8 @@ class ToKpAnnotations:
 
 
 class ToDetAnnotations:
+    """Input to detection annotations."""
+
     def __init__(self, categories):
         self.categories = categories
 
@@ -59,6 +65,8 @@ class ToDetAnnotations:
 
 
 class ToCrowdAnnotations:
+    """Input to crowd annotations."""
+
     def __init__(self, categories):
         self.categories = categories
 

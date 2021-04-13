@@ -16,6 +16,8 @@ LOG = logging.getLogger(__name__)
 
 
 class Caf(Base):
+    """Visualize CAF field."""
+
     def __init__(self, meta: headmeta.Caf):
         super().__init__(meta.name)
         self.meta = meta

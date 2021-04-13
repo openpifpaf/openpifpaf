@@ -92,8 +92,7 @@ class MultiHeadLossAutoTuneKendall(torch.nn.Module):
     def batch_meta(self):
         return {'mtl_sigmas': [round(float(s), 3) for s in self.log_sigmas.exp()]}
 
-    def forward(self, *args):
-        head_fields, head_targets = args
+    def forward(self, head_fields, head_targets):
         LOG.debug('losses = %d, fields = %d, targets = %d',
                   len(self.losses), len(head_fields), len(head_targets))
         assert len(self.losses) == len(head_fields)
@@ -175,8 +174,7 @@ class MultiHeadLossAutoTuneVariance(torch.nn.Module):
     def batch_meta(self):
         return {'mtl_sigmas': [round(float(s), 3) for s in self.epsilons]}
 
-    def forward(self, *args):
-        head_fields, head_targets = args
+    def forward(self, head_fields, head_targets):
         LOG.debug('losses = %d, fields = %d, targets = %d',
                   len(self.losses), len(head_fields), len(head_targets))
         assert len(self.losses) == len(head_fields)

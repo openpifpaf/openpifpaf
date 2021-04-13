@@ -1,9 +1,6 @@
 """Head meta objects contain meta information about head networks.
 
 This includes the name, the name of the individual fields, the composition, etc.
-
-vector_offsets: has to be length n_vectors and identifies which vectors
-get their location offset added during inference.
 """
 
 from dataclasses import dataclass, field

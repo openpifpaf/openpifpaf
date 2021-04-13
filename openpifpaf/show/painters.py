@@ -133,7 +133,9 @@ class KeypointPainter(Configurable):
     overwrite the global default for that instance.
 
     Example to create a KeypointPainter with thick lines:
+
     >>> kp = KeypointPainter(line_width=48)
+
     """
 
     show_box = False
