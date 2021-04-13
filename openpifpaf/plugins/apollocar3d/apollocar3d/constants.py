@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 try:
     import matplotlib.pyplot as plt
@@ -476,9 +478,9 @@ def draw_skeletons(pose, sigmas, skel, kps, scr_weights):
 
     show.KeypointPainter.show_joint_scales = True
     keypoint_painter = show.KeypointPainter()
-
     ann = Annotation(keypoints=kps, skeleton=skel, score_weights=scr_weights)
     ann.set(pose, np.array(sigmas) * scale)
+    os.makedirs('docs', exist_ok=True)
     draw_ann(ann, filename='docs/skeleton_car.png', keypoint_painter=keypoint_painter)
 
 
