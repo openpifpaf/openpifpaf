@@ -57,15 +57,15 @@ class DataModule:
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
-        """
+        r"""
         Command line interface (CLI) to extend argument parser for your custom dataset.
 
         Make sure to use unique CLI arguments for your dataset.
         For clarity, we suggest to start every CLI argument with the name of your new dataset,
-        i.e. -\-\<dataset_name>-train-annotations.
+        i.e. \-\-<dataset_name>-train-annotations.
 
         All PifPaf commands will still work.
-        E.g. to load a model, there is no need to implement the command -\-\checkpoint
+        E.g. to load a model, there is no need to implement the command \-\-checkpoint
         """
 
     @classmethod
