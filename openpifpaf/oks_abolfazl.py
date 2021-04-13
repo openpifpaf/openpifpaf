@@ -30,7 +30,7 @@ import torch
 import random
 from . import datasets, encoder, decoder, network, show, transforms, visualizer, __version__
 from openpifpaf.datasets.collate import collate_images_targets_inst_meta_views
-from openpifpaf.datasets.deepsport import DeepSportDataset
+from openpifpaf.datasets.deepsport import DeepSportDataset, build_DeepSportBall_datasets, deepsportlab_dataset_splitter
 KiHEAD = 0.15
 KiHIPS = 0.2
 KiFEET = 0.1
@@ -241,6 +241,14 @@ class AddBallPositionFactory():
         return {"x": ball_2D.x, "y": ball_2D.y, "visible": ball.visible, "size": size}
 
 
+class ScaleDownFactor2Transform():
+    def __call__(self, view_key, view):
+        view.image = view.image[::2,::2]
+        view.human_masks = view.human_masks[::2,::2]
+        height, width, channels = view.image.shape
+        view.calib = view.calib.scale(width, height)
+        return view
+
 class AddHumansSegmentationTargetViewFactory():
     def __call__(self, view_key, view):
         if not hasattr(view, "human_masks"):
@@ -379,41 +387,24 @@ def preprocess_factory(args):
         preprocess.append(transforms.CenterPadTight(16))
     return transforms.Compose(preprocess + [transforms.EVAL_TRANSFORM])
 
-def build_DeepSport_test_dataset(pickled_dataset_filename, validation_set_size_pc, square_edge, target_transforms, preprocess, focus_object=None, config=None):
+def build_DeepSport_test_dataset(pickled_dataset_filename, validation_set_size_pc, square_edge, target_transforms, preprocess, focus_object=None, config=None, dataset_fold=None):
     dataset = PickledDataset(pickled_dataset_filename)
     keys = list(dataset.keys.all())
-    # random_state = random.getstate()
-    # random.seed(0)
-    # random.shuffle(keys)
-    # lim = len(keys)*validation_set_size_pc//100
-    # training_keys = keys[lim:]
-    # validation_keys = keys[:lim]
-    # random.seed(random_state)
+    
+    split = deepsportlab_dataset_splitter(keys, dataset_fold, 0, validation_set_size_pc)
 
-    # transforms = [
-    #     ViewCropperTransform(output_shape=(square_edge,square_edge), def_min=30, def_max=80, max_angle=8, focus_object=focus_object),
-
-    #     ExtractViewData(
-    #         AddBallPositionFactory(),
-    #         AddBallSegmentationTargetViewFactory(),
-    #         AddHumansSegmentationTargetViewFactory(),
-    #         AddRuleTypeFactory(),
-    #         AddAnnotationsFactory(),
-    #         AddCalibFactory(),
-    #     )
-    # ]
-
-    # dataset = TransformedDataset(dataset, transforms)
-    shape = (641,641)
-    dataset = TransformedDataset(dataset, [ViewCropperTransform(def_min=30, def_max=80, output_shape=shape, focus_object="player"),
+    transforms = [
+        ScaleDownFactor2Transform(),
         ExtractViewData(
-                AddBallPositionFactory(),
-                AddBallSegmentationTargetViewFactory(),
-                AddHumansSegmentationTargetViewFactory(),
-                AddRuleTypeFactory(),
-                AddAnnotationsFactory(),
-                AddCalibFactory(),
-            )])
+            AddBallPositionFactory(),
+            AddBallSegmentationTargetViewFactory(),
+            AddHumansSegmentationTargetViewFactory(),
+            AddRuleTypeFactory(),
+            AddAnnotationsFactory(),
+            AddCalibFactory(),
+        )
+    ]
+    dataset = TransformedDataset(dataset, transforms)
     return DeepSportDataset(dataset, keys, target_transforms, preprocess, config, oks_computation=True)
 
 def main():
@@ -426,6 +417,8 @@ def main():
     processor, model = processor_factory(args)
     preprocess = preprocess_factory(args)
     
+    assert args.dataset_fold == "DeepSport", "You should not eval OKS on another split than DeepSport"
+
     target_transforms = encoder.factory(model.head_nets, model.base_net.stride)
     # target_transforms = None
     heads = []
@@ -434,7 +427,8 @@ def main():
 
     data = build_DeepSport_test_dataset(
         pickled_dataset_filename=args.deepsport_pickled_dataset,
-        validation_set_size_pc=15, square_edge=args.square_edge, target_transforms=target_transforms, preprocess=preprocess, focus_object=args.focus_object, config=heads)
+        validation_set_size_pc=15, square_edge=args.square_edge, target_transforms=target_transforms,
+        preprocess=preprocess, focus_object=args.focus_object, config=heads, dataset_fold=args.dataset_fold)
     data_loader = torch.utils.data.DataLoader(
         data, batch_size=args.batch_size, shuffle=False,
         pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
