@@ -414,7 +414,7 @@ class DeepSportDataset(torch.utils.data.Dataset):
 
                 keypoints = np.zeros((n_keypoints,3))
                 kp_ball = np.zeros((1,3))
-                if label == 1:
+                if label == 1 and n_keypoints > 17:
                     keypoints[17,:] = (*center, 2)
                 # elif label == 3 and self.ball:
                     

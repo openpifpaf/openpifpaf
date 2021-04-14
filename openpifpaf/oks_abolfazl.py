@@ -187,6 +187,9 @@ def OKS(a: PlayerAnnotation2D, p: PlayerSkeleton, alpha=0.8):
     # scale 
     s = (np.max(keypoints.x)-np.min(keypoints.x))*(np.max(keypoints.y)-np.min(keypoints.y)) # BB area in pixels
 
+    if np.all(a.foot1 == a.foot2): # annotation was not done on the two feet we skip OKS of feet (it only concerns a few images)
+        return np.nanmean([KS(a, p, "head", KiHEAD*alpha, s), KS(a, p, "hips", KiHIPS*alpha, s)])
+
     pair1 = np.nanmean([KS(a, p, "head", KiHEAD*alpha, s), KS(a, p, "hips", KiHIPS*alpha, s), KS(a, p, "foot1", KiFEET*alpha, s), KS(a, p, "foot2", KiFEET*alpha, s)])
     pair2 = np.nanmean([KS(a, p, "head", KiHEAD*alpha, s), KS(a, p, "hips", KiHIPS*alpha, s), KS(a, p, "foot1", KiFEET*alpha, s, "foot2"), KS(a, p, "foot2", KiFEET*alpha, s, "foot1")])
     return max(pair1, pair2)
@@ -286,7 +289,7 @@ def cli():
     #                     help='input images')
 
     parser.add_argument("weights_file")
-
+    #parser.add_argument('--oracle-masks', default=False, action='store_true') TODO: Abolfazl ___ please sign here:
     parser.add_argument('--glob',
                         help='glob expression for input images (for many images)')
     parser.add_argument('--show', default=False, action='store_true',
@@ -405,7 +408,7 @@ def build_DeepSport_test_dataset(pickled_dataset_filename, validation_set_size_p
         )
     ]
     dataset = TransformedDataset(dataset, transforms)
-    return DeepSportDataset(dataset, keys, target_transforms, preprocess, config, oks_computation=True)
+    return DeepSportDataset(dataset, split["testing"], target_transforms, preprocess, config, oks_computation=True)
 
 def main():
     # parser = argparse.ArgumentParser()
@@ -417,39 +420,30 @@ def main():
     processor, model = processor_factory(args)
     preprocess = preprocess_factory(args)
     
-    assert args.dataset_fold == "DeepSport", "You should not eval OKS on another split than DeepSport"
+    assert args.dataset_fold == "DeepSport", f"You should not eval OKS on another split than DeepSport. Current slit is {args.dataset_fold}"
 
     target_transforms = encoder.factory(model.head_nets, model.base_net.stride)
-    # target_transforms = None
     heads = []
     for hd in model.head_nets:
         heads.append(hd.meta.name)
 
-    data = build_DeepSport_test_dataset(
+    dataset = build_DeepSport_test_dataset(
         pickled_dataset_filename=args.deepsport_pickled_dataset,
         validation_set_size_pc=15, square_edge=args.square_edge, target_transforms=target_transforms,
         preprocess=preprocess, focus_object=args.focus_object, config=heads, dataset_fold=args.dataset_fold)
     data_loader = torch.utils.data.DataLoader(
-        data, batch_size=args.batch_size, shuffle=False,
+        dataset, batch_size=args.batch_size, shuffle=False,
         pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
         # worker_init_fn=reset_pickled_datasets,
         collate_fn=collate_images_targets_inst_meta_views,)
 
-    # shape = (641,641)
-    # ds = PickledDataset("/data/mistasse/abolfazl/keemotion/pickled/camera_views_with_human_masks_ball_mask.pickle")
-    # ds = TransformedDataset(ds, 
-    #     [
-    #         ViewCropperTransform(def_min=30, def_max=80, output_shape=shape, focus_object="player"),
-    #         ExtractViewData(
-    #         AddBallPositionFactory(),
-    #         AddBallSegmentationTargetViewFactory(),
-    #         AddHumansSegmentationTargetViewFactory(),)
-    #         ])
-    # keys = ds.keys.all()
     result_list = []
 
+    images_with_wrong_feet = 0
+    logging.warning("Abolfazl, you didn't implement the oracle selection yet !!!!!!")
+
     for batch_i, (image_tensors_batch, target_batch, meta_batch, views_batch, keys_batch) in enumerate(tqdm(data_loader)):
-        pred_batch = processor.batch(model, image_tensors_batch, device=args.device, target_batch=target_batch)
+        pred_batch = processor.batch(model, image_tensors_batch, device=args.device)#, target_batch=target_batch)
         
         # unbatch
         assert len(pred_batch)==len(views_batch)
@@ -477,25 +471,37 @@ def main():
             
             predictions = [PlayerSkeleton(**ann.json_data()) for ann in pred]
             predictions = [p for p in predictions if p.projects_in_court(view['calib'], court) and p.visible]
-            annotations = [PlayerAnnotation2D(a, view['calib']) for a in view['annotations'] if a.type == "player" and a.camera == key.camera]
+            annotations = [PlayerAnnotation2D(a, view['calib']) for a in view['annotations'] if a.type == "player" and a.camera == key.camera and all([view['calib'].projects_in(kp) for kp in [a.head, a.hips, a.foot1, a.foot2]])]
             # print('Predictions', len(predictions))
             # print('Annotations', len(annotations))
-            if not predictions or not annotations:
-                continue
+
+            if any([np.all(a.foot1 == a.foot2) for a in annotations]):
+                logging.warning(f"'{key}' has un-corrected feet annotation. We will skip the feet in OKS computation for this item")
+                images_with_wrong_feet += 1
 
             matching = {}
             oks_list = []
-            for p in sorted(predictions, key=lambda p: p.confidence, reverse=True):
-                if not annotations:
-                    break
-                idx = np.argmax([OKS(a, p) for a in annotations])
-                matching[p] = annotations[idx]
-                oks_list.append(OKS(annotations[idx], p, alpha=0.8))
-                del annotations[idx]
+            if predictions:
+                for p in sorted(predictions, key=lambda p: p.confidence, reverse=True):
+                    if not annotations:
+                        break
+                    idx = np.argmax([OKS(a, p) for a in annotations])
+                    matching[p] = annotations[idx]
+                    oks_list.append(OKS(annotations[idx], p, alpha=0.8))
+                    del annotations[idx]
 
             # remove remaining annotations that lie outside the court
             annotations = [a for a in annotations if a.projects_in_court(view['calib'], court)]
 
+
+            # with open(f"oks_{batch_i}.pickle", "wb") as f:
+            #     pickle.dump(key, f)
+            #     pickle.dump(view, f)
+            #     pickle.dump(predictions, f)
+            #     pickle.dump(annotations, f)
+            #     pickle.dump(matching, f)
+            #     pickle.dump(oks_list, f)
+            # raise
             result_list.append({
                 "predictions": predictions,
                 "annotations": annotations + list(matching.values()),
@@ -506,8 +512,7 @@ def main():
         if batch_i%10 == 0:
             pprint(compute_metrics(result_list))
 
-
-
+    logging.warning(f"Images with wrong feet annotations: {images_with_wrong_feet}")
     pickle.dump(result_list, open(f"{args.weights_file}_OKS_tmp_results.pickle", "wb"))
     pprint(compute_metrics(result_list))
 
