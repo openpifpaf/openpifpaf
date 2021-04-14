@@ -9,7 +9,7 @@ import os
 import PIL
 import torch
 
-from . import datasets, decoder, logger, network, plugin, show, transforms, visualizer, __version__
+from . import datasets, decoder, logger, network, show, transforms, visualizer, __version__
 
 LOG = logging.getLogger(__name__)
 

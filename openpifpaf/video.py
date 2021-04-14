@@ -26,7 +26,7 @@ import time
 
 import torch
 
-from . import decoder, logger, network, plugin, show, transforms, visualizer, __version__
+from . import decoder, logger, network, show, transforms, visualizer, __version__
 from .stream import Stream
 
 LOG = logging.getLogger(__name__)
