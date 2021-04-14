@@ -33,7 +33,7 @@ from openpifpaf.datasets.collate import collate_images_targets_inst_meta_views
 from openpifpaf.datasets.deepsport import DeepSportDataset
 KiHEAD = 0.15
 KiHIPS = 0.2
-KiFEET = 0.1
+KiFEET = 0.2
 
 KAPAS = {
     'head': KiHEAD,
@@ -222,14 +222,14 @@ def OKS(a: PlayerAnnotation2D, p: PlayerSkeleton, alpha=0.8):
 
     pair1 = np.nanmean([KS(a, p, "head", KiHEAD*alpha, s), KS(a, p, "hips", KiHIPS*alpha, s), KS(a, p, "foot1", KiFEET*alpha, s), KS(a, p, "foot2", KiFEET*alpha, s)])
     pair2 = np.nanmean([KS(a, p, "head", KiHEAD*alpha, s), KS(a, p, "hips", KiHIPS*alpha, s), KS(a, p, "foot1", KiFEET*alpha, s, "foot2"), KS(a, p, "foot2", KiFEET*alpha, s, "foot1")])
-    # if pair2 > pair1:
-    #     # print('about to swap:')
-    #     # print(getattr(p, 'foot1'))
-    #     # print(getattr(p, 'foot2'))
-    #     p.swap_feet()   # swap feet predictions
-    #     # print('swapped:')
-    #     # print(getattr(p, 'foot1'))
-    #     # print(getattr(p, 'foot2'))
+    if pair2 > pair1:
+        # print('about to swap:')
+        # print(getattr(p, 'foot1'))
+        # print(getattr(p, 'foot2'))
+        p.swap_feet()   # swap feet predictions
+        # print('swapped:')
+        # print(getattr(p, 'foot1'))
+        # print(getattr(p, 'foot2'))
     return max(pair1, pair2)
 
 
@@ -464,7 +464,7 @@ def main():
     # parser.add_argument("weights_file")
     # args = parser.parse_args()
     args = cli()
-    # args.checkpoint = args.weights_file
+    args.checkpoint = args.weights_file
 
     processor, model = processor_factory(args)
     preprocess = preprocess_factory(args)
