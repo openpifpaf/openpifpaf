@@ -85,8 +85,11 @@ def train_cli(parser):
     group.add_argument('--dataset-weights', default=None, nargs='+', type=float,
                        help='n-1 weights for the datasets')
 
-    group.add_argument('--focus-object', default=None)
+    group.add_argument('--focus-object', default=None,
+                        help='player or ball or None')
     group.add_argument('--dataset-fold', default=None)
+
+    group.add_argument('--filter-for-medium-coco', default=False, action='store_true')
 
     
 
@@ -505,7 +508,8 @@ def train_cocokpinst_factory(args, target_transforms, heads=None, batch_size=Non
         category_ids=category_ids,
         image_filter='kp_inst',
         config=config,
-        ball=ball
+        ball=ball,
+        filter_for_medium=args.filter_for_medium_coco,
     )
     # return train_data
     

@@ -29,7 +29,8 @@ class Coco(torch.utils.data.Dataset):
                  category_ids=None,
                  image_filter='keypoint-annotations',
                  config='cif',
-                 ball=False):
+                 ball=False,
+                 filter_for_medium=False):
         if category_ids is None:
             category_ids = [1]
 
@@ -74,7 +75,8 @@ class Coco(torch.utils.data.Dataset):
                 # self.ids_inst = self.coco_inst.getImgIds(catIds=self.category_ids[0])
                 self.ids_ball = self.coco_inst.getImgIds(catIds=self.category_ids[1])
                 self.filter_for_keypoint_annotations()
-                # self.filter_for_medium_people()
+                if filter_for_medium:
+                    self.filter_for_medium_people()
                 # self.filter_for_kp_ball_annotations()
                 self.ids += self.ids_ball
                 # for i in self.ids_ball:
