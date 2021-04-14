@@ -257,11 +257,15 @@ class CifPanBall(Generator):
         # v_stop = height-pad_bottom
         # h_start = pad_left
         # h_stop = width-pad_right
-        ball_from_mask = [np.unravel_index(semantic[2].argmax(), semantic[2].shape)]
-        ball_fyxv_from_mask = [
-            (Bi, y, x, semantic[2,y,x])
-            for y, x in ball_from_mask
-        ]
+
+
+        # ball_from_mask = [np.unravel_index(semantic[2].argmax(), semantic[2].shape)]
+        # ball_fyxv_from_mask = [
+        #     (Bi, y, x, semantic[2,y,x])
+        #     for y, x in ball_from_mask
+        # ]
+
+
         # plt.imshow(softmax(semantic[None])[0,1])
         # plt.colorbar()
         # plt.show()
@@ -289,7 +293,7 @@ class CifPanBall(Generator):
         # print('show')
 
         # if self.ball:
-        for f, y, x, v in ball_fyxv_from_mask: #ball_fyxv:
+        for f, y, x, v in ball_fyxv:
             f = 18
             # print('fff', f)
             
@@ -324,7 +328,7 @@ class CifPanBall(Generator):
             if ann.category_id != 1:
                 filtered_annotations.append(ann)
                 continue
-            if np.count_nonzero(ann.mask) > 100: #and np.count_nonzero(ann.data[:,2]) >= 5:
+            if np.count_nonzero(ann.mask) > 100 and np.count_nonzero(ann.data[:,2]) >= 5:
                 filtered_annotations.append(ann)
         annotations = filtered_annotations
 
