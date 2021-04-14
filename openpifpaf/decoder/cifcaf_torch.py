@@ -19,9 +19,6 @@ from ..functional import caf_center_s, grow_connection_blend
 LOG = logging.getLogger(__name__)
 
 
-torch.ops.load_library('openpifpafcpp.so')
-
-
 class DenseAdapter:
     def __init__(self, cif_meta, caf_meta, dense_caf_meta):
         self.cif_meta = cif_meta

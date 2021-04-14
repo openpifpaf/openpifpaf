@@ -42,7 +42,12 @@ else:
 CMD_CLASS = versioneer.get_cmdclass()
 
 if not sys.platform.startswith('win'):
+    this_dir = os.path.dirname(os.path.abspath(__file__))
+
     EXTRA_COMPILE_ARGS = [
+        '-std=c++17' if not sys.platform.startswith("win") else '/std:c++17',
+    ]
+    EXTRA_LINK_ARGS = [
         '-std=c++17' if not sys.platform.startswith("win") else '/std:c++17',
     ]
     if sys.platform.startswith('win'):
@@ -51,11 +56,12 @@ if not sys.platform.startswith('win'):
         ]
     EXTENSIONS.append(
         torch.utils.cpp_extension.CppExtension(
-            'openpifpafcpp',
-            glob.glob('cpp/src/**/*.cpp', recursive=True),
-            depends=glob.glob('cpp/include/**/*.hpp', recursive=True),
-            include_dirs=['cpp/include/'],
+            'openpifpaf._cpp',
+            glob.glob(os.path.join(this_dir, 'cpp', 'src', '**', '*.cpp'), recursive=True),
+            depends=glob.glob(os.path.join(this_dir, 'cpp', 'include', '**', '*.hpp'), recursive=True),
+            include_dirs=[os.path.join(this_dir, 'cpp', 'include')],
             extra_compile_args=EXTRA_COMPILE_ARGS,
+            extra_link_args=EXTRA_LINK_ARGS,
         )
     )
     assert 'build_ext' not in CMD_CLASS

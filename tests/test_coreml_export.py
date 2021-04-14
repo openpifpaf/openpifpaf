@@ -24,8 +24,6 @@ def test_coreml_exportable(tmpdir):
 class ModuleWithOccupancy(openpifpaf.network.HeadNetwork):
     def __init__(self, meta, in_features):
         super().__init__(meta, in_features)
-
-        torch.classes.load_library('openpifpafcpp.so')
         self.occupancy = torch.classes.my_classes.Occupancy([17, 100, 120], 1.0, 0.1)
 
     def forward(self, *args):
@@ -56,8 +54,6 @@ def test_coreml_torchscript(tmpdir):
 class ModuleWithCifHr(openpifpaf.network.HeadNetwork):
     def __init__(self, meta, in_features):
         super().__init__(meta, in_features)
-
-        torch.classes.load_library('openpifpafcpp.so')
         self.cifhr = torch.classes.my_classes.CifHr([17, 25, 30], 8)
 
     def forward(self, *args):

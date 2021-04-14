@@ -50,7 +50,6 @@ class ModuleWithCifHrOp(torch.nn.Module):
 
 def test_torchscript_cifhrop(tmpdir):
     openpifpaf.plugin.register()
-    torch.ops.load_library('openpifpafcpp.so')
 
     outfile = str(tmpdir.join('cifhrop.pt'))
     assert not os.path.exists(outfile)
