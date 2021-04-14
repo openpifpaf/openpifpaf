@@ -51,13 +51,14 @@ class Crop(Preprocess):
     def area_of_interest(anns, valid_area):
         """area that contains annotations with keypoints"""
 
-        keypoints_of_interest = np.concatenate([
+        keypoints_of_interest = [
             ann['keypoints'] for ann in anns
             if not ann.get('iscrowd', False) and np.any(ann['keypoints'][:, 2] > 0)
-        ], axis=0)
-        keypoints_of_interest = keypoints_of_interest[keypoints_of_interest[:, 2] > 0.0]
-        if not keypoints_of_interest.shape[0]:
+        ]
+        if not keypoints_of_interest:
             return valid_area
+        keypoints_of_interest = np.concatenate(keypoints_of_interest, axis=0)
+        keypoints_of_interest = keypoints_of_interest[keypoints_of_interest[:, 2] > 0.0]
 
         min_x = np.min(keypoints_of_interest[:, 0]) - 50
         min_y = np.min(keypoints_of_interest[:, 1]) - 50
