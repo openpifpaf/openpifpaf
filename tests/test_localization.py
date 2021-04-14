@@ -4,7 +4,6 @@ import openpifpaf
 
 
 def localize(x):
-    openpifpaf.plugin.register()
     openpifpaf.plugins.coco.CocoKp.upsample_stride = 1
     datamodule = openpifpaf.datasets.factory('cocokp')
     openpifpaf.network.basenetworks.Resnet.pretrained = False

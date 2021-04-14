@@ -16,8 +16,6 @@ LOG = logging.getLogger(__name__)
 
 # pylint: disable=too-many-statements
 def cli():
-    plugin.register()
-
     parser = argparse.ArgumentParser(
         prog='python3 -m openpifpaf.predict',
         usage='%(prog)s [options] images',
