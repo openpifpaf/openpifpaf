@@ -56,7 +56,7 @@ class Crop(Preprocess):
             if not ann.get('iscrowd', False) and np.any(ann['keypoints'][:, 2] > 0)
         ], axis=0)
         keypoints_of_interest = keypoints_of_interest[keypoints_of_interest[:, 2] > 0.0]
-        if not keypoints_of_interest:
+        if not keypoints_of_interest.shape[0]:
             return valid_area
 
         min_x = np.min(keypoints_of_interest[:, 0]) - 50
