@@ -5,7 +5,6 @@ import openpifpaf
 
 
 def test_forward():
-    openpifpaf.plugin.register()
     openpifpaf.plugins.coco.CocoKp.upsample_stride = 1
     datamodule = openpifpaf.datasets.factory('cocokp')
     openpifpaf.network.basenetworks.Resnet.pretrained = False
@@ -19,7 +18,6 @@ def test_forward():
 
 
 def test_forward_upsample():
-    openpifpaf.plugin.register()
     openpifpaf.plugins.coco.CocoKp.upsample_stride = 2
     datamodule = openpifpaf.datasets.factory('cocokp')
     openpifpaf.network.basenetworks.Resnet.pretrained = False
@@ -33,7 +31,6 @@ def test_forward_upsample():
 
 
 def test_forward_noinplace():
-    openpifpaf.plugin.register()
     openpifpaf.plugins.coco.CocoKp.upsample_stride = 2
     datamodule = openpifpaf.datasets.factory('cocokp')
     openpifpaf.network.basenetworks.Resnet.pretrained = False

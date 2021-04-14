@@ -12,8 +12,6 @@ import openpifpaf.export_onnx
 
 @pytest.mark.skipif(sys.platform.startswith('darwin'), reason='onnx simplify crashes')
 def test_onnx_exportable(tmpdir):
-    openpifpaf.plugin.register()
-
     outfile = str(tmpdir.join('openpifpaf-shufflenetv2k16.onnx'))
     assert not os.path.exists(outfile)
 
@@ -39,8 +37,6 @@ def test_onnxruntime(tmpdir):
     This test predicts the outputs of a model with standard OpenPifPaf
     and using onnxruntime from an exported ONNX graph.
     """
-    openpifpaf.plugin.register()
-
     onnx_model_file = str(tmpdir.join('openpifpaf-shufflenetv2k16.onnx'))
     assert not os.path.exists(onnx_model_file)
 

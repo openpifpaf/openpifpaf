@@ -12,7 +12,7 @@ import PIL
 import thop
 import torch
 
-from . import datasets, decoder, logger, network, plugin, show, visualizer, __version__
+from . import datasets, decoder, logger, network, show, visualizer, __version__
 
 LOG = logging.getLogger(__name__)
 
@@ -45,8 +45,6 @@ class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
 
 
 def cli():  # pylint: disable=too-many-statements,too-many-branches
-    plugin.register()
-
     parser = argparse.ArgumentParser(
         prog='python3 -m openpifpaf.eval',
         usage='%(prog)s [options]',
