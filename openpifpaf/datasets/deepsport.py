@@ -269,6 +269,7 @@ class DeepSportDataset(torch.utils.data.Dataset):
 
         # self.keys = keyss
         print('Number of images deepsport:', len(self.keys))
+        LOG.info('Number of images deepsport: %d', len(self.keys))
 
     def __len__(self):
         return len(self.keys)
@@ -504,7 +505,7 @@ class DeepSportDataset(torch.utils.data.Dataset):
         # import time
         # print("sleeping 0.1 second")
         # time.sleep(0.1)
-        print("has ball?:", np.any(data["mask"]))
+        # print("has ball?:", np.any(data["mask"]))
         if self.oks_computation:
             return image, anns, meta, data, key      # return the view for oks computation
         return image, anns, meta
