@@ -203,11 +203,10 @@ def compute_metrics(result_list):
         "Mrecall": np.mean(TP/Na)
     }
 
-def dist(p1, p2):
-    return np.sqrt(np.sum((p1-p2)**2))
-    # return np.sum((p1-p2)**2)
-
-def OKS(a: PlayerAnnotation2D, p: PlayerSkeleton, alpha=0.8):
+def OKS(a: PlayerAnnotation2D, p: PlayerSkeleton, alpha=0.8, use_dist_squared=False):
+    def dist(p1, p2):
+        dist_squared = np.sum((p1-p2)**2)
+        return dist_squared if use_dist_squared else np.sqrt(dist_squared)
     def KS(a, p, name, kapa, s, name2=None):
         name2 = name2 or name
         try: 
@@ -331,6 +330,7 @@ def cli():
 
     parser.add_argument("weights_file")
     #parser.add_argument('--oracle-masks', default=False, action='store_true') TODO: Abolfazl ___ please sign here:
+    parser.add_argument('--use-dist-squared', default=False, action='store_true', help='In OKS computation: use dist squared instead of dist')
     parser.add_argument('--glob',
                         help='glob expression for input images (for many images)')
     parser.add_argument('--show', default=False, action='store_true',
@@ -437,7 +437,8 @@ def build_DeepSport_test_dataset(pickled_dataset_filename, validation_set_size_p
     dataset = PickledDataset(pickled_dataset_filename)
     keys = list(dataset.keys.all())
     
-    split = deepsportlab_dataset_splitter(keys, dataset_fold, 0, validation_set_size_pc)
+    if dataset_fold != "all":
+        keys = deepsportlab_dataset_splitter(keys, dataset_fold, 0, validation_set_size_pc)["testing"]
 
     transforms = [
         ScaleDownFactor2Transform(),
@@ -451,7 +452,7 @@ def build_DeepSport_test_dataset(pickled_dataset_filename, validation_set_size_p
         )
     ]
     dataset = TransformedDataset(dataset, transforms)
-    return DeepSportDataset(dataset, split["testing"], target_transforms, preprocess, config, oks_computation=True)
+    return DeepSportDataset(dataset, keys, target_transforms, preprocess, config, oks_computation=True)
 
 def main():
     # parser = argparse.ArgumentParser()
@@ -463,7 +464,7 @@ def main():
     processor, model = processor_factory(args)
     preprocess = preprocess_factory(args)
     
-    assert args.dataset_fold == "DeepSport", f"You should not eval OKS on another split than DeepSport. Current slit is {args.dataset_fold}"
+    #assert args.dataset_fold == "DeepSport", f"You should not eval OKS on another split than DeepSport. Current slit is {args.dataset_fold}"
 
     target_transforms = encoder.factory(model.head_nets, model.base_net.stride)
     heads = []
@@ -539,7 +540,7 @@ def main():
                 for p in sorted(predictions, key=lambda p: p.confidence, reverse=True):
                     if not annotations:
                         break
-                    idx = np.argmax([OKS(a, p) for a in annotations])
+                    idx = np.argmax([OKS(a, p, use_dist_squared=args.use_dist_squared) for a in annotations])
                     matching[p] = annotations[idx]
                     oks_list.append(OKS(annotations[idx], p, alpha=0.8))
                     del annotations[idx]
