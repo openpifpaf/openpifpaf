@@ -51,25 +51,23 @@ class Crop(Preprocess):
     def area_of_interest(anns, valid_area):
         """area that contains annotations with keypoints"""
 
-        keypoints_of_interest = [
-            ann['keypoints'] for ann in anns
-            if not ann.get('iscrowd', False) and np.any(ann['keypoints'][:, 2] > 0)
+        points_of_interest = [
+            xy
+            for ann in anns
+            if not ann.get('iscrowd', False)
+            for xy in [ann['bbox'][:2], ann['bbox'][:2] + ann['bbox'][2:]]
         ]
-        if not keypoints_of_interest:
+        if not points_of_interest:
             return valid_area
-        keypoints_of_interest = np.concatenate(keypoints_of_interest, axis=0)
-        keypoints_of_interest = keypoints_of_interest[keypoints_of_interest[:, 2] > 0.0]
-
-        min_x = np.min(keypoints_of_interest[:, 0]) - 50
-        min_y = np.min(keypoints_of_interest[:, 1]) - 50
-        max_x = np.max(keypoints_of_interest[:, 0]) + 50
-        max_y = np.max(keypoints_of_interest[:, 1]) + 50
+        points_of_interest = np.stack(points_of_interest, axis=0)
+        min_xy = np.min(points_of_interest, axis=0) - 50
+        max_xy = np.max(points_of_interest, axis=0) + 50
 
         # Make sure to stay inside of valid area.
-        left = np.clip(min_x, valid_area[0], valid_area[0] + valid_area[2] - 1)
-        top = np.clip(min_y, valid_area[1], valid_area[1] + valid_area[3] - 1)
-        right = np.clip(max_x, left + 1, valid_area[0] + valid_area[2])
-        bottom = np.clip(max_y, top + 1, valid_area[1] + valid_area[3])
+        left = np.clip(min_xy[0], valid_area[0], valid_area[0] + valid_area[2] - 1)
+        top = np.clip(min_xy[1], valid_area[1], valid_area[1] + valid_area[3] - 1)
+        right = np.clip(max_xy[0], left + 1, valid_area[0] + valid_area[2])
+        bottom = np.clip(max_xy[1], top + 1, valid_area[1] + valid_area[3])
 
         return (left, top, right - left, bottom - top)
 
