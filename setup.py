@@ -56,7 +56,6 @@ setup(
         'numpy>=1.16',
         'pysparkling',  # for log analysis
         'python-json-logger',
-        'scipy',
         'torch>=1.7.1',
         'torchvision>=0.8.2',
         'pillow',
@@ -96,6 +95,7 @@ setup(
         'train': [
             'matplotlib>=3.3',  # required by pycocotools
             'pycocotools>=2.0.1',  # pre-install cython (currently incompatible with numpy 1.18 or above)
+            'scipy',
         ],
     },
 )

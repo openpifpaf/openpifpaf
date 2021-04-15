@@ -39,8 +39,6 @@ def default_output_file(args):
 
 
 def cli():
-    plugin.register()
-
     parser = argparse.ArgumentParser(
         prog='python3 -m openpifpaf.train',
         usage='%(prog)s [options]',

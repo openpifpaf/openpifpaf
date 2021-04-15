@@ -1,8 +1,11 @@
 import logging
 
-import scipy
-
 from .base import Base
+
+try:
+    import scipy
+except ImportError:
+    scipy = None
 
 LOG = logging.getLogger(__name__)
 

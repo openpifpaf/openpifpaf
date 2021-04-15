@@ -1,10 +1,14 @@
 import logging
 
-import scipy.optimize as optimize
 import numpy as np
 
 from openpifpaf.metric.base import Base
 from openpifpaf.annotation import Annotation
+
+try:
+    import scipy
+except ImportError:
+    scipy = None
 
 LOG = logging.getLogger(__name__)
 
@@ -119,7 +123,7 @@ def hungarian_matching(gts, predictions, thresh=0.5):
             cost[i, j] = float(np.mean(distances))
 
     assert np.max(cost) < 11
-    row, cols = optimize.linear_sum_assignment(cost)
+    row, cols = scipy.optimize.linear_sum_assignment(cost)
     return row, cols, cost
 
 

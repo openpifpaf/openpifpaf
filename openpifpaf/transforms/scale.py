@@ -4,7 +4,6 @@ import warnings
 
 import numpy as np
 import PIL
-import scipy.ndimage
 import torch
 
 from .preprocess import Preprocess
@@ -13,6 +12,11 @@ try:
     import cv2
 except ImportError:
     cv2 = None
+
+try:
+    import scipy.ndimage
+except ImportError:
+    scipy = None  # pylint: disable=invalid-name
 
 LOG = logging.getLogger(__name__)
 

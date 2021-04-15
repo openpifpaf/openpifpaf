@@ -15,8 +15,6 @@ def test_local_checkpoint():
 def test_nossl_checkpoints():
     """There are sometimes issues on Windows with SSL certificates, so avoid
     using SSL checkpoints."""
-    openpifpaf.plugin.register()
-
     for url in openpifpaf.CHECKPOINT_URLS.values():
         if not isinstance(url, str):
             continue
