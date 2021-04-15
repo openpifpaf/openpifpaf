@@ -178,7 +178,7 @@ class CifCafTorch(Decoder):
         for cif_meta in self.cif_metas:
             seeds.fill(fields[cif_meta.head_index], cif_meta.stride)
         seeds_f, seeds_vxys = seeds.get()
-        print(len(seeds_f), len(seeds_vxys))
+        LOG.debug('seeds = %d', len(seeds_f))
         # caf_scored = utils.CafScored(cifhr_accumulated).fill(fields, self.caf_metas)
         occupied = torch.classes.my_classes.Occupancy(cifhr_accumulated.shape, 2.0, 4.0)
         annotations = []

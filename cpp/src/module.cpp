@@ -34,4 +34,6 @@ TORCH_LIBRARY(my_classes, m) {
     .def("fill", &openpifpaf::decoder::utils::CifSeeds::fill)
     .def("get", &openpifpaf::decoder::utils::CifSeeds::get)
   ;
+
+  m.def("CifSeeds_set_threshold", openpifpaf::decoder::utils::CifSeeds::set_threshold);
 }

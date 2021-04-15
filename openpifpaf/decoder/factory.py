@@ -2,6 +2,8 @@ from collections import defaultdict
 import logging
 from typing import Optional
 
+import torch
+
 from .cifcaf import CifCaf
 from .cifcaf_torch import CifCafTorch
 from .cifdet import CifDet
@@ -69,6 +71,7 @@ def configure(args):
 
     # configure CifSeeds
     utils.CifSeeds.threshold = args.seed_threshold
+    torch.ops.my_classes.CifSeeds_set_threshold(args.seed_threshold)
 
     # configure CafScored
     utils.CafScored.default_score_th = args.caf_th
