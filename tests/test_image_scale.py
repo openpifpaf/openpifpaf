@@ -25,8 +25,8 @@ def test_pil_resize(resample):
     assert np.all(d_in == d_out[0, ::2])
 
 
-@pytest.mark.parametrize('order', [0, 1, 2, 3])
 @pytest.mark.slow
+@pytest.mark.parametrize('order', [0, 1, 2, 3])
 def test_scipy_zoom(order):
     import scipy.ndimage  # pylint: disable=import-outside-toplevel
 
