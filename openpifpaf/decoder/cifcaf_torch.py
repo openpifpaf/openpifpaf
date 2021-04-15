@@ -167,18 +167,22 @@ class CifCafTorch(Decoder):
         for vis, meta in zip(self.caf_visualizers, self.caf_metas):
             vis.predicted(fields[meta.head_index])
 
+        start_cifhr = time.perf_counter()
         cifhr = torch.classes.my_classes.CifHr(fields[self.cif_metas[0].head_index].shape,
                                                self.cif_metas[0].stride)
         for cif_meta in self.cif_metas:
             cifhr.accumulate(fields[cif_meta.head_index], cif_meta.stride, 0.0, 1.0)
         cifhr_accumulated = cifhr.get_accumulated()
+        LOG.debug('cifhr (%.1fms)', (time.perf_counter() - start_cifhr) * 1000.0)
         utils.CifHr.debug_visualizer.predicted(cifhr_accumulated)
 
+        start_seeds = time.perf_counter()
         seeds = torch.classes.my_classes.CifSeeds(cifhr_accumulated)
         for cif_meta in self.cif_metas:
             seeds.fill(fields[cif_meta.head_index], cif_meta.stride)
         seeds_f, seeds_vxys = seeds.get()
-        LOG.debug('seeds = %d', len(seeds_f))
+        LOG.debug('seeds = %d (%.1fms)', len(seeds_f), (time.perf_counter() - start_seeds) * 1000.0)
+
         # caf_scored = utils.CafScored(cifhr_accumulated).fill(fields, self.caf_metas)
         occupied = torch.classes.my_classes.Occupancy(cifhr_accumulated.shape, 2.0, 4.0)
         annotations = []
