@@ -120,8 +120,8 @@ def boxes_wh(ax, w_field, h_field, *, confidence_field=None, regression_field=No
                 x_offset = regression_field[0, j, i]
                 y_offset = regression_field[1, j, i]
                 if not regression_field_is_offset:
-                    x_offset -= i
-                    y_offset -= j
+                    x_offset = x_offset - i
+                    y_offset = y_offset - j
             x.append((i + x_offset) * xy_scale)
             y.append((j + y_offset) * xy_scale)
             w.append(w_field[j, i] * xy_scale)
