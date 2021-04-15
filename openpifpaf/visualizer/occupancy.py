@@ -3,7 +3,7 @@ import logging
 from .base import Base
 
 try:
-    import scipy.ndimage
+    import scipy
 except ImportError:
     scipy = None
 

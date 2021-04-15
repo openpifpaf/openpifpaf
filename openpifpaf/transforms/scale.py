@@ -14,7 +14,7 @@ except ImportError:
     cv2 = None
 
 try:
-    import scipy.ndimage
+    import scipy
 except ImportError:
     scipy = None
 
