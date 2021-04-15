@@ -397,9 +397,12 @@ def dataloader_from_args(args):
     data = datasets.Coco(
         image_dir=args.image_dir,
         ann_file=args.annotation_file,
+        ann_inst_file=args.annotation_file,
         preprocess=preprocess,
         image_filter='all' if args.all_images else 'annotated',
+        # image_filter='kp_inst',
         category_ids=[] if args.detection_annotations else [1],
+        # config=['cifcent', 'pan']
     )
     data_loader = torch.utils.data.DataLoader(
         data, batch_size=args.batch_size, pin_memory=args.pin_memory,

@@ -224,14 +224,14 @@ def OKS(a: PlayerAnnotation2D, p: PlayerSkeleton, alpha=0.8, use_dist_squared=Fa
 
     pair1 = np.nanmean([KS(a, p, "head", KiHEAD*alpha, s), KS(a, p, "hips", KiHIPS*alpha, s), KS(a, p, "foot1", KiFEET*alpha, s), KS(a, p, "foot2", KiFEET*alpha, s)])
     pair2 = np.nanmean([KS(a, p, "head", KiHEAD*alpha, s), KS(a, p, "hips", KiHIPS*alpha, s), KS(a, p, "foot1", KiFEET*alpha, s, "foot2"), KS(a, p, "foot2", KiFEET*alpha, s, "foot1")])
-    if pair2 > pair1:
-        # print('about to swap:')
-        # print(getattr(p, 'foot1'))
-        # print(getattr(p, 'foot2'))
-        p.swap_feet()   # swap feet predictions
-        # print('swapped:')
-        # print(getattr(p, 'foot1'))
-        # print(getattr(p, 'foot2'))
+    # if pair2 > pair1:
+    #     # print('about to swap:')
+    #     # print(getattr(p, 'foot1'))
+    #     # print(getattr(p, 'foot2'))
+    #     p.swap_feet()   # swap feet predictions
+    #     # print('swapped:')
+    #     # print(getattr(p, 'foot1'))
+    #     # print(getattr(p, 'foot2'))
     return max(pair1, pair2)
 
 
@@ -363,6 +363,8 @@ def cli():
                        help='print debug messages and enable all debug images')
 
     group.add_argument('--disable-error-detail', default=False, action='store_true')
+
+    group.add_argument('--filter-after-matching', default=False, action='store_true')
 
     
     # group.add_argument("--pickled-dataset", required=True)
@@ -516,10 +518,17 @@ def main():
             
             
             predictions = [PlayerSkeleton(**ann.json_data()) for ann in pred]
-            predictions = [p for p in predictions if p.projects_in_court(view['calib'], court) and p.visible]
+            
             annotations = [PlayerAnnotation2D(a, view['calib']) for a in view['annotations'] if a.type == "player" and a.camera == key.camera and all([view['calib'].projects_in(kp) for kp in [a.head, a.hips, a.foot1, a.foot2]])]
             # print('Predictions', len(predictions))
             # print('Annotations', len(annotations))
+
+            if not args.filter_after_matching:
+                predictions = [p for p in predictions if p.projects_in_court(view['calib'], court) and p.visible]
+                # remove remaining annotations that lie outside the court
+                annotations = [a for a in annotations if a.projects_in_court(view['calib'], court)]
+                print('Number of people in this image after deleting outside of the court',len(predictions))
+                Total_people_annot += len(annotations)      # to have count of people in annotations
 
             if any([np.all(a.foot1 == a.foot2) for a in annotations]):
                 logging.warning(f"'{key}' has un-corrected feet annotation. We will skip the feet in OKS computation for this item")
@@ -527,13 +536,6 @@ def main():
 
             matching = {}
             oks_list = []
-            annotations = [PlayerAnnotation2D(a, view['calib']) for a in view['annotations'] if a.type == "player" and a.camera == key.camera]
-
-            # remove remaining annotations that lie outside the court
-            annotations = [a for a in annotations if a.projects_in_court(view['calib'], court)]
-            print('Number of people in this image after deleting outside of the court',len(predictions))
-
-            Total_people_annot += len(annotations)      # to have count of people in annotations
 
             
             if predictions:
@@ -544,9 +546,31 @@ def main():
                     matching[p] = annotations[idx]
                     oks_list.append(OKS(annotations[idx], p, alpha=0.8))
                     del annotations[idx]
-
+            # print('\n 11111111111111111111')
+            # print('\n predictions', predictions)
+            # print('\n annotations', annotations)
+            # print('\n matching', matching)
             
-
+            # if args.filter_after_matching:
+            #     predictions = [p for p in predictions if p.projects_in_court(view['calib'], court) and p.visible]
+            #     # remove remaining annotations that lie outside the court
+            #     annotations = [a for a in annotations if a.projects_in_court(view['calib'], court)]
+            #     print('\n 22222222222222222')
+            #     print('\n predictions', predictions)
+            #     print('\n annotations', annotations)
+            #     print('\n matching', matching)
+            #     matching_new = {}
+            #     for ixx,(p,a) in enumerate(matching.items()):
+            #         if p.projects_in_court(view['calib'], court) and p.visible and a.projects_in_court(view['calib'], court):
+            #             matching_new[p] = a
+            #     matching = matching_new
+            #     print('matching_new', matching_new)
+            #     print('matching', matching)
+            #     # raise
+            #     print('Number of people in this image after deleting outside of the court',len(predictions))
+            #     Total_people_annot += len(annotations)      # to have count of people in annotations
+            #     Total_people_annot += len(matching)
+            
 
             # with open(f"oks_{batch_i}.pickle", "wb") as f:
             #     pickle.dump(key, f)
@@ -581,7 +605,7 @@ def main():
                     for idddx, (kp, kp_name) in enumerate(zip(*p.predicted_keypoints)):
                         km = getattr(match, kp_name)
                         print('start for ', idddx, kp_name)
-                        ks_result = KS(match, kp, kp_name)
+                        ks_result = KS(match, kp, kp_name, use_dist_squared=args.use_dist_squared)
                         if np.isnan(ks_result):
                             # nan_counter += 1
                             # nan_count[kp_name] += 1
@@ -601,7 +625,7 @@ def main():
                                 # if ka_name == kp_name:
                                     # continue
                                 for_done = False
-                                ks_result = KS(match, kp, ka_name)
+                                ks_result = KS(match, kp, ka_name, use_dist_squared=args.use_dist_squared)
                                 if np.isnan(ks_result):
                                     continue
                                 elif ks_result >= 0.5:
@@ -617,7 +641,7 @@ def main():
                             for a in list(set(annotations + list(matching.values())) -set([match])):
                                 for ka_name in ['head','hips','foot1','foot2']:
                                     for_done = False
-                                    ks_result = KS(a, kp, ka_name)
+                                    ks_result = KS(a, kp, ka_name, use_dist_squared=args.use_dist_squared)
                                     if np.isnan(ks_result):
                                         continue
                                     elif ks_result >= 0.5:
@@ -659,6 +683,9 @@ def main():
     logging.warning(f"Images with wrong feet annotations: {images_with_wrong_feet}")
     pickle.dump(result_list, open(f"{args.weights_file}_OKS_tmp_results.pickle", "wb"))
     pprint(compute_metrics(result_list))
+    print('Checkpoint: ', args.weights_file)
+    print('Kapas: ', KAPAS)
+    print('Filter the prediction and annotations after the matching: ', args.filter_after_matching)
     if not args.disable_error_detail:
         plot_pie_chart(error_detail_dict, Background_FP, Total_people_pred, Background_FN, Total_people_annot)
 
@@ -714,7 +741,7 @@ def plot_pie_chart(error_detail, Background_FP, Total_people_pred, Background_FN
             loc="center left",
             ncol=4,
             bbox_to_anchor=(0, 0, 0, -.5))
-    plt.savefig('image/pie_chart_detail.png')
+    # plt.savefig('image/pie_chart_detail.png')
 
 
     explode = (0, 0.1, 0, 0, 0, 0)  # only "explode" the 2nd slice (i.e. 'Hogs')
@@ -769,7 +796,7 @@ def plot_pie_chart(error_detail, Background_FP, Total_people_pred, Background_FN
             kw["arrowprops"].update({"connectionstyle": connectionstyle})
             ax.annotate(round((sizes[i]/sum(sizes)) *100,1), xy=(x, y), xytext=(1.25*np.sign(x), 1.4*y),
                         horizontalalignment=horizontalalignment, **kw)
-    plt.savefig('image/pie_chart_total.png')
+    # plt.savefig('image/pie_chart_total.png')
 
     print('Backgound FP:', Background_FP)
     print('Total People pred:', Total_people_pred)
@@ -782,8 +809,10 @@ def plot_pie_chart(error_detail, Background_FP, Total_people_pred, Background_FN
     if Total_people_annot > 0:
         print('Backgound FN rate:', round((Background_FN/Total_people_annot)*100, 3))
 
-def KS(a, p, name):
-    
+def KS(a, p, name, use_dist_squared=False):
+    def dist(p1, p2):
+        dist_squared = np.sum((p1-p2)**2)
+        return dist_squared if use_dist_squared else np.sqrt(dist_squared)
     keypoints = Point2D([a.head, a.hips, a.foot1, a.foot2])
     # scale 
     s = (np.max(keypoints.x)-np.min(keypoints.x))*(np.max(keypoints.y)-np.min(keypoints.y)) # BB area in pixels

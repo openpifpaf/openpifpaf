@@ -151,7 +151,7 @@ class CifPanBall(Generator):
         keypoints_yx = [np.stack(np.nonzero(cif_local_max(cif)), axis=-1)
                         for cif in cifhr.accumulated]
 
-        from matplotlib import pyplot as plt
+        # from matplotlib import pyplot as plt
         # plt.figure(figsize=(15,15))
         # im = plt.imshow(np.log(cifhr.accumulated[Ci]), cmap='jet')
         # plt.colorbar(im)

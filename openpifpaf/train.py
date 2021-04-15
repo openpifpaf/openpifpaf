@@ -90,6 +90,9 @@ def cli():
 
     group.add_argument('--disable-wandb', action='store_true')
 
+    group.add_argument('--wandb-dir', default='wandb/',
+                        help='wandb directory')
+
     args = parser.parse_args()
 
     if args.debug_images:
