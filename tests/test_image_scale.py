@@ -3,7 +3,6 @@ import time
 import numpy as np
 import PIL.Image
 import pytest
-import scipy.ndimage
 
 try:
     import cv2
@@ -29,6 +28,8 @@ def test_pil_resize(resample):
 @pytest.mark.parametrize('order', [0, 1, 2, 3])
 @pytest.mark.slow
 def test_scipy_zoom(order):
+    import scipy.ndimage
+
     d_in = np.array([[0, 10, 20, 30, 40, 50]], dtype=np.uint8)
 
     w = d_in.shape[1]
