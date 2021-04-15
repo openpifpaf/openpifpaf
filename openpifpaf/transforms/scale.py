@@ -14,9 +14,9 @@ except ImportError:
     cv2 = None
 
 try:
-    import scipy
+    import scipy.ndimage
 except ImportError:
-    scipy = None
+    scipy = None  # pylint: disable=invalid-name
 
 LOG = logging.getLogger(__name__)
 
