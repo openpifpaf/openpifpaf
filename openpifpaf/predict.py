@@ -47,6 +47,9 @@ def cli():
                         help='rescale the long side of the image (aspect ratio maintained)')
     parser.add_argument('--loader-workers', default=None, type=int,
                         help='number of workers for data loading')
+    parser.add_argument('--precise-rescaling', dest='fast_rescaling',
+                        default=True, action='store_false',
+                        help='use more exact image rescaling (requires scipy)')
     parser.add_argument('--disable-cuda', action='store_true',
                         help='disable CUDA')
     args = parser.parse_args()
@@ -96,7 +99,7 @@ def processor_factory(args):
 def preprocess_factory(args):
     rescale_t = None
     if args.long_edge:
-        rescale_t = transforms.RescaleAbsolute(args.long_edge)
+        rescale_t = transforms.RescaleAbsolute(args.long_edge, fast=args.fast_rescaling)
 
     pad_t = None
     if args.batch_size > 1:
