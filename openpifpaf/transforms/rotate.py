@@ -106,7 +106,15 @@ class RotateUniform(Preprocess):
         angle = sym_rnd * self.max_angle
 
         # pad first
-        center_pad = CenterPad(int(max(image.size) * 1.41))
-        image, anns, meta = center_pad(image, anns, meta)
+        if abs(angle) > 1.0:
+            w, h = image.size
+            cos_angle = math.cos(abs(angle) * math.pi / 180.0)
+            sin_angle = math.sin(abs(angle) * math.pi / 180.0)
+            padded_size = (
+                int(w * cos_angle + h * sin_angle) + 1,
+                int(h * cos_angle + w * sin_angle) + 1,
+            )
+            center_pad = CenterPad(padded_size)
+            image, anns, meta = center_pad(image, anns, meta)
 
         return rotate(image, anns, meta, angle)
