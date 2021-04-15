@@ -41,6 +41,7 @@ def single_pixel_transform(x, y, transform, image_wh=(13, 11)):
     )
 
 
+@pytest.mark.slow  # requires scipy
 def test_rescale_absolute(x=5, y=5):
     image_xy, keypoint_xy = single_pixel_transform(
         x, y, transforms.RescaleAbsolute(7), image_wh=(11, 11))
