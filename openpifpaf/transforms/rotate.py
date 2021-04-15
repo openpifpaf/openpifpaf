@@ -4,11 +4,15 @@ import math
 
 import numpy as np
 import PIL
-import scipy
 import torch
 
 from .preprocess import Preprocess
 from .. import utils
+
+try:
+    import scipy
+except ImportError:
+    scipy = None
 
 LOG = logging.getLogger(__name__)
 
