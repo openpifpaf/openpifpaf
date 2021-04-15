@@ -6,6 +6,7 @@ import numpy as np
 import PIL
 import torch
 
+from .pad import CenterPad
 from .preprocess import Preprocess
 from .. import utils
 
@@ -103,4 +104,9 @@ class RotateUniform(Preprocess):
     def __call__(self, image, anns, meta):
         sym_rnd = (float(torch.rand(1).item()) - 0.5) * 2.0
         angle = sym_rnd * self.max_angle
+
+        # pad first
+        center_pad = CenterPad(int(max(image.size) * 1.41))
+        image, anns, meta = center_pad(image, anns, meta)
+
         return rotate(image, anns, meta, angle)

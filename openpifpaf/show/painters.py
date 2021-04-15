@@ -390,7 +390,7 @@ class KeypointPainter(Configurable):
 
         if self.show_box:
             x_, y_, w_, h_ = [v * self.xy_scale for v in ann.bbox()]
-            self._draw_box(ax, x_, y_, w_, h_, color, ann.score())
+            self._draw_box(ax, x_, y_, w_, h_, color, ann.score)
 
         if text is not None:
             self._draw_text(ax, x, y, v, text, color, subtext=subtext, alpha=alpha)
