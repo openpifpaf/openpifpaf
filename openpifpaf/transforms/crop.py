@@ -72,7 +72,10 @@ class Crop(Preprocess):
         return (left, top, right - left, bottom - top)
 
     @staticmethod
-    def random_location_1d(valid_min, valid_length, interest_min, interest_length, crop_length, tail=0.1):
+    def random_location_1d(valid_min, valid_length,
+                           interest_min, interest_length,
+                           crop_length,
+                           tail=0.1):
         sticky_rnd = -tail + 2 * tail * torch.rand((1,))
         sticky_rnd = torch.clamp(sticky_rnd, 0.0, 1.0).item()
 
