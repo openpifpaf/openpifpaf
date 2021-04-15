@@ -48,65 +48,75 @@ class Crop(Preprocess):
         return image, anns, meta
 
     @staticmethod
-    def area_of_interest(anns, valid_area, edge_length):
+    def area_of_interest(anns, valid_area):
         """area that contains annotations with keypoints"""
 
-        anns_of_interest = [
-            ann for ann in anns
-            if not ann.get('iscrowd', False) and np.any(ann['keypoints'][:, 2] > 0)
+        points_of_interest = [
+            xy
+            for ann in anns
+            if not ann.get('iscrowd', False)
+            for xy in [ann['bbox'][:2], ann['bbox'][:2] + ann['bbox'][2:]]
         ]
-        if not anns_of_interest:
+        if not points_of_interest:
             return valid_area
-
-        min_x = min(np.min(ann['keypoints'][ann['keypoints'][:, 2] > 0, 0])
-                    for ann in anns_of_interest) - 50
-        min_y = min(np.min(ann['keypoints'][ann['keypoints'][:, 2] > 0, 1])
-                    for ann in anns_of_interest) - 50
-        max_x = max(np.max(ann['keypoints'][ann['keypoints'][:, 2] > 0, 0])
-                    for ann in anns_of_interest) + 50
-        max_y = max(np.max(ann['keypoints'][ann['keypoints'][:, 2] > 0, 1])
-                    for ann in anns_of_interest) + 50
+        points_of_interest = np.stack(points_of_interest, axis=0)
+        min_xy = np.min(points_of_interest, axis=0) - 50
+        max_xy = np.max(points_of_interest, axis=0) + 50
 
         # Make sure to stay inside of valid area.
-        # Also make sure that the remaining window inside the valid area
-        # has at least an edge_length in size (for the case where there is
-        # only a small annotation in a corner).
-        valid_area_r = valid_area[0] + valid_area[2]
-        valid_area_b = valid_area[1] + valid_area[3]
-        range_x = max(0, valid_area[2] - edge_length)
-        range_y = max(0, valid_area[3] - edge_length)
-        left = np.clip(min_x, valid_area[0], valid_area[0] + range_x)
-        top = np.clip(min_y, valid_area[1], valid_area[1] + range_y)
-        right = np.clip(max_x, valid_area_r - range_x, valid_area_r)
-        bottom = np.clip(max_y, valid_area_b - range_y, valid_area_b)
+        left = np.clip(min_xy[0], valid_area[0], valid_area[0] + valid_area[2] - 1)
+        top = np.clip(min_xy[1], valid_area[1], valid_area[1] + valid_area[3] - 1)
+        right = np.clip(max_xy[0], left + 1, valid_area[0] + valid_area[2])
+        bottom = np.clip(max_xy[1], top + 1, valid_area[1] + valid_area[3])
 
         return (left, top, right - left, bottom - top)
 
+    @staticmethod
+    def random_location_1d(valid_min, valid_length,
+                           interest_min, interest_length,
+                           crop_length,
+                           tail=0.1):
+        sticky_rnd = -tail + 2 * tail * torch.rand((1,))
+        sticky_rnd = torch.clamp(sticky_rnd, 0.0, 1.0).item()
+
+        if interest_length > crop_length:
+            offset = interest_min + (interest_length - crop_length) * sticky_rnd
+            return int(offset)
+
+        if valid_length > crop_length:
+            # here, from above: interest_length < crop_length
+            min_v = interest_min + interest_length - crop_length
+            max_v = interest_min
+
+            # clip to valid area
+            min_v = max(min_v, valid_min)
+            max_v = min(max_v, valid_min + valid_length - crop_length)
+
+            offset = min_v + (max_v - min_v) * sticky_rnd
+            return int(offset)
+
+        return int(valid_min)
+
     def crop(self, image, anns, valid_area):
         if self.use_area_of_interest:
-            area_of_interest = self.area_of_interest(anns, valid_area, self.long_edge)
+            area_of_interest = self.area_of_interest(anns, valid_area)
         else:
             area_of_interest = valid_area
 
         w, h = image.size
-        padding = int(self.long_edge / 2.0)
         x_offset, y_offset = 0, 0
         if w > self.long_edge:
-            min_x = int(area_of_interest[0])
-            max_x = int(area_of_interest[0] + area_of_interest[2]) - self.long_edge
-            if max_x > min_x:
-                x_offset = torch.randint(-padding + min_x, max_x + padding, (1,))
-                x_offset = torch.clamp(x_offset, min=min_x, max=max_x).item()
-            else:
-                x_offset = min_x
+            x_offset = self.random_location_1d(
+                valid_area[0], valid_area[2],
+                area_of_interest[0], area_of_interest[2],
+                self.long_edge,
+            )
         if h > self.long_edge:
-            min_y = int(area_of_interest[1])
-            max_y = int(area_of_interest[1] + area_of_interest[3]) - self.long_edge
-            if max_y > min_y:
-                y_offset = torch.randint(-padding + min_y, max_y + padding, (1,))
-                y_offset = torch.clamp(y_offset, min=min_y, max=max_y).item()
-            else:
-                y_offset = min_y
+            y_offset = self.random_location_1d(
+                valid_area[1], valid_area[3],
+                area_of_interest[1], area_of_interest[3],
+                self.long_edge
+            )
         LOG.debug('crop offsets (%d, %d)', x_offset, y_offset)
 
         # crop image
