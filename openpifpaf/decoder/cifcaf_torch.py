@@ -195,7 +195,18 @@ class CifCafTorch(Decoder):
         seeds_f, seeds_vxys = seeds.get()
         LOG.debug('seeds = %d (%.1fms)', len(seeds_f), (time.perf_counter() - start_seeds) * 1000.0)
 
+        start_cafscored = time.perf_counter()
+        caf_scored = torch.classes.my_classes.CafScored(cifhr_accumulated, -1.0, 0.1)
+        for caf_meta in self.caf_metas:
+            caf_scored.fill(fields[caf_meta.head_index], caf_meta.stride)
+        caf_forward, caf_backward = caf_scored.get()
         # caf_scored = utils.CafScored(cifhr_accumulated).fill(fields, self.caf_metas)
+        LOG.debug(
+            'cafscored forward = %d, backward = %d (%.1fms)',
+            len(caf_forward),
+            len(caf_backward),
+            (time.perf_counter() - start_cafscored) * 1000.0)
+
         occupied = torch.classes.my_classes.Occupancy(cifhr_accumulated.shape, 2.0, 4.0)
         annotations = []
 

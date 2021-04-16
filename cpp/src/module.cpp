@@ -35,6 +35,11 @@ TORCH_LIBRARY(my_classes, m) {
     .def("fill", &openpifpaf::decoder::utils::CifSeeds::fill)
     .def("get", &openpifpaf::decoder::utils::CifSeeds::get)
   ;
-
   m.def("CifSeeds_set_threshold", openpifpaf::decoder::utils::CifSeeds::set_threshold);
+
+  m.class_<openpifpaf::decoder::utils::CafScored>("CafScored")
+    .def(torch::init<const torch::Tensor&, double, double>())
+    .def("fill", &openpifpaf::decoder::utils::CafScored::fill)
+    .def("get", &openpifpaf::decoder::utils::CafScored::get)
+  ;
 }

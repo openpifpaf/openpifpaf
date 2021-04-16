@@ -33,7 +33,7 @@ void CafScored::fill(const torch::Tensor& caf_field, int64_t stride) {
                 c = caf_field_a[f][0][j][i];
                 if (c < score_th) continue;
 
-                auto ca_forward = CompositeAssociation(
+                CompositeAssociation ca_forward(
                     c,
                     caf_field_a[f][1][j][i] * stride,
                     caf_field_a[f][2][j][i] * stride,
@@ -44,7 +44,7 @@ void CafScored::fill(const torch::Tensor& caf_field, int64_t stride) {
                     caf_field_a[f][7][j][i] * stride,
                     caf_field_a[f][8][j][i] * stride
                 );
-                auto ca_backward = CompositeAssociation(
+                CompositeAssociation ca_backward(
                     c,
                     ca_forward.x2,
                     ca_forward.y2,
@@ -57,10 +57,10 @@ void CafScored::fill(const torch::Tensor& caf_field, int64_t stride) {
                 );
 
                 // rescore
-                forward_hr = cifhr_value(f, ca_forward.x2, ca_forward.y2, 0.0);
-                backward_hr = cifhr_value(f, ca_backward.x2, ca_backward.y2, 0.0);
-                ca_forward.c = ca_forward.c * (cif_floor + (1.0 - cif_floor) * forward_hr);
-                ca_backward.c = ca_backward.c * (cif_floor + (1.0 - cif_floor) * backward_hr);
+                // forward_hr = cifhr_value(f, ca_forward.x2, ca_forward.y2, 0.0);
+                // backward_hr = cifhr_value(f, ca_backward.x2, ca_backward.y2, 0.0);
+                // ca_forward.c = ca_forward.c * (cif_floor + (1.0 - cif_floor) * forward_hr);
+                // ca_backward.c = ca_backward.c * (cif_floor + (1.0 - cif_floor) * backward_hr);
 
                 // accumulate
                 if (ca_forward.c > score_th) {
