@@ -198,7 +198,7 @@ class CifCafTorch(Decoder):
         start_cafscored = time.perf_counter()
         caf_scored = torch.classes.my_classes.CafScored(cifhr_accumulated, -1.0, 0.1)
         for caf_meta in self.caf_metas:
-            caf_scored.fill(fields[caf_meta.head_index], caf_meta.stride)
+            caf_scored.fill(fields[caf_meta.head_index], caf_meta.stride, caf_meta.skeleton)
         caf_forward, caf_backward = caf_scored.get()
         # caf_scored = utils.CafScored(cifhr_accumulated).fill(fields, self.caf_metas)
         LOG.debug(

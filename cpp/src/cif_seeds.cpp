@@ -14,7 +14,7 @@ double CifSeeds::v_threshold = 0.2;
 float CifSeeds::cifhr_value(int64_t f, float x, float y, float default_value) {
     float max_x = float(cifhr_a.size(2)) - 0.51;
     float max_y = float(cifhr_a.size(1)) - 0.51;
-    if (x < -0.49 || y < -0.49 || x > max_x || y > max_y) {
+    if (f >= cifhr_a.size(0) || x < -0.49 || y < -0.49 || x > max_x || y > max_y) {
         return default_value;
     }
 

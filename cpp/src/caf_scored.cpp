@@ -14,7 +14,7 @@ double CafScored::default_score_th = 0.2;
 float CafScored::cifhr_value(int64_t f, float x, float y, float default_value) {
     float max_x = float(cifhr_a.size(2)) - 0.51;
     float max_y = float(cifhr_a.size(1)) - 0.51;
-    if (x < -0.49 || y < -0.49 || x > max_x || y > max_y) {
+    if (f >= cifhr_a.size(0) || x < -0.49 || y < -0.49 || x > max_x || y > max_y) {
         return default_value;
     }
 
@@ -23,7 +23,7 @@ float CafScored::cifhr_value(int64_t f, float x, float y, float default_value) {
 }
 
 
-void CafScored::fill(const torch::Tensor& caf_field, int64_t stride) {
+void CafScored::fill(const torch::Tensor& caf_field, int64_t stride, const std::vector<std::vector<int64_t> >& skeleton) {
     auto caf_field_a = caf_field.accessor<float, 4>();
 
     float c, forward_hr, backward_hr;
@@ -48,19 +48,19 @@ void CafScored::fill(const torch::Tensor& caf_field, int64_t stride) {
                     c,
                     ca_forward.x2,
                     ca_forward.y2,
-                    ca_forward.b2,
-                    ca_forward.s2,
                     ca_forward.x1,
                     ca_forward.y1,
+                    ca_forward.b2,
                     ca_forward.b1,
+                    ca_forward.s2,
                     ca_forward.s1
                 );
 
                 // rescore
-                // forward_hr = cifhr_value(f, ca_forward.x2, ca_forward.y2, 0.0);
-                // backward_hr = cifhr_value(f, ca_backward.x2, ca_backward.y2, 0.0);
-                // ca_forward.c = ca_forward.c * (cif_floor + (1.0 - cif_floor) * forward_hr);
-                // ca_backward.c = ca_backward.c * (cif_floor + (1.0 - cif_floor) * backward_hr);
+                forward_hr = cifhr_value(skeleton[f][1] - 1, ca_forward.x2, ca_forward.y2, 0.0);
+                backward_hr = cifhr_value(skeleton[f][0] - 1, ca_backward.x2, ca_backward.y2, 0.0);
+                ca_forward.c = ca_forward.c * (cif_floor + (1.0 - cif_floor) * forward_hr);
+                ca_backward.c = ca_backward.c * (cif_floor + (1.0 - cif_floor) * backward_hr);
 
                 // accumulate
                 if (ca_forward.c > score_th) {
