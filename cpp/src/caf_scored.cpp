@@ -110,47 +110,6 @@ std::vector<torch::Tensor> to_tensors(const std::vector<std::vector<CompositeAss
 
 std::tuple<std::vector<torch::Tensor>, std::vector<torch::Tensor> > CafScored::get(void) {
     return { to_tensors(forward), to_tensors(backward) };
-    // std::vector<torch::Tensor> forward_tensors;
-    // std::vector<torch::Tensor> backward_tensors;
-
-
-    // int64_t n_forward = forward.size();
-    // int64_t n_backward = backward.size();
-
-    // auto forward_tensor = torch::empty({ n_forward, 9 });
-    // auto backward_tensor = torch::empty({ n_backward, 9 });
-    // auto forward_tensor_a = forward_tensor.accessor<float, 2>();
-    // auto backward_tensor_a = backward_tensor.accessor<float, 2>();
-
-    // int64_t i = 0;
-    // for (auto& ca : forward) {
-    //     forward_tensor_a[i][0] = ca.c;
-    //     forward_tensor_a[i][1] = ca.x1;
-    //     forward_tensor_a[i][2] = ca.y1;
-    //     forward_tensor_a[i][3] = ca.x2;
-    //     forward_tensor_a[i][4] = ca.y2;
-    //     forward_tensor_a[i][5] = ca.b1;
-    //     forward_tensor_a[i][6] = ca.b2;
-    //     forward_tensor_a[i][7] = ca.s1;
-    //     forward_tensor_a[i][8] = ca.s2;
-    //     i++;
-    // }
-
-    // int64_t j = 0;
-    // for (auto& ca : backward) {
-    //     backward_tensor_a[j][0] = ca.c;
-    //     backward_tensor_a[j][1] = ca.x1;
-    //     backward_tensor_a[j][2] = ca.y1;
-    //     backward_tensor_a[j][3] = ca.x2;
-    //     backward_tensor_a[j][4] = ca.y2;
-    //     backward_tensor_a[j][5] = ca.b1;
-    //     backward_tensor_a[j][6] = ca.b2;
-    //     backward_tensor_a[j][7] = ca.s1;
-    //     backward_tensor_a[j][8] = ca.s2;
-    //     j++;
-    // }
-
-    // return { forward_tensor, backward_tensor };
 }
 
 

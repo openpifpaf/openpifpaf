@@ -248,8 +248,8 @@ class CifCafTorch(Decoder):
         #         annotations = self.nms.annotations(annotations)
         #     annotations = self.complete_annotations(cifhr, fields, annotations)
 
-        # if self.nms is not None:
-        #     annotations = self.nms.annotations(annotations)
+        if self.nms is not None:
+            annotations = self.nms.annotations(annotations)
 
         LOG.info('%d annotations (%.1fms): %s', len(annotations),
                  (time.perf_counter() - start) * 1000.0,
