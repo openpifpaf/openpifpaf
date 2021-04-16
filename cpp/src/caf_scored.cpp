@@ -25,9 +25,13 @@ float CafScored::cifhr_value(int64_t f, float x, float y, float default_value) {
 
 void CafScored::fill(const torch::Tensor& caf_field, int64_t stride, const std::vector<std::vector<int64_t> >& skeleton) {
     auto caf_field_a = caf_field.accessor<float, 4>();
+    int64_t n_fields = caf_field_a.size(0);
+
+    forward.resize(n_fields);
+    backward.resize(n_fields);
 
     float c, forward_hr, backward_hr;
-    for (int64_t f=0; f < caf_field_a.size(0); f++) {
+    for (int64_t f=0; f < n_fields; f++) {
         for (int64_t j=0; j < caf_field_a.size(2); j++) {
             for (int64_t i=0; i < caf_field_a.size(3); i++) {
                 c = caf_field_a[f][0][j][i];
@@ -64,10 +68,10 @@ void CafScored::fill(const torch::Tensor& caf_field, int64_t stride, const std::
 
                 // accumulate
                 if (ca_forward.c > score_th) {
-                    forward.push_back(ca_forward);
+                    forward[f].push_back(ca_forward);
                 }
                 if (ca_backward.c > score_th) {
-                    backward.push_back(ca_backward);
+                    backward[f].push_back(ca_backward);
                 }
             }
         }
@@ -75,44 +79,78 @@ void CafScored::fill(const torch::Tensor& caf_field, int64_t stride, const std::
 }
 
 
-std::tuple<torch::Tensor, torch::Tensor> CafScored::get(void) {
-    int64_t n_forward = forward.size();
-    int64_t n_backward = backward.size();
+std::vector<torch::Tensor> to_tensors(const std::vector<std::vector<CompositeAssociation> >& vectors) {
+    std::vector<torch::Tensor> tensors;
 
-    auto forward_tensor = torch::empty({ n_forward, 9 });
-    auto backward_tensor = torch::empty({ n_backward, 9 });
-    auto forward_tensor_a = forward_tensor.accessor<float, 2>();
-    auto backward_tensor_a = backward_tensor.accessor<float, 2>();
+    for (auto& associations : vectors) {
+        int64_t n = associations.size();
+        auto tensor = torch::empty({ n, 9 });
+        auto tensor_a = tensor.accessor<float, 2>();
 
-    int64_t i = 0;
-    for (auto& ca : forward) {
-        forward_tensor_a[i][0] = ca.c;
-        forward_tensor_a[i][1] = ca.x1;
-        forward_tensor_a[i][2] = ca.y1;
-        forward_tensor_a[i][3] = ca.x2;
-        forward_tensor_a[i][4] = ca.y2;
-        forward_tensor_a[i][5] = ca.b1;
-        forward_tensor_a[i][6] = ca.b2;
-        forward_tensor_a[i][7] = ca.s1;
-        forward_tensor_a[i][8] = ca.s2;
-        i++;
+        int64_t i = 0;
+        for (auto& ca : associations) {
+            tensor_a[i][0] = ca.c;
+            tensor_a[i][1] = ca.x1;
+            tensor_a[i][2] = ca.y1;
+            tensor_a[i][3] = ca.x2;
+            tensor_a[i][4] = ca.y2;
+            tensor_a[i][5] = ca.b1;
+            tensor_a[i][6] = ca.b2;
+            tensor_a[i][7] = ca.s1;
+            tensor_a[i][8] = ca.s2;
+            i++;
+        }
+
+        tensors.push_back(tensor);
     }
 
-    int64_t j = 0;
-    for (auto& ca : backward) {
-        backward_tensor_a[j][0] = ca.c;
-        backward_tensor_a[j][1] = ca.x1;
-        backward_tensor_a[j][2] = ca.y1;
-        backward_tensor_a[j][3] = ca.x2;
-        backward_tensor_a[j][4] = ca.y2;
-        backward_tensor_a[j][5] = ca.b1;
-        backward_tensor_a[j][6] = ca.b2;
-        backward_tensor_a[j][7] = ca.s1;
-        backward_tensor_a[j][8] = ca.s2;
-        j++;
-    }
+    return tensors;
+}
 
-    return { forward_tensor, backward_tensor };
+
+std::tuple<std::vector<torch::Tensor>, std::vector<torch::Tensor> > CafScored::get(void) {
+    return { to_tensors(forward), to_tensors(backward) };
+    // std::vector<torch::Tensor> forward_tensors;
+    // std::vector<torch::Tensor> backward_tensors;
+
+
+    // int64_t n_forward = forward.size();
+    // int64_t n_backward = backward.size();
+
+    // auto forward_tensor = torch::empty({ n_forward, 9 });
+    // auto backward_tensor = torch::empty({ n_backward, 9 });
+    // auto forward_tensor_a = forward_tensor.accessor<float, 2>();
+    // auto backward_tensor_a = backward_tensor.accessor<float, 2>();
+
+    // int64_t i = 0;
+    // for (auto& ca : forward) {
+    //     forward_tensor_a[i][0] = ca.c;
+    //     forward_tensor_a[i][1] = ca.x1;
+    //     forward_tensor_a[i][2] = ca.y1;
+    //     forward_tensor_a[i][3] = ca.x2;
+    //     forward_tensor_a[i][4] = ca.y2;
+    //     forward_tensor_a[i][5] = ca.b1;
+    //     forward_tensor_a[i][6] = ca.b2;
+    //     forward_tensor_a[i][7] = ca.s1;
+    //     forward_tensor_a[i][8] = ca.s2;
+    //     i++;
+    // }
+
+    // int64_t j = 0;
+    // for (auto& ca : backward) {
+    //     backward_tensor_a[j][0] = ca.c;
+    //     backward_tensor_a[j][1] = ca.x1;
+    //     backward_tensor_a[j][2] = ca.y1;
+    //     backward_tensor_a[j][3] = ca.x2;
+    //     backward_tensor_a[j][4] = ca.y2;
+    //     backward_tensor_a[j][5] = ca.b1;
+    //     backward_tensor_a[j][6] = ca.b2;
+    //     backward_tensor_a[j][7] = ca.s1;
+    //     backward_tensor_a[j][8] = ca.s2;
+    //     j++;
+    // }
+
+    // return { forward_tensor, backward_tensor };
 }
 
 

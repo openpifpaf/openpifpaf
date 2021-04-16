@@ -202,8 +202,8 @@ class CifCafTorch(Decoder):
         caf_fb = caf_scored.get()
         LOG.debug(
             'cafscored forward = %d, backward = %d (%.1fms)',
-            len(caf_fb[0]),
-            len(caf_fb[1]),
+            sum(len(f) for f in caf_fb[0]),
+            sum(len(f) for f in caf_fb[1]),
             (time.perf_counter() - start_cafscored) * 1000.0)
 
         occupied = torch.classes.my_classes.Occupancy(cifhr_accumulated.shape, 2.0, 4.0)
@@ -265,7 +265,7 @@ class CifCafTorch(Decoder):
 
         only_max = self.connection_method == 'max'
 
-        new_xysv = grow_connection_blend(
+        new_xysv = torch.ops.my_classes.grow_connection_blend(
             caf_f, xyv[0], xyv[1], xy_scale_s, only_max)
         if new_xysv[3] == 0.0:
             return 0.0, 0.0, 0.0, 0.0
@@ -278,7 +278,7 @@ class CifCafTorch(Decoder):
 
         # reverse match
         if self.reverse_match and reverse_match:
-            reverse_xyv = grow_connection_blend(
+            reverse_xyv = torch.ops.my_classes.grow_connection_blend(
                 caf_b, new_xysv[0], new_xysv[1], xy_scale_t, only_max)
             if reverse_xyv[2] == 0.0:
                 return 0.0, 0.0, 0.0, 0.0

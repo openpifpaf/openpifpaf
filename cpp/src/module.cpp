@@ -42,4 +42,6 @@ TORCH_LIBRARY(my_classes, m) {
     .def("fill", &openpifpaf::decoder::utils::CafScored::fill)
     .def("get", &openpifpaf::decoder::utils::CafScored::get)
   ;
+
+  m.def("grow_connection_blend", openpifpaf::decoder::grow_connection_blend);
 }
