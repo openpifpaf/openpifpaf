@@ -1,5 +1,5 @@
-import numpy as np
 import copy
+import numpy as np
 
 body_foot_skeleton = [
     (16, 14), (14, 12), (17, 15), (15, 13), (12, 13), (6, 12), (7, 13),
@@ -71,14 +71,14 @@ righth_kps = ['rh_' + str(x) for x in range(113, 134)]
 
 WHOLEBODY_KEYPOINTS = body_kps + foot_kps + face_kps + lefth_kps + righth_kps
 
-scale_face = 1.05
+SCALE_FACE = 1.05
 
 body_pose = np.array([
     [0.0, 9.3, 2.0],    # 'nose',            # 1
-    [-0.35*scale_face, 9.7, 2.0],  # 'left_eye',        # 2
-    [0.35*scale_face, 9.7, 2.0],   # 'right_eye',       # 3
-    [-0.7*scale_face, 9.5, 2.0],   # 'left_ear',        # 4
-    [0.7*scale_face, 9.5, 2.0],    # 'right_ear',       # 5
+    [-0.35*SCALE_FACE, 9.7, 2.0],  # 'left_eye',        # 2
+    [0.35*SCALE_FACE, 9.7, 2.0],   # 'right_eye',       # 3
+    [-0.7*SCALE_FACE, 9.5, 2.0],   # 'left_ear',        # 4
+    [0.7*SCALE_FACE, 9.5, 2.0],    # 'right_ear',       # 5
     [-1.4, 8.0, 2.0],   # 'left_shoulder',   # 6
     [1.4, 8.0, 2.0],    # 'right_shoulder',  # 7
     [-1.75-0.4, 6.2+0.2, 2.0],  # 'left_elbow',      # 8
@@ -177,7 +177,7 @@ face_pose = np.array([
     [0.0, 8.79, 2.0],   # 90
     [0.1, 8.79, 2.0]    # 91
     ])
-face_pose[:, 0] = face_pose[:, 0] * scale_face
+face_pose[:, 0] = face_pose[:, 0] * SCALE_FACE
 
 
 lefthand_pose = np.array([
