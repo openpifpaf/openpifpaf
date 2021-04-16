@@ -87,12 +87,28 @@ std::tuple<torch::Tensor, torch::Tensor> CafScored::get(void) {
     int64_t i = 0;
     for (auto& ca : forward) {
         forward_tensor_a[i][0] = ca.c;
+        forward_tensor_a[i][1] = ca.x1;
+        forward_tensor_a[i][2] = ca.y1;
+        forward_tensor_a[i][3] = ca.x2;
+        forward_tensor_a[i][4] = ca.y2;
+        forward_tensor_a[i][5] = ca.b1;
+        forward_tensor_a[i][6] = ca.b2;
+        forward_tensor_a[i][7] = ca.s1;
+        forward_tensor_a[i][8] = ca.s2;
         i++;
     }
 
     int64_t j = 0;
     for (auto& ca : backward) {
         backward_tensor_a[j][0] = ca.c;
+        backward_tensor_a[j][1] = ca.x1;
+        backward_tensor_a[j][2] = ca.y1;
+        backward_tensor_a[j][3] = ca.x2;
+        backward_tensor_a[j][4] = ca.y2;
+        backward_tensor_a[j][5] = ca.b1;
+        backward_tensor_a[j][6] = ca.b2;
+        backward_tensor_a[j][7] = ca.s1;
+        backward_tensor_a[j][8] = ca.s2;
         j++;
     }
 

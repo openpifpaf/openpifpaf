@@ -199,45 +199,44 @@ class CifCafTorch(Decoder):
         caf_scored = torch.classes.my_classes.CafScored(cifhr_accumulated, -1.0, 0.1)
         for caf_meta in self.caf_metas:
             caf_scored.fill(fields[caf_meta.head_index], caf_meta.stride, caf_meta.skeleton)
-        caf_forward, caf_backward = caf_scored.get()
-        # caf_scored = utils.CafScored(cifhr_accumulated).fill(fields, self.caf_metas)
+        caf_fb = caf_scored.get()
         LOG.debug(
             'cafscored forward = %d, backward = %d (%.1fms)',
-            len(caf_forward),
-            len(caf_backward),
+            len(caf_fb[0]),
+            len(caf_fb[1]),
             (time.perf_counter() - start_cafscored) * 1000.0)
 
         occupied = torch.classes.my_classes.Occupancy(cifhr_accumulated.shape, 2.0, 4.0)
         annotations = []
 
-        # def mark_occupied(ann):
-        #     joint_is = np.flatnonzero(ann.data[:, 2])
-        #     for joint_i in joint_is:
-        #         width = ann.joint_scales[joint_i]
-        #         occupied.set(
-        #             joint_i,
-        #             ann.data[joint_i, 0],
-        #             ann.data[joint_i, 1],
-        #             width,  # width = 2 * sigma
-        #         )
+        def mark_occupied(ann):
+            joint_is = np.flatnonzero(ann.data[:, 2])
+            for joint_i in joint_is:
+                width = ann.joint_scales[joint_i]
+                occupied.set(
+                    joint_i,
+                    ann.data[joint_i, 0],
+                    ann.data[joint_i, 1],
+                    width,  # width = 2 * sigma
+                )
 
         # for ann in initial_annotations:
         #     self._grow(ann, caf_scored)
         #     annotations.append(ann)
         #     mark_occupied(ann)
 
-        # for v, f, x, y, s in seeds.get():
-        #     if occupied.get(f, x, y):
-        #         continue
+        for f, (v, x, y, s) in zip(seeds_f, seeds_vxys):
+            if occupied.get(f, x, y):
+                continue
 
-        #     ann = Annotation(self.keypoints,
-        #                      self.out_skeleton,
-        #                      score_weights=self.score_weights
-        #                      ).add(f, (x, y, v))
-        #     ann.joint_scales[f] = s
-        #     self._grow(ann, caf_scored)
-        #     annotations.append(ann)
-        #     mark_occupied(ann)
+            ann = Annotation(self.keypoints,
+                             self.out_skeleton,
+                             score_weights=self.score_weights
+                             ).add(f, (x, y, v))
+            ann.joint_scales[f] = s
+            self._grow(ann, caf_fb)
+            annotations.append(ann)
+            mark_occupied(ann)
 
         # self.occupancy_visualizer.predicted(occupied)
 
@@ -257,9 +256,10 @@ class CifCafTorch(Decoder):
                  [np.sum(ann.data[:, 2] > 0.1) for ann in annotations])
         return annotations
 
-    def connection_value(self, ann, caf_scored, start_i, end_i, *, reverse_match=True):
+    def connection_value(self, ann, caf_fb, start_i, end_i, *, reverse_match=True):
         caf_i, forward = self.by_source[start_i][end_i]
-        caf_f, caf_b = caf_scored.directed(caf_i, forward)
+        caf_f, caf_b = (caf_fb[0], caf_fb[1]) if forward else (caf_fb[1], caf_fb[0])
+        caf_f, caf_b = caf_f[caf_i], caf_b[caf_i]
         xyv = ann.data[start_i]
         xy_scale_s = max(0.0, ann.joint_scales[start_i])
 
@@ -316,7 +316,7 @@ class CifCafTorch(Decoder):
         )
         return np.sqrt(source_xyv[2] * max(scores))
 
-    def _grow(self, ann, caf_scored, *, reverse_match=True):
+    def _grow(self, ann, caf_fb, *, reverse_match=True):
         frontier = []
         in_frontier = set()
 
@@ -345,7 +345,7 @@ class CifCafTorch(Decoder):
                     continue
 
                 new_xysv = self.connection_value(
-                    ann, caf_scored, start_i, end_i, reverse_match=reverse_match)
+                    ann, caf_fb, start_i, end_i, reverse_match=reverse_match)
                 if new_xysv[3] == 0.0:
                     continue
                 score = new_xysv[3]
