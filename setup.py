@@ -60,7 +60,7 @@ setup(
         'torchvision>=0.8.2',
         'pillow',
         'dataclasses; python_version<"3.7"',
-        'xtpycocotool>=1.7',  # required for wholebody eval    
+        'xtcocotools>=1.7',  # required for wholebody eval    
     ],
     extras_require={
         'dev': [
