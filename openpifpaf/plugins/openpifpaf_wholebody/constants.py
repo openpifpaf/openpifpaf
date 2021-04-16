@@ -12,27 +12,26 @@ body_foot_skeleton = [
 face_skeleton = [
     (25, 5), (39, 4),  # ear to ear body
     (54, 1),  # nose to nose body
-    (60, 3), (3, 63), (66, 2), (2, 69),  # eyes to eyes body
-    ] + [(x, x+1) for x in range(24, 40)] + [   # face outline
+    (60, 3), (3, 63), (66, 2), (2, 69), ] + [   # eyes to eyes body
+    (x, x + 1) for x in range(24, 40)] + [   # face outline
     (24, 41), (41, 42), (42, 43), (43, 44), (44, 45), (45, 51),  # right eyebrow
     (40, 50), (50, 49), (49, 48), (48, 47), (47, 46), (46, 51),  # left eyebrow
     (24, 60), (60, 61), (61, 62), (62, 63), (63, 51), (63, 64), (64, 65), (65, 60),  # right eye
-    (40, 69), (69, 68), (68, 67), (67, 66), (66, 51), (66, 71), (71, 70), (70, 69),  # left eye
-    ] + [(x, x+1) for x in range(51, 59)] + [  # nose
-    (59, 54), (57, 75), (78, 36), (72, 28), (72, 83)] + [(x, x+1) for x in range(72, 83)] + [  # m.
+    (40, 69), (69, 68), (68, 67), (67, 66), (66, 51), (66, 71), (71, 70),   # left eye
+    (70, 69), ] + [(x, x + 1) for x in range(51, 59)] + [  # nose
+    (59, 54), (57, 75), (78, 36), (72, 28), (72, 83)] + [(x, x + 1) for x in range(72, 83)] + [
     (72, 84), (84, 85), (85, 86), (86, 87), (87, 88), (88, 78),  # upper lip
-    (72, 91), (91, 90), (90, 89), (89, 78)  # lower lip
-    ]
+    (72, 91), (91, 90), (90, 89), (89, 78)]  # lower lip
 
 lefthand_skeleton = [
     (92, 10),  # connect to wrist
-    (92, 93), (92, 97), (92, 101), (92, 105), (92, 109)  # connect to finger starts
-    ] + [(x, x+1) for s in [93, 97, 101, 105, 109] for x in range(s, s+3)]  # four finger
+    (92, 93), (92, 97), (92, 101), (92, 105),  # connect to finger starts
+    (92, 109)] + [(x, x + 1) for s in [93, 97, 101, 105, 109] for x in range(s, s + 3)]  # four f.
 
 righthand_skeleton = [
     (113, 11),  # connect to wrist
-    (113, 114), (113, 118), (113, 122), (113, 126), (113, 130)  # connect to finger starts
-    ] + [(x, x+1) for s in [114, 118, 122, 126, 130] for x in range(s, s+3)]  # four finger
+    (113, 114), (113, 118), (113, 122), (113, 126),   # connect to finger starts
+    (113, 130)] + [(x, x + 1) for s in [114, 118, 122, 126, 130] for x in range(s, s + 3)]
 
 WHOLEBODY_SKELETON = body_foot_skeleton + face_skeleton + lefthand_skeleton + righthand_skeleton
 
@@ -53,8 +52,7 @@ body_kps = [
     'left_knee',       # 14
     'right_knee',      # 15
     'left_ankle',      # 16
-    'right_ankle',     # 17
-    ]
+    'right_ankle', ]     # 17
 
 foot_kps = [
     'left_big_toe',    # 18
@@ -62,8 +60,7 @@ foot_kps = [
     'left_heel',       # 20
     'right_big_toe',   # 21
     'right_small_toe',  # 22
-    'right_heel',      # 23
-]
+    'right_heel', ]     # 23
 
 face_kps = ['f_' + str(x) for x in range(24, 92)]
 lefth_kps = ['lh_' + str(x) for x in range(92, 113)]
@@ -75,14 +72,14 @@ SCALE_FACE = 1.05
 
 body_pose = np.array([
     [0.0, 9.3, 2.0],    # 'nose',            # 1
-    [-0.35*SCALE_FACE, 9.7, 2.0],  # 'left_eye',        # 2
-    [0.35*SCALE_FACE, 9.7, 2.0],   # 'right_eye',       # 3
-    [-0.7*SCALE_FACE, 9.5, 2.0],   # 'left_ear',        # 4
-    [0.7*SCALE_FACE, 9.5, 2.0],    # 'right_ear',       # 5
+    [-0.35 * SCALE_FACE, 9.7, 2.0],  # 'left_eye',        # 2
+    [0.35 * SCALE_FACE, 9.7, 2.0],   # 'right_eye',       # 3
+    [-0.7 * SCALE_FACE, 9.5, 2.0],   # 'left_ear',        # 4
+    [0.7 * SCALE_FACE, 9.5, 2.0],    # 'right_ear',       # 5
     [-1.4, 8.0, 2.0],   # 'left_shoulder',   # 6
     [1.4, 8.0, 2.0],    # 'right_shoulder',  # 7
-    [-1.75-0.4, 6.2+0.2, 2.0],  # 'left_elbow',      # 8
-    [1.75+0.4, 6.2+0.2, 2.0],   # 'right_elbow',     # 9
+    [-1.75 - 0.4, 6.2 + 0.2, 2.0],  # 'left_elbow',      # 8
+    [1.75 + 0.4, 6.2 + 0.2, 2.0],   # 'right_elbow',     # 9
     [-1.75 - 0.5, 4.2 + 0.5, 2.0],  # 'left_wrist',      # 10
     [1.75 + 0.5, 4.2 + 0.5, 2.0],   # 'right_wrist',     # 11
     [-1.26, 4.0, 2.0],  # 'left_hip',        # 12
@@ -90,8 +87,7 @@ body_pose = np.array([
     [-1.4, 2.0, 2.0],   # 'left_knee',       # 14
     [1.4, 2.0, 2.0],    # 'right_knee',      # 15
     [-1.4, 0.0, 2.0],   # 'left_ankle',      # 16
-    [1.4, 0.0, 2.0],    # 'right_ankle',     # 17
-    ])
+    [1.4, 0.0, 2.0], ])    # 'right_ankle',     # 17
 
 foot_pose = np.array([
     [-1.2, -0.45, 3.0],   # 'left_big_toe',    # 18
@@ -99,8 +95,7 @@ foot_pose = np.array([
     [-1.4, -0.25, 1.9],   # 'left_heel',       # 20
     [1.2, -0.45, 3.0],    # 'right_big_toe',   # 21
     [1.65, -0.45, 2.9],    # 'right_small_toe', # 22
-    [1.4, -0.25, 1.9],    # 'right_heel',      # 23
-    ])
+    [1.4, -0.25, 1.9], ])    # 'right_heel',      # 23
 
 face_pose = np.array([
     # face outline
@@ -175,8 +170,8 @@ face_pose = np.array([
     [-0.2, 8.82, 2.0],  # 88
     [-0.1, 8.79, 2.0],  # 89
     [0.0, 8.79, 2.0],   # 90
-    [0.1, 8.79, 2.0]    # 91
-    ])
+    [0.1, 8.79, 2.0]])    # 91
+
 face_pose[:, 0] = face_pose[:, 0] * SCALE_FACE
 
 
@@ -201,8 +196,7 @@ lefthand_pose = np.array([
     [-2.1, 3.5, 2.0],   # 109
     [-2.133, 3.433, 2.0],   # 110
     [-2.166, 3.366, 2.0],   # 111
-    [-2.2, 3.3, 2.0],       # 112
-    ])
+    [-2.2, 3.3, 2.0], ])      # 112
 
 lefthand_pose[:, 0] = (lefthand_pose[:, 0] + 1.75) * 1.0 - 2.25
 lefthand_pose[:, 1] = (lefthand_pose[:, 1] - 3.9) * 1.5 + 4.4
@@ -633,7 +627,7 @@ def draw_skeletons(pose, prefix=""):
                      skeleton=WHOLEBODY_SKELETON,
                      score_weights=WHOLEBODY_SCORE_WEIGHTS)
     ann.set(pose, np.array(WHOLEBODY_SIGMAS) * scale)
-    draw_ann(ann, filename='./docs/'+prefix+'skeleton_wholebody.png',
+    draw_ann(ann, filename='./docs/' + prefix + 'skeleton_wholebody.png',
              keypoint_painter=keypoint_painter)
 
 

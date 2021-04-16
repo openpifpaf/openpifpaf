@@ -43,23 +43,23 @@ for ann_dict in orig_data["annotations"]:
             for jj, name in enumerate(["face", "foot", "lefthand", "righthand"]):
                 if not ann_dict[name + "_valid"]:
                     if name == "face":
-                        if np.any(np.array(ann[23*3:91*3])) > 0:
+                        if np.any(np.array(ann[23 * 3:91 * 3])) > 0:
                             print("face")
-                        ann[23*3:91*3] = [0.0] * 68
+                        ann[23 * 3:91 * 3] = [0.0] * 68
                     elif name == "foot":
-                        if np.any(np.array(ann[17*3:23*3])) > 0:
+                        if np.any(np.array(ann[17 * 3:23 * 3])) > 0:
                             print("foot")
-                        ann[17*3:23*3] = [0.0] * 6
+                        ann[17 * 3:23 * 3] = [0.0] * 6
                     elif name == "lefthand":
-                        if np.any(np.array(ann[91*3:112*3])) > 0:
+                        if np.any(np.array(ann[91 * 3:112 * 3])) > 0:
                             print("LH")
                             print(ann_dict["image_id"])
-                            print(ann[91*3:112*3])
-                        ann[91*3:112*3] = [0.0] * 21
+                            print(ann[91 * 3:112 * 3])
+                        ann[91 * 3:112 * 3] = [0.0] * 21
                     elif name == "righthand":
-                        if np.any(np.array(ann[112*3:133*3])) > 0:
+                        if np.any(np.array(ann[112 * 3:133 * 3])) > 0:
                             print("RH")
-                        ann[112*3:133*3] = [0.0] * 21
+                        ann[112 * 3:133 * 3] = [0.0] * 21
                     else:
                         raise Exception("Unknown")
 
@@ -90,6 +90,6 @@ for ann_dict in orig_data["annotations"]:
 with open(new_file, 'w') as f:
     json.dump(new_data, f)
 
-print("\nCreated a new json file with "+ str(len(new_data["annotations"]))+ " annotations of which "
-      + str(crowd_count) + " were crowd annotations and discarded " + str(discard_count) +
-      " annotations from the original file.")
+print("\nCreated a new json file with " + str(len(new_data["annotations"]))
+      + " annotations of which " + str(crowd_count) + " were crowd annotations and discarded "
+      + str(discard_count) + " annotations from the original file.")

@@ -90,11 +90,11 @@ class WholeBodyMetric(Base):
 
         for count in coco_eval.anns:
             ann_orig = copy.deepcopy(coco_eval.anns[count])
-            coco_eval.anns[count]["lefthand_kpts"] = ann_orig["keypoints"][91*3:112*3]
-            coco_eval.anns[count]["righthand_kpts"] = ann_orig["keypoints"][112*3:133*3]
-            coco_eval.anns[count]["face_kpts"] = ann_orig["keypoints"][23*3:91*3]
-            coco_eval.anns[count]["foot_kpts"] = ann_orig["keypoints"][17*3:23*3]
-            coco_eval.anns[count]["keypoints"] = ann_orig["keypoints"][0:17*3]
+            coco_eval.anns[count]["lefthand_kpts"] = ann_orig["keypoints"][91 * 3:112 * 3]
+            coco_eval.anns[count]["righthand_kpts"] = ann_orig["keypoints"][112 * 3:133 * 3]
+            coco_eval.anns[count]["face_kpts"] = ann_orig["keypoints"][23 * 3:91 * 3]
+            coco_eval.anns[count]["foot_kpts"] = ann_orig["keypoints"][17 * 3:23 * 3]
+            coco_eval.anns[count]["keypoints"] = ann_orig["keypoints"][0:17 * 3]
 
         coco_eval.anno_file = coco_eval.anns  # xtpycocotools style
         self.coco.anno_file = self.coco.anns
@@ -177,11 +177,11 @@ class WholeBodyMetric(Base):
         predictions_wb = copy.deepcopy(predictions)
         for ann in predictions_wb:
             ann_orig = copy.deepcopy(ann)
-            ann["lefthand_kpts"] = ann_orig["keypoints"][91*3:112*3]
-            ann["righthand_kpts"] = ann_orig["keypoints"][112*3:133*3]
-            ann["face_kpts"] = ann_orig["keypoints"][23*3:91*3]
-            ann["foot_kpts"] = ann_orig["keypoints"][17*3:23*3]
-            ann["keypoints"] = ann_orig["keypoints"][0:17*3]
+            ann["lefthand_kpts"] = ann_orig["keypoints"][91 * 3:112 * 3]
+            ann["righthand_kpts"] = ann_orig["keypoints"][112 * 3:133 * 3]
+            ann["face_kpts"] = ann_orig["keypoints"][23 * 3:91 * 3]
+            ann["foot_kpts"] = ann_orig["keypoints"][17 * 3:23 * 3]
+            ann["keypoints"] = ann_orig["keypoints"][0:17 * 3]
         with open(filename + '.pred_wb.json', 'w') as f:
             json.dump(predictions_wb, f)
         LOG.info('wrote %s.pred_wb.json', filename)

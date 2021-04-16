@@ -60,7 +60,7 @@ class ApolloKp(DataModule):
                 caf_weights.append(max(self.weights[bone[0] - 1],
                                        self.weights[bone[1] - 1]))
             w_np = np.array(caf_weights)
-            caf_weights = list(w_np/np.sum(w_np)*len(caf_weights))
+            caf_weights = list(w_np / np.sum(w_np) * len(caf_weights))
         else:
             caf_weights = None
         cif = headmeta.Cif('cif', 'apollo',
