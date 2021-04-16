@@ -12,12 +12,15 @@ double CifSeeds::v_threshold = 0.2;
 
 
 float CifSeeds::cifhr_value(int64_t f, float x, float y, float default_value) {
-    if (x < 0.0 || y < 0.0 || x > cifhr_a.size(2) - 1 || y > cifhr_a.size(1) - 1) {
+    float max_x = float(cifhr_a.size(2)) - 0.51;
+    float max_y = float(cifhr_a.size(1)) - 0.51;
+    if (x < -0.49 || y < -0.49 || x > max_x || y > max_y) {
         return default_value;
     }
-    return cifhr_a[f][int64_t(y)][int64_t(x)];
-}
 
+    // effectively rounding: int(float_value + 0.5)
+    return cifhr_a[f][int64_t(y + 0.5)][int64_t(x + 0.5)];
+}
 
 
 void CifSeeds::fill(const torch::Tensor& cif_field, int64_t stride) {
