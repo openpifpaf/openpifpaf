@@ -1,43 +1,44 @@
-"""
-Interface for custom data.
-
-This module handles datasets and is the class that you need to inherit from for your custom dataset.
-This class gives you all the handles so that you can train with a new –dataset=mydataset.
-The particular configuration of keypoints and skeleton is specified in the headmeta instances
-"""
-
-
 import argparse
+
 import torch
 import numpy as np
-try:
-    from pycocotools.coco import COCO
-except ImportError:
-    COCO = None
 
 from openpifpaf.datasets import DataModule
-from openpifpaf import encoder, headmeta, metric, transforms
+from openpifpaf import encoder, headmeta, transforms
+from openpifpaf.plugins.coco import CocoDataset as Coco
 from openpifpaf.datasets import collate_images_anns_meta, collate_images_targets_meta
-from openpifpaf.plugins.coco import CocoDataset as CocoLoader
+from .wholebody_metrics_wb_protocoll import WholeBodyMetric
+from .constants import (
+    COCO_CATEGORIES,
+    WHOLEBODY_KEYPOINTS,
+    WHOLEBODY_SKELETON,
+    WHOLEBODY_SIGMAS,
+    WHOLEBODY_SCORE_WEIGHTS,
+    WHOLEBODY_STANDING_POSE,
+    HFLIP,
+    training_weights_local_centrality
+)
 
-from .constants import get_constants, training_weights_local_centrality
-from .metrics import MeanPixelError
+try:
+    import pycocotools.coco
+    # monkey patch for Python 3 compat
+    pycocotools.coco.unicode = str
+except ImportError:
+    pass
 
 
-class ApolloKp(DataModule):
-    """
-    DataModule for the Apollocar3d Dataset.
-    """
+class WholeBodyKp(DataModule):
+    # Coco whole body has no test dataset
 
-    train_annotations = 'data/apollo-coco/annotations/apollo_keypoints_66_train.json'
-    val_annotations = 'data/apollo-coco/annotations/apollo_keypoints_66_val.json'
-    eval_annotations = val_annotations
-    train_image_dir = 'data/apollo-coco/images/train/'
-    val_image_dir = 'data/apollo-coco/images/val/'
-    eval_image_dir = val_image_dir
+    # cli configurable
+    train_annotations = 'openpifpaf_wholebody/data-mscoco/annotations/'
+    'person_keypoints_train2017_wholebody_pifpaf_style.json'
+    val_annotations = 'openpifpaf_wholebody/data-mscoco/'
+    'annotations_wholebody/coco_wholebody_val_v1.0.json'
+    train_image_dir = 'openpifpaf_wholebody/data-mscoco/images/train2017/'
+    val_image_dir = 'openpifpaf_wholebody/data-mscoco/images/val2017'
 
-    n_images = None
-    square_edge = 513
+    square_edge = 385
     extended_scale = False
     orientation_invariant = 0.0
     blur = 0.0
@@ -45,10 +46,10 @@ class ApolloKp(DataModule):
     rescale_images = 1.0
     upsample_stride = 1
     min_kp_anns = 1
-    b_min = 1  # 1 pixel
+    bmin = 1.0
 
     eval_annotation_filter = True
-    eval_long_edge = 0  # set to zero to deactivate rescaling
+    eval_long_edge = 641
     eval_orientation_invariant = 0.0
     eval_extended_scale = False
 
@@ -56,25 +57,25 @@ class ApolloKp(DataModule):
         super().__init__()
         if self.weights is not None:
             caf_weights = []
-            for bone in self.CAR_SKELETON:
+            for bone in WHOLEBODY_SKELETON:
                 caf_weights.append(max(self.weights[bone[0] - 1],
                                        self.weights[bone[1] - 1]))
             w_np = np.array(caf_weights)
             caf_weights = list(w_np/np.sum(w_np)*len(caf_weights))
         else:
             caf_weights = None
-        cif = headmeta.Cif('cif', 'apollo',
-                           keypoints=self.CAR_KEYPOINTS,
-                           sigmas=self.CAR_SIGMAS,
-                           pose=self.CAR_POSE,
-                           draw_skeleton=self.CAR_SKELETON,
-                           score_weights=self.CAR_SCORE_WEIGHTS,
+        cif = headmeta.Cif('cif', 'wholebodykp',
+                           keypoints=WHOLEBODY_KEYPOINTS,
+                           sigmas=WHOLEBODY_SIGMAS,
+                           pose=WHOLEBODY_STANDING_POSE,
+                           draw_skeleton=WHOLEBODY_SKELETON,
+                           score_weights=WHOLEBODY_SCORE_WEIGHTS,
                            training_weights=self.weights)
-        caf = headmeta.Caf('caf', 'apollo',
-                           keypoints=self.CAR_KEYPOINTS,
-                           sigmas=self.CAR_SIGMAS,
-                           pose=self.CAR_POSE,
-                           skeleton=self.CAR_SKELETON,
+        caf = headmeta.Caf('caf', 'wholebodykp',
+                           keypoints=WHOLEBODY_KEYPOINTS,
+                           sigmas=WHOLEBODY_SIGMAS,
+                           pose=WHOLEBODY_STANDING_POSE,
+                           skeleton=WHOLEBODY_SKELETON,
                            training_weights=caf_weights)
 
         cif.upsample_stride = self.upsample_stride
@@ -83,68 +84,69 @@ class ApolloKp(DataModule):
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
-        group = parser.add_argument_group('data module Apollo')
+        group = parser.add_argument_group('data module wholebodykp')
 
-        group.add_argument('--apollo-train-annotations',
+        group.add_argument('--wholebodykp-train-annotations',
                            default=cls.train_annotations)
-        group.add_argument('--apollo-val-annotations',
+        group.add_argument('--wholebodykp-val-annotations',
                            default=cls.val_annotations)
-        group.add_argument('--apollo-train-image-dir',
+        group.add_argument('--wholebodykp-train-image-dir',
                            default=cls.train_image_dir)
-        group.add_argument('--apollo-val-image-dir',
+        group.add_argument('--wholebodykp-val-image-dir',
                            default=cls.val_image_dir)
 
-        group.add_argument('--apollo-square-edge',
+        group.add_argument('--wholebodykp-square-edge',
                            default=cls.square_edge, type=int,
                            help='square edge of input images')
         assert not cls.extended_scale
-        group.add_argument('--apollo-extended-scale',
+        group.add_argument('--wholebodykp-extended-scale',
                            default=False, action='store_true',
                            help='augment with an extended scale range')
-        group.add_argument('--apollo-orientation-invariant',
+        group.add_argument('--wholebodykp-orientation-invariant',
                            default=cls.orientation_invariant, type=float,
                            help='augment with random orientations')
-        group.add_argument('--apollo-blur',
+        group.add_argument('--wholebodykp-blur',
                            default=cls.blur, type=float,
                            help='augment with blur')
         assert cls.augmentation
-        group.add_argument('--apollo-no-augmentation',
-                           dest='apollo_augmentation',
+        group.add_argument('--wholebodykp-no-augmentation',
+                           dest='wholebodykp_augmentation',
                            default=True, action='store_false',
                            help='do not apply data augmentation')
-        group.add_argument('--apollo-rescale-images',
+        group.add_argument('--wholebodykp-rescale-images',
                            default=cls.rescale_images, type=float,
                            help='overall rescale factor for images')
-        group.add_argument('--apollo-upsample',
+        group.add_argument('--wholebodykp-upsample',
                            default=cls.upsample_stride, type=int,
                            help='head upsample stride')
-        group.add_argument('--apollo-min-kp-anns',
+        group.add_argument('--wholebodykp-min-kp-anns',
                            default=cls.min_kp_anns, type=int,
                            help='filter images with fewer keypoint annotations')
-        group.add_argument('--apollo-bmin',
-                           default=cls.b_min, type=int,
-                           help='b minimum in pixels')
-        group.add_argument('--apollo-apply-local-centrality-weights',
-                           dest='apollo_apply_local_centrality',
+        group.add_argument('--wholebodykp-bmin',
+                           default=cls.bmin, type=float,
+                           help='bmin')
+        group.add_argument('--wholebodykp-apply-local-centrality-weights',
+                           dest='wholebodykp_apply_local_centrality',
                            default=False, action='store_true',
                            help='Weigh the CIF and CAF head during training.')
 
         # evaluation
+        eval_set_group = group.add_mutually_exclusive_group()
+        eval_set_group.add_argument('--wholebodykp-eval-test2017', default=False,
+                                    action='store_true')
+        eval_set_group.add_argument('--wholebodykp-eval-testdev2017', default=False,
+                                    action='store_true')
+
         assert cls.eval_annotation_filter
-        group.add_argument('--apollo-no-eval-annotation-filter',
-                           dest='apollo_eval_annotation_filter',
+        group.add_argument('--wholebody-no-eval-annotation-filter',
+                           dest='wholebody_eval_annotation_filter',
                            default=True, action='store_false')
-        group.add_argument('--apollo-eval-long-edge', default=cls.eval_long_edge, type=int,
+        group.add_argument('--wholebody-eval-long-edge', default=cls.eval_long_edge, type=int,
                            help='set to zero to deactivate rescaling')
         assert not cls.eval_extended_scale
-        group.add_argument('--apollo-eval-extended-scale', default=False, action='store_true')
-        group.add_argument('--apollo-eval-orientation-invariant',
+        group.add_argument('--wholebody-eval-extended-scale', default=False, action='store_true')
+        group.add_argument('--wholebody-eval-orientation-invariant',
                            default=cls.eval_orientation_invariant, type=float)
-        group.add_argument('--apollo-use-24-kps', default=False, action='store_true',
-                           help=('The ApolloCar3D dataset can '
-                                 'be trained with 24 or 66 kps. If you want to train a model '
-                                 'with 24 kps activate this flag. Change the annotations '
-                                 'path to the json files with 24 kps.'))
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
@@ -152,44 +154,51 @@ class ApolloKp(DataModule):
         cls.debug = args.debug
         cls.pin_memory = args.pin_memory
 
-        # Apollo specific
-        cls.train_annotations = args.apollo_train_annotations
-        cls.val_annotations = args.apollo_val_annotations
+        # cocokp specific
+        cls.train_annotations = args.wholebodykp_train_annotations
+        cls.val_annotations = args.wholebodykp_val_annotations
         cls.eval_annotations = cls.val_annotations
-        cls.train_image_dir = args.apollo_train_image_dir
-        cls.val_image_dir = args.apollo_val_image_dir
+        cls.train_image_dir = args.wholebodykp_train_image_dir
+        cls.val_image_dir = args.wholebodykp_val_image_dir
         cls.eval_image_dir = cls.val_image_dir
 
-        cls.square_edge = args.apollo_square_edge
-        cls.extended_scale = args.apollo_extended_scale
-        cls.orientation_invariant = args.apollo_orientation_invariant
-        cls.blur = args.apollo_blur
-        cls.augmentation = args.apollo_augmentation  # loaded by the dest name
-        cls.rescale_images = args.apollo_rescale_images
-        cls.upsample_stride = args.apollo_upsample
-        cls.min_kp_anns = args.apollo_min_kp_anns
-        cls.b_min = args.apollo_bmin
-        if args.apollo_use_24_kps:
-            (cls.CAR_KEYPOINTS, cls.CAR_SKELETON, cls.HFLIP, cls.CAR_SIGMAS, cls.CAR_POSE,
-             cls.CAR_CATEGORIES, cls.CAR_SCORE_WEIGHTS) = get_constants(24)
-        else:
-            (cls.CAR_KEYPOINTS, cls.CAR_SKELETON, cls.HFLIP, cls.CAR_SIGMAS, cls.CAR_POSE,
-             cls.CAR_CATEGORIES, cls.CAR_SCORE_WEIGHTS) = get_constants(66)
+        cls.square_edge = args.wholebodykp_square_edge
+        cls.extended_scale = args.wholebodykp_extended_scale
+        cls.orientation_invariant = args.wholebodykp_orientation_invariant
+        cls.blur = args.wholebodykp_blur
+        cls.augmentation = args.wholebodykp_augmentation
+        cls.rescale_images = args.wholebodykp_rescale_images
+        cls.upsample_stride = args.wholebodykp_upsample
+        cls.min_kp_anns = args.wholebodykp_min_kp_anns
+        cls.bmin = args.wholebodykp_bmin
+
         # evaluation
-        cls.eval_annotation_filter = args.apollo_eval_annotation_filter
-        cls.eval_long_edge = args.apollo_eval_long_edge
-        cls.eval_orientation_invariant = args.apollo_eval_orientation_invariant
-        cls.eval_extended_scale = args.apollo_eval_extended_scale
-        if args.apollo_apply_local_centrality:
-            if args.apollo_use_24_kps:
-                raise Exception("Applying local centrality weights only works with 66 kps.")
+        cls.eval_annotation_filter = args.wholebody_eval_annotation_filter
+# =============================================================================
+#         if args.cocokp_eval_test2017:
+#             cls.eval_image_dir = cls._test2017_image_dir
+#             cls.eval_annotations = cls._test2017_annotations
+#             cls.annotation_filter = False
+#         if args.cocokp_eval_testdev2017:
+#             cls.eval_image_dir = cls._test2017_image_dir
+#             cls.eval_annotations = cls._testdev2017_annotations
+#             cls.annotation_filter = False
+# =============================================================================
+        cls.eval_long_edge = args.coco_eval_long_edge
+        cls.eval_orientation_invariant = args.coco_eval_orientation_invariant
+        cls.eval_extended_scale = args.coco_eval_extended_scale
+
+        if args.wholebodykp_apply_local_centrality:
             cls.weights = training_weights_local_centrality
         else:
             cls.weights = None
+        if (args.cocokp_eval_test2017 or args.cocokp_eval_testdev2017) \
+                and not args.write_predictions and not args.debug:
+            raise Exception('have to use --write-predictions for this dataset')
 
     def _preprocess(self):
-        encoders = (encoder.Cif(self.head_metas[0], bmin=self.b_min),
-                    encoder.Caf(self.head_metas[1], bmin=self.b_min))
+        encoders = (encoder.Cif(self.head_metas[0], bmin=self.bmin),
+                    encoder.Caf(self.head_metas[1], bmin=self.bmin))
 
         if not self.augmentation:
             return transforms.Compose([
@@ -202,39 +211,29 @@ class ApolloKp(DataModule):
 
         if self.extended_scale:
             rescale_t = transforms.RescaleRelative(
-                scale_range=(0.2 * self.rescale_images,
+                scale_range=(0.25 * self.rescale_images,
                              2.0 * self.rescale_images),
                 power_law=True, stretch_range=(0.75, 1.33))
         else:
             rescale_t = transforms.RescaleRelative(
-                scale_range=(0.2 * self.rescale_images,
-                             1.5 * self.rescale_images),
+                scale_range=(0.4 * self.rescale_images,
+                             2.0 * self.rescale_images),
                 power_law=True, stretch_range=(0.75, 1.33))
-
-        blur_t = None
-        if self.blur:
-            blur_t = transforms.RandomApply(transforms.Blur(), self.blur)
-
-        orientation_t = None
-        if self.orientation_invariant:
-            orientation_t = transforms.RandomApply(
-                transforms.RotateBy90(), self.orientation_invariant)
 
         return transforms.Compose([
             transforms.NormalizeAnnotations(),
-            transforms.AnnotationJitter(),
-            transforms.RandomApply(transforms.HFlip(self.CAR_KEYPOINTS, self.HFLIP), 0.5),
+            transforms.RandomApply(transforms.HFlip(WHOLEBODY_KEYPOINTS, HFLIP), 0.5),
             rescale_t,
-            blur_t,
+            transforms.RandomApply(transforms.Blur(), self.blur),
             transforms.Crop(self.square_edge, use_area_of_interest=True),
             transforms.CenterPad(self.square_edge),
-            orientation_t,
+            transforms.RandomApply(transforms.RotateBy90(), self.orientation_invariant),
             transforms.TRAIN_TRANSFORM,
             transforms.Encoders(encoders),
         ])
 
     def train_loader(self):
-        train_data = CocoLoader(
+        train_data = Coco(
             image_dir=self.train_image_dir,
             ann_file=self.train_annotations,
             preprocess=self._preprocess(),
@@ -243,12 +242,12 @@ class ApolloKp(DataModule):
             category_ids=[1],
         )
         return torch.utils.data.DataLoader(
-            train_data, batch_size=self.batch_size, shuffle=not self.debug,
+            train_data, batch_size=self.batch_size, shuffle=not self.debug and self.augmentation,
             pin_memory=self.pin_memory, num_workers=self.loader_workers, drop_last=True,
             collate_fn=collate_images_targets_meta)
 
     def val_loader(self):
-        val_data = CocoLoader(
+        val_data = Coco(
             image_dir=self.val_image_dir,
             ann_file=self.val_annotations,
             preprocess=self._preprocess(),
@@ -302,17 +301,17 @@ class ApolloKp(DataModule):
             *self.common_eval_preprocess(),
             transforms.ToAnnotations([
                 transforms.ToKpAnnotations(
-                    self.CAR_CATEGORIES,
+                    COCO_CATEGORIES,
                     keypoints_by_category={1: self.head_metas[0].keypoints},
                     skeleton_by_category={1: self.head_metas[1].skeleton},
                 ),
-                transforms.ToCrowdAnnotations(self.CAR_CATEGORIES),
+                transforms.ToCrowdAnnotations(COCO_CATEGORIES),
             ]),
             transforms.EVAL_TRANSFORM,
         ])
 
     def eval_loader(self):
-        eval_data = CocoLoader(
+        eval_data = Coco(
             image_dir=self.eval_image_dir,
             ann_file=self.eval_annotations,
             preprocess=self._eval_preprocess(),
@@ -325,12 +324,10 @@ class ApolloKp(DataModule):
             pin_memory=self.pin_memory, num_workers=self.loader_workers, drop_last=False,
             collate_fn=collate_images_anns_meta)
 
-# TODO: make sure that 24kp flag is activated when evaluating a 24kp model
     def metrics(self):
-        return [metric.Coco(
-            COCO(self.eval_annotations),
+        return [WholeBodyMetric(
+            self.eval_annotations,
             max_per_image=20,
             category_ids=[1],
-            iou_type='keypoints',
-            keypoint_oks_sigmas=self.CAR_SIGMAS
-        ), MeanPixelError()]
+            iou_type='keypoints'
+            )]

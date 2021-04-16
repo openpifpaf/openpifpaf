@@ -95,6 +95,7 @@ setup(
         'train': [
             'matplotlib>=3.3',  # required by pycocotools
             'pycocotools>=2.0.1',  # pre-install cython (currently incompatible with numpy 1.18 or above)
+            'xtpycocotool>=1.7',  # required for wholebody eval
             'scipy',
         ],
     },
