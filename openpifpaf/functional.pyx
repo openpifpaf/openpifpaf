@@ -305,13 +305,14 @@ def paf_mask_center(float[:, :] paf_field, float x, float y, float sigma=1.0):
 def scalar_values(float[:, :] field, float[:] x, float[:] y, float default=-1):
     values_np = np.full((x.shape[0],), default, dtype=np.float32)
     cdef float[:] values = values_np
-    cdef float maxx = <float>field.shape[1] - 1, maxy = <float>field.shape[0] - 1
+    cdef float maxx = <float>field.shape[1] - 0.51, maxy = <float>field.shape[0] - 0.51
 
     for i in range(values.shape[0]):
-        if x[i] < 0.0 or y[i] < 0.0 or x[i] > maxx or y[i] > maxy:
+        if x[i] < -0.49 or y[i] < -0.49 or x[i] > maxx or y[i] > maxy:
             continue
 
-        values[i] = field[<Py_ssize_t>y[i], <Py_ssize_t>x[i]]
+        # effectivly rounding: int(float_value + 0.5)
+        values[i] = field[<Py_ssize_t>(y[i] + 0.5), <Py_ssize_t>(x[i] + 0.5)]
 
     return values_np
 
@@ -319,10 +320,13 @@ def scalar_values(float[:, :] field, float[:] x, float[:] y, float default=-1):
 @cython.boundscheck(False)
 @cython.wraparound(False)
 cpdef float scalar_value(float[:, :] field, float x, float y, float default=-1):
-    if x < 0.0 or y < 0.0 or x > field.shape[1] - 1 or y > field.shape[0] - 1:
+    cdef float maxx = <float>field.shape[1] - 0.51, maxy = <float>field.shape[0] - 0.51
+
+    if x < -0.49 or y < -0.49 or x > maxx or y > maxy:
         return default
 
-    return field[<Py_ssize_t>y, <Py_ssize_t>x]
+    # effectivly rounding: int(float_value + 0.5)
+    return field[<Py_ssize_t>(y + 0.5), <Py_ssize_t>(x + 0.5)]
 
 
 @cython.boundscheck(False)
