@@ -60,6 +60,7 @@ setup(
         'torchvision>=0.8.2',
         'pillow',
         'dataclasses; python_version<"3.7"',
+        'xtpycocotool>=1.7',  # required for wholebody eval    
     ],
     extras_require={
         'dev': [
@@ -95,7 +96,6 @@ setup(
         'train': [
             'matplotlib>=3.3',  # required by pycocotools
             'pycocotools>=2.0.1',  # pre-install cython (currently incompatible with numpy 1.18 or above)
-            'xtpycocotool>=1.7',  # required for wholebody eval
             'scipy',
         ],
     },
