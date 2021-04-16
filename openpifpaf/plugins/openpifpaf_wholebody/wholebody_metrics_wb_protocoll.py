@@ -4,8 +4,10 @@ import zipfile
 import copy
 
 import numpy as np
-from xtcocotools.cocoeval import COCOeval
-
+try:
+    from xtcocotools.cocoeval import COCOeval
+except ImportError:
+    pass
 from openpifpaf.metric.base import Base
 
 try:
