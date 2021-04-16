@@ -97,7 +97,7 @@ class CifCafTorch(Decoder):
         if self.caf_visualizers is None:
             self.caf_visualizers = [visualizer.Caf(meta) for meta in caf_metas]
 
-        self.timers = defaultdict(float)
+        self.cif_hr = None
 
         # init by_target and by_source
         self.by_target = defaultdict(dict)
@@ -167,13 +167,25 @@ class CifCafTorch(Decoder):
         for vis, meta in zip(self.caf_visualizers, self.caf_metas):
             vis.predicted(fields[meta.head_index])
 
-        start_cifhr = time.perf_counter()
-        cifhr = torch.classes.my_classes.CifHr(fields[self.cif_metas[0].head_index].shape,
-                                               self.cif_metas[0].stride)
+        cif_hr_init_s = 0.0
+        if self.cif_hr is None:
+            start_cifhr_init = time.perf_counter()
+            self.cif_hr = torch.classes.my_classes.CifHr(
+                fields[self.cif_metas[0].head_index].shape,
+                self.cif_metas[0].stride)
+            cif_hr_init_s = time.perf_counter() - start_cifhr_init
+
+        start_cifhr_reset = time.perf_counter()
+        self.cif_hr.reset()
+        cifhr_reset_s = time.perf_counter() - start_cifhr_reset
+        start_cifhr_fill = time.perf_counter()
         for cif_meta in self.cif_metas:
-            cifhr.accumulate(fields[cif_meta.head_index], cif_meta.stride, 0.0, 1.0)
-        cifhr_accumulated = cifhr.get_accumulated()
-        LOG.debug('cifhr (%.1fms)', (time.perf_counter() - start_cifhr) * 1000.0)
+            self.cif_hr.accumulate(fields[cif_meta.head_index], cif_meta.stride, 0.0, 1.0)
+        cifhr_accumulated = self.cif_hr.get_accumulated()
+        LOG.debug('cifhr (fill = %.1fms, init = %.1fms, reset = %.1fms)',
+                  (time.perf_counter() - start_cifhr_fill) * 1000.0,
+                  cif_hr_init_s * 1000.0,
+                  cifhr_reset_s * 1000.0)
         utils.CifHr.debug_visualizer.predicted(cifhr_accumulated)
 
         start_seeds = time.perf_counter()
@@ -229,8 +241,9 @@ class CifCafTorch(Decoder):
         # if self.nms is not None:
         #     annotations = self.nms.annotations(annotations)
 
-        # LOG.info('%d annotations: %s', len(annotations),
-        #          [np.sum(ann.data[:, 2] > 0.1) for ann in annotations])
+        LOG.info('%d annotations (%.1fms): %s', len(annotations),
+                 (time.perf_counter() - start) * 1000.0,
+                 [np.sum(ann.data[:, 2] > 0.1) for ann in annotations])
         return annotations
 
     def connection_value(self, ann, caf_scored, start_i, end_i, *, reverse_match=True):

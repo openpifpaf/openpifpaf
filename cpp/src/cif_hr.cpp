@@ -111,6 +111,11 @@ torch::Tensor CifHr::get_accumulated(void) {
 }
 
 
+void CifHr::reset(void) {
+    accumulated.zero_();
+}
+
+
 } // namespace utils
 } // namespace decoder
 } // namespace openpifpaf
