@@ -600,7 +600,7 @@ def print_associations():
         print(CAR_KEYPOINTS_66[j1 - 1], '-', CAR_KEYPOINTS_66[j2 - 1])
 
 
-if __name__ == '__main__':
+def main():
     print_associations()
 # =============================================================================
 #     draw_skeletons(CAR_POSE_24, sigmas = CAR_SIGMAS_24, skel = CAR_SKELETON_24,
@@ -615,3 +615,7 @@ if __name__ == '__main__':
     with openpifpaf.show.Canvas.blank(nomargin=True) as ax_2D:
         anim_24 = plot3d_red(ax_2D, CAR_POSE_24 @ rot_p90_x, CAR_SKELETON_24)
         anim_24.save('openpifpaf/plugins/apollocar3d/docs/CAR_24_Pose.gif', fps=30)
+
+
+if __name__ == '__main__':
+    main()
