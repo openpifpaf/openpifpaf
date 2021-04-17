@@ -484,7 +484,7 @@ def draw_skeletons(pose, sigmas, skel, kps, scr_weights):
     draw_ann(ann, filename='docs/skeleton_car.png', keypoint_painter=keypoint_painter)
 
 
-def plot3d_red(p3d, skeleton, save_gif=''):
+def plot3d_red(p3d, skeleton):
     skeleton = [(bone[0] - 1, bone[1] - 1) for bone in skeleton]
     fig = plt.figure()
     ax = Axes3D(fig)
@@ -515,12 +515,7 @@ def plot3d_red(p3d, skeleton, save_gif=''):
         ax.view_init(elev=10., azim=i)
         return fig
 
-    if save_gif:
-        anim = FuncAnimation(fig, animate, init_func=init, frames=360, interval=100)
-        anim.save(save_gif, fps=30)
-    else:  # if no gif required just show
-        init()
-        plt.show()
+    return FuncAnimation(fig, animate, init_func=init, frames=360, interval=100)
 
 
 def print_associations():
@@ -541,7 +536,7 @@ if __name__ == '__main__':
 #                    kps = CAR_KEYPOINTS_66, scr_weights = CAR_SCORE_WEIGHTS_66)
 # =============================================================================
     rot_p90_x = np.array([[1, 0, 0], [0, 0, 1], [0, 1, 0], ])
-    plot3d_red(CAR_POSE_66 @ rot_p90_x, CAR_SKELETON_66,
-               save_gif='openpifpaf/plugins/apollocar3d/docs/CAR_66_Pose.gif')
-    plot3d_red(CAR_POSE_24 @ rot_p90_x, CAR_SKELETON_24,
-               save_gif='openpifpaf/plugins/apollocar3d/docs/CAR_24_Pose.gif')
+    anim_66 = plot3d_red(CAR_POSE_66 @ rot_p90_x, CAR_SKELETON_66)
+    anim_66.save('openpifpaf/plugins/apollocar3d/docs/CAR_66_Pose.gif', fps=30)
+    anim_24 = plot3d_red(CAR_POSE_24 @ rot_p90_x, CAR_SKELETON_24)
+    anim_24.save('openpifpaf/plugins/apollocar3d/docs/CAR_24_Pose.gif', fps=30)
