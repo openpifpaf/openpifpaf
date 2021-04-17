@@ -83,6 +83,13 @@ jobs:
     - name: Install for training
       if: matrix.slow
       run: python -m pip install -e ".[train]"
+    - name: Install ffmpeg for Guide test
+      uses: FedericoCarboni/setup-ffmpeg@v1
+      if: matrix.slow
+      id: setup-ffmpeg
+    - name: ffmpeg codecs
+      if: matrix.slow
+      run: ffmpeg -codecs
     - name: Install for MacOSX - libomp
       if: matrix.os == 'macos-latest'
       run: brew install libomp  # required for onnxruntime

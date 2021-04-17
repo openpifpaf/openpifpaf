@@ -23,6 +23,9 @@ jobs:
           data-cifar10
         key: ${{ runner.os }}-${{ hashFiles('setup.py') }}
 
+    - uses: FedericoCarboni/setup-ffmpeg@v1
+      id: setup-ffmpeg
+
     - name: Set up Python 3.7
       uses: actions/setup-python@v1
       with:

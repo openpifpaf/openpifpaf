@@ -10,12 +10,20 @@ LOG = logging.getLogger(__name__)
 
 
 class DataModule:
-    """Interface for custom data.
+    """
+    Base class to extend OpenPifPaf with custom data.
 
-    This module handles datasets and is the class that you need to inherit
-    from for your custom dataset. This class gives you all the handles so that
-    you can train with a new `--dataset=mydataset`. The particular configuration
-    of keypoints and skeleton is specified in the `headmeta` instances.
+    This class gives you all the handles to train OpenPifPaf on a new dataset.
+    Create a new class that inherits from this to handle a new datasets.
+
+
+    1. Define the PifPaf heads you would like to train. \
+    For example, \
+    CIF (Composite Intensity Fields) to detect keypoints, and \
+    CAF (Composite Association Fields) to associate joints \
+
+    2. Add class variables, such as annotations, training/validation image paths.
+
     """
 
     #: Data loader batch size.
@@ -49,7 +57,16 @@ class DataModule:
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
-        """Command line interface (CLI) to extend argument parser."""
+        r"""
+        Command line interface (CLI) to extend argument parser for your custom dataset.
+
+        Make sure to use unique CLI arguments for your dataset.
+        For clarity, we suggest to start every CLI argument with the name of your new dataset,
+        i.e. \-\-<dataset_name>-train-annotations.
+
+        All PifPaf commands will still work.
+        E.g. to load a model, there is no need to implement the command \-\-checkpoint
+        """
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
@@ -60,11 +77,19 @@ class DataModule:
         raise NotImplementedError
 
     def train_loader(self) -> torch.utils.data.DataLoader:
-        """Loader of the training dataset."""
+        """
+        Loader of the training dataset.
+
+        A Coco Data loader is already available, or a custom one can be created and called here.
+        To modify preprocessing steps of your images (for example scaling image during training):
+
+        1. chain them using torchvision.transforms.Compose(transforms)
+        2. pass them to the preprocessing argument of the dataloader"""
         raise NotImplementedError
 
     def val_loader(self) -> torch.utils.data.DataLoader:
-        """Loader of the validation dataset.
+        """
+        Loader of the validation dataset.
 
         The augmentation and preprocessing should be the same as for train_loader.
         The only difference is the set of data. This allows to inspect the
@@ -76,7 +101,8 @@ class DataModule:
         raise NotImplementedError
 
     def eval_loader(self) -> torch.utils.data.DataLoader:
-        """Loader of the evaluation dataset.
+        """
+        Loader of the evaluation dataset.
 
         For local runs, it is common that the validation dataset is also the
         evaluation dataset. This is then changed to test datasets (without
