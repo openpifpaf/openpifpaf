@@ -12,31 +12,7 @@ import versioneer
 
 import glob
 
-try:
-    from Cython.Build import cythonize
-except ImportError:
-    cythonize = None
-
-try:
-    import numpy
-except ImportError as e:
-    print('install numpy first')
-    raise e
-
-
-if cythonize is not None:
-    EXTENSIONS = cythonize([Extension('openpifpaf.functional',
-                                      ['openpifpaf/functional.pyx'],
-                                      include_dirs=[numpy.get_include()],
-                                      extra_compile_args=['-std=c99']),
-                            ],
-                           annotate=True,
-                           compiler_directives={'language_level': 3})
-else:
-    EXTENSIONS = [Extension('openpifpaf.functional',
-                            ['openpifpaf/functional.c'],
-                            include_dirs=[numpy.get_include()],
-                            extra_compile_args=['-std=c99'])]
+EXTENSIONS = []
 
 
 CMD_CLASS = versioneer.get_cmdclass()
