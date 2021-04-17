@@ -2,12 +2,14 @@ import os
 
 import numpy as np
 try:
-    import matplotlib.pyplot as plt
     import matplotlib.cm as mplcm
     from matplotlib.animation import FuncAnimation
     from mpl_toolkits.mplot3d import Axes3D
 except ImportError:
     pass
+
+import openpifpaf
+
 from .transforms import transform_skeleton
 
 CAR_KEYPOINTS_24 = [
@@ -554,11 +556,14 @@ def draw_skeletons(pose, sigmas, skel, kps, scr_weights):
     draw_ann(ann, filename='docs/skeleton_car.png', keypoint_painter=keypoint_painter)
 
 
-def plot3d_red(p3d, skeleton):
+def plot3d_red(ax_2D, p3d, skeleton):
     skeleton = [(bone[0] - 1, bone[1] - 1) for bone in skeleton]
-    fig = plt.figure()
-    ax = Axes3D(fig)
+
+    fig = ax_2D.get_figure()
+    ax = Axes3D(fig, auto_add_to_figure=False)
+    fig.add_axes(ax)
     ax.set_axis_off()
+    ax_2D.set_axis_off()
 
     ax.view_init(azim=-90, elev=20)
     ax.set_xlabel('X')
@@ -575,17 +580,15 @@ def plot3d_red(p3d, skeleton):
     ax.set_ylim(mid_y - max_range, mid_y + max_range)
     ax.set_zlim(mid_z - max_range, mid_z + max_range)  # pylint: disable=no-member
 
-    def init():
-        for ci, bone in enumerate(skeleton):
-            c = mplcm.get_cmap('tab20')((ci % 20 + 0.05) / 20)  # Same coloring as Pifpaf preds
-            ax.plot(p3d[bone, 0], p3d[bone, 1], p3d[bone, 2], color=c)
-        return [fig]
+    for ci, bone in enumerate(skeleton):
+        c = mplcm.get_cmap('tab20')((ci % 20 + 0.05) / 20)  # Same coloring as Pifpaf preds
+        ax.plot(p3d[bone, 0], p3d[bone, 1], p3d[bone, 2], color=c)
 
     def animate(i):
         ax.view_init(elev=10., azim=i)
         return fig
 
-    return FuncAnimation(fig, animate, init_func=init, frames=360, interval=100)
+    return FuncAnimation(fig, animate, frames=360, interval=100)
 
 
 def print_associations():
@@ -606,7 +609,9 @@ if __name__ == '__main__':
 #                    kps = CAR_KEYPOINTS_66, scr_weights = CAR_SCORE_WEIGHTS_66)
 # =============================================================================
     rot_p90_x = np.array([[1, 0, 0], [0, 0, 1], [0, 1, 0], ])
-    anim_66 = plot3d_red(CAR_POSE_66 @ rot_p90_x, CAR_SKELETON_66)
-    anim_66.save('openpifpaf/plugins/apollocar3d/docs/CAR_66_Pose.gif', fps=30)
-    anim_24 = plot3d_red(CAR_POSE_24 @ rot_p90_x, CAR_SKELETON_24)
-    anim_24.save('openpifpaf/plugins/apollocar3d/docs/CAR_24_Pose.gif', fps=30)
+    with openpifpaf.show.Canvas.blank(nomargin=True) as ax_2D:
+        anim_66 = plot3d_red(ax_2D, CAR_POSE_66 @ rot_p90_x, CAR_SKELETON_66)
+        anim_66.save('openpifpaf/plugins/apollocar3d/docs/CAR_66_Pose.gif', fps=30)
+    with openpifpaf.show.Canvas.blank(nomargin=True) as ax_2D:
+        anim_24 = plot3d_red(ax_2D, CAR_POSE_24 @ rot_p90_x, CAR_SKELETON_24)
+        anim_24.save('openpifpaf/plugins/apollocar3d/docs/CAR_24_Pose.gif', fps=30)
