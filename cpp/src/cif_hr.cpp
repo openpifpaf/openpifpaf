@@ -111,7 +111,24 @@ torch::Tensor CifHr::get_accumulated(void) {
 }
 
 
-void CifHr::reset(void) {
+void CifHr::reset(const at::IntArrayRef& shape, int64_t stride) {
+    if (accumulated_buffer.size(0) < shape[0]
+        || accumulated_buffer.size(1) < (shape[2] - 1) * stride + 1
+        || accumulated_buffer.size(2) < (shape[3] - 1) * stride + 1
+    ) {
+        std::cout << "!!! resizing cifhr buffer" << std::endl;
+        accumulated = torch::zeros({
+            shape[0],
+            (std::max(shape[2], shape[3]) - 1) * stride + 1,
+            (std::max(shape[2], shape[3]) - 1) * stride + 1
+        });
+    }
+
+    accumulated = accumulated_buffer.index({
+        at::indexing::Slice(0, shape[0]),
+        at::indexing::Slice(0, (shape[2] - 1) * stride + 1),
+        at::indexing::Slice(0, (shape[3] - 1) * stride + 1)
+    });
     accumulated.zero_();
 }
 

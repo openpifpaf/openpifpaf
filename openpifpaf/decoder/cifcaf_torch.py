@@ -176,7 +176,7 @@ class CifCafTorch(Decoder):
             cif_hr_init_s = time.perf_counter() - start_cifhr_init
 
         start_cifhr_reset = time.perf_counter()
-        self.cif_hr.reset()
+        self.cif_hr.reset(fields[self.cif_metas[0].head_index].shape, self.cif_metas[0].stride)
         cifhr_reset_s = time.perf_counter() - start_cifhr_reset
         start_cifhr_fill = time.perf_counter()
         for cif_meta in self.cif_metas:
