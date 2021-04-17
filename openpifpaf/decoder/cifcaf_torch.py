@@ -97,7 +97,7 @@ class CifCafTorch(Decoder):
         if self.caf_visualizers is None:
             self.caf_visualizers = [visualizer.Caf(meta) for meta in caf_metas]
 
-        self.cif_hr = None
+        self.cif_hr = torch.classes.my_classes.CifHr([1, 1, 1, 1], 1)
 
         # init by_target and by_source
         self.by_target = defaultdict(dict)
@@ -167,14 +167,6 @@ class CifCafTorch(Decoder):
         for vis, meta in zip(self.caf_visualizers, self.caf_metas):
             vis.predicted(fields[meta.head_index])
 
-        cif_hr_init_s = 0.0
-        if self.cif_hr is None:
-            start_cifhr_init = time.perf_counter()
-            self.cif_hr = torch.classes.my_classes.CifHr(
-                fields[self.cif_metas[0].head_index].shape,
-                self.cif_metas[0].stride)
-            cif_hr_init_s = time.perf_counter() - start_cifhr_init
-
         start_cifhr_reset = time.perf_counter()
         self.cif_hr.reset(fields[self.cif_metas[0].head_index].shape, self.cif_metas[0].stride)
         cifhr_reset_s = time.perf_counter() - start_cifhr_reset
@@ -182,9 +174,8 @@ class CifCafTorch(Decoder):
         for cif_meta in self.cif_metas:
             self.cif_hr.accumulate(fields[cif_meta.head_index], cif_meta.stride, 0.0, 1.0)
         cifhr_accumulated, cifhr_revision = self.cif_hr.get_accumulated()
-        LOG.debug('cifhr (fill = %.1fms, init = %.1fms, reset = %.1fms)',
+        LOG.debug('cifhr (fill = %.1fms, reset = %.1fms)',
                   (time.perf_counter() - start_cifhr_fill) * 1000.0,
-                  cif_hr_init_s * 1000.0,
                   cifhr_reset_s * 1000.0)
         utils.CifHr.debug_visualizer.predicted(cifhr_accumulated)
 
