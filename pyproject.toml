@@ -10,7 +10,7 @@ markers = ["slow: marks tests as slow (deselect with '-m \"not slow\"')"]
 
 [tool.pylint.BASIC]
 variable-rgx = "[a-z0-9_]{1,30}$"
-good-names = ["ap", "AP", "APM", "APL", "ar", "ax", "b", "d", "f", "g", "gt", "h", "i", "im", "lr", "n", "p", "plt", "r", "s", "t", "t1", "t2", "th", "v", "vs", "w", "wh", "x", "x1", "x2", "xs", "y", "ys", "xy"]
+good-names = ["ap", "AP", "APM", "APL", "ar", "ax", "ax_2D", "ax_3D", "b", "d", "f", "g", "gt", "h", "i", "im", "lr", "n", "p", "plt", "r", "s", "t", "t1", "t2", "th", "v", "vs", "w", "wh", "x", "x1", "x2", "xs", "y", "ys", "xy"]
 class-const-naming-style = "snake_case"  # checked since pylint 2.7.3 TODO remove?
 
 [tool.pylint.IMPORTS]
