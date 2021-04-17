@@ -3,6 +3,11 @@
 
 #include "openpifpaf/decoder/cifcaf.hpp"
 
+#include "openpifpaf/decoder/utils/caf_scored.hpp"
+#include "openpifpaf/decoder/utils/cif_hr.hpp"
+#include "openpifpaf/decoder/utils/cif_seeds.hpp"
+#include "openpifpaf/decoder/utils/occupancy.hpp"
+
 
 namespace openpifpaf {
 namespace decoder {
@@ -72,6 +77,57 @@ std::vector<double> grow_connection_blend(const torch::Tensor& caf, double x, do
         (score_1 * entry_1[3] + score_2 * entry_2[3]) / (score_1 + score_2),
         0.5 * (score_1 + score_2)
     };
+}
+
+
+std::vector<c10::intrusive_ptr<Annotation> > CifCaf::call(
+    const torch::Tensor& cif_field,
+    int64_t cif_stride,
+    const torch::Tensor& caf_field,
+    int64_t caf_stride
+) {
+    cifhr.reset(cif_field.sizes(), cif_stride);
+    cifhr.accumulate(cif_field, cif_stride, 0.0, 1.0);
+    auto [cifhr_accumulated, cifhr_revision] = cifhr.get_accumulated();
+
+    utils::CifSeeds seeds(cifhr_accumulated, cifhr_revision);
+    seeds.fill(cif_field, cif_stride);
+    auto [seeds_f, seeds_vxys] = seeds.get();
+    auto seeds_f_a = seeds_f.accessor<int64_t, 1>();
+    auto seeds_vxys_a = seeds_vxys.accessor<float, 2>();
+
+    utils::CafScored caf_scored(cifhr_accumulated, cifhr_revision, -1.0, 0.1);
+    caf_scored.fill(caf_field, caf_stride, skeleton);
+    auto caf_fb = caf_scored.get();
+
+    utils::Occupancy occupied(cifhr_accumulated.sizes(), 2.0, 4.0);
+    std::vector<c10::intrusive_ptr<Annotation> > annotations;
+
+    int64_t f;
+    float x, y, s;
+    for (int64_t seed_i=0; seed_i < seeds_f.size(0); seed_i++) {
+        f = seeds_f_a[seed_i];
+        x = seeds_vxys_a[seed_i][1];
+        y = seeds_vxys_a[seed_i][2];
+        s = seeds_vxys_a[seed_i][3];
+        if (occupied.get(f, x, y)) continue;
+
+        Annotation annotation(keypoints, out_skeleton);
+        Joint& joint = annotation.joints[f];
+        joint.v = seeds_vxys_a[seed_i][0];
+        joint.x = x;
+        joint.y = y;
+        joint.s = s;
+
+        for (int64_t of=0; of < annotation.joints.size(); of++) {
+            Joint& o_joint = annotation.joints[of];
+            if (o_joint.v == 0.0) continue;
+            occupied.set(of, o_joint.x, o_joint.y, o_joint.s);
+        }
+        annotations.push_back(c10::make_intrusive<Annotation>(annotation));
+    }
+
+    return annotations;
 }
 
 

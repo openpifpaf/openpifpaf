@@ -109,6 +109,12 @@ class CifCafTorch(Decoder):
             self.by_source[j1][j2] = (caf_i, True)
             self.by_source[j2][j1] = (caf_i, False)
 
+        self.cpp_decoder = torch.classes.my_classes.CifCaf(
+            self.keypoints,
+            self.caf_metas[0].skeleton,
+            self.out_skeleton,
+        )
+
     @classmethod
     def configure(cls, args: argparse.Namespace):
         """Take the parsed argument parser output and configure class variables."""
@@ -158,6 +164,15 @@ class CifCafTorch(Decoder):
 
     def __call__(self, fields, initial_annotations=None):
         start = time.perf_counter()
+        annotations = self.cpp_decoder.call(
+            fields[self.cif_metas[0].head_index],
+            self.cif_metas[0].stride,
+            fields[self.caf_metas[0].head_index],
+            self.caf_metas[0].stride,
+        )
+        LOG.debug('cpp annotations = %d (%.1fms)',
+                  len(annotations),
+                  (time.perf_counter() - start) * 1000.0)
         if not initial_annotations:
             initial_annotations = []
         LOG.debug('initial annotations = %d', len(initial_annotations))

@@ -43,5 +43,18 @@ TORCH_LIBRARY(my_classes, m) {
     .def("get", &openpifpaf::decoder::utils::CafScored::get)
   ;
 
+  m.class_<openpifpaf::decoder::Annotation>("Annotation")
+    .def(torch::init<std::vector<std::string>, std::vector<std::vector<int64_t> > >())
+    // .def("call", &openpifpaf::decoder::CifCaf::call)
+  ;
+
+  m.class_<openpifpaf::decoder::CifCaf>("CifCaf")
+    .def(torch::init<
+        std::vector<std::string>,
+        std::vector<std::vector<int64_t> >,
+        std::vector<std::vector<int64_t> >
+    >())
+    .def("call", &openpifpaf::decoder::CifCaf::call)
+  ;
   m.def("grow_connection_blend", openpifpaf::decoder::grow_connection_blend);
 }
