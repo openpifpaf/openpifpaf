@@ -10,6 +10,7 @@ namespace utils {
 
 
 void cif_hr_accumulate_op(const torch::Tensor& accumulated,
+                          double accumulated_revision,
                           const torch::Tensor& cif_field,
                           int64_t stride,
                           double v_threshold,
@@ -19,6 +20,7 @@ void cif_hr_accumulate_op(const torch::Tensor& accumulated,
 
 
 void cif_hr_add_gauss_op(const torch::Tensor& accumulated,
+                         float accumulated_revision,
                          int64_t f,
                          float v,
                          float x,
@@ -30,6 +32,7 @@ void cif_hr_add_gauss_op(const torch::Tensor& accumulated,
 struct CifHr : torch::CustomClassHolder {
     torch::Tensor accumulated_buffer;
     torch::Tensor accumulated;
+    double revision;
     static int64_t neighbors;
     static double v_threshold;
 
@@ -47,12 +50,13 @@ struct CifHr : torch::CustomClassHolder {
                 at::indexing::Slice(0, (shape[2] - 1) * stride + 1),
                 at::indexing::Slice(0, (shape[3] - 1) * stride + 1)
             })
-        )
+        ),
+        revision(0.0)
     { }
 
     void accumulate(const torch::Tensor& cif_field, int64_t stride, double min_scale=0.0, double factor=1.0);
     void add_gauss(int64_t f, double v, double x, double y, double sigma, double truncate=1.0);
-    torch::Tensor get_accumulated(void);
+    std::tuple<torch::Tensor, double> get_accumulated(void);
     void reset(const at::IntArrayRef& shape, int64_t stride);
 };
 

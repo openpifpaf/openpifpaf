@@ -27,6 +27,7 @@ struct CompositeAssociation {
 
 struct CafScored : torch::CustomClassHolder {
     torch::TensorAccessor<float, 3UL> cifhr_a;
+    double cifhr_revision;
     static double default_score_th;
     double score_th;
     double cif_floor;
@@ -36,10 +37,12 @@ struct CafScored : torch::CustomClassHolder {
 
     CafScored(
         const torch::Tensor& cifhr_,
+        double cifhr_revision_,
         double score_th_=-1.0,
         double cif_floor_=0.1
     ) :
         cifhr_a(cifhr_.accessor<float, 3>()),
+        cifhr_revision(cifhr_revision_),
         score_th(score_th_ >= 0.0 ? score_th_ : default_score_th),
         cif_floor(cif_floor_)
     { }

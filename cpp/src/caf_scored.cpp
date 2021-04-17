@@ -19,7 +19,9 @@ float CafScored::cifhr_value(int64_t f, float x, float y, float default_value) {
     }
 
     // effectively rounding: int(float_value + 0.5)
-    return cifhr_a[f][int64_t(y + 0.5)][int64_t(x + 0.5)];
+    float value = cifhr_a[f][int64_t(y + 0.5)][int64_t(x + 0.5)] - cifhr_revision;
+    if (value < 0.0) return default_value;
+    return value;
 }
 
 

@@ -24,6 +24,7 @@ inline float approx_exp(float x) {
 
 
 void cif_hr_accumulate_op(const torch::Tensor& accumulated,
+                          double accumulated_revision,
                           const torch::Tensor& cif_field,
                           int64_t stride,
                           double v_threshold,
@@ -50,7 +51,7 @@ void cif_hr_accumulate_op(const torch::Tensor& accumulated,
                 // Occupancy covers 2sigma.
                 // Restrict this accumulation to 1sigma so that seeds for the same joint
                 // are properly suppressed.
-                cif_hr_add_gauss_op(accumulated, f, v / neighbors * factor, x, y, sigma, 1.0);
+                cif_hr_add_gauss_op(accumulated, accumulated_revision, f, v / neighbors * factor, x, y, sigma, 1.0);
             }
         }
     }
@@ -58,6 +59,7 @@ void cif_hr_accumulate_op(const torch::Tensor& accumulated,
 
 
 void cif_hr_add_gauss_op(const torch::Tensor& accumulated,
+                         float accumulated_revision,
                          int64_t f,
                          float v,
                          float x,
@@ -89,25 +91,25 @@ void cif_hr_add_gauss_op(const torch::Tensor& accumulated,
                 vv = v * approx_exp(-0.5 * (deltax2 + deltay2) / sigma2);
             }
 
-            accumulated_a[f][yy][xx] += vv;
-            accumulated_a[f][yy][xx] = fmin(accumulated_a[f][yy][xx], 1.0);
+            accumulated_a[f][yy][xx] = fmax(accumulated_a[f][yy][xx], accumulated_revision) + vv;
+            accumulated_a[f][yy][xx] = fmin(accumulated_a[f][yy][xx], accumulated_revision + 1.0);
         }
     }
 }
 
 
 void CifHr::accumulate(const torch::Tensor& cif_field, int64_t stride, double min_scale, double factor) {
-    cif_hr_accumulate_op(accumulated, cif_field, stride, v_threshold, neighbors, min_scale, factor);
+    cif_hr_accumulate_op(accumulated, revision, cif_field, stride, v_threshold, neighbors, min_scale, factor);
 }
 
 
 void CifHr::add_gauss(int64_t f, double v, double x, double y, double sigma, double truncate) {
-    cif_hr_add_gauss_op(accumulated, f, x, y, sigma, truncate);
+    cif_hr_add_gauss_op(accumulated, revision, f, x, y, sigma, truncate);
 }
 
 
-torch::Tensor CifHr::get_accumulated(void) {
-    return accumulated;
+std::tuple<torch::Tensor, double> CifHr::get_accumulated(void) {
+    return { accumulated, revision };
 }
 
 
@@ -129,7 +131,12 @@ void CifHr::reset(const at::IntArrayRef& shape, int64_t stride) {
         at::indexing::Slice(0, (shape[2] - 1) * stride + 1),
         at::indexing::Slice(0, (shape[3] - 1) * stride + 1)
     });
-    accumulated.zero_();
+    revision++;
+
+    if (revision > 10000) {
+        accumulated_buffer.zero_();
+        revision = 0.0;
+    }
 }
 
 

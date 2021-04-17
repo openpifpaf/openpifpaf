@@ -181,7 +181,7 @@ class CifCafTorch(Decoder):
         start_cifhr_fill = time.perf_counter()
         for cif_meta in self.cif_metas:
             self.cif_hr.accumulate(fields[cif_meta.head_index], cif_meta.stride, 0.0, 1.0)
-        cifhr_accumulated = self.cif_hr.get_accumulated()
+        cifhr_accumulated, cifhr_revision = self.cif_hr.get_accumulated()
         LOG.debug('cifhr (fill = %.1fms, init = %.1fms, reset = %.1fms)',
                   (time.perf_counter() - start_cifhr_fill) * 1000.0,
                   cif_hr_init_s * 1000.0,
@@ -189,14 +189,14 @@ class CifCafTorch(Decoder):
         utils.CifHr.debug_visualizer.predicted(cifhr_accumulated)
 
         start_seeds = time.perf_counter()
-        seeds = torch.classes.my_classes.CifSeeds(cifhr_accumulated)
+        seeds = torch.classes.my_classes.CifSeeds(cifhr_accumulated, cifhr_revision)
         for cif_meta in self.cif_metas:
             seeds.fill(fields[cif_meta.head_index], cif_meta.stride)
         seeds_f, seeds_vxys = seeds.get()
         LOG.debug('seeds = %d (%.1fms)', len(seeds_f), (time.perf_counter() - start_seeds) * 1000.0)
 
         start_cafscored = time.perf_counter()
-        caf_scored = torch.classes.my_classes.CafScored(cifhr_accumulated, -1.0, 0.1)
+        caf_scored = torch.classes.my_classes.CafScored(cifhr_accumulated, cifhr_revision, -1.0, 0.1)
         for caf_meta in self.caf_metas:
             caf_scored.fill(fields[caf_meta.head_index], caf_meta.stride, caf_meta.skeleton)
         caf_fb = caf_scored.get()

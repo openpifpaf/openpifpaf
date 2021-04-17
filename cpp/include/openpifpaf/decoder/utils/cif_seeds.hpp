@@ -19,10 +19,14 @@ struct Seed {
 
 struct CifSeeds : torch::CustomClassHolder {
     torch::TensorAccessor<float, 3UL> cifhr_a;
+    double cifhr_revision;
     std::vector<Seed> seeds;
     static double v_threshold;
 
-    CifSeeds(const torch::Tensor& cifhr_) : cifhr_a(cifhr_.accessor<float, 3>()) { }
+    CifSeeds(const torch::Tensor& cifhr_, double cifhr_revision_)
+    : cifhr_a(cifhr_.accessor<float, 3>()),
+      cifhr_revision(cifhr_revision_)
+    { }
     void fill(const torch::Tensor& cif_field, int64_t stride);
     std::tuple<torch::Tensor, torch::Tensor> get(void);
 

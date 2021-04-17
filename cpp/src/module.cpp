@@ -31,14 +31,14 @@ TORCH_LIBRARY(my_classes, m) {
   ;
 
   m.class_<openpifpaf::decoder::utils::CifSeeds>("CifSeeds")
-    .def(torch::init<const torch::Tensor&>())
+    .def(torch::init<const torch::Tensor&, double>())
     .def("fill", &openpifpaf::decoder::utils::CifSeeds::fill)
     .def("get", &openpifpaf::decoder::utils::CifSeeds::get)
   ;
   m.def("CifSeeds_set_threshold", openpifpaf::decoder::utils::CifSeeds::set_threshold);
 
   m.class_<openpifpaf::decoder::utils::CafScored>("CafScored")
-    .def(torch::init<const torch::Tensor&, double, double>())
+    .def(torch::init<const torch::Tensor&, double, double, double>())
     .def("fill", &openpifpaf::decoder::utils::CafScored::fill)
     .def("get", &openpifpaf::decoder::utils::CafScored::get)
   ;
