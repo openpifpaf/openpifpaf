@@ -119,7 +119,7 @@ void CifHr::reset(const at::IntArrayRef& shape, int64_t stride) {
         || accumulated_buffer.size(2) < (shape[3] - 1) * stride + 1
     ) {
         std::cout << "!!! resizing cifhr buffer" << std::endl;
-        accumulated = torch::zeros({
+        accumulated_buffer = torch::zeros({
             shape[0],
             (std::max(shape[2], shape[3]) - 1) * stride + 1,
             (std::max(shape[2], shape[3]) - 1) * stride + 1
