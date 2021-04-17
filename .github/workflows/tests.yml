@@ -120,7 +120,7 @@ jobs:
       run: |
         mkdir guide_py
         jupyter nbconvert --to=script --output-dir=./guide_py ./guide/*.ipynb
-        pylint ./guide_py/*.py --disable=trailing-whitespace,trailing-newlines,line-too-long,pointless-statement,undefined-variable,expression-not-assigned,wrong-import-position,ungrouped-imports,wrong-import-order
+        pylint ./guide_py/*.py --disable=trailing-whitespace,trailing-newlines,line-too-long,pointless-statement,undefined-variable,expression-not-assigned,wrong-import-position,ungrouped-imports,wrong-import-order,invalid-name
         pycodestyle guide_py/*.py --ignore=W291,W391,E302,E305,E402,E501
     - name: Test
       run: |
