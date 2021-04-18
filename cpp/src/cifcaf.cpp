@@ -105,6 +105,7 @@ std::vector<c10::intrusive_ptr<Annotation> > CifCaf::call(
 
     int64_t f;
     float x, y, s;
+    int64_t n_keypoints = keypoints.size();
     for (int64_t seed_i=0; seed_i < seeds_f.size(0); seed_i++) {
         f = seeds_f_a[seed_i];
         x = seeds_vxys_a[seed_i][1];
@@ -119,7 +120,7 @@ std::vector<c10::intrusive_ptr<Annotation> > CifCaf::call(
         joint.y = y;
         joint.s = s;
 
-        for (int64_t of=0; of < annotation.joints.size(); of++) {
+        for (int64_t of=0; of < n_keypoints; of++) {
             Joint& o_joint = annotation.joints[of];
             if (o_joint.v == 0.0) continue;
             occupied.set(of, o_joint.x, o_joint.y, o_joint.s);
