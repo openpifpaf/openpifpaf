@@ -80,7 +80,7 @@ std::vector<double> grow_connection_blend(const torch::Tensor& caf, double x, do
 }
 
 
-std::vector<c10::intrusive_ptr<Annotation> > CifCaf::call(
+torch::Tensor CifCaf::call(
     const torch::Tensor& cif_field,
     int64_t cif_stride,
     const torch::Tensor& caf_field,
@@ -101,11 +101,10 @@ std::vector<c10::intrusive_ptr<Annotation> > CifCaf::call(
     auto caf_fb = caf_scored.get();
 
     utils::Occupancy occupied(cifhr_accumulated.sizes(), 2.0, 4.0);
-    std::vector<c10::intrusive_ptr<Annotation> > annotations;
+    std::vector<std::vector<Joint> > annotations;
 
     int64_t f;
     float x, y, s;
-    int64_t n_keypoints = keypoints.size();
     for (int64_t seed_i=0; seed_i < seeds_f.size(0); seed_i++) {
         f = seeds_f_a[seed_i];
         x = seeds_vxys_a[seed_i][1];
@@ -113,22 +112,34 @@ std::vector<c10::intrusive_ptr<Annotation> > CifCaf::call(
         s = seeds_vxys_a[seed_i][3];
         if (occupied.get(f, x, y)) continue;
 
-        Annotation annotation(keypoints, out_skeleton);
-        Joint& joint = annotation.joints[f];
+        std::vector<Joint> annotation(n_keypoints);
+        Joint& joint = annotation[f];
         joint.v = seeds_vxys_a[seed_i][0];
         joint.x = x;
         joint.y = y;
         joint.s = s;
 
         for (int64_t of=0; of < n_keypoints; of++) {
-            Joint& o_joint = annotation.joints[of];
+            Joint& o_joint = annotation[of];
             if (o_joint.v == 0.0) continue;
             occupied.set(of, o_joint.x, o_joint.y, o_joint.s);
         }
-        annotations.push_back(c10::make_intrusive<Annotation>(annotation));
+        annotations.push_back(annotation);
     }
 
-    return annotations;
+    auto out = torch::zeros({ int64_t(annotations.size()), n_keypoints, 4 });
+    auto out_a = out.accessor<float, 3>();
+    for (int64_t ann_i; ann_i < int64_t(annotations.size()); ann_i++) {
+        auto& ann = annotations[ann_i];
+        for (int64_t joint_i; joint_i < n_keypoints; joint_i++) {
+            auto& joint = ann[joint_i];
+            out_a[ann_i][joint_i][0] = joint.v;
+            out_a[ann_i][joint_i][1] = joint.x;
+            out_a[ann_i][joint_i][2] = joint.y;
+            out_a[ann_i][joint_i][3] = joint.s;
+        }
+    }
+    return out;
 }
 
 

@@ -19,44 +19,25 @@ struct Joint {
 };
 
 
-struct Annotation : torch::CustomClassHolder {
-    const std::vector<std::string>& keypoints;
-    const std::vector<std::vector<int64_t> >& skeleton;
-    std::vector<Joint> joints;
-
-    Annotation(
-        const std::vector<std::string>& keypoints_,
-        const std::vector<std::vector<int64_t> >& skeleton_
-    ) :
-        keypoints(keypoints_),
-        skeleton(skeleton_),
-        joints(keypoints_.size())
-    { }
-};
-
-
 std::vector<double> grow_connection_blend(const torch::Tensor& caf, double x, double y, double s, bool only_max);
 
 
 struct CifCaf : torch::CustomClassHolder {
-    std::vector<std::string> keypoints;
+    int64_t n_keypoints;
     std::vector<std::vector<int64_t> > skeleton;
-    std::vector<std::vector<int64_t> > out_skeleton;
 
     utils::CifHr cifhr;
 
     CifCaf(
-        const std::vector<std::string>& keypoints_,
-        const std::vector<std::vector<int64_t> >& skeleton_,
-        const std::vector<std::vector<int64_t> >& out_skeleton_
+        int64_t n_keypoints_,
+        const std::vector<std::vector<int64_t> >& skeleton_
     ) :
-        keypoints(keypoints_),
+        n_keypoints(n_keypoints_),
         skeleton(skeleton_),
-        out_skeleton(out_skeleton_),
         cifhr({ 1, 1, 1, 1 }, 1)
     { }
 
-    std::vector<c10::intrusive_ptr<Annotation> > call(
+    torch::Tensor call(
         const torch::Tensor& cif_field,
         int64_t cif_stride,
         const torch::Tensor& caf_field,

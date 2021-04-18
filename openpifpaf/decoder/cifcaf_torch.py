@@ -110,9 +110,8 @@ class CifCafTorch(Decoder):
             self.by_source[j2][j1] = (caf_i, False)
 
         self.cpp_decoder = torch.classes.my_classes.CifCaf(
-            self.keypoints,
+            len(self.keypoints),
             self.caf_metas[0].skeleton,
-            self.out_skeleton,
         )
 
     @classmethod
