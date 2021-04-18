@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cmath>
+#include <queue>
 
 #include "openpifpaf/decoder/cifcaf.hpp"
 
@@ -119,6 +120,8 @@ torch::Tensor CifCaf::call(
         joint.y = y;
         joint.s = s;
 
+        _grow(annotation, caf_fb);
+
         for (int64_t of=0; of < n_keypoints; of++) {
             Joint& o_joint = annotation[of];
             if (o_joint.v == 0.0) continue;
@@ -129,9 +132,9 @@ torch::Tensor CifCaf::call(
 
     auto out = torch::zeros({ int64_t(annotations.size()), n_keypoints, 4 });
     auto out_a = out.accessor<float, 3>();
-    for (int64_t ann_i; ann_i < int64_t(annotations.size()); ann_i++) {
+    for (int64_t ann_i = 0; ann_i < int64_t(annotations.size()); ann_i++) {
         auto& ann = annotations[ann_i];
-        for (int64_t joint_i; joint_i < n_keypoints; joint_i++) {
+        for (int64_t joint_i = 0; joint_i < n_keypoints; joint_i++) {
             auto& joint = ann[joint_i];
             out_a[ann_i][joint_i][0] = joint.v;
             out_a[ann_i][joint_i][1] = joint.x;
@@ -141,6 +144,61 @@ torch::Tensor CifCaf::call(
     }
     return out;
 }
+
+
+void CifCaf::_grow(
+    std::vector<Joint>& ann,
+    const std::tuple<std::vector<torch::Tensor>, std::vector<torch::Tensor> >& caf_fb,
+    bool reverse_match
+) {
+    assert(frontier.empty());
+    assert(in_frontier.empty());
+
+    // initialize frontier
+    for (int64_t j=0; j < n_keypoints; j++) {
+        if (ann[j].v == 0.0) continue;
+        _frontier_add_from(ann, j);
+    }
+
+    const std::vector<torch::Tensor>& caf_forward = std::get<0>(caf_fb);
+    const std::vector<torch::Tensor>& caf_backward = std::get<1>(caf_fb);
+
+    // std::cout << frontier.top().max_score << std::endl;
+}
+
+
+void CifCaf::_frontier_add_from(
+    std::vector<Joint>& ann,
+    int64_t start_i
+) {
+    float max_score = sqrt(ann[start_i].v);
+
+    for (auto&& pair : skeleton) {
+        if (pair[0] == start_i) {
+            if (ann[pair[1]].v > 0.0) {
+                continue;
+            }
+            if (in_frontier.find(std::make_pair(pair[0], pair[1])) != in_frontier.end()) {
+                continue;
+            }
+            frontier.emplace(max_score, pair[0], pair[1]);
+            in_frontier.emplace(pair[0], pair[1]);
+            continue;
+        }
+        if (pair[1] == start_i) {
+            if (ann[pair[0]].v > 0.0) {
+                continue;
+            }
+            if (in_frontier.find(std::make_pair(pair[1], pair[0])) != in_frontier.end()) {
+                continue;
+            }
+            frontier.emplace(max_score, pair[1], pair[0]);
+            in_frontier.emplace(pair[1], pair[0]);
+            continue;
+        }
+    }
+}
+
 
 
 } // namespace decoder
