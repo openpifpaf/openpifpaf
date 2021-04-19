@@ -49,6 +49,8 @@ struct CifCaf : torch::CustomClassHolder {
     static double keypoint_threshold;
     static double keypoint_threshold_rel;
     static bool global_reverse_match;
+    static bool force_complete;
+    static double force_complete_caf_th;
 
     utils::CifHr cifhr;
     utils::Occupancy occupancy;
@@ -74,7 +76,6 @@ struct CifCaf : torch::CustomClassHolder {
 
     void _grow(std::vector<Joint>& ann, const caf_fb_t& caf_fb, bool reverse_match=true);
     void _frontier_add_from(std::vector<Joint>& ann, int64_t start_i);
-
     Joint _connection_value(
         const std::vector<Joint>& ann,
         const caf_fb_t& caf_fb,
@@ -82,6 +83,12 @@ struct CifCaf : torch::CustomClassHolder {
         int64_t end_i,
         bool reverse_match=true
     );
+    void _force_complete(
+        std::vector<std::vector<Joint> >& annotations,
+        const torch::Tensor& cifhr_accumulated, double cifhr_revision,
+        const torch::Tensor& caf_field, int64_t caf_stride
+    );
+    void _flood_fill(std::vector<Joint>& ann);
 };
 
 

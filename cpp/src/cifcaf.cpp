@@ -15,9 +15,11 @@ namespace decoder {
 
 
 bool CifCaf::greedy = false;
-double CifCaf::keypoint_threshold = 0.2;
+double CifCaf::keypoint_threshold = 0.15;
 double CifCaf::keypoint_threshold_rel = 0.5;
 bool CifCaf::global_reverse_match = true;
+bool CifCaf::force_complete = false;
+double CifCaf::force_complete_caf_th = 0.001;
 
 
 Joint grow_connection_blend(const torch::Tensor& caf, double x, double y, double xy_scale, bool only_max) {
@@ -145,6 +147,11 @@ torch::Tensor CifCaf::call(
             occupancy.set(of, o_joint.x, o_joint.y, o_joint.s);
         }
         annotations.push_back(annotation);
+    }
+
+    if (force_complete) {
+        _force_complete(annotations, cifhr_accumulated, cifhr_revision, caf_field, caf_stride);
+        for (auto&& ann : annotations) _flood_fill(ann);
     }
 
     auto out = torch::zeros({ int64_t(annotations.size()), n_keypoints, 4 });
@@ -277,6 +284,42 @@ Joint CifCaf::_connection_value(
     return new_j;
 }
 
+
+void CifCaf::_force_complete(
+    std::vector<std::vector<Joint> >& annotations,
+    const torch::Tensor& cifhr_accumulated, double cifhr_revision,
+    const torch::Tensor& caf_field, int64_t caf_stride
+) {
+    utils::CafScored caf_scored(cifhr_accumulated, cifhr_revision, force_complete_caf_th, 0.1);
+    caf_scored.fill(caf_field, caf_stride, skeleton);
+    auto caf_fb = caf_scored.get();
+
+    for (auto&& ann : annotations) {
+        _grow(ann, caf_fb, false);
+    }
+}
+
+
+void CifCaf::_flood_fill(std::vector<Joint>& ann) {
+    while (!frontier.empty()) frontier.pop();
+
+    // initialize frontier
+    for (int64_t j=0; j < n_keypoints; j++) {
+        if (ann[j].v == 0.0) continue;
+        _frontier_add_from(ann, j);
+    }
+
+    while (!frontier.empty()) {
+        FrontierEntry entry(frontier.top());
+        frontier.pop();
+        // Was the target already filled by something else?
+        if (ann[entry.end_i].v > 0.0) continue;
+
+        ann[entry.end_i] = ann[entry.start_i];
+        ann[entry.end_i].v = 0.00001;
+        _frontier_add_from(ann, entry.end_i);
+    }
+}
 
 
 } // namespace decoder
