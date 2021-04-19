@@ -11,7 +11,7 @@ TORCH_LIBRARY(my_ops, m) {
 
 TORCH_LIBRARY(my_classes, m) {
   m.class_<openpifpaf::decoder::utils::Occupancy>("Occupancy")
-    .def(torch::init<const at::IntArrayRef&, double, double>())
+    .def(torch::init<double, double>())
     // // The next line registers a stateless (i.e. no captures) C++ lambda
     // // function as a method. Note that a lambda function must take a
     // // `c10::intrusive_ptr<YourClass>` (or some const/ref version of that)
@@ -21,6 +21,7 @@ TORCH_LIBRARY(my_classes, m) {
     // })
     .def("get", &openpifpaf::decoder::utils::Occupancy::get)
     .def("set", &openpifpaf::decoder::utils::Occupancy::set)
+    .def("reset", &openpifpaf::decoder::utils::Occupancy::reset)
   ;
 
   m.class_<openpifpaf::decoder::utils::CifHr>("CifHr")

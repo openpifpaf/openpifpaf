@@ -6,7 +6,7 @@
 #include <torch/script.h>
 
 #include "openpifpaf/decoder/utils/cif_hr.hpp"
-
+#include "openpifpaf/decoder/utils/occupancy.hpp"
 
 namespace openpifpaf {
 namespace decoder {
@@ -51,6 +51,7 @@ struct CifCaf : torch::CustomClassHolder {
     static bool global_reverse_match;
 
     utils::CifHr cifhr;
+    utils::Occupancy occupancy;
     std::priority_queue<FrontierEntry, std::vector<FrontierEntry>, decltype(frontier_compare)> frontier;
 
     CifCaf(
@@ -60,6 +61,7 @@ struct CifCaf : torch::CustomClassHolder {
         n_keypoints(n_keypoints_),
         skeleton(skeleton_),
         cifhr({ 1, 1, 1, 1 }, 1),
+        occupancy(2.0, 4.0),
         frontier(frontier_compare)
     { }
 

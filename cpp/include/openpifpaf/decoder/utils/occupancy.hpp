@@ -9,25 +9,29 @@ namespace utils {
 
 
 struct Occupancy : torch::CustomClassHolder {
+    torch::Tensor occupancy_buffer;
     torch::Tensor occupancy;
     double reduction;
     double min_scale_reduced;
+    int64_t revision;
 
     Occupancy(
-        const at::IntArrayRef& shape,
         double reduction,
         double min_scale
-    ) : occupancy(torch::zeros({
-            shape[0],
-            static_cast<int64_t>(shape[1] / reduction) + 1,
-            static_cast<int64_t>(shape[2] / reduction) + 1,
-        }, torch::kUInt8)),
+    ) : occupancy_buffer(torch::zeros({ 1, 1, 1 }, torch::kUInt8)),
+        occupancy(occupancy_buffer.index({
+            at::indexing::Slice(0, 1),
+            at::indexing::Slice(0, 1),
+            at::indexing::Slice(0, 1)
+        })),
         reduction(reduction),
-        min_scale_reduced(min_scale / reduction)
+        min_scale_reduced(min_scale / reduction),
+        revision(0)
     { }
 
     void set(int64_t f, double x, double y, double sigma);
     bool get(int64_t f, double x, double y);
+    void reset(const at::IntArrayRef& shape);
 };
 
 

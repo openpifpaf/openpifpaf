@@ -24,7 +24,7 @@ void Occupancy::set(int64_t f, double x, double y, double sigma) {
     // # rounds down.
     auto maxx = std::clamp(int64_t(x + sigma), minx + 1, occupancy.size(2));
     auto maxy = std::clamp(int64_t(y + sigma), miny + 1, occupancy.size(1));
-    occupancy.index_put_({f, at::indexing::Slice(miny, maxy), at::indexing::Slice(minx, maxx)}, 1);
+    occupancy.index_put_({f, at::indexing::Slice(miny, maxy), at::indexing::Slice(minx, maxx)}, revision + 1);
 }
 
 
@@ -38,7 +38,37 @@ bool Occupancy::get(int64_t f, double x, double y) {
 
     auto xi = std::clamp(int64_t(x), int64_t(0), occupancy.size(2) - 1);
     auto yi = std::clamp(int64_t(y), int64_t(0), occupancy.size(1) - 1);
-    return occupancy.index({f, yi, xi}).item<uint8_t>() != 0;
+    return occupancy.index({f, yi, xi}).item<uint8_t>() > revision;
+}
+
+
+void Occupancy::reset(const at::IntArrayRef& shape) {
+    auto j = static_cast<int64_t>(shape[1] / reduction) + 1;
+    auto i = static_cast<int64_t>(shape[2] / reduction) + 1;
+    if (occupancy_buffer.size(0) < shape[0]
+        || occupancy_buffer.size(1) < j
+        || occupancy_buffer.size(2) < i
+    ) {
+        std::cout << "!!! resizing occupancy buffer" << std::endl;
+        occupancy_buffer = torch::zeros({
+            shape[0],
+            std::max(j, i),
+            std::max(j, i)
+        });
+    }
+
+    occupancy = occupancy_buffer.index({
+        at::indexing::Slice(0, shape[0]),
+        at::indexing::Slice(0, j),
+        at::indexing::Slice(0, i)
+    });
+    revision++;
+
+    if (revision > 254) {
+        occupancy_buffer.zero_();
+        revision = 0;
+    }
+
 }
 
 

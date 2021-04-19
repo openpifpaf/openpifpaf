@@ -118,7 +118,7 @@ torch::Tensor CifCaf::call(
     // size_t n_caf_b = std::accumulate(caf_b.begin(), caf_b.end(), 0, [](size_t a, torch::Tensor& b) { return a + b.size(0); });
     // std::cout << "caf forward: " << n_caf_f << ", caf backward: " << n_caf_b << std::endl;
 
-    utils::Occupancy occupied(cifhr_accumulated.sizes(), 2.0, 4.0);
+    occupancy.reset(cifhr_accumulated.sizes());
     std::vector<std::vector<Joint> > annotations;
 
     int64_t f;
@@ -128,7 +128,7 @@ torch::Tensor CifCaf::call(
         x = seeds_vxys_a[seed_i][1];
         y = seeds_vxys_a[seed_i][2];
         s = seeds_vxys_a[seed_i][3];
-        if (occupied.get(f, x, y)) continue;
+        if (occupancy.get(f, x, y)) continue;
 
         std::vector<Joint> annotation(n_keypoints);
         Joint& joint = annotation[f];
@@ -142,7 +142,7 @@ torch::Tensor CifCaf::call(
         for (int64_t of=0; of < n_keypoints; of++) {
             Joint& o_joint = annotation[of];
             if (o_joint.v == 0.0) continue;
-            occupied.set(of, o_joint.x, o_joint.y, o_joint.s);
+            occupancy.set(of, o_joint.x, o_joint.y, o_joint.s);
         }
         annotations.push_back(annotation);
     }
