@@ -172,6 +172,18 @@ class CifCafTorch(Decoder):
         LOG.debug('cpp annotations = %d (%.1fms)',
                   len(annotations),
                   (time.perf_counter() - start) * 1000.0)
+
+        annotations_py = []
+        for ann_data in annotations:
+            ann = Annotation(self.keypoints,
+                             self.out_skeleton,
+                             score_weights=self.score_weights)
+            ann.data[:, :2] = ann_data[:, 1:3]
+            ann.data[:, 2] = ann_data[:, 0]
+            ann.joint_scales = ann_data[:, 3]
+            annotations_py.append(ann)
+        return annotations_py
+
         if not initial_annotations:
             initial_annotations = []
         LOG.debug('initial annotations = %d', len(initial_annotations))

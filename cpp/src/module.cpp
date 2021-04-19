@@ -50,5 +50,5 @@ TORCH_LIBRARY(my_classes, m) {
     >())
     .def("call", &openpifpaf::decoder::CifCaf::call)
   ;
-  m.def("grow_connection_blend", openpifpaf::decoder::grow_connection_blend);
+  m.def("grow_connection_blend", openpifpaf::decoder::grow_connection_blend_py);
 }

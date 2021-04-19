@@ -14,7 +14,13 @@ namespace openpifpaf {
 namespace decoder {
 
 
-std::vector<double> grow_connection_blend(const torch::Tensor& caf, double x, double y, double xy_scale, bool only_max) {
+bool CifCaf::greedy = false;
+double CifCaf::keypoint_threshold = 0.2;
+double CifCaf::keypoint_threshold_rel = 0.5;
+bool CifCaf::global_reverse_match = true;
+
+
+Joint grow_connection_blend(const torch::Tensor& caf, double x, double y, double xy_scale, bool only_max) {
     /*
     Blending the top two candidates with a weighted average.
 
@@ -55,29 +61,34 @@ std::vector<double> grow_connection_blend(const torch::Tensor& caf, double x, do
 
     float entry_1[4] = {  // xybs
         caf_a[score_1_i][3], caf_a[score_1_i][4],
-        caf_a[score_1_i][6], caf_a[score_1_i][8]
+        caf_a[score_1_i][6], fmax(0.0f, caf_a[score_1_i][8])
     };
     if (only_max)
-        return { entry_1[0], entry_1[1], entry_1[3], score_1 };
+        return { score_1, entry_1[0], entry_1[1], entry_1[3] };
     if (score_2 < 0.01 || score_2 < 0.5 * score_1)
-        return { entry_1[0], entry_1[1], entry_1[3], score_1 * 0.5 };
+        return { 0.5 * score_1, entry_1[0], entry_1[1], entry_1[3] };
 
     // blend
     float entry_2[4] = {  // xybs
         caf_a[score_2_i][3], caf_a[score_2_i][4],
-        caf_a[score_2_i][6], caf_a[score_2_i][8]
+        caf_a[score_2_i][6], fmax(0.0f, caf_a[score_2_i][8])
     };
 
     float blend_d2 = std::pow(entry_1[0] - entry_2[0], 2) + std::pow(entry_1[1] - entry_2[1], 2);
     if (blend_d2 > std::pow(entry_1[3], 2) / 4.0)
-        return { entry_1[0], entry_1[1], entry_1[3], score_1 * 0.5 };
+        return { 0.5 * score_1, entry_1[0], entry_1[1], entry_1[3] };
 
-    return {  // xysv
+    return {
+        0.5 * (score_1 + score_2),
         (score_1 * entry_1[0] + score_2 * entry_2[0]) / (score_1 + score_2),
         (score_1 * entry_1[1] + score_2 * entry_2[1]) / (score_1 + score_2),
-        (score_1 * entry_1[3] + score_2 * entry_2[3]) / (score_1 + score_2),
-        0.5 * (score_1 + score_2)
+        (score_1 * entry_1[3] + score_2 * entry_2[3]) / (score_1 + score_2)
     };
+}
+
+std::vector<double> grow_connection_blend_py(const torch::Tensor& caf, double x, double y, double s, bool only_max) {
+    Joint j(grow_connection_blend(caf, x, y, s, only_max));
+    return { j.x, j.y, j.s, j.v };  // xysv
 }
 
 
@@ -148,11 +159,11 @@ torch::Tensor CifCaf::call(
 
 void CifCaf::_grow(
     std::vector<Joint>& ann,
-    const std::tuple<std::vector<torch::Tensor>, std::vector<torch::Tensor> >& caf_fb,
+    const caf_fb_t& caf_fb,
     bool reverse_match
 ) {
-    assert(frontier.empty());
-    assert(in_frontier.empty());
+    while (!frontier.empty()) frontier.pop();
+    in_frontier.clear();
 
     // initialize frontier
     for (int64_t j=0; j < n_keypoints; j++) {
@@ -160,10 +171,33 @@ void CifCaf::_grow(
         _frontier_add_from(ann, j);
     }
 
-    const std::vector<torch::Tensor>& caf_forward = std::get<0>(caf_fb);
-    const std::vector<torch::Tensor>& caf_backward = std::get<1>(caf_fb);
+    while (!frontier.empty()) {
+        FrontierEntry entry(frontier.top());
+        frontier.pop();
+        // Was the target already filled by something else?
+        if (ann[entry.end_i].v > 0.0) continue;
 
-    // std::cout << frontier.top().max_score << std::endl;
+        // Is entry not fully computed?
+        if (entry.joint.v == 0.0) {
+            Joint new_joint = _connection_value(
+                ann, caf_fb, entry.start_i, entry.end_i, reverse_match);
+            if (new_joint.v == 0.0) continue;
+
+            if (!greedy) {
+                // if self.confidence_scales is not None:
+                //     caf_i, _ = self.by_source[start_i][end_i]
+                //     score = score * self.confidence_scales[caf_i]
+                frontier.emplace(new_joint.v, new_joint, entry.start_i, entry.end_i);
+                continue;
+            }
+
+            entry.max_score = new_joint.v;
+            entry.joint = new_joint;
+        }
+
+        ann[entry.end_i] = entry.joint;
+        _frontier_add_from(ann, entry.end_i);
+    }
 }
 
 
@@ -197,6 +231,86 @@ void CifCaf::_frontier_add_from(
             continue;
         }
     }
+}
+
+
+// FrontierEntry CifCaf::_frontier_get(
+//     std::vector<Joint>& ann,
+//     const caf_fb_t& caf_fb,
+//     bool reverse_match
+// ) {
+//     while (!frontier.empty()) {
+//         FrontierEntry entry(frontier.top());
+//         frontier.pop();
+//         // Is entry fully computed?
+//         if (entry.joint.v > 0.0) return entry;
+
+//         // Was the target already filled by something else?
+//         if (ann[entry.end_i].v > 0.0) continue;
+
+//         // Compute
+//         Joint new_joint = _connection_value(
+//             ann, caf_fb, entry.start_i, entry.end_i, reverse_match);
+//         if (new_joint.v == 0.0) continue;
+
+//         if (greedy) return FrontierEntry(new_joint.v, new_joint, entry.start_i, entry.end_i);
+//         // if self.confidence_scales is not None:
+//         //     caf_i, _ = self.by_source[start_i][end_i]
+//         //     score = score * self.confidence_scales[caf_i]
+//         frontier.emplace(new_joint.v, new_joint, entry.start_i, entry.end_i);
+//     }
+// }
+
+
+Joint CifCaf::_connection_value(
+    const std::vector<Joint>& ann,
+    const caf_fb_t& caf_fb,
+    int64_t start_i,
+    int64_t end_i,
+    bool reverse_match
+) {
+    int64_t caf_i = 0;
+    bool forward = true;
+    for (auto&& pair : skeleton) {
+        if (pair[0] == start_i && pair[1] == end_i) {
+            forward = true;
+            break;
+        }
+        if (pair[1] == start_i && pair[0] == end_i) {
+            forward = false;
+            break;
+        }
+        caf_i++;
+    }
+    assert(caf_i < skeleton.size());
+    std::cout << "caf_i" << caf_i << ": " << forward << std::endl;
+    auto caf_f = forward ? std::get<0>(caf_fb)[caf_i] : std::get<1>(caf_fb)[caf_i];
+    auto caf_b = forward ? std::get<1>(caf_fb)[caf_i] : std::get<0>(caf_fb)[caf_i];
+
+    bool only_max = false;
+
+    const Joint& start_j = ann[start_i];
+    Joint new_j = grow_connection_blend(
+        caf_f, start_j.x, start_j.y, start_j.s, only_max);
+    if (new_j.v == 0.0) return { 0.0, 0.0, 0.0, 0.0 };
+
+    new_j.v = sqrt(new_j.v * start_j.v);  // geometric mean
+    if (new_j.v < keypoint_threshold)
+        return { 0.0, 0.0, 0.0, 0.0 };
+    if (new_j.v < start_j.v * keypoint_threshold_rel)
+        return { 0.0, 0.0, 0.0, 0.0 };
+
+    // reverse match
+    if (global_reverse_match && reverse_match) {
+        Joint reverse_j = grow_connection_blend(
+            caf_b, new_j.x, new_j.y, new_j.s, only_max);
+        if (reverse_j.v == 0.0)
+            return { 0.0, 0.0, 0.0, 0.0 };
+        if (fabs(new_j.x - reverse_j.x) + fabs(new_j.y - reverse_j.y) > new_j.s)
+            return { 0.0, 0.0, 0.0, 0.0 };
+    }
+
+    return new_j;
 }
 
 
