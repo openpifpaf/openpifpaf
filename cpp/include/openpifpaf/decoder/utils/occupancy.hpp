@@ -18,7 +18,7 @@ struct Occupancy : torch::CustomClassHolder {
     Occupancy(
         double reduction,
         double min_scale
-    ) : occupancy_buffer(torch::zeros({ 1, 1, 1 }, torch::kUInt8)),
+    ) : occupancy_buffer(torch::zeros({ 1, 1, 1 }, torch::kInt16)),
         occupancy(occupancy_buffer.index({
             at::indexing::Slice(0, 1),
             at::indexing::Slice(0, 1),

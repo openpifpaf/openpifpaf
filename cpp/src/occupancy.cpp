@@ -54,7 +54,7 @@ void Occupancy::reset(const at::IntArrayRef& shape) {
             shape[0],
             std::max(j, i),
             std::max(j, i)
-        });
+        }, torch::kInt16);
     }
 
     occupancy = occupancy_buffer.index({
@@ -64,7 +64,7 @@ void Occupancy::reset(const at::IntArrayRef& shape) {
     });
     revision++;
 
-    if (revision > 254) {
+    if (revision > 32000) {
         occupancy_buffer.zero_();
         revision = 0;
     }
