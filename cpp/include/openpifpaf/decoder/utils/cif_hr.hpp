@@ -37,18 +37,12 @@ struct CifHr : torch::CustomClassHolder {
     static double v_threshold;
 
     CifHr(
-        const at::IntArrayRef& shape,
-        int64_t stride
-    ) : accumulated_buffer(torch::zeros({
-            shape[0],
-            (std::max(shape[2], shape[3]) - 1) * stride + 1,
-            (std::max(shape[2], shape[3]) - 1) * stride + 1
-        })),
+    ) : accumulated_buffer(torch::zeros({ 1, 1, 1 })),
         accumulated(
             accumulated_buffer.index({
-                at::indexing::Slice(0, shape[0]),
-                at::indexing::Slice(0, (shape[2] - 1) * stride + 1),
-                at::indexing::Slice(0, (shape[3] - 1) * stride + 1)
+                at::indexing::Slice(0, 1),
+                at::indexing::Slice(0, 1),
+                at::indexing::Slice(0, 1)
             })
         ),
         revision(0.0)

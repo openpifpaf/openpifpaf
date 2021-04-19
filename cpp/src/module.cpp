@@ -25,7 +25,7 @@ TORCH_LIBRARY(my_classes, m) {
   ;
 
   m.class_<openpifpaf::decoder::utils::CifHr>("CifHr")
-    .def(torch::init<const at::IntArrayRef&, int64_t>())
+    .def(torch::init<>())
     .def("accumulate", &openpifpaf::decoder::utils::CifHr::accumulate)
     .def("get_accumulated", &openpifpaf::decoder::utils::CifHr::get_accumulated)
     .def("reset", &openpifpaf::decoder::utils::CifHr::reset)

@@ -97,7 +97,7 @@ class CifCafTorch(Decoder):
         if self.caf_visualizers is None:
             self.caf_visualizers = [visualizer.Caf(meta) for meta in caf_metas]
 
-        self.cif_hr = torch.classes.my_classes.CifHr([1, 1, 1, 1], 1)
+        self.cif_hr = torch.classes.my_classes.CifHr()
 
         # init by_target and by_source
         self.by_target = defaultdict(dict)

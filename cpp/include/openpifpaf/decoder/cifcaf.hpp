@@ -60,7 +60,7 @@ struct CifCaf : torch::CustomClassHolder {
     ) :
         n_keypoints(n_keypoints_),
         skeleton(skeleton_),
-        cifhr({ 1, 1, 1, 1 }, 1),
+        cifhr(),
         occupancy(2.0, 4.0),
         frontier(frontier_compare)
     { }
