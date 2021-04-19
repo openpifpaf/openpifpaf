@@ -39,17 +39,6 @@ struct FrontierEntry {
 auto frontier_compare = [](FrontierEntry& a, FrontierEntry& b) { return a.max_score < b.max_score; };
 
 
-struct IntPairHash
-{
-    std::size_t operator()(std::pair<int64_t, int64_t> const& p) const noexcept
-    {
-        std::size_t h1 = std::hash<int64_t>{}(p.first);
-        std::size_t h2 = std::hash<int64_t>{}(p.second);
-        return h1 ^ (h2 << 1);
-    }
-};
-
-
 typedef std::tuple<std::vector<torch::Tensor>, std::vector<torch::Tensor> > caf_fb_t;
 
 
@@ -63,7 +52,6 @@ struct CifCaf : torch::CustomClassHolder {
 
     utils::CifHr cifhr;
     std::priority_queue<FrontierEntry, std::vector<FrontierEntry>, decltype(frontier_compare)> frontier;
-    std::unordered_set<std::pair<int64_t, int64_t>, IntPairHash > in_frontier;
 
     CifCaf(
         int64_t n_keypoints_,
@@ -84,7 +72,6 @@ struct CifCaf : torch::CustomClassHolder {
 
     void _grow(std::vector<Joint>& ann, const caf_fb_t& caf_fb, bool reverse_match=true);
     void _frontier_add_from(std::vector<Joint>& ann, int64_t start_i);
-    // FrontierEntry _frontier_get(std::vector<Joint>& ann, const caf_fb_t& caf_fb, bool reverse_match);
 
     Joint _connection_value(
         const std::vector<Joint>& ann,

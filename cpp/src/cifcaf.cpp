@@ -169,7 +169,6 @@ void CifCaf::_grow(
     bool reverse_match
 ) {
     while (!frontier.empty()) frontier.pop();
-    in_frontier.clear();
 
     // initialize frontier
     for (int64_t j=0; j < n_keypoints; j++) {
@@ -215,57 +214,17 @@ void CifCaf::_frontier_add_from(
 
     for (auto&& pair : skeleton) {
         if (pair[0] == start_i) {
-            if (ann[pair[1]].v > 0.0) {
-                continue;
-            }
-            // if (in_frontier.find(std::make_pair(pair[0], pair[1])) != in_frontier.end()) {
-            //     continue;
-            // }
+            if (ann[pair[1]].v > 0.0) continue;
             frontier.emplace(max_score, pair[0], pair[1]);
-            // in_frontier.emplace(pair[0], pair[1]);
             continue;
         }
         if (pair[1] == start_i) {
-            if (ann[pair[0]].v > 0.0) {
-                continue;
-            }
-            // if (in_frontier.find(std::make_pair(pair[1], pair[0])) != in_frontier.end()) {
-            //     continue;
-            // }
+            if (ann[pair[0]].v > 0.0) continue;
             frontier.emplace(max_score, pair[1], pair[0]);
-            // in_frontier.emplace(pair[1], pair[0]);
             continue;
         }
     }
 }
-
-
-// FrontierEntry CifCaf::_frontier_get(
-//     std::vector<Joint>& ann,
-//     const caf_fb_t& caf_fb,
-//     bool reverse_match
-// ) {
-//     while (!frontier.empty()) {
-//         FrontierEntry entry(frontier.top());
-//         frontier.pop();
-//         // Is entry fully computed?
-//         if (entry.joint.v > 0.0) return entry;
-
-//         // Was the target already filled by something else?
-//         if (ann[entry.end_i].v > 0.0) continue;
-
-//         // Compute
-//         Joint new_joint = _connection_value(
-//             ann, caf_fb, entry.start_i, entry.end_i, reverse_match);
-//         if (new_joint.v == 0.0) continue;
-
-//         if (greedy) return FrontierEntry(new_joint.v, new_joint, entry.start_i, entry.end_i);
-//         // if self.confidence_scales is not None:
-//         //     caf_i, _ = self.by_source[start_i][end_i]
-//         //     score = score * self.confidence_scales[caf_i]
-//         frontier.emplace(new_joint.v, new_joint, entry.start_i, entry.end_i);
-//     }
-// }
 
 
 Joint CifCaf::_connection_value(
