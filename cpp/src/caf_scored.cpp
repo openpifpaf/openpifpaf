@@ -63,8 +63,8 @@ void CafScored::fill(const torch::Tensor& caf_field, int64_t stride, const std::
                 );
 
                 // rescore
-                forward_hr = cifhr_value(skeleton[f][1] - 1, ca_forward.x2, ca_forward.y2, 0.0);
-                backward_hr = cifhr_value(skeleton[f][0] - 1, ca_backward.x2, ca_backward.y2, 0.0);
+                forward_hr = cifhr_value(skeleton[f][1], ca_forward.x2, ca_forward.y2, 0.0);
+                backward_hr = cifhr_value(skeleton[f][0], ca_backward.x2, ca_backward.y2, 0.0);
                 ca_forward.c = ca_forward.c * (cif_floor + (1.0 - cif_floor) * forward_hr);
                 ca_backward.c = ca_backward.c * (cif_floor + (1.0 - cif_floor) * backward_hr);
 

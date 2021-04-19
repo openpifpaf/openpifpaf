@@ -111,7 +111,7 @@ class CifCafTorch(Decoder):
 
         self.cpp_decoder = torch.classes.my_classes.CifCaf(
             len(self.keypoints),
-            self.caf_metas[0].skeleton,
+            self.skeleton_m1,
         )
 
     @classmethod
@@ -182,7 +182,10 @@ class CifCafTorch(Decoder):
             ann.data[:, 2] = ann_data[:, 0]
             ann.joint_scales = ann_data[:, 3]
             annotations_py.append(ann)
-        return annotations_py
+        if self.nms is not None:
+            annotations_py = self.nms.annotations(annotations_py)
+            print([np.sum(ann.data[:, 2] > 0.0) for ann in annotations_py])
+        # return annotations_py
 
         if not initial_annotations:
             initial_annotations = []
@@ -215,7 +218,7 @@ class CifCafTorch(Decoder):
         start_cafscored = time.perf_counter()
         caf_scored = torch.classes.my_classes.CafScored(cifhr_accumulated, cifhr_revision, -1.0, 0.1)
         for caf_meta in self.caf_metas:
-            caf_scored.fill(fields[caf_meta.head_index], caf_meta.stride, caf_meta.skeleton)
+            caf_scored.fill(fields[caf_meta.head_index], caf_meta.stride, np.asarray(caf_meta.skeleton) - 1)
         caf_fb = caf_scored.get()
         LOG.debug(
             'cafscored forward = %d, backward = %d (%.1fms)',
