@@ -185,7 +185,7 @@ class CifCafTorch(Decoder):
         if self.nms is not None:
             annotations_py = self.nms.annotations(annotations_py)
             print([np.sum(ann.data[:, 2] > 0.0) for ann in annotations_py])
-        # return annotations_py
+        return annotations_py
 
         if not initial_annotations:
             initial_annotations = []
@@ -257,6 +257,7 @@ class CifCafTorch(Decoder):
             self._grow(ann, caf_fb)
             annotations.append(ann)
             mark_occupied(ann)
+            break
 
         # self.occupancy_visualizer.predicted(occupied)
 
@@ -350,6 +351,7 @@ class CifCafTorch(Decoder):
                 max_possible_score = np.sqrt(ann.data[start_i, 2])
                 if self.confidence_scales is not None:
                     max_possible_score *= self.confidence_scales[caf_i]
+                print(caf_i, start_i, end_i)
                 heapq.heappush(frontier, (-max_possible_score, None, start_i, end_i))
                 in_frontier.add((start_i, end_i))
                 ann.frontier_order.append((start_i, end_i))
@@ -379,6 +381,7 @@ class CifCafTorch(Decoder):
         # seeding the frontier
         for joint_i in np.flatnonzero(ann.data[:, 2]):
             add_to_frontier(joint_i)
+        print('init frontier', len(frontier))
 
         while True:
             entry = frontier_get()

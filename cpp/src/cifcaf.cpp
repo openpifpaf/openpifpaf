@@ -107,10 +107,16 @@ torch::Tensor CifCaf::call(
     auto [seeds_f, seeds_vxys] = seeds.get();
     auto seeds_f_a = seeds_f.accessor<int64_t, 1>();
     auto seeds_vxys_a = seeds_vxys.accessor<float, 2>();
+    // std::cout << "seeds: " << seeds_f_a.size(0) << std::endl;
 
     utils::CafScored caf_scored(cifhr_accumulated, cifhr_revision, -1.0, 0.1);
     caf_scored.fill(caf_field, caf_stride, skeleton);
     auto caf_fb = caf_scored.get();
+    // auto caf_f = std::get<0>(caf_fb);
+    // size_t n_caf_f = std::accumulate(caf_f.begin(), caf_f.end(), 0, [](size_t a, torch::Tensor& b) { return a + b.size(0); });
+    // auto caf_b = std::get<1>(caf_fb);
+    // size_t n_caf_b = std::accumulate(caf_b.begin(), caf_b.end(), 0, [](size_t a, torch::Tensor& b) { return a + b.size(0); });
+    // std::cout << "caf forward: " << n_caf_f << ", caf backward: " << n_caf_b << std::endl;
 
     utils::Occupancy occupied(cifhr_accumulated.sizes(), 2.0, 4.0);
     std::vector<std::vector<Joint> > annotations;
@@ -146,7 +152,7 @@ torch::Tensor CifCaf::call(
     for (int64_t ann_i = 0; ann_i < int64_t(annotations.size()); ann_i++) {
         auto& ann = annotations[ann_i];
         for (int64_t joint_i = 0; joint_i < n_keypoints; joint_i++) {
-            auto& joint = ann[joint_i];
+            Joint& joint = ann[joint_i];
             out_a[ann_i][joint_i][0] = joint.v;
             out_a[ann_i][joint_i][1] = joint.x;
             out_a[ann_i][joint_i][2] = joint.y;
@@ -212,22 +218,22 @@ void CifCaf::_frontier_add_from(
             if (ann[pair[1]].v > 0.0) {
                 continue;
             }
-            if (in_frontier.find(std::make_pair(pair[0], pair[1])) != in_frontier.end()) {
-                continue;
-            }
+            // if (in_frontier.find(std::make_pair(pair[0], pair[1])) != in_frontier.end()) {
+            //     continue;
+            // }
             frontier.emplace(max_score, pair[0], pair[1]);
-            in_frontier.emplace(pair[0], pair[1]);
+            // in_frontier.emplace(pair[0], pair[1]);
             continue;
         }
         if (pair[1] == start_i) {
             if (ann[pair[0]].v > 0.0) {
                 continue;
             }
-            if (in_frontier.find(std::make_pair(pair[1], pair[0])) != in_frontier.end()) {
-                continue;
-            }
+            // if (in_frontier.find(std::make_pair(pair[1], pair[0])) != in_frontier.end()) {
+            //     continue;
+            // }
             frontier.emplace(max_score, pair[1], pair[0]);
-            in_frontier.emplace(pair[1], pair[0]);
+            // in_frontier.emplace(pair[1], pair[0]);
             continue;
         }
     }
@@ -283,7 +289,6 @@ Joint CifCaf::_connection_value(
         caf_i++;
     }
     assert(caf_i < skeleton.size());
-    std::cout << "caf_i" << caf_i << ": " << forward << std::endl;
     auto caf_f = forward ? std::get<0>(caf_fb)[caf_i] : std::get<1>(caf_fb)[caf_i];
     auto caf_b = forward ? std::get<1>(caf_fb)[caf_i] : std::get<0>(caf_fb)[caf_i];
 
@@ -306,7 +311,7 @@ Joint CifCaf::_connection_value(
             caf_b, new_j.x, new_j.y, new_j.s, only_max);
         if (reverse_j.v == 0.0)
             return { 0.0, 0.0, 0.0, 0.0 };
-        if (fabs(new_j.x - reverse_j.x) + fabs(new_j.y - reverse_j.y) > new_j.s)
+        if (fabs(start_j.x - reverse_j.x) + fabs(start_j.y - reverse_j.y) > start_j.s)
             return { 0.0, 0.0, 0.0, 0.0 };
     }
 
