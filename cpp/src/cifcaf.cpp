@@ -176,6 +176,7 @@ void CifCaf::_grow(
     bool reverse_match
 ) {
     while (!frontier.empty()) frontier.pop();
+    in_frontier.clear();
 
     // initialize frontier
     for (int64_t j=0; j < n_keypoints; j++) {
@@ -222,12 +223,20 @@ void CifCaf::_frontier_add_from(
     for (auto&& pair : skeleton) {
         if (pair[0] == start_i) {
             if (ann[pair[1]].v > 0.0) continue;
+            if (in_frontier.find(std::make_pair(pair[0], pair[1])) != in_frontier.end()) {
+                continue;
+            }
             frontier.emplace(max_score, pair[0], pair[1]);
+            in_frontier.emplace(pair[0], pair[1]);
             continue;
         }
         if (pair[1] == start_i) {
             if (ann[pair[0]].v > 0.0) continue;
+            if (in_frontier.find(std::make_pair(pair[1], pair[0])) != in_frontier.end()) {
+                continue;
+            }
             frontier.emplace(max_score, pair[1], pair[0]);
+            in_frontier.emplace(pair[1], pair[0]);
             continue;
         }
     }

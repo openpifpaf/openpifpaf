@@ -41,6 +41,16 @@ auto frontier_compare = [](FrontierEntry& a, FrontierEntry& b) { return a.max_sc
 
 typedef std::tuple<std::vector<torch::Tensor>, std::vector<torch::Tensor> > caf_fb_t;
 
+struct IntPairHash
+{
+    std::size_t operator()(std::pair<int64_t, int64_t> const& p) const noexcept
+    {
+        std::size_t h1 = std::hash<int64_t>{}(p.first);
+        std::size_t h2 = std::hash<int64_t>{}(p.second);
+        return h1 ^ (h2 << 1);
+    }
+};
+
 
 struct CifCaf : torch::CustomClassHolder {
     int64_t n_keypoints;
@@ -55,6 +65,7 @@ struct CifCaf : torch::CustomClassHolder {
     utils::CifHr cifhr;
     utils::Occupancy occupancy;
     std::priority_queue<FrontierEntry, std::vector<FrontierEntry>, decltype(frontier_compare)> frontier;
+    std::unordered_set<std::pair<int64_t, int64_t>, IntPairHash > in_frontier;
 
     CifCaf(
         int64_t n_keypoints_,
