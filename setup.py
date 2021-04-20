@@ -96,7 +96,7 @@ setup(
             'matplotlib>=3.3',  # required by pycocotools
             'pycocotools>=2.0.1',  # pre-install cython (currently incompatible with numpy 1.18 or above)
             'scipy',
-            'xtcocotools>=1.5',  # required for wholebody eval    
+            'xtcocotools>=1.5',  # required for wholebody eval
         ],
     },
 )
