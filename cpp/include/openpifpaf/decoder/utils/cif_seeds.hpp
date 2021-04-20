@@ -23,6 +23,8 @@ struct CifSeeds : torch::CustomClassHolder {
     std::vector<Seed> seeds;
     static double v_threshold;
 
+    static void set_threshold(double v) { v_threshold = v; }
+
     CifSeeds(const torch::Tensor& cifhr_, double cifhr_revision_)
     : cifhr_a(cifhr_.accessor<float, 3>()),
       cifhr_revision(cifhr_revision_)
@@ -31,8 +33,6 @@ struct CifSeeds : torch::CustomClassHolder {
     std::tuple<torch::Tensor, torch::Tensor> get(void);
 
     float cifhr_value(int64_t f, float x, float y, float default_value=-1.0);
-
-    static void set_threshold(double v) { v_threshold = v; }
 };
 
 

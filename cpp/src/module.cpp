@@ -3,13 +3,9 @@
 #include "openpifpaf.hpp"
 
 
+TORCH_LIBRARY(openpifpaf, m) {
+  m.def("cif_hr_accumulate_op", openpifpaf::decoder::utils::cif_hr_accumulate_op);
 
-TORCH_LIBRARY(my_ops, m) {
-    m.def("cif_hr_accumulate_op", openpifpaf::decoder::utils::cif_hr_accumulate_op);
-}
-
-
-TORCH_LIBRARY(my_classes, m) {
   m.class_<openpifpaf::decoder::utils::Occupancy>("Occupancy")
     .def(torch::init<double, double>())
     // // The next line registers a stateless (i.e. no captures) C++ lambda
@@ -36,7 +32,7 @@ TORCH_LIBRARY(my_classes, m) {
     .def("fill", &openpifpaf::decoder::utils::CifSeeds::fill)
     .def("get", &openpifpaf::decoder::utils::CifSeeds::get)
   ;
-  m.def("CifSeeds_set_threshold", openpifpaf::decoder::utils::CifSeeds::set_threshold);
+  m.def("CifSeeds_threshold", openpifpaf::decoder::utils::CifSeeds::set_threshold);
 
   m.class_<openpifpaf::decoder::utils::CafScored>("CafScored")
     .def(torch::init<const torch::Tensor&, double, double, double>())

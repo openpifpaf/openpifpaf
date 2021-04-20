@@ -94,7 +94,7 @@ class CifCafTorch(Decoder):
         if self.caf_visualizers is None:
             self.caf_visualizers = [visualizer.Caf(meta) for meta in caf_metas]
 
-        self.cif_hr = torch.classes.my_classes.CifHr()
+        self.cif_hr = torch.classes.openpifpaf.CifHr()
 
         # init by_target and by_source
         self.by_target = defaultdict(dict)
@@ -106,7 +106,7 @@ class CifCafTorch(Decoder):
             self.by_source[j1][j2] = (caf_i, True)
             self.by_source[j2][j1] = (caf_i, False)
 
-        self.cpp_decoder = torch.classes.my_classes.CifCaf(
+        self.cpp_decoder = torch.classes.openpifpaf.CifCaf(
             len(self.keypoints),
             self.skeleton_m1,
         )
@@ -136,7 +136,7 @@ class CifCafTorch(Decoder):
         utils.nms.Keypoints.keypoint_threshold = keypoint_threshold_nms
         cls.keypoint_threshold_rel = args.keypoint_threshold_rel
 
-        torch.ops.my_classes.CifCaf_force_complete(args.force_complete_pose)
+        torch.ops.openpifpaf.CifCaf_force_complete(args.force_complete_pose)
 
         cls.greedy = args.greedy
         cls.connection_method = args.connection_method
@@ -206,14 +206,14 @@ class CifCafTorch(Decoder):
         utils.CifHr.debug_visualizer.predicted(cifhr_accumulated)
 
         start_seeds = time.perf_counter()
-        seeds = torch.classes.my_classes.CifSeeds(cifhr_accumulated, cifhr_revision)
+        seeds = torch.classes.openpifpaf.CifSeeds(cifhr_accumulated, cifhr_revision)
         for cif_meta in self.cif_metas:
             seeds.fill(fields[cif_meta.head_index], cif_meta.stride)
         seeds_f, seeds_vxys = seeds.get()
         LOG.debug('seeds = %d (%.1fms)', len(seeds_f), (time.perf_counter() - start_seeds) * 1000.0)
 
         start_cafscored = time.perf_counter()
-        caf_scored = torch.classes.my_classes.CafScored(cifhr_accumulated, cifhr_revision, -1.0, 0.1)
+        caf_scored = torch.classes.openpifpaf.CafScored(cifhr_accumulated, cifhr_revision, -1.0, 0.1)
         for caf_meta in self.caf_metas:
             caf_scored.fill(fields[caf_meta.head_index], caf_meta.stride, np.asarray(caf_meta.skeleton) - 1)
         caf_fb = caf_scored.get()
@@ -223,7 +223,7 @@ class CifCafTorch(Decoder):
             sum(len(f) for f in caf_fb[1]),
             (time.perf_counter() - start_cafscored) * 1000.0)
 
-        occupied = torch.classes.my_classes.Occupancy(cifhr_accumulated.shape, 2.0, 4.0)
+        occupied = torch.classes.openpifpaf.Occupancy(cifhr_accumulated.shape, 2.0, 4.0)
         annotations = []
 
         def mark_occupied(ann):
@@ -283,7 +283,7 @@ class CifCafTorch(Decoder):
 
         only_max = self.connection_method == 'max'
 
-        new_xysv = torch.ops.my_classes.grow_connection_blend(
+        new_xysv = torch.ops.openpifpaf.grow_connection_blend(
             caf_f, xyv[0], xyv[1], xy_scale_s, only_max)
         if new_xysv[3] == 0.0:
             return 0.0, 0.0, 0.0, 0.0
@@ -296,7 +296,7 @@ class CifCafTorch(Decoder):
 
         # reverse match
         if self.reverse_match and reverse_match:
-            reverse_xyv = torch.ops.my_classes.grow_connection_blend(
+            reverse_xyv = torch.ops.openpifpaf.grow_connection_blend(
                 caf_b, new_xysv[0], new_xysv[1], xy_scale_t, only_max)
             if reverse_xyv[2] == 0.0:
                 return 0.0, 0.0, 0.0, 0.0

@@ -19,7 +19,7 @@ class DummyDecoder(torch.nn.Module):
 
     def forward(self, cif_head, caf_head):
         self.cifhr[:] = 0.0
-        torch.ops.my_ops.cif_hr_accumulate_op(self.cifhr, cif_head, 8, 0.1, 16, 0.0, 1.0)
+        torch.ops.openpifpaf.cif_hr_accumulate_op(self.cifhr, cif_head, 8, 0.1, 16, 0.0, 1.0)
         return self.cifhr
 
 

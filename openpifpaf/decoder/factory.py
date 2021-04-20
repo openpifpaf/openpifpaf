@@ -71,7 +71,7 @@ def configure(args):
 
     # configure CifSeeds
     utils.CifSeeds.threshold = args.seed_threshold
-    torch.ops.my_classes.CifSeeds_set_threshold(args.seed_threshold)
+    torch.ops.openpifpaf.CifSeeds_threshold(args.seed_threshold)
 
     # configure CafScored
     utils.CafScored.default_score_th = args.caf_th
