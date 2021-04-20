@@ -10,7 +10,6 @@ import openpifpaf
 import openpifpaf.export_onnx
 
 
-@pytest.mark.skipif(sys.platform.startswith('darwin'), reason='onnx simplify crashes')
 def test_onnx_exportable(tmpdir):
     outfile = str(tmpdir.join('openpifpaf-shufflenetv2k16.onnx'))
     assert not os.path.exists(outfile)
@@ -30,7 +29,6 @@ def test_onnx_exportable(tmpdir):
     assert os.path.exists(outfile + '.simplified')
 
 
-@pytest.mark.skipif(sys.platform.startswith('darwin'), reason='onnx simplify crashes')
 def test_onnxruntime(tmpdir):
     """Export an onnx model and test outputs.
 
