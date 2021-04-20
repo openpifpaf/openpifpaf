@@ -160,13 +160,12 @@ def evaluate(args):
         assert len(image_tensors) == len(meta_batch)
         for pred, gt_anns, image_meta in zip(pred_batch, anns_batch, meta_batch):
             pred = [ann.inverse_transform(image_meta) for ann in pred]
+            gt_anns = [ann.inverse_transform(image_meta) for ann in gt_anns]
             for metric in metrics:
                 metric.accumulate(pred, image_meta, ground_truth=gt_anns)
 
             if args.show_final_image:
                 # show ground truth and predictions on original image
-                gt_anns = [ann.inverse_transform(image_meta) for ann in gt_anns]
-
                 annotation_painter = show.AnnotationPainter()
                 with open(image_meta['local_file_path'], 'rb') as f:
                     cpu_image = PIL.Image.open(f).convert('RGB')
