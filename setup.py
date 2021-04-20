@@ -83,7 +83,7 @@ setup(
         'test': [
             'nbconvert',
             'nbval',
-            'onnx',
+            'onnx<1.9',
             'onnxruntime',
             'onnx-simplifier>=0.2.9',
             'pylint',
