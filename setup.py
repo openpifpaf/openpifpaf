@@ -47,8 +47,6 @@ if not sys.platform.startswith('win'):
 setup(
     name='openpifpaf',
     version=versioneer.get_version(),
-    cmdclass=CMD_CLASS,
-    packages=find_packages(),
     license='GNU AGPLv3',
     description='PifPaf: Composite Fields for Human Pose Estimation',
     long_description=open('README.md', encoding='utf-8').read(),
@@ -56,6 +54,12 @@ setup(
     author='Sven Kreiss',
     author_email='research@svenkreiss.com',
     url='https://github.com/openpifpaf/openpifpaf',
+
+    packages=find_packages(),
+    package_data={
+        'openpifpaf': ['*.dll', '*.dylib', '*.so'],
+    },
+    cmdclass=CMD_CLASS,
     ext_modules=EXTENSIONS,
     zip_safe=False,
 
