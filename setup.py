@@ -73,7 +73,7 @@ setup(
             'wheel',
         ],
         'onnx': [
-            'onnx<1.9',
+            'onnx',
             'onnxruntime',
             'onnx-simplifier>=0.2.9',
         ],
@@ -83,7 +83,7 @@ setup(
         'test': [
             'nbconvert',
             'nbval',
-            'onnx<1.9',
+            'onnx',
             'onnxruntime',
             'onnx-simplifier>=0.2.9',
             'pylint',
