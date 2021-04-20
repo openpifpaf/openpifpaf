@@ -2,8 +2,6 @@ import copy
 import math
 import numpy as np
 
-# pylint: disable=import-error
-from .functional import scalar_value_clipped
 from . import headmeta, utils
 
 
@@ -96,14 +94,6 @@ class Annotation(Base):
             c2[0:1] *= scale_x
             c2[1:2] *= scale_y
         return self
-
-    def fill_joint_scales(self, scales, hr_scale=1.0):
-        self.joint_scales = np.zeros((self.data.shape[0],))
-        for xyv_i, xyv in enumerate(self.data):
-            if xyv[2] == 0.0:
-                continue
-            scale = scalar_value_clipped(scales[xyv_i], xyv[0] * hr_scale, xyv[1] * hr_scale)
-            self.joint_scales[xyv_i] = scale / hr_scale
 
     @property
     def score(self):

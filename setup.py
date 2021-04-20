@@ -72,7 +72,6 @@ setup(
     ],
     extras_require={
         'dev': [
-            'cython',
             'flameprof',
             'jupyter-book>=0.9.1',
             'matplotlib>=3.3',

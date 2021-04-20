@@ -3,8 +3,6 @@ import time
 
 import numpy as np
 
-# pylint: disable=import-error
-from ...functional import scalar_square_add_gauss_with_max
 from ... import visualizer
 
 LOG = logging.getLogger(__name__)

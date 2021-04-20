@@ -3,8 +3,6 @@ import time
 
 import numpy as np
 
-from ...functional import Occupancy
-
 LOG = logging.getLogger(__name__)
 
 

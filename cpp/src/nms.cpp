@@ -28,7 +28,7 @@ void NMSKeypoints::call(Occupancy& occupancy, std::vector<std::vector<Joint> >& 
     std::sort(annotations.begin(), annotations.end(), annotation_compare);
 
     for (auto&& ann : annotations) {
-        TORCH_CHECK(occupancy.occupancy.size(0) == ann.size(), "NMS occupancy map must be of same size as annotation");
+        TORCH_CHECK(occupancy.occupancy.size(0) == int64_t(ann.size()), "NMS occupancy map must be of same size as annotation");
 
         int64_t f = -1;
         for (Joint& joint : ann) {

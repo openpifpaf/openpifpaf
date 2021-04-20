@@ -4,8 +4,6 @@ from typing import List
 
 import numpy as np
 
-# pylint: disable=import-error
-from ...functional import scalar_values
 from ... import headmeta
 
 LOG = logging.getLogger(__name__)

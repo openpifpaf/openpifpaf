@@ -12,9 +12,6 @@ from ..annotation import Annotation
 from . import utils
 from .. import headmeta, visualizer
 
-# pylint: disable=import-error
-from ..functional import caf_center_s, grow_connection_blend
-
 LOG = logging.getLogger(__name__)
 
 

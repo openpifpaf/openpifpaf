@@ -3,8 +3,6 @@ import time
 
 import torch
 
-# pylint: disable=import-error
-from ...functional import scalar_values
 from .cif_hr import CifHr
 from ... import headmeta, visualizer
 
