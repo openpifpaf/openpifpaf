@@ -100,6 +100,9 @@ torch::Tensor CifCaf::call(
     const torch::Tensor& caf_field,
     int64_t caf_stride
 ) {
+    TORCH_CHECK(cif_field.device().is_cpu(), "cif_field must be a CPU tensor");
+    TORCH_CHECK(caf_field.device().is_cpu(), "caf_field must be a CPU tensor");
+
     cifhr.reset(cif_field.sizes(), cif_stride);
     cifhr.accumulate(cif_field, cif_stride, 0.0, 1.0);
     auto [cifhr_accumulated, cifhr_revision] = cifhr.get_accumulated();

@@ -139,6 +139,8 @@ class CifCafTorch(Decoder):
         utils.nms.Keypoints.keypoint_threshold = keypoint_threshold_nms
         cls.keypoint_threshold_rel = args.keypoint_threshold_rel
 
+        torch.ops.my_classes.CifCaf_force_complete(args.force_complete_pose)
+
         cls.greedy = args.greedy
         cls.connection_method = args.connection_method
         cls.dense_coupling = args.dense_connections

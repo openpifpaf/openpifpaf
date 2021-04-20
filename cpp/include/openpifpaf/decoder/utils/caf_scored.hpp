@@ -11,6 +11,11 @@ namespace utils {
 struct CompositeAssociation {
     float c, x1, y1, x2, y2, b1, b2, s1, s2;
 
+    CompositeAssociation() :
+        c(0.0),
+        x1(0.0), y1(0.0), x2(0.0), y2(0.0),
+        b1(0.0), b2(0.0),
+        s1(0.0), s2(0.0) { }
     CompositeAssociation(
         float c_,
         float x1_, float y1_, float x2_, float y2_,

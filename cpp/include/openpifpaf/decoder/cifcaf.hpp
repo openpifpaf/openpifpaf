@@ -62,6 +62,8 @@ struct CifCaf : torch::CustomClassHolder {
     static bool force_complete;
     static double force_complete_caf_th;
 
+    static void set_force_complete(bool v) { force_complete = v; }
+
     utils::CifHr cifhr;
     utils::Occupancy occupancy;
     std::priority_queue<FrontierEntry, std::vector<FrontierEntry>, decltype(frontier_compare)> frontier;
