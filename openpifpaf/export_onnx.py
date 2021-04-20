@@ -17,7 +17,6 @@ import openpifpaf
 
 try:
     import onnx
-    import onnx.utils
 except ImportError:
     onnx = None
 
@@ -70,33 +69,9 @@ def apply(model, outfile, verbose=True, input_w=129, input_h=97):
     )
 
 
-def optimize(infile, outfile=None):
-    if outfile is None:
-        assert infile.endswith('.onnx')
-        outfile = infile
-        infile = infile.replace('.onnx', '.unoptimized.onnx')
-        shutil.copyfile(outfile, infile)
-
-    model = onnx.load(infile)
-    optimized_model = onnx.optimizer.optimize(model)
-    onnx.save(optimized_model, outfile)
-
-
 def check(modelfile):
     model = onnx.load(modelfile)
     onnx.checker.check_model(model)
-
-
-def polish(infile, outfile=None):
-    if outfile is None:
-        assert infile.endswith('.onnx')
-        outfile = infile
-        infile = infile.replace('.onnx', '.unpolished.onnx')
-        shutil.copyfile(outfile, infile)
-
-    model = onnx.load(infile)
-    polished_model = onnx.utils.polish_model(model)
-    onnx.save(polished_model, outfile)
 
 
 def simplify(infile, outfile=None):
@@ -129,9 +104,6 @@ def main():
 
     parser.add_argument('--outfile', default='openpifpaf-resnet50.onnx')
     parser.add_argument('--simplify', dest='simplify', default=False, action='store_true')
-    parser.add_argument('--polish', dest='polish', default=False, action='store_true',
-                        help='runs checker, optimizer and shape inference')
-    parser.add_argument('--optimize', dest='optimize', default=False, action='store_true')
     parser.add_argument('--check', dest='check', default=False, action='store_true')
     parser.add_argument('--input-width', type=int, default=129)
     parser.add_argument('--input-height', type=int, default=97)
@@ -144,10 +116,6 @@ def main():
     apply(model, args.outfile, input_w=args.input_width, input_h=args.input_height)
     if args.simplify:
         simplify(args.outfile)
-    if args.optimize:
-        optimize(args.outfile)
-    if args.polish:
-        polish(args.outfile)
     if args.check:
         check(args.outfile)
 
