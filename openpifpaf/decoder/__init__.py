@@ -5,7 +5,6 @@ from .decoder import Decoder
 from .cifcaf import CifCaf
 from .cifdet import CifDet
 from .factory import cli, configure, factory
-from .profiler import Profiler
-from .profiler_autograd import ProfilerAutograd
+from .profiler import Profiler, TorchProfiler
 
 from .factory import DECODERS
