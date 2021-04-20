@@ -186,19 +186,22 @@ class Annotation(Base):
             y_old = xy[:, 1].copy() - (rh - 1) / 2
             xy[:, 0] = (rw - 1) / 2 + cangle * x_old + sangle * y_old
             xy[:, 1] = (rh - 1) / 2 - sangle * x_old + cangle * y_old
-            ann.fixed_bbox = utils.rotate_box(ann.fixed_bbox, rw - 1, rh - 1, angle)
+            if ann.fixed_bbox is not None:
+                ann.fixed_bbox = utils.rotate_box(ann.fixed_bbox, rw - 1, rh - 1, angle)
 
         # offset
         ann.data[:, 0] += meta['offset'][0]
         ann.data[:, 1] += meta['offset'][1]
-        ann.fixed_bbox[:2] += meta['offset']
+        if ann.fixed_bbox is not None:
+            ann.fixed_bbox[:2] += meta['offset']
 
         # scale
         ann.data[:, 0] = ann.data[:, 0] / meta['scale'][0]
         ann.data[:, 1] = ann.data[:, 1] / meta['scale'][1]
         ann.joint_scales /= meta['scale'][0]
-        ann.fixed_bbox[:2] /= meta['scale']
-        ann.fixed_bbox[2:] /= meta['scale']
+        if ann.fixed_bbox is not None:
+            ann.fixed_bbox[:2] /= meta['scale']
+            ann.fixed_bbox[2:] /= meta['scale']
 
         assert not np.any(np.isnan(ann.data))
 
@@ -207,7 +210,8 @@ class Annotation(Base):
             ann.data[:, 0] = -ann.data[:, 0] + (w - 1)
             if meta.get('horizontal_swap'):
                 ann.data[:] = meta['horizontal_swap'](ann.data)
-            ann.fixed_bbox[0] = -(ann.fixed_bbox[0] + ann.fixed_bbox[2]) - 1.0 + w
+            if ann.fixed_bbox is not None:
+                ann.fixed_bbox[0] = -(ann.fixed_bbox[0] + ann.fixed_bbox[2]) - 1.0 + w
 
         for _, __, c1, c2 in ann.decoding_order:
             c1[:2] += meta['offset']
