@@ -62,13 +62,17 @@ void Occupancy::reset(const at::IntArrayRef& shape) {
         at::indexing::Slice(0, j),
         at::indexing::Slice(0, i)
     });
-    revision++;
 
+    clear();
+}
+
+
+void Occupancy::clear(void) {
+    revision++;
     if (revision > 32000) {
         occupancy_buffer.zero_();
         revision = 0;
     }
-
 }
 
 

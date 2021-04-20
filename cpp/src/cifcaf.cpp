@@ -7,6 +7,7 @@
 #include "openpifpaf/decoder/utils/caf_scored.hpp"
 #include "openpifpaf/decoder/utils/cif_hr.hpp"
 #include "openpifpaf/decoder/utils/cif_seeds.hpp"
+#include "openpifpaf/decoder/utils/nms.hpp"
 #include "openpifpaf/decoder/utils/occupancy.hpp"
 
 
@@ -156,6 +157,8 @@ torch::Tensor CifCaf::call(
         _force_complete(annotations, cifhr_accumulated, cifhr_revision, caf_field, caf_stride);
         for (auto&& ann : annotations) _flood_fill(ann);
     }
+
+    utils::NMSKeypoints().call(occupancy, annotations);
 
     auto out = torch::zeros({ int64_t(annotations.size()), n_keypoints, 4 });
     auto out_a = out.accessor<float, 3>();

@@ -184,9 +184,7 @@ class CifCafTorch(Decoder):
             ann.data[:, 2] = ann_data[:, 0]
             ann.joint_scales = ann_data[:, 3]
             annotations_py.append(ann)
-        if self.nms is not None:
-            annotations_py = self.nms.annotations(annotations_py)
-            print([np.sum(ann.data[:, 2] > 0.0) for ann in annotations_py])
+        print([np.sum(ann.data[:, 2] > 0.0) for ann in annotations_py])
         return annotations_py
 
         if not initial_annotations:
