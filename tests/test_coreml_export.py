@@ -1,6 +1,7 @@
 import os
 import sys
 
+import numpy as np
 import pytest
 import torch
 
@@ -99,5 +100,29 @@ def test_coreml_torchscript_trace():
     dummy_input = torch.randn(1, 16, 17, 33)
     with torch.no_grad():
         traced_model = torch.jit.trace(head, dummy_input)
+
+    assert traced_model is not None
+
+
+@pytest.mark.skipif(not sys.platform.startswith('darwin'), reason='coreml export only on macos')
+def test_trace_cifcaf_op():
+    datamodule = openpifpaf.datasets.factory('cocokp')
+    cifcaf_op = torch.ops.openpifpaf.cifcaf_op
+
+    cif_field = torch.randn(datamodule.head_metas[0].n_fields, 5, 17, 33)
+    caf_field = torch.randn(datamodule.head_metas[1].n_fields, 9, 17, 33)
+
+    skeleton_m1 = torch.from_numpy(np.asarray(datamodule.head_metas[1].skeleton) - 1)
+
+    with torch.no_grad():
+        traced_model = torch.jit.trace(lambda ci, ca: cifcaf_op(
+            datamodule.head_metas[0].n_fields,
+            skeleton_m1,
+            ci, 8,
+            ca, 8,
+        ), [
+            cif_field,
+            caf_field,
+        ])
 
     assert traced_model is not None

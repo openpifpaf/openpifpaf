@@ -102,7 +102,7 @@ class CifCaf(Decoder):
 
         self.cpp_decoder = torch.classes.openpifpaf.CifCaf(
             len(self.keypoints),
-            self.skeleton_m1,
+            torch.from_numpy(self.skeleton_m1),
         )
 
     @classmethod

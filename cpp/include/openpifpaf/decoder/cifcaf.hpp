@@ -56,8 +56,8 @@ struct IntPairHash
 
 
 struct CifCaf : torch::CustomClassHolder {
-    int64_t n_keypoints;
-    std::vector<std::vector<int64_t> > skeleton;
+    const int64_t n_keypoints;
+    const torch::Tensor skeleton;
 
     static bool greedy;
     static double keypoint_threshold;
@@ -80,7 +80,7 @@ struct CifCaf : torch::CustomClassHolder {
 
     CifCaf(
         int64_t n_keypoints_,
-        const std::vector<std::vector<int64_t> >& skeleton_
+        const torch::Tensor& skeleton_
     ) :
         n_keypoints(n_keypoints_),
         skeleton(skeleton_),
@@ -112,6 +112,16 @@ struct CifCaf : torch::CustomClassHolder {
     );
     void _flood_fill(std::vector<Joint>& ann);
 };
+
+
+torch::Tensor cifcaf_op(
+    int64_t n_keypoints,
+    const torch::Tensor& skeleton,
+    const torch::Tensor& cif_field,
+    int64_t cif_stride,
+    const torch::Tensor& caf_field,
+    int64_t caf_stride
+);
 
 
 } // namespace decoder

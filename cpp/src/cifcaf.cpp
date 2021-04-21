@@ -95,6 +95,18 @@ std::vector<double> grow_connection_blend_py(const torch::Tensor& caf, double x,
 }
 
 
+torch::Tensor cifcaf_op(
+    int64_t n_keypoints,
+    const torch::Tensor& skeleton,
+    const torch::Tensor& cif_field,
+    int64_t cif_stride,
+    const torch::Tensor& caf_field,
+    int64_t caf_stride
+) {
+    return CifCaf(n_keypoints, skeleton).call(cif_field, cif_stride, caf_field, caf_stride);
+}
+
+
 torch::Tensor CifCaf::call(
     const torch::Tensor& cif_field,
     int64_t cif_stride,
@@ -226,23 +238,27 @@ void CifCaf::_frontier_add_from(
 ) {
     float max_score = sqrt(ann[start_i].v);
 
-    for (auto&& pair : skeleton) {
-        if (pair[0] == start_i) {
-            if (ann[pair[1]].v > 0.0) continue;
-            if (in_frontier.find(std::make_pair(pair[0], pair[1])) != in_frontier.end()) {
+    auto skeleton_a = skeleton.accessor<int64_t, 2>();
+    for (int64_t f=0; f < skeleton_a.size(0); f++) {
+        int64_t pair_0 = skeleton_a[f][0];
+        int64_t pair_1 = skeleton_a[f][1];
+
+        if (pair_0 == start_i) {
+            if (ann[pair_1].v > 0.0) continue;
+            if (in_frontier.find(std::make_pair(pair_0, pair_1)) != in_frontier.end()) {
                 continue;
             }
-            frontier.emplace(max_score, pair[0], pair[1]);
-            in_frontier.emplace(pair[0], pair[1]);
+            frontier.emplace(max_score, pair_0, pair_1);
+            in_frontier.emplace(pair_0, pair_1);
             continue;
         }
-        if (pair[1] == start_i) {
-            if (ann[pair[0]].v > 0.0) continue;
-            if (in_frontier.find(std::make_pair(pair[1], pair[0])) != in_frontier.end()) {
+        if (pair_1 == start_i) {
+            if (ann[pair_0].v > 0.0) continue;
+            if (in_frontier.find(std::make_pair(pair_1, pair_0)) != in_frontier.end()) {
                 continue;
             }
-            frontier.emplace(max_score, pair[1], pair[0]);
-            in_frontier.emplace(pair[1], pair[0]);
+            frontier.emplace(max_score, pair_1, pair_0);
+            in_frontier.emplace(pair_1, pair_0);
             continue;
         }
     }
@@ -258,18 +274,23 @@ Joint CifCaf::_connection_value(
 ) {
     int64_t caf_i = 0;
     bool forward = true;
-    for (auto&& pair : skeleton) {
-        if (pair[0] == start_i && pair[1] == end_i) {
+
+    auto skeleton_a = skeleton.accessor<int64_t, 2>();
+    for (int64_t f=0; f < skeleton_a.size(0); f++) {
+        int64_t pair_0 = skeleton_a[f][0];
+        int64_t pair_1 = skeleton_a[f][1];
+
+        if (pair_0 == start_i && pair_1 == end_i) {
             forward = true;
             break;
         }
-        if (pair[1] == start_i && pair[0] == end_i) {
+        if (pair_1 == start_i && pair_0 == end_i) {
             forward = false;
             break;
         }
         caf_i++;
     }
-    assert(caf_i < skeleton.size());
+    assert(caf_i < skeleton_a.size(0));
     auto caf_f = forward ? std::get<0>(caf_fb)[caf_i] : std::get<1>(caf_fb)[caf_i];
     auto caf_b = forward ? std::get<1>(caf_fb)[caf_i] : std::get<0>(caf_fb)[caf_i];
 

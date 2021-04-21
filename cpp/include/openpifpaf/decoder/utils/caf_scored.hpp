@@ -51,7 +51,7 @@ struct CafScored : torch::CustomClassHolder {
         score_th(score_th_ >= 0.0 ? score_th_ : default_score_th),
         cif_floor(cif_floor_)
     { }
-    void fill(const torch::Tensor& caf_field, int64_t stride, const std::vector<std::vector<int64_t> >& skeleton);
+    void fill(const torch::Tensor& caf_field, int64_t stride, const torch::Tensor& skeleton);
     std::tuple<std::vector<torch::Tensor>, std::vector<torch::Tensor> > get(void);
 
     float cifhr_value(int64_t f, float x, float y, float default_value=-1.0);

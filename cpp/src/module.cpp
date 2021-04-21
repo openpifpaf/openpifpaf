@@ -54,11 +54,10 @@ TORCH_LIBRARY(openpifpaf, m) {
     .def_static("get_force_complete", &openpifpaf::decoder::CifCaf::get_force_complete)
     .def_static("set_force_complete_caf_th", &openpifpaf::decoder::CifCaf::set_force_complete_caf_th)
     .def_static("get_force_complete_caf_th", &openpifpaf::decoder::CifCaf::get_force_complete_caf_th)
-    .def(torch::init<
-        int64_t,
-        std::vector<std::vector<int64_t> >
-    >())
+    .def(torch::init<int64_t, const torch::Tensor&>())
     .def("call", &openpifpaf::decoder::CifCaf::call)
   ;
   m.def("grow_connection_blend", openpifpaf::decoder::grow_connection_blend_py);
+
+  m.def("cifcaf_op", openpifpaf::decoder::cifcaf_op);
 }
