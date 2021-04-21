@@ -52,7 +52,7 @@ struct IntPairHash
 };
 
 
-#define GETSET(T, V) static void set_##V(T v) { V = v; }; static T get_##V(void) { return V; };
+#define STATIC_GETSET(T, V) static void set_##V(T v) { V = v; }; static T get_##V(void) { return V; };
 
 
 struct CifCaf : torch::CustomClassHolder {
@@ -66,12 +66,12 @@ struct CifCaf : torch::CustomClassHolder {
     static bool force_complete;
     static double force_complete_caf_th;
 
-    GETSET(bool, greedy)
-    GETSET(double, keypoint_threshold)
-    GETSET(double, keypoint_threshold_rel)
-    GETSET(bool, reverse_match)
-    GETSET(bool, force_complete)
-    GETSET(double, force_complete_caf_th)
+    STATIC_GETSET(bool, greedy)
+    STATIC_GETSET(double, keypoint_threshold)
+    STATIC_GETSET(double, keypoint_threshold_rel)
+    STATIC_GETSET(bool, reverse_match)
+    STATIC_GETSET(bool, force_complete)
+    STATIC_GETSET(double, force_complete_caf_th)
 
     utils::CifHr cifhr;
     utils::Occupancy occupancy;
