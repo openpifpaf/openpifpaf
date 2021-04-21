@@ -80,3 +80,24 @@ def test_coreml_torchscript_cifhr(tmpdir):
 
     openpifpaf.export_coreml.apply(model, outfile)
     assert os.path.exists(outfile)
+
+
+class ModuleUsingCifHr(torch.nn.Module):
+    def forward(self, x):
+        cifhr = torch.classes.openpifpaf.CifHr()
+        with torch.no_grad():
+            cifhr.reset(x.shape[1:], 8)
+            cifhr.accumulate(x[1:], 8, 0.0, 1.0)
+        return x
+
+
+@pytest.mark.skipif(not sys.platform.startswith('darwin'), reason='coreml export only on macos')
+@pytest.mark.xfail  # custom classes not traceable: https://github.com/pytorch/pytorch/issues/47162
+def test_coreml_torchscript_trace():
+    head = ModuleUsingCifHr()
+
+    dummy_input = torch.randn(1, 16, 17, 33)
+    with torch.no_grad():
+        traced_model = torch.jit.trace(head, dummy_input)
+
+    assert traced_model is not None
