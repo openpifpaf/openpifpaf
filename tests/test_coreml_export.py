@@ -24,17 +24,16 @@ def test_coreml_exportable(tmpdir):
 class ModuleWithOccupancy(openpifpaf.network.HeadNetwork):
     def __init__(self, meta, in_features):
         super().__init__(meta, in_features)
-        self.occupancy = torch.classes.openpifpaf.Occupancy([17, 100, 120], 1.0, 0.1)
+        self.occupancy = torch.classes.openpifpaf.Occupancy(1.0, 0.1)
 
     def forward(self, *args):
         x = args[0]
+        # self.occupancy.clear()
         return x
 
 
 @pytest.mark.skipif(not sys.platform.startswith('darwin'), reason='coreml export only on macos')
 def test_coreml_torchscript(tmpdir):
-    openpifpaf.plugin.register()
-
     outfile = str(tmpdir.join('occupancy.coreml.mlmodel'))
     assert not os.path.exists(outfile)
 
@@ -54,20 +53,19 @@ def test_coreml_torchscript(tmpdir):
 class ModuleWithCifHr(openpifpaf.network.HeadNetwork):
     def __init__(self, meta, in_features):
         super().__init__(meta, in_features)
-        self.cifhr = torch.classes.openpifpaf.CifHr([17, 25, 30], 8)
+        self.cifhr = torch.classes.openpifpaf.CifHr()
 
     def forward(self, *args):
         x = args[0]
         with torch.no_grad():
+            self.cifhr.reset(x.shape[1:], 8)
             self.cifhr.accumulate(x, 8, 0.0, 1.0)
         return x
 
 
 @pytest.mark.skipif(not sys.platform.startswith('darwin'), reason='coreml export only on macos')
-@pytest.mark.xfail
+@pytest.mark.xfail  # custom classes not traceable: https://github.com/pytorch/pytorch/issues/47162
 def test_coreml_torchscript_cifhr(tmpdir):
-    openpifpaf.plugin.register()
-
     outfile = str(tmpdir.join('cifhr.coreml.mlmodel'))
     assert not os.path.exists(outfile)
 

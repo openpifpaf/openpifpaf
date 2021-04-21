@@ -18,6 +18,7 @@ TORCH_LIBRARY(openpifpaf, m) {
     .def("get", &openpifpaf::decoder::utils::Occupancy::get)
     .def("set", &openpifpaf::decoder::utils::Occupancy::set)
     .def("reset", &openpifpaf::decoder::utils::Occupancy::reset)
+    .def("clear", &openpifpaf::decoder::utils::Occupancy::clear)
   ;
 
   m.class_<openpifpaf::decoder::utils::CifHr>("CifHr")
