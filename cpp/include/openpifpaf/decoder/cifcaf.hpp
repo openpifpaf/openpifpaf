@@ -52,17 +52,26 @@ struct IntPairHash
 };
 
 
+#define GETSET(T, V) static void set_##V(T v) { V = v; }; static T get_##V(void) { return V; };
+
+
 struct CifCaf : torch::CustomClassHolder {
     int64_t n_keypoints;
     std::vector<std::vector<int64_t> > skeleton;
+
     static bool greedy;
     static double keypoint_threshold;
     static double keypoint_threshold_rel;
-    static bool global_reverse_match;
+    static bool reverse_match;
     static bool force_complete;
     static double force_complete_caf_th;
 
-    static void set_force_complete(bool v) { force_complete = v; }
+    GETSET(bool, greedy)
+    GETSET(double, keypoint_threshold)
+    GETSET(double, keypoint_threshold_rel)
+    GETSET(bool, reverse_match)
+    GETSET(bool, force_complete)
+    GETSET(double, force_complete_caf_th)
 
     utils::CifHr cifhr;
     utils::Occupancy occupancy;
@@ -87,7 +96,7 @@ struct CifCaf : torch::CustomClassHolder {
         int64_t caf_stride
     );
 
-    void _grow(std::vector<Joint>& ann, const caf_fb_t& caf_fb, bool reverse_match=true);
+    void _grow(std::vector<Joint>& ann, const caf_fb_t& caf_fb, bool reverse_match_=true);
     void _frontier_add_from(std::vector<Joint>& ann, int64_t start_i);
     Joint _connection_value(
         const std::vector<Joint>& ann,

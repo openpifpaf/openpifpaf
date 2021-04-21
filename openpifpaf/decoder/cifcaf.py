@@ -6,6 +6,7 @@ import time
 from typing import List
 
 import numpy as np
+import torch
 
 from .decoder import Decoder
 from ..annotation import Annotation
@@ -60,11 +61,7 @@ class CifCaf(Decoder):
     """
     connection_method = 'blend'
     occupancy_visualizer = visualizer.Occupancy()
-    force_complete = False
-    force_complete_caf_th = 0.001
     greedy = False
-    keypoint_threshold = 0.15
-    keypoint_threshold_rel = 0.5
     nms = utils.nms.Keypoints()
     nms_before_force_complete = False
     dense_coupling = 0.0
@@ -93,8 +90,6 @@ class CifCaf(Decoder):
         if self.caf_visualizers is None:
             self.caf_visualizers = [visualizer.Caf(meta) for meta in caf_metas]
 
-        self.timers = defaultdict(float)
-
         # init by_target and by_source
         self.by_target = defaultdict(dict)
         for caf_i, (j1, j2) in enumerate(self.skeleton_m1):
@@ -105,29 +100,36 @@ class CifCaf(Decoder):
             self.by_source[j1][j2] = (caf_i, True)
             self.by_source[j2][j1] = (caf_i, False)
 
+        self.cpp_decoder = torch.classes.openpifpaf.CifCaf(
+            len(self.keypoints),
+            self.skeleton_m1,
+        )
+
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
         """Command line interface (CLI) to extend argument parser."""
+        CppCifCaf = torch.classes.openpifpaf.CifCaf
+
         group = parser.add_argument_group('CifCaf decoder')
-        assert not cls.force_complete
+        assert not CppCifCaf.get_force_complete()
         group.add_argument('--force-complete-pose',
                            default=False, action='store_true')
         group.add_argument('--force-complete-caf-th', type=float,
-                           default=cls.force_complete_caf_th,
+                           default=CppCifCaf.get_force_complete_caf_th(),
                            help='CAF threshold for force complete. Set to -1 to deactivate.')
         assert not cls.nms_before_force_complete
         group.add_argument('--nms-before-force-complete', default=False, action='store_true',
                            help='run an additional NMS before completing poses')
 
-        assert utils.nms.Keypoints.keypoint_threshold == cls.keypoint_threshold
+        assert utils.nms.Keypoints.keypoint_threshold == CppCifCaf.get_keypoint_threshold()
         group.add_argument('--keypoint-threshold', type=float,
-                           default=cls.keypoint_threshold,
+                           default=CppCifCaf.get_keypoint_threshold(),
                            help='filter keypoints by score')
         group.add_argument('--keypoint-threshold-rel', type=float,
-                           default=cls.keypoint_threshold_rel,
+                           default=CppCifCaf.get_keypoint_threshold_rel(),
                            help='filter keypoint connections by relative score')
 
-        assert not cls.greedy
+        assert not CppCifCaf.get_greedy()
         group.add_argument('--greedy', default=False, action='store_true',
                            help='greedy decoding')
         group.add_argument('--connection-method',
@@ -137,7 +139,7 @@ class CifCaf(Decoder):
         group.add_argument('--dense-connections', nargs='?', type=float,
                            default=0.0, const=1.0)
 
-        assert cls.reverse_match
+        assert CppCifCaf.get_reverse_match()
         group.add_argument('--no-reverse-match',
                            default=True, dest='reverse_match', action='store_false')
         group.add_argument('--ablation-cifseeds-nms',
@@ -152,6 +154,8 @@ class CifCaf(Decoder):
     @classmethod
     def configure(cls, args: argparse.Namespace):
         """Take the parsed argument parser output and configure class variables."""
+        CppCifCaf = torch.classes.openpifpaf.CifCaf
+
         # force complete
         keypoint_threshold_nms = args.keypoint_threshold
         if args.force_complete_pose:
@@ -167,14 +171,15 @@ class CifCaf(Decoder):
             )
             args.keypoint_threshold = args.seed_threshold
 
-        cls.force_complete = args.force_complete_pose
-        cls.force_complete_caf_th = args.force_complete_caf_th
         cls.nms_before_force_complete = args.nms_before_force_complete
-        cls.keypoint_threshold = args.keypoint_threshold
         utils.nms.Keypoints.keypoint_threshold = keypoint_threshold_nms
-        cls.keypoint_threshold_rel = args.keypoint_threshold_rel
 
-        cls.greedy = args.greedy
+        CppCifCaf.set_force_complete(args.force_complete_pose)
+        CppCifCaf.set_force_complete_caf_th(args.force_complete_caf_th)
+        CppCifCaf.set_keypoint_threshold(args.keypoint_threshold)
+        CppCifCaf.set_keypoint_threshold_rel(args.keypoint_threshold_rel)
+
+        CppCifCaf.set_greedy(args.greedy)
         cls.connection_method = args.connection_method
         cls.dense_coupling = args.dense_connections
 
@@ -198,229 +203,24 @@ class CifCaf(Decoder):
 
     def __call__(self, fields, initial_annotations=None):
         start = time.perf_counter()
-        if not initial_annotations:
-            initial_annotations = []
-        LOG.debug('initial annotations = %d', len(initial_annotations))
+        annotations = self.cpp_decoder.call(
+            fields[self.cif_metas[0].head_index],
+            self.cif_metas[0].stride,
+            fields[self.caf_metas[0].head_index],
+            self.caf_metas[0].stride,
+        )
+        LOG.debug('cpp annotations = %d (%.1fms)',
+                  len(annotations),
+                  (time.perf_counter() - start) * 1000.0)
 
-        for vis, meta in zip(self.cif_visualizers, self.cif_metas):
-            vis.predicted(fields[meta.head_index])
-        for vis, meta in zip(self.caf_visualizers, self.caf_metas):
-            vis.predicted(fields[meta.head_index])
-
-        cifhr = utils.CifHr().fill(fields, self.cif_metas)
-        seeds = utils.CifSeeds(cifhr.accumulated).fill(fields, self.cif_metas)
-        caf_scored = utils.CafScored(cifhr.accumulated).fill(fields, self.caf_metas)
-
-        occupied = utils.Occupancy(cifhr.accumulated.shape, 2, min_scale=4)
-        annotations = []
-
-        def mark_occupied(ann):
-            joint_is = np.flatnonzero(ann.data[:, 2])
-            for joint_i in joint_is:
-                width = ann.joint_scales[joint_i]
-                occupied.set(
-                    joint_i,
-                    ann.data[joint_i, 0],
-                    ann.data[joint_i, 1],
-                    width,  # width = 2 * sigma
-                )
-
-        for ann in initial_annotations:
-            self._grow(ann, caf_scored)
-            annotations.append(ann)
-            mark_occupied(ann)
-
-        for v, f, x, y, s in seeds.get():
-            if occupied.get(f, x, y):
-                continue
-
+        annotations_py = []
+        for ann_data in annotations:
             ann = Annotation(self.keypoints,
                              self.out_skeleton,
-                             score_weights=self.score_weights
-                             ).add(f, (x, y, v))
-            ann.joint_scales[f] = s
-            self._grow(ann, caf_scored)
-            annotations.append(ann)
-            mark_occupied(ann)
-
-        self.occupancy_visualizer.predicted(occupied)
-
-        LOG.debug('annotations %d, %.3fs', len(annotations), time.perf_counter() - start)
-
-        if self.force_complete:
-            if self.nms_before_force_complete and self.nms is not None:
-                assert self.nms.instance_threshold > 0.0
-                annotations = self.nms.annotations(annotations)
-            annotations = self.complete_annotations(cifhr, fields, annotations)
-
-        if self.nms is not None:
-            annotations = self.nms.annotations(annotations)
-
-        LOG.info('%d annotations: %s', len(annotations),
-                 [np.sum(ann.data[:, 2] > 0.1) for ann in annotations])
-        return annotations
-
-    def connection_value(self, ann, caf_scored, start_i, end_i, *, reverse_match=True):
-        caf_i, forward = self.by_source[start_i][end_i]
-        caf_f, caf_b = caf_scored.directed(caf_i, forward)
-        xyv = ann.data[start_i]
-        xy_scale_s = max(0.0, ann.joint_scales[start_i])
-
-        only_max = self.connection_method == 'max'
-
-        new_xysv = grow_connection_blend(
-            caf_f, xyv[0], xyv[1], xy_scale_s, only_max)
-        if new_xysv[3] == 0.0:
-            return 0.0, 0.0, 0.0, 0.0
-        keypoint_score = np.sqrt(new_xysv[3] * xyv[2])  # geometric mean
-        if keypoint_score < self.keypoint_threshold:
-            return 0.0, 0.0, 0.0, 0.0
-        if keypoint_score < xyv[2] * self.keypoint_threshold_rel:
-            return 0.0, 0.0, 0.0, 0.0
-        xy_scale_t = max(0.0, new_xysv[2])
-
-        # reverse match
-        if self.reverse_match and reverse_match:
-            reverse_xyv = grow_connection_blend(
-                caf_b, new_xysv[0], new_xysv[1], xy_scale_t, only_max)
-            if reverse_xyv[2] == 0.0:
-                return 0.0, 0.0, 0.0, 0.0
-            if abs(xyv[0] - reverse_xyv[0]) + abs(xyv[1] - reverse_xyv[1]) > xy_scale_s:
-                return 0.0, 0.0, 0.0, 0.0
-
-        return (new_xysv[0], new_xysv[1], new_xysv[2], keypoint_score)
-
-    @staticmethod
-    def p2p_value(source_xyv, caf_scored, source_s, target_xysv, caf_i, forward):
-        # TODO move to Cython (see grow_connection_blend)
-        caf_f, _ = caf_scored.directed(caf_i, forward)
-        xy_scale_s = max(0.0, source_s)
-
-        # source value
-        caf_field = caf_center_s(caf_f, source_xyv[0], source_xyv[1],
-                                 sigma=2.0 * xy_scale_s)
-        if caf_field.shape[1] == 0:
-            return 0.0
-
-        # distances
-        d_source = np.linalg.norm(
-            ((source_xyv[0],), (source_xyv[1],)) - caf_field[1:3], axis=0)
-        d_target = np.linalg.norm(
-            ((target_xysv[0],), (target_xysv[1],)) - caf_field[5:7], axis=0)
-
-        # combined value and source distance
-        xy_scale_t = max(0.0, target_xysv[2])
-        sigma_s = 0.5 * xy_scale_s
-        sigma_t = 0.5 * xy_scale_t
-        scores = (
-            np.exp(-0.5 * d_source**2 / sigma_s**2)
-            * np.exp(-0.5 * d_target**2 / sigma_t**2)
-            * caf_field[0]
-        )
-        return np.sqrt(source_xyv[2] * max(scores))
-
-    def _grow(self, ann, caf_scored, *, reverse_match=True):
-        frontier = []
-        in_frontier = set()
-
-        def add_to_frontier(start_i):
-            for end_i, (caf_i, _) in self.by_source[start_i].items():
-                if ann.data[end_i, 2] > 0.0:
-                    continue
-                if (start_i, end_i) in in_frontier:
-                    continue
-
-                max_possible_score = np.sqrt(ann.data[start_i, 2])
-                if self.confidence_scales is not None:
-                    max_possible_score *= self.confidence_scales[caf_i]
-                heapq.heappush(frontier, (-max_possible_score, None, start_i, end_i))
-                in_frontier.add((start_i, end_i))
-                ann.frontier_order.append((start_i, end_i))
-
-        def frontier_get():
-            while frontier:
-                entry = heapq.heappop(frontier)
-                if entry[1] is not None:
-                    return entry
-
-                _, __, start_i, end_i = entry
-                if ann.data[end_i, 2] > 0.0:
-                    continue
-
-                new_xysv = self.connection_value(
-                    ann, caf_scored, start_i, end_i, reverse_match=reverse_match)
-                if new_xysv[3] == 0.0:
-                    continue
-                score = new_xysv[3]
-                if self.greedy:
-                    return (-score, new_xysv, start_i, end_i)
-                if self.confidence_scales is not None:
-                    caf_i, _ = self.by_source[start_i][end_i]
-                    score = score * self.confidence_scales[caf_i]
-                heapq.heappush(frontier, (-score, new_xysv, start_i, end_i))
-
-        # seeding the frontier
-        for joint_i in np.flatnonzero(ann.data[:, 2]):
-            add_to_frontier(joint_i)
-
-        while True:
-            entry = frontier_get()
-            if entry is None:
-                break
-
-            _, new_xysv, jsi, jti = entry
-            if ann.data[jti, 2] > 0.0:
-                continue
-
-            ann.data[jti, :2] = new_xysv[:2]
-            ann.data[jti, 2] = new_xysv[3]
-            ann.joint_scales[jti] = new_xysv[2]
-            ann.decoding_order.append(
-                (jsi, jti, np.copy(ann.data[jsi]), np.copy(ann.data[jti])))
-            add_to_frontier(jti)
-
-    def _flood_fill(self, ann):
-        frontier = []
-
-        def add_to_frontier(start_i):
-            for end_i, (caf_i, _) in self.by_source[start_i].items():
-                if ann.data[end_i, 2] > 0.0:
-                    continue
-                start_xyv = ann.data[start_i].tolist()
-                score = start_xyv[2]
-                if self.confidence_scales is not None:
-                    score = score * self.confidence_scales[caf_i]
-                heapq.heappush(frontier, (-score, end_i, start_xyv, ann.joint_scales[start_i]))
-
-        for start_i in np.flatnonzero(ann.data[:, 2]):
-            add_to_frontier(start_i)
-
-        while frontier:
-            _, end_i, xyv, s = heapq.heappop(frontier)
-            if ann.data[end_i, 2] > 0.0:
-                continue
-            ann.data[end_i, :2] = xyv[:2]
-            ann.data[end_i, 2] = 0.00001
-            ann.joint_scales[end_i] = s
-            add_to_frontier(end_i)
-
-    def complete_annotations(self, cifhr, fields, annotations):
-        start = time.perf_counter()
-
-        if self.force_complete_caf_th >= 0.0:
-            caf_scored = (utils
-                          .CafScored(cifhr.accumulated, score_th=self.force_complete_caf_th)
-                          .fill(fields, self.caf_metas))
-            for ann in annotations:
-                unfilled_mask = ann.data[:, 2] == 0.0
-                self._grow(ann, caf_scored, reverse_match=False)
-                now_filled_mask = ann.data[:, 2] > 0.0
-                updated = np.logical_and(unfilled_mask, now_filled_mask)
-                ann.data[updated, 2] = np.minimum(0.001, ann.data[updated, 2])
-
-        # some joints might still be unfilled
-        for ann in annotations:
-            self._flood_fill(ann)
-
-        LOG.debug('complete annotations %.3fs', time.perf_counter() - start)
-        return annotations
+                             score_weights=self.score_weights)
+            ann.data[:, :2] = ann_data[:, 1:3]
+            ann.data[:, 2] = ann_data[:, 0]
+            ann.joint_scales = ann_data[:, 3]
+            annotations_py.append(ann)
+        print([np.sum(ann.data[:, 2] > 0.0) for ann in annotations_py])
+        return annotations_py

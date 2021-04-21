@@ -18,7 +18,7 @@ namespace decoder {
 bool CifCaf::greedy = false;
 double CifCaf::keypoint_threshold = 0.15;
 double CifCaf::keypoint_threshold_rel = 0.5;
-bool CifCaf::global_reverse_match = true;
+bool CifCaf::reverse_match = true;
 bool CifCaf::force_complete = false;
 double CifCaf::force_complete_caf_th = 0.001;
 
@@ -254,7 +254,7 @@ Joint CifCaf::_connection_value(
     const caf_fb_t& caf_fb,
     int64_t start_i,
     int64_t end_i,
-    bool reverse_match
+    bool reverse_match_
 ) {
     int64_t caf_i = 0;
     bool forward = true;
@@ -287,7 +287,7 @@ Joint CifCaf::_connection_value(
         return { 0.0, 0.0, 0.0, 0.0 };
 
     // reverse match
-    if (global_reverse_match && reverse_match) {
+    if (reverse_match && reverse_match_) {
         Joint reverse_j = grow_connection_blend(
             caf_b, new_j.x, new_j.y, new_j.s, only_max);
         if (reverse_j.v == 0.0)

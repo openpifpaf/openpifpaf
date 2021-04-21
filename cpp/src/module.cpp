@@ -1,4 +1,4 @@
-#include <torch/extension.h>
+#include <torch/script.h>
 
 #include "openpifpaf.hpp"
 
@@ -41,12 +41,23 @@ TORCH_LIBRARY(openpifpaf, m) {
   ;
 
   m.class_<openpifpaf::decoder::CifCaf>("CifCaf")
+    .def_static("set_greedy", &openpifpaf::decoder::CifCaf::set_greedy)
+    .def_static("get_greedy", &openpifpaf::decoder::CifCaf::get_greedy)
+    .def_static("set_keypoint_threshold", &openpifpaf::decoder::CifCaf::set_keypoint_threshold)
+    .def_static("get_keypoint_threshold", &openpifpaf::decoder::CifCaf::get_keypoint_threshold)
+    .def_static("set_keypoint_threshold_rel", &openpifpaf::decoder::CifCaf::set_keypoint_threshold_rel)
+    .def_static("get_keypoint_threshold_rel", &openpifpaf::decoder::CifCaf::get_keypoint_threshold_rel)
+    .def_static("set_reverse_match", &openpifpaf::decoder::CifCaf::set_reverse_match)
+    .def_static("get_reverse_match", &openpifpaf::decoder::CifCaf::get_reverse_match)
+    .def_static("set_force_complete", &openpifpaf::decoder::CifCaf::set_force_complete)
+    .def_static("get_force_complete", &openpifpaf::decoder::CifCaf::get_force_complete)
+    .def_static("set_force_complete_caf_th", &openpifpaf::decoder::CifCaf::set_force_complete_caf_th)
+    .def_static("get_force_complete_caf_th", &openpifpaf::decoder::CifCaf::get_force_complete_caf_th)
     .def(torch::init<
         int64_t,
         std::vector<std::vector<int64_t> >
     >())
     .def("call", &openpifpaf::decoder::CifCaf::call)
   ;
-  m.def("CifCaf_force_complete", openpifpaf::decoder::CifCaf::set_force_complete);
   m.def("grow_connection_blend", openpifpaf::decoder::grow_connection_blend_py);
 }

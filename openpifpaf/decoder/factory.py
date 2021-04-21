@@ -5,7 +5,6 @@ from typing import Optional
 import torch
 
 from .cifcaf import CifCaf
-from .cifcaf_torch import CifCafTorch
 from .cifdet import CifDet
 from .decoder import Decoder
 from .multi import Multi
@@ -15,7 +14,7 @@ from .profiler_autograd import ProfilerAutograd
 
 LOG = logging.getLogger(__name__)
 
-DECODERS = {CifDet, CifCaf, CifCafTorch}
+DECODERS = {CifDet, CifCaf}
 
 
 def cli(parser, *, workers=None):
@@ -33,8 +32,6 @@ def cli(parser, *, workers=None):
                              'else {})'.format(utils.nms.Keypoints.instance_threshold)))
     group.add_argument('--decoder-workers', default=workers, type=int,
                        help='number of workers for pose decoding')
-    group.add_argument('--caf-seeds', default=False, action='store_true',
-                       help='[experimental]')
 
     group.add_argument('--profile-decoder', nargs='?', const='profile_decoder.prof', default=None,
                        help='specify out .prof file or nothing for default file name')
@@ -82,9 +79,6 @@ def configure(args):
     # configure nms
     utils.nms.Detection.instance_threshold = args.instance_threshold
     utils.nms.Keypoints.instance_threshold = args.instance_threshold
-
-    # TODO: caf seeds
-    assert not args.caf_seeds, 'not implemented'
 
     for dec in DECODERS:
         dec.configure(args)
