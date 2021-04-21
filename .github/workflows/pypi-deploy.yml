@@ -48,6 +48,7 @@ jobs:
           CIBW_BUILD: "cp3[6,7,8,9]-manylinux* cp3[6,7,8,9]-macosx* cp3[6,7,8,9]-win*"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_MANYLINUX_I686_IMAGE: manylinux2014
+          CIBW_ARCHS_MACOS: x86_64 universal2 arm64
         run: |
           python -m cibuildwheel --output-dir wheelhouse
       - uses: actions/upload-artifact@v2
