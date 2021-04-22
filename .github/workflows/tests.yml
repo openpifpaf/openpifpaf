@@ -131,14 +131,12 @@ jobs:
     - name: Test
       env:
         PYTHONDEVMODE: 1
-        PYTHONWARNINGS: error
       run: |
         pytest -vv -m "not slow"
     - name: Test training
       if: matrix.slow
       env:
         PYTHONDEVMODE: 1
-        PYTHONWARNINGS: error
       run: |
         pytest -vv -s -m slow
     - name: Test notebooks
