@@ -1,6 +1,5 @@
 import argparse
 from collections import defaultdict
-import heapq
 import logging
 import time
 from typing import List
@@ -61,8 +60,6 @@ class CifCaf(Decoder):
     """
     connection_method = 'blend'
     occupancy_visualizer = visualizer.Occupancy()
-    greedy = False
-    nms = utils.nms.Keypoints()
     nms_before_force_complete = False
     dense_coupling = 0.0
 
@@ -100,7 +97,7 @@ class CifCaf(Decoder):
             self.by_source[j1][j2] = (caf_i, True)
             self.by_source[j2][j1] = (caf_i, False)
 
-        self.cpp_decoder = torch.classes.openpifpaf.CifCaf(
+        self.cpp_decoder = torch.classes.openpifpaf_decoder.CifCaf(
             len(self.keypoints),
             torch.from_numpy(self.skeleton_m1),
         )
@@ -108,7 +105,7 @@ class CifCaf(Decoder):
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
         """Command line interface (CLI) to extend argument parser."""
-        CppCifCaf = torch.classes.openpifpaf.CifCaf
+        CppCifCaf = torch.classes.openpifpaf_decoder.CifCaf  # pylint: disable=invalid-name
 
         group = parser.add_argument_group('CifCaf decoder')
         assert not CppCifCaf.get_force_complete()
@@ -121,7 +118,7 @@ class CifCaf(Decoder):
         group.add_argument('--nms-before-force-complete', default=False, action='store_true',
                            help='run an additional NMS before completing poses')
 
-        assert utils.nms.Keypoints.keypoint_threshold == CppCifCaf.get_keypoint_threshold()
+        assert utils.NMSKeypoints.get_keypoint_threshold() == CppCifCaf.get_keypoint_threshold()
         group.add_argument('--keypoint-threshold', type=float,
                            default=CppCifCaf.get_keypoint_threshold(),
                            help='filter keypoints by score')
@@ -154,7 +151,7 @@ class CifCaf(Decoder):
     @classmethod
     def configure(cls, args: argparse.Namespace):
         """Take the parsed argument parser output and configure class variables."""
-        CppCifCaf = torch.classes.openpifpaf.CifCaf
+        CppCifCaf = torch.classes.openpifpaf_decoder.CifCaf  # pylint: disable=invalid-name
 
         # force complete
         keypoint_threshold_nms = args.keypoint_threshold
@@ -172,7 +169,7 @@ class CifCaf(Decoder):
             args.keypoint_threshold = args.seed_threshold
 
         cls.nms_before_force_complete = args.nms_before_force_complete
-        utils.nms.Keypoints.keypoint_threshold = keypoint_threshold_nms
+        utils.NMSKeypoints.set_keypoint_threshold(keypoint_threshold_nms)
 
         CppCifCaf.set_force_complete(args.force_complete_pose)
         CppCifCaf.set_force_complete_caf_th(args.force_complete_caf_th)
@@ -184,9 +181,9 @@ class CifCaf(Decoder):
         cls.dense_coupling = args.dense_connections
 
         cls.reverse_match = args.reverse_match
-        utils.CifSeeds.ablation_nms = args.ablation_cifseeds_nms
-        utils.CifSeeds.ablation_no_rescore = args.ablation_cifseeds_no_rescore
-        utils.CafScored.ablation_no_rescore = args.ablation_caf_no_rescore
+        # TODO utils.CifSeeds.ablation_nms = args.ablation_cifseeds_nms
+        # TODO utils.CifSeeds.ablation_no_rescore = args.ablation_cifseeds_no_rescore
+        # TODO utils.CafScored.ablation_no_rescore = args.ablation_caf_no_rescore
         if args.ablation_cifseeds_no_rescore and args.ablation_caf_no_rescore:
             utils.CifHr.ablation_skip = True
 

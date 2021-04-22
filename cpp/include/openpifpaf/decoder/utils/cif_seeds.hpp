@@ -2,6 +2,8 @@
 
 #include <torch/script.h>
 
+#include "openpifpaf/utils.hpp"
+
 
 namespace openpifpaf {
 namespace decoder {
@@ -21,9 +23,10 @@ struct CifSeeds : torch::CustomClassHolder {
     torch::TensorAccessor<float, 3UL> cifhr_a;
     double cifhr_revision;
     std::vector<Seed> seeds;
-    static double v_threshold;
 
-    static void set_threshold(double v) { v_threshold = v; }
+    static double threshold;
+
+    STATIC_GETSET(double, threshold)
 
     CifSeeds(const torch::Tensor& cifhr_, double cifhr_revision_)
     : cifhr_a(cifhr_.accessor<float, 3>()),

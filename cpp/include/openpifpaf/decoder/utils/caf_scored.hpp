@@ -2,6 +2,8 @@
 
 #include <torch/script.h>
 
+#include "openpifpaf/utils.hpp"
+
 
 namespace openpifpaf {
 namespace decoder {
@@ -33,12 +35,15 @@ struct CompositeAssociation {
 struct CafScored : torch::CustomClassHolder {
     torch::TensorAccessor<float, 3UL> cifhr_a;
     double cifhr_revision;
-    static double default_score_th;
     double score_th;
     double cif_floor;
 
     std::vector<std::vector<CompositeAssociation> > forward;
     std::vector<std::vector<CompositeAssociation> > backward;
+
+    static double default_score_th;
+
+    STATIC_GETSET(double, default_score_th)
 
     CafScored(
         const torch::Tensor& cifhr_,

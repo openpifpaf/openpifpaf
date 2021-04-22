@@ -8,7 +8,7 @@ namespace decoder {
 namespace utils {
 
 
-double CifSeeds::v_threshold = 0.2;
+double CifSeeds::threshold = 0.2;
 
 
 float CifSeeds::cifhr_value(int64_t f, float x, float y, float default_value) {
@@ -33,12 +33,12 @@ void CifSeeds::fill(const torch::Tensor& cif_field, int64_t stride) {
         for (int64_t j=0; j < cif_field_a.size(2); j++) {
             for (int64_t i=0; i < cif_field_a.size(3); i++) {
                 c = cif_field_a[f][0][j][i];
-                if (c < v_threshold) continue;
+                if (c < threshold) continue;
 
                 x = cif_field_a[f][1][j][i] * stride;
                 y = cif_field_a[f][2][j][i] * stride;
                 v = 0.9 * cifhr_value(f, x, y) + 0.1 * c;
-                if (v < v_threshold) continue;
+                if (v < threshold) continue;
 
                 s = cif_field_a[f][4][j][i] * stride;
                 seeds.push_back(Seed(f, v, x, y, s));

@@ -5,6 +5,7 @@
 
 #include <torch/script.h>
 
+#include "openpifpaf/utils.hpp"
 #include "openpifpaf/decoder/utils/cif_hr.hpp"
 #include "openpifpaf/decoder/utils/occupancy.hpp"
 
@@ -50,9 +51,6 @@ struct IntPairHash
         return h1 ^ (h2 << 1);
     }
 };
-
-
-#define STATIC_GETSET(T, V) static void set_##V(T v) { V = v; }; static T get_##V(void) { return V; };
 
 
 struct CifCaf : torch::CustomClassHolder {

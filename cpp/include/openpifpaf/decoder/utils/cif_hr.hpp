@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <torch/script.h>
 
+#include "openpifpaf/utils.hpp"
+
 
 namespace openpifpaf {
 namespace decoder {
@@ -34,7 +36,10 @@ struct CifHr : torch::CustomClassHolder {
     torch::Tensor accumulated;
     double revision;
     static int64_t neighbors;
-    static double v_threshold;
+    static double threshold;
+
+    STATIC_GETSET(int64_t, neighbors)
+    STATIC_GETSET(double, threshold)
 
     CifHr(
     ) : accumulated_buffer(torch::zeros({ 1, 1, 1 })),

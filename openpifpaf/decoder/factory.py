@@ -24,12 +24,12 @@ def cli(parser, *, workers=None):
     group.add_argument('--decoder', default=None, nargs='+',
                        help='Decoders to be considered: {}.'.format(available_decoders))
 
-    group.add_argument('--seed-threshold', default=utils.CifSeeds.threshold, type=float,
+    group.add_argument('--seed-threshold', default=utils.CifSeeds.get_threshold(), type=float,
                        help='minimum threshold for seeds')
-    assert utils.nms.Detection.instance_threshold == utils.nms.Keypoints.instance_threshold
+    # TODO assert utils.nms.Detection.instance_threshold == utils.nms.Keypoints.instance_threshold
     group.add_argument('--instance-threshold', type=float, default=None,
                        help=('filter instances by score (0.0 with --force-complete-pose '
-                             'else {})'.format(utils.nms.Keypoints.instance_threshold)))
+                             'else {})'.format(utils.NMSKeypoints.get_instance_threshold())))
     group.add_argument('--decoder-workers', default=workers, type=int,
                        help='number of workers for pose decoding')
 
@@ -37,9 +37,9 @@ def cli(parser, *, workers=None):
                        help='specify out .prof file or nothing for default file name')
 
     group = parser.add_argument_group('CifCaf decoders')
-    group.add_argument('--cif-th', default=utils.CifHr.v_threshold, type=float,
+    group.add_argument('--cif-th', default=utils.CifHr.get_threshold(), type=float,
                        help='cif threshold')
-    group.add_argument('--caf-th', default=utils.CafScored.default_score_th, type=float,
+    group.add_argument('--caf-th', default=utils.CafScored.get_default_score_th(), type=float,
                        help='caf threshold')
 
     for dec in DECODERS:
@@ -56,7 +56,7 @@ def configure(args):
         if args.force_complete_pose:
             args.instance_threshold = 0.0
         else:
-            args.instance_threshold = utils.nms.Keypoints.instance_threshold
+            args.instance_threshold = utils.NMSKeypoints.get_instance_threshold()
 
     # configure Factory
     Factory.decoder_filter_from_args(args.decoder)
@@ -64,21 +64,20 @@ def configure(args):
     Factory.profile_device = args.device
 
     # configure CifHr
-    utils.CifHr.v_threshold = args.cif_th
+    utils.CifHr.set_threshold(args.cif_th)
 
     # configure CifSeeds
-    utils.CifSeeds.threshold = args.seed_threshold
-    torch.ops.openpifpaf.CifSeeds_threshold(args.seed_threshold)
+    utils.CifSeeds.set_threshold(args.seed_threshold)
 
     # configure CafScored
-    utils.CafScored.default_score_th = args.caf_th
+    utils.CafScored.set_default_score_th(args.caf_th)
 
     # configure generators
     Decoder.default_worker_pool = args.decoder_workers
 
     # configure nms
-    utils.nms.Detection.instance_threshold = args.instance_threshold
-    utils.nms.Keypoints.instance_threshold = args.instance_threshold
+    # TODO utils.nms.Detection.instance_threshold = args.instance_threshold
+    utils.NMSKeypoints.set_instance_threshold(args.instance_threshold)
 
     for dec in DECODERS:
         dec.configure(args)
