@@ -159,7 +159,7 @@ class Plots():
                 x = np.array([row.get('epoch') for row in data['train-epoch']])
                 y = np.array([row.get('loss') for row in data['train-epoch']], dtype=np.float64)
                 m = x > 0
-                ax.plot(x[m], y[m], 'x-', color=color, linestyle='dotted', markersize=2)
+                ax.plot(x[m], y[m], 'x:', color=color, markersize=2)
 
         ax.set_xlabel('epoch')
         ax.set_ylabel('loss')
@@ -194,7 +194,7 @@ class Plots():
                 y = np.array([row.get('head_losses')[field_i]
                               for row in data['train-epoch']], dtype=np.float64)
                 m = np.logical_not(np.isnan(y))
-                ax.plot(x[m], y[m], 'x-', color=color, linestyle='dotted', markersize=2)
+                ax.plot(x[m], y[m], 'x:', color=color, markersize=2)
                 last_five_y.append(y[m][-5:])
 
         if not last_five_y:
