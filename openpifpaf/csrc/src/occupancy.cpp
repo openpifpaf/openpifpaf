@@ -38,7 +38,7 @@ bool Occupancy::get(int64_t f, double x, double y) {
 
     auto xi = std::clamp(int64_t(x), int64_t(0), occupancy.size(2) - 1);
     auto yi = std::clamp(int64_t(y), int64_t(0), occupancy.size(1) - 1);
-    return occupancy.index({f, yi, xi}).item<uint8_t>() > revision;
+    return occupancy.index({f, yi, xi}).item<int16_t>() > revision;
 }
 
 

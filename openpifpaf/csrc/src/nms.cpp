@@ -18,7 +18,7 @@ struct AnnotationCompare {
     bool operator() (const std::vector<Joint>& a, const std::vector<Joint>& b) {
         float score_a = std::accumulate(a.begin(), a.end(), 0.0f, [](float i, const Joint& j) { return i + j.v; }) / a.size();
         float score_b = std::accumulate(b.begin(), b.end(), 0.0f, [](float i, const Joint& j) { return i + j.v; }) / a.size();
-        return (score_a < score_b);
+        return (score_a > score_b);
     }
 } annotation_compare;
 
