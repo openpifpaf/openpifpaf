@@ -33,9 +33,9 @@ if not sys.platform.startswith('win'):
     EXTENSIONS.append(
         torch.utils.cpp_extension.CppExtension(
             'openpifpaf._cpp',
-            glob.glob(os.path.join(this_dir, 'cpp', 'src', '**', '*.cpp'), recursive=True),
-            depends=glob.glob(os.path.join(this_dir, 'cpp', 'include', '**', '*.hpp'), recursive=True),
-            include_dirs=[os.path.join(this_dir, 'cpp', 'include')],
+            glob.glob(os.path.join(this_dir, 'openpifpaf', 'csrc', 'src', '**', '*.cpp'), recursive=True),
+            depends=glob.glob(os.path.join(this_dir, 'openpifpaf', 'csrc', 'include', '**', '*.hpp'), recursive=True),
+            include_dirs=[os.path.join(this_dir, 'openpifpaf', 'csrc', 'include')],
             extra_compile_args=EXTRA_COMPILE_ARGS,
             extra_link_args=EXTRA_LINK_ARGS,
         )

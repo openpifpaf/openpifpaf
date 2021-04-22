@@ -217,7 +217,7 @@ class CifCaf(Decoder):
                              score_weights=self.score_weights)
             ann.data[:, :2] = ann_data[:, 1:3]
             ann.data[:, 2] = ann_data[:, 0]
-            ann.joint_scales = ann_data[:, 3]
+            ann.joint_scales[:] = ann_data[:, 3]
             annotations_py.append(ann)
         print([np.sum(ann.data[:, 2] > 0.0) for ann in annotations_py])
         return annotations_py
