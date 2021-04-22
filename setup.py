@@ -75,7 +75,7 @@ setup(
         'onnx': [
             'onnx',
             'onnxruntime',
-            'onnx-simplifier>=0.2.9',
+            'onnx-simplifier>=0.2.9; python_version<"3.9"',  # Python 3.9 not supported yet
         ],
         'coreml': [
             'coremltools>=4.1',

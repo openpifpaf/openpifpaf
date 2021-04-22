@@ -21,14 +21,14 @@ jobs:
             torch-source: https://download.pytorch.org/whl/torch_stable.html
           - os: ubuntu-latest
             python: 3.8
-            torch: 1.7.1+cpu
-            torchvision: 0.8.2+cpu
-            torch-source: https://download.pytorch.org/whl/cpu/torch_stable.html
+            torch: 1.8.1+cpu
+            torchvision: 0.9.1+cpu
+            torch-source: https://download.pytorch.org/whl/torch_stable.html
             slow: True
           - os: ubuntu-latest
-            python: 3.8
-            torch: 1.8.0+cpu
-            torchvision: 0.9.0+cpu
+            python: 3.9
+            torch: 1.8.1+cpu
+            torchvision: 0.9.1+cpu
             torch-source: https://download.pytorch.org/whl/torch_stable.html
           - os: macos-latest
             python: 3.7
@@ -41,6 +41,11 @@ jobs:
             torchvision: 0.9.1
             torch-source: https://download.pytorch.org/whl/torch_stable.html
             conda: True
+          - os: macos-latest
+            python: 3.9
+            torch: 1.8.1
+            torchvision: 0.9.1
+            torch-source: https://download.pytorch.org/whl/torch_stable.html
           - os: windows-latest
             python: 3.7
             torch: 1.7.1+cpu
@@ -75,11 +80,12 @@ jobs:
     - run: which python
       if: matrix.conda
     - run: python --version
-    - name: Install
+    - name: Install pre-requisites
       run: |
         python -m pip install --upgrade pip setuptools
         python -m pip install torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }} -f ${{ matrix.torch-source }}
-        python -m pip install -e ".[test]"
+    - name: Install
+      run: python -m pip install -e ".[test]"
     - name: Install for training
       if: matrix.slow
       run: python -m pip install -e ".[train]"
@@ -123,10 +129,14 @@ jobs:
         pylint ./guide_py/*.py --disable=trailing-whitespace,trailing-newlines,line-too-long,pointless-statement,undefined-variable,expression-not-assigned,wrong-import-position,ungrouped-imports,wrong-import-order,invalid-name
         pycodestyle guide_py/*.py --ignore=W291,W391,E302,E305,E402,E501
     - name: Test
+      env:
+        PYTHONDEVMODE: 1
       run: |
         pytest -vv -m "not slow"
     - name: Test training
       if: matrix.slow
+      env:
+        PYTHONDEVMODE: 1
       run: |
         pytest -vv -s -m slow
     - name: Test notebooks

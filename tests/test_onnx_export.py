@@ -1,7 +1,9 @@
 import os
+import sys
 
 import numpy as np
 import onnxruntime
+import pytest
 import torch
 
 import openpifpaf
@@ -20,8 +22,20 @@ def test_onnx_exportable(tmpdir):
     assert os.path.exists(outfile)
     openpifpaf.export_onnx.check(outfile)
 
-    # openpifpaf.export_onnx.polish(outfile, outfile + '.polished')
-    # assert os.path.exists(outfile + '.polished')
+
+@pytest.mark.skipif(sys.version_info >= (3, 9),
+                    reason='onnx-simplifier requires py<3.9')
+def test_onnx_simplify(tmpdir):
+    outfile = str(tmpdir.join('openpifpaf-shufflenetv2k16.onnx'))
+    assert not os.path.exists(outfile)
+
+    datamodule = openpifpaf.datasets.factory('cocokp')
+    model, _ = openpifpaf.network.Factory(
+        base_name='shufflenetv2k16',
+    ).factory(head_metas=datamodule.head_metas)
+    openpifpaf.export_onnx.apply(model, outfile, verbose=False)
+    assert os.path.exists(outfile)
+    openpifpaf.export_onnx.check(outfile)
 
     openpifpaf.export_onnx.simplify(outfile, outfile + '.simplified')
     assert os.path.exists(outfile + '.simplified')
