@@ -1,8 +1,9 @@
-def register_ops():
-    import importlib
-    import os
-    import torch
+import importlib
+import os
+import torch
 
+
+def register_ops():
     lib_dir = os.path.dirname(__file__)
     loader_details = (
         importlib.machinery.ExtensionFileLoader,

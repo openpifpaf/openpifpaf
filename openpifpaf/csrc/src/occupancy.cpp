@@ -50,7 +50,7 @@ void Occupancy::reset(const at::IntArrayRef& shape) {
         || occupancy_buffer.size(1) < j
         || occupancy_buffer.size(2) < i
     ) {
-        std::cout << "!!! resizing occupancy buffer" << std::endl;
+        TORCH_WARN("resizing occupancy buffer");
         occupancy_buffer = torch::zeros({
             shape[0],
             std::max(j, i),

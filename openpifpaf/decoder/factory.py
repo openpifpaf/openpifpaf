@@ -2,8 +2,6 @@ from collections import defaultdict
 import logging
 from typing import Optional
 
-import torch
-
 from .cifcaf import CifCaf
 from .cifdet import CifDet
 from .decoder import Decoder

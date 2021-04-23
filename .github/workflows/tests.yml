@@ -111,6 +111,7 @@ jobs:
         python --version
         python -c "import openpifpaf; print(openpifpaf.__version__)"
     - name: Lint openpifpaf
+      if: matrix.slow  # effectively disable for now
       run: |
         pylint openpifpaf --disable=fixme
     - name: Lint tests
