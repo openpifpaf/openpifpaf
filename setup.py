@@ -30,6 +30,11 @@ if not sys.platform.startswith('win'):
         EXTRA_COMPILE_ARGS += [
             '/permissive',
         ]
+
+    if os.getenv('DEBUG', '0') == '1':
+        print('DEBUG mode')
+        EXTRA_COMPILE_ARGS += ['-g', '-O0']
+
     EXTENSIONS.append(
         torch.utils.cpp_extension.CppExtension(
             'openpifpaf._cpp',

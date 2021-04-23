@@ -16,11 +16,11 @@ double NMSKeypoints::keypoint_threshold = 0.15;
 
 
 struct AnnotationCompare {
-    AnnotationScore score;
-    explicit AnnotationCompare(const AnnotationScore& score_) : score(score_) { }
+    std::shared_ptr<AnnotationScore> score;
+    explicit AnnotationCompare(std::shared_ptr<AnnotationScore> score_) : score(score_) { }
 
     bool operator() (const std::vector<Joint>& a, const std::vector<Joint>& b) {
-        return (score(a) > score(b));
+        return (score->value(a) > score->value(b));
     }
 };
 
@@ -56,7 +56,7 @@ void NMSKeypoints::call(Occupancy* occupancy, std::vector<std::vector<Joint> >* 
     // remove annotations below instance threshold
     annotations->erase(
         std::remove_if(annotations->begin(), annotations->end(), [=](const std::vector<Joint>& ann) {
-            return (score(ann) < instance_threshold);
+            return (score->value(ann) < instance_threshold);
         }),
         annotations->end()
     );

@@ -15,12 +15,13 @@ namespace utils {
 
 
 struct AnnotationScore {
-    virtual double operator() (const std::vector<Joint>& annotation);
+    virtual double value(const std::vector<Joint>& annotation) const = 0;
+    virtual ~AnnotationScore() { }
 };
 
 
-struct EvenScore: public AnnotationScore {
-    double operator() (const std::vector<Joint>& annotation) {
+struct UniformScore : AnnotationScore {
+    double value(const std::vector<Joint>& annotation) const {
         return std::accumulate(
             annotation.begin(), annotation.end(), 0.0,
             [](float i, const Joint& j) { return i + j.v; }
@@ -30,7 +31,7 @@ struct EvenScore: public AnnotationScore {
 
 
 struct NMSKeypoints : torch::CustomClassHolder {
-    AnnotationScore score;
+    std::shared_ptr<AnnotationScore> score;
 
     static double suppression;
     static double instance_threshold;
@@ -40,7 +41,7 @@ struct NMSKeypoints : torch::CustomClassHolder {
     STATIC_GETSET(double, instance_threshold)
     STATIC_GETSET(double, keypoint_threshold)
 
-    NMSKeypoints() : score(EvenScore()) { }
+    NMSKeypoints() : score(std::make_shared<UniformScore>()) { }
 
     void call(Occupancy* occupancy, std::vector<std::vector<Joint> >* annotations);
 };
