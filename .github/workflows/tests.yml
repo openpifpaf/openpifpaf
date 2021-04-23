@@ -9,48 +9,48 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
-            python: 3.6
-            torch: 1.7.1+cpu
-            torchvision: 0.8.2+cpu
-            torch-source: https://download.pytorch.org/whl/cpu/torch_stable.html
-          - os: ubuntu-latest
-            python: 3.7
-            torch: 1.7.1+cpu
-            torchvision: 0.8.2+cpu
-            torch-source: https://download.pytorch.org/whl/torch_stable.html
-          - os: ubuntu-latest
-            python: 3.8
-            torch: 1.8.1+cpu
-            torchvision: 0.9.1+cpu
-            torch-source: https://download.pytorch.org/whl/torch_stable.html
-            slow: True
+          # - os: ubuntu-latest
+          #   python: 3.6
+          #   torch: 1.7.1+cpu
+          #   torchvision: 0.8.2+cpu
+          #   torch-source: https://download.pytorch.org/whl/cpu/torch_stable.html
+          # - os: ubuntu-latest
+          #   python: 3.7
+          #   torch: 1.7.1+cpu
+          #   torchvision: 0.8.2+cpu
+          #   torch-source: https://download.pytorch.org/whl/torch_stable.html
+          # - os: ubuntu-latest
+          #   python: 3.8
+          #   torch: 1.8.1+cpu
+          #   torchvision: 0.9.1+cpu
+          #   torch-source: https://download.pytorch.org/whl/torch_stable.html
+          #   slow: True
           - os: ubuntu-latest
             python: 3.9
-            torch: 1.8.1+cpu
-            torchvision: 0.9.1+cpu
-            torch-source: https://download.pytorch.org/whl/torch_stable.html
-          - os: macos-latest
-            python: 3.7
-            torch: 1.7.1
-            torchvision: 0.8.2
-            torch-source: https://download.pytorch.org/whl/torch_stable.html
-          - os: macos-latest
-            python: 3.8
-            torch: 1.8.1
-            torchvision: 0.9.1
-            torch-source: https://download.pytorch.org/whl/torch_stable.html
-            conda: True
-          - os: macos-latest
-            python: 3.9
-            torch: 1.8.1
-            torchvision: 0.9.1
-            torch-source: https://download.pytorch.org/whl/torch_stable.html
-          - os: windows-latest
-            python: 3.7
-            torch: 1.7.1+cpu
-            torchvision: 0.8.2+cpu
-            torch-source: https://download.pytorch.org/whl/torch_stable.html
+            # torch: 1.8.1+cpu
+            # torchvision: 0.9.1+cpu
+            # torch-source: https://download.pytorch.org/whl/torch_stable.html
+          # - os: macos-latest
+          #   python: 3.7
+          #   torch: 1.7.1
+          #   torchvision: 0.8.2
+          #   torch-source: https://download.pytorch.org/whl/torch_stable.html
+          # - os: macos-latest
+          #   python: 3.8
+          #   torch: 1.8.1
+          #   torchvision: 0.9.1
+          #   torch-source: https://download.pytorch.org/whl/torch_stable.html
+          #   conda: True
+          # - os: macos-latest
+          #   python: 3.9
+          #   torch: 1.8.1
+          #   torchvision: 0.9.1
+          #   torch-source: https://download.pytorch.org/whl/torch_stable.html
+          # - os: windows-latest
+          #   python: 3.7
+          #   torch: 1.7.1+cpu
+          #   torchvision: 0.8.2+cpu
+          #   torch-source: https://download.pytorch.org/whl/torch_stable.html
 
     steps:
     - uses: actions/checkout@v2
@@ -83,9 +83,10 @@ jobs:
       if: matrix.conda
     - run: python --version
     - name: Install pre-requisites
+      # python -m pip install torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }} -f ${{ matrix.torch-source }}
       run: |
         python -m pip install --upgrade pip setuptools
-        python -m pip install torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }} -f ${{ matrix.torch-source }}
+        python -m pip install --pre torch torchvision -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html
     - name: Install
       run: python -m pip install -e ".[test]"
     - name: Install for training
