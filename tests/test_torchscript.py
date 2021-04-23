@@ -44,7 +44,7 @@ class ModuleWithCifHrOp(torch.nn.Module):
         self.cifhr = torch.zeros((17, 300, 400))
 
     def forward(self, x):
-        torch.ops.openpifpaf.cif_hr_accumulate_op(self.cifhr, x, 8, 0.1, 16, 0.0, 1.0)
+        torch.ops.openpifpaf.cif_hr_accumulate_op(self.cifhr, 0.0, x, 8, 0.1, 16, 0.0, 1.0)
         return x
 
 

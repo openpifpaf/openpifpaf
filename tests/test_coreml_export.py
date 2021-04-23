@@ -107,7 +107,7 @@ def test_coreml_torchscript_trace():
 @pytest.mark.skipif(not sys.platform.startswith('darwin'), reason='coreml export only on macos')
 def test_trace_cifcaf_op():
     datamodule = openpifpaf.datasets.factory('cocokp')
-    cifcaf_op = torch.ops.openpifpaf.cifcaf_op
+    cifcaf_op = torch.ops.openpifpaf_decoder.cifcaf_op
 
     cif_field = torch.randn(datamodule.head_metas[0].n_fields, 5, 17, 33)
     caf_field = torch.randn(datamodule.head_metas[1].n_fields, 9, 17, 33)

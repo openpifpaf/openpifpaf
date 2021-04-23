@@ -2,6 +2,7 @@
 
 #include <torch/script.h>
 
+#include <memory>
 #include <vector>
 
 #include "openpifpaf/utils.hpp"
