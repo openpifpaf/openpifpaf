@@ -220,7 +220,7 @@ class ApolloKp(DataModule):
             transforms.RandomChoice(
                 [transforms.RotateBy90(),
                  transforms.RotateUniform(30.0)],
-                [self.orientation_invariant, 0.4],
+                [self.orientation_invariant, 0.2],
             ),
             transforms.Crop(self.square_edge, use_area_of_interest=True),
             transforms.CenterPad(self.square_edge),
