@@ -12,8 +12,8 @@ double CifSeeds::threshold = 0.2;
 
 
 float CifSeeds::cifhr_value(int64_t f, float x, float y, float default_value) {
-    float max_x = float(cifhr_a.size(2)) - 0.51;
-    float max_y = float(cifhr_a.size(1)) - 0.51;
+    float max_x = static_cast<float>(cifhr_a.size(2)) - 0.51;
+    float max_y = static_cast<float>(cifhr_a.size(1)) - 0.51;
     if (f >= cifhr_a.size(0) || x < -0.49 || y < -0.49 || x > max_x || y > max_y) {
         return default_value;
     }
@@ -72,6 +72,6 @@ std::tuple<torch::Tensor, torch::Tensor> CifSeeds::get(void) {
 }
 
 
-} // namespace utils
-} // namespace decoder
-} // namespace openpifpaf
+}  // namespace utils
+}  // namespace decoder
+}  // namespace openpifpaf

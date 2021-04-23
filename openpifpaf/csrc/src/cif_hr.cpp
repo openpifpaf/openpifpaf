@@ -1,5 +1,6 @@
-#include <algorithm>
 #include <math.h>
+
+#include <algorithm>
 
 #include "openpifpaf/decoder/utils/cif_hr.hpp"
 
@@ -140,6 +141,6 @@ void CifHr::reset(const at::IntArrayRef& shape, int64_t stride) {
 }
 
 
-} // namespace utils
-} // namespace decoder
-} // namespace openpifpaf
+}  // namespace utils
+}  // namespace decoder
+}  // namespace openpifpaf

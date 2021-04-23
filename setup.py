@@ -94,6 +94,7 @@ setup(
             'numpy>=1.16,<1.20',  # compatibility with coremltools
         ],
         'test': [
+            'cpplint',
             'nbconvert',
             'nbval',
             'onnx',

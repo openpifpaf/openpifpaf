@@ -12,8 +12,8 @@ double CafScored::default_score_th = 0.2;
 
 
 float CafScored::cifhr_value(int64_t f, float x, float y, float default_value) {
-    float max_x = float(cifhr_a.size(2)) - 0.51;
-    float max_y = float(cifhr_a.size(1)) - 0.51;
+    float max_x = static_cast<float>(cifhr_a.size(2)) - 0.51;
+    float max_y = static_cast<float>(cifhr_a.size(1)) - 0.51;
     if (f >= cifhr_a.size(0) || x < -0.49 || y < -0.49 || x > max_x || y > max_y) {
         return default_value;
     }
@@ -87,7 +87,7 @@ std::vector<torch::Tensor> to_tensors(const std::vector<std::vector<CompositeAss
 
     for (auto&& associations : vectors) {
         int64_t n = associations.size();
-        auto tensor = torch::from_blob((void*)associations.data(), { n, 9 });
+        auto tensor = torch::from_blob(const_cast<void*>(reinterpret_cast<const void*>(associations.data())), { n, 9 });
         // auto tensor = torch::empty({ n, 9 });
         // auto tensor_a = tensor.accessor<float, 2>();
 
@@ -117,6 +117,6 @@ std::tuple<std::vector<torch::Tensor>, std::vector<torch::Tensor> > CafScored::g
 }
 
 
-} // namespace utils
-} // namespace decoder
-} // namespace openpifpaf
+}  // namespace utils
+}  // namespace decoder
+}  // namespace openpifpaf

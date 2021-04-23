@@ -131,9 +131,11 @@ torch::Tensor CifCaf::call(
     caf_scored.fill(caf_field, caf_stride, skeleton);
     auto caf_fb = caf_scored.get();
     // auto caf_f = std::get<0>(caf_fb);
-    // size_t n_caf_f = std::accumulate(caf_f.begin(), caf_f.end(), 0, [](size_t a, torch::Tensor& b) { return a + b.size(0); });
+    // size_t n_caf_f = std::accumulate(caf_f.begin(), caf_f.end(), 0,
+    //                                  [](size_t a, torch::Tensor& b) { return a + b.size(0); });
     // auto caf_b = std::get<1>(caf_fb);
-    // size_t n_caf_b = std::accumulate(caf_b.begin(), caf_b.end(), 0, [](size_t a, torch::Tensor& b) { return a + b.size(0); });
+    // size_t n_caf_b = std::accumulate(caf_b.begin(), caf_b.end(), 0,
+    //                                  [](size_t a, torch::Tensor& b) { return a + b.size(0); });
     // std::cout << "caf forward: " << n_caf_f << ", caf backward: " << n_caf_b << std::endl;
 
     occupancy.reset(cifhr_accumulated.sizes());
@@ -155,7 +157,7 @@ torch::Tensor CifCaf::call(
         joint.y = y;
         joint.s = s;
 
-        _grow(annotation, caf_fb);
+        _grow(&annotation, caf_fb);
 
         for (int64_t of=0; of < n_keypoints; of++) {
             Joint& o_joint = annotation[of];
@@ -166,11 +168,11 @@ torch::Tensor CifCaf::call(
     }
 
     if (force_complete) {
-        _force_complete(annotations, cifhr_accumulated, cifhr_revision, caf_field, caf_stride);
-        for (auto&& ann : annotations) _flood_fill(ann);
+        _force_complete(&annotations, cifhr_accumulated, cifhr_revision, caf_field, caf_stride);
+        for (auto&& ann : annotations) _flood_fill(&ann);
     }
 
-    utils::NMSKeypoints().call(occupancy, annotations);
+    utils::NMSKeypoints().call(&occupancy, &annotations);
 
     auto out = torch::zeros({ int64_t(annotations.size()), n_keypoints, 4 });
     auto out_a = out.accessor<float, 3>();
@@ -189,7 +191,7 @@ torch::Tensor CifCaf::call(
 
 
 void CifCaf::_grow(
-    std::vector<Joint>& ann,
+    std::vector<Joint>* ann,
     const caf_fb_t& caf_fb,
     bool reverse_match
 ) {
@@ -198,20 +200,20 @@ void CifCaf::_grow(
 
     // initialize frontier
     for (int64_t j=0; j < n_keypoints; j++) {
-        if (ann[j].v == 0.0) continue;
-        _frontier_add_from(ann, j);
+        if ((*ann)[j].v == 0.0) continue;
+        _frontier_add_from(*ann, j);
     }
 
     while (!frontier.empty()) {
         FrontierEntry entry(frontier.top());
         frontier.pop();
         // Was the target already filled by something else?
-        if (ann[entry.end_i].v > 0.0) continue;
+        if ((*ann)[entry.end_i].v > 0.0) continue;
 
         // Is entry not fully computed?
         if (entry.joint.v == 0.0) {
             Joint new_joint = _connection_value(
-                ann, caf_fb, entry.start_i, entry.end_i, reverse_match);
+                *ann, caf_fb, entry.start_i, entry.end_i, reverse_match);
             if (new_joint.v == 0.0) continue;
 
             if (!greedy) {
@@ -226,14 +228,14 @@ void CifCaf::_grow(
             entry.joint = new_joint;
         }
 
-        ann[entry.end_i] = entry.joint;
-        _frontier_add_from(ann, entry.end_i);
+        (*ann)[entry.end_i] = entry.joint;
+        _frontier_add_from(*ann, entry.end_i);
     }
 }
 
 
 void CifCaf::_frontier_add_from(
-    std::vector<Joint>& ann,
+    const std::vector<Joint>& ann,
     int64_t start_i
 ) {
     float max_score = sqrt(ann[start_i].v);
@@ -322,7 +324,7 @@ Joint CifCaf::_connection_value(
 
 
 void CifCaf::_force_complete(
-    std::vector<std::vector<Joint> >& annotations,
+    std::vector<std::vector<Joint> >* annotations,
     const torch::Tensor& cifhr_accumulated, double cifhr_revision,
     const torch::Tensor& caf_field, int64_t caf_stride
 ) {
@@ -330,33 +332,33 @@ void CifCaf::_force_complete(
     caf_scored.fill(caf_field, caf_stride, skeleton);
     auto caf_fb = caf_scored.get();
 
-    for (auto&& ann : annotations) {
-        _grow(ann, caf_fb, false);
+    for (auto&& ann : *annotations) {
+        _grow(&ann, caf_fb, false);
     }
 }
 
 
-void CifCaf::_flood_fill(std::vector<Joint>& ann) {
+void CifCaf::_flood_fill(std::vector<Joint>* ann) {
     while (!frontier.empty()) frontier.pop();
 
     // initialize frontier
     for (int64_t j=0; j < n_keypoints; j++) {
-        if (ann[j].v == 0.0) continue;
-        _frontier_add_from(ann, j);
+        if ((*ann)[j].v == 0.0) continue;
+        _frontier_add_from(*ann, j);
     }
 
     while (!frontier.empty()) {
         FrontierEntry entry(frontier.top());
         frontier.pop();
         // Was the target already filled by something else?
-        if (ann[entry.end_i].v > 0.0) continue;
+        if ((*ann)[entry.end_i].v > 0.0) continue;
 
-        ann[entry.end_i] = ann[entry.start_i];
-        ann[entry.end_i].v = 0.00001;
-        _frontier_add_from(ann, entry.end_i);
+        (*ann)[entry.end_i] = (*ann)[entry.start_i];
+        (*ann)[entry.end_i].v = 0.00001;
+        _frontier_add_from(*ann, entry.end_i);
     }
 }
 
 
-} // namespace decoder
-} // namespace openpifpaf
+}  // namespace decoder
+}  // namespace openpifpaf

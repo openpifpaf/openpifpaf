@@ -1,5 +1,6 @@
-#include <algorithm>
 #include <math.h>
+
+#include <algorithm>
 
 #include "openpifpaf/decoder/utils/occupancy.hpp"
 
@@ -76,6 +77,6 @@ void Occupancy::clear(void) {
 }
 
 
-} // namespace utils
-} // namespace decoder
-} // namespace openpifpaf
+}  // namespace utils
+}  // namespace decoder
+}  // namespace openpifpaf

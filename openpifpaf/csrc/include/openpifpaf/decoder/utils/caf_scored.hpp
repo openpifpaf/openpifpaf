@@ -2,6 +2,9 @@
 
 #include <torch/script.h>
 
+#include <tuple>
+#include <vector>
+
 #include "openpifpaf/utils.hpp"
 
 
@@ -48,8 +51,8 @@ struct CafScored : torch::CustomClassHolder {
     CafScored(
         const torch::Tensor& cifhr_,
         double cifhr_revision_,
-        double score_th_=-1.0,
-        double cif_floor_=0.1
+        double score_th_ = -1.0,
+        double cif_floor_ = 0.1
     ) :
         cifhr_a(cifhr_.accessor<float, 3>()),
         cifhr_revision(cifhr_revision_),
@@ -59,10 +62,10 @@ struct CafScored : torch::CustomClassHolder {
     void fill(const torch::Tensor& caf_field, int64_t stride, const torch::Tensor& skeleton);
     std::tuple<std::vector<torch::Tensor>, std::vector<torch::Tensor> > get(void);
 
-    float cifhr_value(int64_t f, float x, float y, float default_value=-1.0);
+    float cifhr_value(int64_t f, float x, float y, float default_value = -1.0);
 };
 
 
-} // namespace utils
-} // namespace decoder
-} // namespace openpifpaf
+}  // namespace utils
+}  // namespace decoder
+}  // namespace openpifpaf

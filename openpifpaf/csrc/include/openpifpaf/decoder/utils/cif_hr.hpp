@@ -1,7 +1,10 @@
 #pragma once
 
-#include <algorithm>
 #include <torch/script.h>
+
+#include <algorithm>
+#include <tuple>
+#include <vector>
 
 #include "openpifpaf/utils.hpp"
 
@@ -17,8 +20,8 @@ void cif_hr_accumulate_op(const torch::Tensor& accumulated,
                           int64_t stride,
                           double v_threshold,
                           int64_t neighbors,
-                          double min_scale=0.0,
-                          double factor=1.0);
+                          double min_scale = 0.0,
+                          double factor = 1.0);
 
 
 void cif_hr_add_gauss_op(const torch::Tensor& accumulated,
@@ -28,7 +31,7 @@ void cif_hr_add_gauss_op(const torch::Tensor& accumulated,
                          float x,
                          float y,
                          float sigma,
-                         float truncate=3.0);
+                         float truncate = 3.0);
 
 
 struct CifHr : torch::CustomClassHolder {
@@ -53,13 +56,13 @@ struct CifHr : torch::CustomClassHolder {
         revision(0.0)
     { }
 
-    void accumulate(const torch::Tensor& cif_field, int64_t stride, double min_scale=0.0, double factor=1.0);
-    void add_gauss(int64_t f, double v, double x, double y, double sigma, double truncate=1.0);
+    void accumulate(const torch::Tensor& cif_field, int64_t stride, double min_scale = 0.0, double factor = 1.0);
+    void add_gauss(int64_t f, double v, double x, double y, double sigma, double truncate = 1.0);
     std::tuple<torch::Tensor, double> get_accumulated(void);
     void reset(const at::IntArrayRef& shape, int64_t stride);
 };
 
 
-} // namespace utils
-} // namespace decoder
-} // namespace openpifpaf
+}  // namespace utils
+}  // namespace decoder
+}  // namespace openpifpaf

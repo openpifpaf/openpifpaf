@@ -36,6 +36,6 @@ struct Occupancy : torch::CustomClassHolder {
 };
 
 
-} // namespace utils
-} // namespace decoder
-} // namespace openpifpaf
+}  // namespace utils
+}  // namespace decoder
+}  // namespace openpifpaf

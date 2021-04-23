@@ -2,6 +2,9 @@
 
 #include <torch/script.h>
 
+#include <tuple>
+#include <vector>
+
 #include "openpifpaf/utils.hpp"
 
 
@@ -35,10 +38,10 @@ struct CifSeeds : torch::CustomClassHolder {
     void fill(const torch::Tensor& cif_field, int64_t stride);
     std::tuple<torch::Tensor, torch::Tensor> get(void);
 
-    float cifhr_value(int64_t f, float x, float y, float default_value=-1.0);
+    float cifhr_value(int64_t f, float x, float y, float default_value = -1.0);
 };
 
 
-} // namespace utils
-} // namespace decoder
-} // namespace openpifpaf
+}  // namespace utils
+}  // namespace decoder
+}  // namespace openpifpaf

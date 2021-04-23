@@ -123,6 +123,8 @@ jobs:
       if: matrix.os != 'windows-latest'  # because of path separator
       run: |
         python -m pycodestyle tests/*.py
+    - name: Lint C++
+      run: cpplint --recursive --linelength=120 --filter=-legal,-whitespace/parens,-whitespace/semicolon openpifpaf/csrc
     - name: Lint and pycodestyle on notebooks
       if: matrix.slow
       run: |
