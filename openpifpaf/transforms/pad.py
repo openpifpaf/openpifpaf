@@ -35,17 +35,13 @@ class CenterPad(Preprocess):
 
         left = int((self.target_size[0] - w) / 2.0)
         top = int((self.target_size[1] - h) / 2.0)
-        if left < 0:
-            left = 0
-        if top < 0:
-            top = 0
+        left = max(0, left)
+        top = max(0, top)
 
         right = self.target_size[0] - w - left
         bottom = self.target_size[1] - h - top
-        if right < 0:
-            right = 0
-        if bottom < 0:
-            bottom = 0
+        right = max(0, right)
+        bottom = max(0, bottom)
         ltrb = (left, top, right, bottom)
         LOG.debug('pad with %s', ltrb)
 
@@ -87,17 +83,13 @@ class CenterPadTight(Preprocess):
 
         left = int((target_width - w) / 2.0)
         top = int((target_height - h) / 2.0)
-        if left < 0:
-            left = 0
-        if top < 0:
-            top = 0
+        left = max(0, left)
+        top = max(0, top)
 
         right = target_width - w - left
         bottom = target_height - h - top
-        if right < 0:
-            right = 0
-        if bottom < 0:
-            bottom = 0
+        right = max(0, right)
+        bottom = max(0, bottom)
         ltrb = (left, top, right, bottom)
         LOG.debug('pad with %s', ltrb)
 
