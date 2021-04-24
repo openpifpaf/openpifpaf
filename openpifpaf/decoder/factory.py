@@ -45,11 +45,6 @@ def cli(parser, *, workers=None):
 
 
 def configure(args):
-    # decoder workers
-    if args.decoder_workers is None and \
-       getattr(args, 'batch_size', 1) > 1 and \
-       not args.debug:
-        args.decoder_workers = args.batch_size
     if args.instance_threshold is None:
         if args.force_complete_pose:
             args.instance_threshold = 0.0

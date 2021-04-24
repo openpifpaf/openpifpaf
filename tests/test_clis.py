@@ -11,7 +11,7 @@ PYTHON = 'python3' if sys.platform != 'win32' else 'python'
 
 @pytest.mark.parametrize(
     'batch_size,with_debug,with_dense',
-    [(1, False, False), (1, True, False), (1, False, True)])
+    [(1, False, False), (2, False, False), (1, True, False), (1, False, True)])
 def test_predict(batch_size, with_debug, with_dense, tmpdir):
     """Test predict cli.
 
