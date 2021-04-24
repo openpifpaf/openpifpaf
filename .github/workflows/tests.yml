@@ -46,11 +46,11 @@ jobs:
             torch: 1.8.1
             torchvision: 0.9.1
             torch-source: https://download.pytorch.org/whl/torch_stable.html
-          # - os: windows-latest
-          #   python: 3.8
-          #   torch: 1.7.1+cpu
-          #   torchvision: 0.8.2+cpu
-          #   torch-source: https://download.pytorch.org/whl/torch_stable.html
+          - os: windows-latest
+            python: 3.8
+            torch: 1.7.1+cpu
+            torchvision: 0.8.2+cpu
+            torch-source: https://download.pytorch.org/whl/torch_stable.html
 
     steps:
     - uses: actions/checkout@v2
@@ -63,8 +63,8 @@ jobs:
           ~/.cache
           data-cifar10
         key: ${{ runner.os }}-${{ hashFiles('setup.py') }}
-    - uses: ilammy/msvc-dev-cmd@v1
-      if: matrix.os == 'windows-latest'
+    # - uses: ilammy/msvc-dev-cmd@v1
+    #   if: matrix.os == 'windows-latest'
     - name: Set up Python ${{ matrix.python }}
       if: ${{ !matrix.conda }}
       uses: actions/setup-python@v2
@@ -145,10 +145,6 @@ jobs:
         PYTHONDEVMODE: 1
       run: |
         pytest -vv -s -m slow
-    - name: Test notebooks
-      if: matrix.slow && matrix.os != 'windows-latest'  # because of path separator
-      run: |
-        pytest --nbval-lax --current-env docs/predict.ipynb
     - name: Test guide (download data)
       if: matrix.slow
       run: |

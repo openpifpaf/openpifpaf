@@ -17,36 +17,33 @@ EXTENSIONS = []
 
 CMD_CLASS = versioneer.get_cmdclass()
 
-if not sys.platform.startswith('win'):
-    this_dir = os.path.dirname(os.path.abspath(__file__))
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
-    EXTRA_COMPILE_ARGS = [
-        '-std=c++17' if not sys.platform.startswith("win") else '/std:c++17',
-    ]
-    EXTRA_LINK_ARGS = [
-        '-std=c++17' if not sys.platform.startswith("win") else '/std:c++17',
-    ]
-    if sys.platform.startswith('win'):
-        EXTRA_COMPILE_ARGS += [
-            '/permissive',
-        ]
+EXTRA_COMPILE_ARGS = [
+    '-std=c++17' if not sys.platform.startswith("win") else '/std:c++17',
+]
+EXTRA_LINK_ARGS = [
+    '-std=c++17' if not sys.platform.startswith("win") else '/std:c++17',
+]
+if sys.platform.startswith('win'):
+    EXTRA_COMPILE_ARGS += ['/permissive']
 
-    if os.getenv('DEBUG', '0') == '1':
-        print('DEBUG mode')
-        EXTRA_COMPILE_ARGS += ['-g', '-O0']
+if os.getenv('DEBUG', '0') == '1':
+    print('DEBUG mode')
+    EXTRA_COMPILE_ARGS += ['-g', '-O0']
 
-    EXTENSIONS.append(
-        torch.utils.cpp_extension.CppExtension(
-            'openpifpaf._cpp',
-            glob.glob(os.path.join(this_dir, 'openpifpaf', 'csrc', 'src', '**', '*.cpp'), recursive=True),
-            depends=glob.glob(os.path.join(this_dir, 'openpifpaf', 'csrc', 'include', '**', '*.hpp'), recursive=True),
-            include_dirs=[os.path.join(this_dir, 'openpifpaf', 'csrc', 'include')],
-            extra_compile_args=EXTRA_COMPILE_ARGS,
-            extra_link_args=EXTRA_LINK_ARGS,
-        )
+EXTENSIONS.append(
+    torch.utils.cpp_extension.CppExtension(
+        'openpifpaf._cpp',
+        glob.glob(os.path.join(THIS_DIR, 'openpifpaf', 'csrc', 'src', '**', '*.cpp'), recursive=True),
+        depends=glob.glob(os.path.join(THIS_DIR, 'openpifpaf', 'csrc', 'include', '**', '*.hpp'), recursive=True),
+        include_dirs=[os.path.join(THIS_DIR, 'openpifpaf', 'csrc', 'include')],
+        extra_compile_args=EXTRA_COMPILE_ARGS,
+        extra_link_args=EXTRA_LINK_ARGS,
     )
-    assert 'build_ext' not in CMD_CLASS
-    CMD_CLASS['build_ext'] = torch.utils.cpp_extension.BuildExtension.with_options(no_python_abi_suffix=True)
+)
+assert 'build_ext' not in CMD_CLASS
+CMD_CLASS['build_ext'] = torch.utils.cpp_extension.BuildExtension.with_options(no_python_abi_suffix=True)
 
 
 setup(
