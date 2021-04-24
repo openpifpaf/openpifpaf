@@ -5,6 +5,15 @@ import torch
 
 def register_ops():
     lib_dir = os.path.dirname(__file__)
+    if hasattr(os, 'add_dll_directory'):  # for Windows
+        import ctypes
+
+        kernel32 = ctypes.WinDLL('kernel32.dll', use_last_error=True)
+        if hasattr(kernel32, 'AddDllDirectory'):
+            kernel32.AddDllDirectory.restype = ctypes.c_void_p
+
+        os.add_dll_directory(lib_dir)
+
     loader_details = (
         importlib.machinery.ExtensionFileLoader,
         importlib.machinery.EXTENSION_SUFFIXES
