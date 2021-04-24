@@ -10,7 +10,7 @@ from pprint import pprint
 import numpy as np
 import pysparkling
 
-from . import metric, show, __version__
+from . import logger, metric, show, __version__
 
 try:
     import matplotlib
@@ -63,6 +63,7 @@ class Plots():
         self.datas = [self.read_log(f) for f in log_files]
 
     def read_log(self, path):
+        LOG.debug('reading file %s', path)
         sc = pysparkling.Context()
         return (sc
                 .textFile(path)
@@ -411,6 +412,7 @@ class EvalPlots():
             '{}.epoch???{}'.format(f[:-4], self.file_suffix)
             for f in files
         ])
+        LOG.debug('reading files %s', files)
 
         def epoch_from_filename(filename):
             i = filename.find('epoch')
@@ -464,13 +466,15 @@ class EvalPlots():
                 continue
 
             entry = data[0][1]['text_labels'].index(metric_name)
+            LOG.debug('processing %s at entry %d', metric_name, entry)
             if self.legend_last_ap:
                 last_main_value = data[-1][1]['stats'][0]
                 main_name = data[0][1]['text_labels'][0]
                 main_label = self.text_to_latex_labels.get(main_name, main_name)
                 label = '{} ({}={:.1%})'.format(label, main_label, last_main_value)
             x = np.array([e for e, _ in data])
-            y = np.array([d['stats'][entry] for _, d in data])
+            y = np.array([d['stats'][entry] if entry < len(d['stats']) else np.nan
+                          for _, d in data])
             ax.plot(x, y, 'o-', label=label, markersize=2)
 
         ax.set_xlabel('epoch')
@@ -554,6 +558,7 @@ def main():
     parser.add_argument('--version', action='version',
                         version='OpenPifPaf {version}'.format(version=__version__))
 
+    logger.cli(parser)
     show.cli(parser)
 
     parser.add_argument('log_file', nargs='+',
@@ -572,6 +577,7 @@ def main():
     parser.add_argument('--show-mtl-sigmas', default=False, action='store_true')
     args = parser.parse_args()
 
+    logger.configure(args, LOG)
     show.configure(args)
 
     if args.output is None:
