@@ -97,7 +97,7 @@ class MeanPixelError(Base):
                  '\nDetection Rate [scaled]: %f [%f]',
                  mpe, mpe_scaled, det_rate, det_rate_scaled)
         data = {
-            'stats': [mpe, det_rate],
+            'stats': [mpe, mpe_scaled, det_rate, det_rate_scaled],
             'text_labels': ['Mean Pixel Error',
                             'Mean Pixel Error Scaled',
                             'Detection Rate [%]',
