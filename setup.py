@@ -22,9 +22,10 @@ THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 EXTRA_COMPILE_ARGS = [
     '-std=c++17' if not sys.platform.startswith("win") else '/std:c++17',
 ]
-EXTRA_LINK_ARGS = [
-    '-std=c++17' if not sys.platform.startswith("win") else '/std:c++17',
-]
+EXTRA_LINK_ARGS = []
+if not sys.platform.startswith("win"):
+    EXTRA_LINK_ARGS += ['-std=c++17']
+
 if sys.platform.startswith('win'):
     EXTRA_COMPILE_ARGS += ['/permissive']
 
@@ -32,12 +33,17 @@ if os.getenv('DEBUG', '0') == '1':
     print('DEBUG mode')
     EXTRA_COMPILE_ARGS += ['-g', '-O0']
 
+DEFINE_MACROS = [
+    ('_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS', None),  # mostly for the pytorch codebase
+]
+
 EXTENSIONS.append(
     torch.utils.cpp_extension.CppExtension(
         'openpifpaf._cpp',
         glob.glob(os.path.join(THIS_DIR, 'openpifpaf', 'csrc', 'src', '**', '*.cpp'), recursive=True),
         depends=glob.glob(os.path.join(THIS_DIR, 'openpifpaf', 'csrc', 'include', '**', '*.hpp'), recursive=True),
         include_dirs=[os.path.join(THIS_DIR, 'openpifpaf', 'csrc', 'include')],
+        define_macros=DEFINE_MACROS,
         extra_compile_args=EXTRA_COMPILE_ARGS,
         extra_link_args=EXTRA_LINK_ARGS,
     )

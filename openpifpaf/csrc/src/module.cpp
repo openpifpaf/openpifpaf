@@ -1,6 +1,18 @@
+#ifndef MOBILE
+#include <Python.h>
+#endif
+
 #include <torch/script.h>
 
 #include "openpifpaf.hpp"
+
+
+// Win32 needs this.
+#ifdef _WIN32
+PyMODINIT_FUNC PyInit__cpp(void) {
+    return NULL;
+}
+#endif
 
 
 TORCH_LIBRARY(openpifpaf_decoder, m) {
