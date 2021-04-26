@@ -40,6 +40,7 @@ CHECKPOINT_URLS = {
 
 BASE_TYPES = set([
     basenetworks.MobileNetV2,
+    basenetworks.MobileNetV3,
     basenetworks.Resnet,
     basenetworks.ShuffleNetV2,
     basenetworks.ShuffleNetV2K,
@@ -47,6 +48,10 @@ BASE_TYPES = set([
 ])
 BASE_FACTORIES = {
     'mobilenetv2': lambda: basenetworks.MobileNetV2('mobilenetv2', torchvision.models.mobilenet_v2),
+    'mobilenetv3large': lambda: basenetworks.MobileNetV3(
+        'mobilenetv3large', torchvision.models.mobilenet_v3_large),
+    'mobilenetv3small': lambda: basenetworks.MobileNetV3(
+        'mobilenetv3small', torchvision.models.mobilenet_v3_small, 576),
     'resnet18': lambda: basenetworks.Resnet('resnet18', torchvision.models.resnet18, 512),
     'resnet50': lambda: basenetworks.Resnet('resnet50', torchvision.models.resnet50),
     'resnet101': lambda: basenetworks.Resnet('resnet101', torchvision.models.resnet101),
@@ -128,18 +133,18 @@ class Factory(Configurable):
             hn.cli(parser)
 
         group = parser.add_argument_group('network configuration')
-        available_checkpoints = ['"{}"'.format(n) for n, url in CHECKPOINT_URLS.items()
+        available_checkpoints = [n for n, url in CHECKPOINT_URLS.items()
                                  if url is not PRETRAINED_UNAVAILABLE]
         group.add_argument(
             '--checkpoint', default=cls.checkpoint,
             help=(
                 'Path to a local checkpoint. '
                 'Or provide one of the following to download a pretrained model: {}'
-                ''.format(', '.join(available_checkpoints))
+                ''.format(available_checkpoints)
             )
         )
         group.add_argument('--basenet', default=cls.base_name,
-                           help='base network, e.g. resnet50')
+                           help='base network, one of {}'.format(list(BASE_FACTORIES.keys())))
         group.add_argument('--cross-talk', default=cls.cross_talk, type=float,
                            help='[experimental]')
         assert cls.download_progress
