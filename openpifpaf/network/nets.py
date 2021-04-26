@@ -109,7 +109,7 @@ def model_defaults(net_cpu):
             # given eps.
             # See equation here:
             # https://pytorch.org/docs/stable/generated/torch.nn.BatchNorm2d.html
-            m.eps = 1e-4
+            m.eps = max(m.eps, 1e-4)  # mobilenetv3 actually has 1e-3
 
             # smaller step size for running std and mean update
             m.momentum = 0.01  # tf default is 0.99

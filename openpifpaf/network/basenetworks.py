@@ -432,9 +432,13 @@ class MobileNetV3(BaseNetwork):
     pretrained = True
 
     def __init__(self, name, torchvision_mobilenetv3, out_features=960):
-        super().__init__(name, stride=32, out_features=out_features)
+        super().__init__(name, stride=16, out_features=out_features)
         base_vision = torchvision_mobilenetv3(self.pretrained)
+
         self.backbone = list(base_vision.children())[0]  # remove output classifier
+        # remove stride from input block
+        input_conv = list(self.backbone)[0][0]
+        input_conv.stride = torch.nn.modules.utils._pair(1)  # pylint: disable=protected-access
 
     def forward(self, x):
         x = self.backbone(x)
