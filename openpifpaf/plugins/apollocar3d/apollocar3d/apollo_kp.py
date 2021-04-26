@@ -203,12 +203,12 @@ class ApolloKp(DataModule):
         if self.extended_scale:
             rescale_t = transforms.RescaleRelative(
                 scale_range=(0.1 * self.rescale_images,
-                             1.33 * self.rescale_images),
+                             2.0 * self.rescale_images),
                 power_law=True, stretch_range=(0.75, 1.33))
         else:
             rescale_t = transforms.RescaleRelative(
-                scale_range=(0.2 * self.rescale_images,
-                             1.0 * self.rescale_images),
+                scale_range=(0.33 * self.rescale_images,
+                             1.33 * self.rescale_images),
                 power_law=True, stretch_range=(0.75, 1.33))
 
         return transforms.Compose([
