@@ -130,18 +130,29 @@ torch::Tensor CifCaf::call(
     auto [seeds_f, seeds_vxys] = seeds.get();
     auto seeds_f_a = seeds_f.accessor<int64_t, 1>();
     auto seeds_vxys_a = seeds_vxys.accessor<float, 2>();
-    // std::cout << "seeds: " << seeds_f_a.size(0) << std::endl;
+#ifdef DEBUG
+    TORCH_WARN("seeds=", seeds_f_a.size(0));
+#endif
 
     utils::CafScored caf_scored(cifhr_accumulated, cifhr_revision, -1.0, 0.1);
+#ifdef DEBUG
+    TORCH_WARN("caf scored created");
+#endif
     caf_scored.fill(caf_field, caf_stride, skeleton);
+#ifdef DEBUG
+    TORCH_WARN("caf scored filled");
+#endif
     auto caf_fb = caf_scored.get();
-    // auto caf_f = std::get<0>(caf_fb);
-    // size_t n_caf_f = std::accumulate(caf_f.begin(), caf_f.end(), 0,
-    //                                  [](size_t a, torch::Tensor& b) { return a + b.size(0); });
-    // auto caf_b = std::get<1>(caf_fb);
-    // size_t n_caf_b = std::accumulate(caf_b.begin(), caf_b.end(), 0,
-    //                                  [](size_t a, torch::Tensor& b) { return a + b.size(0); });
-    // std::cout << "caf forward: " << n_caf_f << ", caf backward: " << n_caf_b << std::endl;
+#ifdef DEBUG
+    TORCH_WARN("caf scored done");
+    auto caf_f = std::get<0>(caf_fb);
+    int64_t n_caf_f = std::accumulate(caf_f.begin(), caf_f.end(), 0,
+                                      [](int64_t a, torch::Tensor& b) { return a + b.size(0); });
+    auto caf_b = std::get<1>(caf_fb);
+    int64_t n_caf_b = std::accumulate(caf_b.begin(), caf_b.end(), 0,
+                                      [](int64_t a, torch::Tensor& b) { return a + b.size(0); });
+    TORCH_WARN("caf forward=", n_caf_f, " caf backward=", n_caf_b);
+#endif
 
     occupancy.reset(cifhr_accumulated.sizes());
     std::vector<std::vector<Joint> > annotations;
@@ -161,6 +172,9 @@ torch::Tensor CifCaf::call(
         joint.x = x;
         joint.y = y;
         joint.s = s;
+#ifdef DEBUG
+        TORCH_WARN("new seed: field=", f, " x=", x, " y=", y, " s=", s);
+#endif
 
         _grow(&annotation, caf_fb);
 
@@ -177,8 +191,14 @@ torch::Tensor CifCaf::call(
         for (auto&& ann : annotations) _flood_fill(&ann);
     }
 
+#ifdef DEBUG
+    TORCH_WARN("NMS");
+#endif
     utils::NMSKeypoints().call(&occupancy, &annotations);
 
+#ifdef DEBUG
+    TORCH_WARN("convert to tensor");
+#endif
     auto out = torch::zeros({ int64_t(annotations.size()), n_keypoints, 4 });
     auto out_a = out.accessor<float, 3>();
     for (int64_t ann_i = 0; ann_i < int64_t(annotations.size()); ann_i++) {

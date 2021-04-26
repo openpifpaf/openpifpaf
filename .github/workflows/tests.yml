@@ -52,6 +52,8 @@ jobs:
             torchvision: 0.8.2+cpu
             torch-source: https://download.pytorch.org/whl/torch_stable.html
 
+    env:
+      DEBUG: 1
     steps:
     - uses: actions/checkout@v2
       with:
@@ -126,7 +128,7 @@ jobs:
         python -m pycodestyle tests/*.py
     - name: Lint C++
       if: matrix.os != 'windows-latest'  # because of path separator
-      run: cpplint --recursive --linelength=120 --filter=-legal,-whitespace/parens,-whitespace/semicolon,-readability/todo openpifpaf/csrc
+      run: cpplint --recursive --linelength=120 --filter=-legal,-whitespace/parens,-whitespace/braces,-whitespace/semicolon,-readability/todo openpifpaf/csrc
     - name: Lint and pycodestyle on notebooks
       if: matrix.slow
       run: |

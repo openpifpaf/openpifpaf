@@ -26,6 +26,8 @@ float CafScored::cifhr_value(int64_t f, float x, float y, float default_value) {
 
 
 void CafScored::fill(const torch::Tensor& caf_field, int64_t stride, const torch::Tensor& skeleton) {
+    TORCH_CHECK(skeleton.dtype() == torch::kInt64, "skeleton must be of type LongTensor");
+
     auto caf_field_a = caf_field.accessor<float, 4>();
     auto skeleton_a = skeleton.accessor<int64_t, 2>();
     int64_t n_fields = caf_field_a.size(0);

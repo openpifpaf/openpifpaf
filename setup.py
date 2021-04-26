@@ -33,6 +33,7 @@ def add_cpp_extension():
     if os.getenv('DEBUG', '0') == '1':
         print('DEBUG mode')
         extra_compile_args += ['-g', '-O0']
+        define_macros += [('DEBUG', None)]
 
     this_dir = os.path.dirname(os.path.abspath(__file__))
     EXTENSIONS.append(

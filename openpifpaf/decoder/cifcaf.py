@@ -74,10 +74,7 @@ class CifCaf(Decoder):
         super().__init__()
         self.cif_metas = cif_metas
         self.caf_metas = caf_metas
-        self.skeleton_m1 = np.asarray(self.caf_metas[0].skeleton) - 1
-        self.keypoints = cif_metas[0].keypoints
         self.score_weights = cif_metas[0].score_weights
-        self.out_skeleton = caf_metas[0].skeleton
         self.confidence_scales = caf_metas[0].decoder_confidence_scales
 
         self.cif_visualizers = cif_visualizers
@@ -87,19 +84,9 @@ class CifCaf(Decoder):
         if self.caf_visualizers is None:
             self.caf_visualizers = [visualizer.Caf(meta) for meta in caf_metas]
 
-        # init by_target and by_source
-        self.by_target = defaultdict(dict)
-        for caf_i, (j1, j2) in enumerate(self.skeleton_m1):
-            self.by_target[j2][j1] = (caf_i, True)
-            self.by_target[j1][j2] = (caf_i, False)
-        self.by_source = defaultdict(dict)
-        for caf_i, (j1, j2) in enumerate(self.skeleton_m1):
-            self.by_source[j1][j2] = (caf_i, True)
-            self.by_source[j2][j1] = (caf_i, False)
-
         self.cpp_decoder = torch.classes.openpifpaf_decoder.CifCaf(
-            len(self.keypoints),
-            torch.from_numpy(self.skeleton_m1),
+            len(cif_metas[0].keypoints),
+            torch.LongTensor(self.caf_metas[0].skeleton) - 1,
         )
 
     @classmethod
@@ -212,8 +199,8 @@ class CifCaf(Decoder):
 
         annotations_py = []
         for ann_data in annotations:
-            ann = Annotation(self.keypoints,
-                             self.out_skeleton,
+            ann = Annotation(self.cif_metas[0].keypoints,
+                             self.caf_metas[0].skeleton,
                              score_weights=self.score_weights)
             ann.data[:, :2] = ann_data[:, 1:3]
             ann.data[:, 2] = ann_data[:, 0]

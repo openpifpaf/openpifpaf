@@ -36,6 +36,11 @@ TORCH_LIBRARY(openpifpaf_decoder, m) {
 
     m.def("test_op_int64", openpifpaf::decoder::test_op_int64);
     m.def("test_op_double", openpifpaf::decoder::test_op_double);
+    m.class_<openpifpaf::decoder::TestClass>("TestClass")
+        .def(torch::init<>())
+        .def("op_int64", &openpifpaf::decoder::TestClass::op_int64)
+        .def("op_double", &openpifpaf::decoder::TestClass::op_double)
+    ;
 }
 
 
