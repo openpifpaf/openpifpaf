@@ -1,7 +1,3 @@
-#ifndef MOBILE
-#include <Python.h>
-#endif
-
 #include <torch/script.h>
 
 #include "openpifpaf.hpp"
@@ -9,6 +5,7 @@
 
 // Win32 needs this.
 #ifdef _WIN32
+#include <Python.h>
 PyMODINIT_FUNC PyInit__cpp(void) {
     return NULL;
 }
@@ -36,6 +33,9 @@ TORCH_LIBRARY(openpifpaf_decoder, m) {
     m.def("grow_connection_blend", openpifpaf::decoder::grow_connection_blend_py);
 
     m.def("cifcaf_op", openpifpaf::decoder::cifcaf_op);
+
+    m.def("test_op_int64", openpifpaf::decoder::test_op_int64);
+    m.def("test_op_double", openpifpaf::decoder::test_op_double);
 }
 
 

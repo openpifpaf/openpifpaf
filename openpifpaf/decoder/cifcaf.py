@@ -202,9 +202,9 @@ class CifCaf(Decoder):
         start = time.perf_counter()
         annotations = self.cpp_decoder.call(
             fields[self.cif_metas[0].head_index],
-            8,  # self.cif_metas[0].stride,
+            self.cif_metas[0].stride,
             fields[self.caf_metas[0].head_index],
-            8,  # self.caf_metas[0].stride,
+            self.caf_metas[0].stride,
         )
         LOG.debug('cpp annotations = %d (%.1fms)',
                   len(annotations),

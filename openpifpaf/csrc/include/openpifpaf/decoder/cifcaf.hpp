@@ -27,6 +27,10 @@ struct Joint {
 };
 
 
+void test_op_int64(int64_t v);
+void test_op_double(double v);
+
+
 std::vector<double> grow_connection_blend_py(const torch::Tensor& caf, double x, double y, double s, bool only_max);
 
 
@@ -55,7 +59,7 @@ struct IntPairHash {
 };
 
 
-struct CifCaf : torch::CustomClassHolder {
+struct OPENPIFPAF_API CifCaf : torch::CustomClassHolder {
     const int64_t n_keypoints;
     const torch::Tensor skeleton;
 

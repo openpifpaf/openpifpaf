@@ -15,6 +15,11 @@ namespace openpifpaf {
 namespace decoder {
 
 
+void test_op_int64(int64_t v) { std::cout << v << std::endl; }
+void test_op_double(double v) { std::cout << v << std::endl; }
+
+
+
 bool CifCaf::greedy = false;
 double CifCaf::keypoint_threshold = 0.15;
 double CifCaf::keypoint_threshold_rel = 0.5;

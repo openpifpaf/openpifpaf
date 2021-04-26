@@ -12,46 +12,45 @@ import versioneer
 
 import glob
 
+
 EXTENSIONS = []
-
-
 CMD_CLASS = versioneer.get_cmdclass()
 
-THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
-EXTRA_COMPILE_ARGS = [
-    '-std=c++17' if not sys.platform.startswith("win") else '/std:c++17',
-]
-EXTRA_LINK_ARGS = []
-if not sys.platform.startswith("win"):
-    EXTRA_LINK_ARGS += ['-std=c++17']
+def add_cpp_extension():
+    extra_compile_args = [
+        '-std=c++17' if not sys.platform.startswith("win") else '/std:c++17',
+    ]
+    extra_link_args = []
+    define_macros = [
+        ('_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS', None),  # mostly for the pytorch codebase
+    ]
 
-if sys.platform.startswith('win'):
-    EXTRA_COMPILE_ARGS += ['/permissive']
+    if sys.platform.startswith('win'):
+        extra_compile_args += ['/permissive']
+        define_macros += [('OPENPIFPAF_DLLEXPORT', None)]
 
-if os.getenv('DEBUG', '0') == '1':
-    print('DEBUG mode')
-    EXTRA_COMPILE_ARGS += ['-g', '-O0']
+    if os.getenv('DEBUG', '0') == '1':
+        print('DEBUG mode')
+        extra_compile_args += ['-g', '-O0']
 
-DEFINE_MACROS = [
-    ('_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS', None),  # mostly for the pytorch codebase
-]
-
-EXTENSIONS.append(
-    torch.utils.cpp_extension.CppExtension(
-        'openpifpaf._cpp',
-        glob.glob(os.path.join(THIS_DIR, 'openpifpaf', 'csrc', 'src', '**', '*.cpp'), recursive=True),
-        depends=glob.glob(os.path.join(THIS_DIR, 'openpifpaf', 'csrc', 'include', '**', '*.hpp'), recursive=True),
-        include_dirs=[os.path.join(THIS_DIR, 'openpifpaf', 'csrc', 'include')],
-        define_macros=DEFINE_MACROS,
-        extra_compile_args=EXTRA_COMPILE_ARGS,
-        extra_link_args=EXTRA_LINK_ARGS,
+    this_dir = os.path.dirname(os.path.abspath(__file__))
+    EXTENSIONS.append(
+        torch.utils.cpp_extension.CppExtension(
+            'openpifpaf._cpp',
+            glob.glob(os.path.join(this_dir, 'openpifpaf', 'csrc', 'src', '**', '*.cpp'), recursive=True),
+            depends=glob.glob(os.path.join(this_dir, 'openpifpaf', 'csrc', 'include', '**', '*.hpp'), recursive=True),
+            include_dirs=[os.path.join(this_dir, 'openpifpaf', 'csrc', 'include')],
+            define_macros=define_macros,
+            extra_compile_args=extra_compile_args,
+            extra_link_args=extra_link_args,
+        )
     )
-)
-assert 'build_ext' not in CMD_CLASS
-CMD_CLASS['build_ext'] = torch.utils.cpp_extension.BuildExtension.with_options(no_python_abi_suffix=True)
+    assert 'build_ext' not in CMD_CLASS
+    CMD_CLASS['build_ext'] = torch.utils.cpp_extension.BuildExtension.with_options(no_python_abi_suffix=True)
 
 
+add_cpp_extension()
 setup(
     name='openpifpaf',
     version=versioneer.get_version(),

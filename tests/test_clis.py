@@ -24,7 +24,7 @@ def test_predict(batch_size, with_debug, with_dense, tmpdir):
 
     cmd = [
         PYTHON, '-m', 'openpifpaf.predict',
-        '--checkpoint=shufflenetv2k16',
+        '--checkpoint=shufflenetv2k16', '--no-download-progress',
         '--batch-size={}'.format(batch_size),
         '--loader-workers=0',
         '--json-output', str(tmpdir),
