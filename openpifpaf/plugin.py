@@ -26,16 +26,16 @@ def register():
         if name.startswith('openpifpaf_')
     ]
 
-    plugin_names = [
-        name
-        for name in plugin_names
-        # check sys.modules for partial imports to avoid cyclic imports
-        if name not in sys.modules
-    ]
-
     for name in plugin_names:
-        module = importlib.import_module(name)
-        module.register()
+        if name not in sys.modules:
+            module = importlib.import_module(name)
+        else:
+            module = sys.modules[name]
+
+        # partially imported modules do not have the register attribute
+        if hasattr(module, 'register'):
+            module.register()
+
         REGISTERED[name] = module
 
 
