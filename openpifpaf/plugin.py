@@ -17,27 +17,24 @@ REGISTERED = {}
 def register():
     from . import plugins  # pylint: disable=import-outside-toplevel,cyclic-import
 
-    core_plugins = {
-        'openpifpaf.plugins.{}'.format(name):
-            importlib.import_module('openpifpaf.plugins.{}'.format(name))
+    plugin_names = [
+        'openpifpaf.plugins.{}'.format(name)
         for finder, name, is_pkg in pkgutil.iter_modules(plugins.__path__)
-        # partially imported modules are in sys.modules
-        if 'openpifpaf.plugins.{}'.format(name) not in sys.modules
-    }
-    discovered_plugins = {
-        name: importlib.import_module(name)
+    ] + [
+        name
         for finder, name, is_pkg in pkgutil.iter_modules()
-        if (name.startswith('openpifpaf_')
-            and name not in sys.modules)  # partially imported modules are here
-    }
-    # This function is called before logging levels are configured.
-    # Uncomment for debug:
-    # print('{} contrib plugins. Discovered {} plugins.'.format(
-    #     len(core_plugins), len(discovered_plugins)))
+        if name.startswith('openpifpaf_')
+    ]
 
-    for name, module in dict(**core_plugins, **discovered_plugins).items():
-        if name in REGISTERED:
-            continue
+    plugin_names = [
+        name
+        for name in plugin_names
+        # check sys.modules for partial imports to avoid cyclic imports
+        if name not in sys.modules
+    ]
+
+    for name in plugin_names:
+        module = importlib.import_module(name)
         module.register()
         REGISTERED[name] = module
 
