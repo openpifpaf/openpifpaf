@@ -33,9 +33,10 @@ def register():
             module = sys.modules[name]
 
         # partially imported modules do not have the register attribute
-        if hasattr(module, 'register'):
-            module.register()
+        if not hasattr(module, 'register'):
+            continue
 
+        module.register()
         REGISTERED[name] = module
 
 
