@@ -20,9 +20,20 @@ def test_plugin_autoregistered():
 
 
 def test_plugin_importable():
+    """Plugin is imported first.
+
+    This triggers registration of all plugins except the current one.
+    """
+
     cmd = [
         PYTHON, '-c',
-        'import openpifpaf_testplugin; print("hello")',
+        (
+            'import openpifpaf_testplugin; '
+            'import openpifpaf; '
+            'assert "testplugin" not in openpifpaf.DATAMODULES; '
+            'openpifpaf_testplugin.register(); '
+            'assert "testplugin" in openpifpaf.DATAMODULES; '
+        ),
     ]
 
     cwd = os.path.dirname(__file__)
