@@ -11,6 +11,14 @@ from .. import headmeta
 from ..configurable import Configurable
 from . import basenetworks, heads, nets
 
+
+# monkey patch torchvision for mobilenetv2 checkpoint backwards compatibility
+if hasattr(torchvision.models, 'mobilenetv2') \
+   and not hasattr(torchvision.models.mobilenet, 'ConvBNReLU'):
+    torchvision.models.mobilenet.ConvBNReLU = torchvision.models.mobilenetv2.ConvBNReLU
+    torchvision.models.mobilenet.InvertedResidual = torchvision.models.mobilenetv2.InvertedResidual
+
+
 # generate hash values with: shasum -a 256 filename.pkl
 
 PRETRAINED_UNAVAILABLE = object()
