@@ -7,6 +7,7 @@ Follows Flask-style plugin discovery:
 https://packaging.python.org/guides/creating-and-discovering-plugins/
 """
 
+import sys
 import importlib
 import pkgutil
 
@@ -24,7 +25,9 @@ def register():
     discovered_plugins = {
         name: importlib.import_module(name)
         for finder, name, is_pkg in pkgutil.iter_modules()
-        if name.startswith('openpifpaf_')
+        if (name.startswith('openpifpaf_')
+            and name not in REGISTERED  # fully imported modules are here
+            and name not in sys.modules)  # partially imported modules are here
     }
     # This function is called before logging levels are configured.
     # Uncomment for debug:
