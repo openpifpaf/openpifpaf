@@ -34,8 +34,11 @@ def register():
     for name, module in dict(**core_plugins, **discovered_plugins).items():
         if name in REGISTERED:
             continue
-        module.register()
+
+        # add name to REGISTERED before calling register() to avoid double
+        # calling the module in case the module also imports openpifpaf
         REGISTERED[name] = module
+        module.register()
 
 
 def versions():
