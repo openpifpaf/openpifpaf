@@ -1,9 +1,6 @@
-import json
 import os
 import subprocess
 import sys
-
-import pytest
 
 
 PYTHON = 'python3' if sys.platform != 'win32' else 'python'
