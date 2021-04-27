@@ -21,12 +21,13 @@ def register():
         'openpifpaf.plugins.{}'.format(name):
             importlib.import_module('openpifpaf.plugins.{}'.format(name))
         for finder, name, is_pkg in pkgutil.iter_modules(plugins.__path__)
+        # partially imported modules are in sys.modules
+        if 'openpifpaf.plugins.{}'.format(name) not in sys.modules
     }
     discovered_plugins = {
         name: importlib.import_module(name)
         for finder, name, is_pkg in pkgutil.iter_modules()
         if (name.startswith('openpifpaf_')
-            and name not in REGISTERED  # fully imported modules are here
             and name not in sys.modules)  # partially imported modules are here
     }
     # This function is called before logging levels are configured.
