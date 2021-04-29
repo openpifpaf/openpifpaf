@@ -66,10 +66,10 @@ class ApolloToCoco:
         :param dir_out: Processed dataset directory
         """
 
-        assert os.path.isdir(dir_dataset), "Dataset directory not found"
+        assert os.path.isdir(dir_dataset), 'dataset directory not found'
         self.dir_dataset = dir_dataset
         self.dir_mask = os.path.join(dir_dataset, 'ignore_mask')
-        assert os.path.isdir(self.dir_mask), 'directory for crowd annotations not found: ' + self.dir_mask
+        assert os.path.isdir(self.dir_mask), 'crowd annotations not found: ' + self.dir_mask
 
         self.dir_out_im = os.path.join(dir_out, 'images')
         self.dir_out_ann = os.path.join(dir_out, 'annotations')
@@ -264,7 +264,8 @@ class ApolloToCoco:
         kps_out = list(kps_out.reshape((-1,)))
         return kps_out, cnt
 
-    def _transform_keypoints_66(self, kps):
+    @staticmethod
+    def _transform_keypoints_66(kps):
         """
         66 keypoint version
         Add visibility
