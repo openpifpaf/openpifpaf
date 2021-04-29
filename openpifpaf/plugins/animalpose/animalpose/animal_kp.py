@@ -300,7 +300,6 @@ class AnimalKp(DataModule):
             image_dir=self.eval_image_dir,
             ann_file=self.eval_annotations,
             preprocess=self._eval_preprocess(),
-            n_images=self.n_images,
             annotation_filter=self.eval_annotation_filter,
             min_kp_anns=self.min_kp_anns if self.eval_annotation_filter else 0,
             category_ids=[1] if self.eval_annotation_filter else [],
