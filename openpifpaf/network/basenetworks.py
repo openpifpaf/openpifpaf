@@ -428,6 +428,35 @@ class MobileNetV2(BaseNetwork):
         cls.pretrained = args.mobilenetv2_pretrained
 
 
+class MobileNetV3(BaseNetwork):
+    pretrained = True
+
+    def __init__(self, name, torchvision_mobilenetv3, out_features=960):
+        super().__init__(name, stride=16, out_features=out_features)
+        base_vision = torchvision_mobilenetv3(self.pretrained)
+
+        self.backbone = list(base_vision.children())[0]  # remove output classifier
+        # remove stride from input block
+        input_conv = list(self.backbone)[0][0]
+        input_conv.stride = torch.nn.modules.utils._pair(1)  # pylint: disable=protected-access
+
+    def forward(self, x):
+        x = self.backbone(x)
+        return x
+
+    @classmethod
+    def cli(cls, parser: argparse.ArgumentParser):
+        group = parser.add_argument_group('MobileNetV3')
+        assert cls.pretrained
+        group.add_argument('--mobilenetv3-no-pretrain', dest='mobilenetv3_pretrained',
+                           default=True, action='store_false',
+                           help='use randomly initialized models')
+
+    @classmethod
+    def configure(cls, args: argparse.Namespace):
+        cls.pretrained = args.mobilenetv3_pretrained
+
+
 class SqueezeNet(BaseNetwork):
     pretrained = True
 

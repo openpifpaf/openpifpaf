@@ -1,4 +1,5 @@
 import time
+import sys
 
 import numpy as np
 import PIL.Image
@@ -40,6 +41,7 @@ def test_scipy_zoom(order):
     assert np.all(d_in == d_out[0, ::2])
 
 
+@pytest.mark.skipif(sys.platform == 'darwin', reason='inconclusive on Mac')
 def test_opencv_faster_than_pil():
     image = PIL.Image.new('RGB', (640, 640))
 

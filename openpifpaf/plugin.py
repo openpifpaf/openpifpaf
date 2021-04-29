@@ -7,6 +7,7 @@ Follows Flask-style plugin discovery:
 https://packaging.python.org/guides/creating-and-discovering-plugins/
 """
 
+import sys
 import importlib
 import pkgutil
 
@@ -16,24 +17,25 @@ REGISTERED = {}
 def register():
     from . import plugins  # pylint: disable=import-outside-toplevel,cyclic-import
 
-    core_plugins = {
-        'openpifpaf.plugins.{}'.format(name):
-            importlib.import_module('openpifpaf.plugins.{}'.format(name))
+    plugin_names = [
+        'openpifpaf.plugins.{}'.format(name)
         for finder, name, is_pkg in pkgutil.iter_modules(plugins.__path__)
-    }
-    discovered_plugins = {
-        name: importlib.import_module(name)
+    ] + [
+        name
         for finder, name, is_pkg in pkgutil.iter_modules()
         if name.startswith('openpifpaf_')
-    }
-    # This function is called before logging levels are configured.
-    # Uncomment for debug:
-    # print('{} contrib plugins. Discovered {} plugins.'.format(
-    #     len(core_plugins), len(discovered_plugins)))
+    ]
 
-    for name, module in dict(**core_plugins, **discovered_plugins).items():
-        if name in REGISTERED:
+    for name in plugin_names:
+        if name not in sys.modules:
+            module = importlib.import_module(name)
+        else:
+            module = sys.modules[name]
+
+        # partially imported modules do not have the register attribute
+        if not hasattr(module, 'register'):
             continue
+
         module.register()
         REGISTERED[name] = module
 
