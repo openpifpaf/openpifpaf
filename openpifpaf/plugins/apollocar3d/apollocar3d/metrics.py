@@ -26,11 +26,7 @@ class MeanPixelError(Base):
     detections_scaled = []  # detection rate
     px_ref = 368  # CPM crop size in pixels
 
-    def __init__(self):  # pylint: disable=useless-super-delegation
-        super().__init__()
-
-    def accumulate(self, predictions, image_meta, *, ground_truth=None):  # pylint: disable=arguments-differ
-
+    def accumulate(self, predictions, image_meta, *, ground_truth=None):
         errors = []
         detections = []
         errors_scaled = []
@@ -127,10 +123,9 @@ def hungarian_matching(gts, predictions, thresh=0.5):
     return row, cols, cost
 
 
-def average(my_list):
+def average(my_list, *, empty_value=0.0):
     """calculate mean of a list"""
-    try:
-        out = sum(my_list) / float(len(my_list))
-        return out
-    except ZeroDivisionError:
-        return None
+    if not my_list:
+        return empty_value
+
+    return sum(my_list) / float(len(my_list))
