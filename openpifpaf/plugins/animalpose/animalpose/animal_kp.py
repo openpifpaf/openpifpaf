@@ -204,15 +204,10 @@ class AnimalKp(DataModule):
             transforms.AnnotationJitter(),
             transforms.RandomApply(transforms.HFlip(ANIMAL_KEYPOINTS, HFLIP), 0.5),
             rescale_t,
-            transforms.RandomApply(transforms.Blur(), self.blur),
-            transforms.RandomChoice(
-                [transforms.RotateBy90(),
-                 transforms.RotateUniform(30.0)],
-                [self.orientation_invariant, 0.2],
-            ),
+            blur_t,
             transforms.Crop(self.square_edge, use_area_of_interest=True),
             transforms.CenterPad(self.square_edge),
-            transforms.MinSize(min_side=32.0),
+            orientation_t,
             transforms.TRAIN_TRANSFORM,
             transforms.Encoders(encoders),
         ])
