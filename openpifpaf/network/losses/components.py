@@ -29,7 +29,8 @@ class Bce(torch.nn.Module):
     focal_gamma = 1.0
     focal_detach = False
     focal_clamp = True
-    soft_clamp_value = 5.0
+    soft_clamp_value = None
+    background_clamp = -3.9
 
     # 0.02 -> -3.9, 0.01 -> -4.6, 0.001 -> -7, 0.0001 -> -9
     min_bce = 0.0  # 1e-6 corresponds to x~=14, 1e-10 -> 20
@@ -62,6 +63,8 @@ class Bce(torch.nn.Module):
                            help='gradient clipped below')
         group.add_argument('--bce-soft-clamp', default=cls.soft_clamp_value, type=float,
                            help='soft clamp for BCE')
+        group.add_argument('--bce-background-clamp', default=cls.background_clamp, type=float,
+                           help='background clamp for BCE')
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
@@ -72,11 +75,15 @@ class Bce(torch.nn.Module):
         cls.focal_clamp = args.focal_clamp
         cls.min_bce = args.bce_min
         cls.soft_clamp_value = args.bce_soft_clamp
+        cls.background_clamp = args.bce_background_clamp
 
     def forward(self, x, t):  # pylint: disable=arguments-differ
         t_zeroone = t.clone()
         t_zeroone[t_zeroone > 0.0] = 1.0
         # x = torch.clamp(x, -20.0, 20.0)
+        if self.background_clamp is not None:
+            bg_clamp_mask = (t_zeroone == 0.0) & (x < self.background_clamp)
+            x[bg_clamp_mask] = self.background_clamp
         bce = torch.nn.functional.binary_cross_entropy_with_logits(
             x, t_zeroone, reduction='none')
         # torch.clamp_max_(bce, 10.0)
