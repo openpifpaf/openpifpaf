@@ -207,8 +207,8 @@ class ApolloKp(DataModule):
                 power_law=True, stretch_range=(0.75, 1.33))
         else:
             rescale_t = transforms.RescaleRelative(
-                scale_range=(0.2 * self.rescale_images,
-                             1.5 * self.rescale_images),
+                scale_range=(0.33 * self.rescale_images,
+                             1.33 * self.rescale_images),
                 power_law=True, stretch_range=(0.75, 1.33))
 
         return transforms.Compose([
