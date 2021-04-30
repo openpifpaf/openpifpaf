@@ -181,7 +181,7 @@ class AnimalKp(DataModule):
 
         if self.extended_scale:
             rescale_t = transforms.RescaleRelative(
-                scale_range=(0.25 * self.rescale_images,
+                scale_range=(0.2 * self.rescale_images,
                              2.0 * self.rescale_images),
                 power_law=True, stretch_range=(0.75, 1.33))
         else:
@@ -201,13 +201,13 @@ class AnimalKp(DataModule):
 
         return transforms.Compose([
             transforms.NormalizeAnnotations(),
-            transforms.AnnotationJitter(),
+            # transforms.AnnotationJitter(),
             transforms.RandomApply(transforms.HFlip(ANIMAL_KEYPOINTS, HFLIP), 0.5),
             rescale_t,
             transforms.RandomApply(transforms.Blur(), self.blur),
             transforms.RandomChoice(
                 [transforms.RotateBy90(),
-                 transforms.RotateUniform(30.0)],
+                 transforms.RotateUniform(15.0)],
                 [self.orientation_invariant, 0.2],
             ),
             transforms.Crop(self.square_edge, use_area_of_interest=True),
