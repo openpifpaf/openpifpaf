@@ -69,6 +69,7 @@ setup(
             'matplotlib>=3.3',
             'nbdime',
             'nbstripout',
+            'scipy',
             'sphinx-book-theme',
             'wheel',
         ],
