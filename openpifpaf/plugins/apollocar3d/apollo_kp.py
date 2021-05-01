@@ -29,11 +29,11 @@ class ApolloKp(DataModule):
     DataModule for the Apollocar3d Dataset.
     """
 
-    train_annotations = 'data/apollo-coco/annotations/apollo_keypoints_66_train.json'
-    val_annotations = 'data/apollo-coco/annotations/apollo_keypoints_66_val.json'
+    train_annotations = 'data-apollocar3d/annotations/apollo_keypoints_66_train.json'
+    val_annotations = 'data-apollocar3d/annotations/apollo_keypoints_66_val.json'
     eval_annotations = val_annotations
-    train_image_dir = 'data/apollo-coco/images/train/'
-    val_image_dir = 'data/apollo-coco/images/val/'
+    train_image_dir = 'data-apollocar3d/images/train/'
+    val_image_dir = 'data-apollocar3d/images/val/'
     eval_image_dir = val_image_dir
 
     n_images = None
@@ -207,28 +207,24 @@ class ApolloKp(DataModule):
                 power_law=True, stretch_range=(0.75, 1.33))
         else:
             rescale_t = transforms.RescaleRelative(
-                scale_range=(0.2 * self.rescale_images,
-                             1.5 * self.rescale_images),
+                scale_range=(0.33 * self.rescale_images,
+                             1.33 * self.rescale_images),
                 power_law=True, stretch_range=(0.75, 1.33))
-
-        blur_t = None
-        if self.blur:
-            blur_t = transforms.RandomApply(transforms.Blur(), self.blur)
-
-        orientation_t = None
-        if self.orientation_invariant:
-            orientation_t = transforms.RandomApply(
-                transforms.RotateBy90(), self.orientation_invariant)
 
         return transforms.Compose([
             transforms.NormalizeAnnotations(),
-            transforms.AnnotationJitter(),
+            # transforms.AnnotationJitter(),
             transforms.RandomApply(transforms.HFlip(self.CAR_KEYPOINTS, self.HFLIP), 0.5),
             rescale_t,
-            blur_t,
+            transforms.RandomApply(transforms.Blur(), self.blur),
+            transforms.RandomChoice(
+                [transforms.RotateBy90(),
+                 transforms.RotateUniform(30.0)],
+                [self.orientation_invariant, 0.2],
+            ),
             transforms.Crop(self.square_edge, use_area_of_interest=True),
             transforms.CenterPad(self.square_edge),
-            orientation_t,
+            transforms.MinSize(min_side=32.0),
             transforms.TRAIN_TRANSFORM,
             transforms.Encoders(encoders),
         ])
