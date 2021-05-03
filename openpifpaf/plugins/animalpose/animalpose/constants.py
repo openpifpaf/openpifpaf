@@ -72,15 +72,11 @@ ALTERNATIVE_NAMES = [
 
 
 ANIMAL_SKELETON = [
-    (1, 2), (1, 3), (1, 6), (2, 4), (3, 5), (2, 3), (6, 8), (6, 9), (6, 10), (7, 8), (7, 11), (7, 12),  # Torso, face
+    (1, 2), (1, 3), (1, 6), (2, 4), (3, 5), (2, 3), (6, 8), (6, 9), (6, 10), (7, 8),
+    (7, 11), (7, 12),  # Torso + Face
     (10, 14), (14, 18), (9, 13), (13, 17), (12, 16), (16, 20), (11, 15), (15, 19)  # Legs
 ]
 
-# ANIMAL_SKELETON = [
-#     (1, 2), (1, 3), (2, 3), (2, 4), (3, 5), (4, 8), (4, 6), (8, 9), (5, 6), (6, 9), (6, 10), (5, 8), (8, 10),
-#     (9, 10), (9, 11), (9, 13), (13, 17), (10, 12), (10, 14), (14, 18), (8, 11), (11, 12), (8, 12), (11, 7), (12, 7),
-#     (11, 15), (15, 19), (12, 16), (16, 20)
-# ]
 
 ANIMAL_SIGMAS = [
     0.026,  # nose
@@ -172,7 +168,8 @@ def draw_skeletons(pose):
     show.KeypointPainter.show_joint_scales = True
     keypoint_painter = show.KeypointPainter()
 
-    ann = Annotation(keypoints=ANIMAL_KEYPOINTS, skeleton=ANIMAL_SKELETON, score_weights=ANIMAL_SCORE_WEIGHTS)
+    ann = Annotation(
+        keypoints=ANIMAL_KEYPOINTS, skeleton=ANIMAL_SKELETON, score_weights=ANIMAL_SCORE_WEIGHTS)
     ann.set(pose, np.array(ANIMAL_SIGMAS) * scale)
     draw_ann(ann, filename='docs/skeleton_animal.png', keypoint_painter=keypoint_painter)
 

@@ -43,7 +43,8 @@ def dataset_mappings():
 
 
 def cli():
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--dir_data', default='data/animalpose',
                         help='dataset directory')
     parser.add_argument('--dir_out', default='data/animalpose',
@@ -72,7 +73,8 @@ class VocToCoco:
 
         # Set directories
         self.dir_dataset = dir_dataset
-        self.dir_images_1 = os.path.join(dir_dataset, 'TrainVal', 'VOCdevkit', 'VOC2011', 'JPEGImages')
+        self.dir_images_1 = os.path.join(
+            dir_dataset, 'TrainVal', 'VOCdevkit', 'VOC2011', 'JPEGImages')
         self.dir_images_2 = os.path.join(dir_dataset, 'animalpose_image_part2')
         self.dir_annotations_1 = os.path.join(dir_dataset, 'PASCAL2011_animal_annotation')
         self.dir_annotations_2 = os.path.join(dir_dataset, 'animalpose_anno2')
@@ -84,8 +86,8 @@ class VocToCoco:
         self.dir_out_ann = os.path.join(dir_out, 'annotations')
         os.makedirs(self.dir_out_im, exist_ok=True)
         os.makedirs(self.dir_out_ann, exist_ok=True)
-        assert not os.listdir(self.dir_out_im), "Empty image directory to avoid to avoid issues for random seeds"
-        assert not os.listdir(self.dir_out_ann), "Empty ann directory to avoid to avoid issues for random seeds"
+        assert not os.listdir(self.dir_out_im), "Empty image directory to avoid duplicates"
+        assert not os.listdir(self.dir_out_ann), "Empty annotation directory to avoid duplicates"
         os.makedirs(os.path.join(self.dir_out_im, 'train'))
         os.makedirs(os.path.join(self.dir_out_im, 'val'))
 
@@ -129,7 +131,8 @@ class VocToCoco:
             with open(path_json, 'w') as outfile:
                 json.dump(self.json_file, outfile)
             print(f'Phase:{phase}')
-            print(f'Average number of keypoints labelled: {sum(self.cnt_kps) / cnt_instances:.1f} / {self.n_kps}')
+            print(f'Average number of keypoints labelled:'
+                  f' {sum(self.cnt_kps) / cnt_instances:.1f} / {self.n_kps}')
             print(f'Saved {cnt_instances} instances over {cnt_images} images ')
             print(f'JSON PATH:  {path_json}')
             if self.histogram:
@@ -261,7 +264,8 @@ class VocToCoco:
 
     def _find_annotation(self, meta):
         im_path, _, cat, ann_folder = meta
-        root = os.path.join(self.dir_dataset, ann_folder, cat, os.path.splitext(os.path.basename(im_path))[0])
+        root = os.path.join(
+            self.dir_dataset, ann_folder, cat, os.path.splitext(os.path.basename(im_path))[0])
         xml_paths = glob.glob(root + '[_,.]*xml')  # Avoid duplicates of the form cow13 cow130
         assert xml_paths, "No annotations, expected at least one"
         return xml_paths
@@ -271,8 +275,9 @@ class VocToCoco:
         Initiate Json for training and val phase
         """
         self.json_file["info"] = dict(url="https://github.com/vita-epfl/openpifpaf",
-                                      date_created=time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.localtime()),
-                                      description="Conversion of AnimalPose dataset into MS-COCO format")
+                                      date_created=time.strftime(
+                                          "%a, %d %b %Y %H:%M:%S +0000", time.localtime()),
+                                      description="Animalpose dataset with MS-COCO format")
 
         self.json_file["categories"] = [dict(name='animal',
                                              id=1,
