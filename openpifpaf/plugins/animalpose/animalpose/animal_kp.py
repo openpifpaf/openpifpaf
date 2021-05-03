@@ -194,10 +194,10 @@ class AnimalKp(DataModule):
         # if self.blur:
         #     blur_t = transforms.RandomApply(transforms.Blur(), self.blur)
 
-        orientation_t = None
-        if self.orientation_invariant:
-            orientation_t = transforms.RandomApply(
-                transforms.RotateBy90(), self.orientation_invariant)
+        # orientation_t = None
+        # if self.orientation_invariant:
+        #     orientation_t = transforms.RandomApply(
+        #         transforms.RotateBy90(), self.orientation_invariant)
 
         return transforms.Compose([
             transforms.NormalizeAnnotations(),
