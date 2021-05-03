@@ -24,7 +24,6 @@ from .constants import ANIMAL_KEYPOINTS, ANIMAL_SKELETON, HFLIP, \
     ANIMAL_SIGMAS, ANIMAL_POSE, ANIMAL_CATEGORIES, ANIMAL_SCORE_WEIGHTS
 
 
-
 class AnimalKp(DataModule):
     """
     Adapted from the standard CocoKp class to work as external plugin

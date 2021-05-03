@@ -44,8 +44,6 @@ def cli():
                         help='where to save xml annotations and output json ')
     parser.add_argument('--sample', action='store_true',
                         help='Whether to only process the first 50 images')
-    parser.add_argument('--histogram', action='store_true',
-                        help='Whether to show keypoints histogram')
     args = parser.parse_args()
     return args
 
@@ -53,7 +51,7 @@ def cli():
 class VocToCoco:
 
     json_file = {}
-    map_cat = {cat: el+1 for el, cat in enumerate(_CATEGORIES)}
+    map_cat = {cat: el + 1 for el, cat in enumerate(_CATEGORIES)}
     map_names = dataset_mappings()
     n_kps = len(ANIMAL_KEYPOINTS)
     cnt_kps = [0] * n_kps
@@ -277,6 +275,7 @@ class VocToCoco:
                                              keypoints=[])]
         self.json_file["images"] = []
         self.json_file["annotations"] = []
+
 
 def main():
     args = cli()
