@@ -211,10 +211,12 @@ class Wholebody(openpifpaf.datasets.DataModule):
             openpifpaf.transforms.RandomApply(
                 openpifpaf.transforms.HFlip(WHOLEBODY_KEYPOINTS, HFLIP), 0.5),
             rescale_t,
-            openpifpaf.transforms.RandomApply(openpifpaf.transforms.Blur(), self.blur),
+            openpifpaf.transforms.RandomApply(
+                openpifpaf.transforms.Blur(), self.blur),
             openpifpaf.transforms.Crop(self.square_edge, use_area_of_interest=True),
             openpifpaf.transforms.CenterPad(self.square_edge),
-            openpifpaf.transforms.RandomApply(openpifpaf.transforms.RotateBy90(), self.orientation_invariant),
+            openpifpaf.transforms.RandomApply(
+                openpifpaf.transforms.RotateBy90(), self.orientation_invariant),
             openpifpaf.transforms.TRAIN_TRANSFORM,
             openpifpaf.transforms.Encoders(encoders),
         ])
