@@ -86,14 +86,14 @@ class CocoKp(openpifpaf.datasets.DataModule, openpifpaf.Configurable):
     def cli(cls, parser: argparse.ArgumentParser):
         group = parser.add_argument_group('data module CocoKp')
 
-        group.add_argument('--cocokp-train-annotations',
-                           default=cls.train_annotations)
-        group.add_argument('--cocokp-val-annotations',
-                           default=cls.val_annotations)
-        group.add_argument('--cocokp-train-image-dir',
-                           default=cls.train_image_dir)
-        group.add_argument('--cocokp-val-image-dir',
-                           default=cls.val_image_dir)
+        group.add_argument('--cocokp-train-annotations', default=cls.train_annotations,
+                           help='train annotations')
+        group.add_argument('--cocokp-val-annotations', default=cls.val_annotations,
+                           help='val annotations')
+        group.add_argument('--cocokp-train-image-dir', default=cls.train_image_dir,
+                           help='train image dir')
+        group.add_argument('--cocokp-val-image-dir', default=cls.val_image_dir,
+                           help='val image dir')
 
         group.add_argument('--cocokp-square-edge',
                            default=cls.square_edge, type=int,
