@@ -233,6 +233,7 @@ class Laplace(torch.nn.Module):
             norm = torch.clamp(norm, self.norm_clip[0], self.norm_clip[1])
 
         # constrain range of logb
+        logb = logb + 3.0  # shift logb such that weight decay relaxes to large b
         # low range constraint: prevent strong confidence when overfitting
         # high range constraint: force some data dependence
         logb = 3.0 * torch.tanh(logb / 3.0)
