@@ -21,13 +21,6 @@ import xml.etree.ElementTree as ET
 import numpy as np
 from PIL import Image
 
-try:
-    import matplotlib.pyplot as PLT
-except ModuleNotFoundError as err:
-    if err.name != 'matplotlib':
-        raise err
-    PLT = None
-
 
 from .constants import _CATEGORIES, ANIMAL_KEYPOINTS, ALTERNATIVE_NAMES, ANIMAL_SKELETON
 
@@ -135,8 +128,6 @@ class VocToCoco:
                   f' {sum(self.cnt_kps) / cnt_instances:.1f} / {self.n_kps}')
             print(f'Saved {cnt_instances} instances over {cnt_images} images ')
             print(f'JSON PATH:  {path_json}')
-            if self.histogram:
-                histogram(self.cnt_kps)
 
     def _process_image(self, im_path, im_id):
         """Update image field in json file"""
@@ -286,19 +277,6 @@ class VocToCoco:
                                              keypoints=[])]
         self.json_file["images"] = []
         self.json_file["annotations"] = []
-
-
-def histogram(cnt_kps):
-    if PLT is None:
-        raise Exception('please install matplotlib')
-    bins = np.arange(len(cnt_kps))
-    data = np.array(cnt_kps)
-    PLT.figure()
-    PLT.bar(bins, data)
-    PLT.xticks(np.arange(len(cnt_kps), step=5))
-    PLT.show()
-    PLT.close()
-
 
 def main():
     args = cli()
