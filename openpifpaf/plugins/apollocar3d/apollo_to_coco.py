@@ -20,12 +20,6 @@ except ModuleNotFoundError as err:
         raise err
     plt = None
 try:
-    import pandas as pd  # pylint: disable=import-error
-except ModuleNotFoundError as err:
-    if err.name != 'pandas':
-        raise err
-    pd = None  # pylint: disable=invalid-name
-try:
     import cv2  # pylint: disable=import-error
 except ModuleNotFoundError as err:
     if err.name != 'cv2':
@@ -40,9 +34,9 @@ from .transforms import skeleton_mapping
 def cli():
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--dir_data', default='data/apollocar3d/train',
+    parser.add_argument('--dir_data', default='data-apollocar3d/train',
                         help='dataset directory')
-    parser.add_argument('--dir_out', default='data/apollo-coco',
+    parser.add_argument('--dir_out', default='data-apollocar3d',
                         help='where to save annotations and files')
     parser.add_argument('--sample', action='store_true',
                         help='Whether to only process the first 50 images')
@@ -59,30 +53,31 @@ def cli():
 class ApolloToCoco:
 
     # Prepare json format
-    num_kps_24 = len(CAR_KEYPOINTS_24)
-    num_kps_66 = len(CAR_KEYPOINTS_66)
     map_sk = skeleton_mapping(KPS_MAPPING)
-    json_file_24, json_file_66 = {}, {}
 
-    def __init__(self, dir_dataset, dir_out, args):
+    sample = False
+    single_sample = False
+    split_images = False
+    histogram = False
+
+    def __init__(self, dir_dataset, dir_out):
         """
         :param dir_dataset: Original dataset directory
         :param dir_out: Processed dataset directory
         """
 
-        assert os.path.isdir(dir_dataset), "Dataset directory not found"
-        assert os.path.isdir(dir_out), "Output Directory not found"
+        assert os.path.isdir(dir_dataset), 'dataset directory not found'
         self.dir_dataset = dir_dataset
+        self.dir_mask = os.path.join(dir_dataset, 'ignore_mask')
+        assert os.path.isdir(self.dir_mask), 'crowd annotations not found: ' + self.dir_mask
+
         self.dir_out_im = os.path.join(dir_out, 'images')
         self.dir_out_ann = os.path.join(dir_out, 'annotations')
-        self.dir_out_mask = os.path.join(dir_dataset, 'ignore_mask')
-        assert os.path.isdir(self.dir_out_im), "Images output directory not found"
-        assert os.path.isdir(self.dir_out_ann), "Annotations directory not found"
-        assert os.path.isdir(self.dir_out_mask), "Annotations for crowd annotations not found"
-        self.sample = args.sample
-        self.single_sample = args.single_sample
-        self.split_images = args.split_images
-        self.histogram = args.histogram
+        os.makedirs(self.dir_out_im, exist_ok=True)
+        os.makedirs(self.dir_out_ann, exist_ok=True)
+
+        self.json_file_24 = {}
+        self.json_file_66 = {}
 
         # Load train val split
         path_train = os.path.join(self.dir_dataset, 'split', 'train-list.txt')
@@ -91,14 +86,12 @@ class ApolloToCoco:
         for name, path in zip(('train', 'val'), (path_train, path_val)):
             with open(path, "r") as ff:
                 lines = ff.readlines()
-            self.splits[name] = [os.path.join(self.dir_dataset + '/images/', line[:-1])
+            self.splits[name] = [os.path.join(self.dir_dataset, 'images', line.strip())
                                  for line in lines]
             assert self.splits[name], "specified path is empty"
 
     def process(self):
         """Parse and process the txt dataset into a single json file compatible with coco format"""
-        if pd is None:
-            raise Exception('please install pandas')
 
         for phase, im_paths in self.splits.items():  # Train and Val
             cnt_images = 0
@@ -111,7 +104,7 @@ class ApolloToCoco:
                 im_paths = im_paths[:50]
             if self.split_images:
                 path_dir = (os.path.join(self.dir_out_im, phase))
-                assert os.path.exists(path_dir), "Directory to save images does not exist"
+                os.makedirs(path_dir, exist_ok=True)
                 assert not os.listdir(path_dir), "Directory to save images is not empty. " \
                     "Remove flag --split_images ?"
             elif self.single_sample:
@@ -126,7 +119,7 @@ class ApolloToCoco:
                 txt_paths = glob.glob(os.path.join(self.dir_dataset, 'keypoints', im_name,
                                                    im_name + '*.txt'))
                 for txt_path in txt_paths:
-                    data = pd.read_csv(txt_path, sep='\t', header=None)
+                    data = np.loadtxt(txt_path, delimiter='\t', ndmin=2)
                     cnt_kps = self._process_annotation(data, txt_path, im_size, im_id, cnt_kps)
                     cnt_instances += 1
 
@@ -136,7 +129,7 @@ class ApolloToCoco:
                     copyfile(im_path, dst)
 
                 # Add crowd annotations
-                mask_path = os.path.join(self.dir_out_mask, im_name + '.jpg')
+                mask_path = os.path.join(self.dir_mask, im_name + '.jpg')
                 self._process_mask(mask_path, im_id)
 
                 # Count
@@ -166,7 +159,7 @@ class ApolloToCoco:
 
     def _process_image(self, im_path):
         """Update image field in json file"""
-        file_name = os.path.split(im_path)[1]
+        file_name = os.path.basename(im_path)
         im_name = os.path.splitext(file_name)[0]
         im_id = int(im_name.split(sep='_')[1])  # Numeric code in the image
         im = Image.open(im_path)
@@ -188,8 +181,8 @@ class ApolloToCoco:
         if cv2 is None:
             raise Exception('OpenCV')
 
-        image = cv2.imread(mask_path)
-        im_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        assert os.path.isfile(mask_path), mask_path
+        im_gray = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
         blur = cv2.GaussianBlur(im_gray, (0, 0), sigmaX=3, sigmaY=3, borderType=cv2.BORDER_DEFAULT)
         contours, _ = cv2.findContours(blur, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
@@ -209,18 +202,17 @@ class ApolloToCoco:
             self.json_file_24["annotations"].append(dict_mask)
             self.json_file_66["annotations"].append(dict_mask)
 
-    def _process_annotation(self, data, txt_path, im_size, im_id, cnt_kps):
+    def _process_annotation(self, all_kps, txt_path, im_size, im_id, cnt_kps):
         """Process single instance"""
-        all_kps = np.array(data)  # [#, x, y]
 
         # Enlarge box
         box_tight = [np.min(all_kps[:, 1]), np.min(all_kps[:, 2]),
                      np.max(all_kps[:, 1]), np.max(all_kps[:, 2])]
         w, h = box_tight[2] - box_tight[0], box_tight[3] - box_tight[1]
-        x_o = max(box_tight[0] - (w / 10), 0)
-        y_o = max(box_tight[1] - (h / 10), 0)
-        x_i = min(x_o + (w / 4) + w, im_size[0])
-        y_i = min(y_o + (h / 4) + h, im_size[1])
+        x_o = max(box_tight[0] - 0.1 * w, 0)
+        y_o = max(box_tight[1] - 0.1 * h, 0)
+        x_i = min(box_tight[0] + 1.1 * w, im_size[0])
+        y_i = min(box_tight[1] + 1.1 * h, im_size[1])
         box = [int(x_o), int(y_o), int(x_i - x_o), int(y_i - y_o)]  # (x, y, w, h)
 
         txt_id = os.path.splitext(txt_path.split(sep='_')[-1])[0]
@@ -249,8 +241,8 @@ class ApolloToCoco:
             'keypoints': kps,
             'segmentation': []})
         # Stats
-        for num in data[0]:
-            cnt_kps[num] += 1
+        for num in all_kps[:, 0]:
+            cnt_kps[int(num)] += 1
         return cnt_kps
 
     def _transform_keypoints_24(self, kps):
@@ -260,7 +252,7 @@ class ApolloToCoco:
         :array of [[#, x, y], ...]
         :return  [x, y, visibility, x, y, visibility, .. ]
         """
-        kps_out = np.zeros((self.num_kps_24, 3))
+        kps_out = np.zeros((len(CAR_KEYPOINTS_24), 3))
         cnt = 0
         for kp in kps:
             n = self.map_sk[int(kp[0])]
@@ -272,14 +264,15 @@ class ApolloToCoco:
         kps_out = list(kps_out.reshape((-1,)))
         return kps_out, cnt
 
-    def _transform_keypoints_66(self, kps):
+    @staticmethod
+    def _transform_keypoints_66(kps):
         """
         66 keypoint version
         Add visibility
         :array of [[#, x, y], ...]
         :return  [x, y, visibility, x, y, visibility, .. ]
         """
-        kps_out = np.zeros((self.num_kps_66, 3))
+        kps_out = np.zeros((len(CAR_KEYPOINTS_66), 3))
         cnt = 0
         for kp in kps:
             n = int(kp[0])
@@ -295,7 +288,7 @@ class ApolloToCoco:
         Initiate Json for training and val phase for the 24 kp and the 66 kp version
         """
         for j_file, n_kp in [(self.json_file_24, 24), (self.json_file_66, 66)]:
-            j_file["info"] = dict(url="https://github.com/vita-epfl/openpifpaf",
+            j_file["info"] = dict(url="https://github.com/openpifpaf/openpifpaf",
                                   date_created=time.strftime("%a, %d %b %Y %H:%M:%S +0000",
                                                              time.localtime()),
                                   description=("Conversion of ApolloCar3D dataset into MS-COCO"
@@ -324,7 +317,14 @@ def histogram(cnt_kps):
 
 def main():
     args = cli()
-    apollo_coco = ApolloToCoco(args.dir_data, args.dir_out, args)
+
+    # configure
+    ApolloToCoco.sample = args.sample
+    ApolloToCoco.single_sample = args.single_sample
+    ApolloToCoco.split_images = args.split_images
+    ApolloToCoco.histogram = args.histogram
+
+    apollo_coco = ApolloToCoco(args.dir_data, args.dir_out)
     apollo_coco.process()
 
 
