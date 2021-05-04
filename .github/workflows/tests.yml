@@ -121,6 +121,14 @@ jobs:
       if: matrix.os != 'windows-latest'  # because of path separator
       run: |
         python -m pycodestyle tests/*.py
+    - name: Check notebook formats and tags
+      if: matrix.slow
+      run: |
+        cd guide
+        python nb_cell_tags.py  # runs all notebooks through nbformat
+        git status
+        git diff
+        git diff-index --quiet HEAD  # exit code 1 when files were changed
     - name: Lint and pycodestyle on notebooks
       if: matrix.slow
       run: |

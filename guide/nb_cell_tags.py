@@ -1,4 +1,4 @@
-import nbformat as nbf
+import nbformat
 from glob import glob
 
 # Collect a list of all notebooks in the content folder
@@ -14,7 +14,7 @@ text_search_dict = {
 
 # Search through each notebook and look for the text, add a tag if necessary
 for i_path in notebooks:
-    notebook = nbf.read(i_path, nbf.NO_CONVERT)
+    notebook = nbformat.read(i_path, nbformat.NO_CONVERT)
 
     for cell in notebook.cells:
         cell_tags = cell.get('metadata', {}).get('tags', [])
@@ -34,4 +34,4 @@ for i_path in notebooks:
         elif 'tags' in cell['metadata']:
             del cell['metadata']['tags']
 
-    nbf.write(notebook, i_path)
+    nbformat.write(notebook, i_path)

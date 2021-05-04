@@ -18,7 +18,7 @@ except ImportError:
 LOG = logging.getLogger(__name__)
 
 
-class WholeBodyMetric(Base):
+class WholebodyMetric(Base):
     text_labels_keypoints = ['AP', 'AP0.5', 'AP0.75', 'APM', 'APL',
                              'AR', 'AR0.5', 'AR0.75', 'ARM', 'ARL']
     text_labels_bbox = ['AP', 'AP0.5', 'AP0.75', 'APS', 'APM', 'APL',
