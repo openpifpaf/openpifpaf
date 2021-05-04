@@ -83,7 +83,6 @@ class VocToCoco:
         os.makedirs(os.path.join(self.dir_out_im, 'val'))
 
         self.sample = args.sample
-        self.histogram = args.histogram
 
     def process(self):
         splits = self._split_train_val()
