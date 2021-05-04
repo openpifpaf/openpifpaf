@@ -127,6 +127,7 @@ jobs:
         cd guide
         python nb_cell_tags.py  # runs all notebooks through nbformat
         git status
+        git diff
         git diff-index --quiet HEAD  # exit code 1 when files were changed
     - name: Lint and pycodestyle on notebooks
       if: matrix.slow
