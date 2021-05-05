@@ -48,7 +48,8 @@ class Trainer():
         self.n_clipped_grad = 0
         self.max_norm = 0.0
 
-        if self.train_profile:
+        if self.train_profile and (not torch.distributed.is_initialized()
+                                   or torch.distributed.get_rank() == 0):
             # monkey patch to profile self.train_batch()
             self.trace_counter = 0
             self.train_batch_without_profile = self.train_batch
@@ -175,10 +176,11 @@ class Trainer():
 
     def train_batch(self, data, targets, apply_gradients=True):  # pylint: disable=method-hidden
         if self.device:
-            data = data.to(self.device, non_blocking=True)
-            targets = [head.to(self.device, non_blocking=True)
-                       if head is not None else None
-                       for head in targets]
+            with torch.autograd.profiler.record_function('to-device'):
+                data = data.to(self.device, non_blocking=True)
+                targets = [head.to(self.device, non_blocking=True)
+                           if head is not None else None
+                           for head in targets]
 
         # train encoder
         with torch.autograd.profiler.record_function('model'):
@@ -189,16 +191,18 @@ class Trainer():
             with torch.autograd.profiler.record_function('backward'):
                 loss.backward()
         if self.clip_grad_norm:
-            max_norm = self.clip_grad_norm / self.lr()
-            total_norm = torch.nn.utils.clip_grad_norm_(
-                self.model.parameters(), max_norm, norm_type=float('inf'))
-            self.max_norm = max(float(total_norm), self.max_norm)
-            if total_norm > max_norm:
-                self.n_clipped_grad += 1
-                print('CLIPPED GRAD NORM: total norm before clip: {}, max norm: {}'
-                      ''.format(total_norm, max_norm))
+            with torch.autograd.profiler.record_function('clip-grad-norm'):
+                max_norm = self.clip_grad_norm / self.lr()
+                total_norm = torch.nn.utils.clip_grad_norm_(
+                    self.model.parameters(), max_norm, norm_type=float('inf'))
+                self.max_norm = max(float(total_norm), self.max_norm)
+                if total_norm > max_norm:
+                    self.n_clipped_grad += 1
+                    print('CLIPPED GRAD NORM: total norm before clip: {}, max norm: {}'
+                          ''.format(total_norm, max_norm))
         if self.clip_grad_value:
-            torch.nn.utils.clip_grad_value_(self.model.parameters(), self.clip_grad_value)
+            with torch.autograd.profiler.record_function('clip-grad-value'):
+                torch.nn.utils.clip_grad_value_(self.model.parameters(), self.clip_grad_value)
         if apply_gradients:
             with torch.autograd.profiler.record_function('step'):
                 self.optimizer.step()
@@ -207,8 +211,9 @@ class Trainer():
                 self.step_ema()
 
         with torch.no_grad():
-            loss = self.reduce_loss(loss)
-            head_losses = self.reduce_loss(head_losses)
+            with torch.autograd.profiler.record_function('reduce-losses'):
+                loss = self.reduce_loss(loss)
+                head_losses = self.reduce_loss(head_losses)
 
         return (
             float(loss.item()) if loss is not None else None,
