@@ -9,6 +9,8 @@ import time
 
 import torch
 
+from ..profiler import TorchProfiler
+
 LOG = logging.getLogger(__name__)
 
 
@@ -51,21 +53,7 @@ class Trainer():
         if self.train_profile and (not torch.distributed.is_initialized()
                                    or torch.distributed.get_rank() == 0):
             # monkey patch to profile self.train_batch()
-            self.trace_counter = 0
-            self.train_batch_without_profile = self.train_batch
-
-            def train_batch_with_profile(*args, **kwargs):
-                with torch.autograd.profiler.profile(use_cuda=True) as prof:
-                    result = self.train_batch_without_profile(*args, **kwargs)
-                print(prof.key_averages())
-                self.trace_counter += 1
-                tracefilename = self.train_profile.replace(
-                    '.json', '.{}.json'.format(self.trace_counter))
-                LOG.info('writing trace file %s', tracefilename)
-                prof.export_chrome_trace(tracefilename)
-                return result
-
-            self.train_batch = train_batch_with_profile
+            self.train_batch = TorchProfiler(self.train_batch, out_name=self.train_profile)
 
         LOG.info({
             'type': 'config',
