@@ -91,6 +91,7 @@ def factory(
                 if 'model_state_dict' in checkpoint:
                     old_model_state_dict = checkpoint['model_state_dict']
                     net_cpu.load_state_dict(old_model_state_dict)
+
                 else:
                     old_model = checkpoint['model']
                     state_dict = old_model.base_net.state_dict()
@@ -101,6 +102,17 @@ def factory(
                 net_cpu = factory_from_scratch(base_name, head_names, pretrained=pretrained)
                 net_cpu.load_state_dict(checkpoint['model_state_dict'])
                 epoch = checkpoint['epoch']
+                
+                # normalize for backwards compatibility
+                nets.model_migration(net_cpu)
+
+                # initialize for eval
+                net_cpu.eval()
+
+                # print("Model's state_dict:")
+                # for param in net_cpu.base_net.parameters():
+                #     print(param.data)
+                # raise
             else:
                 raise 'model_state_dict not in checkpoint dict! if the checkpoint is .pkl remove --basenet and --headnets!'
     else:

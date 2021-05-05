@@ -203,7 +203,7 @@ def deepsportlab_dataset_splitter(keys, method=None, fold=0, validation_set_size
         "testing": testing_keys
     }
 
-def build_DeepSportBall_datasets(pickled_dataset_filename, validation_set_size_pc, square_edge, target_transforms, preprocess, focus_object=None, config=None, dataset_fold=None):
+def build_DeepSportBall_datasets(pickled_dataset_filename, validation_set_size_pc, square_edge, target_transforms, preprocess, focus_object=None, config=None, dataset_fold=None, debug_on_test=False):
     dataset = PickledDataset(pickled_dataset_filename)
 
     keys = list(dataset.keys.all())
@@ -232,7 +232,10 @@ def build_DeepSportBall_datasets(pickled_dataset_filename, validation_set_size_p
     ]
 
     dataset = TransformedDataset(dataset, transforms)
-
+    if debug_on_test:
+        return \
+        DeepSportDataset(dataset, split["testing"], target_transforms, preprocess, config), \
+        DeepSportDataset(dataset, split["validation"], target_transforms, preprocess, config)    
     return \
         DeepSportDataset(dataset, split["training"], target_transforms, preprocess, config), \
         DeepSportDataset(dataset, split["validation"], target_transforms, preprocess, config)

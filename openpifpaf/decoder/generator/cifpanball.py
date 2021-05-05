@@ -69,6 +69,11 @@ class CifPanBall(Generator):
                  kp_ball=None,
                  adaptive_max_pool_th=False,
                  max_pool_th=0.1,
+                 decode_masks_first=False,
+                 only_output_17=False,
+                 disable_pred_filter=False,
+                 dec_filter_smaller_than=100,
+                 dec_filter_less_than=5,
                 ):
         super().__init__(worker_pool)
         if nms is True:
@@ -90,7 +95,13 @@ class CifPanBall(Generator):
         self.timers = defaultdict(float)
 
         self.adaptive_max_pool_th = adaptive_max_pool_th
-        self.max_pool_th = max_pool_th
+        self.max_pool_th = float(max_pool_th)
+        # print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~` max pool th ~~~~~~~~~~~~~~~', self.max_pool_th)
+        self.decode_masks_first = decode_masks_first
+        self.only_output_17 = only_output_17
+        self.disable_pred_filter = disable_pred_filter
+        self.dec_filter_smaller_than = dec_filter_smaller_than
+        self.dec_filter_less_than = dec_filter_less_than
 
         # init by_target and by_source
         # self.by_target = defaultdict(dict)
@@ -137,19 +148,23 @@ class CifPanBall(Generator):
             """Use torch for max pooling"""
             cif = torch.tensor(cif)
             cif_m = torch.max_pool2d(cif[None], kernel_size, stride=1, padding=pad)[0] == cif      #### 7 padding=3
-            cif_m &= cif > 0.1# * cif.max()
+            # cif_m &= cif > 0.1# * cif.max()
+            cif_m &= cif > self.max_pool_th
             return np.asarray(cif_m)
 
         # Get coordinates of keypoints of every type
         # list[K,N_k]
         keypoints_yx = []
-        # for i_k, cif in enumerate(cifhr.accumulated):
-        #     if i_k == Ci:
-        #         keypoints_yx.append(np.stack(np.nonzero(cif_local_max(cif)), axis=-1))
-        #     else:
-        #         keypoints_yx.append(np.stack(np.nonzero(cif), axis=-1))
-        keypoints_yx = [np.stack(np.nonzero(cif_local_max(cif)), axis=-1)
-                        for cif in cifhr.accumulated]
+
+        if self.decode_masks_first:
+            for i_k, cif in enumerate(cifhr.accumulated):
+                if i_k == Ci:
+                    keypoints_yx.append(np.stack(np.nonzero(cif_local_max(cif)), axis=-1))
+                else:
+                    keypoints_yx.append(np.stack(np.nonzero(cif), axis=-1))
+        else:
+            keypoints_yx = [np.stack(np.nonzero(cif_local_max(cif)), axis=-1)
+                            for cif in cifhr.accumulated]
 
         # from matplotlib import pyplot as plt
         # plt.figure(figsize=(15,15))
@@ -229,16 +244,21 @@ class CifPanBall(Generator):
             # v = 2.
             annotation = Annotation(
                 self.keypoints, self.out_skeleton,
-                category_id={17:1,18:37}[f]  # center => person, ball center => ball
+                category_id={17:1,18:37}[f],  # center => person, ball center => ball
+                only_output_17=self.only_output_17
                 )
+            # if not self.only_output_17:
             annotation.add(f, (x,y,v))
             annotations.append(annotation)
+        # print('number of centers', len(annotations))
 
-        # Assign keypoints to their instance (least confidence first)
-        keypoints_fyxiv.sort(key=lambda x:x[-1])
-        for f,y,x,i,v in keypoints_fyxiv:
-            annotation = annotations[i]
-            annotation.add(f, (x,y,v))
+        if not self.decode_masks_first:
+            # Assign keypoints to their instance (least confidence first)
+            keypoints_fyxiv.sort(key=lambda x:x[-1])
+            for f,y,x,i,v in keypoints_fyxiv:
+                annotation = annotations[i]
+                annotation.add(f, (x,y,v))
+                # print('keypoint added')
 
         # semantic      shape [C,H,W]
         # plt.figure(figsize=(15,15))
@@ -280,19 +300,35 @@ class CifPanBall(Generator):
         # plt.figure(figsize=(20,20))
         inssss = np.zeros_like(panoptic)
         ids = np.random.permutation(len(annotations))
-        for i in range(len(annotations)):
-            annotation = annotations[i]
-            centroid_mask = (classes == 1) & (instances == i) #& (instances_score > 0.1)
-            # print(semantic.shape)
-            annotation.cls = 1# semantic[:,centroid_mask].sum(axis=1).argmax(axis=0)
-            annotation.mask = centroid_mask
-            inssss += (ids[i]+1)*centroid_mask       # to plot instances
+
+        if self.decode_masks_first:
+            for i in range(len(annotations)):
+                annotation = annotations[i]
+                centroid_mask = (classes == 1) & (instances == i)
+                for f, cif in enumerate(cifhr.accumulated):
+                    if f == Ci:
+                        continue
+                    cif_masked = cif * centroid_mask
+                    x, y =np.unravel_index(np.argmax(cif_masked, axis=None), cif_masked.shape)  # argmax retunrs a flat value, we need unravel ind 
+                    if cif_masked[x,y] > 0.1:
+                        annotation.add(f, (y, x, cif_masked[x,y]))
+                    annotation.cls = 1# semantic[:,centroid_mask].sum(axis=1).argmax(axis=0)
+                    annotation.mask = centroid_mask
+        else:
+            for i in range(len(annotations)):
+                annotation = annotations[i]
+                centroid_mask = (classes == 1) & (instances == i) #& (instances_score > 0.1)
+                # print(semantic.shape)
+                annotation.cls = 1# semantic[:,centroid_mask].sum(axis=1).argmax(axis=0)
+                annotation.mask = centroid_mask
+                inssss += (ids[i]+1)*centroid_mask       # to plot instances
         # plt.imshow(inssss)
         # plt.colorbar()
         # plt.show()
         # print('show')
 
         # if self.ball:
+        # if not self.only_output_17:
         for f, y, x, v in ball_fyxv:
             f = 18
             # print('fff', f)
@@ -301,12 +337,14 @@ class CifPanBall(Generator):
                         keypoints=self.keypoints,
                         skeleton=self.out_skeleton,
                         category_id=37,
+                        only_output_17=self.only_output_17,
                             ).add(f, (x, y, v))
             for ff in range(f):
                 annotation.add(ff, (0,0,0))
                 annotation.cls = 37# semantic[:,centroid_mask].sum(axis=1).argmax(axis=0)
                 annotation.mask = None
             annotations.append(annotation)
+        # print('number of centers after ball aded', len(annotations))
 
         ball_mask = classes == 2
         if ball_mask.sum() > 10:
@@ -322,16 +360,19 @@ class CifPanBall(Generator):
         # if self.nms is not None:
         #     annotations = self.nms.annotations(annotations)
 
-
-        filtered_annotations = []
-        for ann in annotations:
-            if ann.category_id != 1:
-                filtered_annotations.append(ann)
-                continue
-            if np.count_nonzero(ann.mask) > 100 and np.count_nonzero(ann.data[:,2]) >= 5:
-                filtered_annotations.append(ann)
-        annotations = filtered_annotations
-
+        if not self.disable_pred_filter:
+            # print('not disabled')
+            # print('self.dec_filter_smaller_than', self.dec_filter_smaller_than)
+            # print('self.dec_filter_less_than', self.dec_filter_less_than)
+            filtered_annotations = []
+            for ann in annotations:
+                if ann.category_id != 1:
+                    filtered_annotations.append(ann)
+                    continue
+                if np.count_nonzero(ann.mask) > self.dec_filter_smaller_than and np.count_nonzero(ann.data[:,2]) >= self.dec_filter_less_than:
+                    filtered_annotations.append(ann)
+            annotations = filtered_annotations
+        
         LOG.info('%d annotations: %s', len(annotations),
                  [np.sum(ann.data[:, 2] > 0.1) for ann in annotations])
         if debug is not None:

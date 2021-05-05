@@ -67,6 +67,18 @@ def cli(parser, *,
     group.add_argument('--greedy', default=False, action='store_true',
                        help='greedy decoding')
 
+    group.add_argument('--decode-masks-first', default=False, action='store_true')
+
+    group.add_argument('--only-output-17', default=False, action='store_true')
+
+    group.add_argument('--disable-pred-filter', default=False, action='store_true')
+
+    parser.add_argument('--decod-discard-smaller', default=100, type=int,
+                        help='discard smaller than')
+
+    parser.add_argument('--decod-discard-lesskp', default=5, type=int,
+                        help='discard with number of keypoints less than')
+
 
 def configure(args):
     # default value for keypoint filter depends on whether complete pose is forced
@@ -210,6 +222,8 @@ def factory_decode(head_nets, *,
             field_config_ball = FieldConfig(cif_indices=[2])
             #print('field config ball', field_config_ball)
             if isinstance(head_nets[2].meta, network.heads.IntensityMeta):
+                if args.only_output_17:
+                    print('cifpanball with 17 outputs')
                 return CifPanBall(
                     field_config,
                     field_config_ball,
@@ -218,7 +232,12 @@ def factory_decode(head_nets, *,
                     worker_pool=worker_pool,
                     kp_ball=head_nets[2].meta.keypoints,
                     adaptive_max_pool_th=args.adaptive_max_pool_th,
-                    max_pool_th=args.max_pool_th
+                    max_pool_th=args.max_pool_th,
+                    decode_masks_first=args.decode_masks_first,
+                    only_output_17=args.only_output_17,
+                    disable_pred_filter=args.disable_pred_filter,
+                    dec_filter_smaller_than=args.decod_discard_smaller,
+                    dec_filter_less_than=args.decod_discard_lesskp,
                 )
 
         return CifPan(

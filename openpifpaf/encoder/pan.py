@@ -208,6 +208,7 @@ class PanopticTargetGenerator(object):
 
         return dict(
             semantic=torch.as_tensor(semantic.astype('long')),
+            panoptic=torch.as_tensor(panoptic.astype(np.float32)),
             # foreground=torch.as_tensor(foreground.astype('long')),
             # center=torch.as_tensor(center.astype(np.float32)),
             # center_points=center_pts,

@@ -42,10 +42,10 @@ class Generator:
         }
 
     @staticmethod
-    def fields_batch(model, image_batch, *, device=None, target_batch=None):
+    def fields_batch(model, image_batch, *, device=None, oracle_masks=None, target_batch=None):
         """From image batch to field batch."""
         start = time.time()
-
+        # print('Oracle masks', oracle_masks)
         def apply(f, items):
             """Apply f in a nested fashion to all items that are not list or tuple."""
             if items is None:
@@ -82,7 +82,7 @@ class Generator:
         # print('len target_batch', target_batch[1]['offset'].shape)
         # print('heads', type(heads[1]['semantic']))
         # print('heads', type(target_batch[1]['semantic']))
-        if target_batch is not None:
+        if oracle_masks is not None:
             import numpy as np
             def classes_from_target(semantic_target):
                 ''' converting [B,H,W] to [B,C,H,W] '''
@@ -113,8 +113,10 @@ class Generator:
                             denan(target_batch[2][2])[:,:,None]
                             ], dim=2),]
 
-            heads[1]['semantic'] = gt[1]['semantic']
-            heads[1]['offset'] = gt[1]['offset']
+            if 'semantic' in oracle_masks:
+                heads[1]['semantic'] = gt[1]['semantic']
+            if 'offset' in oracle_masks:
+                heads[1]['offset'] = gt[1]['offset']
             # print('head type',heads[0].shape)
             # print('gt type',gt[0].shape)
             # print('type heads', type(heads))
@@ -129,8 +131,9 @@ class Generator:
             # plt.imshow(image, alpha=.2)
             # plt.show()
             # plt.savefig('image/before_.png')
-            import copy
-            heads[0][:,-1,:,:,:] = copy.deepcopy(gt[0][:,-1,:,:,:].numpy())    # [B,K,5,W_L,H_L]
+            if 'centroid' in oracle_masks:
+                import copy
+                heads[0][:,-1,:,:,:] = copy.deepcopy(gt[0][:,-1,:,:,:].numpy())    # [B,K,5,W_L,H_L]
             
             # con = scipy.ndimage.zoom(heads[0][0,-1,0,:,:], (8, 8))
             # plt.imshow(con, cmap='jet')
@@ -157,10 +160,10 @@ class Generator:
         """For single image, from fields to annotations."""
         raise NotImplementedError()
 
-    def batch(self, model, image_batch, *, device=None, target_batch=None):
+    def batch(self, model, image_batch, *, device=None, oracle_masks=None, target_batch=None):
         """From image batch straight to annotations batch."""
         start_nn = time.perf_counter()
-        fields_batch = self.fields_batch(model, image_batch, device=device, target_batch=target_batch)
+        fields_batch = self.fields_batch(model, image_batch, device=device, oracle_masks=oracle_masks, target_batch=target_batch)
         # print('fields batch',len(fields_batch[0]))
         # print('fields batch',fields_batch)
         self.last_nn_time = time.perf_counter() - start_nn

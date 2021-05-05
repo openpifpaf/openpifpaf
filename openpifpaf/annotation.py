@@ -7,7 +7,7 @@ NOTSET = '__notset__'
 
 
 class Annotation:
-    def __init__(self, keypoints, skeleton, *, category_id=1, suppress_score_index=None):
+    def __init__(self, keypoints, skeleton, *, category_id=1, suppress_score_index=None, only_output_17=False):
         self.keypoints = keypoints
         self.skeleton = skeleton
         self.category_id = category_id
@@ -26,6 +26,8 @@ class Annotation:
             self.score_weights[-1] = 0.0
         self.score_weights[:3] = 3.0
         self.score_weights /= np.sum(self.score_weights)
+
+        self.only_output_17 = only_output_17
 
     def add(self, joint_i, xyv):
         self.data[joint_i] = xyv
@@ -88,14 +90,24 @@ class Annotation:
         keypoints[v_mask, 2] = np.maximum(0.01, keypoints[v_mask, 2])
         keypoints = np.around(keypoints.astype(np.float64), 2)
 
-        # convert to float64 before rounding because otherwise extra digits
-        # will be added when converting to Python type
-        data = {
-            'keypoints': keypoints.reshape(-1).tolist(),
-            'bbox': [round(float(c), 2) for c in self.bbox()],
-            'score': max(0.001, round(self.score(), 3)),
-            'category_id': self.category_id,
-        }
+        if self.only_output_17:
+            # convert to float64 before rounding because otherwise extra digits
+            # will be added when converting to Python type
+            data = {
+                'keypoints': keypoints[:17].reshape(-1).tolist(),
+                'bbox': [round(float(c), 2) for c in self.bbox()],
+                'score': max(0.001, round(self.score(), 3)),
+                'category_id': self.category_id,
+            }
+        else:
+            # convert to float64 before rounding because otherwise extra digits
+            # will be added when converting to Python type
+            data = {
+                'keypoints': keypoints.reshape(-1).tolist(),
+                'bbox': [round(float(c), 2) for c in self.bbox()],
+                'score': max(0.001, round(self.score(), 3)),
+                'category_id': self.category_id,
+            }
 
         id_ = getattr(self, 'id_', None)
         if id_:

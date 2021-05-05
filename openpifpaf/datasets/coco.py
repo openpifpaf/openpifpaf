@@ -54,6 +54,7 @@ class Coco(torch.utils.data.Dataset):
             self.ids = self.coco.getImgIds()
         elif image_filter == 'annotated':
             self.ids = self.coco.getImgIds(catIds=self.category_ids)
+            self.ids_inst = self.coco_inst.getImgIds(catIds=self.category_ids)
             self.filter_for_annotations()
         # elif image_filter == 'keypoint-annotations':
         #     self.ids_kp = self.coco_kp.getImgIds(catIds=self.category_ids)
@@ -395,6 +396,8 @@ class Coco(torch.utils.data.Dataset):
         ann_ids = self.coco.getAnnIds(imgIds=image_id)
         anns = self.coco.loadAnns(ann_ids)
         anns = copy.deepcopy(anns)
+        
+        
         # assert anns != []
 
         if self.ann_inst_file is not None:
@@ -500,6 +503,9 @@ class Coco(torch.utils.data.Dataset):
 
         # mask valid TODO still necessary?
         # print('after augmentation')
+        meta['keypoints_GT'] = []
+        for i in anns:
+            meta['keypoints_GT'].append(i['keypoints'])
         
         valid_area = meta['valid_area']
         utils.mask_valid_area(image, valid_area)

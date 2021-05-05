@@ -32,6 +32,13 @@ ANNOTATIONS_TESTDEV = 'data-mscoco/annotations/image_info_test-dev2017.json'
 ANNOTATIONS_TEST = 'data-mscoco/annotations/image_info_test2017.json'
 IMAGE_DIR_TEST = 'data-mscoco/images/test2017/'
 
+ANNOTATIONS_VAL = '/scratch/mistasse/coco/annotations/person_keypoints_val2017.json'
+DET_ANNOTATIONS_VAL = '/scratch/mistasse/coco/annotations/instances_val2017.json'
+IMAGE_DIR_VAL = '/scratch/mistasse/coco/images/val2017/'
+ANNOTATIONS_TESTDEV = '/scratch/mistasse/coco/annotations/image_info_test-dev2017.json'
+ANNOTATIONS_TEST = '/scratch/mistasse/coco/annotations/image_info_test2017.json'
+IMAGE_DIR_TEST = '/scratch/mistasse/coco/images/test2017/'
+
 LOG = logging.getLogger(__name__)
 
 
@@ -401,8 +408,9 @@ def dataloader_from_args(args):
         preprocess=preprocess,
         image_filter='all' if args.all_images else 'annotated',
         # image_filter='kp_inst',
+        # n_images=10,
         category_ids=[] if args.detection_annotations else [1],
-        # config=['cifcent', 'pan']
+        config='pan' if args.checkpoint=='resnet50' else ['cifcent', 'pan']
     )
     data_loader = torch.utils.data.DataLoader(
         data, batch_size=args.batch_size, pin_memory=args.pin_memory,
@@ -414,6 +422,11 @@ def dataloader_from_args(args):
 
 def main():
     args = cli()
+    args.only_output_17 = True
+
+    print('Checkpoint:', args.checkpoint)
+    print('Max pool TH:', args.max_pool_th)
+    print('Prediction Filtering Disabled: ', args.disable_pred_filter)
 
     # skip existing?
     if args.skip_existing:

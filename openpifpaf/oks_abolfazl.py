@@ -31,6 +31,8 @@ import random
 from . import datasets, encoder, decoder, network, show, transforms, visualizer, __version__
 from openpifpaf.datasets.collate import collate_images_targets_inst_meta_views
 from openpifpaf.datasets.deepsport import DeepSportDataset, build_DeepSportBall_datasets, deepsportlab_dataset_splitter
+import datetime
+
 KiHEAD = 0.15
 KiHIPS = 0.2
 KiFEET = 0.2
@@ -157,6 +159,7 @@ class PlayerAnnotation2D():
     def __init__(self, annotation: PlayerAnnotation, calib: Calib):
         self.annotation = annotation
         self.calib = calib
+        self.feet_swapped = False
     @property
     def head(self):
         return self.calib.project_3D_to_2D(self.annotation.head)
@@ -165,10 +168,17 @@ class PlayerAnnotation2D():
         return self.calib.project_3D_to_2D(self.annotation.hips)
     @property
     def foot1(self):
+        if self.feet_swapped:
+            return self.calib.project_3D_to_2D(self.annotation.foot2)
         return self.calib.project_3D_to_2D(self.annotation.foot1)
     @property
     def foot2(self):
+        if self.feet_swapped:
+            return self.calib.project_3D_to_2D(self.annotation.foot1)
         return self.calib.project_3D_to_2D(self.annotation.foot2)
+
+    def swap_feet(self):
+        self.feet_swapped = not self.feet_swapped
 
     def projects_in_court(self, calib: Calib, court: Court):
         MARGIN = 10
@@ -203,7 +213,7 @@ def compute_metrics(result_list):
         "Mrecall": np.mean(TP/Na)
     }
 
-def OKS(a: PlayerAnnotation2D, p: PlayerSkeleton, alpha=0.8, use_dist_squared=False):
+def OKS(a: PlayerAnnotation2D, p: PlayerSkeleton, alpha=0.8, use_dist_squared=False, enable_swap=False):
     def dist(p1, p2):
         dist_squared = np.sum((p1-p2)**2)
         return dist_squared if use_dist_squared else np.sqrt(dist_squared)
@@ -224,14 +234,46 @@ def OKS(a: PlayerAnnotation2D, p: PlayerSkeleton, alpha=0.8, use_dist_squared=Fa
 
     pair1 = np.nanmean([KS(a, p, "head", KiHEAD*alpha, s), KS(a, p, "hips", KiHIPS*alpha, s), KS(a, p, "foot1", KiFEET*alpha, s), KS(a, p, "foot2", KiFEET*alpha, s)])
     pair2 = np.nanmean([KS(a, p, "head", KiHEAD*alpha, s), KS(a, p, "hips", KiHIPS*alpha, s), KS(a, p, "foot1", KiFEET*alpha, s, "foot2"), KS(a, p, "foot2", KiFEET*alpha, s, "foot1")])
-    # if pair2 > pair1:
-    #     # print('about to swap:')
-    #     # print(getattr(p, 'foot1'))
-    #     # print(getattr(p, 'foot2'))
-    #     p.swap_feet()   # swap feet predictions
-    #     # print('swapped:')
-    #     # print(getattr(p, 'foot1'))
-    #     # print(getattr(p, 'foot2'))
+    if enable_swap and pair2 > pair1:
+        # print('\n about to swap:')
+        # print('pair1 and pair2', pair1, pair2)
+        # print('ann', a)
+        # print('pred', p)
+        # try:
+        #     print('Foot1',p.foot1)
+        # except HiddenKeypointError:
+        #     print('Foot1 hidden')
+        # try:
+        #     print('Foot2',p.foot2)
+        # except HiddenKeypointError:
+        #     print('Foot2 hidden')
+        p.swap_feet()   # swap feet predictions
+        # print('swapped:')
+        # print('ann', a)
+        # print('pred', p)
+        # try:
+        #     print('Foot1',p.foot1)
+        # except HiddenKeypointError:
+        #     print('Foot1 hidden')
+        # try:
+        #     print('Foot2',p.foot2)
+        # except HiddenKeypointError:
+        #     print('Foot2 hidden')
+
+        # print('\n about to swap:')
+        # print('pair1 and pair2', pair1, pair2)
+        # print('ann', a)
+        # print('pred', p)
+        # print(getattr(a, 'foot1'))
+        # print(getattr(a, 'foot2'))
+        # print(a.feet_swapped)
+        # a.swap_feet()   # swap feet predictions
+        # print(a.feet_swapped)
+        # print('swapped:')
+        # print('ann', a)
+        # print('pred', p)
+        # print(getattr(a, 'foot1'))
+        # print(getattr(a, 'foot2'))
     return max(pair1, pair2)
 
 
@@ -329,7 +371,7 @@ def cli():
     #                     help='input images')
 
     parser.add_argument("weights_file")
-    #parser.add_argument('--oracle-masks', default=False, action='store_true') TODO: Abolfazl ___ please sign here:
+    
     parser.add_argument('--use-dist-squared', default=False, action='store_true', help='In OKS computation: use dist squared instead of dist')
     parser.add_argument('--glob',
                         help='glob expression for input images (for many images)')
@@ -365,6 +407,9 @@ def cli():
     group.add_argument('--disable-error-detail', default=False, action='store_true')
 
     group.add_argument('--filter-after-matching', default=False, action='store_true')
+
+    parser.add_argument('--oracle-masks', default=None, nargs='+',
+                        help='pass centroid, semantic, and offset to use their oracle')
 
     
     # group.add_argument("--pickled-dataset", required=True)
@@ -456,6 +501,16 @@ def build_DeepSport_test_dataset(pickled_dataset_filename, validation_set_size_p
     dataset = TransformedDataset(dataset, transforms)
     return DeepSportDataset(dataset, keys, target_transforms, preprocess, config, oks_computation=True)
 
+def get_output_filename(args):
+    import os
+    if not os.path.exists('oks_logs'):
+        os.makedirs('oks_logs')
+    now = datetime.datetime.now().strftime('%y%m%d-%H%M%S.%f')
+    out = 'oks_logs/{}-{}'.format(now, args.checkpoint.split('/')[-1])
+
+    return out + '.log'
+
+
 def main():
     # parser = argparse.ArgumentParser()
     # parser.add_argument("weights_file")
@@ -465,6 +520,8 @@ def main():
 
     processor, model = processor_factory(args)
     preprocess = preprocess_factory(args)
+
+    output_file = open(get_output_filename(args), "a")
     
     #assert args.dataset_fold == "DeepSport", f"You should not eval OKS on another split than DeepSport. Current slit is {args.dataset_fold}"
 
@@ -486,7 +543,7 @@ def main():
     result_list = []
 
     images_with_wrong_feet = 0
-    logging.warning("Abolfazl, you didn't implement the oracle selection yet !!!!!!")
+    # logging.warning("Abolfazl, you didn't implement the oracle selection yet !!!!!!")
     error_detail_dict = {}
     sum_all_cases_true = 0
     # nan_counter = 0
@@ -500,15 +557,16 @@ def main():
     Total_people_annot = 0
 
     for batch_i, (image_tensors_batch, target_batch, meta_batch, views_batch, keys_batch) in enumerate(tqdm(data_loader)):
-        pred_batch = processor.batch(model, image_tensors_batch, device=args.device)#, target_batch=target_batch)
+
+        pred_batch = processor.batch(model, image_tensors_batch, device=args.device, oracle_masks=args.oracle_masks, target_batch=target_batch)
         
         # unbatch
         assert len(pred_batch)==len(views_batch)
 
 
         for pred, meta, view, key in zip(pred_batch, meta_batch, views_batch, keys_batch):
-            print('-------------------------new Image----------------------------')
-            print('Number of people in this image',len(pred))
+            # print('-------------------------new Image----------------------------')
+            # print('Number of people in this image',len(pred))
 
             LOG.info('batch %d: %s', batch_i, meta['file_name'])
             # print(view.keys())
@@ -527,7 +585,7 @@ def main():
                 predictions = [p for p in predictions if p.projects_in_court(view['calib'], court) and p.visible]
                 # remove remaining annotations that lie outside the court
                 annotations = [a for a in annotations if a.projects_in_court(view['calib'], court)]
-                print('Number of people in this image after deleting outside of the court',len(predictions))
+                # print('Number of people in this image after deleting outside of the court',len(predictions))
                 Total_people_annot += len(annotations)      # to have count of people in annotations
 
             if any([np.all(a.foot1 == a.foot2) for a in annotations]):
@@ -544,12 +602,9 @@ def main():
                         break
                     idx = np.argmax([OKS(a, p, use_dist_squared=args.use_dist_squared) for a in annotations])
                     matching[p] = annotations[idx]
-                    oks_list.append(OKS(annotations[idx], p, alpha=0.8))
+                    oks_list.append(OKS(annotations[idx], p, alpha=0.8, enable_swap=True))
                     del annotations[idx]
-            # print('\n 11111111111111111111')
-            # print('\n predictions', predictions)
-            # print('\n annotations', annotations)
-            # print('\n matching', matching)
+
             
             # if args.filter_after_matching:
             #     predictions = [p for p in predictions if p.projects_in_court(view['calib'], court) and p.visible]
@@ -591,33 +646,33 @@ def main():
             
             
             if not args.disable_error_detail:
-                print('number of people after OKS computations', len(predictions))
+                # print('number of people after OKS computations', len(predictions))
                 for p_id, p in enumerate(predictions):
                     try:
                         match = matching[p]
                     except KeyError:
-                        print('Matching missing', p_id)
+                        # print('Matching missing', p_id)
                         Background_FP += 1
                         continue
-                    print('~~~~~ person # ', p_id)
-                    print('prediction:', p.predicted_keypoints)
+                    # print('~~~~~ person # ', p_id)
+                    # print('prediction:', p.predicted_keypoints)
 
                     for idddx, (kp, kp_name) in enumerate(zip(*p.predicted_keypoints)):
                         km = getattr(match, kp_name)
-                        print('start for ', idddx, kp_name)
+                        # print('start for ', idddx, kp_name)
                         ks_result = KS(match, kp, kp_name, use_dist_squared=args.use_dist_squared)
                         if np.isnan(ks_result):
                             # nan_counter += 1
                             # nan_count[kp_name] += 1
                             error_detail_dict['Nan'][kp_name] += 1
-                            print('idx nan:', idddx)
+                            # print('idx nan:', idddx)
                             continue
                         if ks_result >= 0.85:
-                            print('idx good:', idddx)
+                            # print('idx good:', idddx)
                             error_detail_dict['Good'][kp_name] += 1
                             # good[kp_name] += 1
                         elif 0.5 <= ks_result < 0.85:
-                            print('idx jitter:', idddx)
+                            # print('idx jitter:', idddx)
                             error_detail_dict['Jitter'][kp_name] += 1
                             # jitter[kp_name] += 1
                         else:
@@ -629,7 +684,7 @@ def main():
                                 if np.isnan(ks_result):
                                     continue
                                 elif ks_result >= 0.5:
-                                    print('idx inversion:', idddx)
+                                    # print('idx inversion:', idddx)
                                     error_detail_dict['Inversion'][kp_name] += 1
                                     # inversion[kp_name] += 1
                                     for_done = True
@@ -645,7 +700,7 @@ def main():
                                     if np.isnan(ks_result):
                                         continue
                                     elif ks_result >= 0.5:
-                                        print('idx swap:', idddx)
+                                        # print('idx swap:', idddx)
                                         error_detail_dict['Swap'][kp_name] += 1
                                         # swap[kp_name] += 1
                                         for_done = True
@@ -655,22 +710,22 @@ def main():
                             if for_done:
                                 continue
 
-                            print('idx miss:', idddx)
+                            # print('idx miss:', idddx)
                             error_detail_dict['Miss'][kp_name] += 1
                             # miss[kp_name] += 1
 
                     # sum_all_cases = sum(good.values())+sum(jitter.values())+sum(inversion.values())+sum(swap.values())+sum(miss.values())+sum(nan_count.values())
                     sum_all_cases = sum([sum(edd.values()) for edd in error_detail_dict.values()])
                     sum_all_cases_true += len(p.predicted_keypoints[0]) 
-                    print('Error detail:', error_detail_dict)
-                    print('Backgound FP:', Background_FP)
-                    print('Total People pred:', Total_people_pred)
-                    print('Backgound FN:', Background_FN)
-                    print('Total People annot:', Total_people_annot)
-                    if Total_people_pred > 0:
-                        print('Backgound FP rate:', round((Background_FP/Total_people_pred)*100, 3))
-                    if Total_people_annot > 0:
-                        print('Backgound FN rate:', round((Background_FN/Total_people_annot)*100, 3))
+                    # print('Error detail:', error_detail_dict)
+                    # print('Backgound FP:', Background_FP)
+                    # print('Total People pred:', Total_people_pred)
+                    # print('Backgound FN:', Background_FN)
+                    # print('Total People annot:', Total_people_annot)
+                    # if Total_people_pred > 0:
+                    #     print('Backgound FP rate:', round((Background_FP/Total_people_pred)*100, 3))
+                    # if Total_people_annot > 0:
+                    #     print('Backgound FN rate:', round((Background_FN/Total_people_annot)*100, 3))
                     assert sum_all_cases_true == sum_all_cases, str(sum_all_cases_true)+ "\n"+ str(sum_all_cases)
             
                 Total_people_pred += len(predictions)
@@ -684,8 +739,35 @@ def main():
     pickle.dump(result_list, open(f"{args.weights_file}_OKS_tmp_results.pickle", "wb"))
     pprint(compute_metrics(result_list))
     print('Checkpoint: ', args.weights_file)
+    print('Oracle: ', args.oracle_masks)
     print('Kapas: ', KAPAS)
     print('Filter the prediction and annotations after the matching: ', args.filter_after_matching)
+
+    output_file.write('\nCheckpoint: ' + str(args.weights_file))
+    output_file.write('\nOracle: ' + str(args.oracle_masks))
+    output_file.write('\nKapas: ' + str(KAPAS))
+    output_file.write('\nFilter the prediction and annotations after the matching:: ' + str(args.filter_after_matching))
+    resss = compute_metrics(result_list)
+    output_file.write('\nOKS: ' + str())
+    for k,v in resss.items():
+        output_file.write('\n\t' + str(k) + ' : ' + str(v))
+    output_file.write('\nCheckpoint: ' + str(args.weights_file))
+    sizes = [sum(l.values()) for l in error_detail_dict.values()]
+    output_file.write('\nError Detail: ' + str([round((s/sum(sizes)*100),1) for s in sizes]))
+    output_file.write('\nBackgound FP: ' + str(Background_FP))
+    output_file.write('\nTotal People pred: ' + str(Total_people_pred))
+    if Total_people_pred > 0:
+        output_file.write('\nBackgound FP rate: ' + str(round((Background_FP/Total_people_pred)*100, 3)))
+    output_file.write('\nBackgound FP: ' + str(Background_FP))
+
+    output_file.write('\nBackgound FN: ' + str(Background_FN))
+    output_file.write('\nTotal People annot: ' + str(Total_people_annot))
+    if Total_people_annot > 0:
+        output_file.write('\nBackgound FN rate: ' + str(round((Background_FN/Total_people_annot)*100, 3)))
+
+    output_file.close()
+
+
     if not args.disable_error_detail:
         plot_pie_chart(error_detail_dict, Background_FP, Total_people_pred, Background_FN, Total_people_annot)
 
@@ -798,6 +880,8 @@ def plot_pie_chart(error_detail, Background_FP, Total_people_pred, Background_FN
                         horizontalalignment=horizontalalignment, **kw)
     # plt.savefig('image/pie_chart_total.png')
 
+    print('Error Detail = ', [round((s/sum(sizes)*100),1) for s in sizes])
+
     print('Backgound FP:', Background_FP)
     print('Total People pred:', Total_people_pred)
     if Total_people_pred > 0:
@@ -823,10 +907,10 @@ def KS(a, p, name, use_dist_squared=False):
     except HiddenKeypointError:
         return np.nan
     kapa = KAPAS[name]
-    try: 
-        return np.exp(-dist(a, p)/(2*s*kapa**2))
-    except HiddenKeypointError:
-        return np.nan
+    # try: 
+    return np.exp(-dist(a, p)/(2*s*kapa**2))
+    # except HiddenKeypointError:
+    #     return np.nan
 
     # else:
     #     flag1 = False

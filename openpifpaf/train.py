@@ -122,6 +122,7 @@ def main():
     net_cpu.process_heads = None
     # if args.output is None:
     args.output = default_output_file(args, net_cpu)
+    print('output file:', args.output)
     logs.configure(args)
     if args.log_stats:
         logging.getLogger('openpifpaf.stats').setLevel(logging.DEBUG)

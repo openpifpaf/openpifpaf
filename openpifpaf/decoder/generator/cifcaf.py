@@ -19,7 +19,7 @@ from ... import visualizer
 from ...functional import caf_center_s
 
 LOG = logging.getLogger(__name__)
-
+import torch
 
 class CifCaf(Generator):
     """Generate CifCaf poses from fields.
@@ -64,7 +64,7 @@ class CifCaf(Generator):
             self.by_source[j1][j2] = (caf_i, True)
             self.by_source[j2][j1] = (caf_i, False)
 
-    def __call__(self, fields, initial_annotations=None):
+    def __call__(self, fields, initial_annotations=None, debug=None):
         start = time.perf_counter()
         if not initial_annotations:
             initial_annotations = []
@@ -78,6 +78,25 @@ class CifCaf(Generator):
                 vis.predicted(fields[caf_i])
 
         cifhr = CifHr(self.field_config).fill(fields)
+        
+
+        def cif_local_max(cif, kernel_size=13, pad=6):
+            """Use torch for max pooling"""
+            cif = torch.tensor(cif)
+            cif_m = torch.max_pool2d(cif[None], kernel_size, stride=1, padding=pad)[0] == cif      #### 7 padding=3
+            # cif_m &= cif > 0.1# * cif.max()
+            cif_m &= cif > 0.1
+            return np.asarray(cif_m)
+
+        keypoints_yx = []
+        keypoints_yx = [np.stack(np.nonzero(cif_local_max(cif)), axis=-1)
+                            for cif in cifhr.accumulated]
+        if debug is not None:
+            debug.update(
+                cifhr=cifhr,
+                fields=fields,
+                keypoints_yx=keypoints_yx,
+            )
         seeds = CifSeeds(cifhr.accumulated, self.field_config).fill(fields)
         caf_scored = CafScored(cifhr.accumulated, self.field_config, self.skeleton).fill(fields)
 
