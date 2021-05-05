@@ -50,7 +50,7 @@ def test_cli_respects_namespace():
         module.cli(parser)
         arguments = parser.parse_args([])
 
-        for arg, _ in arguments._get_kwargs():
+        for arg, _ in arguments._get_kwargs():  # pylint: disable=protected-access
             # allow --cocokp-... in cocokp module
             if arg.startswith(name + '_'):
                 continue
