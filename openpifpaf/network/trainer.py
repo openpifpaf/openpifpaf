@@ -163,7 +163,10 @@ class Trainer():
                 self.val(val_scenes, epoch + 1)
 
     def train_batch(self, data, targets, apply_gradients=True):  # pylint: disable=method-hidden
-        if self.device:
+        if self.device.type != 'cpu':
+            assert data.is_pinned(), 'input data must be pinned'
+            if targets[0] is not None:
+                assert targets[0].is_pinned(), 'input targets must be pinned'
             with torch.autograd.profiler.record_function('to-device'):
                 data = data.to(self.device, non_blocking=True)
                 targets = [head.to(self.device, non_blocking=True)
@@ -173,11 +176,17 @@ class Trainer():
         # train encoder
         with torch.autograd.profiler.record_function('model'):
             outputs = self.model(data, head_mask=[t is not None for t in targets])
+            if self.train_profile and self.device.type != 'cpu':
+                torch.cuda.synchronize()
         with torch.autograd.profiler.record_function('loss'):
             loss, head_losses = self.loss(outputs, targets)
+            if self.train_profile and self.device.type != 'cpu':
+                torch.cuda.synchronize()
         if loss is not None:
             with torch.autograd.profiler.record_function('backward'):
                 loss.backward()
+                if self.train_profile and self.device.type != 'cpu':
+                    torch.cuda.synchronize()
         if self.clip_grad_norm:
             with torch.autograd.profiler.record_function('clip-grad-norm'):
                 max_norm = self.clip_grad_norm / self.lr()
@@ -188,20 +197,30 @@ class Trainer():
                     self.n_clipped_grad += 1
                     print('CLIPPED GRAD NORM: total norm before clip: {}, max norm: {}'
                           ''.format(total_norm, max_norm))
+                if self.train_profile and self.device.type != 'cpu':
+                    torch.cuda.synchronize()
         if self.clip_grad_value:
             with torch.autograd.profiler.record_function('clip-grad-value'):
                 torch.nn.utils.clip_grad_value_(self.model.parameters(), self.clip_grad_value)
+                if self.train_profile and self.device.type != 'cpu':
+                    torch.cuda.synchronize()
         if apply_gradients:
             with torch.autograd.profiler.record_function('step'):
                 self.optimizer.step()
                 self.optimizer.zero_grad()
+                if self.train_profile and self.device.type != 'cpu':
+                    torch.cuda.synchronize()
             with torch.autograd.profiler.record_function('ema'):
                 self.step_ema()
+                if self.train_profile and self.device.type != 'cpu':
+                    torch.cuda.synchronize()
 
         with torch.no_grad():
             with torch.autograd.profiler.record_function('reduce-losses'):
                 loss = self.reduce_loss(loss)
                 head_losses = self.reduce_loss(head_losses)
+                if self.train_profile and self.device.type != 'cpu':
+                    torch.cuda.synchronize()
 
         return (
             float(loss.item()) if loss is not None else None,
