@@ -7,8 +7,7 @@ from .cifdet import CifDet
 from .decoder import Decoder
 from .multi import Multi
 from . import utils
-from .profiler import Profiler
-from .profiler_autograd import ProfilerAutograd
+from ..profiler import Profiler  # , TorchProfiler
 
 LOG = logging.getLogger(__name__)
 
@@ -155,8 +154,8 @@ class Factory:
             decode = decoders[0]
             decode.__class__.__call__ = Profiler(
                 decode.__call__, out_name=cls.profile)
-            decode.fields_batch = ProfilerAutograd(
-                decode.fields_batch, device=cls.profile_device, out_name=cls.profile)
+            # decode.__class__.__call__ = TorchProfiler(
+            #     decode.__call__, out_name=cls.profile)
 
         return Multi(decoders)
 
