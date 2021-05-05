@@ -162,7 +162,8 @@ class Trainer():
                 self.write_model(epoch + 1, epoch + 1 == self.epochs)
                 self.val(val_scenes, epoch + 1)
 
-    def train_batch(self, data, targets, apply_gradients=True):  # pylint: disable=method-hidden
+    # pylint: disable=method-hidden,too-many-branches,too-many-statements
+    def train_batch(self, data, targets, apply_gradients=True):
         if self.device.type != 'cpu':
             assert data.is_pinned(), 'input data must be pinned'
             if targets[0] is not None:
