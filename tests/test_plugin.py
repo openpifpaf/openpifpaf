@@ -1,4 +1,5 @@
 import argparse
+from collections import defaultdict
 import os
 import subprocess
 import sys
@@ -41,6 +42,8 @@ def test_importable():
 
 
 def test_cli_respects_namespace():
+    conflicts = defaultdict(list)
+
     for name, module in openpifpaf.datasets.DATAMODULES.items():
         if name.startswith('test'):
             continue
@@ -59,4 +62,10 @@ def test_cli_respects_namespace():
             if name.startswith(arg.partition('_')[0]):
                 continue
 
-            raise Exception(f'cli argument ${arg} must start with ${name}')
+            conflicts[name].append(arg)
+
+    if conflicts:
+        raise Exception(' '.join(
+            f'Cli arguments {args} defined in the "{name}" module must start with "{name}_".'
+            for name, args in conflicts.items()
+        ))
