@@ -128,6 +128,19 @@ class CifDet(Base):
         return len(self.categories)
 
 
+
+@dataclass
+class TSingleImageCif(Cif):
+    """Single-Image CIF head in tracking models."""
+    pass
+
+
+@dataclass
+class TSingleImageCaf(Caf):
+    """Single-Image CAF head in tracking models."""
+    pass
+
+
 @dataclass
 class Tcaf(Base):
     """Tracking Composite Association Field."""

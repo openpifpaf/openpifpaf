@@ -9,7 +9,7 @@ import torchvision
 
 from .. import headmeta
 from ..configurable import Configurable
-from . import basenetworks, heads, nets
+from . import basenetworks, heads, nets, tracking_base, tracking_heads
 
 
 # monkey patch torchvision for mobilenetv2 checkpoint backwards compatibility
@@ -53,6 +53,7 @@ BASE_TYPES = set([
     basenetworks.ShuffleNetV2,
     basenetworks.ShuffleNetV2K,
     basenetworks.SqueezeNet,
+    tracking_base.TrackingBase,
 ])
 BASE_FACTORIES = {
     'mobilenetv2': lambda: basenetworks.MobileNetV2('mobilenetv2', torchvision.models.mobilenet_v2),
@@ -89,6 +90,9 @@ HEADS = {
     headmeta.Cif: heads.CompositeField3,
     headmeta.Caf: heads.CompositeField3,
     headmeta.CifDet: heads.CompositeField3,
+    headmeta.TSingleImageCif: tracking_heads.TBaseSingleImage,
+    headmeta.TSingleImageCaf: tracking_heads.TBaseSingleImage,
+    headmeta.Tcaf: tracking_heads.Tcaf,
 }
 
 LOG = logging.getLogger(__name__)

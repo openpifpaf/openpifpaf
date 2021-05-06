@@ -21,7 +21,7 @@ from .datasets import DATAMODULES
 from .decoder import DECODERS
 from .network.factory import BASE_FACTORIES, BASE_TYPES, CHECKPOINT_URLS, HEADS
 from .network.losses.factory import LOSSES, LOSS_COMPONENTS
-from .network.nets import MODEL_MIGRATION
+from .network.model_migration import MODEL_MIGRATION
 from .show.annotation_painter import PAINTERS
 
 # load plugins last
