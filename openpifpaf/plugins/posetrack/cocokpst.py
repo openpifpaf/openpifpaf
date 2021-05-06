@@ -13,7 +13,6 @@ from openpifpaf.plugins.coco.constants import (
     DENSER_COCO_PERSON_CONNECTIONS,
     HFLIP,
 )
-from . import transforms
 from openpifpaf.transforms.pair import SingleImage as S
 
 try:
@@ -119,8 +118,10 @@ class CocoKpSt(openpifpaf.datasets.DataModule):
                  openpifpaf.transforms.RotateUniform(30.0)],
                 [openpifpaf.plugins.coco.CocoKp.orientation_invariant, 0.4],
             )),
-            openpifpaf.transforms.pair.Crop(openpifpaf.plugins.coco.CocoKp.square_edge, max_shift=30.0),
-            openpifpaf.transforms.pair.Pad(openpifpaf.plugins.coco.CocoKp.square_edge, max_shift=30.0),
+            openpifpaf.transforms.pair.Crop(
+                openpifpaf.plugins.coco.CocoKp.square_edge, max_shift=30.0),
+            openpifpaf.transforms.pair.Pad(
+                openpifpaf.plugins.coco.CocoKp.square_edge, max_shift=30.0),
             S(openpifpaf.transforms.RandomChoice([openpifpaf.transforms.Blur(),
                                                   openpifpaf.transforms.HorizontalBlur()],
                                                  [openpifpaf.plugins.coco.CocoKp.blur / 2.0,

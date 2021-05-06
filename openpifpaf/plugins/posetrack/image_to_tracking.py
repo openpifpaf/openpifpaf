@@ -4,8 +4,9 @@ import argparse
 import logging
 import os
 
-import openpifpaf
 import torch
+
+import openpifpaf
 
 LOG = logging.getLogger(__name__)
 

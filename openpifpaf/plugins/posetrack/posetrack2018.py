@@ -158,9 +158,12 @@ class Posetrack2018(openpifpaf.datasets.DataModule):
 
     def _preprocess(self):
         encoders = [
-            openpifpaf.encoder.SingleImage(openpifpaf.encoder.Cif(self.head_metas[0], bmin=self.bmin)),
-            openpifpaf.encoder.SingleImage(openpifpaf.encoder.Caf(self.head_metas[1], bmin=self.bmin)),
-            openpifpaf.encoder.SingleImage(openpifpaf.encoder.Caf(self.head_metas[2], bmin=self.bmin)),
+            openpifpaf.encoder.SingleImage(
+                openpifpaf.encoder.Cif(self.head_metas[0], bmin=self.bmin)),
+            openpifpaf.encoder.SingleImage(
+                openpifpaf.encoder.Caf(self.head_metas[1], bmin=self.bmin)),
+            openpifpaf.encoder.SingleImage(
+                openpifpaf.encoder.Caf(self.head_metas[2], bmin=self.bmin)),
         ]
         if not self.ablation_without_tcaf:
             encoders.append(openpifpaf.encoder.Tcaf(self.head_metas[3], bmin=self.bmin))

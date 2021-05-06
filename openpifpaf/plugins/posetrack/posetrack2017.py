@@ -88,6 +88,12 @@ class Posetrack2017(openpifpaf.datasets.DataModule):
         cls.eval_annotations = args.posetrack2017_eval_annotations
         cls.data_root = args.posetrack2017_data_root
 
+    def train_loader(self):
+        raise NotImplementedError
+
+    def val_loader(self):
+        raise NotImplementedError
+
     def _eval_preprocess(self):
         return openpifpaf.transforms.Compose([
             *Posetrack2018.common_eval_preprocess(),
