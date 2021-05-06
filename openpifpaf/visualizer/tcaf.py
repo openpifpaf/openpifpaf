@@ -1,16 +1,16 @@
 import copy
 import numpy as np
 
-import openpifpaf
-
+from .base import Base
+from .caf import Caf
 from .. import headmeta
 
 
-class Tcaf(openpifpaf.visualizer.Base):
+class Tcaf(Base):
     def __init__(self, meta: headmeta.Tcaf):
         super().__init__(meta.name)
         self.meta = meta
-        self.caf_visualizer = openpifpaf.visualizer.Caf(meta)
+        self.caf_visualizer = Caf(meta)
 
     @staticmethod
     def merge_anns(ann1, ann2):
