@@ -44,10 +44,8 @@ class Pad(Preprocess):
 
         right = self.target_size[0] - w - left
         bottom = self.target_size[1] - h - top
-        if right < 0:
-            right = 0
-        if bottom < 0:
-            bottom = 0
+        right = int(torch.clamp(right, 0, self.target_size[0] - w).item())
+        bottom = int(torch.clamp(bottom, 0, self.target_size[1] - h).item())
         ltrb = (left, top, right, bottom)
         LOG.debug('pad with %s', ltrb)
 

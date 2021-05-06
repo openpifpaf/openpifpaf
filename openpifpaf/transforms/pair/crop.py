@@ -5,6 +5,7 @@ import numpy as np
 import torch
 
 from ..preprocess import Preprocess
+from ..crop import Crop as SingleImageCrop
 
 LOG = logging.getLogger(__name__)
 
@@ -21,8 +22,14 @@ class Crop(Preprocess):
 
         if self.use_area_of_interest:
             # crop around the interesting area in the past frame to
-            # train whether the pose continues or not
-            area_of_interest = self.area_of_interest(all_anns[1], metas[1]['valid_area'])
+            # train whether the pose continues or not (unless the past
+            # frame is blank)
+            if all_anns[0] and not all_anns[1]:
+                area_of_interest = SingleImageCrop.area_of_interest(
+                    all_anns[0], metas[0]['valid_area'])
+            else:
+                area_of_interest = SingleImageCrop.area_of_interest(
+                    all_anns[1], metas[1]['valid_area'])
         else:
             area_of_interest = metas[0]['valid_area']
 
@@ -66,10 +73,6 @@ class Crop(Preprocess):
             new_metas.append(meta)
 
         return new_images, new_anns, new_metas
-
-    @staticmethod
-    def area_of_interest(anns, valid_area):
-        return openpifpaf.transforms.Crop.area_of_interest(anns, valid_area)
 
     def crop(self, image, anns, area_of_interest, cam_shift):
         LOG.debug('cam shift = %s', cam_shift)
