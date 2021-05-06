@@ -1,18 +1,19 @@
 import logging
 
-import openpifpaf
+from .base import Base
+from .. import headmeta, show
 
 LOG = logging.getLogger(__name__)
 
 
-class MultiTracking(openpifpaf.visualizer.Base):
+class MultiTracking(Base):
     trail_length = 10
 
-    def __init__(self, meta: openpifpaf.headmeta.Caf):
+    def __init__(self, meta: headmeta.Caf):
         super().__init__('multi_' + meta.name)
         LOG.debug('vis %s', 'multi_' + meta.name)
         self.meta = meta
-        self.annotation_painter = openpifpaf.show.AnnotationPainter()
+        self.annotation_painter = show.AnnotationPainter()
 
         self.anns_trail = []
 
