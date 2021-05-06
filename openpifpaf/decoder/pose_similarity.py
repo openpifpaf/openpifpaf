@@ -3,7 +3,6 @@ import logging
 import time
 
 import numpy as np
-import openpifpaf
 import scipy.optimize
 
 from .. import headmeta

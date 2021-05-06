@@ -5,7 +5,7 @@ import torch
 import openpifpaf
 from openpifpaf.transforms.pair import SingleImage as S
 
-from . import datasets, headmeta, metric, transforms
+from . import datasets, metric, transforms
 
 from .constants import (
     KEYPOINTS,

@@ -1,6 +1,5 @@
 import openpifpaf
 
-from . import decoder
 from .cocokpst import CocoKpSt
 from .posetrack2018 import Posetrack2018
 from .posetrack2017 import Posetrack2017

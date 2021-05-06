@@ -1,13 +1,13 @@
 from typing import List
 
 import numpy as np
-import openpifpaf
 
+from .decoder import Decoder
 from .track_annotation import TrackAnnotation
 from ..signal import Signal
 
 
-class TrackBase(openpifpaf.decoder.Decoder):
+class TrackBase(Decoder):
     single_pose_threshold = 0.3
     multi_pose_threshold = 0.2
     multi_pose_n = 3

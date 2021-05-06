@@ -3,9 +3,11 @@ import logging
 import time
 
 import numpy as np
-import openpifpaf
 
 from .. import headmeta, visualizer
+from ..annotation import Annotation
+from . import utils
+from .cifcaf import CifCaf
 from .track_annotation import TrackAnnotation
 from .track_base import TrackBase
 
@@ -43,7 +45,7 @@ class TrackingPose(TrackBase):
             ]
         )
 
-        self.tracking_cif_meta = openpifpaf.headmeta.Cif(
+        self.tracking_cif_meta = headmeta.Cif(
             'tracking_cif', cif_meta.dataset,
             keypoints=tracking_keypoints,
             sigmas=tracking_sigmas,
@@ -52,7 +54,7 @@ class TrackingPose(TrackBase):
         self.tracking_cif_meta.base_stride = cif_meta.base_stride
         self.tracking_cif_meta.upsample_stride = cif_meta.upsample_stride
 
-        self.tracking_caf_meta = openpifpaf.headmeta.Caf(
+        self.tracking_caf_meta = headmeta.Caf(
             'tracking_caf', caf_meta.dataset,
             keypoints=tracking_keypoints,
             sigmas=tracking_sigmas,
@@ -62,12 +64,12 @@ class TrackingPose(TrackBase):
         self.tracking_caf_meta.base_stride = caf_meta.base_stride
         self.tracking_caf_meta.upsample_stride = caf_meta.upsample_stride
 
-        self.pose_generator = pose_generator or openpifpaf.decoder.CifCaf(
+        self.pose_generator = pose_generator or CifCaf(
             [self.tracking_cif_meta], [self.tracking_caf_meta])
         LOG.debug('keypoint threshold: cifcaf=%f, nms=%f, %s',
-                  openpifpaf.decoder.CifCaf.keypoint_threshold,
-                  openpifpaf.decoder.utils.nms.Keypoints.keypoint_threshold,
-                  openpifpaf.decoder.CifCaf.nms)
+                  CifCaf.keypoint_threshold,
+                  utils.nms.Keypoints.keypoint_threshold,
+                  CifCaf.nms)
 
         self.vis_multitracking = visualizer.MultiTracking(self.tracking_caf_meta)
 
@@ -107,10 +109,10 @@ class TrackingPose(TrackBase):
             if frame_ann is None:
                 continue
             kps = frame_ann.data
-            kps[kps[:, 2] < openpifpaf.decoder.utils.nms.Keypoints.keypoint_threshold] = 0.0
+            kps[kps[:, 2] < utils.nms.Keypoints.keypoint_threshold] = 0.0
             kps[self.invalid_keypoints] = 0.0
 
-        occupied = openpifpaf.decoder.utils.Occupancy((
+        occupied = utils.Occupancy((
             self.n_keypoints,
             int(max(1, max(np.max(t.frame_pose[-1][1].data[:, 1]) for t in tracks) + 1)),
             int(max(1, max(np.max(t.frame_pose[-1][1].data[:, 0]) for t in tracks) + 1)),
@@ -141,7 +143,7 @@ class TrackingPose(TrackBase):
             if frame_ann is None:
                 continue
             kps = frame_ann.data
-            kps[kps[:, 2] < openpifpaf.decoder.utils.nms.Keypoints.keypoint_threshold] = 0.0
+            kps[kps[:, 2] < utils.nms.Keypoints.keypoint_threshold] = 0.0
 
         if self.pose_generator.occupancy_visualizer is not None:
             LOG.debug('Occupied fields after NMS')
@@ -158,7 +160,7 @@ class TrackingPose(TrackBase):
         # initialize tracking poses from self.active tracks
         initial_annotations = []
         for track in self.active:
-            tracking_ann = openpifpaf.Annotation(
+            tracking_ann = Annotation(
                 self.tracking_cif_meta.keypoints,
                 self.tracking_caf_meta.skeleton,
             )
@@ -189,8 +191,8 @@ class TrackingPose(TrackBase):
 
         # use standard pose processor to connect to current frame
         LOG.debug('overwriting CifCaf parameters')
-        openpifpaf.decoder.CifCaf.nms = None
-        openpifpaf.decoder.CifCaf.keypoint_threshold = 0.001
+        CifCaf.nms = None
+        CifCaf.keypoint_threshold = 0.001
         tracking_fields = [
             fields[self.cif_meta.head_index],
             np.concatenate([
@@ -206,7 +208,7 @@ class TrackingPose(TrackBase):
         lost_trackids = {t.id_: t.frame_pose[-1][0] for t in self.active
                          if t.frame_pose[-1][0] < self.frame_number - 1}
         for tracking_ann in tracking_annotations:
-            single_frame_ann = openpifpaf.Annotation(
+            single_frame_ann = Annotation(
                 self.cif_meta.keypoints, self.caf_meta.skeleton)
             single_frame_ann.data[:] = tracking_ann.data[:self.n_keypoints]
             single_frame_ann.joint_scales = tracking_ann.joint_scales[:self.n_keypoints]
