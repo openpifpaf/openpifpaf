@@ -9,7 +9,8 @@ import torchvision
 
 from .. import headmeta
 from ..configurable import Configurable
-from . import basenetworks, heads, nets, tracking_base, tracking_heads
+from . import basenetworks, heads, model_migration, nets, tracking_heads
+from .tracking_base import TrackingBase
 
 
 # monkey patch torchvision for mobilenetv2 checkpoint backwards compatibility
@@ -53,7 +54,7 @@ BASE_TYPES = set([
     basenetworks.ShuffleNetV2,
     basenetworks.ShuffleNetV2K,
     basenetworks.SqueezeNet,
-    tracking_base.TrackingBase,
+    TrackingBase,
 ])
 BASE_FACTORIES = {
     'mobilenetv2': lambda: basenetworks.MobileNetV2('mobilenetv2', torchvision.models.mobilenet_v2),
@@ -84,6 +85,10 @@ BASE_FACTORIES = {
         'shufflenetv2k44', [12, 24, 8], [32, 512, 1024, 2048, 2048]),
     'squeezenet': lambda: basenetworks.SqueezeNet('squeezenet', torchvision.models.squeezenet1_1),
 }
+# base factories that wrap other base factories:
+BASE_FACTORIES['tshufflenetv2k16'] = lambda: TrackingBase(BASE_FACTORIES['shufflenetv2k16']())
+BASE_FACTORIES['tshufflenetv2k30'] = lambda: TrackingBase(BASE_FACTORIES['shufflenetv2k30']())
+BASE_FACTORIES['tresnet50'] = lambda: TrackingBase(BASE_FACTORIES['resnet50']())
 
 #: headmeta class to head class
 HEADS = {
@@ -266,7 +271,7 @@ class Factory(Configurable):
         epoch = checkpoint['epoch']
 
         # normalize for backwards compatibility
-        nets.model_migration(net_cpu)
+        model_migration.model_migration(net_cpu)
 
         return net_cpu, epoch
 

@@ -132,13 +132,11 @@ class CifDet(Base):
 @dataclass
 class TSingleImageCif(Cif):
     """Single-Image CIF head in tracking models."""
-    pass
 
 
 @dataclass
 class TSingleImageCaf(Caf):
     """Single-Image CAF head in tracking models."""
-    pass
 
 
 @dataclass
