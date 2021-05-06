@@ -8,6 +8,7 @@ from .cifhr import CifHr
 from .cli import cli, configure
 from .occupancy import Occupancy
 from .seeds import Seeds
+from .tcaf import Tcaf
 
 __all__ = [
     'Caf',
@@ -16,4 +17,5 @@ __all__ = [
     'CifHr',
     'Occupancy',
     'Seeds',
+    'Tcaf',
 ]
