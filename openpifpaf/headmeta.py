@@ -3,10 +3,10 @@
 This includes the name, the name of the individual fields, the composition, etc.
 """
 
-import numpy as np
-
 from dataclasses import dataclass, field
 from typing import Any, ClassVar, List, Tuple
+
+import numpy as np
 
 
 @dataclass

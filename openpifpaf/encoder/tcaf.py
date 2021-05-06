@@ -2,11 +2,10 @@ import dataclasses
 import logging
 from typing import ClassVar, List, Tuple
 
-import openpifpaf
-
 from .. import headmeta
 from .. import visualizer as visualizer_module
 from .annrescaler import TrackingAnnRescaler
+from .caf import CafGenerator
 
 LOG = logging.getLogger(__name__)
 
@@ -41,4 +40,4 @@ class Tcaf:
             ]
 
     def __call__(self, images, all_anns, metas):
-        return openpifpaf.encoder.caf.CafGenerator(self)(images[0], all_anns, metas)
+        return CafGenerator(self)(images[0], all_anns, metas)
