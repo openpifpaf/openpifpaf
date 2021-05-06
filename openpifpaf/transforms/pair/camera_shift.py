@@ -4,12 +4,12 @@ import logging
 import PIL
 import torch
 
-import openpifpaf
+from ..preprocess import Preprocess
 
 LOG = logging.getLogger(__name__)
 
 
-class CameraShift(openpifpaf.transforms.Preprocess):
+class CameraShift(Preprocess):
     def __init__(self, max_shift=100):
         super().__init__()
 

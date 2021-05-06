@@ -4,12 +4,12 @@ import logging
 import numpy as np
 import PIL
 
-import openpifpaf
+from .preprocess import Preprocess
 
 LOG = logging.getLogger(__name__)
 
 
-class Deinterlace(openpifpaf.transforms.Preprocess):
+class Deinterlace(Preprocess):
     def __call__(self, image, anns, meta):
         meta = copy.deepcopy(meta)
         anns = copy.deepcopy(anns)

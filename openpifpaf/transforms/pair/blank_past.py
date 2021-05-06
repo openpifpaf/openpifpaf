@@ -4,12 +4,12 @@ import random
 
 import PIL
 
-import openpifpaf
+from ..preprocess import Preprocess
 
 LOG = logging.getLogger(__name__)
 
 
-class BlankPast(openpifpaf.transforms.Preprocess):
+class BlankPast(Preprocess):
     def __call__(self, images, all_anns, metas):
         all_anns = copy.deepcopy(all_anns)
         metas = copy.deepcopy(metas)
@@ -27,7 +27,7 @@ class BlankPast(openpifpaf.transforms.Preprocess):
         return images, all_anns, metas
 
 
-class PreviousPast(openpifpaf.transforms.Preprocess):
+class PreviousPast(Preprocess):
     def __init__(self):
         self.previous_image = PIL.Image.new('RGB', (320, 240), (127, 127, 127))
         self.previous_meta = {'frame_id': -1, 'file_name': 'blank'}
@@ -55,7 +55,7 @@ class PreviousPast(openpifpaf.transforms.Preprocess):
         return images, all_anns, metas
 
 
-class RandomizeOneFrame(openpifpaf.transforms.Preprocess):
+class RandomizeOneFrame(Preprocess):
     def __init__(self):
         self.previous_image = None
         self.previous_meta = None

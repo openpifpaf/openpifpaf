@@ -48,7 +48,7 @@ class Blur(Preprocess):
         return PIL.Image.fromarray(im_np), anns, meta
 
 
-class HorizontalBlur(openpifpaf.transforms.Preprocess):
+class HorizontalBlur(Preprocess):
     def __init__(self, sigma=5.0):
         self.sigma = sigma
 

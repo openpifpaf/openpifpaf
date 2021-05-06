@@ -3,12 +3,12 @@ import logging
 
 import PIL
 
-import openpifpaf
+from ..preprocess import Preprocess
 
 LOG = logging.getLogger(__name__)
 
 
-class SamplePairing(openpifpaf.transforms.Preprocess):
+class SamplePairing(Preprocess):
     """Sample Pairing
 
     Implements:

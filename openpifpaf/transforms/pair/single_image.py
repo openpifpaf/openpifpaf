@@ -3,10 +3,10 @@ import random
 import numpy as np
 import torch
 
-import openpifpaf
+from ..preprocess import Preprocess
 
 
-class SingleImage(openpifpaf.transforms.Preprocess):
+class SingleImage(Preprocess):
     def __init__(self, single_image_op):
         self.single_image_op = single_image_op
 
@@ -34,7 +34,7 @@ class SingleImage(openpifpaf.transforms.Preprocess):
         return out_images, out_anns, out_meta
 
 
-class Ungroup(openpifpaf.transforms.Preprocess):
+class Ungroup(Preprocess):
     """During evaluation, tracking datasets produce image groups of length
     one. Ungroup them so that it looks like any other single-image dataset.
     """

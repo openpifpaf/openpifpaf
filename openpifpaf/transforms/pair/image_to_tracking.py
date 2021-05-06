@@ -1,12 +1,12 @@
 import copy
 import logging
 
-import openpifpaf
+from ..preprocess import Preprocess
 
 LOG = logging.getLogger(__name__)
 
 
-class ImageToTracking(openpifpaf.transforms.Preprocess):
+class ImageToTracking(Preprocess):
     def __call__(self, image, anns, meta):
         anns0 = copy.deepcopy(anns)
         anns1 = copy.deepcopy(anns)

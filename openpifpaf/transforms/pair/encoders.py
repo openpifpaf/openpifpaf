@@ -1,7 +1,7 @@
-import openpifpaf
+from ..preprocess import Preprocess
 
 
-class Encoders(openpifpaf.transforms.Preprocess):
+class Encoders(Preprocess):
     def __init__(self, encoders):
         self.encoders = encoders
 

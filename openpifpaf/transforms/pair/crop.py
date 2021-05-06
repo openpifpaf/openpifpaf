@@ -4,12 +4,12 @@ import logging
 import numpy as np
 import torch
 
-import openpifpaf
+from ..preprocess import Preprocess
 
 LOG = logging.getLogger(__name__)
 
 
-class Crop(openpifpaf.transforms.Preprocess):
+class Crop(Preprocess):
     def __init__(self, long_edge, *, use_area_of_interest=True, max_shift=0):
         self.long_edge = long_edge
         self.use_area_of_interest = use_area_of_interest

@@ -4,12 +4,12 @@ import logging
 import torch
 import torchvision
 
-import openpifpaf
+from ..preprocess import Preprocess
 
 LOG = logging.getLogger(__name__)
 
 
-class Pad(openpifpaf.transforms.Preprocess):
+class Pad(Preprocess):
     def __init__(self, target_size, max_shift):
         if isinstance(target_size, int):
             target_size = (target_size, target_size)

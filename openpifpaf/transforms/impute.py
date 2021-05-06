@@ -2,12 +2,12 @@ import logging
 
 import numpy as np
 
-import openpifpaf
+from .preprocess import Preprocess
 
 LOG = logging.getLogger(__name__)
 
 
-class AddCrowdForIncompleteHead(openpifpaf.transforms.Preprocess):
+class AddCrowdForIncompleteHead(Preprocess):
     @staticmethod
     def __call__(image, anns, meta):
         # detect incomplete annotations and add crowd annotations for those
