@@ -3,9 +3,13 @@ import logging
 import time
 
 import numpy as np
-import scipy.optimize
+try:
+    import scipy.optimize
+except ImportError:
+    scipy = None  # pylint: disable=invalid-name
 
 from .. import headmeta
+from .cifcaf import CifCaf
 from .track_annotation import TrackAnnotation
 from .track_base import TrackBase
 from . import pose_distance
@@ -31,7 +35,7 @@ class PoseSimilarity(TrackBase):
         LOG.debug('valid keypoints = %s', self.distance_function.valid_keypoints)
         self.distance_function.sigmas = np.asarray(cif_meta.sigmas)
 
-        self.pose_generator = pose_generator or openpifpaf.decoder.CifCaf([cif_meta], [caf_meta])
+        self.pose_generator = pose_generator or CifCaf([cif_meta], [caf_meta])
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
@@ -64,8 +68,8 @@ class PoseSimilarity(TrackBase):
             cls(cif_meta, caf_meta)
             for cif_meta, caf_meta
             in zip(head_metas, head_metas[1:])
-            if (isinstance(cif_meta, (headmeta.TSingleImageCif, openpifpaf.headmeta.Cif))
-                and isinstance(caf_meta, (headmeta.TSingleImageCaf, openpifpaf.headmeta.Caf)))
+            if (isinstance(cif_meta, (headmeta.TSingleImageCif, headmeta.Cif))
+                and isinstance(caf_meta, (headmeta.TSingleImageCaf, headmeta.Caf)))
         ]
 
     def __call__(self, fields, *, initial_annotations=None):

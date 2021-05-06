@@ -2,6 +2,7 @@ from typing import List
 
 import numpy as np
 
+from .. import annotation
 from .decoder import Decoder
 from .track_annotation import TrackAnnotation
 from ..signal import Signal
@@ -25,6 +26,15 @@ class TrackBase(Decoder):
         self.simplified_last_track_id = 0
 
         Signal.subscribe('eval_reset', self.reset)
+
+    @classmethod
+    def factory(cls, head_metas) -> List['Decoder']:
+        """Create instances of an implementation."""
+        raise NotImplementedError
+
+    def __call__(self, fields, *, initial_annotations=None) -> List[annotation.Base]:
+        """For single image, from fields to annotations."""
+        raise NotImplementedError
 
     def simplify_ids(self, ids):
         out = []
