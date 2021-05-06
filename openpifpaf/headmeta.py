@@ -128,7 +128,6 @@ class CifDet(Base):
         return len(self.categories)
 
 
-
 @dataclass
 class TSingleImageCif(Cif):
     """Single-Image CIF head in tracking models."""
