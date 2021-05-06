@@ -6,6 +6,7 @@ del get_versions
 
 from .annotation import Annotation, AnnotationDet
 from .configurable import Configurable
+from .signal import Signal
 from . import datasets
 from . import decoder
 from . import encoder
