@@ -27,6 +27,7 @@ class Decoder:
     default_worker_pool = None
 
     def __init__(self):
+        self.priority = 0.0  # reference priority for single image CifCaf
         self.worker_pool = self.default_worker_pool
 
         if self.worker_pool is None or self.worker_pool == 0:
