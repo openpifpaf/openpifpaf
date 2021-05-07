@@ -42,7 +42,7 @@ python3 -m openpifpaf.predict docs/coco/000000081988.jpg --image-min-dpi=200 --s
 ```
 
 Prediction of a network that was trained on the [COCO WholeBody dataset](https://github.com/jin-s13/COCO-WholeBody)
-![example image with overlaid wholebody pose predictions](https://raw.githubusercontent.com/openpifpaf/openpifpaf/main/openpifpaf/plugins/wholebody/docs/0001soccer.jpeg.predictions.png)
+![example image with overlaid wholebody pose predictions](https://raw.githubusercontent.com/openpifpaf/openpifpaf/main/openpifpaf/guide/wholebody/soccer.jpeg.predictions.png)
 
 Image credit: [Photo](https://de.wikipedia.org/wiki/Kamil_Vacek#/media/Datei:Kamil_Vacek_20200627.jpg) by [Lokomotive74](https://commons.wikimedia.org/wiki/User:Lokomotive74) which is licensed under [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/).<br />
 Created with:
