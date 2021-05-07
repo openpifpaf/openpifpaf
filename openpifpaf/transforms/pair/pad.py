@@ -42,8 +42,8 @@ class Pad(Preprocess):
         left = int(torch.clamp(left, 0, self.target_size[0] - w).item())
         top = int(torch.clamp(top, 0, self.target_size[1] - h).item())
 
-        right = self.target_size[0] - w - left
-        bottom = self.target_size[1] - h - top
+        right = torch.tensor(self.target_size[0] - w - left)
+        bottom = torch.tensor(self.target_size[1] - h - top)
         right = int(torch.clamp(right, 0, self.target_size[0] - w).item())
         bottom = int(torch.clamp(bottom, 0, self.target_size[1] - h).item())
         ltrb = (left, top, right, bottom)
