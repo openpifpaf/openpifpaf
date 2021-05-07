@@ -125,7 +125,7 @@ class Posetrack2018(openpifpaf.datasets.DataModule):
         group.add_argument('--posetrack-eval-orientation-invariant',
                            default=cls.eval_orientation_invariant, type=float)
 
-        group.add_argument('--ablation-without-tcaf', default=False, action='store_true')
+        group.add_argument('--posetrack-ablation-without-tcaf', default=False, action='store_true')
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
@@ -154,7 +154,7 @@ class Posetrack2018(openpifpaf.datasets.DataModule):
         cls.eval_extended_scale = args.posetrack_eval_extended_scale
 
         # ablation
-        cls.ablation_without_tcaf = args.ablation_without_tcaf
+        cls.ablation_without_tcaf = args.posetrack_ablation_without_tcaf
 
     def _preprocess(self):
         encoders = [
