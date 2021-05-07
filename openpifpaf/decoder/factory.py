@@ -136,12 +136,13 @@ class Factory:
         elif cls.decoder_request is None:
             LOG.info(
                 'No specific decoder requested. Using the first one from:\n'
-                + '\n'.join(
+                '%s\n'
+                'Use any of the above arguments to select one or multiple '
+                'decoders and to suppress this message.',
+                '\n'.join(
                     f'  --decoder={dec.__class__.__name__.lower()}:{dec.request_index}'
                     for dec in decoders
                 )
-                + '\nUse any of the above arguments to select one or multiple '
-                'decoders and to suppress this message.'
             )
             decoders = [decoders[0]]
 
