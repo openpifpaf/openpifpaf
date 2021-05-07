@@ -26,7 +26,7 @@ except ImportError:
     pass
 
 
-class Wholebody(openpifpaf.datasets.DataModule):
+class Wholebody(openpifpaf.datasets.DataModule, openpifpaf.Configurable):
     # Coco wholebody has no test dataset
 
     # cli configurable
