@@ -30,8 +30,8 @@ Continuously tested on Linux, MacOS and Windows:
 Previous [CVPR 2019 paper](http://openaccess.thecvf.com/content_CVPR_2019/html/Kreiss_PifPaf_Composite_Fields_for_Human_Pose_Estimation_CVPR_2019_paper.html).
 
 
-# Example
-
+# Examples
+Prediction of a network that was trained on the [MS COCO dataset](https://cocodataset.org/#home)
 ![example image with overlaid pose predictions](https://github.com/openpifpaf/openpifpaf/raw/main/docs/coco/000000081988.jpg.predictions.jpeg)
 
 Image credit: "[Learning to surf](https://www.flickr.com/photos/fotologic/6038911779/in/photostream/)" by fotologic which is licensed under [CC-BY-2.0].<br />
@@ -41,6 +41,15 @@ pip3 install openpifpaf matplotlib
 python3 -m openpifpaf.predict docs/coco/000000081988.jpg --image-min-dpi=200 --show-file-extension=jpeg --image-output
 ```
 
+Prediction of a network that was trained on the [COCO WholeBody dataset](https://github.com/jin-s13/COCO-WholeBody):
+![example image with overlaid wholebody pose predictions](https://github.com/openpifpaf/openpifpaf/raw/main/docs/wholebody/soccer.jpeg.predictions.png)
+
+Image credit: "[Kamil Vacek - Bohemians 1905 vs 1. FC Slovácko 2019/20](https://de.wikipedia.org/wiki/Kamil_Vacek#/media/Datei:Kamil_Vacek_20200627.jpg)" by [Lokomotive74](https://commons.wikimedia.org/wiki/User:Lokomotive74) which is licensed under [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/).<br />
+Created with:
+```sh
+pip3 install openpifpaf matplotlib
+python -m openpifpaf.predict docs/wholebody/soccer.jpeg --checkpoint=shufflenetv2k30-wholebody --line-width=2 --decoder=cifcaf:0 --image-output
+```
 
 # [Guide](https://openpifpaf.github.io/intro.html)
 
