@@ -20,10 +20,15 @@ LOG = logging.getLogger(__name__)
 class PoseSimilarity(TrackBase):
     distance_type = None
 
-    def __init__(self, cif_meta, caf_meta, *, pose_generator=None):
+    def __init__(self, cif_meta: headmeta.Cif, caf_meta: headmeta.Caf, *, pose_generator=None):
         super().__init__()
         self.cif_meta = cif_meta
         self.caf_meta = caf_meta
+
+        # prefer decoders with more keypoints and associations
+        self.priority = -10.0
+        self.priority += cif_meta.n_fields / 1000.0
+        self.priority += caf_meta.n_fields / 1000.0
 
         assert self.distance_type is not None
         self.distance_function = self.distance_type()  # pylint: disable=not-callable

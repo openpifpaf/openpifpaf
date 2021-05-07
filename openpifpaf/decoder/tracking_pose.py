@@ -20,11 +20,22 @@ class TrackingPose(TrackBase):
     track_recovery = False
     single_seed = False
 
-    def __init__(self, cif_meta, caf_meta, tcaf_meta, *, pose_generator=None):
+    def __init__(self,
+                 cif_meta: headmeta.TSingleImageCif,
+                 caf_meta: headmeta.TSingleImageCaf,
+                 tcaf_meta: headmeta.Tcaf,
+                 *,
+                 pose_generator=None):
         super().__init__()
         self.cif_meta = cif_meta
         self.caf_meta = caf_meta
         self.tcaf_meta = tcaf_meta
+
+        # prefer decoders with more keypoints and associations
+        self.priority = 1.0
+        self.priority += cif_meta.n_fields / 1000.0
+        self.priority += caf_meta.n_fields / 1000.0
+        self.priority += tcaf_meta.n_fields / 1000.0
 
         # a similar selector exists for pose similarity
         self.invalid_keypoints = [
