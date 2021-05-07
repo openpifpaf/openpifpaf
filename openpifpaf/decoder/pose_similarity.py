@@ -18,7 +18,7 @@ LOG = logging.getLogger(__name__)
 
 
 class PoseSimilarity(TrackBase):
-    distance_type = None
+    distance_type = pose_distance.Euclidean
 
     def __init__(self, cif_meta: headmeta.Cif, caf_meta: headmeta.Caf, *, pose_generator=None):
         super().__init__()
@@ -30,8 +30,7 @@ class PoseSimilarity(TrackBase):
         self.priority += cif_meta.n_fields / 1000.0
         self.priority += caf_meta.n_fields / 1000.0
 
-        assert self.distance_type is not None
-        self.distance_function = self.distance_type()  # pylint: disable=not-callable
+        self.distance_function = self.distance_type()
         self.distance_function.valid_keypoints = [
             i
             for i, kp in enumerate(cif_meta.keypoints)
@@ -45,6 +44,7 @@ class PoseSimilarity(TrackBase):
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
         group = parser.add_argument_group('PoseSimilarity')
+        assert cls.distance_type == pose_distance.Euclidean
         group.add_argument('--posesimilarity-distance', default='euclidean',
                            choices=('crafted', 'euclidean', 'euclidean4', 'oks'))
         group.add_argument('--posesimilarity-oks-inflate',
