@@ -81,8 +81,12 @@ class VocToCoco:
         assert not os.listdir(self.dir_out_ann), "Empty annotation directory to avoid duplicates"
         os.makedirs(os.path.join(self.dir_out_im, 'train'))
         os.makedirs(os.path.join(self.dir_out_im, 'val'))
-
         self.sample = args.sample
+
+        with open('train.txt', 'r') as f:
+            self.train_list = f.readlines()
+        with open('train.txt', 'r') as f:
+            self.val_list = f.readlines()
 
     def process(self):
         splits = self._split_train_val()
@@ -209,6 +213,7 @@ class VocToCoco:
                 for xml_path in xml_paths:
                     im_path, im_id = self._extract_filename(xml_path)
                     im_data.append((im_path, im_id, cat, folder_name))
+
         cnt_ann = len(im_data)
         im_data = list(set(im_data))  # Remove duplicates
         cnt_im = len(im_data)
@@ -225,17 +230,18 @@ class VocToCoco:
         """
         path = os.path.normpath(xml_path)
         sub_dirs = path.split(os.sep)
+        name = os.path.splitext(sub_dirs[-1])[0]
         cat = sub_dirs[-2]
         folder = sub_dirs[-3]
 
         if folder == os.path.basename(self.dir_annotations_1):
-            splits = os.path.splitext(sub_dirs[-1])[0].split(sep='_')
+            splits = name.split(sep='_')
             basename = splits[0] + '_' + splits[1]
             ext = '.jpg'
             im_path = os.path.join(self.dir_images_1, basename + ext)
             im_id = int(str(int(splits[0])) + str(int(splits[1])))
         elif folder == os.path.basename(self.dir_annotations_2):
-            basename = os.path.splitext(sub_dirs[-1])[0]
+            basename = name
             num = int(basename[2:])
             im_id = int(str(999) + str(self.map_cat[cat]) + basename[2:])
             if cat == 'sheep' and num == 65:
@@ -257,6 +263,7 @@ class VocToCoco:
         xml_paths = glob.glob(root + '[_,.]*xml')  # Avoid duplicates of the form cow13 cow130
         assert xml_paths, "No annotations, expected at least one"
         return xml_paths
+
 
     def initiate_json(self):
         """
