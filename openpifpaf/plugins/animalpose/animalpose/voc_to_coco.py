@@ -77,10 +77,10 @@ class VocToCoco:
         self.dir_out_ann = os.path.join(dir_out, 'annotations')
         os.makedirs(self.dir_out_im, exist_ok=True)
         os.makedirs(self.dir_out_ann, exist_ok=True)
-        assert not os.listdir(self.dir_out_im), "Empty image directory to avoid duplicates"
-        assert not os.listdir(self.dir_out_ann), "Empty annotation directory to avoid duplicates"
-        os.makedirs(os.path.join(self.dir_out_im, 'train'))
-        os.makedirs(os.path.join(self.dir_out_im, 'val'))
+        # assert not os.listdir(self.dir_out_im), "Empty image directory to avoid duplicates"
+        # assert not os.listdir(self.dir_out_ann), "Empty annotation directory to avoid duplicates"
+        # os.makedirs(os.path.join(self.dir_out_im, 'train'))
+        # os.makedirs(os.path.join(self.dir_out_im, 'val'))
         self.sample = args.sample
 
     def process(self):
@@ -198,28 +198,27 @@ class VocToCoco:
         """
 
         with open('train.txt', 'r') as f:
-            train_list = f.readlines()
+            lists = dict(train=f.readlines())
         with open('train.txt', 'r') as f:
-            val_list = f.readlines()
-
-        folders = glob.glob(self.dir_annotations_1) + glob.glob(self.dir_annotations_2)
-        assert folders, "annotation folders are empty"
-
-        im_data = []
-        for folder in folders:
-            folder_name = os.path.basename(folder)
-            for cat in _CATEGORIES:
-                xml_paths = glob.glob(os.path.join(folder, cat + os.sep + '*.xml'))
-                for xml_path in xml_paths:
-                    im_path, im_id = self._extract_filename(xml_path)
-                    im_data.append((im_path, im_id, cat, folder_name))
+            lists['val'] = f.readlines()
+        splits = {'train': [], 'val': []}
+        for phase in splits:
+            for path in lists[phase]:
+                basename = os.path.basename(path)
+                if path[:8] == 'TrainVal':
+                    im_id = basename
+                else:
+                    aa = 5
+                # im_id = int(str(int(splits[0])) + str(int(splits[1])))
+                # im_id = int(str(999) + str(self.map_cat[cat]) + basename[2:])
+                # splits[phase].append((im_path, im_id, cat, folder_name))
 
         cnt_ann = len(im_data)
         im_data = list(set(im_data))  # Remove duplicates
         cnt_im = len(im_data)
         val_n = cnt_im - train_n
         random.shuffle(im_data)
-        splits = {'train': im_data[:train_n], 'val': im_data[train_n:]}
+
         print(f'Split {train_n} into training images and {val_n} validation ones')
         print(f'Read {cnt_ann}  annotations')
         return splits
