@@ -83,11 +83,6 @@ class VocToCoco:
         os.makedirs(os.path.join(self.dir_out_im, 'val'))
         self.sample = args.sample
 
-        with open('train.txt', 'r') as f:
-            self.train_list = f.readlines()
-        with open('train.txt', 'r') as f:
-            self.val_list = f.readlines()
-
     def process(self):
         splits = self._split_train_val()
         all_xml_paths = []
@@ -195,13 +190,18 @@ class VocToCoco:
 
     def _split_train_val(self, train_n=4000):
         """
-        Random train val split: create im_meta:
+        Split train/val from txt files : create im_meta:
         im_path
         im_id,
         cat
         folder
         """
-        random.seed(1)
+
+        with open('train.txt', 'r') as f:
+            train_list = f.readlines()
+        with open('train.txt', 'r') as f:
+            val_list = f.readlines()
+
         folders = glob.glob(self.dir_annotations_1) + glob.glob(self.dir_annotations_2)
         assert folders, "annotation folders are empty"
 
