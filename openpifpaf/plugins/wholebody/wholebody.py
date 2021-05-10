@@ -26,7 +26,7 @@ except ImportError:
     pass
 
 
-class Wholebody(openpifpaf.datasets.DataModule, openpifpaf.Configurable):
+class Wholebody(openpifpaf.datasets.DataModule):
     # Coco wholebody has no test dataset
 
     # cli configurable
@@ -51,6 +51,7 @@ class Wholebody(openpifpaf.datasets.DataModule, openpifpaf.Configurable):
     eval_long_edge = 641
     eval_orientation_invariant = 0.0
     eval_extended_scale = False
+    weights = None
 
     def __init__(self):
         super().__init__()
