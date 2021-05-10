@@ -51,7 +51,6 @@ def cli():
 class VocToCoco:
 
     json_file = {}
-    map_cat = {cat: el + 1 for el, cat in enumerate(_CATEGORIES)}
     map_names = dataset_mappings()
     n_kps = len(ANIMAL_KEYPOINTS)
     cnt_kps = [0] * n_kps
@@ -95,17 +94,17 @@ class VocToCoco:
             self.cnt_kps = [0] * len(ANIMAL_KEYPOINTS)
             self.initiate_json()  # Initiate json file at each phase
 
-            for im_meta in metadata:
-                self._process_image(im_meta[0], im_meta[1])
+            for (im_path, im_id, xml_paths) in metadata:
+                self._process_image(im_path, im_id)
                 cnt_images += 1
-                for xml_path in self._find_annotation(im_meta):
-                    self._process_annotation(xml_path, im_meta[1])
+                for xml_path in xml_paths:
+                    self._process_annotation(xml_path, im_id)
                     cnt_instances += 1
                     all_xml_paths.append(xml_path)
 
                 # Split the image in a new folder
-                dst = os.path.join(self.dir_out_im, phase, os.path.split(im_meta[0])[-1])
-                copyfile(im_meta[0], dst)
+                # dst = os.path.join(self.dir_out_im, phase, os.path.split(im_path[0])[-1])
+                # copyfile(im_path[0], dst)
 
                 # Count
                 if (cnt_images % 1000) == 0:
@@ -188,81 +187,37 @@ class VocToCoco:
         kps_out = list(kps_out.reshape((-1,)))
         return kps_out, cnt
 
-    def _split_train_val(self, train_n=4000):
+    def _split_train_val(self):
         """
         Split train/val from txt files : create im_meta:
         im_path
-        im_id,
-        cat
-        folder
+        im_id
+        xml_paths of the image
         """
 
         with open('train.txt', 'r') as f:
-            lists = dict(train=f.readlines())
+            lists = dict(train=f.read().splitlines())
         with open('train.txt', 'r') as f:
-            lists['val'] = f.readlines()
+            lists['val'] = f.read().splitlines()
         splits = {'train': [], 'val': []}
         for phase in splits:
-            for path in lists[phase]:
-                basename = os.path.basename(path)
-                if path[:8] == 'TrainVal':
-                    im_id = basename
+            for orig_path in lists[phase]:
+                name = os.path.basename(orig_path)
+                basename = os.path.splitext(name)[0]
+                if orig_path[:8] == 'TrainVal':
+                    date, id_im = basename.split(sep='_')
+                    im_id = int(str(int(date)) + str(int(id_im)))
+                    ann_folder = self.dir_annotations_1
                 else:
-                    aa = 5
-                # im_id = int(str(int(splits[0])) + str(int(splits[1])))
-                # im_id = int(str(999) + str(self.map_cat[cat]) + basename[2:])
-                # splits[phase].append((im_path, im_id, cat, folder_name))
+                    idx_cat = map_categories(basename[0:2])
+                    im_id = int(str(999) + str(idx_cat) + basename[2:])
+                    ann_folder = self.dir_annotations_2
+                im_path = os.path.join(self.dir_dataset, orig_path)
+                xml_paths = find_annotations(im_path, ann_folder)
+                splits[phase].append((im_path, im_id, xml_paths))
 
-        cnt_ann = len(im_data)
-        im_data = list(set(im_data))  # Remove duplicates
-        cnt_im = len(im_data)
-        val_n = cnt_im - train_n
-        random.shuffle(im_data)
-
-        print(f'Split {train_n} into training images and {val_n} validation ones')
-        print(f'Read {cnt_ann}  annotations')
+            print(f'Read {len(splits[phase])} {phase} images')
         return splits
-
-    def _extract_filename(self, xml_path):
-        """
-        Manage all the differences between the 2 annotated parts and all the exceptions of Part 2
-        """
-        path = os.path.normpath(xml_path)
-        sub_dirs = path.split(os.sep)
-        name = os.path.splitext(sub_dirs[-1])[0]
-        cat = sub_dirs[-2]
-        folder = sub_dirs[-3]
-
-        if folder == os.path.basename(self.dir_annotations_1):
-            splits = name.split(sep='_')
-            basename = splits[0] + '_' + splits[1]
-            ext = '.jpg'
-            im_path = os.path.join(self.dir_images_1, basename + ext)
-            im_id = int(str(int(splits[0])) + str(int(splits[1])))
-        elif folder == os.path.basename(self.dir_annotations_2):
-            basename = name
-            num = int(basename[2:])
-            im_id = int(str(999) + str(self.map_cat[cat]) + basename[2:])
-            if cat == 'sheep' and num == 65:
-                ext = '.png'
-            elif cat == 'sheep' and (num <= 97 or num >= 190):
-                ext = '.jpg'
-            else:
-                ext = '.jpeg'
-            im_path = os.path.join(self.dir_images_2, cat, basename + ext)
-        else:
-            raise Exception(folder + " folder not found")
-        assert isinstance(im_id, int), "im id is not numeric"
-        return im_path, im_id
-
-    def _find_annotation(self, meta):
-        im_path, _, cat, ann_folder = meta
-        root = os.path.join(
-            self.dir_dataset, ann_folder, cat, os.path.splitext(os.path.basename(im_path))[0])
-        xml_paths = glob.glob(root + '[_,.]*xml')  # Avoid duplicates of the form cow13 cow130
-        assert xml_paths, "No annotations, expected at least one"
-        return xml_paths
-
 
     def initiate_json(self):
         """
@@ -280,6 +235,25 @@ class VocToCoco:
                                              keypoints=[])]
         self.json_file["images"] = []
         self.json_file["annotations"] = []
+
+
+def find_annotations(im_path, ann_folder):
+    xml_paths = []
+    for cat in _CATEGORIES:
+        root = os.path.join(ann_folder, cat, os.path.splitext(os.path.basename(im_path))[0])
+        paths = glob.glob(root + '[_,.]*xml')  # Avoid duplicates of the form cow13 cow130
+        if not paths:
+            continue
+        xml_paths.extend(paths)
+    assert xml_paths, "No annotations, expected at least one"
+    return xml_paths
+
+
+def map_categories(cat_name):
+    """It works with partial names, like do for dogs"""
+    for idx, cat in enumerate(_CATEGORIES):
+        if cat_name in cat:
+            return idx + 1   # categories starting from one
 
 
 def main():

@@ -1,7 +1,7 @@
 
 import numpy as np
 
-_CATEGORIES = ('cat', 'cow', 'dog', 'sheep', 'horse')  # only for preprocessing
+_CATEGORIES = ['cat', 'cow', 'dog', 'sheep', 'horse']  # only for preprocessing
 
 ANIMAL_KEYPOINTS = [
     'Nose',         # 1
