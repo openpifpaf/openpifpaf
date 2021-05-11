@@ -39,7 +39,7 @@ Image credit: "[Learning to surf](https://www.flickr.com/photos/fotologic/603891
 Created with
 {ref}`python3 -m openpifpaf.predict docs/coco/000000081988.jpg --image-min-dpi=200 --show-file-extension=jpeg --image-output <cli-help-predict>`.
 
-![example image with overlaid wholebody pose predictions](https://raw.githubusercontent.com/openpifpaf/openpifpaf/main/openpifpaf/guide/wholebody/soccer.jpeg.predictions.png)
+![example image with overlaid wholebody pose predictions](https://raw.githubusercontent.com/openpifpaf/openpifpaf/main/guide/wholebody/soccer.jpeg.predictions.jpeg)
 Image credit: [Photo](https://de.wikipedia.org/wiki/Kamil_Vacek#/media/Datei:Kamil_Vacek_20200627.jpg) by [Lokomotive74](https://commons.wikimedia.org/wiki/User:Lokomotive74) which is licensed under [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/).<br />
 Created with
 {ref}`python3 -m openpifpaf.predict docs/wholebody/soccer.jpeg --checkpoint=shufflenetv2k30-wholebody --line-width=2 --decoder=cifcaf:0 --show-file-extension=jpeg --image-output <cli-help-predict>`.
