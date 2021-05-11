@@ -35,6 +35,11 @@ def default_output_file(args):
         if args.cocokp_extended_scale:
             out += 's'
 
+    # Jobs might be stuck in the job queue and then started at exactly the
+    # same time. Therefore we disambiguate with the Slurm job id.
+    if os.getenv('SLURM_JOB_ID'):
+        out += f'-slurm{os.getenv("SLURM_JOB_ID")}'
+
     return out + '.pkl'
 
 
