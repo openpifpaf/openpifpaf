@@ -129,6 +129,14 @@ jobs:
         git status
         git diff
         git diff-index --quiet HEAD  # exit code 1 when files were changed
+    - name: Check that notebook outputs are stripped
+      if: matrix.slow
+      run: |
+        cd guide
+        nbstripout *.ipynb
+        git status
+        git diff
+        git diff-index --quiet HEAD  # exit code 1 when files were changed
     - name: Lint and pycodestyle on notebooks
       if: matrix.slow
       run: |
