@@ -13,7 +13,6 @@ import glob
 import argparse
 import time
 import json
-import random
 from collections import defaultdict
 from shutil import copyfile
 import xml.etree.ElementTree as ET

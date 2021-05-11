@@ -207,7 +207,6 @@ class AnimalKp(DataModule):
             transforms.Encoders(encoders),
         ])
 
-
     def train_loader(self):
         train_data = CocoLoader(
             image_dir=self.train_image_dir,
