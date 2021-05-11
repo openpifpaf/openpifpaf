@@ -51,6 +51,7 @@ class Wholebody(openpifpaf.datasets.DataModule):
     eval_long_edge = 641
     eval_orientation_invariant = 0.0
     eval_extended_scale = False
+    weights = None
 
     def __init__(self):
         super().__init__()
