@@ -76,10 +76,10 @@ class VocToCoco:
         self.dir_out_ann = os.path.join(dir_out, 'annotations')
         os.makedirs(self.dir_out_im, exist_ok=True)
         os.makedirs(self.dir_out_ann, exist_ok=True)
-        # assert not os.listdir(self.dir_out_im), "Empty image directory to avoid duplicates"
-        # assert not os.listdir(self.dir_out_ann), "Empty annotation directory to avoid duplicates"
-        # os.makedirs(os.path.join(self.dir_out_im, 'train'))
-        # os.makedirs(os.path.join(self.dir_out_im, 'val'))
+        assert not os.listdir(self.dir_out_im), "Empty image directory to avoid duplicates"
+        assert not os.listdir(self.dir_out_ann), "Empty annotation directory to avoid duplicates"
+        os.makedirs(os.path.join(self.dir_out_im, 'train'))
+        os.makedirs(os.path.join(self.dir_out_im, 'val'))
         self.sample = args.sample
 
     def process(self):
@@ -103,8 +103,8 @@ class VocToCoco:
                     all_xml_paths.append(xml_path)
 
                 # Split the image in a new folder
-                # dst = os.path.join(self.dir_out_im, phase, os.path.split(im_path[0])[-1])
-                # copyfile(im_path[0], dst)
+                dst = os.path.join(self.dir_out_im, phase, os.path.basename(im_path))
+                copyfile(im_path, dst)
 
                 # Count
                 if (cnt_images % 1000) == 0:
@@ -197,22 +197,26 @@ class VocToCoco:
 
         with open('train.txt', 'r') as f:
             lists = dict(train=f.read().splitlines())
-        with open('train.txt', 'r') as f:
+        with open('val.txt', 'r') as f:
             lists['val'] = f.read().splitlines()
         splits = {'train': [], 'val': []}
+        set1 = set(lists['train'])
+        set2 = set(lists['val'])
+        assert not set1.intersection(set2), "intersection not empty"
         for phase in splits:
-            for orig_path in lists[phase]:
-                name = os.path.basename(orig_path)
+            for name in lists[phase]:
                 basename = os.path.splitext(name)[0]
-                if orig_path[:8] == 'TrainVal':
-                    date, id_im = basename.split(sep='_')
-                    im_id = int(str(int(date)) + str(int(id_im)))
+                if name[:2] == '20':  # Pascal type annotations
+                    date, id_str = basename.split(sep='_')
+                    im_id = int(str(int(date)) + str(int(id_str)))
                     ann_folder = self.dir_annotations_1
+                    im_path = os.path.join(self.dir_images_1, name)
                 else:
-                    idx_cat = map_categories(basename[0:2])
+                    idx_cat, cat = map_categories(basename[0:2])
                     im_id = int(str(999) + str(idx_cat) + basename[2:])
                     ann_folder = self.dir_annotations_2
-                im_path = os.path.join(self.dir_dataset, orig_path)
+                    im_path = os.path.join(self.dir_images_2, cat, name)
+
                 xml_paths = find_annotations(im_path, ann_folder)
                 splits[phase].append((im_path, im_id, xml_paths))
 
@@ -253,7 +257,9 @@ def map_categories(cat_name):
     """It works with partial names, like do for dogs"""
     for idx, cat in enumerate(_CATEGORIES):
         if cat_name in cat:
-            return idx + 1   # categories starting from one
+            return idx + 1, cat   # categories starting from one
+    print(cat_name)
+    raise ValueError
 
 
 def main():
