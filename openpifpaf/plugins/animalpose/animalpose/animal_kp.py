@@ -121,16 +121,16 @@ class AnimalKp(DataModule):
         eval_set_group.add_argument('--animal-eval-testdev2017', default=False, action='store_true')
 
         group.add_argument('--animal-no-eval-annotation-filter',
-                           dest='coco_eval_annotation_filter',
+                           dest='animal_eval_annotation_filter',
                            default=True, action='store_false')
         group.add_argument('--animal-eval-long-edge', default=cls.eval_long_edge, type=int,
-                           dest='coco_eval_long_edge', help='set to zero to deactivate rescaling')
+                           dest='animal_eval_long_edge', help='set to zero to deactivate rescaling')
         assert not cls.eval_extended_scale
         group.add_argument('--animal-eval-extended-scale', default=False, action='store_true',
-                           dest='coco_eval_extended_scale',)
+                           dest='animal_eval_extended_scale',)
         group.add_argument('--animal-eval-orientation-invariant',
                            default=cls.eval_orientation_invariant, type=float,
-                           dest='coco_eval_orientation_invariant')
+                           dest='animal_eval_orientation_invariant')
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
@@ -155,12 +155,12 @@ class AnimalKp(DataModule):
         cls.b_min = args.animal_bmin
 
         # evaluation
-        cls.eval_annotation_filter = args.coco_eval_annotation_filter  # the destination is for coco
-        cls.eval_long_edge = args.coco_eval_long_edge
-        cls.eval_orientation_invariant = args.coco_eval_orientation_invariant
-        cls.eval_extended_scale = args.coco_eval_extended_scale
+        cls.eval_annotation_filter = args.animal_eval_annotation_filter
+        cls.eval_long_edge = args.animal_eval_long_edge
+        cls.eval_orientation_invariant = args.animal_eval_orientation_invariant
+        cls.eval_extended_scale = args.animal_eval_extended_scale
 
-        if (args.cocokp_eval_test2017 or args.cocokp_eval_testdev2017) \
+        if (args.animal_eval_test2017 or args.animal_eval_testdev2017) \
                 and not args.write_predictions \
                 and not args.debug:
             raise Exception('have to use --write-predictions for this dataset')
