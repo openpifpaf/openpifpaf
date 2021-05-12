@@ -60,3 +60,6 @@ test-clis-*/
 guide/cifar10_*.predictions.json
 slurm*
 profile_decoder*
+eval.sh
+prep.sh
+train.sh
