@@ -18,6 +18,7 @@
 - part: Tutorials
   chapters:
   - file: plugins_custom
+  - file: plugins_wholebody
   - file: plugins_apollocar3d
   - file: plugins_crowdpose
   - file: tutorial_opencv
