@@ -1,4 +1,6 @@
 
+import os
+
 import numpy as np
 
 _CATEGORIES = ['cat', 'cow', 'dog', 'sheep', 'horse']  # only for preprocessing
@@ -171,7 +173,8 @@ def draw_skeletons(pose):
     ann = Annotation(
         keypoints=ANIMAL_KEYPOINTS, skeleton=ANIMAL_SKELETON, score_weights=ANIMAL_SCORE_WEIGHTS)
     ann.set(pose, np.array(ANIMAL_SIGMAS) * scale)
-    draw_ann(ann, filename='docs/skeleton_animal.png', keypoint_painter=keypoint_painter)
+    os.makedirs('all-images', exist_ok=True)
+    draw_ann(ann, filename='all-images/skeleton_animal.png', keypoint_painter=keypoint_painter)
 
 
 def print_associations():
