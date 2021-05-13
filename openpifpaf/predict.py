@@ -66,7 +66,8 @@ class Predictor:
     loader_workers = 1
     long_edge = None
 
-    def __init__(self, checkpoint, *, load_image_into_visualizer=False):
+    def __init__(self, checkpoint, *, json_data=False, load_image_into_visualizer=False):
+        self.json_data = json_data
         self.load_image_into_visualizer = load_image_into_visualizer
 
         model_cpu, _ = network.Factory(checkpoint=checkpoint).factory()
@@ -151,7 +152,7 @@ class Predictor:
 
             # unbatch
             for pred, meta in zip(pred_batch, meta_batch):
-                LOG.info('batch %d: %s', batch_i, meta['file_name'])
+                LOG.info('batch %d: %s', batch_i, meta.get('file_name', 'no-file-name'))
                 pred = [ann.inverse_transform(meta) for ann in pred]
 
                 # load the original image if necessary
@@ -160,6 +161,9 @@ class Predictor:
                     with open(meta['file_name'], 'rb') as f:
                         cpu_image = PIL.Image.open(f).convert('RGB')
                 visualizer.Base.image(cpu_image)
+
+                if self.json_data:
+                    pred = [ann.json_data() for ann in pred]
 
                 yield pred, meta
 
@@ -183,6 +187,10 @@ class Predictor:
 
     def numpy_image(self, image):
         return next(iter(self.numpy_images([image])))
+
+    def image_file(self, file_pointer):
+        pil_image = PIL.Image.open(file_pointer).convert('RGB')
+        return self.pil_image(pil_image)
 
 
 def out_name(arg, in_name, default_extension):
