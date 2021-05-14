@@ -73,7 +73,7 @@ class CompositeLoss(torch.nn.Module):
         if not torch.any(bce_masks):
             return None
 
-        batch_size = x_confidence.shape[0]
+        batch_size = t_confidence.shape[0]
         LOG.debug('batch size = %d', batch_size)
 
         if self.bce_blackout:
@@ -127,7 +127,7 @@ class CompositeLoss(torch.nn.Module):
     def _scale_losses(self, x_scales, t_scales):
         assert x_scales.shape[2] == t_scales.shape[2] == len(self.scale_losses)
 
-        batch_size = x_scales.shape[0]
+        batch_size = t_scales.shape[0]
         losses = []
         if self.weights is not None:
             weight = torch.ones_like(t_scales[:, :, 0], requires_grad=False)
