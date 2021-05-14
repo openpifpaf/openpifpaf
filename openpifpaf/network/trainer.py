@@ -27,6 +27,7 @@ class Trainer():
     fix_batch_norm = False
     stride_apply = 1
     ema_decay = 0.01
+    ema_interval = None
     train_profile = None
     distributed_reduce_loss = True
 
@@ -87,6 +88,8 @@ class Trainer():
                            help='fix batch norm running statistics (optionally specify epoch)')
         group.add_argument('--ema', default=cls.ema_decay, type=float,
                            help='ema decay constant')
+        group.add_argument('--ema-interval', default=cls.ema_interval, type=int,
+                           help='epoch intervals when to overwrite model with ema')
         group.add_argument('--profile', default=cls.train_profile,
                            help='enables profiling. specify path for chrome tracing file')
 
@@ -104,6 +107,7 @@ class Trainer():
         cls.fix_batch_norm = args.fix_batch_norm
         cls.stride_apply = args.stride_apply
         cls.ema_decay = args.ema
+        cls.ema_interval = args.ema_interval
         cls.train_profile = args.profile
 
     def lr(self):
@@ -278,7 +282,8 @@ class Trainer():
                     LOG.debug('eval mode for: %s', m)
                     m.eval()
 
-        self.ema_restore()
+        if self.ema_interval is None:
+            self.ema_restore()
         self.ema = None
 
         epoch_loss = 0.0
@@ -336,7 +341,8 @@ class Trainer():
 
             last_batch_end = time.time()
 
-        self.apply_ema()
+        if self.ema_interval is None or epoch % self.ema_interval == 0:
+            self.apply_ema()
         LOG.info({
             'type': 'train-epoch',
             'epoch': epoch + 1,
