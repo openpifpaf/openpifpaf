@@ -62,7 +62,6 @@ def configure(args):
     # configure Factory
     Factory.decoder_request_from_args(args.decoder)
     Factory.profile = args.profile_decoder
-    Factory.profile_device = args.device
 
     # configure CifHr
     utils.CifHr.v_threshold = args.cif_th
@@ -90,7 +89,6 @@ def configure(args):
 class Factory:
     decoder_request: Optional[dict] = None
     profile = False
-    profile_device = None
 
     @classmethod
     def decoder_request_from_args(cls, list_str):
@@ -153,10 +151,6 @@ class Factory:
     @classmethod
     def __call__(cls, head_metas):
         """Instantiate decoders."""
-        # TODO implement!
-        # dense_coupling=args.dense_coupling,
-        # dense_connections=args.dense_connections,
-
         LOG.debug('head names = %s', [meta.name for meta in head_metas])
         decoders = cls.decoders(head_metas)
 
