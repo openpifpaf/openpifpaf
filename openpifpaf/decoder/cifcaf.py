@@ -96,6 +96,10 @@ class CifCaf(Decoder):
         if self.caf_visualizers is None:
             self.caf_visualizers = [visualizer.Caf(meta) for meta in caf_metas]
 
+        # prefer decoders with more keypoints and associations
+        self.priority += sum(m.n_fields for m in cif_metas) / 1000.0
+        self.priority += sum(m.n_fields for m in caf_metas) / 1000.0
+
         self.timers = defaultdict(float)
 
         # init by_target and by_source

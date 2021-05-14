@@ -22,6 +22,12 @@ def default_output_file(args):
 
     now = datetime.datetime.now().strftime('%y%m%d-%H%M%S')
     out = 'outputs/{}-{}-{}'.format(base_name, now, args.dataset)
+
+    # Slurm jobs might be stuck in the job queue and then started at exactly the
+    # same time. Therefore we disambiguate with the Slurm job id.
+    if os.getenv('SLURM_JOB_ID'):
+        out += f'-slurm{os.getenv("SLURM_JOB_ID")}'
+
     if args.cocokp_square_edge != 385:
         out += '-edge{}'.format(args.cocokp_square_edge)
     if args.regression_loss != 'laplace':

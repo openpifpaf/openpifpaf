@@ -19,6 +19,7 @@
   chapters:
   - file: plugins_custom
   - file: plugins_animalpose
+  - file: plugins_wholebody
   - file: plugins_apollocar3d
   - file: plugins_crowdpose
   - file: tutorial_opencv

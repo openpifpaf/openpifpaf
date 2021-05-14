@@ -12,6 +12,7 @@ LOG = logging.getLogger(__name__)
 class CompositeLoss(torch.nn.Module):
     prescale = 1.0
     regression_loss = components.Laplace()
+    bce_total_soft_clamp = None
 
     def __init__(self, head_net: heads.CompositeField3):
         super().__init__()
@@ -48,6 +49,9 @@ class CompositeLoss(torch.nn.Module):
         group.add_argument('--regression-loss', default='laplace',
                            choices=['smoothl1', 'l1', 'laplace'],
                            help='type of regression loss')
+        group.add_argument('--bce-total-soft-clamp', default=cls.bce_total_soft_clamp,
+                           type=float,
+                           help='per feature clamp value applied to the total')
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
@@ -64,6 +68,8 @@ class CompositeLoss(torch.nn.Module):
         else:
             raise Exception('unknown regression loss type {}'.format(args.regression_loss))
 
+        cls.bce_total_soft_clamp = args.bce_total_soft_clamp
+
     def _confidence_loss(self, x_confidence, t_confidence):
         # TODO assumes one confidence
         x_confidence = x_confidence[:, :, 0]
@@ -73,8 +79,11 @@ class CompositeLoss(torch.nn.Module):
         if not torch.any(bce_masks):
             return None
 
-        batch_size = x_confidence.shape[0]
-        LOG.debug('batch size = %d', batch_size)
+        batch_size = t_confidence.shape[0]
+        n_fields = t_confidence.shape[1]
+        n_features = t_confidence.numel()
+        LOG.debug('batch size = %d, n fields = %d, n_features = %d',
+                  batch_size, n_fields, n_features)
 
         if self.bce_blackout:
             x_confidence = x_confidence[:, self.bce_blackout]
@@ -93,7 +102,14 @@ class CompositeLoss(torch.nn.Module):
             weight[:] = self.weights
             weight = torch.masked_select(weight, bce_masks)
             ce_loss = ce_loss * weight
-        ce_loss = ce_loss.sum() / batch_size
+
+        ce_loss = ce_loss.sum()
+        if self.bce_total_soft_clamp is not None:
+            total_clamp_value = self.bce_total_soft_clamp * n_features / n_fields
+            LOG.debug('summed ce loss = %s, soft clamp = %f', ce_loss, total_clamp_value)
+            ce_loss = components.SoftClamp(total_clamp_value)(ce_loss)
+
+        ce_loss = ce_loss / batch_size
 
         return ce_loss
 
@@ -127,7 +143,7 @@ class CompositeLoss(torch.nn.Module):
     def _scale_losses(self, x_scales, t_scales):
         assert x_scales.shape[2] == t_scales.shape[2] == len(self.scale_losses)
 
-        batch_size = x_scales.shape[0]
+        batch_size = t_scales.shape[0]
         losses = []
         if self.weights is not None:
             weight = torch.ones_like(t_scales[:, :, 0], requires_grad=False)
