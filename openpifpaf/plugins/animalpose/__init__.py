@@ -3,6 +3,8 @@ import openpifpaf
 
 from . import animal_kp
 
+from .animal_kp import AnimalKp
+
 
 def register():
     openpifpaf.DATAMODULES['animal'] = animal_kp.AnimalKp
