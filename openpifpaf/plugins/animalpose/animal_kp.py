@@ -29,11 +29,11 @@ class AnimalKp(DataModule):
     Adapted from the standard CocoKp class to work as external plugin
     """
 
-    train_annotations = 'data/animalpose/annotations/animal_keypoints_20_train.json'
-    val_annotations = 'data/animalpose/annotations/animal_keypoints_20_val.json'
+    train_annotations = 'data-animalpose/annotations/animal_keypoints_20_train.json'
+    val_annotations = 'data-animalpose/annotations/animal_keypoints_20_val.json'
     eval_annotations = val_annotations
-    train_image_dir = 'data/animalpose/images/train/'
-    val_image_dir = 'data/animalpose/images/val/'
+    train_image_dir = 'data-animalpose/images/train/'
+    val_image_dir = 'data-animalpose/images/val/'
     eval_image_dir = val_image_dir
 
     n_images = None

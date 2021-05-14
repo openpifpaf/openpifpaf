@@ -18,8 +18,8 @@
 - part: Tutorials
   chapters:
   - file: plugins_custom
-  - file: plugins_apollocar3d
   - file: plugins_animalpose
+  - file: plugins_apollocar3d
   - file: plugins_crowdpose
   - file: tutorial_opencv
   - file: plugins_cifar10

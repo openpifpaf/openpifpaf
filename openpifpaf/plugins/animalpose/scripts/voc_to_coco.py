@@ -37,9 +37,9 @@ def dataset_mappings():
 def cli():
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--dir_data', default='data/animalpose',
+    parser.add_argument('--dir_data', default='data-animalpose',
                         help='dataset directory')
-    parser.add_argument('--dir_out', default='data/animalpose',
+    parser.add_argument('--dir_out', default='data-animalpose',
                         help='where to save xml annotations and output json ')
     parser.add_argument('--sample', action='store_true',
                         help='Whether to only process the first 50 images')
@@ -49,6 +49,7 @@ def cli():
 
 class VocToCoco:
 
+    dir_splits = os.path.join('openpifpaf', 'plugins', 'animalpose', 'scripts')
     json_file = {}
     map_names = dataset_mappings()
     n_kps = len(ANIMAL_KEYPOINTS)
@@ -193,10 +194,9 @@ class VocToCoco:
         im_id
         xml_paths of the image
         """
-
-        with open('train.txt', 'r') as f:
+        with open(os.path.join(self.dir_splits, 'train.txt'), 'r') as f:
             lists = dict(train=f.read().splitlines())
-        with open('val.txt', 'r') as f:
+        with open(os.path.join(self.dir_splits, 'val.txt'), 'r') as f:
             lists['val'] = f.read().splitlines()
         splits = {'train': [], 'val': []}
         set1 = set(lists['train'])

@@ -168,6 +168,7 @@ def draw_skeletons(pose):
     )
 
     show.KeypointPainter.show_joint_scales = True
+    show.KeypointPainter.font_size = 0
     keypoint_painter = show.KeypointPainter()
 
     ann = Annotation(
