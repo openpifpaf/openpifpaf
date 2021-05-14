@@ -21,7 +21,8 @@ import numpy as np
 from PIL import Image
 
 
-from ..constants import _CATEGORIES, ANIMAL_KEYPOINTS, ALTERNATIVE_NAMES, ANIMAL_SKELETON
+from openpifpaf.plugins.animalpose.constants import \
+    _CATEGORIES, ANIMAL_KEYPOINTS, ALTERNATIVE_NAMES, ANIMAL_SKELETON
 
 
 def dataset_mappings():
