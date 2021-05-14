@@ -83,6 +83,7 @@ setup(
         ],
         'test': [
             'nbconvert',
+            'nbstripout',
             'nbval',
             'onnx',
             'onnxruntime',

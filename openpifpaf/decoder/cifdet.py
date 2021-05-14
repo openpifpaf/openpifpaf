@@ -18,6 +18,10 @@ class CifDet(Decoder):
         super().__init__()
         self.metas = head_metas
 
+        # prefer decoders with more classes
+        self.priority = -1.0  # prefer keypoints over detections
+        self.priority += sum(m.n_fields for m in head_metas) / 1000.0
+
         self.visualizers = visualizers
         if self.visualizers is None:
             self.visualizers = [visualizer.CifDet(meta) for meta in self.metas]
