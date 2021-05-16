@@ -16,6 +16,7 @@ from . import metric
 from . import network
 from . import optimize
 from . import plugin
+from . import visualizer
 
 from .datasets import DATAMODULES
 from .decoder import DECODERS

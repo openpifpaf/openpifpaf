@@ -4,7 +4,7 @@ import logging
 import PIL
 import torch
 
-from . import datasets, decoder, logger, network, show, transforms, visualizer, __version__
+from . import datasets, decoder, network, transforms, visualizer
 
 LOG = logging.getLogger(__name__)
 
