@@ -26,14 +26,13 @@ def cli():
 
     decoder.cli(parser)
     logger.cli(parser)
+    network.Factory.cli(parser)
     Predictor.cli(parser)
     show.cli(parser)
     visualizer.cli(parser)
 
     parser.add_argument('images', nargs='*',
                         help='input images')
-    parser.add_argument('--checkpoint', default='shufflenetv2k16',
-                        help='checkpoint name or location')
     parser.add_argument('--glob',
                         help='glob expression for input images (for many images)')
     parser.add_argument('-o', '--image-output', default=None, nargs='?', const=True,
@@ -46,6 +45,7 @@ def cli():
 
     logger.configure(args, LOG)  # logger first
     decoder.configure(args)
+    network.Factory.configure(args)
     Predictor.configure(args)
     show.configure(args)
     visualizer.configure(args)
@@ -66,11 +66,13 @@ class Predictor:
     loader_workers = 1
     long_edge = None
 
-    def __init__(self, checkpoint, *, json_data=False, load_image_into_visualizer=False):
+    def __init__(self, checkpoint=None, *, json_data=False, load_image_into_visualizer=False):
+        if checkpoint is not None:
+            network.Factory.checkpoint = checkpoint
         self.json_data = json_data
         self.load_image_into_visualizer = load_image_into_visualizer
 
-        model_cpu, _ = network.Factory(checkpoint=checkpoint).factory()
+        model_cpu, _ = network.Factory().factory()
         self.model = model_cpu.to(self.device)
         if self.device.type == 'cuda' and torch.cuda.device_count() > 1:
             LOG.info('Using multiple GPUs: %d', torch.cuda.device_count())
