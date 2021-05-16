@@ -92,7 +92,7 @@ class Predictor:
             transforms.EVAL_TRANSFORM,
         ])
 
-    def _dataset(self, data):
+    def dataset(self, data):
         data_loader = torch.utils.data.DataLoader(
             data, batch_size=self.batch_size, shuffle=False,
             pin_memory=self.device.type != 'cpu',
@@ -121,15 +121,15 @@ class Predictor:
 
     def images(self, file_names):
         data = datasets.ImageList(file_names, preprocess=self.preprocess)
-        yield from self._dataset(data)
+        yield from self.dataset(data)
 
     def pil_images(self, pil_images):
         data = datasets.PilImageList(pil_images, preprocess=self.preprocess)
-        yield from self._dataset(data)
+        yield from self.dataset(data)
 
     def numpy_images(self, numpy_images):
         data = datasets.NumpyImageList(numpy_images, preprocess=self.preprocess)
-        yield from self._dataset(data)
+        yield from self.dataset(data)
 
     def image(self, file_name):
         return next(iter(self.images([file_name])))
