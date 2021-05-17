@@ -29,6 +29,17 @@ Continuously tested on Linux, MacOS and Windows:
 
 Previous [CVPR 2019 paper](http://openaccess.thecvf.com/content_CVPR_2019/html/Kreiss_PifPaf_Composite_Fields_for_Human_Pose_Estimation_CVPR_2019_paper.html).
 
+# [Guide](https://openpifpaf.github.io/intro.html)
+
+Detailed instructions on our __[OpenPifPaf Guide](https://openpifpaf.github.io/intro.html)__.
+
+For developers, there is also the
+__[DEV Guide](https://openpifpaf.github.io/dev/intro.html)__
+which is the same guide but based on the latest code in the `main` branch.
+
+
+[CC-BY-2.0]: https://creativecommons.org/licenses/by/2.0/
+
 
 # Examples
 
@@ -41,8 +52,8 @@ Created with:
 pip3 install openpifpaf matplotlib
 python3 -m openpifpaf.predict docs/coco/000000081988.jpg --image-min-dpi=200 --show-file-extension=jpeg --image-output
 ```
-
-Prediction of a network that was trained on the [COCO WholeBody dataset](https://github.com/jin-s13/COCO-WholeBody)
+---
+Prediction of a network trained on the [COCO WholeBody dataset](https://github.com/jin-s13/COCO-WholeBody)
 ![example image with overlaid wholebody pose predictions](https://raw.githubusercontent.com/openpifpaf/openpifpaf/main/guide/wholebody/soccer.jpeg.predictions.jpeg)
 
 Image credit: [Photo](https://de.wikipedia.org/wiki/Kamil_Vacek#/media/Datei:Kamil_Vacek_20200627.jpg) by [Lokomotive74](https://commons.wikimedia.org/wiki/User:Lokomotive74) which is licensed under [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/).<br />
@@ -50,19 +61,32 @@ Created with:
 ```sh
 python -m openpifpaf.predict docs/wholebody/soccer.jpeg --checkpoint=shufflenetv2k30-wholebody --line-width=2 --decoder=cifcaf:0 --image-output
 ```
+---
+Prediction of a network that was trained on the [ApolloCar3D dataset](http://apolloscape.auto/car_instance.html):
+![example image cars](docs/peterbourg.jpg.predictions.jpeg)
+
+Image credit: [Photo](https://commons.wikimedia.org/wiki/File:Streets_of_Saint_Petersburg,_Russia.jpg) by [Ninaras](https://commons.wikimedia.org/wiki/User:Ninaras) which is licensed under [CC-BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
+
+Created with:
+```sh
+python -m openpifpaf.predict guide/images/peterbourg.jpg \
+ --checkpoint shufflenetv2k16-apollo-24 -o images \
+  --instance-threshold 0.05 --seed-threshold 0.05 \
+  --line-width 4 --font-size 0 --show-file-extension=jpeg
+```
+
+---
+
+Prediction of a network that was trained on the [AnimalPose dataset](https://sites.google.com/view/animal-pose/):
+![example image cars](docs/tappo_loomo.jpg.predictions.jpeg)
 
 
-# [Guide](https://openpifpaf.github.io/intro.html)
-
-Continue to our __[OpenPifPaf Guide](https://openpifpaf.github.io/intro.html)__.
-
-For developers, there is also the
-__[DEV Guide](https://openpifpaf.github.io/dev/intro.html)__
-which is the same guide but based on the latest code in the `main` branch.
-
-
-[CC-BY-2.0]: https://creativecommons.org/licenses/by/2.0/
-
+```sh
+python -m openpifpaf.predict guide/images tappo_loomo.jpg \
+--checkpoint=shufflenetv2k30-animalpose \
+--line-width=6 --font-size=6 --white-overlay=0.3 \ 
+--long-edge=500 --show-file-extension=jpeg
+```
 
 # Commercial License
 
