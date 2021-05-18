@@ -6,7 +6,7 @@ import json
 import logging
 import os
 
-from . import decoder, logger, network, show, visualizer, __version__
+from . import datasets, decoder, logger, network, show, visualizer, __version__
 from .predictor import Predictor
 
 LOG = logging.getLogger(__name__)
@@ -22,6 +22,7 @@ def cli():
     parser.add_argument('--version', action='version',
                         version='OpenPifPaf {version}'.format(version=__version__))
 
+    datasets.DataModule.cli_module(parser)
     decoder.cli(parser)
     logger.cli(parser)
     network.Factory.cli(parser)
@@ -42,6 +43,7 @@ def cli():
     args = parser.parse_args()
 
     logger.configure(args, LOG)  # logger first
+    datasets.DataModule.configure_module(args)
     decoder.configure(args)
     network.Factory.configure(args)
     Predictor.configure(args)

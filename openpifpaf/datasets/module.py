@@ -60,6 +60,21 @@ class DataModule:
         return self.get_loader_workers()
 
     @classmethod
+    def cli_module(cls, parser: argparse.ArgumentParser):
+        group = parser.add_argument_group('generic data module parameters')
+        group.add_argument('--loader-workers',
+                           default=None, type=int,
+                           help='number of workers for data loading')
+        group.add_argument('--batch-size',
+                           default=cls.batch_size, type=int,
+                           help='batch size')
+
+    @classmethod
+    def configure_module(cls, args: argparse.Namespace):
+        cls.set_loader_workers(args.loader_workers if not args.debug else 0)
+        cls.batch_size = args.batch_size
+
+    @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
         r"""
         Command line interface (CLI) to extend argument parser for your custom dataset.
