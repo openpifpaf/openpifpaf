@@ -91,7 +91,7 @@ def main():
                                     or args.show
                                     or args.image_output is not None)
     )
-    for pred, meta in predictor.images(args.images):
+    for pred, _, meta in predictor.images(args.images):
         # json output
         if args.json_output is not None:
             json_out_name = out_name(

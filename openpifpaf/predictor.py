@@ -16,22 +16,29 @@ class Predictor:
     loader_workers = 1
     long_edge = None
 
-    def __init__(self, checkpoint=None, *, json_data=False, load_image_into_visualizer=False):
+    def __init__(self, checkpoint=None, head_metas=None, *,
+                 json_data=False, load_image_into_visualizer=False):
         if checkpoint is not None:
             network.Factory.checkpoint = checkpoint
         self.json_data = json_data
         self.load_image_into_visualizer = load_image_into_visualizer
 
-        model_cpu, _ = network.Factory().factory()
-        self.model = model_cpu.to(self.device)
+        self.model_cpu, _ = network.Factory().factory(head_metas=head_metas)
+        self.model = self.model_cpu.to(self.device)
         if self.device.type == 'cuda' and torch.cuda.device_count() > 1:
             LOG.info('Using multiple GPUs: %d', torch.cuda.device_count())
             self.model = torch.nn.DataParallel(self.model)
-            self.model.base_net = model_cpu.base_net
-            self.model.head_nets = model_cpu.head_nets
+            self.model.base_net = self.model_cpu.base_net
+            self.model.head_nets = self.model_cpu.head_nets
 
         self.preprocess = self._preprocess_factory()
-        self.processor = decoder.factory(model_cpu.head_metas)
+        self.processor = decoder.factory(self.model_cpu.head_metas)
+
+        self.last_decoder_time = 0.0
+        self.last_nn_time = 0.0
+        self.total_nn_time = 0.0
+        self.total_decoder_time = 0.0
+        self.total_images = 0
 
         LOG.info('neural network device: %s (CUDA available: %s, count: %d)',
                  self.device, torch.cuda.is_available(), torch.cuda.device_count())
@@ -93,19 +100,28 @@ class Predictor:
         ])
 
     def dataset(self, data):
-        data_loader = torch.utils.data.DataLoader(
+        dataloader = torch.utils.data.DataLoader(
             data, batch_size=self.batch_size, shuffle=False,
             pin_memory=self.device.type != 'cpu',
             num_workers=self.loader_workers if len(data) > 1 else 0,
             collate_fn=datasets.collate_images_anns_meta)
 
-        for batch_i, (image_tensors_batch, _, meta_batch) in enumerate(data_loader):
+        yield from self.dataloader(dataloader)
+
+    def dataloader(self, dataloader):
+        for batch_i, (image_tensors_batch, gt_anns_batch, meta_batch) in enumerate(dataloader):
             pred_batch = self.processor.batch(self.model, image_tensors_batch, device=self.device)
+            self.last_decoder_time = self.processor.last_decoder_time
+            self.last_nn_time = self.processor.last_nn_time
+            self.total_decoder_time += self.processor.last_decoder_time
+            self.total_nn_time += self.processor.last_nn_time
+            self.total_images += len(image_tensors_batch)
 
             # un-batch
-            for pred, meta in zip(pred_batch, meta_batch):
+            for pred, gt_anns, meta in zip(pred_batch, gt_anns_batch, meta_batch):
                 LOG.info('batch %d: %s', batch_i, meta.get('file_name', 'no-file-name'))
                 pred = [ann.inverse_transform(meta) for ann in pred]
+                gt_anns = [ann.inverse_transform(meta) for ann in gt_anns]
 
                 # load the original image if necessary
                 cpu_image = None
@@ -117,7 +133,7 @@ class Predictor:
                 if self.json_data:
                     pred = [ann.json_data() for ann in pred]
 
-                yield pred, meta
+                yield pred, gt_anns, meta
 
     def images(self, file_names):
         data = datasets.ImageList(file_names, preprocess=self.preprocess)

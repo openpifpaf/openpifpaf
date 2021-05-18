@@ -14,6 +14,7 @@ import thop
 import torch
 
 from . import datasets, decoder, logger, network, show, visualizer, __version__
+from .predictor import Predictor
 
 LOG = logging.getLogger(__name__)
 
@@ -59,6 +60,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     decoder.cli(parser)
     logger.cli(parser)
     network.Factory.cli(parser)
+    Predictor.cli(parser)
     show.cli(parser)
     visualizer.cli(parser)
 
@@ -80,17 +82,10 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
 
     logger.configure(args, LOG)
 
-    # add args.device
-    args.device = torch.device('cpu')
-    args.pin_memory = False
-    if not args.disable_cuda and torch.cuda.is_available():
-        args.device = torch.device('cuda')
-        args.pin_memory = True
-    LOG.debug('neural network device: %s', args.device)
-
     datasets.configure(args)
     decoder.configure(args)
     network.Factory.configure(args)
+    Predictor.configure(args)
     show.configure(args)
     visualizer.configure(args)
 
@@ -124,64 +119,38 @@ def evaluate(args):
         print('{} not found. Processing: {}'.format(stats_file, network.Factory.checkpoint))
 
     datamodule = datasets.factory(args.dataset)
-    model_cpu, _ = network.Factory().factory(head_metas=datamodule.head_metas)
-    model = model_cpu.to(args.device)
-    if not args.disable_cuda and torch.cuda.device_count() > 1:
-        LOG.info('Using multiple GPUs: %d', torch.cuda.device_count())
-        model = torch.nn.DataParallel(model)
-        model.base_net = model_cpu.base_net
-        model.head_nets = model_cpu.head_nets
-
-    head_metas = [hn.meta for hn in model.head_nets]
-    processor = decoder.factory(head_metas)
-    # processor.instance_scorer = decocder.instance_scorer.InstanceScoreRecorder()
-    # processor.instance_scorer = torch.load('instance_scorer.pkl')
+    predictor = Predictor(head_metas=datamodule.head_metas)
 
     metrics = datamodule.metrics()
-    total_start = time.time()
-    loop_start = time.time()
-    nn_time = 0.0
-    decoder_time = 0.0
-    n_images = 0
+    total_start = time.perf_counter()
+    loop_start = time.perf_counter()
 
     loader = datamodule.eval_loader()
-    for batch_i, (image_tensors, anns_batch, meta_batch) in enumerate(loader):
-        LOG.info('batch %d / %d, last loop: %.3fs, batches per second=%.1f',
-                 batch_i, len(loader), time.time() - loop_start,
-                 batch_i / max(1, (time.time() - total_start)))
-        loop_start = time.time()
+    for image_i, (pred, gt_anns, image_meta) in \
+            enumerate(predictor.dataloader(loader)):
+        LOG.info('image %d / %d, last loop: %.3fs, images per second=%.1f',
+                 image_i, len(loader), time.perf_counter() - loop_start,
+                 image_i / max(1, (time.perf_counter() - total_start)))
+        loop_start = time.perf_counter()
 
-        pred_batch = processor.batch(model, image_tensors,
-                                     device=args.device, gt_anns_batch=anns_batch)
-        n_images += len(image_tensors)
-        decoder_time += processor.last_decoder_time
-        nn_time += processor.last_nn_time
+        for metric in metrics:
+            metric.accumulate(pred, image_meta, ground_truth=gt_anns)
 
-        # loop over batch
-        assert len(image_tensors) == len(meta_batch)
-        for pred, gt_anns, image_meta in zip(pred_batch, anns_batch, meta_batch):
-            pred = [ann.inverse_transform(image_meta) for ann in pred]
-            gt_anns = [ann.inverse_transform(image_meta) for ann in gt_anns]
-            for metric in metrics:
-                metric.accumulate(pred, image_meta, ground_truth=gt_anns)
+        if args.show_final_image:
+            # show ground truth and predictions on original image
+            annotation_painter = show.AnnotationPainter()
+            with open(image_meta['local_file_path'], 'rb') as f:
+                cpu_image = PIL.Image.open(f).convert('RGB')
 
-            if args.show_final_image:
-                # show ground truth and predictions on original image
-                annotation_painter = show.AnnotationPainter()
-                with open(image_meta['local_file_path'], 'rb') as f:
-                    cpu_image = PIL.Image.open(f).convert('RGB')
+            with show.image_canvas(cpu_image) as ax:
+                if args.show_final_ground_truth:
+                    annotation_painter.annotations(ax, gt_anns, color='grey')
+                annotation_painter.annotations(ax, pred)
 
-                with show.image_canvas(cpu_image) as ax:
-                    if args.show_final_ground_truth:
-                        annotation_painter.annotations(ax, gt_anns, color='grey')
-                    annotation_painter.annotations(ax, pred)
-
-    total_time = time.time() - total_start
-
-    # processor.instance_scorer.write_data('instance_score_data.json')
+    total_time = time.perf_counter() - total_start
 
     # model stats
-    counted_ops = list(count_ops(model_cpu))
+    counted_ops = list(count_ops(predictor.model_cpu))
     local_checkpoint = network.local_checkpoint_path(network.Factory.checkpoint)
     file_size = os.path.getsize(local_checkpoint) if local_checkpoint else -1.0
 
@@ -194,9 +163,9 @@ def evaluate(args):
         'checkpoint': network.Factory.checkpoint,
         'count_ops': counted_ops,
         'file_size': file_size,
-        'n_images': n_images,
-        'decoder_time': decoder_time,
-        'nn_time': nn_time,
+        'n_images': predictor.total_images,
+        'decoder_time': predictor.total_decoder_time,
+        'nn_time': predictor.total_nn_time,
     }
 
     metric_stats = defaultdict(list)
