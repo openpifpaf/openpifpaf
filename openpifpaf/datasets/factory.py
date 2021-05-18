@@ -16,7 +16,7 @@ def factory(dataset):
 
 
 def cli(parser):
-    DataModule.cli_module(cli)
+    DataModule.cli_module(parser)
 
     group = parser.add_argument_group('generic data module parameters')
     group.add_argument('--dataset')
