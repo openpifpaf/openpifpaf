@@ -46,7 +46,7 @@ class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
     pass
 
 
-def cli():  # pylint: disable=too-many-statements,too-many-branches
+def cli():
     parser = argparse.ArgumentParser(
         prog='python3 -m openpifpaf.eval',
         usage='%(prog)s [options]',
