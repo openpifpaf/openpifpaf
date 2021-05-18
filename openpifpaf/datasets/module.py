@@ -45,15 +45,19 @@ class DataModule:
     def set_loader_workers(cls, value):
         cls._loader_workers = value
 
-    @property
-    def loader_workers(self):
-        if self._loader_workers is not None:
-            return self._loader_workers
+    @classmethod
+    def get_loader_workers(cls):
+        if cls._loader_workers is not None:
+            return cls._loader_workers
 
         # Do not propose more than 16 loaders. More loaders use more
         # shared memory. When shared memory is exceeded, all jobs
         # on that machine crash.
-        return min(16, self.batch_size)
+        return min(16, cls.batch_size)
+
+    @property
+    def loader_workers(self):
+        return self.get_loader_workers()
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):

@@ -72,8 +72,6 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
                         default=True, action='store_false',
                         help='do not skip eval for epoch 0')
     parser.add_argument('--watch', default=False, const=60, nargs='?', type=int)
-    parser.add_argument('--disable-cuda', action='store_true',
-                        help='disable CUDA')
     parser.add_argument('--write-predictions', default=False, action='store_true',
                         help='write a json and a zip file of the predictions')
     parser.add_argument('--show-final-image', default=False, action='store_true')

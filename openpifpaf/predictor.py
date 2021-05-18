@@ -10,10 +10,8 @@ LOG = logging.getLogger(__name__)
 
 
 class Predictor:
-    batch_size = 1
     device_ = None
     fast_rescaling = True
-    loader_workers = 1
     long_edge = None
 
     def __init__(self, checkpoint=None, head_metas=None, *,
@@ -56,12 +54,8 @@ class Predictor:
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
         group = parser.add_argument_group('Predictor')
-        group.add_argument('--batch-size', default=cls.batch_size, type=int,
-                           help='processing batch size')
         group.add_argument('--long-edge', default=cls.long_edge, type=int,
                            help='rescale the long side of the image (aspect ratio maintained)')
-        group.add_argument('--loader-workers', default=None, type=int,
-                           help='number of workers for data loading')
         group.add_argument('--precise-rescaling', dest='fast_rescaling',
                            default=True, action='store_false',
                            help='use more exact image rescaling (requires scipy)')
@@ -70,11 +64,7 @@ class Predictor:
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
-        cls.batch_size = args.batch_size
         cls.long_edge = args.long_edge
-        cls.loader_workers = (args.loader_workers
-                              if args.loader_workers is not None
-                              else args.batch_size)
         cls.fast_rescaling = args.fast_rescaling
 
         if args.disable_cuda:
@@ -86,7 +76,7 @@ class Predictor:
             rescale_t = transforms.RescaleAbsolute(self.long_edge, fast=self.fast_rescaling)
 
         pad_t = None
-        if self.batch_size > 1:
+        if datasets.DataModule.batch_size > 1:
             assert self.long_edge, '--long-edge must be provided for batch size > 1'
             pad_t = transforms.CenterPad(self.long_edge)
         else:
@@ -101,9 +91,9 @@ class Predictor:
 
     def dataset(self, data):
         dataloader = torch.utils.data.DataLoader(
-            data, batch_size=self.batch_size, shuffle=False,
+            data, batch_size=datasets.DataModule.batch_size, shuffle=False,
             pin_memory=self.device.type != 'cpu',
-            num_workers=self.loader_workers if len(data) > 1 else 0,
+            num_workers=datasets.DataModule.loader_workers if len(data) > 1 else 0,
             collate_fn=datasets.collate_images_anns_meta)
 
         yield from self.dataloader(dataloader)
