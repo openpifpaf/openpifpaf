@@ -26,7 +26,7 @@ import time
 
 import torch
 
-from . import decoder, logger, network, show, transforms, visualizer, __version__
+from . import decoder, logger, network, show, visualizer, __version__
 from .predictor import Predictor
 from .stream import Stream
 
@@ -110,8 +110,8 @@ def main():
     args = cli()
 
     predictor = Predictor(
-        load_image_into_visualizer=(not args.json_output or args.video_output),
-        load_processed_image_into_visualizer=args.debug,
+        visualize_image=(not args.json_output or args.video_output),
+        visualize_processed_image=args.debug,
     )
     capture = Stream(args.source, preprocess=predictor.preprocess)
 
@@ -122,9 +122,10 @@ def main():
     )
 
     last_loop = time.perf_counter()
-    for (ax, ax_second), (preds, _, meta) in zip(animation.iter(), predictor.dataset(capture, loader_workers=1)):
+    for (ax, ax_second), (preds, _, meta) in \
+            zip(animation.iter(), predictor.dataset(capture, loader_workers=1)):
         image = visualizer.Base._image  # pylint: disable=protected-access
-        if ax is None:
+        if ax is None and (not args.json_output or args.video_output):
             ax, ax_second = animation.frame_init(image)
 
         visualizer.Base.common_ax = ax_second if args.separate_debug_ax else ax

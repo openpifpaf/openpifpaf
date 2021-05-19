@@ -105,8 +105,8 @@ def main():
     annotation_painter = show.AnnotationPainter()
 
     predictor = Predictor(
-        load_image_into_visualizer=(args.show or args.image_output is not None),
-        load_processed_image_into_visualizer=args.debug,
+        visualize_image=(args.show or args.image_output is not None),
+        visualize_processed_image=args.debug,
     )
     for pred, _, meta in predictor.images(
             args.images, batch_size=args.batch_size, loader_workers=args.loader_workers):
