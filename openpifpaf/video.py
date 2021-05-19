@@ -27,6 +27,7 @@ import time
 import torch
 
 from . import decoder, logger, network, show, transforms, visualizer, __version__
+from .predictor import Predictor
 from .stream import Stream
 
 LOG = logging.getLogger(__name__)
@@ -50,6 +51,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     network.Factory.cli(parser)
     decoder.cli(parser)
     logger.cli(parser)
+    Predictor.cli(parser)
     show.cli(parser)
     Stream.cli(parser)
     visualizer.cli(parser)
@@ -62,8 +64,6 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
                         help='video output file or "virtualcam"')
     parser.add_argument('--json-output', default=None, nargs='?', const=True,
                         help='json output file')
-    parser.add_argument('--long-edge', default=None, type=int,
-                        help='long edge of input images')
     parser.add_argument('--separate-debug-ax', default=False, action='store_true')
     parser.add_argument('--disable-cuda', action='store_true',
                         help='disable CUDA')
@@ -82,6 +82,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
 
     decoder.configure(args)
     network.Factory.configure(args)
+    Predictor.configure(args)
     show.configure(args)
     Stream.configure(args)
     visualizer.configure(args)
@@ -108,21 +109,11 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
 def main():
     args = cli()
 
-    model, _ = network.Factory().factory()
-    model = model.to(args.device)
-    processor = decoder.factory(model.head_metas)
-
-    # assemble preprocessing transforms
-    rescale_t = None
-    if args.long_edge is not None:
-        rescale_t = transforms.RescaleAbsolute(args.long_edge, fast=True)
-    preprocess = transforms.Compose([
-        transforms.NormalizeAnnotations(),
-        rescale_t,
-        transforms.CenterPadTight(16),
-        transforms.EVAL_TRANSFORM,
-    ])
-    capture = Stream(args.source, preprocess=preprocess)
+    predictor = Predictor(
+        load_image_into_visualizer=(not args.json_output or args.video_output),
+        load_processed_image_into_visualizer=args.debug,
+    )
+    capture = Stream(args.source, preprocess=predictor.preprocess)
 
     annotation_painter = show.AnnotationPainter()
     animation = show.AnimationFrame(
@@ -131,18 +122,14 @@ def main():
     )
 
     last_loop = time.perf_counter()
-    for (ax, ax_second), (image, processed_image, _, meta) in zip(animation.iter(), capture):
+    for (ax, ax_second), (preds, _, meta) in zip(animation.iter(), predictor.dataset(capture, loader_workers=1)):
+        image = visualizer.Base._image  # pylint: disable=protected-access
         if ax is None:
             ax, ax_second = animation.frame_init(image)
 
-        visualizer.Base.image(image, meta=meta)
-        visualizer.Base.processed_image(processed_image)
         visualizer.Base.common_ax = ax_second if args.separate_debug_ax else ax
-        preds = processor.batch(model, torch.unsqueeze(processed_image, 0), device=args.device)[0]
 
         start_post = time.perf_counter()
-        preds = [ann.inverse_transform(meta) for ann in preds]
-
         if args.json_output:
             with open(args.json_output, 'a+') as f:
                 json.dump({
