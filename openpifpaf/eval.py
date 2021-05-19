@@ -72,6 +72,8 @@ def cli():
                         default=True, action='store_false',
                         help='do not skip eval for epoch 0')
     parser.add_argument('--watch', default=False, const=60, nargs='?', type=int)
+    parser.add_argument('--disable-cuda', action='store_true',
+                        help='disable CUDA')
     parser.add_argument('--write-predictions', default=False, action='store_true',
                         help='write a json and a zip file of the predictions')
     parser.add_argument('--show-final-image', default=False, action='store_true')
@@ -79,6 +81,14 @@ def cli():
     args = parser.parse_args()
 
     logger.configure(args, LOG)
+
+    # add args.device
+    args.device = torch.device('cpu')
+    args.pin_memory = False
+    if not args.disable_cuda and torch.cuda.is_available():
+        args.device = torch.device('cuda')
+        args.pin_memory = True
+    LOG.debug('neural network device: %s', args.device)
 
     datasets.configure(args)
     decoder.configure(args)

@@ -6,6 +6,8 @@ import json
 import logging
 import os
 
+import torch
+
 from . import decoder, logger, network, show, visualizer, __version__
 from .predictor import Predictor
 
@@ -31,10 +33,6 @@ def cli():
 
     parser.add_argument('images', nargs='*',
                         help='input images')
-    parser.add_argument('--batch-size', default=1, type=int,
-                        help='processing batch size')
-    parser.add_argument('--loader-workers', default=None, type=int,
-                        help='number of workers for data loading')
     parser.add_argument('--glob',
                         help='glob expression for input images (for many images)')
     parser.add_argument('-o', '--image-output', default=None, nargs='?', const=True,
@@ -43,9 +41,25 @@ def cli():
     parser.add_argument('--json-output', default=None, nargs='?', const=True,
                         help='Whether to output a json file, '
                              'with the option to specify the output path or directory')
+    parser.add_argument('--batch-size', default=1, type=int,
+                        help='processing batch size')
+    parser.add_argument('--loader-workers', default=None, type=int,
+                        help='number of workers for data loading')
+    parser.add_argument('--disable-cuda', action='store_true',
+                        help='disable CUDA')
     args = parser.parse_args()
 
     logger.configure(args, LOG)  # logger first
+
+    # add args.device
+    args.device = torch.device('cpu')
+    args.pin_memory = False
+    if not args.disable_cuda and torch.cuda.is_available():
+        args.device = torch.device('cuda')
+        args.pin_memory = True
+    LOG.info('neural network device: %s (CUDA available: %s, count: %d)',
+             args.device, torch.cuda.is_available(), torch.cuda.device_count())
+
     decoder.configure(args)
     network.Factory.configure(args)
     Predictor.configure(args)

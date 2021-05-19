@@ -10,7 +10,7 @@ LOG = logging.getLogger(__name__)
 
 
 class Predictor:
-    device_ = None
+    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     fast_rescaling = True
     long_edge = None
 
@@ -41,16 +41,6 @@ class Predictor:
         LOG.info('neural network device: %s (CUDA available: %s, count: %d)',
                  self.device, torch.cuda.is_available(), torch.cuda.device_count())
 
-    @property
-    def device(self):
-        if self.device_ is None:
-            if torch.cuda.is_available():
-                self.device_ = torch.device('cuda')
-            else:
-                self.device_ = torch.device('cpu')
-
-        return self.device_
-
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
         group = parser.add_argument_group('Predictor')
@@ -59,16 +49,12 @@ class Predictor:
         group.add_argument('--precise-rescaling', dest='fast_rescaling',
                            default=True, action='store_false',
                            help='use more exact image rescaling (requires scipy)')
-        group.add_argument('--disable-cuda', action='store_true',
-                           help='disable CUDA')
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
         cls.long_edge = args.long_edge
         cls.fast_rescaling = args.fast_rescaling
-
-        if args.disable_cuda:
-            cls.device_ = torch.device('cpu')
+        cls.device = args.device
 
     def _preprocess_factory(self):
         rescale_t = None
