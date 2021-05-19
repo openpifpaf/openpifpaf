@@ -88,7 +88,10 @@ class Predictor:
             transforms.EVAL_TRANSFORM,
         ])
 
-    def dataset(self, data, *, batch_size=1, loader_workers=0):
+    def dataset(self, data, *, batch_size=1, loader_workers=None):
+        if loader_workers is None:
+            loader_workers = batch_size if len(data) > 1 else 0
+
         dataloader = torch.utils.data.DataLoader(
             data, batch_size=batch_size, shuffle=False,
             pin_memory=self.device.type != 'cpu',

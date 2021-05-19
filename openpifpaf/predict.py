@@ -6,7 +6,7 @@ import json
 import logging
 import os
 
-from . import datasets, decoder, logger, network, show, visualizer, __version__
+from . import decoder, logger, network, show, visualizer, __version__
 from .predictor import Predictor
 
 LOG = logging.getLogger(__name__)
@@ -57,10 +57,6 @@ def cli():
         args.images += glob.glob(args.glob)
     if not args.images:
         raise Exception("no image files given")
-
-    loader_workers = args.loader_workers
-    if loader_workers is None:
-        loader_workers = args.batch_size if len(args.images) > 1 else 0
 
     return args
 
