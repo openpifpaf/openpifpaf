@@ -1,6 +1,13 @@
 # History
 
-* [main](https://github.com/openpifpaf/openpifpaf/compare/v0.12.9...main)
+* [main](https://github.com/openpifpaf/openpifpaf/compare/v0.12.10...main)
+* [0.12.10](https://github.com/openpifpaf/openpifpaf/compare/v0.12.9...v0.12.10) (2021-05-19)
+    * new Guide tutorials: Wholebody, Apollo, Animals
+    * Predictor API
+    * MobileNetv3 backbone
+    * BCE background clamp
+    * support and CI tests for Python 3.9
+    * fix for multiple metrics
 * [0.12.9](https://github.com/openpifpaf/openpifpaf/compare/v0.12.8...v0.12.9) (2021-04-21)
     * new tutorials: Custom Dataset and ApolloCar3D
     * bugfix: inverse ground-truth annotation for metric [#399](https://github.com/openpifpaf/openpifpaf/pull/399)
