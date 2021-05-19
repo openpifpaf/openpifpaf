@@ -15,11 +15,14 @@ class Predictor:
     long_edge = None
 
     def __init__(self, checkpoint=None, head_metas=None, *,
-                 json_data=False, load_image_into_visualizer=False):
+                 json_data=False,
+                 visualize_image=False,
+                 visualize_processed_image=False):
         if checkpoint is not None:
             network.Factory.checkpoint = checkpoint
         self.json_data = json_data
-        self.load_image_into_visualizer = load_image_into_visualizer
+        self.visualize_image = visualize_image
+        self.visualize_processed_image = visualize_processed_image
 
         self.model_cpu, _ = network.Factory().factory(head_metas=head_metas)
         self.model = self.model_cpu.to(self.device)
@@ -87,26 +90,33 @@ class Predictor:
         yield from self.dataloader(dataloader)
 
     def dataloader(self, dataloader):
-        for batch_i, (image_tensors_batch, gt_anns_batch, meta_batch) in enumerate(dataloader):
-            pred_batch = self.processor.batch(self.model, image_tensors_batch, device=self.device)
+        for batch_i, item in enumerate(dataloader):
+            if len(item) == 3:
+                processed_image_batch, gt_anns_batch, meta_batch = item
+                image_batch = [None for _ in processed_image_batch]
+            elif len(item) == 4:
+                image_batch, processed_image_batch, gt_anns_batch, meta_batch = item
+            if self.visualize_processed_image:
+                visualizer.Base.processed_image(processed_image_batch[0])
+
+            pred_batch = self.processor.batch(self.model, processed_image_batch, device=self.device)
             self.last_decoder_time = self.processor.last_decoder_time
             self.last_nn_time = self.processor.last_nn_time
             self.total_decoder_time += self.processor.last_decoder_time
             self.total_nn_time += self.processor.last_nn_time
-            self.total_images += len(image_tensors_batch)
+            self.total_images += len(processed_image_batch)
 
             # un-batch
-            for pred, gt_anns, meta in zip(pred_batch, gt_anns_batch, meta_batch):
+            for image, pred, gt_anns, meta in \
+                    zip(image_batch, pred_batch, gt_anns_batch, meta_batch):
                 LOG.info('batch %d: %s', batch_i, meta.get('file_name', 'no-file-name'))
-                pred = [ann.inverse_transform(meta) for ann in pred]
-                gt_anns = [ann.inverse_transform(meta) for ann in gt_anns]
 
                 # load the original image if necessary
-                cpu_image = None
-                if self.load_image_into_visualizer:
-                    with open(meta['file_name'], 'rb') as f:
-                        cpu_image = PIL.Image.open(f).convert('RGB')
-                visualizer.Base.image(cpu_image)
+                if self.visualize_image:
+                    visualizer.Base.image(image, meta=meta)
+
+                pred = [ann.inverse_transform(meta) for ann in pred]
+                gt_anns = [ann.inverse_transform(meta) for ann in gt_anns]
 
                 if self.json_data:
                     pred = [ann.json_data() for ann in pred]
@@ -114,15 +124,18 @@ class Predictor:
                 yield pred, gt_anns, meta
 
     def images(self, file_names, **kwargs):
-        data = datasets.ImageList(file_names, preprocess=self.preprocess)
+        data = datasets.ImageList(
+            file_names, preprocess=self.preprocess, with_raw_image=True)
         yield from self.dataset(data, **kwargs)
 
     def pil_images(self, pil_images, **kwargs):
-        data = datasets.PilImageList(pil_images, preprocess=self.preprocess)
+        data = datasets.PilImageList(
+            pil_images, preprocess=self.preprocess, with_raw_image=True)
         yield from self.dataset(data, **kwargs)
 
     def numpy_images(self, numpy_images, **kwargs):
-        data = datasets.NumpyImageList(numpy_images, preprocess=self.preprocess)
+        data = datasets.NumpyImageList(
+            numpy_images, preprocess=self.preprocess, with_raw_image=True)
         yield from self.dataset(data, **kwargs)
 
     def image(self, file_name):
