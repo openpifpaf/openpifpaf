@@ -6,6 +6,7 @@ del get_versions
 
 from .annotation import Annotation, AnnotationDet
 from .configurable import Configurable
+from .predictor import Predictor
 from . import datasets
 from . import decoder
 from . import encoder
@@ -15,6 +16,7 @@ from . import metric
 from . import network
 from . import optimize
 from . import plugin
+from . import visualizer
 
 from .datasets import DATAMODULES
 from .decoder import DECODERS
