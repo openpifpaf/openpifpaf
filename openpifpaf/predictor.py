@@ -93,7 +93,7 @@ class Predictor:
         dataloader = torch.utils.data.DataLoader(
             data, batch_size=datasets.DataModule.batch_size, shuffle=False,
             pin_memory=self.device.type != 'cpu',
-            num_workers=datasets.DataModule.loader_workers if len(data) > 1 else 0,
+            num_workers=datasets.DataModule.get_loader_workers() if len(data) > 1 else 0,
             collate_fn=datasets.collate_images_anns_meta)
 
         yield from self.dataloader(dataloader)
