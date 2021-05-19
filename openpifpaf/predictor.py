@@ -76,8 +76,7 @@ class Predictor:
             rescale_t = transforms.RescaleAbsolute(self.long_edge, fast=self.fast_rescaling)
 
         pad_t = None
-        if datasets.DataModule.batch_size > 1:
-            assert self.long_edge, '--long-edge must be provided for batch size > 1'
+        if self.long_edge is not None:
             pad_t = transforms.CenterPad(self.long_edge)
         else:
             pad_t = transforms.CenterPadTight(16)
@@ -89,11 +88,11 @@ class Predictor:
             transforms.EVAL_TRANSFORM,
         ])
 
-    def dataset(self, data):
+    def dataset(self, data, *, batch_size=1, loader_workers=0):
         dataloader = torch.utils.data.DataLoader(
-            data, batch_size=datasets.DataModule.batch_size, shuffle=False,
+            data, batch_size=batch_size, shuffle=False,
             pin_memory=self.device.type != 'cpu',
-            num_workers=datasets.DataModule.get_loader_workers() if len(data) > 1 else 0,
+            num_workers=loader_workers,
             collate_fn=datasets.collate_images_anns_meta)
 
         yield from self.dataloader(dataloader)
@@ -125,17 +124,17 @@ class Predictor:
 
                 yield pred, gt_anns, meta
 
-    def images(self, file_names):
+    def images(self, file_names, **kwargs):
         data = datasets.ImageList(file_names, preprocess=self.preprocess)
-        yield from self.dataset(data)
+        yield from self.dataset(data, **kwargs)
 
-    def pil_images(self, pil_images):
+    def pil_images(self, pil_images, **kwargs):
         data = datasets.PilImageList(pil_images, preprocess=self.preprocess)
-        yield from self.dataset(data)
+        yield from self.dataset(data, **kwargs)
 
-    def numpy_images(self, numpy_images):
+    def numpy_images(self, numpy_images, **kwargs):
         data = datasets.NumpyImageList(numpy_images, preprocess=self.preprocess)
-        yield from self.dataset(data)
+        yield from self.dataset(data, **kwargs)
 
     def image(self, file_name):
         return next(iter(self.images([file_name])))

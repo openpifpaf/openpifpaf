@@ -16,10 +16,14 @@ def factory(dataset):
 
 
 def cli(parser):
-    DataModule.cli_module(parser)
-
     group = parser.add_argument_group('generic data module parameters')
     group.add_argument('--dataset')
+    group.add_argument('--loader-workers',
+                       default=None, type=int,
+                       help='number of workers for data loading')
+    group.add_argument('--batch-size',
+                       default=DataModule.batch_size, type=int,
+                       help='batch size')
     group.add_argument('--dataset-weights', default=None, nargs='+', type=float,
                        help='n-1 weights for the datasets')
 
@@ -28,7 +32,8 @@ def cli(parser):
 
 
 def configure(args):
-    DataModule.configure_module(args)
+    DataModule.set_loader_workers(args.loader_workers if not args.debug else 0)
+    DataModule.batch_size = args.batch_size
     MultiLoader.weights = args.dataset_weights
 
     for dm in DATAMODULES.values():

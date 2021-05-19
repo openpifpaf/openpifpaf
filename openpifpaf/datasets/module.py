@@ -45,34 +45,15 @@ class DataModule:
     def set_loader_workers(cls, value):
         cls._loader_workers = value
 
-    @classmethod
-    def get_loader_workers(cls):
-        if cls._loader_workers is not None:
-            return cls._loader_workers
+    @property
+    def loader_workers(self):
+        if self._loader_workers is not None:
+            return self._loader_workers
 
         # Do not propose more than 16 loaders. More loaders use more
         # shared memory. When shared memory is exceeded, all jobs
         # on that machine crash.
-        return min(16, cls.batch_size)
-
-    @property
-    def loader_workers(self):
-        return self.get_loader_workers()
-
-    @classmethod
-    def cli_module(cls, parser: argparse.ArgumentParser):
-        group = parser.add_argument_group('generic data module parameters')
-        group.add_argument('--loader-workers',
-                           default=None, type=int,
-                           help='number of workers for data loading')
-        group.add_argument('--batch-size',
-                           default=cls.batch_size, type=int,
-                           help='batch size')
-
-    @classmethod
-    def configure_module(cls, args: argparse.Namespace):
-        cls.set_loader_workers(args.loader_workers if not args.debug else 0)
-        cls.batch_size = args.batch_size
+        return min(16, self.batch_size)
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):

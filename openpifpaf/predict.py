@@ -22,7 +22,6 @@ def cli():
     parser.add_argument('--version', action='version',
                         version='OpenPifPaf {version}'.format(version=__version__))
 
-    datasets.DataModule.cli_module(parser)
     decoder.cli(parser)
     logger.cli(parser)
     network.Factory.cli(parser)
@@ -32,6 +31,10 @@ def cli():
 
     parser.add_argument('images', nargs='*',
                         help='input images')
+    parser.add_argument('--batch-size', default=1, type=int,
+                        help='processing batch size')
+    parser.add_argument('--loader-workers', default=None, type=int,
+                        help='number of workers for data loading')
     parser.add_argument('--glob',
                         help='glob expression for input images (for many images)')
     parser.add_argument('-o', '--image-output', default=None, nargs='?', const=True,
@@ -43,7 +46,6 @@ def cli():
     args = parser.parse_args()
 
     logger.configure(args, LOG)  # logger first
-    datasets.DataModule.configure_module(args)
     decoder.configure(args)
     network.Factory.configure(args)
     Predictor.configure(args)
@@ -55,6 +57,10 @@ def cli():
         args.images += glob.glob(args.glob)
     if not args.images:
         raise Exception("no image files given")
+
+    loader_workers = args.loader_workers
+    if loader_workers is None:
+        loader_workers = args.batch_size if len(args.images) > 1 else 0
 
     return args
 
@@ -93,7 +99,8 @@ def main():
                                     or args.show
                                     or args.image_output is not None)
     )
-    for pred, _, meta in predictor.images(args.images):
+    for pred, _, meta in predictor.images(
+            args.images, batch_size=args.batch_size, loader_workers=args.loader_workers):
         # json output
         if args.json_output is not None:
             json_out_name = out_name(
