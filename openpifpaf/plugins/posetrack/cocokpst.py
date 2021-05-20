@@ -114,7 +114,7 @@ class CocoKpSt(openpifpaf.datasets.DataModule):
                 openpifpaf.transforms.HFlip(COCO_KEYPOINTS, HFLIP), 0.5)),
             S(rescale_t),
             S(openpifpaf.transforms.RandomChoice(
-                [openpifpaf.transforms.RotateBy90(),
+                [openpifpaf.transforms.RotateBy90(angle_perturbation=30.0),
                  openpifpaf.transforms.RotateUniform(30.0)],
                 [openpifpaf.plugins.coco.CocoKp.orientation_invariant, 0.4],
             )),
