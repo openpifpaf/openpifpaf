@@ -37,15 +37,24 @@ class Pad(Preprocess):
     def center_pad(self, image, anns, cam_shift):
         w, h = image.size
 
-        left = (self.target_size[0] - w) / 2.0 + cam_shift[0]
-        top = (self.target_size[1] - h) / 2.0 + cam_shift[1]
-        left = int(torch.clamp(left, 0, self.target_size[0] - w).item())
-        top = int(torch.clamp(top, 0, self.target_size[1] - h).item())
+        if self.target_size[0] > w:
+            left = (self.target_size[0] - w) / 2.0 + cam_shift[0]
+            left = int(torch.clamp(left, 0, self.target_size[0] - w).item())
+            right = torch.scalar_tensor(self.target_size[0] - w - left)
+            right = int(torch.clamp(right, 0, self.target_size[0] - w).item())
+        else:
+            left = 0
+            right = 0
 
-        right = torch.scalar_tensor(self.target_size[0] - w - left)
-        bottom = torch.scalar_tensor(self.target_size[1] - h - top)
-        right = int(torch.clamp(right, 0, self.target_size[0] - w).item())
-        bottom = int(torch.clamp(bottom, 0, self.target_size[1] - h).item())
+        if self.target_size[1] > h:
+            top = (self.target_size[1] - h) / 2.0 + cam_shift[1]
+            top = int(torch.clamp(top, 0, self.target_size[1] - h).item())
+            bottom = torch.scalar_tensor(self.target_size[1] - h - top)
+            bottom = int(torch.clamp(bottom, 0, self.target_size[1] - h).item())
+        else:
+            top = 0
+            bottom = 0
+
         ltrb = (left, top, right, bottom)
         LOG.debug('pad with %s', ltrb)
 
