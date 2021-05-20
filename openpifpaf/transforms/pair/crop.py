@@ -25,13 +25,16 @@ class Crop(Preprocess):
             # train whether the pose continues or not (unless the past
             # frame is blank)
             if all_anns[0] and not all_anns[1]:
+                valid_area = metas[0]['valid_area']
                 area_of_interest = SingleImageCrop.area_of_interest(
-                    all_anns[0], metas[0]['valid_area'])
+                    all_anns[0], valid_area)
             else:
+                valid_area = metas[1]['valid_area']
                 area_of_interest = SingleImageCrop.area_of_interest(
-                    all_anns[1], metas[1]['valid_area'])
+                    all_anns[1], valid_area)
         else:
-            area_of_interest = metas[0]['valid_area']
+            valid_area = metas[0]['valid_area']
+            area_of_interest = valid_area
 
         new_images = []
         new_anns = []
@@ -44,7 +47,7 @@ class Crop(Preprocess):
             original_valid_area = meta['valid_area'].copy()
             with torch.random.fork_rng(devices=[]):
                 image, anns, ltrb = self.crop(
-                    image, anns, area_of_interest, cam_shift * meta.get('group_i', 1.0))
+                    image, anns, valid_area, area_of_interest, cam_shift * meta.get('group_i', 1.0))
                 meta['offset'] += ltrb[:2]
 
                 new_wh = image.size
@@ -74,31 +77,22 @@ class Crop(Preprocess):
 
         return new_images, new_anns, new_metas
 
-    def crop(self, image, anns, area_of_interest, cam_shift):
+    def crop(self, image, anns, valid_area, area_of_interest, cam_shift):
         LOG.debug('cam shift = %s', cam_shift)
         w, h = image.size
-        padding = int(self.long_edge / 10.0)
         x_offset, y_offset = 0, 0
         if w > self.long_edge:
-            min_x = int(area_of_interest[0])
-            max_x = int(area_of_interest[0] + area_of_interest[2]) - self.long_edge
-            if max_x > min_x:
-                x_offset = torch.randint(-padding + min_x, max_x + padding, (1,))
-                x_offset = torch.clamp(x_offset, min=min_x, max=max_x)
-                x_offset += int(cam_shift[0])
-                x_offset = torch.clamp(x_offset, min=min_x, max=max_x).item()
-            else:
-                x_offset = min_x
+            x_offset = SingleImageCrop.random_location_1d(
+                valid_area[0], valid_area[2],
+                area_of_interest[0], area_of_interest[2],
+                self.long_edge,
+            )
         if h > self.long_edge:
-            min_y = int(area_of_interest[1])
-            max_y = int(area_of_interest[1] + area_of_interest[3]) - self.long_edge
-            if max_y > min_y:
-                y_offset = torch.randint(-padding + min_y, max_y + padding, (1,))
-                y_offset = torch.clamp(y_offset, min=min_y, max=max_y)
-                y_offset += int(cam_shift[1])
-                y_offset = torch.clamp(y_offset, min=min_y, max=max_y).item()
-            else:
-                y_offset = min_y
+            y_offset = SingleImageCrop.random_location_1d(
+                valid_area[1], valid_area[3],
+                area_of_interest[1], area_of_interest[3],
+                self.long_edge
+            )
         LOG.debug('crop offsets (%d, %d)', x_offset, y_offset)
 
         # crop image
