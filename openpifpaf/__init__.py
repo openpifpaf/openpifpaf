@@ -6,6 +6,7 @@ del get_versions
 
 from .annotation import Annotation, AnnotationDet
 from .configurable import Configurable
+from .predictor import Predictor
 from .signal import Signal
 from . import datasets
 from . import decoder
@@ -16,10 +17,17 @@ from . import metric
 from . import network
 from . import optimize
 from . import plugin
+from . import visualizer
 
 from .datasets import DATAMODULES
 from .decoder import DECODERS
-from .network.factory import BASE_FACTORIES, BASE_TYPES, CHECKPOINT_URLS, HEADS
+from .network.factory import (
+    BASE_FACTORIES,
+    BASE_TYPES,
+    CHECKPOINT_URLS,
+    HEADS,
+    PRETRAINED_UNAVAILABLE,
+)
 from .network.losses.factory import LOSSES, LOSS_COMPONENTS
 from .network.model_migration import MODEL_MIGRATION
 from .show.annotation_painter import PAINTERS

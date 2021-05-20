@@ -6,15 +6,14 @@ import json
 import logging
 import os
 
-import PIL
 import torch
 
-from . import datasets, decoder, logger, network, show, transforms, visualizer, __version__
+from . import decoder, logger, network, show, visualizer, __version__
+from .predictor import Predictor
 
 LOG = logging.getLogger(__name__)
 
 
-# pylint: disable=too-many-statements
 def cli():
     parser = argparse.ArgumentParser(
         prog='python3 -m openpifpaf.predict',
@@ -28,6 +27,7 @@ def cli():
     decoder.cli(parser)
     logger.cli(parser)
     network.Factory.cli(parser)
+    Predictor.cli(parser)
     show.cli(parser)
     visualizer.cli(parser)
 
@@ -43,13 +43,8 @@ def cli():
                              'with the option to specify the output path or directory')
     parser.add_argument('--batch-size', default=1, type=int,
                         help='processing batch size')
-    parser.add_argument('--long-edge', default=None, type=int,
-                        help='rescale the long side of the image (aspect ratio maintained)')
     parser.add_argument('--loader-workers', default=None, type=int,
                         help='number of workers for data loading')
-    parser.add_argument('--precise-rescaling', dest='fast_rescaling',
-                        default=True, action='store_false',
-                        help='use more exact image rescaling (requires scipy)')
     parser.add_argument('--disable-cuda', action='store_true',
                         help='disable CUDA')
     args = parser.parse_args()
@@ -67,11 +62,9 @@ def cli():
 
     decoder.configure(args)
     network.Factory.configure(args)
+    Predictor.configure(args)
     show.configure(args)
     visualizer.configure(args)
-
-    if args.loader_workers is None:
-        args.loader_workers = args.batch_size
 
     # glob
     if args.glob:
@@ -80,40 +73,6 @@ def cli():
         raise Exception("no image files given")
 
     return args
-
-
-def processor_factory(args):
-    # load model
-    model_cpu, _ = network.Factory().factory()
-    model = model_cpu.to(args.device)
-    if not args.disable_cuda and torch.cuda.device_count() > 1:
-        LOG.info('Using multiple GPUs: %d', torch.cuda.device_count())
-        model = torch.nn.DataParallel(model)
-        model.base_net = model_cpu.base_net
-        model.head_nets = model_cpu.head_nets
-
-    processor = decoder.factory(model_cpu.head_metas)
-    return processor, model
-
-
-def preprocess_factory(args):
-    rescale_t = None
-    if args.long_edge:
-        rescale_t = transforms.RescaleAbsolute(args.long_edge, fast=args.fast_rescaling)
-
-    pad_t = None
-    if args.batch_size > 1:
-        assert args.long_edge, '--long-edge must be provided for batch size > 1'
-        pad_t = transforms.CenterPad(args.long_edge)
-    else:
-        pad_t = transforms.CenterPadTight(16)
-
-    return transforms.Compose([
-        transforms.NormalizeAnnotations(),
-        rescale_t,
-        pad_t,
-        transforms.EVAL_TRANSFORM,
-    ])
 
 
 def out_name(arg, in_name, default_extension):
@@ -143,51 +102,31 @@ def out_name(arg, in_name, default_extension):
 
 def main():
     args = cli()
-
-    processor, model = processor_factory(args)
-    preprocess = preprocess_factory(args)
-
-    # data
-    data = datasets.ImageList(args.images, preprocess=preprocess)
-    data_loader = torch.utils.data.DataLoader(
-        data, batch_size=args.batch_size, shuffle=False,
-        pin_memory=args.pin_memory, num_workers=args.loader_workers,
-        collate_fn=datasets.collate_images_anns_meta)
-
-    # visualizers
     annotation_painter = show.AnnotationPainter()
 
-    for batch_i, (image_tensors_batch, _, meta_batch) in enumerate(data_loader):
-        pred_batch = processor.batch(model, image_tensors_batch, device=args.device)
+    predictor = Predictor(
+        visualize_image=(args.show or args.image_output is not None),
+        visualize_processed_image=args.debug,
+    )
+    for pred, _, meta in predictor.images(
+            args.images, batch_size=args.batch_size, loader_workers=args.loader_workers):
+        # json output
+        if args.json_output is not None:
+            json_out_name = out_name(
+                args.json_output, meta['file_name'], '.predictions.json')
+            LOG.debug('json output = %s', json_out_name)
+            with open(json_out_name, 'w') as f:
+                json.dump([ann.json_data() for ann in pred], f)
 
-        # unbatch
-        for pred, meta in zip(pred_batch, meta_batch):
-            LOG.info('batch %d: %s', batch_i, meta['file_name'])
-            pred = [ann.inverse_transform(meta) for ann in pred]
-
-            # load the original image if necessary
-            cpu_image = None
-            if args.debug or args.show or args.image_output is not None:
-                with open(meta['file_name'], 'rb') as f:
-                    cpu_image = PIL.Image.open(f).convert('RGB')
-            visualizer.Base.image(cpu_image)
-
-            # json output
-            if args.json_output is not None:
-                json_out_name = out_name(
-                    args.json_output, meta['file_name'], '.predictions.json')
-                LOG.debug('json output = %s', json_out_name)
-                with open(json_out_name, 'w') as f:
-                    json.dump([ann.json_data() for ann in pred], f)
-
-            # image output
-            if args.show or args.image_output is not None:
-                ext = show.Canvas.out_file_extension
-                image_out_name = out_name(
-                    args.image_output, meta['file_name'], '.predictions.' + ext)
-                LOG.debug('image output = %s', image_out_name)
-                with show.image_canvas(cpu_image, image_out_name) as ax:
-                    annotation_painter.annotations(ax, pred)
+        # image output
+        if args.show or args.image_output is not None:
+            ext = show.Canvas.out_file_extension
+            image_out_name = out_name(
+                args.image_output, meta['file_name'], '.predictions.' + ext)
+            LOG.debug('image output = %s', image_out_name)
+            image = visualizer.Base._image  # pylint: disable=protected-access
+            with show.image_canvas(image, image_out_name) as ax:
+                annotation_painter.annotations(ax, pred)
 
 
 if __name__ == '__main__':
