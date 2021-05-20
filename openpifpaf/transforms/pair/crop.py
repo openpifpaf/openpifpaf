@@ -109,6 +109,7 @@ class Crop(Preprocess):
         # of the bottom right corner
         ltrb = (x_offset, y_offset, x_offset + new_w, y_offset + new_h)
         image = image.crop(ltrb)
+        LOG.debug('cropped image: %s', ltrb)
 
         # crop keypoints
         for ann in anns:
