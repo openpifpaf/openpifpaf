@@ -205,7 +205,6 @@ class Posetrack2018(openpifpaf.datasets.DataModule):
                 [0.25],
             )),
             openpifpaf.transforms.pair.Crop(cls.square_edge, max_shift=30.0),
-            openpifpaf.transforms.pair.Pad(cls.square_edge, max_shift=30.0),
             sample_pairing_t,
             S(openpifpaf.transforms.TRAIN_TRANSFORM),
         ]

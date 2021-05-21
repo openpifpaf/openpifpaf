@@ -83,12 +83,14 @@ class Crop(Preprocess):
         x_offset, y_offset = 0, 0
         if w > self.long_edge:
             x_offset = SingleImageCrop.random_location_1d(
+                w,
                 valid_area[0], valid_area[2],
                 area_of_interest[0], area_of_interest[2],
                 self.long_edge,
             )
         if h > self.long_edge:
             y_offset = SingleImageCrop.random_location_1d(
+                h,
                 valid_area[1], valid_area[3],
                 area_of_interest[1], area_of_interest[3],
                 self.long_edge
