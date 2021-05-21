@@ -76,27 +76,22 @@ class Crop(Preprocess):
                            valid_min, valid_length,
                            interest_min, interest_length,
                            crop_length,
-                           tail=0.1):
+                           tail=0.1, shift=0.0):
         sticky_rnd = -tail + 2 * tail * torch.rand((1,))
-        sticky_rnd = torch.clamp(sticky_rnd, 0.0, 1.0).item()
+        sticky_rnd = torch.clamp(sticky_rnd, 0.0, 1.0)
 
         if interest_length > crop_length:
+            sticky_rnd = torch.clamp(sticky_rnd + shift / interest_length, 0.0, 1.0).item()
             offset = interest_min + (interest_length - crop_length) * sticky_rnd
             return int(offset)
 
         if valid_length > crop_length:
-            # here, from above: interest_length < crop_length
-            min_v = interest_min + interest_length - crop_length
-            max_v = interest_min
-
-            # clip to valid area
-            min_v = max(min_v, valid_min)
-            max_v = min(max_v, valid_min + valid_length - crop_length)
-
-            offset = min_v + (max_v - min_v) * sticky_rnd
+            sticky_rnd = torch.clamp(sticky_rnd + shift / valid_length, 0.0, 1.0).item()
+            offset = valid_min + (valid_length - crop_length) * sticky_rnd
             return int(offset)
 
         if image_length > crop_length:
+            sticky_rnd = torch.clamp(sticky_rnd + shift / image_length, 0.0, 1.0).item()
             offset = 0 + (image_length - crop_length) * sticky_rnd
             return int(offset)
 
