@@ -72,30 +72,39 @@ class Crop(Preprocess):
         return (left, top, right - left, bottom - top)
 
     @staticmethod
-    def random_location_1d(valid_min, valid_length,
+    def random_location_1d(image_length,
+                           valid_min, valid_length,
                            interest_min, interest_length,
                            crop_length,
-                           tail=0.1):
+                           tail=0.1, shift=0.0):
         sticky_rnd = -tail + 2 * tail * torch.rand((1,))
-        sticky_rnd = torch.clamp(sticky_rnd, 0.0, 1.0).item()
+        sticky_rnd = torch.clamp(sticky_rnd, 0.0, 1.0)
 
         if interest_length > crop_length:
+            # crop within area of interest
+            sticky_rnd = torch.clamp(sticky_rnd + shift / interest_length, 0.0, 1.0).item()
             offset = interest_min + (interest_length - crop_length) * sticky_rnd
             return int(offset)
 
-        if valid_length > crop_length:
-            # here, from above: interest_length < crop_length
-            min_v = interest_min + interest_length - crop_length
-            max_v = interest_min
+        # from above: interest_length < crop_length
+        min_v = interest_min + interest_length - crop_length
+        max_v = interest_min
 
+        if valid_length > crop_length:
             # clip to valid area
             min_v = max(min_v, valid_min)
             max_v = min(max_v, valid_min + valid_length - crop_length)
+        elif image_length > crop_length:
+            # clip to image
+            min_v = max(min_v, 0)
+            max_v = min(max_v, 0 + image_length - crop_length)
+        else:
+            return 0
+        assert max_v >= min_v
 
-            offset = min_v + (max_v - min_v) * sticky_rnd
-            return int(offset)
-
-        return int(valid_min)
+        sticky_rnd = torch.clamp(sticky_rnd + shift / (max_v - min_v + 1e-3), 0.0, 1.0).item()
+        offset = min_v + (max_v - min_v) * sticky_rnd
+        return int(offset)
 
     def crop(self, image, anns, valid_area):
         if self.use_area_of_interest:
@@ -107,12 +116,14 @@ class Crop(Preprocess):
         x_offset, y_offset = 0, 0
         if w > self.long_edge:
             x_offset = self.random_location_1d(
+                w,
                 valid_area[0], valid_area[2],
                 area_of_interest[0], area_of_interest[2],
                 self.long_edge,
             )
         if h > self.long_edge:
             y_offset = self.random_location_1d(
+                h,
                 valid_area[1], valid_area[3],
                 area_of_interest[1], area_of_interest[3],
                 self.long_edge
