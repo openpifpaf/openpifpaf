@@ -3,6 +3,7 @@
 import torchvision
 
 from .annotations import AnnotationJitter, NormalizeAnnotations
+from .assertion import Assert
 from .compose import Compose
 from .crop import Crop
 from .encoders import Encoders
@@ -43,6 +44,7 @@ TRAIN_TRANSFORM = Compose([
 __all__ = [
     'Preprocess',
     'AnnotationJitter', 'NormalizeAnnotations',
+    'Assert',
     'Compose',
     'Crop',
     'Encoders',
