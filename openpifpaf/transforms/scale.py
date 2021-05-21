@@ -70,16 +70,13 @@ def _scale(image, anns, meta, target_w, target_h, resample, *, fast=False):
     # rescale keypoints
     x_scale = (image.size[0] - 1) / (w - 1)
     y_scale = (image.size[1] - 1) / (h - 1)
+    scale_factors = np.array((x_scale, y_scale))
     for ann in anns:
-        ann['keypoints'][:, 0] = ann['keypoints'][:, 0] * x_scale
-        ann['keypoints'][:, 1] = ann['keypoints'][:, 1] * y_scale
-        ann['bbox'][0] *= x_scale
-        ann['bbox'][1] *= y_scale
-        ann['bbox'][2] *= x_scale
-        ann['bbox'][3] *= y_scale
+        ann['keypoints'][:, [0, 1]] *= np.expand_dims(scale_factors, 0)
+        ann['bbox'][:2] *= scale_factors
+        ann['bbox'][2:] *= scale_factors
 
     # adjust meta
-    scale_factors = np.array((x_scale, y_scale))
     LOG.debug('meta before: %s', meta)
     meta['offset'] *= scale_factors
     meta['scale'] *= scale_factors

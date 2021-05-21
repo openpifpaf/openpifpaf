@@ -62,11 +62,11 @@ def rotate(image, anns, meta, angle):
     meta['valid_area'] = utils.rotate_box(meta['valid_area'], w - 1, h - 1, angle)
     # fix valid area to be inside original image dimensions
     original_valid_area = meta['valid_area'].copy()
-    meta['valid_area'][0] = np.clip(meta['valid_area'][0], 0, w)
-    meta['valid_area'][1] = np.clip(meta['valid_area'][1], 0, h)
+    meta['valid_area'][0] = np.clip(meta['valid_area'][0], 0, w - 1)
+    meta['valid_area'][1] = np.clip(meta['valid_area'][1], 0, h - 1)
     new_rb_corner = original_valid_area[:2] + original_valid_area[2:]
-    new_rb_corner[0] = np.clip(new_rb_corner[0], 0, w)
-    new_rb_corner[1] = np.clip(new_rb_corner[1], 0, h)
+    new_rb_corner[0] = np.clip(new_rb_corner[0], 0, w - 1)
+    new_rb_corner[1] = np.clip(new_rb_corner[1], 0, h - 1)
     meta['valid_area'][2:] = new_rb_corner - meta['valid_area'][:2]
     LOG.debug('meta after: %s', meta)
 
