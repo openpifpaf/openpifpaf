@@ -122,8 +122,6 @@ class CocoKpSt(openpifpaf.datasets.DataModule):
             )),
             openpifpaf.transforms.pair.Crop(
                 openpifpaf.plugins.coco.CocoKp.square_edge, max_shift=30.0),
-            openpifpaf.transforms.pair.Pad(
-                openpifpaf.plugins.coco.CocoKp.square_edge, max_shift=30.0),
             S(openpifpaf.transforms.RandomChoice([openpifpaf.transforms.Blur(),
                                                   openpifpaf.transforms.HorizontalBlur()],
                                                  [openpifpaf.plugins.coco.CocoKp.blur / 2.0,
