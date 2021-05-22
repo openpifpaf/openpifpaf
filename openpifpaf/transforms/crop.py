@@ -76,7 +76,7 @@ class Crop(Preprocess):
                            valid_min, valid_length,
                            interest_min, interest_length,
                            crop_length,
-                           tail=0.1, shift=0.0, fix_inconsistent=False):
+                           tail=0.1, shift=0.0, fix_inconsistent=True):
         if image_length <= crop_length:
             return 0
 
