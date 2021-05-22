@@ -1,5 +1,7 @@
 import argparse
+from openpifpaf.transforms.image import ImageTransform
 
+import PIL
 import torch
 
 import openpifpaf
@@ -29,7 +31,8 @@ class Posetrack2018(openpifpaf.datasets.DataModule):
     upsample_stride = 1
     min_kp_anns = 1
     bmin = 0.1
-    sample_pairing = False
+    sample_pairing = 0.0
+    image_aug = 0.0
 
     eval_long_edge = 801
     eval_orientation_invariant = 0.0
@@ -116,8 +119,12 @@ class Posetrack2018(openpifpaf.datasets.DataModule):
                            default=cls.min_kp_anns, type=int,
                            help='filter images with fewer keypoint annotations')
         group.add_argument('--posetrack-bmin', default=cls.bmin, type=float)
-        group.add_argument('--posetrack-sample-pairing',
-                           default=False, action='store_true')
+        group.add_argument('--posetrack-sample-pairing', default=cls.sample_pairing,
+                           type=float,
+                           help='blend two samples together')
+        group.add_argument('--posetrack-image-augmentations', default=cls.image_aug,
+                           type=float,
+                           help='autocontrast, equalize, invert, solarize')
 
         group.add_argument('--posetrack-eval-long-edge', default=cls.eval_long_edge, type=int)
         assert not cls.eval_extended_scale
@@ -147,6 +154,7 @@ class Posetrack2018(openpifpaf.datasets.DataModule):
         cls.min_kp_anns = args.posetrack_min_kp_anns
         cls.bmin = args.posetrack_bmin
         cls.sample_pairing = args.posetrack_sample_pairing
+        cls.image_aug = args.posetrack_image_augmentations
 
         # evaluation
         cls.eval_long_edge = args.posetrack_eval_long_edge
@@ -183,10 +191,6 @@ class Posetrack2018(openpifpaf.datasets.DataModule):
                 openpifpaf.transforms.EVAL_TRANSFORM,
             ]
 
-        sample_pairing_t = None
-        if cls.sample_pairing:
-            sample_pairing_t = openpifpaf.transforms.pair.SamplePairing()
-
         hflip_posetrack = openpifpaf.transforms.HFlip(
             KEYPOINTS,
             openpifpaf.plugins.coco.constants.HFLIP)
@@ -205,7 +209,14 @@ class Posetrack2018(openpifpaf.datasets.DataModule):
                 [0.25],
             )),
             openpifpaf.transforms.pair.Crop(cls.square_edge, max_shift=30.0),
-            sample_pairing_t,
+            openpifpaf.transforms.RandomApply(
+                openpifpaf.transforms.pair.SamplePairing(), cls.sample_pairing),
+            S(openpifpaf.transforms.RandomChoice([
+                openpifpaf.transforms.ImageTransform(PIL.ImageOps.autocontrast),
+                openpifpaf.transforms.ImageTransform(PIL.ImageOps.equalize),
+                openpifpaf.transforms.ImageTransform(PIL.ImageOps.invert),
+                openpifpaf.transforms.ImageTransform(PIL.ImageOps.solarize),
+            ], [cls.image_aug / 4, cls.image_aug / 4, cls.image_aug / 4, cls.image_aug / 4])),
             S(openpifpaf.transforms.TRAIN_TRANSFORM),
         ]
 
