@@ -104,11 +104,11 @@ class Crop(Preprocess):
         if valid_length > crop_length:
             # clip to valid area
             min_v = max(min_v, valid_min)
-            max_v = min(max_v, valid_min + valid_length - crop_length)
+            max_v = max(min_v, min(max_v, valid_min + valid_length - crop_length))
         elif image_length > crop_length:
             # clip to image
             min_v = max(min_v, 0)
-            max_v = min(max_v, 0 + image_length - crop_length)
+            max_v = max(min_v, min(max_v, 0 + image_length - crop_length))
 
         # image constraint
         min_v = np.clip(min_v, 0, image_length - crop_length)
