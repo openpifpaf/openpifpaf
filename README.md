@@ -43,7 +43,6 @@ which is the same guide but based on the latest code in the `main` branch.
 
 # Examples
 
-Prediction of a network that was trained on the [MS COCO dataset](https://cocodataset.org/#home)
 ![example image with overlaid pose predictions](https://github.com/openpifpaf/openpifpaf/raw/main/docs/coco/000000081988.jpg.predictions.jpeg)
 
 Image credit: "[Learning to surf](https://www.flickr.com/photos/fotologic/6038911779/in/photostream/)" by fotologic which is licensed under [CC-BY-2.0].<br />
@@ -53,7 +52,7 @@ pip3 install openpifpaf matplotlib
 python3 -m openpifpaf.predict docs/coco/000000081988.jpg --image-min-dpi=200 --show-file-extension=jpeg --image-output
 ```
 ---
-Prediction of a network trained on the [COCO WholeBody dataset](https://github.com/jin-s13/COCO-WholeBody)
+Here is the [tutorial for body, foot, face and hand keypoints](https://openpifpaf.github.io/plugins_wholebody.html). Example:
 ![example image with overlaid wholebody pose predictions](https://raw.githubusercontent.com/openpifpaf/openpifpaf/main/docs/soccer.jpeg.predictions.jpeg)
 
 Image credit: [Photo](https://de.wikipedia.org/wiki/Kamil_Vacek#/media/Datei:Kamil_Vacek_20200627.jpg) by [Lokomotive74](https://commons.wikimedia.org/wiki/User:Lokomotive74) which is licensed under [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/).<br />
@@ -62,7 +61,7 @@ Created with:
 python -m openpifpaf.predict guide/wholebody/soccer.jpeg --checkpoint=shufflenetv2k30-wholebody --line-width=2 --decoder=cifcaf:0 --image-output
 ```
 ---
-Prediction of a network that was trained on the [ApolloCar3D dataset](http://apolloscape.auto/car_instance.html):
+Here is the [tutorial for car keypoints](https://openpifpaf.github.io/plugins_apollocar3d.html). Example:
 ![example image cars](https://raw.githubusercontent.com/openpifpaf/openpifpaf/main/docs/peterbourg.jpg.predictions.jpeg)
 
 Image credit: [Photo](https://commons.wikimedia.org/wiki/File:Streets_of_Saint_Petersburg,_Russia.jpg) by [Ninaras](https://commons.wikimedia.org/wiki/User:Ninaras) which is licensed under [CC-BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
@@ -77,7 +76,7 @@ python -m openpifpaf.predict guide/images/peterbourg.jpg \
 
 ---
 
-Prediction of a network that was trained on the [AnimalPose dataset](https://sites.google.com/view/animal-pose/):
+Here is the [tutorial for animal keypoints (dogs, cats, sheep, horses and cows)](https://openpifpaf.github.io/plugins_animalpose.html). Example:
 ![example image cars](https://raw.githubusercontent.com/openpifpaf/openpifpaf/main/docs/tappo_loomo.jpg.predictions.jpeg)
 
 
