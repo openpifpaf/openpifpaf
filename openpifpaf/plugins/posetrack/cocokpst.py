@@ -1,4 +1,5 @@
 import argparse
+from openpifpaf import headmeta
 
 import torch
 
@@ -64,7 +65,9 @@ class CocoKpSt(openpifpaf.datasets.DataModule):
         caf.upsample_stride = openpifpaf.plugins.coco.CocoKp.upsample_stride
         dcaf.upsample_stride = openpifpaf.plugins.coco.CocoKp.upsample_stride
         tcaf.upsample_stride = openpifpaf.plugins.coco.CocoKp.upsample_stride
-        self.head_metas = [cif, caf, dcaf, tcaf]
+        self.head_metas = ([cif, caf, dcaf, tcaf]
+                           if openpifpaf.plugins.coco.CocoKp.with_dense
+                           else [cif, caf, tcaf])
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
@@ -83,6 +86,10 @@ class CocoKpSt(openpifpaf.datasets.DataModule):
             openpifpaf.encoder.SingleImage(openpifpaf.encoder.Caf(self.head_metas[1], bmin=bmin)),
             openpifpaf.encoder.SingleImage(openpifpaf.encoder.Caf(self.head_metas[2], bmin=bmin)),
             openpifpaf.encoder.Tcaf(self.head_metas[3], bmin=bmin),
+        ) if len(self.head_metas) == 4 else (
+            openpifpaf.encoder.SingleImage(openpifpaf.encoder.Cif(self.head_metas[0], bmin=bmin)),
+            openpifpaf.encoder.SingleImage(openpifpaf.encoder.Caf(self.head_metas[1], bmin=bmin)),
+            openpifpaf.encoder.Tcaf(self.head_metas[2], bmin=bmin),
         )
 
         if not openpifpaf.plugins.coco.CocoKp.augmentation:

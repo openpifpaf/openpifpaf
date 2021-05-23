@@ -26,6 +26,7 @@ class Posetrack2018(openpifpaf.datasets.DataModule):
     data_root = 'data-posetrack2018'
 
     square_edge = 385
+    with_dense = False
     augmentation = True
     rescale_images = 1.0
     upsample_stride = 1
@@ -79,7 +80,7 @@ class Posetrack2018(openpifpaf.datasets.DataModule):
         caf.upsample_stride = self.upsample_stride
         dcaf.upsample_stride = self.upsample_stride
         tcaf.upsample_stride = self.upsample_stride
-        self.head_metas = [cif, caf, dcaf, tcaf]
+        self.head_metas = [cif, caf, dcaf, tcaf] if self.with_dense else [cif, caf, tcaf]
 
         if self.ablation_without_tcaf:
             self.head_metas = [cif, caf, dcaf]
@@ -104,6 +105,10 @@ class Posetrack2018(openpifpaf.datasets.DataModule):
         group.add_argument('--posetrack-square-edge',
                            default=cls.square_edge, type=int,
                            help='square edge of input images')
+        assert not cls.with_dense
+        group.add_argument('--posetrack-with-dense',
+                           default=False, action='store_true',
+                           help='train with dense connections')
         assert cls.augmentation
         group.add_argument('--posetrack-no-augmentation',
                            dest='posetrack_augmentation',
@@ -148,6 +153,7 @@ class Posetrack2018(openpifpaf.datasets.DataModule):
 
         # common posetrack
         cls.square_edge = args.posetrack_square_edge
+        cls.with_dense = args.posetrack_with_dense
         cls.augmentation = args.posetrack_augmentation
         cls.rescale_images = args.posetrack_rescale_images
         cls.upsample_stride = args.posetrack_upsample
@@ -170,11 +176,14 @@ class Posetrack2018(openpifpaf.datasets.DataModule):
                 openpifpaf.encoder.Cif(self.head_metas[0], bmin=self.bmin)),
             openpifpaf.encoder.SingleImage(
                 openpifpaf.encoder.Caf(self.head_metas[1], bmin=self.bmin)),
-            openpifpaf.encoder.SingleImage(
-                openpifpaf.encoder.Caf(self.head_metas[2], bmin=self.bmin)),
         ]
+        if self.with_dense:
+            encoders.append(
+                openpifpaf.encoder.SingleImage(
+                    openpifpaf.encoder.Caf(self.head_metas[2], bmin=self.bmin))
+            )
         if not self.ablation_without_tcaf:
-            encoders.append(openpifpaf.encoder.Tcaf(self.head_metas[3], bmin=self.bmin))
+            encoders.append(openpifpaf.encoder.Tcaf(self.head_metas[-1], bmin=self.bmin))
 
         return openpifpaf.transforms.Compose([
             *self.common_preprocess(),
