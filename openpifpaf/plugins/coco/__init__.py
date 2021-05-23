@@ -9,6 +9,7 @@ def register():
     openpifpaf.DATAMODULES['cocodet'] = CocoDet
     openpifpaf.DATAMODULES['cocokp'] = CocoKp
 
+    # human pose estimation
     openpifpaf.CHECKPOINT_URLS['mobilenetv2'] = (
         'http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
         'v0.12a5/mobilenetv2-201112-193315-cocokp-1728a9f5.pkl')
@@ -33,3 +34,8 @@ def register():
         'http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
         'v0.12.6/shufflenetv2k30-210409-024202-cocokp-o10s-f4fb0807.pkl')
     openpifpaf.CHECKPOINT_URLS['shufflenetv2k44'] = openpifpaf.PRETRAINED_UNAVAILABLE
+
+    # object detection
+    openpifpaf.CHECKPOINT_URLS['resnet18-cocodet'] = (
+        'http://github.com/openpifpaf/torchhub/releases/download/'
+        'v0.12.10/resnet18-210512-025055-cocodet-slurm525819-283731d1.pkl')
