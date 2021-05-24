@@ -29,7 +29,7 @@ class Bce(torch.nn.Module):
     focal_gamma = 1.0
     focal_detach = False
     focal_clamp = True
-    soft_clamp_value = None
+    soft_clamp_value = 5.0
 
     # choose low value for force-complete-pose and Focal loss modification
     background_clamp = -15.0
