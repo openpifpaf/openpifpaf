@@ -66,8 +66,7 @@ pip3 install openpifpaf
 ```
 
 You need to install `matplotlib` to produce visual outputs.
-
-To modify openpifpaf itself, please follow {ref}`modify-code`.
+To modify OpenPifPaf itself, please follow {ref}`modify-code`.
 
 For a live demo, we recommend to try the
 [openpifpafwebdemo](https://github.com/openpifpaf/openpifpafwebdemo) project.
@@ -75,9 +74,9 @@ Alternatively, {ref}`python3 -m openpifpaf.video <cli-help-video>` (requires Ope
 provides a live demo as well.
 
 
-## About this Guide
+## Executable Guide
 
-This is an executable book.
+This is a [jupyter-book](https://jupyterbook.org/intro.html) or "executable book".
 Many sections of this book, like {doc}`predict_cli`, are generated from the code
 shown on the page itself:
 most pages are based on Jupyter Notebooks
