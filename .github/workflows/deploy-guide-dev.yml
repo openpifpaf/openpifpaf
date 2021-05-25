@@ -57,7 +57,7 @@ jobs:
       run: cd guide && python download_data.py
 
     - name: Build the guide
-      run: cd guide && cp _config_dev.yml _config.yml && jupyter-book build .
+      run: cd guide && cp _config_dev.yml _config.yml && jupyter-book build -W -n --keep-going .
 
     # Push the book's HTML to gh-pages
     - name: GitHub Pages action

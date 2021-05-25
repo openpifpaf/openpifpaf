@@ -4,6 +4,7 @@ author: <a href="https://www.svenkreiss.com">Sven Kreiss</a> and <a href="https:
 copyright: "2020-2021"
 email: research@svenkreiss.com
 logo: logo.png
+exclude_patterns: [readme.md]
 
 # latex:
 #   latex_documents:
