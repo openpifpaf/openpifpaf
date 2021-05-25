@@ -49,7 +49,7 @@ Image credit: "[Learning to surf](https://www.flickr.com/photos/fotologic/603891
 Created with:
 ```sh
 pip3 install openpifpaf matplotlib
-python3 -m openpifpaf.predict docs/coco/000000081988.jpg --image-min-dpi=200 --show-file-extension=jpeg --image-output
+python3 -m openpifpaf.predict docs/coco/000000081988.jpg --image-output
 ```
 ---
 Here is the [tutorial for body, foot, face and hand keypoints](https://openpifpaf.github.io/plugins_wholebody.html). Example:
@@ -58,7 +58,8 @@ Here is the [tutorial for body, foot, face and hand keypoints](https://openpifpa
 Image credit: [Photo](https://de.wikipedia.org/wiki/Kamil_Vacek#/media/Datei:Kamil_Vacek_20200627.jpg) by [Lokomotive74](https://commons.wikimedia.org/wiki/User:Lokomotive74) which is licensed under [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/).<br />
 Created with:
 ```sh
-python -m openpifpaf.predict guide/wholebody/soccer.jpeg --checkpoint=shufflenetv2k30-wholebody --line-width=2 --decoder=cifcaf:0 --image-output
+python -m openpifpaf.predict guide/wholebody/soccer.jpeg \
+  --checkpoint=shufflenetv2k30-wholebody --line-width=2 --image-output
 ```
 ---
 Here is the [tutorial for car keypoints](https://openpifpaf.github.io/plugins_apollocar3d.html). Example:
@@ -69,9 +70,9 @@ Image credit: [Photo](https://commons.wikimedia.org/wiki/File:Streets_of_Saint_P
 Created with:
 ```sh
 python -m openpifpaf.predict guide/images/peterbourg.jpg \
- --checkpoint shufflenetv2k16-apollo-24 -o images \
+  --checkpoint shufflenetv2k16-apollo-24 -o images \
   --instance-threshold 0.05 --seed-threshold 0.05 \
-  --line-width 4 --font-size 0 --show-file-extension=jpeg
+  --line-width 4 --font-size 0
 ```
 
 ---
@@ -82,9 +83,9 @@ Here is the [tutorial for animal keypoints (dogs, cats, sheep, horses and cows)]
 
 ```sh
 python -m openpifpaf.predict guide/images tappo_loomo.jpg \
---checkpoint=shufflenetv2k30-animalpose \
---line-width=6 --font-size=6 --white-overlay=0.3 \
---long-edge=500 --show-file-extension=jpeg
+  --checkpoint=shufflenetv2k30-animalpose \
+  --line-width=6 --font-size=6 --white-overlay=0.3 \
+  --long-edge=500
 ```
 
 # Commercial License
