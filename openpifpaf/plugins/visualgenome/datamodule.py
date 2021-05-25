@@ -1,14 +1,15 @@
 import argparse
 import numpy as np
 import torch
-import torchvision
 
 import openpifpaf
 
-from .visual_genome import VG
-from .constants import BBOX_KEYPOINTS, BBOX_HFLIP, OBJ_CATEGORIES, REL_CATEGORIES, REL_CATEGORIES_FLIP
+from .visual_genome import VisualGenome
+from .constants import BBOX_KEYPOINTS, BBOX_HFLIP, OBJ_CATEGORIES, REL_CATEGORIES
 from . import metric
 from .transforms import Crop
+
+
 class VGModule(openpifpaf.datasets.DataModule):
     data_dir = "data/visual_genome/"
 
@@ -42,114 +43,102 @@ class VGModule(openpifpaf.datasets.DataModule):
     eval_long_edge = None
     eval_orientation_invariant = 0.0
     eval_extended_scale = False
-    obj_categories = OBJ_CATEGORIES
-    rel_categories = REL_CATEGORIES
     vg_512 = False
 
     def __init__(self):
         super().__init__()
-        self.head_metas = []
-        cifdet = openpifpaf.headmeta.CifDet('cifdet', 'vg', self.obj_categories)
-        cifdet.upsample_stride = self.upsample_stride
-        self.head_metas.append(cifdet)
 
-        print("Chosen HeadMetas: ", [type(hn) for hn in self.head_metas])
+        cifdet = openpifpaf.headmeta.CifDet('cifdet', 'visualgenome', OBJ_CATEGORIES)
+        cifdet.upsample_stride = self.upsample_stride
+        self.head_metas = [cifdet]
+
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
         group = parser.add_argument_group('data module Visual Genome')
 
-        group.add_argument('--vg-data-dir',
+        group.add_argument('--visualgenome-data-dir',
                            default=cls.data_dir)
 
-        group.add_argument('--vg-n-images',
+        group.add_argument('--visualgenome-n-images',
                            default=cls.n_images, type=int,
                            help='number of images to sample')
-        group.add_argument('--vg-square-edge',
+        group.add_argument('--visualgenome-square-edge',
                            default=cls.square_edge, type=int, nargs='+',
                            help='square edge of input images')
         assert not cls.extended_scale
-        group.add_argument('--vg-extended-scale',
+        group.add_argument('--visualgenome-extended-scale',
                            default=False, action='store_true',
                            help='augment with an extended scale range')
-        group.add_argument('--vg-orientation-invariant',
+        group.add_argument('--visualgenome-orientation-invariant',
                            default=cls.orientation_invariant, type=float,
                            help='augment with random orientations')
-        group.add_argument('--vg-blur',
+        group.add_argument('--visualgenome-blur',
                            default=cls.blur, type=float,
                            help='augment with blur')
         assert cls.augmentation
-        group.add_argument('--vg-no-augmentation',
-                           dest='vg_augmentation',
+        group.add_argument('--visualgenome-no-augmentation',
+                           dest='visualgenome_augmentation',
                            default=True, action='store_false',
                            help='do not apply data augmentation')
-        group.add_argument('--vg-rescale-images',
+        group.add_argument('--visualgenome-rescale-images',
                            default=cls.rescale_images, type=float,
                            help='overall rescale factor for images')
 
-        group.add_argument('--vg-upsample',
+        group.add_argument('--visualgenome-upsample',
                            default=cls.upsample_stride, type=int,
                            help='head upsample stride')
-        group.add_argument('--vg-special-preprocess',
-                           dest='vg_special_preprocess',
+        group.add_argument('--visualgenome-special-preprocess',
                            default=False, action='store_true',
                            help='do not apply data augmentation')
-        group.add_argument('--vg-max-long-edge',
-                           dest='vg_max_long_edge',
+        group.add_argument('--visualgenome-max-long-edge',
                            default=False, action='store_true',
                            help='do not apply data augmentation')
-        group.add_argument('--vg-no-flipping',
-                           dest='vg_no_flipping',
+        group.add_argument('--visualgenome-no-flipping',
                            default=False, action='store_true',
                            help='do not apply data augmentation')
-        group.add_argument('--vg-use-dcn',
-                dest='vg_use_dcn',
-                default=False, action='store_true',
-                help='use deformable Conv in head')
-        group.add_argument('--vg-supervise-offset',
-                dest='vg_supervise_offset',
-                default=False, action='store_true',
-                help='Supervise offset of deformable Conv in head')
-        group.add_argument('--vg-ignore-rel',
-                dest='vg_ignore_rel',
-                default=False, action='store_true',
-                help='ignore relationship everywhere')
+        group.add_argument('--visualgenome-use-dcn',
+                           default=False, action='store_true',
+                           help='use deformable Conv in head')
+        group.add_argument('--visualgenome-supervise-offset',
+                           default=False, action='store_true',
+                           help='Supervise offset of deformable Conv in head')
+        group.add_argument('--visualgenome-ignore-rel',
+                           default=False, action='store_true',
+                           help='ignore relationship everywhere')
 
-        group.add_argument('--vg-det',
-                dest='vg_det',
-                default=cls.only_det, action='store_true',
-                help='only detection')
-        group.add_argument('--vg-use-512',
-                dest='vg_512',
-                default=False, action='store_true',
-                help='only detection')
-        group.add_argument('--vg-cifdet',
+        group.add_argument('--visualgenome-det',
+                           default=cls.only_det, action='store_true',
+                           help='only detection')
+        group.add_argument('--visualgenome-use-512',
+                           default=False, action='store_true',
+                           help='only detection')
+        group.add_argument('--visualgenome-cifdet',
                            default=False, action='store_true',
                            help='Use CifDet_CN')
-        group.add_argument('--vg-refine-feature',
+        group.add_argument('--visualgenome-refine-feature',
                            default=False, action='store_true',
                            help='Refine full feature')
-        group.add_argument('--vg-laplace',
+        group.add_argument('--visualgenome-laplace',
                            default=False, action='store_true',
                            help='Use heads with laplace')
-        group.add_argument('--vg-detach-offset',
+        group.add_argument('--visualgenome-detach-offset',
                            default=False, action='store_true',
                            help='Detach offset training')
-        group.add_argument('--vg-detach-deform',
+        group.add_argument('--visualgenome-detach-deform',
                            default=False, action='store_true',
                            help='Detach deform training')
-        group.add_argument('--vg-no-filter-nonoverlap',
+        group.add_argument('--visualgenome-no-filter-nonoverlap',
                            default=False, action='store_true',
                            help='Filter out objects with no overlap')
-        group.add_argument('--vg-keep-duplicate',
+        group.add_argument('--visualgenome-keep-duplicate',
                            default=False, action='store_true',
                            help='Keep many relationships between objects')
-        group.add_argument('--vg-hadamard-refined',
+        group.add_argument('--visualgenome-hadamard-refined',
                            default=False, action='store_true',
                            help='hadamard Product to refine (not concat)')
-        group.add_argument('--vg-caf-bigger',
-                dest='vg_caf_bigger',
-                default=False, action='store_true',
-                help='Use RAF CAF Bigger')
+        group.add_argument('--visualgenome-caf-bigger',
+                           default=False, action='store_true',
+                           help='Use RAF CAF Bigger')
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
@@ -158,42 +147,36 @@ class VGModule(openpifpaf.datasets.DataModule):
         cls.pin_memory = args.pin_memory
 
         # visual genome specific
-        # cls.train_annotations = args.vg_train_annotations
-        # cls.val_annotations = args.vg_val_annotations
-        # cls.train_image_dir = args.vg_train_image_dir
-        # cls.val_image_dir = args.vg_val_image_dir
-        # cls.eval_image_dir = cls.val_image_dir
-        # cls.eval_annotations = cls.val_annotations
-        cls.data_dir = args.vg_data_dir
-        cls.n_images = args.vg_n_images
-        cls.square_edge = args.vg_square_edge
-        if len(cls.square_edge)==1:
+        cls.data_dir = args.visualgenome_data_dir
+        cls.n_images = args.visualgenome_n_images
+        cls.square_edge = args.visualgenome_square_edge
+        if len(cls.square_edge) == 1:
             cls.square_edge = cls.square_edge[0]
-        cls.extended_scale = args.vg_extended_scale
-        cls.orientation_invariant = args.vg_orientation_invariant
-        cls.blur = args.vg_blur
-        cls.augmentation = args.vg_augmentation
-        cls.rescale_images = args.vg_rescale_images
-        cls.upsample_stride = args.vg_upsample
-        cls.special_preprocess = args.vg_special_preprocess
-        cls.max_long_edge = args.vg_max_long_edge
-        cls.no_flipping = args.vg_no_flipping
-        cls.caf_bigger = args.vg_caf_bigger
+        cls.extended_scale = args.visualgenome_extended_scale
+        cls.orientation_invariant = args.visualgenome_orientation_invariant
+        cls.blur = args.visualgenome_blur
+        cls.augmentation = args.visualgenome_augmentation
+        cls.rescale_images = args.visualgenome_rescale_images
+        cls.upsample_stride = args.visualgenome_upsample
+        cls.special_preprocess = args.visualgenome_special_preprocess
+        cls.max_long_edge = args.visualgenome_max_long_edge
+        cls.no_flipping = args.visualgenome_no_flipping
+        cls.caf_bigger = args.visualgenome_caf_bigger
 
-        cls.use_dcn = args.vg_use_dcn
-        cls.supervise_offset = args.vg_supervise_offset
+        cls.use_dcn = args.visualgenome_use_dcn
+        cls.supervise_offset = args.visualgenome_supervise_offset
 
-        cls.only_det = args.vg_det
-        cls.ignore_rel = args.vg_ignore_rel
-        cls.vg_512 = args.vg_512
-        cls.cifdet_cn = args.vg_cifdet
-        cls.refine_feature = args.vg_refine_feature
-        cls.laplace = args.vg_laplace
-        cls.detach_deform = args.vg_detach_deform
-        cls.detach_offset = args.vg_detach_offset
-        cls.filter_non_overlap = not args.vg_no_filter_nonoverlap
-        cls.remove_duplicate = not args.vg_keep_duplicate
-        cls.hadamard_product = args.vg_hadamard_refined
+        cls.only_det = args.visualgenome_det
+        cls.ignore_rel = args.visualgenome_ignore_rel
+        cls.vg_512 = args.visualgenome_use_512
+        cls.cifdet_cn = args.visualgenome_cifdet
+        cls.refine_feature = args.visualgenome_refine_feature
+        cls.laplace = args.visualgenome_laplace
+        cls.detach_deform = args.visualgenome_detach_deform
+        cls.detach_offset = args.visualgenome_detach_offset
+        cls.filter_non_overlap = not args.visualgenome_no_filter_nonoverlap
+        cls.remove_duplicate = not args.visualgenome_keep_duplicate
+        cls.hadamard_product = args.visualgenome_hadamard_refined
 
     @staticmethod
     def _convert_data(parent_data, meta):
@@ -309,7 +292,7 @@ class VGModule(openpifpaf.datasets.DataModule):
         ])
 
     def train_loader(self):
-        train_data = VG(
+        train_data = VisualGenome(
             data_dir=self.data_dir,
             preprocess=self._preprocess(),
             num_im=self.n_images,
@@ -323,10 +306,10 @@ class VGModule(openpifpaf.datasets.DataModule):
             collate_fn=openpifpaf.datasets.collate_images_targets_meta)
 
     def val_loader(self):
-        val_data = VG(
+        val_data = VisualGenome(
             data_dir=self.data_dir,
             preprocess=self._preprocess(),
-            num_im=5000,#self.n_images,
+            num_im=5000,  # self.n_images,
             split='test',
             use_512=self.vg_512,
         )
@@ -341,9 +324,9 @@ class VGModule(openpifpaf.datasets.DataModule):
         if self.eval_extended_scale:
             assert self.eval_long_edge
             rescale_t = openpifpaf.transforms.DeterministicEqualChoice([
-                    openpifpaf.transforms.RescaleAbsolute(self.eval_long_edge),
-                    openpifpaf.transforms.RescaleAbsolute((self.eval_long_edge) // 2),
-                ], salt=1)
+                openpifpaf.transforms.RescaleAbsolute(self.eval_long_edge),
+                openpifpaf.transforms.RescaleAbsolute((self.eval_long_edge) // 2),
+            ], salt=1)
         elif self.eval_long_edge:
             rescale_t = openpifpaf.transforms.RescaleAbsolute(self.eval_long_edge)
         padding_t = None
@@ -357,11 +340,11 @@ class VGModule(openpifpaf.datasets.DataModule):
         orientation_t = None
         if self.eval_orientation_invariant:
             orientation_t = openpifpaf.transforms.DeterministicEqualChoice([
-                    None,
-                    openpifpaf.transforms.RotateBy90(fixed_angle=90),
-                    openpifpaf.transforms.RotateBy90(fixed_angle=180),
-                    openpifpaf.transforms.RotateBy90(fixed_angle=270),
-                ], salt=3)
+                None,
+                openpifpaf.transforms.RotateBy90(fixed_angle=90),
+                openpifpaf.transforms.RotateBy90(fixed_angle=180),
+                openpifpaf.transforms.RotateBy90(fixed_angle=270),
+            ], salt=3)
 
         return openpifpaf.transforms.Compose([
             openpifpaf.transforms.NormalizeAnnotations(),
@@ -369,26 +352,14 @@ class VGModule(openpifpaf.datasets.DataModule):
             padding_t,
             orientation_t,
             openpifpaf.transforms.ToAnnotations([
-                openpifpaf.transforms.ToDetAnnotations(self.obj_categories),
-                openpifpaf.transforms.ToCrowdAnnotations(self.obj_categories),
+                openpifpaf.transforms.ToDetAnnotations(OBJ_CATEGORIES),
+                openpifpaf.transforms.ToCrowdAnnotations(OBJ_CATEGORIES),
             ]),
             openpifpaf.transforms.EVAL_TRANSFORM,
         ])
-    def _get_fg_matrix(self):
-        # train_data = VisualRelationship(
-        #     image_dir=self.train_image_dir,
-        #     ann_file=self.train_annotations
-        # )
-        train_data = VG(
-            data_dir=self.data_dir,
-        )
-
-
-        self.head_metas[-1].fg_matrix, self.head_metas[-1].bg_matrix, self.head_metas[-1].smoothing_pred = train_data.get_frequency_prior(self.obj_categories, self.rel_categories)
-
 
     def eval_loader(self):
-        eval_data = VG(
+        eval_data = VisualGenome(
             data_dir=self.data_dir,
             preprocess=self._eval_preprocess(),
             num_im=self.n_images,
@@ -396,8 +367,6 @@ class VGModule(openpifpaf.datasets.DataModule):
             use_512=self.vg_512,
             eval_mode=True,
         )
-        if not self.only_det:
-            self._get_fg_matrix()
 
         return torch.utils.data.DataLoader(
             eval_data, batch_size=self.batch_size, shuffle=False,
@@ -405,18 +374,11 @@ class VGModule(openpifpaf.datasets.DataModule):
             collate_fn=openpifpaf.datasets.collate_images_anns_meta)
 
     def metrics(self):
-        eval_data = VG(
-            data_dir=self.data_dir,
-            preprocess=self._eval_preprocess(),
-            num_im=self.n_images,
-            split='test',
-            use_512=self.vg_512,
-            eval_mode=True,
-        )
-
-        # eval_data = None
-
-        return [metric.VG(obj_categories=self.obj_categories, rel_categories=self.rel_categories, mode='sgdet', iou_types=['bbox'] if (not self.only_det) else ['bbox'], vg_eval=eval_data),
-                metric.VG(obj_categories=self.obj_categories, rel_categories=self.rel_categories, mode='sgcls', iou_types=['bbox'] if (not self.only_det) else ['bbox'], vg_eval=eval_data),
-                metric.VG(obj_categories=self.obj_categories, rel_categories=self.rel_categories, mode='predcls', iou_types=['bbox'] if (not self.only_det) else ['bbox'], vg_eval=eval_data)
-                ]
+        return [
+            metric.VG(obj_categories=OBJ_CATEGORIES, rel_categories=REL_CATEGORIES,
+                      mode='sgdet', iou_types=['bbox'] if (not self.only_det) else ['bbox']),
+            metric.VG(obj_categories=OBJ_CATEGORIES, rel_categories=REL_CATEGORIES,
+                      mode='sgcls', iou_types=['bbox'] if (not self.only_det) else ['bbox']),
+            metric.VG(obj_categories=OBJ_CATEGORIES, rel_categories=REL_CATEGORIES,
+                      mode='predcls', iou_types=['bbox'] if (not self.only_det) else ['bbox'])
+        ]

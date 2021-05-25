@@ -1,5 +1,6 @@
 from .datamodule import VGModule
 import openpifpaf
 
+
 def register():
-    openpifpaf.DATAMODULES['vg'] = VGModule
+    openpifpaf.DATAMODULES['visualgenome'] = VGModule

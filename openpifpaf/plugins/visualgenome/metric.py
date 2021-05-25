@@ -1,31 +1,45 @@
-from pycocotools.coco import COCO
-from pycocotools.cocoeval import COCOeval
-from collections import defaultdict
-
-from openpifpaf.metric.base import Base
-try:
-    print("To test scene graph generation, download the evaluator from https://github.com/KaihuaTang/Scene-Graph-Benchmark.pytorch")
-    from maskrcnn_benchmark.data.datasets.evaluation.vg.sgg_eval import SGRecall, SGNoGraphConstraintRecall, SGZeroShotRecall, SGNGZeroShotRecall, SGPairAccuracy, SGMeanRecall, SGNGMeanRecall, SGAccumulateRecall
-except:
-    pass
-
-import numpy as np
 import copy
 
-class VG(Base):
+import numpy as np
+
+import openpifpaf
+
+try:
+    from pycocotools.coco import COCO
+    from pycocotools.cocoeval import COCOeval
+except ImportError:
+    pycocotools = None
+
+try:
+    from maskrcnn_benchmark.data.datasets.evaluation.vg.sgg_eval import (
+        SGRecall,
+        SGNoGraphConstraintRecall,
+        SGZeroShotRecall,
+        SGNGZeroShotRecall,
+        SGPairAccuracy,
+        SGMeanRecall,
+        SGNGMeanRecall,
+        SGAccumulateRecall,
+    )
+except ImportError:
+    SGRecall = None
+
+
+class VG(openpifpaf.metric.Base):
     text_labels_bbox = ['AP', 'AP0.5', 'AP0.75', 'APS', 'APM', 'APL',
                         'ART1', 'ART10', 'AR', 'ARS', 'ARM', 'ARL']
 
-    def __init__(self, obj_categories, rel_categories, mode, iou_types=['bbox', 'relations'], vg_eval=None):
+    def __init__(self, obj_categories, rel_categories, mode, iou_types=['bbox', 'relations']):
+        if SGRecall is None:
+            print('To test scene graph generation, download the evaluator '
+                  'from https://github.com/KaihuaTang/Scene-Graph-Benchmark.pytorch')
 
-
-        attribute_on = False #cfg.MODEL.ATTRIBUTE_ON
-        num_attributes = 201 #cfg.MODEL.ROI_ATTRIBUTE_HEAD.NUM_ATTRIBUTES
+        attribute_on = False  # cfg.MODEL.ATTRIBUTE_ON
+        num_attributes = 201  # cfg.MODEL.ROI_ATTRIBUTE_HEAD.NUM_ATTRIBUTES
         self.num_rel_category = len(rel_categories) + 1
-        multiple_preds = False #cfg.TEST.RELATION.MULTIPLE_PREDS
-        iou_thres = 0.5 #cfg.TEST.RELATION.IOU_THRESHOLD
+        multiple_preds = False  # cfg.TEST.RELATION.MULTIPLE_PREDS
+        iou_thres = 0.5  # cfg.TEST.RELATION.IOU_THRESHOLD
         self.mode = mode
-        self.vg_eval = vg_eval
 
         assert mode in ['predcls', 'sgdet', 'sgcls', 'phrdet', 'preddet']
         self.iou_types = iou_types
@@ -33,11 +47,11 @@ class VG(Base):
         self.bbox_anns_pred = []
         self.image_ids = []
         #self.rel_anns = []
-        predicate_to_ind = {rel:(rel_idx+1) for rel_idx, rel in enumerate(rel_categories)}
+        predicate_to_ind = {rel: rel_idx + 1 for rel_idx, rel in enumerate(rel_categories)}
         predicate_to_ind['__background__'] = 0
         self.ind_to_predicates = sorted(predicate_to_ind, key=lambda k: predicate_to_ind[k])
 
-        class_to_ind = {obj:(obj_idx+1) for obj_idx, obj in enumerate(obj_categories)}
+        class_to_ind = {obj: obj_idx + 1 for obj_idx, obj in enumerate(obj_categories)}
         class_to_ind['__background__'] = 0
         self.ind_to_classes = sorted(class_to_ind, key=lambda k: class_to_ind[k])
         self.image_annotations = {}
@@ -98,11 +112,10 @@ class VG(Base):
             box_gt_temp[2:] = box_gt_temp[2:] - box_gt_temp[:2]
             label_gt = int(obj_labels[idx])
             assert label_gt == int(pred['category_id'])
-            assert np.all(np.equal(box_gt_temp,pred['bbox']))
+            assert np.all(np.equal(box_gt_temp, pred['bbox']))
 
     def accumulate_bad(self, predictions, image_meta, ground_truth=None):
         image_id = int(image_meta['image_id'])
-        width, height = image_meta['width_height']
         self.image_ids.append(image_id)
 
         # self.image_annotations[image_id] = (copy.deepcopy(predictions),
@@ -119,7 +132,6 @@ class VG(Base):
             predictions_rel, predictions_det = predictions
 
         image_id = int(image_meta['image_id'])
-        width, height = image_meta['width_height']
         self.image_ids.append(image_id)
 
         box = []
@@ -141,41 +153,20 @@ class VG(Base):
             bbox_temp[2:] = bbox_temp[:2] + bbox_temp[2:]
             bbox_xyxy.append(bbox_temp)
 
-        if self.vg_eval:
-            gt_idx = self.vg_eval.image_ids.index(image_id)
-            obj_boxes = self.vg_eval.gt_boxes[gt_idx].copy()
-            obj_labels = self.vg_eval.gt_classes[gt_idx].copy()
-            obj_relation_triplets = self.vg_eval.relationships[gt_idx].copy()
-
         if 'bbox' in self.iou_types:
-            if not self.vg_eval:
-                for pred in ground_truth:
-                    self.bbox_anns_gt.append({
-                        'area': pred['area'],
-                        'bbox': np.asarray(pred['bbox']), # xywh
-                        'category_id': pred['category_id'],
-                        'id': len(self.bbox_anns_gt),
-                        'image_id': image_id,
-                        'iscrowd': 0,
-                    })
-            else:
-                #self.verify_anns(obj_boxes, obj_labels, ground_truth)
-                for bbox, category_id in zip(obj_boxes, obj_labels):
-                    bbox_temp = copy.deepcopy(bbox)
-                    bbox_temp[2:] = bbox_temp[2:] - bbox_temp[:2]
-                    self.bbox_anns_gt.append({
-                        'area': bbox_temp[2]*bbox_temp[3],
-                        'bbox': bbox_temp, # xywh
-                        'category_id': category_id,
-                        'id': len(self.bbox_anns_gt),
-                        'image_id': image_id,
-                        'iscrowd': 0,
-                    })
+            for pred in ground_truth:
+                self.bbox_anns_gt.append({
+                    'area': pred['area'],
+                    'bbox': np.asarray(pred['bbox']),  # xywh
+                    'category_id': pred['category_id'],
+                    'id': len(self.bbox_anns_gt),
+                    'image_id': image_id,
+                    'iscrowd': 0,
+                })
 
-            image_id_pred = np.asarray([image_id]*len(box))
+            image_id_pred = np.asarray([image_id] * len(box))
 
-
-            if len(predictions_det)>0:
+            if len(predictions_det) > 0:
                 self.bbox_anns_pred.append(
                     np.column_stack((image_id_pred, box, score, label))
                 )
@@ -184,24 +175,16 @@ class VG(Base):
             gt_rels = []
             gt_dets_bbox = []
             gt_dets_classes = []
-            if not self.vg_eval:
-                for s_idx, pred in enumerate(ground_truth):
-                    bbox_temp = np.copy(pred['bbox'])
-                    bbox_temp[2:] += bbox_temp[:2]
-                    gt_dets_bbox.append(bbox_temp)
-                    gt_dets_classes.append(pred['category_id'])
-                    for rel_idx, rel in enumerate(pred['predicate']):
-                        o_idx = pred['object_index'][rel_idx]
-                        if ground_truth_indices:
-                            o_idx = ground_truth_indices.index(pred['object_index'][rel_idx])
-                        gt_rels.append([s_idx, o_idx, rel+1])
-
-            else:
-                for rel_idx, rel in enumerate(obj_relation_triplets):
-                    gt_rels.append(rel)
-
-                gt_dets_bbox = np.asarray(obj_boxes)
-                gt_dets_classes = np.asarray(obj_labels)
+            for s_idx, pred in enumerate(ground_truth):
+                bbox_temp = np.copy(pred['bbox'])
+                bbox_temp[2:] += bbox_temp[:2]
+                gt_dets_bbox.append(bbox_temp)
+                gt_dets_classes.append(pred['category_id'])
+                for rel_idx, rel in enumerate(pred['predicate']):
+                    o_idx = pred['object_index'][rel_idx]
+                    if ground_truth_indices:
+                        o_idx = ground_truth_indices.index(pred['object_index'][rel_idx])
+                    gt_rels.append([s_idx, o_idx, rel+1])
 
             gt_rels = np.asarray(gt_rels)
 
@@ -252,41 +235,20 @@ class VG(Base):
                 bbox_temp[2:] = bbox_temp[:2] + bbox_temp[2:]
                 bbox_xyxy.append(bbox_temp)
 
-            if self.vg_eval:
-                gt_idx = self.vg_eval.image_ids.index(image_id)
-                obj_boxes = self.vg_eval.gt_boxes[gt_idx].copy()
-                obj_labels = self.vg_eval.gt_classes[gt_idx].copy()
-                obj_relation_triplets = self.vg_eval.relationships[gt_idx].copy()
-
             if 'bbox' in self.iou_types:
-                if not self.vg_eval:
-                    for pred in ground_truth:
-                        self.bbox_anns_gt.append({
-                            'area': pred['area'],
-                            'bbox': np.asarray(pred['bbox']), # xywh
-                            'category_id': pred['category_id'],
-                            'id': len(self.bbox_anns_gt),
-                            'image_id': image_id,
-                            'iscrowd': 0,
-                        })
-                else:
-                    #self.verify_anns(obj_boxes, obj_labels, ground_truth)
-                    for bbox, category_id in zip(obj_boxes, obj_labels):
-                        bbox_temp = copy.deepcopy(bbox)
-                        bbox_temp[2:] = bbox_temp[2:] - bbox_temp[:2]
-                        self.bbox_anns_gt.append({
-                            'area': bbox_temp[2]*bbox_temp[3],
-                            'bbox': bbox_temp, # xywh
-                            'category_id': category_id,
-                            'id': len(self.bbox_anns_gt),
-                            'image_id': image_id,
-                            'iscrowd': 0,
-                        })
+                for pred in ground_truth:
+                    self.bbox_anns_gt.append({
+                        'area': pred['area'],
+                        'bbox': np.asarray(pred['bbox']), # xywh
+                        'category_id': pred['category_id'],
+                        'id': len(self.bbox_anns_gt),
+                        'image_id': image_id,
+                        'iscrowd': 0,
+                    })
 
                 image_id_pred = np.asarray([image_id]*len(box))
 
-
-                if len(predictions_det)>0:
+                if len(predictions_det) > 0:
                     self.bbox_anns_pred.append(
                         np.column_stack((image_id_pred, box, score, label))
                     )
@@ -295,24 +257,16 @@ class VG(Base):
                 gt_rels = []
                 gt_dets_bbox = []
                 gt_dets_classes = []
-                if not self.vg_eval:
-                    for s_idx, pred in enumerate(ground_truth):
-                        bbox_temp = np.copy(pred['bbox'])
-                        bbox_temp[2:] += bbox_temp[:2]
-                        gt_dets_bbox.append(bbox_temp)
-                        gt_dets_classes.append(pred['category_id'])
-                        for rel_idx, rel in enumerate(pred['predicate']):
-                            o_idx = pred['object_index'][rel_idx]
-                            if ground_truth_indices:
-                                o_idx = ground_truth_indices.index(pred['object_index'][rel_idx])
-                            gt_rels.append([s_idx, o_idx, rel+1])
-
-                else:
-                    for rel_idx, rel in enumerate(obj_relation_triplets):
-                        gt_rels.append(rel)
-
-                    gt_dets_bbox = np.asarray(obj_boxes)
-                    gt_dets_classes = np.asarray(obj_labels)
+                for s_idx, pred in enumerate(ground_truth):
+                    bbox_temp = np.copy(pred['bbox'])
+                    bbox_temp[2:] += bbox_temp[:2]
+                    gt_dets_bbox.append(bbox_temp)
+                    gt_dets_classes.append(pred['category_id'])
+                    for rel_idx, rel in enumerate(pred['predicate']):
+                        o_idx = pred['object_index'][rel_idx]
+                        if ground_truth_indices:
+                            o_idx = ground_truth_indices.index(pred['object_index'][rel_idx])
+                        gt_rels.append([s_idx, o_idx, rel+1])
 
                 gt_rels = np.asarray(gt_rels)
 
@@ -363,16 +317,16 @@ class VG(Base):
         # calculate mean recall
 
         result_str = '\n' + '=' * 100 + '\n'
-        self.evaluator['eval_mean_recall'].calculate_mean_recall(self.mode )
-        self.evaluator['eval_ng_mean_recall'].calculate_mean_recall(self.mode )
+        self.evaluator['eval_mean_recall'].calculate_mean_recall(self.mode)
+        self.evaluator['eval_ng_mean_recall'].calculate_mean_recall(self.mode)
 
         # print result
-        result_str += self.evaluator['eval_recall'].generate_print_string(self.mode )
-        result_str += self.evaluator['eval_nog_recall'].generate_print_string(self.mode )
+        result_str += self.evaluator['eval_recall'].generate_print_string(self.mode)
+        result_str += self.evaluator['eval_nog_recall'].generate_print_string(self.mode)
         #result_str += eval_zeroshot_recall.generate_print_string(mode)
         #result_str += eval_ng_zeroshot_recall.generate_print_string(mode)
-        result_str += self.evaluator['eval_mean_recall'].generate_print_string(self.mode )
-        result_str += self.evaluator['eval_ng_mean_recall'].generate_print_string(self.mode )
+        result_str += self.evaluator['eval_mean_recall'].generate_print_string(self.mode)
+        result_str += self.evaluator['eval_ng_mean_recall'].generate_print_string(self.mode)
 
         # if cfg.MODEL.ROI_RELATION_HEAD.USE_GT_BOX:
         #     result_str += evaluator['eval_pair_accuracy'].generate_print_string(mode)
@@ -389,15 +343,14 @@ class VG(Base):
             data = {
                 'stats_det': stats_det.tolist(),
                 'text_labels_det': self.text_labels_bbox,
-                #'stats_rel': stats_rel,
+                # 'stats_rel': stats_rel,
             }
         if 'relations' in self.iou_types:
             stats_rel = self._stats_rel()
             print(stats_rel)
 
-
-
         return data
+
     def evaluate_relation_of_one_image(self, groundtruth, prediction, global_container, evaluator):
         """
         Returns:
@@ -441,7 +394,6 @@ class VG(Base):
             local_container['pred_boxes'] = local_container['gt_boxes']
             local_container['pred_classes'] = local_container['gt_classes']
             local_container['obj_scores'] = np.ones(local_container['gt_classes'].shape[0])
-
         elif mode == 'sgcls':
             if local_container['gt_boxes'].shape[0] != local_container['pred_boxes'].shape[0]:
                 print('Num of GT boxes is not matching with num of pred boxes in SGCLS')
