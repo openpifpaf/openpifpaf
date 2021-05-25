@@ -28,9 +28,9 @@ class Canvas:
     image_width = 7.0
     image_height = None
     blank_dpi = 200
-    image_dpi_factor = 1.0
+    image_dpi_factor = 2.0
     image_min_dpi = 50.0
-    out_file_extension = 'png'
+    out_file_extension = 'jpeg'
     white_overlay = False
 
     @classmethod
