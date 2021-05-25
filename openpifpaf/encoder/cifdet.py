@@ -121,8 +121,8 @@ class CifDetGenerator():
         self.fields_wh[f, :, miny:maxy, minx:maxx][:, mask] = np.expand_dims(wh, 1)
 
         # update bmin
-        scale = min(wh[0], wh[1])
-        bmin = max(0.01 * scale, self.config.bmin / self.config.meta.stride)
+        half_scale = 0.5 * min(wh[0], wh[1])
+        bmin = max(0.1 * half_scale, self.config.bmin / self.config.meta.stride)
         self.fields_reg_bmin[f, miny:maxy, minx:maxx][mask] = bmin
         self.fields_wh_bmin[f, miny:maxy, minx:maxx][mask] = bmin
 
