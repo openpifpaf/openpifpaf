@@ -38,4 +38,4 @@ def register():
     # object detection
     openpifpaf.CHECKPOINT_URLS['resnet18-cocodet'] = (
         'http://github.com/openpifpaf/torchhub/releases/download/'
-        'v0.12.10/resnet18-210512-025055-cocodet-slurm525819-283731d1.pkl')
+        'v0.12.10/resnet18-210526-031303-cocodet-slurm610002-1faf5801.pkl')
