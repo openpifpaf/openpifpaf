@@ -23,7 +23,7 @@ except ImportError:
 
 from .annotation import Annotation, AnnotationDet
 from .datasets.constants import COCO_KEYPOINTS, COCO_PERSON_SKELETON, COCO_CATEGORIES
-from . import datasets, decoder, network, show, transforms, visualizer, __version__
+from . import datasets, encoder, decoder, network, show, transforms, visualizer, __version__
 
 ANNOTATIONS_VAL = 'data-mscoco/annotations/person_keypoints_val2017.json'
 DET_ANNOTATIONS_VAL = 'data-mscoco/annotations/instances_val2017.json'
@@ -48,6 +48,16 @@ IMAGE_DIR_TEST = '/scratch/mistasse/coco/images/test2017/'
 
 LOG = logging.getLogger(__name__)
 
+import panopticapi.evaluation as PQ
+import datetime
+
+OFFSET = 256 * 256 * 256
+VOID = 0
+categories_list = [{"id": 2, "name": "background", "color": [50, 50, 70], "supercategory": "void", "isthing": 0}, 
+            {"id": 1, "name": "player", "color": [220, 20, 60], "supercategory": "human", "isthing": 1}, 
+            {"id": 3, "name": "ball", "color": [20, 220, 60], "supercategory": "object", "isthing": 1}]
+
+categories = {el['id']: el for el in categories_list}
 
 class EvalCoco(object):
     def __init__(self, coco, processor, *,
@@ -218,7 +228,7 @@ class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
 
 def cli():  # pylint: disable=too-many-statements,too-many-branches
     parser = argparse.ArgumentParser(
-        prog='python3 -m openpifpaf.eval_coco',
+        prog='python3 -m openpifpaf.eval_coco_abolfazl',
         description=__doc__,
         formatter_class=CustomFormatter,
     )
@@ -273,6 +283,19 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     group.add_argument('--annotations-testdev', default=ANNOTATIONS_TESTDEV)
     group.add_argument('--annotations-test', default=ANNOTATIONS_TEST)
     group.add_argument('--image-dir-test', default=IMAGE_DIR_TEST)
+
+
+    parser.add_argument('--oracle-data', default=None, nargs='+',
+                        help='pass centroid, keypoints, semantic, and offset to use their oracle')
+
+    parser.add_argument('--disable-pan-quality', default=False, action='store_true')
+
+    parser.add_argument('--discard-smaller', default=0, type=int,
+                        help='discard smaller than')
+
+    parser.add_argument('--discard-lesskp', default=0, type=int,
+                        help='discard with number of keypoints less than')
+
 
     args = parser.parse_args()
 
@@ -425,7 +448,7 @@ def preprocess_factory(
     return transforms.Compose(preprocess)
 
 
-def dataloader_from_args(args):
+def dataloader_from_args(args, target_transforms=None):
     preprocess = preprocess_factory(
         args.long_edge,
         tight_padding=args.batch_size == 1 and not args.multi_scale,
@@ -439,17 +462,133 @@ def dataloader_from_args(args):
         preprocess=preprocess,
         image_filter='all' if args.all_images else 'annotated',
         # image_filter='kp_inst',
-        # n_images=10,
+        n_images=100,
+        target_transforms=target_transforms,
+        eval_coco=True,
         category_ids=[] if args.detection_annotations else [1],
-        config='pan' if args.checkpoint=='resnet50' else ['cifcent', 'pan']
+        config='pan' if args.checkpoint=='resnet50' else 'cifcent'
     )
     data_loader = torch.utils.data.DataLoader(
         data, batch_size=args.batch_size, pin_memory=args.pin_memory,
         num_workers=args.loader_workers,
-        collate_fn=datasets.collate_images_anns_meta)
+        collate_fn=datasets.collate_images_targets_inst_meta_eval,
+        )
 
     return data_loader
 
+
+def get_output_filename(args):
+    import os
+    if not os.path.exists('coco_logs'):
+        os.makedirs('coco_logs')
+    now = datetime.datetime.now().strftime('%y%m%d-%H%M%S.%f')
+    out = 'coco_logs/{}-{}'.format(now, args.checkpoint.split('/')[-1])
+
+    return out + '.log'
+
+
+def pq_compute_single_core(panoptic_pred, pred_segments_info, panoptic_gt, gt_segments_info):
+    pq_stat = PQ.PQStat()
+    
+
+    gt_segms = {el['id']: el for el in gt_segments_info}
+    pred_segms = {el['id']: el for el in pred_segments_info}
+
+
+    # predicted segments area calculation + prediction sanity checks
+    pred_labels_set = set(el['id'] for el in pred_segments_info)
+    labels, labels_cnt = np.unique(panoptic_pred, return_counts=True)
+    for label, label_cnt in zip(labels, labels_cnt):
+        if label not in pred_segms:
+            if label == VOID:
+                continue
+            raise KeyError('In the image with ID {} segment with ID {} is presented in PNG and not presented in JSON.'.format(gt_ann['image_id'], label))
+        pred_segms[label]['area'] = label_cnt
+        pred_labels_set.remove(label)
+        if pred_segms[label]['category_id'] not in categories:
+            raise KeyError('In the image with ID {} segment with ID {} has unknown category_id {}.'.format(gt_ann['image_id'], label, pred_segms[label]['category_id']))
+    if len(pred_labels_set) != 0:
+        raise KeyError('In the image with ID {} the following segment IDs {} are presented in JSON and not presented in PNG.'.format(gt_ann['image_id'], list(pred_labels_set)))
+
+    # confusion matrix calculation
+    pan_gt_pred = panoptic_gt.astype(np.uint64) * OFFSET + panoptic_pred.astype(np.uint64)
+    gt_pred_map = {}
+    labels, labels_cnt = np.unique(pan_gt_pred, return_counts=True)
+    for label, intersection in zip(labels, labels_cnt):
+        gt_id = label // OFFSET
+        pred_id = label % OFFSET
+        gt_pred_map[(gt_id, pred_id)] = intersection
+
+    # count all matched pairs
+    gt_matched = set()
+    pred_matched = set()
+    for label_tuple, intersection in gt_pred_map.items():
+        gt_label, pred_label = label_tuple
+        if gt_label not in gt_segms:
+            continue
+        if pred_label not in pred_segms:
+            continue
+        if gt_segms[gt_label]['iscrowd'] == 1:
+            continue
+        if gt_segms[gt_label]['category_id'] != pred_segms[pred_label]['category_id']:
+            continue
+
+        union = pred_segms[pred_label]['area'] + gt_segms[gt_label]['area'] - intersection - gt_pred_map.get((VOID, pred_label), 0)
+        iou = intersection / union
+        if iou > 0.5:
+            pq_stat[gt_segms[gt_label]['category_id']].tp += 1
+            pq_stat[gt_segms[gt_label]['category_id']].iou += iou
+            gt_matched.add(gt_label)
+            pred_matched.add(pred_label)
+
+    # count false positives
+    crowd_labels_dict = {}
+    for gt_label, gt_info in gt_segms.items():
+        if gt_label in gt_matched:
+            continue
+        # crowd segments are ignored
+        if gt_info['iscrowd'] == 1:
+            crowd_labels_dict[gt_info['category_id']] = gt_label
+            continue
+        pq_stat[gt_info['category_id']].fn += 1
+
+    # count false positives
+    for pred_label, pred_info in pred_segms.items():
+        if pred_label in pred_matched:
+            continue
+        # intersection of the segment with VOID
+        intersection = gt_pred_map.get((VOID, pred_label), 0)
+        # plus intersection with corresponding CROWD region if it exists
+        if pred_info['category_id'] in crowd_labels_dict:
+            intersection += gt_pred_map.get((crowd_labels_dict[pred_info['category_id']], pred_label), 0)
+        # predicted segment is ignored if more than half of the segment correspond to VOID and CROWD regions
+        if intersection / pred_info['area'] > 0.5:
+            continue
+        pq_stat[pred_info['category_id']].fp += 1
+
+    return pq_stat
+
+
+def show_pq_results(pq_stat):
+    metrics = [("All", None), ("Things", True), ("Stuff", False)]
+    results = {}
+    for name, isthing in metrics:
+        results[name], per_class_results = pq_stat.pq_average(categories, isthing=isthing)
+        if name == 'All':
+            results['per_class'] = per_class_results
+    print("{:10s}| {:>5s}  {:>5s}  {:>5s} {:>5s}".format("", "PQ", "SQ", "RQ", "N"))
+    print("-" * (10 + 7 * 4))
+
+    for name, _isthing in metrics:
+        print("{:10s}| {:5.1f}  {:5.1f}  {:5.1f} {:5d}".format(
+            name,
+            100 * results[name]['pq'],
+            100 * results[name]['sq'],
+            100 * results[name]['rq'],
+            results[name]['n'])
+        )
+    
+    return results
 
 def main():
     args = cli()
@@ -467,8 +606,17 @@ def main():
             return
         print('Processing: {}'.format(args.checkpoint))
 
-    data_loader = dataloader_from_args(args)
+    
     model_cpu, _ = network.factory_from_args(args)
+    
+    output_file = open(get_output_filename(args), "a")
+    #####
+    target_transforms = None
+    # if args.oracle_data:
+    target_transforms = encoder.factory(model_cpu.head_nets, model_cpu.base_net.stride)
+    
+    data_loader = dataloader_from_args(args, target_transforms=target_transforms)
+    #####
     model = model_cpu.to(args.device)
     if not args.disable_cuda and torch.cuda.device_count() > 1:
         LOG.info('Using multiple GPUs: %d', torch.cuda.device_count())
@@ -490,7 +638,7 @@ def main():
     )
     total_start = time.time()
     loop_start = time.time()
-    for batch_i, (image_tensors, anns_batch, meta_batch) in enumerate(data_loader):
+    for batch_i, (image_tensors, anns_batch, meta_batch, target_batch) in enumerate(data_loader):
         LOG.info('batch %d, last loop: %.3fs, batches per second=%.1f',
                  batch_i, time.time() - loop_start,
                  batch_i / max(1, (time.time() - total_start)))
@@ -500,22 +648,96 @@ def main():
             break
 
         loop_start = time.time()
-
+        # print('anns:', len(anns_batch))
+        # print('target:', len(target_batch[0]))
+        # print('anns_batch:', anns_batch)
+        # print('meta_batch:', meta_batch)
+        # print('target_batch:', target_batch)
         if len([a
                 for anns in anns_batch
                 for a in anns
                 if np.any(a['keypoints'][:, 2] > 0)]) < args.min_ann:
             continue
 
-        pred_batch = processor.batch(model, image_tensors, device=args.device)
+        pred_batch = processor.batch(model, image_tensors, device=args.device, oracle_masks=args.oracle_data, target_batch=target_batch)
         eval_coco.decoder_time += processor.last_decoder_time
         eval_coco.nn_time += processor.last_nn_time
 
         # loop over batch
         assert len(image_tensors) == len(anns_batch)
         assert len(image_tensors) == len(meta_batch)
-        for pred, anns, meta in zip(pred_batch, anns_batch, meta_batch):
+
+        for image, pred, anns, meta, target_pan in zip(image_tensors, pred_batch, anns_batch, meta_batch, target_batch[1]['panoptic']):
             eval_coco.from_predictions(pred, meta, debug=args.debug, gt=anns)
+
+
+            pq_stat = PQ.PQStat()
+            if not args.disable_pan_quality:
+                segments = []
+                panoptic = np.zeros((image.shape[1:3]), np.uint16)
+
+                n_humans = 0
+                print('number of people in pred', len(pred))
+                for ann in pred:
+                    if ann.category_id == 1 and ann.mask.any():
+                        if (np.count_nonzero(ann.mask) < args.discard_smaller
+                            or np.count_nonzero(ann.data[:,2]) < args.discard_lesskp
+                            ):
+                            continue
+                        n_humans += 1
+                        instance_id = 1000+n_humans
+                        panoptic[ann.mask] = instance_id
+
+                        segments.append({
+                            'id': instance_id,
+                            'category_id': 1,
+                            
+                        })
+                
+                print('instance pred', n_humans)
+
+                # image_id = meta['file_name'].split('/')[-1].replace('.png', '')
+                # panoptic_name = 'output/%s.png'%image_id
+
+                background = panoptic == 0
+                if background.any():
+                    panoptic[background] = 2000
+                    segments.append({
+                        'id': 2000,
+                        'category_id': 2,
+                        
+                    })
+                print('segments pred', segments)
+                # ground truth
+                segments_gt = []
+                panoptic_gt = target_pan.cpu().numpy()
+                unique_ids, id_cnt = np.unique(panoptic_gt, return_counts=True)
+                for u, cnt in zip(unique_ids, id_cnt):
+                    if u > 0: # and u < 3000:
+                        segments_gt.append({
+                            'id': u,
+                            'category_id': 1,
+                            'iscrowd': 0,
+                            'area': cnt,
+                        })
+                print('unique ids ann', unique_ids)
+                print('count', id_cnt)
+                print('segments gt', segments_gt)
+                background = panoptic_gt == 0
+                if background.any():
+                    panoptic_gt[background] = 2000
+                    segments_gt.append({
+                        'id': 2000,
+                        'category_id': 2,
+                        'iscrowd': 0,
+                        'area': background.sum(),
+                    })
+                
+                pq_stat += pq_compute_single_core(panoptic, segments, panoptic_gt, segments_gt)
+                print("PQ")
+                if len(unique_ids) > 2:
+                    print(show_pq_results(pq_stat))
+
     total_time = time.time() - total_start
 
     # processor.instance_scorer.write_data('instance_score_data.json')
@@ -528,6 +750,44 @@ def main():
     # write
     write_evaluations(eval_coco, args.output, args, total_time, count_ops, file_size)
 
+    output_file.write('\nCheckpoint: ' + str(args.checkpoint))
+    output_file.write('\nOracle: ' + str(args.oracle_data))
+    output_file.write('\nDecode mask first: ' + str(args.decode_masks_first))
+    output_file.write('\nDecoder Filtering Strategy: ' + 'Filter Smaller than ' + str(args.decod_discard_smaller) +
+                        '\tFilter with Keypoints less than ' + str(args.decod_discard_lesskp))
 
+    stats = eval_coco.stats()
+    output_file.write('\nOKS\n' + str(stats))
+    output_file.write('\nAverage Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = ' + str(round(stats[0], 3)))
+    output_file.write('\nAverage Precision  (AP) @[ IoU=0.50      | area=   all | maxDets= 20 ] = ' + str(round(stats[1], 3)))
+    output_file.write('\nAverage Precision  (AP) @[ IoU=0.75      | area=   all | maxDets= 20 ] = ' + str(round(stats[2], 3)))
+    output_file.write('\nAverage Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = ' + str(round(stats[3], 3)))
+    output_file.write('\nAverage Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = ' + str(round(stats[4], 3)))
+    output_file.write('\nAverage Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = ' + str(round(stats[5], 3)))
+    output_file.write('\nAverage Recall     (AR) @[ IoU=0.50      | area=   all | maxDets= 20 ] = ' + str(round(stats[6], 3)))
+    output_file.write('\nAverage Recall     (AR) @[ IoU=0.50      | area=   all | maxDets= 20 ] = ' + str(round(stats[7], 3)))
+    output_file.write('\nAverage Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = ' + str(round(stats[8], 3)))
+    output_file.write('\nAverage Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = ' + str(round(stats[9], 3)))
+
+
+
+    if not args.disable_pan_quality:
+        resss = show_pq_results(pq_stat)
+        output_file.write("\n\n ---------- PQ computations ---------------------\n")
+        output_file.write('\nPQ computer Filtering Strategy: ' + 'Filter Smaller than ' + str(args.discard_smaller) +
+                        '\tFilter with Keypoints less than ' + str(args.discard_lesskp))
+        output_file.write("\n{:10s}| {:>5s}  {:>5s}  {:>5s} {:>5s}\n".format("", "PQ", "SQ", "RQ", "N"))
+        output_file.write("-" * (10 + 7 * 4))
+        metrics = [("All", None), ("Things", True), ("Stuff", False)]
+        for name, _isthing in metrics:
+            output_file.write("\n{:10s}| {:5.1f}  {:5.1f}  {:5.1f} {:5d}".format(
+                name,
+                100 * resss[name]['pq'],
+                100 * resss[name]['sq'],
+                100 * resss[name]['rq'],
+                resss[name]['n'])
+            )
+            
 if __name__ == '__main__':
     main()
+

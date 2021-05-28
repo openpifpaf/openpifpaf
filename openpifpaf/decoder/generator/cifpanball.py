@@ -189,6 +189,7 @@ class CifPanBall(Generator):
             debug.update(
                 cifhr=cifhr,
                 fields=fields,
+                keypoints_yx=keypoints_yx,
             )
 
         

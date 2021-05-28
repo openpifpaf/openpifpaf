@@ -510,6 +510,7 @@ def train_cocokpinst_factory(args, target_transforms, heads=None, batch_size=Non
         config=config,
         ball=ball,
         filter_for_medium=args.filter_for_medium_coco,
+        eval_coco=False,
     )
     # return train_data
     

@@ -1,4 +1,5 @@
 """Train a pifpaf net."""
+import argparse
 import os
 import copy
 import hashlib
@@ -16,6 +17,7 @@ import wandb
 import numpy as np
 import math
 
+# import torch.autograd.profiler as profiler
 # wandb.login()
 
 def log_wandb(in_dict):
@@ -152,7 +154,21 @@ class Trainer(object):
         
 
         for epoch in range(start_epoch, epochs):
+
+            # if epoch==0:
+            #     self.write_state_dict(epoch, epoch == epochs - 1)    
+
+            # freeze encoder
+            if epoch < self.train_args.lr_warm_up_epochs and self.train_args.enable_freeze_encoder:
+                self.freeze_backbone()
+                print('backbone freezed')
+            # unfreeze encoder
+            elif epoch == self.train_args.lr_warm_up_epochs and self.train_args.enable_freeze_encoder:
+                self.unfreeze_backbone()
+                print('backbone unfreezed')
+
             self.train(train_scenes, epoch)
+
 
             # self.write_model(epoch + 1, epoch == epochs - 1)
             self.write_state_dict(epoch+1, epoch == epochs - 1)
@@ -172,9 +188,7 @@ class Trainer(object):
 
         if self.device:
             data = data.to(self.device, non_blocking=True)
-            
-            # if len(targets)==2 and len(targets[1])==4:          # when panoptic head is operating
-                
+                           
             targets = apply(lambda x: x.to(self.device), targets)
 
         # train encoder
@@ -275,7 +289,7 @@ class Trainer(object):
                         print('Head_loss: ' + str(ix) + str(hl))
                         print('All head losses:', head_losses)
                         print('loss:', loss)
-                        print('Meta:', meta)
+                        # print('Meta:', meta)
                         
                         # wandb.log({"train loss nan" : [wandb.Image(i.cpu(), masks={'ground truth': {'mask_data': seman.numpy().astype('int'), 'class_labels': {0:'bg',1:'people',2:'ball'}},},\
                         #                                          caption=m['file_name']) for i,seman,m in zip(data,target[1]['semantic'].cpu(), meta)]})
@@ -439,7 +453,7 @@ class Trainer(object):
                         print('Head_loss: ' + str(ix) + str(hl))
                         print('All head losses:', head_losses)
                         print('loss:', loss)
-                        print('Meta:', meta)
+                        # print('Meta:', meta)
                         # wandb.log({"val loss nan" : [wandb.Image(i.cpu(), masks={'ground truth': {'mask_data': seman.numpy().astype('int'), 'class_labels': {0:'bg',1:'people',2:'ball'}},},\
                         #                                             caption=m['file_name']) for i,seman,m in zip(data,target[1]['semantic'].cpu(), meta)]})
 
@@ -560,14 +574,25 @@ class Trainer(object):
         filename = '{}.epoch{:03d}'.format(self.out, epoch)
         LOG.debug('about to write model')
         # self.model_meta_data['basenet'] = model.base_net
-        torch.save({
-            'model_state_dict': model.state_dict(),
-            'optimizer_state_dict': self.optimizer.state_dict(),
-            'epoch': epoch,
-            'meta': self.model_meta_data,
-            'tb_filename': os.path.basename(self.tb_filename),
-            'wandb_id': self.wandb_id
-        }, filename)
+
+        if not self.train_args.disable_wandb:
+            torch.save({
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': self.optimizer.state_dict(),
+                'epoch': epoch,
+                'meta': self.model_meta_data,
+                'tb_filename': os.path.basename(self.tb_filename),
+                'wandb_id': self.wandb_id
+            }, filename)
+        else:
+            torch.save({
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': self.optimizer.state_dict(),
+                'epoch': epoch,
+                'meta': self.model_meta_data,
+                'tb_filename': os.path.basename(self.tb_filename),
+            }, filename)
+
         LOG.debug('model written')
 
         if final:
@@ -584,6 +609,21 @@ class Trainer(object):
 
     def close_tb(self):
         self.writer.close()
+
+
+    def freeze_backbone(self):
+        for param in self.model.base_net.parameters():
+            param.requires_grad = False
+
+        for param in self.model.head_nets.parameters():
+            assert param.requires_grad == True
+
+    def unfreeze_backbone(self):
+        for param in self.model.base_net.parameters():
+            param.requires_grad = True
+
+        for param in self.model.head_nets.parameters():
+            assert param.requires_grad == True
 
 
     

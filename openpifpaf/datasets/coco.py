@@ -30,7 +30,8 @@ class Coco(torch.utils.data.Dataset):
                  image_filter='keypoint-annotations',
                  config='cif',
                  ball=False,
-                 filter_for_medium=False):
+                 filter_for_medium=False,
+                 eval_coco=False):
         if category_ids is None:
             category_ids = [1]
 
@@ -38,7 +39,7 @@ class Coco(torch.utils.data.Dataset):
         print(self.config)
         self.ids_ball = []
         self.ball = ball
-        
+        self.eval_coco = eval_coco
 
         from pycocotools.coco import COCO  # pylint: disable=import-outside-toplevel
         self.image_dir = image_dir
@@ -52,6 +53,7 @@ class Coco(torch.utils.data.Dataset):
 
         if image_filter == 'all':
             self.ids = self.coco.getImgIds()
+            self.ids_inst = self.coco_inst.getImgIds(catIds=self.category_ids)
         elif image_filter == 'annotated':
             self.ids = self.coco.getImgIds(catIds=self.category_ids)
             self.ids_inst = self.coco_inst.getImgIds(catIds=self.category_ids)
@@ -415,6 +417,7 @@ class Coco(torch.utils.data.Dataset):
                 pass
 
             elif self.config == 'cifcent':
+                
                 anns = self.add_center(anns)
 
             elif self.config == 'cifball':
@@ -538,6 +541,8 @@ class Coco(torch.utils.data.Dataset):
                 anns_trans.append(t(image, anns, meta))
                 # except:
                 #     print('image_id_3: ', image_id, t)
+        if self.eval_coco:
+            return image, anns, meta, anns_trans
 
         anns = anns_trans
 

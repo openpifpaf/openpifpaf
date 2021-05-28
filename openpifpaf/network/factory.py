@@ -1,8 +1,10 @@
 import logging
 import os
+from time import asctime
 import torch
 
 import torchvision
+from traitlets.traitlets import default
 
 from . import basenetworks, heads, nets
 from .. import datasets
@@ -35,6 +37,7 @@ def factory_from_args(args):
         multi_scale_hflip=args.multi_scale_hflip,
         download_progress=args.download_progress,
         weights=args.weights,
+        load_pif_weights=args.enable_load_pif_weights,
     )
 
 
@@ -78,7 +81,8 @@ def factory(
         multi_scale=False,
         multi_scale_hflip=True,
         download_progress=True,
-        weights=None):
+        weights=None,
+        load_pif_weights=False):
 
     if base_name:
         assert head_names
@@ -96,6 +100,22 @@ def factory(
                     old_model = checkpoint['model']
                     state_dict = old_model.base_net.state_dict()
                     net_cpu.base_net.load_state_dict(state_dict)
+                    if load_pif_weights:            ########### wrong!
+                        pif_state_dict = old_model.head_nets[0].state_dict()
+                        weight_shape = pif_state_dict['conv.weight'].shape
+                        bias_shape = pif_state_dict['conv.bias'].shape
+                        weight_zero = torch.zeros((weight_shape[0]+20, weight_shape[1], weight_shape[2], weight_shape[3]))
+                        bias_zero = torch.zeros((bias_shape[0]+20))
+
+                        weight_zero[:weight_shape[0],:,:,:] = pif_state_dict['conv.weight']
+                        weight_zero[weight_shape[0]:,:,:,:] = pif_state_dict['conv.weight'][-20:,:,:,:]
+                        bias_zero[:bias_shape[0]] = pif_state_dict['conv.bias']
+                        bias_zero[bias_shape[0]:] = pif_state_dict['conv.bias'][-20:]
+
+                        pif_state_dict['conv.weight'] = weight_zero
+                        pif_state_dict['conv.bias'] = bias_zero
+
+                        net_cpu.head_nets[0].load_state_dict(pif_state_dict)
         else:
             checkpoint = torch.load(checkpoint)
             if 'model_state_dict' in checkpoint:
@@ -455,3 +475,8 @@ def cli(parser):
                        help='[experimental] zeroing probability of feature in head input')
     group.add_argument('--head-quad', default=heads.CompositeFieldFused.quad, type=int,
                        help='number of times to apply quad (subpixel conv) to heads')
+
+
+    group.add_argument('--enable-freeze-encoder', default=False, action='store_true')
+
+    group.add_argument('--enable-load-pif-weights', default=False, action='store_true')
