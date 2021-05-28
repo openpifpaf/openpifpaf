@@ -125,7 +125,7 @@ class CocoKpSt(openpifpaf.datasets.DataModule):
             S(openpifpaf.transforms.RandomChoice(
                 [openpifpaf.transforms.RotateBy90(angle_perturbation=30.0),
                  openpifpaf.transforms.RotateUniform(30.0)],
-                [openpifpaf.plugins.coco.CocoKp.orientation_invariant, 0.4],
+                [openpifpaf.plugins.coco.CocoKp.orientation_invariant, 0.1],
             )),
             openpifpaf.transforms.pair.Crop(
                 openpifpaf.plugins.coco.CocoKp.square_edge, max_shift=30.0),

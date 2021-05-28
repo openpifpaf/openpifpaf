@@ -215,7 +215,7 @@ class Posetrack2018(openpifpaf.datasets.DataModule):
             S(openpifpaf.transforms.RandomChoice(
                 [openpifpaf.transforms.RotateBy90(angle_perturbation=30.0),
                  openpifpaf.transforms.RotateUniform(30.0)],
-                [0.25],
+                [0.1, 0.1],
             )),
             openpifpaf.transforms.pair.Crop(cls.square_edge, max_shift=30.0),
             openpifpaf.transforms.RandomApply(
