@@ -99,9 +99,16 @@ class TrackingPose(TrackBase):
 
     @classmethod
     def factory(cls, head_metas):
-        if len(head_metas) < 4:
+        if len(head_metas) < 3:
             return []
         return [
+            cls(cif_meta, caf_meta, tcaf_meta)
+            for cif_meta, caf_meta, tcaf_meta
+            in zip(head_metas, head_metas[1:], head_metas[2:])
+            if (isinstance(cif_meta, headmeta.TSingleImageCif)
+                and isinstance(caf_meta, headmeta.TSingleImageCaf)
+                and isinstance(tcaf_meta, headmeta.Tcaf))
+        ] + [
             cls(cif_meta, caf_meta, tcaf_meta)
             for cif_meta, caf_meta, tcaf_meta
             in zip(head_metas, head_metas[1:], head_metas[3:])
