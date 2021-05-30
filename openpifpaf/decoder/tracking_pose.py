@@ -42,7 +42,7 @@ class TrackingPose(TrackBase):
             i
             for i, kp in enumerate(cif_meta.keypoints)
             if kp in ('left_ear', 'right_ear')
-        ]
+        ] if cif_meta.dataset == 'posetrack2018' else []
 
         self.n_keypoints = len(cif_meta.keypoints)
         tracking_keypoints = cif_meta.keypoints * len(self.cache_group)

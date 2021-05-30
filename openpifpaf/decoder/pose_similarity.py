@@ -34,7 +34,7 @@ class PoseSimilarity(TrackBase):
         self.distance_function.valid_keypoints = [
             i
             for i, kp in enumerate(cif_meta.keypoints)
-            if kp not in ('left_ear', 'right_ear')
+            if kp not in (('left_ear', 'right_ear') if cif_meta.dataset == 'posetrack2018' else [])
         ]
         LOG.debug('valid keypoints = %s', self.distance_function.valid_keypoints)
         self.distance_function.sigmas = np.asarray(cif_meta.sigmas)
