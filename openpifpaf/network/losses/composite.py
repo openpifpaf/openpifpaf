@@ -191,3 +191,110 @@ class CompositeLoss(torch.nn.Module):
         self.previous_losses = [float(l.item()) if l is not None else None for l in all_losses]
 
         return all_losses
+
+
+class CompositeLaplace(torch.nn.Module):
+    prescale = 1.0
+    bce_total_soft_clamp = None
+    soft_clamp_value = 5.0
+
+    def __init__(self, head_net: heads.CompositeField3):
+        super().__init__()
+        self.n_vectors = head_net.meta.n_vectors
+        self.n_scales = head_net.meta.n_scales
+
+        LOG.debug('%s: n_vectors = %d, n_scales = %d',
+                  head_net.meta.name, self.n_vectors, self.n_scales)
+
+        self.field_names = ['{}.{}'.format(head_net.meta.dataset, head_net.meta.name)]
+        self.distance_function = torch.nn.SmoothL1Loss(reduction='none')
+        self.soft_clamp = None
+        if self.soft_clamp_value:
+            self.soft_clamp = components.SoftClamp(self.soft_clamp_value)
+
+        w = head_net.meta.training_weights
+        self.weights = None
+        if w is not None:
+            self.weights = torch.ones([1, head_net.meta.n_fields, 1, 1], requires_grad=False)
+            self.weights[0, :, 0, 0] = torch.Tensor(w)
+        LOG.debug("The weights for the keypoints are %s", self.weights)
+        self.bce_blackout = None
+        self.previous_loss = None
+
+    @classmethod
+    def cli(cls, parser: argparse.ArgumentParser):
+        group = parser.add_argument_group('Composite Laplace')
+
+    @classmethod
+    def configure(cls, args: argparse.Namespace):
+        cls.prescale = args.loss_prescale
+
+        if args.regression_loss == 'smoothl1':
+            cls.regression_loss = components.SmoothL1()
+        elif args.regression_loss == 'l1':
+            cls.regression_loss = staticmethod(components.l1_loss)
+        elif args.regression_loss == 'laplace':
+            cls.regression_loss = components.Laplace()
+        elif args.regression_loss is None:
+            cls.regression_loss = components.Laplace()
+        else:
+            raise Exception('unknown regression loss type {}'.format(args.regression_loss))
+
+        cls.bce_total_soft_clamp = args.bce_total_soft_clamp
+
+    def _confidence_distance(self, x_confidence, t_confidence):
+        t_zeroone = t_confidence.clone()
+        t_zeroone[t_zeroone > 0.0] = 1.0
+        x = x_confidence.detach()
+        return (-1.0 + 2.0 * t_zeroone) / (1.0 + torch.exp(-x))
+
+    def _reg_distance(self, x_regs, t_regs, t_scales):
+        t_sigma = 0.5 * torch.tile(t_scales, (1, 1, 2, 1, 1))
+        # 99% inside of t_sigma
+        return 3.0 / t_sigma * (x_regs - t_regs)
+
+    def _scale_distance(self, x_scales, t_scales):
+        return 0.5 * (x_scales - t_scales)
+
+    def forward(self, x, t):
+        LOG.debug('loss for %s', self.field_names)
+
+        if t is None:
+            return [None for _ in range(1 + self.n_vectors + self.n_scales)]
+        assert x.shape[2] == 1 + self.n_vectors * 3 + self.n_scales
+        assert t.shape[2] == 1 + self.n_vectors * 3 + self.n_scales
+
+        # x = x.double()
+        x_confidence = x[:, :, 0:1]
+        x_regs = x[:, :, 1:1 + self.n_vectors * 2]
+        x_logb = x[:, :, 1 + self.n_vectors * 2:1 + self.n_vectors * 2 + 1]
+        x_scales = x[:, :, 1 + self.n_vectors * 3:]
+
+        # t = t.double()
+        t_confidence = t[:, :, 0:1]
+        t_regs = t[:, :, 1:1 + self.n_vectors * 2]
+        t_logb_min = t[:, :, 1 + self.n_vectors * 2:1 + self.n_vectors * 2 + 1]
+        t_scales = t[:, :, 1 + self.n_vectors * 3:]
+
+        d_confidence = self._confidence_distance(x_confidence, t_confidence)
+        d_reg = self._reg_distance(x_regs, t_regs, t_scales)
+        d_scale = self._scale_distance(x_scales, t_scales)
+        d = torch.cat([d_confidence, d_reg, d_scale, t_logb_min], dim=2)
+        norm = self.distance_function(d, torch.zeros_like(d))
+
+        x_logb = 3.0 * torch.tanh(x_logb / 3.0)
+        scaled_norm = norm * torch.exp(-x_logb)
+        if self.soft_clamp is not None:
+            scaled_norm = self.soft_clamp(scaled_norm)
+        losses = x_logb + scaled_norm
+
+        batch_size = t_confidence.shape[0]
+        m = torch.isfinite(losses)
+        loss = torch.sum(losses[m]) / batch_size
+
+        if not torch.isfinite(loss).item():
+            raise Exception('found a loss that is not finite: {}, prev: {}'
+                            ''.format(loss, self.previous_loss))
+        self.previous_loss = float(loss.item())
+
+        return [loss]

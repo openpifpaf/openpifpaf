@@ -3,16 +3,17 @@ import logging
 
 from ... import headmeta
 from . import components
-from .composite import CompositeLoss
+from .composite import CompositeLaplace, CompositeLoss
 from .multi_head import MultiHeadLoss, MultiHeadLossAutoTuneKendall, MultiHeadLossAutoTuneVariance
 
 LOG = logging.getLogger(__name__)
 
 #: headmeta class to Loss class
 LOSSES = {
-    headmeta.Cif: CompositeLoss,
-    headmeta.Caf: CompositeLoss,
-    headmeta.CifDet: CompositeLoss,
+    'a': CompositeLoss,
+    headmeta.Cif: CompositeLaplace,
+    headmeta.Caf: CompositeLaplace,
+    headmeta.CifDet: CompositeLaplace,
 }
 LOSS_COMPONENTS = {
     components.Bce,
