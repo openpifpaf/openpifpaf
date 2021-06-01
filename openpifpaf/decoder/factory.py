@@ -205,10 +205,15 @@ def factory_decode(head_nets, *,
             worker_pool=worker_pool,
         )
 
+    # print('in decoder')
+    # for h in head_nets:
+    #     print(type(h.meta))
 
+    #     print(isinstance(h.meta, network.heads.PanopticDeeplabMeta))
     if isinstance(head_nets[0].meta, network.heads.IntensityMeta) \
        and isinstance(head_nets[1].meta, network.heads.PanopticDeeplabMeta):
         field_config = FieldConfig()
+        print('decoder pan')
 
         field_config.cif_visualizers = [
             visualizer.Cif(head_nets[i].meta.name,
@@ -217,9 +222,11 @@ def factory_decode(head_nets, *,
                            skeleton=head_nets[0].meta.draw_skeleton)
             for i in field_config.cif_indices
         ]
-        # print('heads', len(head_nets))
-        if len(head_nets) == 3:
+        print('heads', len(head_nets))
+        print('heads', head_nets[2].meta)
+        if len(head_nets) >= 3:
             field_config_ball = FieldConfig(cif_indices=[2])
+            field_config_cent = FieldConfig(cif_indices=[3]) if len(head_nets) == 4 else None
             #print('field config ball', field_config_ball)
             if isinstance(head_nets[2].meta, network.heads.IntensityMeta):
                 if args.only_output_17:
@@ -227,6 +234,7 @@ def factory_decode(head_nets, *,
                 return CifPanBall(
                     field_config,
                     field_config_ball,
+                    field_config_cent=field_config_cent, 
                     keypoints=head_nets[0].meta.keypoints,
                     out_skeleton=head_nets[1].meta.skeleton,
                     worker_pool=worker_pool,
@@ -251,7 +259,7 @@ def factory_decode(head_nets, *,
     if isinstance(head_nets[0].meta, network.heads.IntensityMeta) \
        and isinstance(head_nets[1].meta, network.heads.SegmentationMeta):
         field_config = FieldConfig()
-
+        
 
         skeleton = head_nets[1].meta.skeleton
         # print(skeleton)
@@ -289,7 +297,7 @@ def factory_decode(head_nets, *,
     if isinstance(head_nets[0].meta, network.heads.IntensityMeta) \
        and isinstance(head_nets[1].meta, network.heads.AssociationMeta):
         field_config = FieldConfig()
-
+        
         if multi_scale:
             if not dense_connections:
                 field_config.cif_indices = [v * 3 for v in range(5)]

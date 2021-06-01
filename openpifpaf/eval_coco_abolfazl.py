@@ -448,13 +448,27 @@ def preprocess_factory(
     return transforms.Compose(preprocess)
 
 
-def dataloader_from_args(args, target_transforms=None):
+def dataloader_from_args(args, target_transforms=None, heads=None):
     preprocess = preprocess_factory(
         args.long_edge,
         tight_padding=args.batch_size == 1 and not args.multi_scale,
         extended_scale=args.extended_scale,
         orientation_invariant=args.orientation_invariant,
     )
+    heads_names = []
+    for h in heads:
+        heads_names.append(h.meta.name)
+    config = 'cif'
+    if 'cifball' in heads_names:
+        config = 'cifball'
+    elif 'cifcentball' in heads_names:
+        config = 'cifcentball'
+    elif 'cifcent' in heads_names:
+        config = 'cifcent'
+    if 'cif' in heads_names and 'cent' in heads_names:
+        config = 'cif cent'
+    print('CONFIG', config)
+    # print('heads', heads[0].meta.name)
     data = datasets.Coco(
         image_dir=args.image_dir,
         ann_file=args.annotation_file,
@@ -462,11 +476,12 @@ def dataloader_from_args(args, target_transforms=None):
         preprocess=preprocess,
         image_filter='all' if args.all_images else 'annotated',
         # image_filter='kp_inst',
-        n_images=100,
+        n_images=2,
         target_transforms=target_transforms,
         eval_coco=True,
         category_ids=[] if args.detection_annotations else [1],
-        config='pan' if args.checkpoint=='resnet50' else 'cifcent'
+        config=config,
+        # config='pan' if args.checkpoint=='resnet50' else 'cif cent'
     )
     data_loader = torch.utils.data.DataLoader(
         data, batch_size=args.batch_size, pin_memory=args.pin_memory,
@@ -615,7 +630,7 @@ def main():
     # if args.oracle_data:
     target_transforms = encoder.factory(model_cpu.head_nets, model_cpu.base_net.stride)
     
-    data_loader = dataloader_from_args(args, target_transforms=target_transforms)
+    data_loader = dataloader_from_args(args, target_transforms=target_transforms, heads=model_cpu.head_nets)
     #####
     model = model_cpu.to(args.device)
     if not args.disable_cuda and torch.cuda.device_count() > 1:

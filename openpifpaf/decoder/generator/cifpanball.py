@@ -62,6 +62,7 @@ class CifPanBall(Generator):
     def __init__(self, field_config: FieldConfig, field_config_ball: FieldConfig, *,
                 keypoints,
                 #  skeleton,
+                field_config_cent=None,
                  out_skeleton=None,
                  confidence_scales=None,
                  worker_pool=None,
@@ -81,6 +82,7 @@ class CifPanBall(Generator):
 
         self.field_config = field_config
         self.field_config_ball = field_config_ball
+        self.field_config_cent = field_config_cent
 
         self.keypoints = keypoints + kp_ball
         self.kp_ball = kp_ball
@@ -114,7 +116,11 @@ class CifPanBall(Generator):
         #     self.by_source[j2][j1] = (caf_i, False)
 
     def __call__(self, fields, initial_annotations=None, debug=None):
-        cif, pan, cif_ball = fields
+        if self.field_config_cent is not None:
+            cif, pan, cif_ball, cif_cent = fields
+        else:
+            cif, pan, cif_ball = fields
+            
         semantic, offsets = pan['semantic'], pan['offset']
 
         # Ci, Bi = (17, object()) if self.ball else (17, 18)
@@ -137,6 +143,8 @@ class CifPanBall(Generator):
         # print('pif fields',fields[0].shape)
         cifhr = CifHr(self.field_config).fill(fields)
         cifhr_ball = CifHr(self.field_config_ball).fill(fields)
+        if self.field_config_cent is not None:
+            cifhr_cent = CifHr(self.field_config_cent).fill(fields)
 
         # seeds = CifSeeds(cifhr.accumulated, self.field_config).fill(fields)
 
@@ -174,6 +182,12 @@ class CifPanBall(Generator):
 
         ball_fyxv = [np.stack(np.nonzero(cif_local_max(cif, kernel_size=51, pad=25)), axis=-1)
                         for cif in cifhr_ball.accumulated]
+
+        if self.field_config_cent is not None:
+            center_yx = [np.stack(np.nonzero(cif_local_max(cif)), axis=-1)
+                        for cif in cifhr_cent.accumulated]
+
+            keypoints_yx += center_yx
         # plt.figure(figsize=(15,15))
         # # print('max', (cifhr_ball.accumulated[Bi]).max())
         # # print('min', (cifhr_ball.accumulated[Bi]).min())
@@ -182,6 +196,7 @@ class CifPanBall(Generator):
         # plt.show()
         # print(keypoints_yx)
         # print(ball_fyxv)
+        
         keypoints_yx += ball_fyxv
 
 
@@ -191,6 +206,10 @@ class CifPanBall(Generator):
                 fields=fields,
                 keypoints_yx=keypoints_yx,
             )
+            if self.field_config_cent is not None:
+                debug.update(
+                    cifhr_cent=cifhr_cent
+                )
 
         
         if len(keypoints_yx[Ci]) == 0:
@@ -222,11 +241,18 @@ class CifPanBall(Generator):
         # plt.show()
 
         # For each detected keypoints, get its confidence and instance
-        centers_fyxv = [
-            (Ci, y, x, cifhr.accumulated[Ci,y,x])
-            # (Ci, y, x, 2.)
-            for y, x in keypoints_yx[Ci]
-        ]
+        if self.field_config_cent is not None:
+            centers_fyxv = [
+                (Ci, y, x, cifhr_cent.accumulated[0,y,x])
+                # (Ci, y, x, 2.)
+                for y, x in keypoints_yx[Ci]
+                ]
+        else:
+            centers_fyxv = [
+                (Ci, y, x, cifhr.accumulated[Ci,y,x])
+                # (Ci, y, x, 2.)
+                for y, x in keypoints_yx[Ci]
+            ]
         # if self.ball:
         ball_fyxv = [
             (Bi, y, x, cifhr_ball.accumulated[Bi,y,x])

@@ -15,7 +15,7 @@ class MultiDataset(object):
         self.train_dl = dataloaders
         cifs = ['cif', 'cifcent', 'cifcentball']
         # cif_mode = ['cif' in self.config, 'cifcent' in self.config, 'cifcentball' in self.config]
-        self.cif_mode = cifs[True]
+        # self.cif_mode = cifs[True]
 
     # def trainIter(self):
     #     self.train_iters = [iter(tr_dl) for tr_dl in self.train_dl]
@@ -42,18 +42,30 @@ class MultiDataset(object):
 
         for h_ix, head in enumerate(self.heads):
             if head in ['cif', 'cifcent', 'cifcentball']:
+                # print('data cif')
                 cif_conf = torch.cat([trg[h_ix][0] for _,trg,_ in list_scenes], dim=0)
                 cif_vec = torch.cat([trg[h_ix][1] for _,trg,_ in list_scenes], dim=0)
                 cif_scale = torch.cat([trg[h_ix][2] for _,trg,_ in list_scenes], dim=0)
                 targets.append((cif_conf, cif_vec, cif_scale))
             elif head == 'pan':
+                # print('data pan')
                 target_pan = dict()
                 target_pan['semantic'] = torch.cat([trg[h_ix]['semantic'] for _,trg,_ in list_scenes], dim=0)
                 target_pan['offset']  = torch.cat([trg[h_ix]['offset'] for _,trg,_ in list_scenes], dim=0)
                 target_pan['semantic_weights']  = torch.cat([trg[h_ix]['semantic_weights'] for _,trg,_ in list_scenes], dim=0)
                 target_pan['offset_weights'] = torch.cat([trg[h_ix]['offset_weights'] for _,trg,_ in list_scenes], dim=0)
                 targets.append(target_pan)
+            elif head == 'cent':
+                # for xxxx, (_,i,_) in enumerate(list_scenes):
+                #     if len(i[h_ix][0])==0:
+                #         print(xxxx)
+                # print('data cent')
+                cif_conf = torch.cat([trg[h_ix][0] for _,trg,_ in list_scenes], dim=0)
+                cif_vec = torch.cat([trg[h_ix][1] for _,trg,_ in list_scenes], dim=0)
+                cif_scale = torch.cat([trg[h_ix][2] for _,trg,_ in list_scenes], dim=0)
+                targets.append((cif_conf, cif_vec, cif_scale))
             elif head == 'ball':
+                # print('data ball')
                 # for xxxx, (_,i,_) in enumerate(list_scenes):
                 #     if len(i[h_ix][0])==0:
                 #         print(xxxx)

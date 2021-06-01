@@ -112,7 +112,8 @@ class Coco(torch.utils.data.Dataset):
         else:
             raise Exception('unknown value for image_filter: {}'.format(image_filter))
 
-        # self.ids = [363469]     # for a debug
+        # self.ids = [327701]     # for a debug
+
 
         if n_images:
             self.ids = self.ids[:n_images]
@@ -344,7 +345,23 @@ class Coco(torch.utils.data.Dataset):
         
         return anns_center
 
-    def add_ball(self, anns_center, visiblity=2):
+    def add_center_sp(self, anns_center, visiblity=2):
+        
+        for ann_id, ann in enumerate(anns_center):
+            meshgrid = np.indices(anns_center[ann_id]['bmask'].shape)
+            meshgrid[0] *= anns_center[ann_id]['bmask']
+            meshgrid[1] *= anns_center[ann_id]['bmask']
+            center = (meshgrid[0].sum()/anns_center[ann_id]['bmask'].sum(),
+                    meshgrid[1].sum()/anns_center[ann_id]['bmask'].sum())
+            
+            anns_center[ann_id]['cent'] = []
+            anns_center[ann_id]['cent'].append(int(center[1]))      # add center for y
+            anns_center[ann_id]['cent'].append(int(center[0]))      # add center for x
+            anns_center[ann_id]['cent'].append(visiblity)
+        
+        return anns_center
+
+    def add_ball(self, anns_center, visiblity=2, n_keypoints=18):
         
         for ann_id, ann in enumerate(anns_center):
             meshgrid = np.indices(anns_center[ann_id]['bmask'].shape)
@@ -357,7 +374,8 @@ class Coco(torch.utils.data.Dataset):
             anns_center[ann_id]['kp_ball'].append(int(center[1]))      # add center for y
             anns_center[ann_id]['kp_ball'].append(int(center[0]))      # add center for x
             anns_center[ann_id]['kp_ball'].append(visiblity)
-            anns_center[ann_id]['keypoints'] = 3*18*[0]
+            anns_center[ann_id]['keypoints'] = 3*n_keypoints*[0]
+            anns_center[ann_id]['cent'] = 3*[0]
         
         return anns_center
 
@@ -417,8 +435,12 @@ class Coco(torch.utils.data.Dataset):
                 pass
 
             elif self.config == 'cifcent':
-                
+                # print('cifcent added')
                 anns = self.add_center(anns)
+
+            elif self.config == 'cif cent':
+                # print('center added')
+                anns = self.add_center_sp(anns)
 
             elif self.config == 'cifball':
 
@@ -457,6 +479,7 @@ class Coco(torch.utils.data.Dataset):
                 anns += anns_ball
 
             if self.ball:
+                # print('ball added')
                 ann_ids_inst = self.coco_inst.getAnnIds(imgIds=image_id, catIds=[37])
                 anns_inst = self.coco_inst.loadAnns(ann_ids_inst)
                 anns_inst = copy.deepcopy(anns_inst)
@@ -467,7 +490,8 @@ class Coco(torch.utils.data.Dataset):
                 for ann in anns:
                     ann['kp_ball'] = [0,0,0]
                     # ann['kp_ball'] = np.zeros((1, 3))
-                anns_ball = self.add_ball(anns_inst)
+                n_keypoints = 18 if self.config == 'cifcent' else 17
+                anns_ball = self.add_ball(anns_inst, n_keypoints=n_keypoints)
                 # anns_ball = self.empty_person_keypoint(anns_ball, n_keypoints=18)   # add fake people
                 anns += anns_ball
                 
@@ -485,9 +509,13 @@ class Coco(torch.utils.data.Dataset):
         # plt.figure(figsize=(10,10))
         # plt.imshow(image)
         # plt.figure(figsize=(10,10))
-        # # print(len(anns))
-        # for aaa in anns:
-        #     # print(aaa['kp_ball'])
+        # print('number of anns',len(anns))
+        for aaa in anns:
+            n_keypoints = 18 if self.config == 'cifcent' else 17
+            assert len(aaa['keypoints']) == 3*n_keypoints, len(aaa['keypoints'])
+            # print('---------------- anns', aaa['cent'])
+            if self.config == 'cif cent':
+                assert len(aaa['cent']) == 3, len(aaa['cent'])
         #     plt.scatter(aaa['kp_ball'][0],aaa['kp_ball'][1],linewidths=4)
             # plt.show
         image, anns, meta = self.preprocess(image, anns, meta)
@@ -495,7 +523,7 @@ class Coco(torch.utils.data.Dataset):
         # plt.imshow(image)
         # plt.figure(figsize=(10,10))
         # for aaa in anns:
-    
+        # print('number of anns',len(anns))
         #     plt.scatter(aaa['kp_ball'][0,0],aaa['kp_ball'][0,1],linewidths=4)
         #     plt.show
         # except:
@@ -542,6 +570,19 @@ class Coco(torch.utils.data.Dataset):
                 # except:
                 #     print('image_id_3: ', image_id, t)
         if self.eval_coco:
+            # print('in coco')
+            # print(len(anns_trans[0]))
+            # print(anns_trans[0][0].shape)
+            # print(anns_trans[0][1].shape)
+            # print(anns_trans[0][2].shape)
+            # print(len(anns_trans[2]))
+            # print(anns_trans[2][0].shape)
+            # print(anns_trans[2][1].shape)
+            # print(anns_trans[2][2].shape)
+            # print(len(anns_trans[3]))
+            # print(anns_trans[3][0].shape)
+            # print(anns_trans[3][1].shape)
+            # print(anns_trans[3][2].shape)
             return image, anns, meta, anns_trans
 
         anns = anns_trans

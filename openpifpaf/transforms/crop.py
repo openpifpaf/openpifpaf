@@ -147,6 +147,10 @@ class Crop(Preprocess):
                 ann['kp_ball'][:, 0] -= x_offset
                 ann['kp_ball'][:, 1] -= y_offset
 
+            if 'cent' in ann:
+                ann['cent'][:, 0] -= x_offset
+                ann['cent'][:, 1] -= y_offset
+
             # print('after 2', ann['kp_ball'])
 
             ### AMA crop masks

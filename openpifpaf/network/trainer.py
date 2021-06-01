@@ -76,7 +76,7 @@ class Trainer(object):
         filename = os.path.basename(self.train_args.output)
         self.tb_filename = os.path.join('runs', filename)
         self.writer = SummaryWriter(self.tb_filename)
-        self.LOSS_NAMES = ['PIF Confidence', 'PIF Localization', 'PIF Scale', 'PAN Semantic', 'PAN Offset', 'PIF Ball Confidence', 'PIF Ball Localization', 'PIF Ball Scale']
+        self.LOSS_NAMES = ['PIF Confidence', 'PIF Localization', 'PIF Scale', 'PAN Semantic', 'PAN Offset', 'PIF Ball Confidence', 'PIF Ball Localization', 'PIF Ball Scale', 'PIF CENT Confidence', 'PIF CENT Localization', 'PIF CENT Scale']
 
         
         if not self.train_args.disable_wandb:

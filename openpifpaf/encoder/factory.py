@@ -1,4 +1,6 @@
 import logging
+from openpifpaf.encoder.annrescaler_cent import AnnRescalerCent
+from openpifpaf.encoder.cif_cent import CifCent
 
 from .annrescaler import AnnRescaler, AnnRescalerDet
 from .annrescaler_ball import AnnRescalerBall
@@ -85,10 +87,18 @@ def factory_head(head_net: network.heads.CompositeField, basenet_stride):
                     name=meta.name,
                     sigmas=meta.sigmas,
                     visualizer=vis)
+
+        elif meta.name == 'cent':
+            print('!!!!!!! CENTER !!!!!!')
+            return CifCent(AnnRescalerCent(stride, len(meta.keypoints), meta.pose), 
+                        name=meta.name,
+                    sigmas=meta.sigmas,
+                    visualizer=vis)
+
         return Cif(AnnRescaler(stride, len(meta.keypoints), meta.pose), 
-                    name=meta.name,#, ball=ball),
-                   sigmas=meta.sigmas,
-                   visualizer=vis)
+                name=meta.name,
+                sigmas=meta.sigmas,
+                visualizer=vis)
 
     if isinstance(meta, network.heads.AssociationMeta):
         n_keypoints = len(meta.keypoints)

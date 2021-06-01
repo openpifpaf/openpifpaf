@@ -55,6 +55,9 @@ class HFlip(Preprocess):
             if 'kp_ball' in ann:
                 ann['kp_ball'][:, 0] = -ann['kp_ball'][:, 0] - 1.0 + w
 
+            if 'cent' in ann:
+                ann['cent'][:, 0] = -ann['cent'][:, 0] - 1.0 + w
+
             ann['bmask'] = np.flip(ann['bmask'], axis=1)
             # print('after', ann['kp_ball'])
 

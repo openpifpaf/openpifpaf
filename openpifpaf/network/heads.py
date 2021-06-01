@@ -214,6 +214,86 @@ class CifPanBallCollector(torch.nn.Module):
 
         return cif_head, heads[1], cif_ball_head
 
+class CifPanBallCentCollector(torch.nn.Module):
+    def __init__(self, cif_indices):
+        super(CifPanBallCentCollector, self).__init__()
+        self.cif_indices = cif_indices
+        LOG.debug('cif = %s', cif_indices)
+
+    @staticmethod
+    def selector(inputs, index):
+        if not isinstance(index, (list, tuple)):
+            return inputs[index]
+
+        for ind in index:
+            inputs = inputs[ind]
+        return inputs
+
+    @staticmethod
+    def concat_fields(fields):
+        fields = [
+            f.view(f.shape[0], f.shape[1], f.shape[2] * f.shape[3], *f.shape[4:])
+            if len(f.shape) == 6
+            else f.view(f.shape[0], f.shape[1], f.shape[2], *f.shape[3:])
+            for f in fields
+        ]
+        return torch.cat(fields, dim=2)
+
+    @staticmethod
+    def concat_heads(heads):
+        if not heads:
+            return None
+        if len(heads) == 1:
+            return heads[0]
+
+        # LOG.debug('heads = %s', [h.shape for h in heads])
+        return torch.cat(heads, dim=1)
+
+    def forward(self, *args):
+        heads = args[0]
+        # print('len heads', len(args))
+        # print(len(heads[0]))
+        # print(len(heads[0][0]))
+        # print(len(heads[0][0].shape))
+        # print(heads[0].shape)
+        # print(heads[1].shape)
+        # print(heads[2].shape)
+        heads_cent = heads[3]
+        heads_ball = heads[2]
+        # print('len heads ball', len(heads_ball))
+
+        # concat fields
+        cif_heads = [self.concat_fields(self.selector(heads, head_index))
+                     for head_index in self.cif_indices]
+
+        # concat fields ball
+        cif_ball_heads = [self.concat_fields(heads_ball)]
+        cif_cent_heads = [self.concat_fields(heads_cent)]
+
+        # concat heads
+        cif_head = self.concat_heads(cif_heads)
+
+        cif_ball_head = self.concat_heads(cif_ball_heads)
+        cif_cent_head = self.concat_heads(cif_cent_heads)
+
+        # add index
+        index_field = index_field_torch(cif_head.shape[-2:], device=cif_head.device)
+
+        index_ball_field = index_field_torch(cif_ball_head.shape[-2:], device=cif_ball_head.device)
+
+        if cif_head is not None:
+            cif_head[:, :, 1:3].add_(index_field)
+
+        if cif_ball_head is not None:
+            cif_ball_head[:, :, 1:3].add_(index_field)
+
+        if cif_cent_head is not None:
+            cif_cent_head[:, :, 1:3].add_(index_field)
+
+        # print('cif head', cif_head.shape)
+
+        return cif_head, heads[1], cif_ball_head, cif_cent_head
+
 
 class CifdetCollector(torch.nn.Module):
     def __init__(self, indices):

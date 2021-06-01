@@ -143,6 +143,8 @@ class CifGenerator(object):
     def fill_keypoints(self, keypoints, other_keypoints, meta):
         scale = self.config.rescaler.scale(keypoints, meta)
         # print('CIF; scale',scale)
+        # print(self.config.sigmas)
+        # print('cif',len(self.config.sigmas))
         for f, xyv in enumerate(keypoints):
             if xyv[2] <= self.config.v_threshold:
                 continue

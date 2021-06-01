@@ -82,11 +82,38 @@ class Generator:
             def denan(t):
                 return torch.where(torch.isnan(t), torch.zeros_like(t), t)
 
-            if 'semantic' in oracle_masks or 'offset' in oracle_masks:
-                pan_target = {}
-                pan_target['semantic'] = classes_from_target(target_batch[1]['semantic'].numpy())
-                pan_target['offset'] = target_batch[1]['offset'].numpy()
-                
+            
+            # print('targets')
+            # print(len(target_batch[0]))
+            # print(target_batch[0][0].shape)
+            # print(target_batch[0][1].shape)
+            # print(target_batch[0][2].shape)
+            # print(len(target_batch[2]))
+            # print(target_batch[2][0].shape)
+            # print(target_batch[2][1].shape)
+            # print(target_batch[2][2].shape)
+            # print(len(target_batch[3]))
+            # print(target_batch[3][0].shape)
+            # print(target_batch[3][1].shape)
+            # print(target_batch[3][2].shape)
+            # if 'semantic' in oracle_masks or 'offset' in oracle_masks:
+            pan_target = {}
+            pan_target['semantic'] = classes_from_target(target_batch[1]['semantic'].numpy())
+            pan_target['offset'] = target_batch[1]['offset'].numpy()
+            if len(target_batch) == 3:
+                gt = [torch.cat([denan(target_batch[0][0])[:,:,None],
+                            denan(target_batch[0][1])[:,:,:2]+network.index_field_torch(target_batch[0][1].shape[-2:]),
+                            torch.ones_like(target_batch[0][2][:,:,None])*0,
+                            denan(target_batch[0][2])[:,:,None]
+                            ], dim=2),
+                    pan_target,
+                    torch.cat([denan(target_batch[2][0])[:,:,None],
+                            denan(target_batch[2][1])[:,:,:2]+network.index_field_torch(target_batch[2][1].shape[-2:]),
+                            torch.ones_like(target_batch[2][2][:,:,None])*0,
+                            denan(target_batch[2][2])[:,:,None]
+                            ], dim=2),
+                            ]
+            elif len(target_batch) == 4:
                 gt = [torch.cat([denan(target_batch[0][0])[:,:,None],
                                 denan(target_batch[0][1])[:,:,:2]+network.index_field_torch(target_batch[0][1].shape[-2:]),
                                 torch.ones_like(target_batch[0][2][:,:,None])*0,
@@ -97,13 +124,19 @@ class Generator:
                                 denan(target_batch[2][1])[:,:,:2]+network.index_field_torch(target_batch[2][1].shape[-2:]),
                                 torch.ones_like(target_batch[2][2][:,:,None])*0,
                                 denan(target_batch[2][2])[:,:,None]
-                                ], dim=2),]
-            else:
-                [torch.cat([denan(target_batch[0][0])[:,:,None],
-                                denan(target_batch[0][1])[:,:,:2]+network.index_field_torch(target_batch[0][1].shape[-2:]),
-                                torch.ones_like(target_batch[0][2][:,:,None])*0,
-                                denan(target_batch[0][2])[:,:,None]
-                                ], dim=2),]
+                                ], dim=2),
+                        torch.cat([denan(target_batch[3][0])[:,:,None],
+                                denan(target_batch[3][1])[:,:,:2]+network.index_field_torch(target_batch[3][1].shape[-2:]),
+                                torch.ones_like(target_batch[3][2][:,:,None])*0,
+                                denan(target_batch[3][2])[:,:,None]
+                                ], dim=2),
+                                ]
+            # else:
+            #     gt = [torch.cat([denan(target_batch[0][0])[:,:,None],
+            #                     denan(target_batch[0][1])[:,:,:2]+network.index_field_torch(target_batch[0][1].shape[-2:]),
+            #                     torch.ones_like(target_batch[0][2][:,:,None])*0,
+            #                     denan(target_batch[0][2])[:,:,None]
+            #                     ], dim=2),]
 
             if 'semantic' in oracle_masks:
                 heads[1]['semantic'] = gt[1]['semantic']
@@ -123,13 +156,22 @@ class Generator:
             # plt.imshow(image, alpha=.2)
             # plt.show()
             # plt.savefig('image/before_.png')
-            if 'centroid' in oracle_masks and 'keypoints' in oracle_masks:
-                import copy
-                heads[0][:,:,:,:,:] = copy.deepcopy(gt[0][:,:,:,:,:].numpy())    # [B,K,5,W_L,H_L]
-            elif 'centroid' in oracle_masks:
-                import copy
-                heads[0][:,-1,:,:,:] = copy.deepcopy(gt[0][:,-1,:,:,:].numpy())    # [B,K,5,W_L,H_L]
-            
+            K = len(heads[0][0])
+            if K == 18:
+                if 'centroid' in oracle_masks and 'keypoints' in oracle_masks:
+                    import copy
+                    heads[0][:,:,:,:,:] = copy.deepcopy(gt[0][:,:,:,:,:].numpy())    # [B,K,5,W_L,H_L]
+                elif 'centroid' in oracle_masks:
+                    import copy
+                    heads[0][:,-1,:,:,:] = copy.deepcopy(gt[0][:,-1,:,:,:].numpy())    # [B,K,5,W_L,H_L]
+            elif K == 17:
+                if 'keypoints' in oracle_masks:
+                    import copy
+                    heads[0][:,:,:,:,:] = copy.deepcopy(gt[0][:,:,:,:,:].numpy())    # [B,K,5,W_L,H_L]
+                if 'centroid' in oracle_masks:
+                    import copy
+                    heads[3][:,:,:,:,:] = copy.deepcopy(gt[3][:,:,:,:,:].numpy())    # [B,K,5,W_L,H_L]
+
             # con = scipy.ndimage.zoom(heads[0][0,-1,0,:,:], (8, 8))
             # plt.imshow(con, cmap='jet')
             # # plt.colorbar()

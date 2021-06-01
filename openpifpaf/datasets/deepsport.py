@@ -315,6 +315,7 @@ class DeepSportDataset(torch.utils.data.Dataset):
                 'area': 0, # dummy value
                 'iscrowd': 0,
                 'keypoints': 3*n_keypoints*[0],
+                'cent': 3*[0],
                 'image_id': image_id,
                 'bbox': [0, 0, 0, 0], # dummy values
                 'category_id': category_id,
@@ -445,6 +446,7 @@ class DeepSportDataset(torch.utils.data.Dataset):
                     'bmask': mask.astype(np.int64),
                     'kp_ball': kp_ball,
                     'keypoints': keypoints,
+                    'cent': (*center, 2),
                     'image_id': str(key),
                     'id': instance_id,
                     'category_id': category_id,
@@ -459,6 +461,10 @@ class DeepSportDataset(torch.utils.data.Dataset):
         # plt.imshow(image)
         # plt.figure(figsize=(10,10))
         
+        for aaa in anns:
+            assert len(aaa['keypoints']) == 17 or len(aaa['keypoints']) == 17*3, len(aaa['keypoints'])
+            if self.config == 'cif cent':
+                assert len(aaa['cent']) == 3, len(aaa['cent'])
         # for aaa in anns:
         
             

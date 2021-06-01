@@ -69,6 +69,14 @@ def factory_single(head_name, num_sem_classes=None, basename=None):
                              COCO_UPRIGHT_POSE[:17],
                              COCO_PERSON_SKELETON)
 
+    if 'cent' in head_name:
+        index = COCO_KEYPOINTS.index("center")
+        return IntensityMeta(head_name,
+                             [COCO_KEYPOINTS[index]],
+                             [COCO_PERSON_SIGMAS[index]],
+                             np.array([COCO_UPRIGHT_POSE[index]]),
+                             None)
+
     # if 'ball' in head_name:
     #     return IntensityMeta(head_name,
     #                         COCO_KEYPOINTS[-2:],

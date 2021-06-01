@@ -494,6 +494,12 @@ def train_cocokpinst_factory(args, target_transforms, heads=None, batch_size=Non
     elif 'ball' in heads:
         config = 'ball'
         category_ids = [37]
+
+    if 'cif' in heads and 'cent' in heads:
+        config = 'cif cent'
+        if 'ball' in heads:
+            category_ids = [1, 37]
+            ball = True
     # else:
     #     raise Exception('Error in dataset facrtory!')
 

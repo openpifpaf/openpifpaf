@@ -21,6 +21,8 @@ class NormalizeAnnotations(Preprocess):
                 ann['keypoints'] = []
             if 'kp_ball' not in ann:
                 ann['kp_ball'] = []
+            if 'cent' not in ann:
+                ann['cent'] = []
 
             ann['keypoints'] = np.asarray(ann['keypoints'], dtype=np.float32).reshape(-1, 3)
             ann['bbox'] = np.asarray(ann['bbox'], dtype=np.float32)
@@ -32,7 +34,11 @@ class NormalizeAnnotations(Preprocess):
             if 'kp_ball' in ann:
                 ann['kp_ball'] = np.asarray(ann['kp_ball'], dtype=np.float32).reshape(-1, 3)
 
-            # print('after',ann['kp_ball'])
+            if 'cent' in ann:
+                ann['cent'] = np.asarray(ann['cent'], dtype=np.float32).reshape(-1, 3)
+
+            # print('ann kp_ball',ann['kp_ball'])
+            # print('ann cent',ann['cent'])
             # print(type(ann['kp_ball']))
         return anns
 
@@ -89,5 +95,10 @@ class AnnotationJitter(Preprocess):
                 ball_xy = ann['kp_ball'][:, :2]
                 sym_rnd_ball = (torch.rand(*ball_xy.shape).numpy() - 0.5) * 2.0
                 ball_xy += self.epsilon * sym_rnd_ball
+
+            if 'cent' in ann:
+                cent_xy = ann['cent'][:, :2]
+                sym_rnd_cent = (torch.rand(*cent_xy.shape).numpy() - 0.5) * 2.0
+                cent_xy += self.epsilon * sym_rnd_cent
             # print('after', ann['kp_ball'])
         return image, anns, meta

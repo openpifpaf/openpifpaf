@@ -66,7 +66,10 @@ class CenterPad(Preprocess):
             if 'kp_ball' in ann:
                 ann['kp_ball'][:, 0] += ltrb[0]
                 ann['kp_ball'][:, 1] += ltrb[1]
-
+            
+            if 'cent' in ann:
+                ann['cent'][:, 0] += ltrb[0]
+                ann['cent'][:, 1] += ltrb[1]
             # print('after', ann['kp_ball'])
 
 

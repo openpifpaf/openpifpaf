@@ -224,7 +224,7 @@ class MultiHeadLoss(torch.nn.Module):
     #     } 
 
     def forward(self, head_fields, head_targets):  # pylint: disable=arguments-differ
-        assert len(self.losses) == len(head_fields)
+        assert len(self.losses) == len(head_fields), str(len(self.losses)) + '\t' + str(len(head_fields))
         assert len(self.losses) <= len(head_targets)
         assert self.task_sparsity_weight == 0.0  # TODO implement
         flat_head_losses = [ll
@@ -777,32 +777,47 @@ def factory(head_nets, lambdas, *,
 
     # losses = [CompositeLoss(head_net, reg_loss) for head_net in head_nets]
     ### AMA
+    losses = []
+    # print('losssssssssss headnets', head_nets)
+    for head_net in head_nets:
+        print(type(head_net))
+        if isinstance(head_net, heads.PanopticDeeplabHead):
+            losses.append(PanopticLoss(config))
+            print('loooooooooooooooos pan')
+        # if isinstance(head_net, heads.AssociationMeta):
+        #     losses.append(CompositeLoss(head_net, reg_loss))
+        #     print('loooooooooooooooos paf')
+        if isinstance(head_net, heads.CompositeFieldFused):
+            losses.append(CompositeLoss(head_net, reg_loss))
+            print('loooooooooooooooos pif')
+        # else:
+        #     assert 'loss not defined!'
 
 
-    if isinstance(head_nets[0], heads.PanopticDeeplabHead):
-        losses = [PanopticLoss(config)]
-    else:
-        print('loss________________________________-cicent')
-        losses = [CompositeLoss(head_nets[0], reg_loss)]
+    # if isinstance(head_nets[0], heads.PanopticDeeplabHead):
+    #     losses = [PanopticLoss(config)]
+    # else:
+    #     print('loss________________________________-cicent')
+    #     losses = [CompositeLoss(head_nets[0], reg_loss)]
 
-    if len(head_nets) > 1 and isinstance(head_nets[1], heads.AssociationMeta):
-        losses.append(CompositeLoss(head_nets[1], reg_loss))
+    # if len(head_nets) > 1 and isinstance(head_nets[1], heads.AssociationMeta):
+    #     losses.append(CompositeLoss(head_nets[1], reg_loss))
 
-    if len(head_nets) > 1 and isinstance(head_nets[1], heads.InstanceSegHead):
+    # if len(head_nets) > 1 and isinstance(head_nets[1], heads.InstanceSegHead):
         
-        losses.append(SegmantationLoss(head_nets[1],device))
+    #     losses.append(SegmantationLoss(head_nets[1],device))
 
-    if len(head_nets) > 1 and isinstance(head_nets[1], heads.PanopticDeeplabHead):
-        print('loss________________________________-pan')
-        losses.append(PanopticLoss(config))
+    # if len(head_nets) > 1 and isinstance(head_nets[1], heads.PanopticDeeplabHead):
+    #     print('loss________________________________-pan')
+    #     losses.append(PanopticLoss(config))
     
-    # print('leeeeeeeeeeeeeeeeeeeeeeeeeeeen', len(head_nets))
-    # for i in range(len(head_nets)):
-    #     print(type(head_nets[i]))
-    if len(head_nets) > 2 and isinstance(head_nets[2], heads.CompositeFieldFused):
-        print('loss________________________________-ball')
-        losses.append(CompositeLoss(head_nets[2], reg_loss))
-        # losses.append(PanopticLossDummy(config))
+    # # print('leeeeeeeeeeeeeeeeeeeeeeeeeeeen', len(head_nets))
+    # # for i in range(len(head_nets)):
+    # #     print(type(head_nets[i]))
+    # if len(head_nets) > 2 and isinstance(head_nets[2], heads.CompositeFieldFused):
+    #     print('loss________________________________-ball')
+    #     losses.append(CompositeLoss(head_nets[2], reg_loss))
+    #     # losses.append(PanopticLossDummy(config))
     if auto_tune_mtl:
         loss = MultiHeadLossAutoTune(losses, lambdas,
                                      sparse_task_parameters=sparse_task_parameters, loss_debug=loss_debug)

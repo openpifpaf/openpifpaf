@@ -102,18 +102,20 @@ def factory(
                     net_cpu.base_net.load_state_dict(state_dict)
                     if load_pif_weights:            ########### wrong!
                         pif_state_dict = old_model.head_nets[0].state_dict()
-                        weight_shape = pif_state_dict['conv.weight'].shape
-                        bias_shape = pif_state_dict['conv.bias'].shape
-                        weight_zero = torch.zeros((weight_shape[0]+20, weight_shape[1], weight_shape[2], weight_shape[3]))
-                        bias_zero = torch.zeros((bias_shape[0]+20))
+                        # weight_shape = pif_state_dict['conv.weight'].shape
+                        # bias_shape = pif_state_dict['conv.bias'].shape
+                        # weight_zero = torch.zeros((weight_shape[0]+20, weight_shape[1], weight_shape[2], weight_shape[3]))
+                        # bias_zero = torch.zeros((bias_shape[0]+20))
 
-                        weight_zero[:weight_shape[0],:,:,:] = pif_state_dict['conv.weight']
-                        weight_zero[weight_shape[0]:,:,:,:] = pif_state_dict['conv.weight'][-20:,:,:,:]
-                        bias_zero[:bias_shape[0]] = pif_state_dict['conv.bias']
-                        bias_zero[bias_shape[0]:] = pif_state_dict['conv.bias'][-20:]
+                        # weight_zero[:weight_shape[0],:,:,:] = pif_state_dict['conv.weight']
+                        # weight_zero[weight_shape[0]:,:,:,:] = pif_state_dict['conv.weight'][-20:,:,:,:]
+                        # bias_zero[:bias_shape[0]] = pif_state_dict['conv.bias']
+                        # bias_zero[bias_shape[0]:] = pif_state_dict['conv.bias'][-20:]
 
-                        pif_state_dict['conv.weight'] = weight_zero
-                        pif_state_dict['conv.bias'] = bias_zero
+                        # pif_state_dict['conv.weight'] = weight_zero
+                        # pif_state_dict['conv.bias'] = bias_zero
+
+                        # net_cpu.head_nets[0].load_state_dict(pif_state_dict)
 
                         net_cpu.head_nets[0].load_state_dict(pif_state_dict)
         else:
@@ -194,6 +196,9 @@ def factory(
     elif len(net_cpu.head_nets) == 3 and isinstance(net_cpu.head_nets[1].meta, heads.PanopticDeeplabMeta):
         net_cpu.process_heads = heads.CifPanBallCollector(cif_indices)
         # net_cpu.process_heads = heads.CifPanCollector(cif_indices)
+
+    elif len(net_cpu.head_nets) == 4 and isinstance(net_cpu.head_nets[1].meta, heads.PanopticDeeplabMeta):
+        net_cpu.process_heads = heads.CifPanBallCentCollector(cif_indices)
 
     else:
         net_cpu.process_heads = heads.CifCafCollector(cif_indices, caf_indices)
@@ -431,7 +436,7 @@ def facrtory_head_single(head_meta, out_features):
         return heads.PanopticDeeplabHead(head_meta, out_features)
     # elif head_meta.name == 'ball':
     #     heads.CompositeFieldFused(head_meta, out_features)
-    elif head_meta.name in ['cif', 'cifcent', 'ball']:
+    elif head_meta.name in ['cif', 'cifcent', 'ball', 'cent']:
         return heads.CompositeFieldFused(head_meta, out_features)
 
 def configure(args):
