@@ -267,7 +267,7 @@ class CompositeLaplace(torch.nn.Module):
         # x = x.double()
         x_confidence = x[:, :, 0:1]
         x_regs = x[:, :, 1:1 + self.n_vectors * 2]
-        x_logb = x[:, :, 1 + self.n_vectors * 2:1 + self.n_vectors * 2 + 1]
+        x_logb = x[:, :, 1 + self.n_vectors * 2]
         x_scales = x[:, :, 1 + self.n_vectors * 3:]
 
         # t = t.double()
