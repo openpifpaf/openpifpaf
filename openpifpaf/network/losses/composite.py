@@ -291,18 +291,18 @@ class CompositeLaplace(torch.nn.Module):
         # t = t.double()
         t_confidence = t[:, :, 0:1]
         t_regs = t[:, :, 1:1 + self.n_vectors * 2]
-        t_logb_min = t[:, :, 1 + self.n_vectors * 2:1 + self.n_vectors * 2 + 1]
+        t_bmin = t[:, :, 1 + self.n_vectors * 2:1 + self.n_vectors * 2 + 1]
         t_scales = t[:, :, 1 + self.n_vectors * 3:]
 
         # force adjust TODO
-        t_logb_min[:] = 0.1
+        t_bmin[:] = 0.001
         # x_logb[t_confidence[:, :, 0] == 0.0] = 0.0
         x_logb[:] = 0.0
 
         d_confidence = self._confidence_distance(x_confidence, t_confidence)
         d_reg = self._reg_distance(x_regs, t_regs, t_scales)
         d_scale = self._scale_distance(x_scales, t_scales)
-        d = torch.cat([d_confidence, d_reg, d_scale, t_logb_min], dim=2)
+        d = torch.cat([d_confidence, d_reg, d_scale, t_bmin], dim=2)
         d = torch.linalg.norm(d, ord=2, dim=2)
         norm = self.distance_loss(d, torch.zeros_like(d))
         # print(torch.isfinite(norm).sum(), torch.isfinite(d_reg).sum() / 2.0)
