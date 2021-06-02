@@ -1,5 +1,6 @@
 import argparse
 import logging
+from pkg_resources import require
 
 import torch
 
@@ -308,8 +309,8 @@ class CompositeLaplace(torch.nn.Module):
 
         x_logb = 3.0 * torch.tanh(x_logb / 3.0)
         scaled_norm = norm * torch.exp(-x_logb)
-        if self.soft_clamp is not None:
-            scaled_norm = self.soft_clamp(scaled_norm)
+        # if self.soft_clamp is not None:
+        #     scaled_norm = self.soft_clamp(scaled_norm)
         losses = x_logb + scaled_norm
 
         batch_size = t.shape[0]
