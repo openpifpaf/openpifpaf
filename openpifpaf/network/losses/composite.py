@@ -295,6 +295,7 @@ class CompositeLaplace(torch.nn.Module):
 
         # force adjust TODO
         t_logb_min[:] = 0.1
+        x_logb[t_confidence[:, :, 0] == 0.0] = 0.0
 
         d_confidence = self._confidence_distance(x_confidence, t_confidence)
         d_reg = self._reg_distance(x_regs, t_regs, t_scales)
