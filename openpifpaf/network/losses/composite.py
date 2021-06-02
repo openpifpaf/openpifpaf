@@ -245,13 +245,16 @@ class CompositeLaplace(torch.nn.Module):
 
     def _confidence_distance(self, x_confidence, t_confidence):
         t_sign = t_confidence.clone()
-        t_sign[t_sign > 0.0] = 1.0
-        t_sign[t_sign != 1.0] = -1.0
+        t_sign[t_confidence > 0.0] = 1.0
+        t_sign[t_confidence <= 0.0] = -1.0
         x = x_confidence.detach()
         d = t_sign / (1.0 + torch.exp(t_sign * x))
 
         # background clamp
         d[(x < -15) & (t_sign == -1.0)] = 0.0
+
+        # nan target
+        d[torch.isnan(t_confidence)] = 0.0
 
         return d
 
