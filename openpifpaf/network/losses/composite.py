@@ -207,7 +207,7 @@ class CompositeLaplace(torch.nn.Module):
                   head_net.meta.name, self.n_vectors, self.n_scales)
 
         self.field_names = ['{}.{}'.format(head_net.meta.dataset, head_net.meta.name)]
-        self.distance_function = torch.nn.SmoothL1Loss(reduction='none')
+        self.distance_loss = torch.nn.SmoothL1Loss(reduction='none')
         self.soft_clamp = None
         if self.soft_clamp_value:
             self.soft_clamp = components.SoftClamp(self.soft_clamp_value)
@@ -280,7 +280,13 @@ class CompositeLaplace(torch.nn.Module):
         d_reg = self._reg_distance(x_regs, t_regs, t_scales)
         d_scale = self._scale_distance(x_scales, t_scales)
         d = torch.cat([d_confidence, d_reg, d_scale, t_logb_min], dim=2)
-        norm = self.distance_function(d, torch.zeros_like(d))
+        d = torch.linalg.norm(d, ord=2, dim=2)
+        norm = self.distance_loss(d, torch.zeros_like(d))
+
+        # norm is nan in background regions and where scale is not set
+        bg = torch.isnan(norm)
+        d_confidence_bg = d_confidence[:, :, 0][bg]
+        norm[bg] = self.distance_loss(d_confidence_bg, torch.zeros_like(d_confidence_bg))
 
         x_logb = 3.0 * torch.tanh(x_logb / 3.0)
         scaled_norm = norm * torch.exp(-x_logb)
