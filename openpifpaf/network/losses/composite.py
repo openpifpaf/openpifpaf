@@ -247,7 +247,12 @@ class CompositeLaplace(torch.nn.Module):
         t_sign[t_sign > 0.0] = 1.0
         t_sign[t_sign != 1.0] = -1.0
         x = x_confidence.detach()
-        return t_sign / (1.0 + torch.exp(t_sign * x))
+        d = t_sign / (1.0 + torch.exp(t_sign * x))
+
+        # background clamp
+        d[(x < -15) & (t_sign == -1.0)] = 0.0
+
+        return d
 
     def _reg_distance(self, x_regs, t_regs, t_scales):
         t_sigma = 0.5 * torch.repeat_interleave(t_scales, 2, dim=2)
