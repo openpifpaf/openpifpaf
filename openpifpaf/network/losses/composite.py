@@ -243,18 +243,30 @@ class CompositeLaplace(torch.nn.Module):
         cls.bce_total_soft_clamp = args.bce_total_soft_clamp
 
     def _confidence_distance(self, x_confidence, t_confidence):
-        t_zeroone = t_confidence.clone()
-        t_zeroone[t_zeroone > 0.0] = 1.0
+        t_sign = t_confidence.clone()
+        t_sign[t_sign > 0.0] = 1.0
+        t_sign[t_sign != 1.0] = -1.0
         x = x_confidence.detach()
-        return (-1.0 + 2.0 * t_zeroone) / (1.0 + torch.exp(-x))
+        return t_sign / (1.0 + torch.exp(t_sign * x))
 
     def _reg_distance(self, x_regs, t_regs, t_scales):
-        t_sigma = 0.5 * torch.tile(t_scales, (1, 1, 2, 1, 1))
-        # 99% inside of t_sigma
-        return 3.0 / t_sigma * (x_regs - t_regs)
+        t_sigma = 0.5 * torch.repeat_interleave(t_scales, 2, dim=2)
+
+        t_sigma_th = t_sigma.clone()
+        t_sigma_th[torch.isnan(t_sigma_th)] = 0.0
+        t_sigma_th = torch.clamp_min_(t_sigma_th, 1.0)
+
+        # 99% inside of t_sigma_th
+        d = 3.0 / t_sigma_th * (x_regs - t_regs)
+
+        d[torch.isnan(t_sigma)] = 0.0
+        d[torch.isnan(d)] = 0.0
+        return d
 
     def _scale_distance(self, x_scales, t_scales):
-        return 0.5 * (x_scales - t_scales)
+        d = 0.1 * (x_scales - t_scales)
+        d[torch.isnan(d)] = 0.0
+        return d
 
     def forward(self, x, t):
         LOG.debug('loss for %s', self.field_names)
@@ -276,17 +288,16 @@ class CompositeLaplace(torch.nn.Module):
         t_logb_min = t[:, :, 1 + self.n_vectors * 2:1 + self.n_vectors * 2 + 1]
         t_scales = t[:, :, 1 + self.n_vectors * 3:]
 
+        # force adjust TODO
+        t_logb_min[:] = 0.1
+
         d_confidence = self._confidence_distance(x_confidence, t_confidence)
         d_reg = self._reg_distance(x_regs, t_regs, t_scales)
         d_scale = self._scale_distance(x_scales, t_scales)
         d = torch.cat([d_confidence, d_reg, d_scale, t_logb_min], dim=2)
         d = torch.linalg.norm(d, ord=2, dim=2)
         norm = self.distance_loss(d, torch.zeros_like(d))
-
-        # norm is nan in background regions and where scale is not set
-        bg = torch.isnan(norm)
-        d_confidence_bg = d_confidence[:, :, 0][bg]
-        norm[bg] = self.distance_loss(d_confidence_bg, torch.zeros_like(d_confidence_bg))
+        # print(torch.isfinite(norm).sum(), torch.isfinite(d_reg).sum() / 2.0)
 
         x_logb = 3.0 * torch.tanh(x_logb / 3.0)
         scaled_norm = norm * torch.exp(-x_logb)
@@ -294,7 +305,7 @@ class CompositeLaplace(torch.nn.Module):
             scaled_norm = self.soft_clamp(scaled_norm)
         losses = x_logb + scaled_norm
 
-        batch_size = t_confidence.shape[0]
+        batch_size = t.shape[0]
         m = torch.isfinite(losses)
         loss = torch.sum(losses[m]) / batch_size
 
