@@ -258,7 +258,7 @@ class CompositeLaplace(torch.nn.Module):
         d[(x < -15) & (t_sign == -1.0)] = 0.0
 
         # nan target
-        d[torch.isnan(t_confidence)] = 0.1
+        d[torch.isnan(t_confidence)] = 0.0
 
         return d
 
@@ -272,13 +272,13 @@ class CompositeLaplace(torch.nn.Module):
         # 99% inside of t_sigma_th
         d = 3.0 / t_sigma_th * (x_regs - t_regs)
 
-        d[torch.isnan(t_sigma)] = 0.1
-        d[torch.isnan(d)] = 0.1
+        d[torch.isnan(t_sigma)] = 0.0
+        d[torch.isnan(d)] = 0.0
         return d
 
     def _scale_distance(self, x_scales, t_scales):
         d = 0.1 * (x_scales - t_scales)
-        d[torch.isnan(d)] = 0.1
+        d[torch.isnan(d)] = 0.0
         return d
 
     def forward(self, x, t):
