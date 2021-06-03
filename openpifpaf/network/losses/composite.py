@@ -247,9 +247,11 @@ class CompositeLaplace(torch.nn.Module):
         t_sign = t_confidence.clone()
         t_sign[t_confidence > 0.0] = 1.0
         t_sign[t_confidence <= 0.0] = -1.0
+        # construct target location relative to x but without backpropagating through x
         x = x_confidence.detach()
         target = x + t_sign / (1.0 + torch.exp(t_sign * x))
 
+        # construct distance with x that backpropagates gradients
         d = x_confidence - target
 
         # background clamp
