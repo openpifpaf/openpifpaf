@@ -303,7 +303,7 @@ class CompositeLaplace(torch.nn.Module):
 
         # force adjust TODO
         t_bmin[:] = 0.001
-        x_logb[t_confidence[:, :, 0] != 1.0] = 0.0
+        x_logb[t_confidence[:, :, 0] != 1.0] = 5.0
         # x_logb[:] = 0.0
 
         d_confidence = self._confidence_distance(x_confidence, t_confidence)
@@ -314,7 +314,7 @@ class CompositeLaplace(torch.nn.Module):
         norm = self.distance_loss(d, torch.zeros_like(d))
         # print(torch.isfinite(norm).sum(), torch.isfinite(d_reg).sum() / 2.0)
 
-        x_logb = -4.0 + 2.0 * torch.tanh(x_logb / 2.0)
+        x_logb = -2.0 + 2.0 * torch.tanh(x_logb / 2.0)
         scaled_norm = norm * torch.exp(-x_logb)
         # if self.soft_clamp is not None:
         #     scaled_norm = self.soft_clamp(scaled_norm)
