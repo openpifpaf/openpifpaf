@@ -264,15 +264,11 @@ class CompositeLaplace(torch.nn.Module):
 
     def _reg_distance(self, x_regs, t_regs, t_scales):
         t_sigma = 0.5 * torch.repeat_interleave(t_scales, 2, dim=2)
+        t_sigma[torch.isnan(t_sigma)] = 0.5  # assume a sigma when not given
 
-        t_sigma_th = t_sigma.clone()
-        t_sigma_th[torch.isnan(t_sigma_th)] = 0.0
-        t_sigma_th = torch.clamp_min_(t_sigma_th, 1.0)
+        # 99% inside of t_sigma
+        d = 3.0 / t_sigma * (x_regs - t_regs)
 
-        # 99% inside of t_sigma_th
-        d = 3.0 / t_sigma_th * (x_regs - t_regs)
-
-        d[torch.isnan(t_sigma)] = 0.0
         d[torch.isnan(d)] = 0.0
         return d
 
