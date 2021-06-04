@@ -207,8 +207,13 @@ class CompositeLaplace(torch.nn.Module):
         LOG.debug('%s: n_vectors = %d, n_scales = %d',
                   head_net.meta.name, self.n_vectors, self.n_scales)
 
-        self.field_names = ['{}.{}'.format(head_net.meta.dataset, head_net.meta.name)]
-        self.distance_loss = torch.nn.SmoothL1Loss(reduction='none')
+        self.field_names = (
+            '{}.{}.c'.format(head_net.meta.dataset, head_net.meta.name),
+            '{}.{}.vec'.format(head_net.meta.dataset, head_net.meta.name),
+            '{}.{}.scales'.format(head_net.meta.dataset, head_net.meta.name),
+        )
+        self.distance_loss_fn = torch.nn.SmoothL1Loss(reduction='none')
+        self.distance_loss = lambda d: self.distance_loss_fn(d, torch.zeros_like(d))
         self.soft_clamp = None
         if self.soft_clamp_value:
             self.soft_clamp = components.SoftClamp(self.soft_clamp_value)
@@ -220,7 +225,7 @@ class CompositeLaplace(torch.nn.Module):
             self.weights[0, :, 0, 0] = torch.Tensor(w)
         LOG.debug("The weights for the keypoints are %s", self.weights)
         self.bce_blackout = None
-        self.previous_loss = None
+        self.previous_losses = None
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
@@ -262,14 +267,22 @@ class CompositeLaplace(torch.nn.Module):
 
         return d
 
-    def _reg_distance(self, x_regs, t_regs, t_scales):
-        t_sigma = 0.5 * torch.repeat_interleave(t_scales, 2, dim=2)
-        t_sigma[torch.isnan(t_sigma)] = 0.5  # assume a sigma when not given
-
-        # 99% inside of t_sigma
-        d = 3.0 / t_sigma * (x_regs - t_regs)
-
+    def _reg_distance(self, x_regs, t_regs, t_sigma_min, t_scales):
+        d = x_regs - t_regs
+        d = torch.cat([d, t_sigma_min], dim=2)
         d[torch.isnan(d)] = 0.0
+
+        # L2 distance for coordinate pair
+        d_shape = d.shape
+        d = d.reshape(d_shape[0], d_shape[1], -1, 3, d_shape[-2], d_shape[-1])
+        d = torch.linalg.norm(d, ord=2, dim=3)
+        # print(d_shape, d.shape)
+
+        # # 99% inside of t_sigma
+        t_sigma = 0.5 * t_scales
+        t_sigma[torch.isnan(t_sigma)] = 0.5  # assume a sigma when not given
+        d = 3.0 / t_sigma * d
+
         return d
 
     def _scale_distance(self, x_scales, t_scales):
@@ -288,41 +301,37 @@ class CompositeLaplace(torch.nn.Module):
         # x = x.double()
         x_confidence = x[:, :, 0:1]
         x_regs = x[:, :, 1:1 + self.n_vectors * 2]
-        x_logb = x[:, :, 1 + self.n_vectors * 2]
+        x_logs = x[:, :, 1 + self.n_vectors * 2:1 + self.n_vectors * 3]
         x_scales = x[:, :, 1 + self.n_vectors * 3:]
 
         # t = t.double()
         t_confidence = t[:, :, 0:1]
         t_regs = t[:, :, 1:1 + self.n_vectors * 2]
-        t_bmin = t[:, :, 1 + self.n_vectors * 2:1 + self.n_vectors * 2 + 1]
+        t_sigma_min = t[:, :, 1 + self.n_vectors * 2:1 + self.n_vectors * 3]
         t_scales = t[:, :, 1 + self.n_vectors * 3:]
 
-        # force adjust TODO
-        t_bmin[:] = 0.001
-        x_logb[t_confidence[:, :, 0] != 1.0] = 15.0
-        # x_logb[:] = 0.0
-
         d_confidence = self._confidence_distance(x_confidence, t_confidence)
-        d_reg = self._reg_distance(x_regs, t_regs, t_scales)
+        d_reg = self._reg_distance(x_regs, t_regs, t_sigma_min, t_scales)
         d_scale = self._scale_distance(x_scales, t_scales)
-        d = torch.cat([d_confidence, d_reg, d_scale, t_bmin], dim=2)
-        d = torch.linalg.norm(d, ord=2, dim=2)
-        norm = self.distance_loss(d, torch.zeros_like(d))
-        # print(torch.isfinite(norm).sum(), torch.isfinite(d_reg).sum() / 2.0)
 
-        x_logb = -2.0 + 2.0 * torch.tanh(x_logb / 2.0)
-        scaled_norm = norm * torch.exp(-x_logb)
-        # if self.soft_clamp is not None:
-        #     scaled_norm = self.soft_clamp(scaled_norm)
-        losses = x_logb + scaled_norm
+        reg_mask = torch.isfinite(t_sigma_min)
+        x_logs = 3.0 * torch.tanh(x_logs[reg_mask] / 3.0)
+        d_reg = d_reg[reg_mask]
+
+        l_confidence = self.distance_loss(d_confidence)
+        l_reg = self.distance_loss(d_reg) * torch.exp(-x_logs) + x_logs
+        l_scale = self.distance_loss(d_scale)
 
         batch_size = t.shape[0]
-        m = torch.isfinite(losses)
-        loss = torch.sum(losses[m]) / batch_size
+        losses = [
+            torch.sum(l_confidence) / batch_size,
+            torch.sum(l_reg) / batch_size,
+            torch.sum(l_scale) / batch_size,
+        ]
 
-        if not torch.isfinite(loss).item():
+        if not all(torch.isfinite(l).item() if l is not None else True for l in losses):
             raise Exception('found a loss that is not finite: {}, prev: {}'
-                            ''.format(loss, self.previous_loss))
-        self.previous_loss = float(loss.item())
+                            ''.format(losses, self.previous_losses))
+        self.previous_losses = [float(l.item()) if l is not None else None for l in losses]
 
-        return [loss]
+        return losses
