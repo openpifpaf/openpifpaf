@@ -185,7 +185,7 @@ class CompositeField3(HeadNetwork):
         # Extract some shape parameters once.
         # Convert to int so that shape is constant in ONNX export.
         x_size = x.size()
-        batch_size = int(x_size[0])
+        batch_size = x_size[0]
         feature_height = int(x_size[2])
         feature_width = int(x_size[3])
 
