@@ -63,9 +63,10 @@ def apply(model, outfile, verbose=True, input_w=129, input_h=97):
         opset_version=11,
         do_constant_folding=True,
         dynamic_axes={
-            "input": {0: 'dynamic'},
-            "cif": {0: 'dynamic'},
-            "caf": {0: 'dynamic'}}
+            'input_batch': {0: 'dynamic'},
+            'cif': {0: 'dynamic'},
+            'caf': {0: 'dynamic'},
+        },
     )
 
 

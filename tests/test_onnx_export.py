@@ -41,7 +41,8 @@ def test_onnx_simplify(tmpdir):
     assert os.path.exists(outfile + '.simplified')
 
 
-def test_onnxruntime(tmpdir):
+@pytest.mark.parametrize('test_batch_dim', [1, 2])
+def test_onnxruntime(tmpdir, test_batch_dim):
     """Export an onnx model and test outputs.
 
     This test predicts the outputs of a model with standard OpenPifPaf
@@ -62,7 +63,7 @@ def test_onnxruntime(tmpdir):
     openpifpaf.export_onnx.apply(model, onnx_model_file, verbose=False)
 
     # pytorch prediction
-    dummy_input = torch.randn(1, 3, 97, 129, dtype=torch.float32)
+    dummy_input = torch.randn(test_batch_dim, 3, 97, 129, dtype=torch.float32)
     model.eval()
     with torch.no_grad():
         pred_pytorch = model(dummy_input)
