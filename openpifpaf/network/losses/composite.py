@@ -327,7 +327,7 @@ class CompositeLaplace(torch.nn.Module):
         x_logs = 3.0 * torch.tanh(x_logs[reg_mask] / 3.0)
         l_confidence[reg_mask] = l_confidence[reg_mask] * torch.exp(-x_logs) + x_logs
         l_reg[reg_mask] = l_reg[reg_mask] * torch.exp(-x_logs) + x_logs
-        l_scale[reg_mask] = l_scale[reg_mask] * torch.exp(-x_logs) + x_logs
+        l_scale[reg_mask] = l_scale[reg_mask]  # * torch.exp(-x_logs) + x_logs
 
         batch_size = t.shape[0]
         losses = [
