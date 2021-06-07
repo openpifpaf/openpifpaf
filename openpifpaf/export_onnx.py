@@ -75,14 +75,19 @@ def check(modelfile):
     onnx.checker.check_model(model)
 
 
-def simplify(infile, outfile=None):
+def simplify(infile, outfile=None, input_w=129, input_h=97):
     if outfile is None:
         assert infile.endswith('.onnx')
         outfile = infile
         infile = infile.replace('.onnx', '.unsimplified.onnx')
         shutil.copyfile(outfile, infile)
 
-    simplified_model, check_ok = onnxsim.simplify(infile, check_n=3, perform_optimization=False)
+    simplified_model, check_ok = onnxsim.simplify(
+        infile,
+        input_shapes={'input_batch': [1, 3, input_h, input_w]},
+        check_n=3,
+        perform_optimization=False,
+    )
     assert check_ok
     onnx.save(simplified_model, outfile)
 
@@ -116,7 +121,7 @@ def main():
 
     apply(model, args.outfile, input_w=args.input_width, input_h=args.input_height)
     if args.simplify:
-        simplify(args.outfile)
+        simplify(args.outfile, input_w=args.input_width, input_h=args.input_height)
     if args.check:
         check(args.outfile)
 
