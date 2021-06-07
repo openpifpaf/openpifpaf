@@ -301,7 +301,7 @@ class CompositeLaplace(torch.nn.Module):
         # x = x.double()
         x_confidence = x[:, :, 0:1]
         x_regs = x[:, :, 1:1 + self.n_vectors * 2]
-        x_logs = x[:, :, 1 + self.n_vectors * 2:1 + self.n_vectors * 3]
+        x_logs = x[:, :, 1 + self.n_vectors * 2]
         x_scales = x[:, :, 1 + self.n_vectors * 3:]
 
         # t = t.double()
@@ -318,7 +318,12 @@ class CompositeLaplace(torch.nn.Module):
         l_reg = self.distance_loss(d_reg)
         l_scale = self.distance_loss(d_scale)
 
-        reg_mask = torch.isfinite(t_sigma_min)
+        # consolidate to single component by type
+        l_confidence = l_confidence[:, :, 0]
+        l_reg = torch.sum(l_reg, dim=2)
+        l_scale = torch.sum(l_scale, dim=2)
+
+        reg_mask = torch.isfinite(torch.sum(t_sigma_min, dim=2))
         x_logs = 3.0 * torch.tanh(x_logs[reg_mask] / 3.0)
         l_reg[reg_mask] = l_reg[reg_mask] * torch.exp(-x_logs) + x_logs
 
