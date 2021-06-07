@@ -49,7 +49,7 @@ def test_onnxruntime(tmpdir, test_batch_dim):
     and using onnxruntime from an exported ONNX graph.
     """
     if test_batch_dim == 2 and torch.__version__.startswith('1.7'):
-        return pytest.skip()
+        pytest.skip()
 
     onnx_model_file = str(tmpdir.join('openpifpaf-shufflenetv2k16.onnx'))
     assert not os.path.exists(onnx_model_file)
