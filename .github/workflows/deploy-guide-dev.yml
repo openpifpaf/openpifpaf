@@ -39,9 +39,6 @@ jobs:
         pip install .[dev,test]
         sudo apt install jq
 
-    - name: Custom theme with on-this-page
-      run: pip install --upgrade https://github.com/svenkreiss/sphinx-book-theme/archive/onthispage.zip
-
     # make sure KernelSpec in all notebooks is python3
     - name: Normalize KernelSpec
       run: |
