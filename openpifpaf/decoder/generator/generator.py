@@ -82,20 +82,6 @@ class Generator:
             def denan(t):
                 return torch.where(torch.isnan(t), torch.zeros_like(t), t)
 
-            
-            # print('targets')
-            # print(len(target_batch[0]))
-            # print(target_batch[0][0].shape)
-            # print(target_batch[0][1].shape)
-            # print(target_batch[0][2].shape)
-            # print(len(target_batch[2]))
-            # print(target_batch[2][0].shape)
-            # print(target_batch[2][1].shape)
-            # print(target_batch[2][2].shape)
-            # print(len(target_batch[3]))
-            # print(target_batch[3][0].shape)
-            # print(target_batch[3][1].shape)
-            # print(target_batch[3][2].shape)
             # if 'semantic' in oracle_masks or 'offset' in oracle_masks:
             pan_target = {}
             pan_target['semantic'] = classes_from_target(target_batch[1]['semantic'].numpy())
@@ -131,16 +117,12 @@ class Generator:
                                 denan(target_batch[3][2])[:,:,None]
                                 ], dim=2),
                                 ]
-            # else:
-            #     gt = [torch.cat([denan(target_batch[0][0])[:,:,None],
-            #                     denan(target_batch[0][1])[:,:,:2]+network.index_field_torch(target_batch[0][1].shape[-2:]),
-            #                     torch.ones_like(target_batch[0][2][:,:,None])*0,
-            #                     denan(target_batch[0][2])[:,:,None]
-            #                     ], dim=2),]
 
             if 'semantic' in oracle_masks:
+                print('ORACLE: semantic replaced')
                 heads[1]['semantic'] = gt[1]['semantic']
             if 'offset' in oracle_masks:
+                print('ORACLE: offset replaced')
                 heads[1]['offset'] = gt[1]['offset']
             # print('head type',heads[0].shape)
             # print('gt type',gt[0].shape)
@@ -167,10 +149,12 @@ class Generator:
             elif K == 17:
                 if 'keypoints' in oracle_masks:
                     import copy
-                    heads[0][:,:,:,:,:] = copy.deepcopy(gt[0][:,:,:,:,:].numpy())    # [B,K,5,W_L,H_L]
+                    print('ORACLE: keypoints replaced')
+                    heads[0] = copy.deepcopy(gt[0].numpy())    # [B,K,5,W_L,H_L]
                 if 'centroid' in oracle_masks:
                     import copy
-                    heads[3][:,:,:,:,:] = copy.deepcopy(gt[3][:,:,:,:,:].numpy())    # [B,K,5,W_L,H_L]
+                    print('ORACLE: centroid replaced')
+                    heads[3] = copy.deepcopy(gt[3].numpy())    # [B,K,5,W_L,H_L]
 
             # con = scipy.ndimage.zoom(heads[0][0,-1,0,:,:], (8, 8))
             # plt.imshow(con, cmap='jet')

@@ -113,7 +113,7 @@ class Coco(torch.utils.data.Dataset):
             raise Exception('unknown value for image_filter: {}'.format(image_filter))
 
         # self.ids = [327701]     # for a debug
-
+        
 
         if n_images:
             self.ids = self.ids[:n_images]
@@ -121,7 +121,8 @@ class Coco(torch.utils.data.Dataset):
         print('Number of images: ', len(self.ids))
 
         # self.Get_number_of_images_with_ball()
-        
+        # if eval_coco:
+        #     self.ids = [458755]
 
         self.preprocess = preprocess or transforms.EVAL_TRANSFORM
         self.target_transforms = target_transforms

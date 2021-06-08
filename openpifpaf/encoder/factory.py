@@ -58,7 +58,8 @@ def factory_head(head_net: network.heads.CompositeField, basenet_stride):
         return PanopticTargetGenerator(coco_panoptic_thing_list,
                         sigma=8, ignore_stuff_in_offset=True,
                         small_instance_area=0,
-                        small_instance_weight=1)
+                        small_instance_weight=1,
+                        ignore_crowd_in_semantic=True)
     stride = head_net.stride(basenet_stride)
 
     if isinstance(meta, network.heads.DetectionMeta):

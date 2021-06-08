@@ -1,5 +1,6 @@
 from collections import defaultdict
 import logging
+from math import pi
 from queue import PriorityQueue
 import time
 
@@ -65,6 +66,7 @@ class CifCaf(Generator):
             self.by_source[j2][j1] = (caf_i, False)
 
     def __call__(self, fields, initial_annotations=None, debug=None):
+        # debug = {}
         start = time.perf_counter()
         if not initial_annotations:
             initial_annotations = []
@@ -97,6 +99,12 @@ class CifCaf(Generator):
                 fields=fields,
                 keypoints_yx=keypoints_yx,
             )
+        # import pickle
+        # with open('file_pif_PIFPAF.pkl','wb') as f:
+        #     pickle.dump(debug, f)
+        # # torch.save(debug, 'file_pif_PIFPAF.pt')
+        # print('DEBUG:', debug)
+        # print('CIFCAF: file saved!!!!!!!!!!!!!!!!!!!')
         seeds = CifSeeds(cifhr.accumulated, self.field_config).fill(fields)
         caf_scored = CafScored(cifhr.accumulated, self.field_config, self.skeleton).fill(fields)
 

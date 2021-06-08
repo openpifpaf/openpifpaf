@@ -1,6 +1,7 @@
 """Evaluation on COCO data."""
 
 import argparse
+from ast import parse
 import json
 import logging
 import os
@@ -289,6 +290,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
                         help='pass centroid, keypoints, semantic, and offset to use their oracle')
 
     parser.add_argument('--disable-pan-quality', default=False, action='store_true')
+    parser.add_argument('--disable-json-results', default=False, action='store_true')
 
     parser.add_argument('--discard-smaller', default=0, type=int,
                         help='discard smaller than')
@@ -296,7 +298,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     parser.add_argument('--discard-lesskp', default=0, type=int,
                         help='discard with number of keypoints less than')
 
-
+    parser.add_argument('--n-images', default=None, type=int)
     args = parser.parse_args()
 
     if args.debug_images:
@@ -476,7 +478,7 @@ def dataloader_from_args(args, target_transforms=None, heads=None):
         preprocess=preprocess,
         image_filter='all' if args.all_images else 'annotated',
         # image_filter='kp_inst',
-        n_images=2,
+        n_images=args.n_images,
         target_transforms=target_transforms,
         eval_coco=True,
         category_ids=[] if args.detection_annotations else [1],
@@ -500,6 +502,15 @@ def get_output_filename(args):
     out = 'coco_logs/{}-{}'.format(now, args.checkpoint.split('/')[-1])
 
     return out + '.log'
+
+def get_json_filename(args, log_file_name):
+    import os
+    if not os.path.exists('coco_results'):
+        os.makedirs('coco_results')
+    now = datetime.datetime.now().strftime('%y%m%d-%H%M%S.%f')
+    out = 'coco_results/{}-{}-LOG_{}'.format(now, args.checkpoint.split('/')[-1], log_file_name.split('-')[0:2])
+
+    return out + '.json'
 
 
 def pq_compute_single_core(panoptic_pred, pred_segments_info, panoptic_gt, gt_segments_info):
@@ -609,6 +620,8 @@ def main():
     args = cli()
     args.only_output_17 = True
 
+    json_output = []
+
     print('Checkpoint:', args.checkpoint)
     print('Max pool TH:', args.max_pool_th)
     print('Prediction Filtering Disabled: ', args.disable_pred_filter)
@@ -623,8 +636,10 @@ def main():
 
     
     model_cpu, _ = network.factory_from_args(args)
-    
-    output_file = open(get_output_filename(args), "a")
+    print('State of Model (Trainig)0?:', model_cpu.training)
+    outputfile_name = get_output_filename(args)
+    output_file = open(outputfile_name, "a")
+    json_file_name = get_json_filename(args, outputfile_name)
     #####
     target_transforms = None
     # if args.oracle_data:
@@ -633,13 +648,16 @@ def main():
     data_loader = dataloader_from_args(args, target_transforms=target_transforms, heads=model_cpu.head_nets)
     #####
     model = model_cpu.to(args.device)
-    if not args.disable_cuda and torch.cuda.device_count() > 1:
-        LOG.info('Using multiple GPUs: %d', torch.cuda.device_count())
-        model = torch.nn.DataParallel(model)
-        model.base_net = model_cpu.base_net
-        model.head_nets = model_cpu.head_nets
-
+    model.eval()
+    # print('State of Model (Trainig)1?:', model.training)
+    # if not args.disable_cuda and torch.cuda.device_count() > 1:
+    #     LOG.info('Using multiple GPUs: %d', torch.cuda.device_count())
+    #     model = torch.nn.DataParallel(model)
+    #     model.base_net = model_cpu.base_net
+    #     model.head_nets = model_cpu.head_nets
+    # print('State of Model (Trainig)2?:', model.training)
     processor = decoder.factory_from_args(args, model)
+    # print('State of Model (Trainig)3?:', model.training)
     # processor.instance_scorer = decocder.instance_scorer.InstanceScoreRecorder()
     # processor.instance_scorer = torch.load('instance_scorer.pkl')
 
@@ -673,8 +691,12 @@ def main():
                 for a in anns
                 if np.any(a['keypoints'][:, 2] > 0)]) < args.min_ann:
             continue
-
+        model.eval()
+        # print('State of Model (Trainig)4?:', model.training)
+        # print('state dict', model.head_nets[0].state_dict()['conv.weight'])
+        print('META:', meta_batch)
         pred_batch = processor.batch(model, image_tensors, device=args.device, oracle_masks=args.oracle_data, target_batch=target_batch)
+        print('number of people in pred 1', len(pred_batch[0]))
         eval_coco.decoder_time += processor.last_decoder_time
         eval_coco.nn_time += processor.last_nn_time
 
@@ -682,15 +704,24 @@ def main():
         assert len(image_tensors) == len(anns_batch)
         assert len(image_tensors) == len(meta_batch)
 
-        for image, pred, anns, meta, target_pan in zip(image_tensors, pred_batch, anns_batch, meta_batch, target_batch[1]['panoptic']):
+        for image, pred, anns, meta in zip(image_tensors, pred_batch, anns_batch, meta_batch):
             eval_coco.from_predictions(pred, meta, debug=args.debug, gt=anns)
 
+            for p in pred:
+                json_data = {}
+                json_data['image_id'] = meta['image_id']
+                json_data['category_id'] = 1
+                json_data['keypoints'] = p.json_data()['keypoints']
+                json_data['score'] = p.json_data()['score']
+                json_output.append(json_data)
 
             pq_stat = PQ.PQStat()
             if not args.disable_pan_quality:
+                target_pan = target_batch[1]['panoptic']
                 segments = []
                 panoptic = np.zeros((image.shape[1:3]), np.uint16)
-
+                print('--------------------------------------------------')
+                print('image id', meta['image_id'])
                 n_humans = 0
                 print('number of people in pred', len(pred))
                 for ann in pred:
@@ -726,18 +757,27 @@ def main():
                 # ground truth
                 segments_gt = []
                 panoptic_gt = target_pan.cpu().numpy()
-                unique_ids, id_cnt = np.unique(panoptic_gt, return_counts=True)
-                for u, cnt in zip(unique_ids, id_cnt):
-                    if u > 0: # and u < 3000:
+                # unique_ids, id_cnt = np.unique(panoptic_gt, return_counts=True)
+                # for u, cnt in zip(unique_ids, id_cnt):
+                #     if u > 0: # and u < 3000:
+                #         segments_gt.append({
+                #             'id': u,
+                #             'category_id': 1,
+                #             'iscrowd': 0,
+                #             'area': cnt,
+                #         })
+
+                for ann in anns:
+                    if ann['category_id'] == 1:
                         segments_gt.append({
-                            'id': u,
+                            'id': ann['id'],
                             'category_id': 1,
-                            'iscrowd': 0,
-                            'area': cnt,
+                            'iscrowd': ann['iscrowd'],
+                            'area': ann['bmask'].sum(),
                         })
-                print('unique ids ann', unique_ids)
-                print('count', id_cnt)
-                print('segments gt', segments_gt)
+                # print('unique ids ann', unique_ids)
+                # print('count', id_cnt)
+                print('number of people in gt', len(segments_gt))
                 background = panoptic_gt == 0
                 if background.any():
                     panoptic_gt[background] = 2000
@@ -747,11 +787,11 @@ def main():
                         'iscrowd': 0,
                         'area': background.sum(),
                     })
-                
+                print('segments gt', segments_gt)
                 pq_stat += pq_compute_single_core(panoptic, segments, panoptic_gt, segments_gt)
                 print("PQ")
-                if len(unique_ids) > 2:
-                    print(show_pq_results(pq_stat))
+                # if len(unique_ids) > 2:
+                print(show_pq_results(pq_stat))
 
     total_time = time.time() - total_start
 
@@ -766,10 +806,15 @@ def main():
     write_evaluations(eval_coco, args.output, args, total_time, count_ops, file_size)
 
     output_file.write('\nCheckpoint: ' + str(args.checkpoint))
+    output_file.write('\nMax pool TH: ' + str(args.max_pool_th))
     output_file.write('\nOracle: ' + str(args.oracle_data))
     output_file.write('\nDecode mask first: ' + str(args.decode_masks_first))
     output_file.write('\nDecoder Filtering Strategy: ' + 'Filter Smaller than ' + str(args.decod_discard_smaller) +
                         '\tFilter with Keypoints less than ' + str(args.decod_discard_lesskp))
+
+    if not args.disable_json_results:
+        with open(json_file_name, 'w') as json_file:
+            json.dump(json_output, json_file)
 
     stats = eval_coco.stats()
     output_file.write('\nOKS\n' + str(stats))
@@ -780,7 +825,7 @@ def main():
     output_file.write('\nAverage Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = ' + str(round(stats[4], 3)))
     output_file.write('\nAverage Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = ' + str(round(stats[5], 3)))
     output_file.write('\nAverage Recall     (AR) @[ IoU=0.50      | area=   all | maxDets= 20 ] = ' + str(round(stats[6], 3)))
-    output_file.write('\nAverage Recall     (AR) @[ IoU=0.50      | area=   all | maxDets= 20 ] = ' + str(round(stats[7], 3)))
+    output_file.write('\nAverage Recall     (AR) @[ IoU=0.75      | area=   all | maxDets= 20 ] = ' + str(round(stats[7], 3)))
     output_file.write('\nAverage Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = ' + str(round(stats[8], 3)))
     output_file.write('\nAverage Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = ' + str(round(stats[9], 3)))
 

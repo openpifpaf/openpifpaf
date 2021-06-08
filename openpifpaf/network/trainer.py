@@ -155,8 +155,8 @@ class Trainer(object):
 
         for epoch in range(start_epoch, epochs):
 
-            # if epoch==0:
-            #     self.write_state_dict(epoch, epoch == epochs - 1)    
+            if epoch==0:
+                self.write_state_dict(epoch, epoch == epochs - 1)    
 
             # freeze encoder
             if epoch < self.train_args.lr_warm_up_epochs and self.train_args.enable_freeze_encoder:

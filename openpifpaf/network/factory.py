@@ -119,10 +119,14 @@ def factory(
 
                         net_cpu.head_nets[0].load_state_dict(pif_state_dict)
         else:
-            checkpoint = torch.load(checkpoint)
+            checkpoint = torch.load(checkpoint, map_location='cpu')
+            print('NETWORK FACTORY: model loaded from checkpoint')
             if 'model_state_dict' in checkpoint:
+                print('NETWORK FACTORY: model has state dict')
                 net_cpu = factory_from_scratch(base_name, head_names, pretrained=pretrained)
+                
                 net_cpu.load_state_dict(checkpoint['model_state_dict'])
+                print('NETWORK FACTORY: state dict loaded')
                 epoch = checkpoint['epoch']
                 
                 # normalize for backwards compatibility
@@ -130,6 +134,7 @@ def factory(
 
                 # initialize for eval
                 net_cpu.eval()
+                print('NETWORK FACTORY: model on eval')
 
                 # print("Model's state_dict:")
                 # for param in net_cpu.base_net.parameters():

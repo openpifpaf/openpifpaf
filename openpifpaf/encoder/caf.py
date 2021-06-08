@@ -216,6 +216,10 @@ class CafGenerator:
             patch2[2:, mask] = np.expand_dims(max_r2, 1) * 0.5
 
             # update scale
+            if scale1 == 0.0:
+                scale1 = np.nan
+            if scale2 == 0.0:
+                scale2 = np.nan
             assert np.isnan(scale1) or scale1 > 0.0
             self.fields_scale1[paf_i, fminy:fmaxy, fminx:fmaxx][mask] = scale1
             assert np.isnan(scale2) or scale2 > 0.0

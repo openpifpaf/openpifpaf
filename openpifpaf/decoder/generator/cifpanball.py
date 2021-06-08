@@ -84,7 +84,10 @@ class CifPanBall(Generator):
         self.field_config_ball = field_config_ball
         self.field_config_cent = field_config_cent
 
-        self.keypoints = keypoints + kp_ball
+        if self.field_config_cent is not None:
+            self.keypoints = keypoints + ['center'] + kp_ball
+        else:
+            self.keypoints = keypoints + kp_ball
         self.kp_ball = kp_ball
         # if self.kp_ball is not None:
         #     self.ball = True 
@@ -116,6 +119,7 @@ class CifPanBall(Generator):
         #     self.by_source[j2][j1] = (caf_i, False)
 
     def __call__(self, fields, initial_annotations=None, debug=None):
+        # debug = {}
         if self.field_config_cent is not None:
             cif, pan, cif_ball, cif_cent = fields
         else:
@@ -141,6 +145,7 @@ class CifPanBall(Generator):
 
         # print(self.field_config)
         # print('pif fields',fields[0].shape)
+        # print('CIFPANBALL: field config cent',self.field_config_cent)
         cifhr = CifHr(self.field_config).fill(fields)
         cifhr_ball = CifHr(self.field_config_ball).fill(fields)
         if self.field_config_cent is not None:
@@ -188,6 +193,9 @@ class CifPanBall(Generator):
                         for cif in cifhr_cent.accumulated]
 
             keypoints_yx += center_yx
+
+        # print('CIFPANBALL: len keypoints_yx after local max', len(keypoints_yx))
+        # print('CIFPANBALL: len keypoints_yx after local max CENTER', len(keypoints_yx[17]))
         # plt.figure(figsize=(15,15))
         # # print('max', (cifhr_ball.accumulated[Bi]).max())
         # # print('min', (cifhr_ball.accumulated[Bi]).min())
@@ -210,6 +218,12 @@ class CifPanBall(Generator):
                 debug.update(
                     cifhr_cent=cifhr_cent
                 )
+        # import pickle
+        # with open('file_pif_DSL.pkl','wb') as f:
+        #     pickle.dump(debug, f)
+        # torch.save(debug, 'file_pif_DSL.pt')
+        # print('DEBUG:', debug)
+        # print('CIFPANBALL: file saved!!!!!!!!!!!!!!!!!!!')
 
         
         if len(keypoints_yx[Ci]) == 0:
