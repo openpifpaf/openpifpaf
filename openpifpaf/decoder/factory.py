@@ -1,3 +1,4 @@
+from ast import parse
 import logging
 from openpifpaf.decoder.generator.cifpan import CifPan
 
@@ -78,6 +79,8 @@ def cli(parser, *,
 
     parser.add_argument('--decod-discard-lesskp', default=5, type=int,
                         help='discard with number of keypoints less than')
+
+    parser.add_argument('--disable-left-right-check', default=False, action='store_true')
 
 
 def configure(args):
@@ -246,6 +249,7 @@ def factory_decode(head_nets, *,
                     disable_pred_filter=args.disable_pred_filter,
                     dec_filter_smaller_than=args.decod_discard_smaller,
                     dec_filter_less_than=args.decod_discard_lesskp,
+                    disable_left_right_check=args.disable_left_right_check,
                 )
 
         return CifPan(

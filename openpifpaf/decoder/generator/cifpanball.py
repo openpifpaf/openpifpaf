@@ -75,6 +75,7 @@ class CifPanBall(Generator):
                  disable_pred_filter=False,
                  dec_filter_smaller_than=100,
                  dec_filter_less_than=5,
+                 disable_left_right_check=False,
                 ):
         super().__init__(worker_pool)
         if nms is True:
@@ -107,6 +108,7 @@ class CifPanBall(Generator):
         self.disable_pred_filter = disable_pred_filter
         self.dec_filter_smaller_than = dec_filter_smaller_than
         self.dec_filter_less_than = dec_filter_less_than
+        self.disable_left_right_check = disable_left_right_check
 
         # init by_target and by_source
         # self.by_target = defaultdict(dict)
@@ -129,6 +131,8 @@ class CifPanBall(Generator):
 
         # Ci, Bi = (17, object()) if self.ball else (17, 18)
         Ci, Bi = (17, 0)
+        LEFT_KNEE, RIGHT_KNEE = (13, 14)
+        LEFT_ANKLE, RIGHT_ANKLE = (15, 16)
 
         start = time.perf_counter()
         if not initial_annotations:
@@ -344,14 +348,65 @@ class CifPanBall(Generator):
 
         if self.decode_masks_first:
             for i in range(len(annotations)):
+                skip_right_ankle = False
+                skip_right_knee = False
                 annotation = annotations[i]
                 centroid_mask = (classes == 1) & (instances == i)
                 for f, cif in enumerate(cifhr.accumulated):
                     if f == Ci:
                         continue
+                    if (f == RIGHT_ANKLE and skip_right_ankle) or (f == RIGHT_KNEE and skip_right_knee):
+                        continue
                     cif_masked = cif * centroid_mask
                     x, y =np.unravel_index(np.argmax(cif_masked, axis=None), cif_masked.shape)  # argmax retunrs a flat value, we need unravel ind 
-                    if cif_masked[x,y] > 0.1:
+                    if cif_masked[x,y] > self.max_pool_th:
+                        if not self.disable_left_right_check:
+                            if f == LEFT_KNEE:
+                                print('position of left knee', x, y)
+                                cif_max_value = np.max(cif_masked)
+                                print('cif max of left knee', cif_max_value)
+                                cif_right = cifhr.accumulated[f+1]
+                                cif_masked = cif_right * centroid_mask
+                                cif_max_value_2 = np.max(cif_masked)
+                                x_right, y_right =np.unravel_index(np.argmax(cif_masked, axis=None), cif_masked.shape)  # argmax retunrs a flat value, we need unravel ind 
+                                print('position of right knee', x_right, y_right)
+                                print('cif max of right knee', cif_max_value_2)
+                                dist_ = np.sqrt((y - y_right)**2 + (x - x_right)**2)
+                                print('dist', dist_)
+                                if True: #dist_ < 0.1 * centroid_mask.sum():
+                                    if cif_max_value > cif_max_value_2:
+                                        skip_right_knee = True
+                                        pass
+                                        print('skip right knee')
+                                    else:
+                                        skip_right_knee = False
+                                        print('not skiping right knee')
+                                        continue
+                                else:
+                                    pass
+                            elif f == LEFT_ANKLE:
+                                print('position of left ankle', x, y)
+                                cif_max_value = np.max(cif_masked)
+                                print('cif max of left ankle', cif_max_value)
+                                cif_right_ankle = cifhr.accumulated[f+1]
+                                cif_masked = cif_right_ankle * centroid_mask
+                                cif_max_value_2 = np.max(cif_masked)
+                                x_right_ankle, y_right_ankle =np.unravel_index(np.argmax(cif_masked, axis=None), cif_masked.shape)  # argmax retunrs a flat value, we need unravel ind 
+                                print('position of right ankle', x_right_ankle, y_right_ankle)
+                                print('cif max of right ankle', cif_max_value_2)
+                                dist_ = np.sqrt((y - y_right_ankle)**2 + (x - x_right_ankle)**2)
+                                print('dist', dist_)
+                                if True: #dist_ < 0.1 * centroid_mask.sum():
+                                    if cif_max_value > cif_max_value_2:
+                                        skip_right_ankle = True
+                                        pass
+                                        print('skip right ankle')
+                                    else:
+                                        skip_right_ankle = False
+                                        print('not skiping right ankle')
+                                        continue
+                                else:
+                                    pass
                         annotation.add(f, (y, x, cif_masked[x,y]))
                     annotation.cls = 1# semantic[:,centroid_mask].sum(axis=1).argmax(axis=0)
                     annotation.mask = centroid_mask

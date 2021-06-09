@@ -508,7 +508,7 @@ def get_json_filename(args, log_file_name):
     if not os.path.exists('coco_results'):
         os.makedirs('coco_results')
     now = datetime.datetime.now().strftime('%y%m%d-%H%M%S.%f')
-    out = 'coco_results/{}-{}-LOG_{}'.format(now, args.checkpoint.split('/')[-1], log_file_name.split('-')[0:2])
+    out = 'coco_results/{}-{}-LOG_{}'.format(now, args.checkpoint.split('/')[-1], log_file_name.split('-')[1])
 
     return out + '.json'
 
@@ -807,6 +807,7 @@ def main():
 
     output_file.write('\nCheckpoint: ' + str(args.checkpoint))
     output_file.write('\nMax pool TH: ' + str(args.max_pool_th))
+    output_file.write('\nLeft and Right check: ' + 'Disabled' if args.disable_left_right_check else 'Enabled')
     output_file.write('\nOracle: ' + str(args.oracle_data))
     output_file.write('\nDecode mask first: ' + str(args.decode_masks_first))
     output_file.write('\nDecoder Filtering Strategy: ' + 'Filter Smaller than ' + str(args.decod_discard_smaller) +
@@ -815,6 +816,7 @@ def main():
     if not args.disable_json_results:
         with open(json_file_name, 'w') as json_file:
             json.dump(json_output, json_file)
+            print('json output results generated', json_file_name)
 
     stats = eval_coco.stats()
     output_file.write('\nOKS\n' + str(stats))
