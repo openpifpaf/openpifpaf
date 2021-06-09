@@ -26,16 +26,16 @@ def configure(args: argparse.Namespace, local_logger=None):
         assert not args.quiet
         log_level = logging.DEBUG
 
+    stdout_handler = logging.StreamHandler(sys.stdout)
     if args.log_stats:
         # pylint: disable=import-outside-toplevel
         from pythonjsonlogger import jsonlogger
-        stdout_handler = logging.StreamHandler(sys.stdout)
         stdout_handler.setFormatter(
             jsonlogger.JsonFormatter('(message) (levelname) (name)'))
         logging.basicConfig(handlers=[stdout_handler])
         logging.getLogger('openpifpaf.stats').setLevel(logging.DEBUG)
     else:
-        logging.basicConfig()
+        logging.basicConfig(handlers=[stdout_handler])
 
     # set log level for openpifpaf and all openpifpaf plugins
     for logger_name in logging.root.manager.loggerDict:  # pylint: disable=no-member
