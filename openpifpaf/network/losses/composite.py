@@ -318,6 +318,12 @@ class CompositeLaplace(torch.nn.Module):
         l_reg = self.distance_loss(d_reg)
         l_scale = self.distance_loss(d_scale)
 
+        # softclamp
+        if self.soft_clamp is not None:
+            l_confidence = self.soft_clamp(l_confidence)
+            l_reg = self.soft_clamp(l_reg)
+            l_scale = self.soft_clamp(l_scale)
+
         # consolidate to single component by type
         l_confidence = l_confidence[:, :, 0]
         l_reg = torch.sum(l_reg, dim=2)
