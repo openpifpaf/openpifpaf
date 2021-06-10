@@ -211,9 +211,10 @@ class CompositeLaplace(torch.nn.Module):
             '{}.{}.vec'.format(head_net.meta.dataset, head_net.meta.name),
             '{}.{}.scales'.format(head_net.meta.dataset, head_net.meta.name),
         )
-        # self.distance_loss_fn = torch.nn.SmoothL1Loss(reduction='none')
-        self.distance_loss_fn = torch.nn.L1Loss(reduction='none')
+        self.distance_loss_fn = torch.nn.SmoothL1Loss(reduction='none')
+        self.distance_loss_fn_l1 = torch.nn.L1Loss(reduction='none')
         self.distance_loss = lambda d: self.distance_loss_fn(d, torch.zeros_like(d))
+        self.distance_loss_l1 = lambda d: self.distance_loss_fn_l1(d, torch.zeros_like(d))
         self.soft_clamp = None
         if self.soft_clamp_value:
             self.soft_clamp = components.SoftClamp(self.soft_clamp_value)
@@ -333,7 +334,7 @@ class CompositeLaplace(torch.nn.Module):
         d_scale = self._scale_distance(x_scales, t_scales)
 
         l_confidence = self.distance_loss(d_confidence)
-        l_reg = self.distance_loss(d_reg)
+        l_reg = self.distance_loss_l1(d_reg)
         l_scale = self.distance_loss(d_scale)
 
         # softclamp
