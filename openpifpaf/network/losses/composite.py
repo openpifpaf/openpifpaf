@@ -1,6 +1,5 @@
 import argparse
 import logging
-from pkg_resources import require
 
 import torch
 
@@ -254,7 +253,25 @@ class CompositeLaplace(torch.nn.Module):
         t_sign[t_confidence <= 0.0] = -1.0
         # construct target location relative to x but without backpropagating through x
         x = x_confidence.detach()
-        target = x + t_sign / (1.0 + torch.exp(t_sign * x))
+
+        focal_loss_modification = 1.0
+        p_bar = 1.0 / (1.0 + torch.exp(t_sign * x))
+        if components.Bce.focal_alpha:
+            focal_loss_modification *= components.Bce.focal_alpha
+        if components.Bce.focal_gamma == 1.0:
+            p = 1.0 - p_bar
+
+            # includes simplifications for numerical stability
+            # neg_ln_p = torch.log(1 + torch.exp(-t_sign * x))
+            # even more stability:
+            neg_ln_p = torch.nn.functional.softplus(-t_sign * x)
+
+            focal_loss_modification = focal_loss_modification * (p_bar + p * neg_ln_p)
+        elif components.Bce.focal_gamma == 0.0:
+            pass
+        else:
+            raise NotImplementedError
+        target = x + t_sign * p_bar * focal_loss_modification
 
         # construct distance with x that backpropagates gradients
         d = x_confidence - target
