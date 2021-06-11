@@ -343,16 +343,14 @@ class CompositeLaplace(torch.nn.Module):
             l_reg = self.soft_clamp(l_reg)
             l_scale = self.soft_clamp(l_scale)
 
-        # consolidate to single component by type
-        l_confidence = l_confidence[:, :, 0]
-        l_reg = torch.sum(l_reg, dim=2)
-        l_scale = torch.sum(l_scale, dim=2)
-
         reg_mask = torch.isfinite(torch.sum(t_sigma_min, dim=2))
         x_logs = 3.0 * torch.tanh(x_logs[reg_mask] / 3.0)
+        l_confidence = l_confidence[:, :, 0]
         l_confidence[reg_mask] = l_confidence[reg_mask] * torch.exp(-x_logs) + x_logs
-        l_reg[reg_mask] = l_reg[reg_mask] * torch.exp(-x_logs) + x_logs
-        l_scale[reg_mask] = l_scale[reg_mask]  # * torch.exp(-x_logs) + x_logs
+        for i in range(t_regs.shape[2]):
+            l_reg_component = l_reg[:, :, i]
+            l_reg_component[reg_mask] = l_reg_component[reg_mask] * torch.exp(-x_logs) + x_logs
+        # l_scale[reg_mask] = l_scale[reg_mask] * torch.exp(-x_logs) + x_logs
 
         batch_size = t.shape[0]
         losses = [
