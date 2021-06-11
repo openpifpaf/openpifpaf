@@ -297,10 +297,10 @@ class CompositeLaplace(torch.nn.Module):
         d = torch.linalg.norm(d, ord=2, dim=3)
         # print(d_shape, d.shape)
 
-        # # 99% inside of t_sigma
+        # 95% inside of t_sigma
         t_sigma = 0.5 * t_scales
         t_sigma[torch.isnan(t_sigma)] = 0.5  # assume a sigma when not given
-        d = 3.0 / t_sigma * d
+        d = 2.0 / t_sigma * d
 
         return d
 
