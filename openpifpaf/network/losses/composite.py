@@ -295,11 +295,20 @@ class CompositeLaplace(torch.nn.Module):
         d_shape = d.shape
         d = d.reshape(d_shape[0], d_shape[1], -1, 3, d_shape[-2], d_shape[-1])
         d = torch.linalg.norm(d, ord=2, dim=3)
-        # print(d_shape, d.shape)
 
         # 68% inside of t_sigma
-        t_sigma = 0.5 * t_scales
-        t_sigma[torch.isnan(t_sigma)] = 0.5  # assume a sigma when not given
+        if t_scales.shape[2]:
+            t_sigma = 0.5 * t_scales
+            t_sigma[torch.isnan(t_sigma)] = 0.5  # assume a sigma when not given
+        elif t_regs.shape[2] == 4:
+            # two regressions without scales is detection, i.e. second
+            # regression targets are width and height
+            t_scales = torch.linalg.norm(0.1 * t_regs[:, :, 2:], ord=2, dim=2, keepdim=True)
+            t_sigma = 0.5 * t_scales
+            t_sigma[torch.isnan(t_sigma)] = 0.5  # assume a sigma when not given
+            t_sigma = torch.repeat_interleave(t_sigma, 2, dim=2)
+        else:
+            t_sigma = 0.5
         d = 1.0 / t_sigma * d
 
         return d
