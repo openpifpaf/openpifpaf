@@ -320,7 +320,7 @@ class CompositeLaplace(torch.nn.Module):
         # x = x.double()
         x_confidence = x[:, :, 0:1]
         x_regs = x[:, :, 1:1 + self.n_vectors * 2]
-        x_logs = x[:, :, 1 + self.n_vectors * 2]
+        x_logs2 = x[:, :, 1 + self.n_vectors * 2]
         x_scales = x[:, :, 1 + self.n_vectors * 3:]
 
         # t = t.double()
@@ -344,12 +344,14 @@ class CompositeLaplace(torch.nn.Module):
             l_scale = self.soft_clamp(l_scale)
 
         reg_mask = torch.isfinite(torch.sum(t_sigma_min, dim=2))
-        x_logs = 3.0 * torch.tanh(x_logs[reg_mask] / 3.0)
+        x_logs2 = 3.0 * torch.tanh(x_logs2[reg_mask] / 3.0)
         l_confidence = l_confidence[:, :, 0]
-        l_confidence[reg_mask] = l_confidence[reg_mask] * torch.exp(-x_logs) + x_logs
+        l_confidence[reg_mask] = l_confidence[reg_mask] * torch.exp(-x_logs2) + 0.5 * x_logs2
         for i in range(l_reg.shape[2]):
+            # We want b=sigma. Therefore, log_b = 0.5 * log_s2
+            x_logb = 0.5 * x_logs2
             l_reg_component = l_reg[:, :, i]
-            l_reg_component[reg_mask] = l_reg_component[reg_mask] * torch.exp(-x_logs) + x_logs
+            l_reg_component[reg_mask] = l_reg_component[reg_mask] * torch.exp(-x_logb) + x_logb
         # l_scale[reg_mask] = l_scale[reg_mask] * torch.exp(-x_logs) + x_logs
 
         batch_size = t.shape[0]
