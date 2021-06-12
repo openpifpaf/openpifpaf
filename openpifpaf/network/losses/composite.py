@@ -279,7 +279,8 @@ class CompositeLaplace(torch.nn.Module):
         d = x_confidence - target
 
         # background clamp
-        d[(x < -15) & (t_sign == -1.0)] = 0.0
+        if components.Bce.background_clamp:
+            d[(x < components.Bce.background_clamp) & (t_sign == -1.0)] = 0.0
 
         # nan target
         d[torch.isnan(t_confidence)] = 0.0
