@@ -231,6 +231,8 @@ class CompositeLaplace(torch.nn.Module):
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
         group = parser.add_argument_group('Composite Laplace')
+        group.add_argument('--soft-clamp', default=cls.soft_clamp_value, type=float,
+                           help='soft clamp')
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
@@ -248,6 +250,7 @@ class CompositeLaplace(torch.nn.Module):
             raise Exception('unknown regression loss type {}'.format(args.regression_loss))
 
         cls.bce_total_soft_clamp = args.bce_total_soft_clamp
+        cls.soft_clamp_value = args.soft_clamp
 
     def _confidence_distance(self, x_confidence, t_confidence):
         t_sign = t_confidence.clone()
