@@ -1,8 +1,10 @@
 import logging
 import time
+from typing import List
 
 import numpy as np
 
+from ...annotation import AnnotationDet
 from ...functional import Occupancy
 
 LOG = logging.getLogger(__name__)
@@ -77,7 +79,7 @@ class Detection:
         other_areas = other_boxes[:, 2] * other_boxes[:, 3]
         return inter_area / (box_area + other_areas - inter_area + 1e-5)
 
-    def annotations(self, anns):
+    def annotations(self, anns: List[AnnotationDet]):
         start = time.perf_counter()
 
         anns = [ann for ann in anns if ann.score >= self.instance_threshold]
@@ -87,7 +89,13 @@ class Detection:
 
         all_boxes = np.stack([ann.bbox for ann in anns])
         for ann_i, ann in enumerate(anns[1:], start=1):
-            mask = [ann.score >= self.instance_threshold for ann in anns[:ann_i]]
+            mask = [
+                a.score >= self.instance_threshold
+                # and a.category_id == ann.category_id
+                for a in anns[:ann_i]
+            ]
+            if not any(mask):
+                continue
             ious = self.bbox_iou(ann.bbox, all_boxes[:ann_i][mask])
             max_iou = np.max(ious)
 
