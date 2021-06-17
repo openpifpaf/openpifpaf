@@ -138,7 +138,7 @@ class CocoDet(openpifpaf.datasets.DataModule):
                 openpifpaf.transforms.Blur(), self.blur),
             openpifpaf.transforms.RandomChoice(
                 [openpifpaf.transforms.RotateBy90(),
-                 openpifpaf.transforms.RotateUniform(1.0)],
+                 openpifpaf.transforms.RotateUniform(10.0)],
                 [self.orientation_invariant, 0.2],
             ),
             openpifpaf.transforms.Crop(self.square_edge, use_area_of_interest=True),
