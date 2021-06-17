@@ -2,7 +2,7 @@ import copy
 import logging
 
 from .base import Base
-from ..annotation import Annotation
+from ..annotation import Annotation, AnnotationCrowd
 from .. import headmeta, show
 
 try:
@@ -36,6 +36,8 @@ class Cif(Base):
                 score_weights=self.meta.score_weights
             ).set(
                 ann['keypoints'], fixed_score='', fixed_bbox=ann['bbox'])
+            if not ann['iscrowd']
+            else AnnotationCrowd(['keypoints']).set(1, ann['bbox'])
             for ann in annotation_dicts
         ]
 
