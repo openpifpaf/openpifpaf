@@ -139,7 +139,7 @@ class CocoDet(openpifpaf.datasets.DataModule):
             openpifpaf.transforms.RandomChoice(
                 [openpifpaf.transforms.RotateBy90(),
                  openpifpaf.transforms.RotateUniform(1.0)],
-                [self.orientation_invariant],
+                [self.orientation_invariant, 0.2],
             ),
             openpifpaf.transforms.Crop(self.square_edge, use_area_of_interest=True),
             openpifpaf.transforms.CenterPad(self.square_edge),
