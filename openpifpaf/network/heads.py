@@ -148,6 +148,9 @@ class CompositeField3(HeadNetwork):
         if meta.upsample_stride > 1:
             self.upsample_op = torch.nn.PixelShuffle(meta.upsample_stride)
 
+        # calibration
+        self.confidence_calibration = None
+
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
         group = parser.add_argument_group('CompositeField3')
@@ -200,6 +203,8 @@ class CompositeField3(HeadNetwork):
         if not self.training and self.inplace_ops:
             # classification
             classes_x = x[:, :, 0:self.meta.n_confidences]
+            if self.confidence_calibration is not None:
+                classes_x[:, :, 0] = self.confidence_calibration(classes_x[:, :, 0])
             torch.sigmoid_(classes_x)
 
             # regressions x: add index
@@ -224,6 +229,8 @@ class CompositeField3(HeadNetwork):
 
             # classification
             classes_x = x[:, 0:self.meta.n_confidences]
+            if self.confidence_calibration is not None:
+                classes_x[:, 0] = self.confidence_calibration(classes_x[:, 0])
             classes_x = torch.sigmoid(classes_x)
 
             # regressions x

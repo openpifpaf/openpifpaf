@@ -89,6 +89,8 @@ def model_migration(net_cpu):
             hn.meta.head_index = hn_i
         if hn.meta.name == 'cif' and 'score_weights' not in vars(hn.meta):
             hn.meta.score_weights = [3.0] * 3 + [1.0] * (hn.meta.n_fields - 3)
+        if not hasattr(hn, 'confidence_calibration'):
+            hn.confidence_calibration = None
 
     for mm in MODEL_MIGRATION:
         mm(net_cpu)
