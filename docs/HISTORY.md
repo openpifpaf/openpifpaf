@@ -1,6 +1,11 @@
 # History
 
-* [main](https://github.com/openpifpaf/openpifpaf/compare/v0.12.10...main)
+* [main](https://github.com/openpifpaf/openpifpaf/compare/v0.12.11...main)
+* [0.12.11](https://github.com/openpifpaf/openpifpaf/compare/v0.12.10...v0.12.11) (2021-06-11)
+    * wheels for aarch64
+    * new pretrained models: mobilenetv3large and resnet18-cocodet
+    * show: default output is now jpeg with image-dpi-factor=2.0
+    * ONNX export with dynamic batch dimension
 * [0.12.10](https://github.com/openpifpaf/openpifpaf/compare/v0.12.9...v0.12.10) (2021-05-19)
     * new Guide tutorials: Wholebody, Apollo, Animals
     * Predictor API

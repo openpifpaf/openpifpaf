@@ -2,7 +2,7 @@ import copy
 import logging
 
 from .base import Base
-from ..annotation import AnnotationDet
+from ..annotation import AnnotationCrowd, AnnotationDet
 from .. import headmeta, show
 
 try:
@@ -28,6 +28,8 @@ class CifDet(Base):
 
         annotations = [
             AnnotationDet(self.meta.categories).set(ann['category_id'], None, ann['bbox'])
+            if not ann['iscrowd']
+            else AnnotationCrowd(self.meta.categories).set(ann['category_id'], ann['bbox'])
             for ann in annotation_dicts
         ]
 
