@@ -14,6 +14,9 @@ LOSSES = {
     headmeta.Cif: CompositeLoss,
     headmeta.Caf: CompositeLoss,
     headmeta.CifDet: CompositeLoss,
+    headmeta.TSingleImageCif: CompositeLoss,
+    headmeta.TSingleImageCaf: CompositeLoss,
+    headmeta.Tcaf: CompositeLoss,
 }
 LOSS_COMPONENTS = {
     components.Bce,
