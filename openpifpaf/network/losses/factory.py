@@ -3,13 +3,14 @@ import logging
 
 from ... import headmeta
 from . import components
-from .composite import CompositeLoss
+from .composite import CompositeLoss, CompositeLossByComponent
 from .multi_head import MultiHeadLoss, MultiHeadLossAutoTuneKendall, MultiHeadLossAutoTuneVariance
 
 LOG = logging.getLogger(__name__)
 
 #: headmeta class to Loss class
 LOSSES = {
+    'a': CompositeLossByComponent,  # TODO hack: added to trigger cli() and configure()
     headmeta.Cif: CompositeLoss,
     headmeta.Caf: CompositeLoss,
     headmeta.CifDet: CompositeLoss,
@@ -77,24 +78,24 @@ class Factory:
         for lc in LOSS_COMPONENTS:
             lc.configure(args)
 
-    def factory(self, head_nets):
+    def factory(self, head_metas):
         sparse_task_parameters = None
-        if MultiHeadLoss.task_sparsity_weight:
-            sparse_task_parameters = []
-            for head_net in head_nets:
-                if getattr(head_net, 'sparse_task_parameters', None) is not None:
-                    sparse_task_parameters += head_net.sparse_task_parameters
-                elif hasattr(head_net, 'conv'):
-                    sparse_task_parameters.append(head_net.conv.weight)
-                else:
-                    raise Exception('unknown l1 parameters for given head: {} ({})'
-                                    ''.format(head_net.meta.name, type(head_net)))
+        # TODO
+        # if MultiHeadLoss.task_sparsity_weight:
+        #     sparse_task_parameters = []
+        #     for head_net in head_nets:
+        #         if getattr(head_net, 'sparse_task_parameters', None) is not None:
+        #             sparse_task_parameters += head_net.sparse_task_parameters
+        #         elif hasattr(head_net, 'conv'):
+        #             sparse_task_parameters.append(head_net.conv.weight)
+        #         else:
+        #             raise Exception('unknown l1 parameters for given head: {} ({})'
+        #                             ''.format(head_net.meta.name, type(head_net)))
 
-        losses = [LOSSES[head_net.meta.__class__](head_net)
-                  for head_net in head_nets]
+        losses = [LOSSES[meta.__class__](meta) for meta in head_metas]
         component_lambdas = self.component_lambdas
         if component_lambdas is None and self.lambdas is not None:
-            assert len(self.lambdas) == len(head_nets)
+            assert len(self.lambdas) == len(head_metas)
             component_lambdas = [
                 head_lambda
                 for loss, head_lambda in zip(losses, self.lambdas)

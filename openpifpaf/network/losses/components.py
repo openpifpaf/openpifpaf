@@ -129,6 +129,46 @@ class Bce(torch.nn.Module):
         return bce
 
 
+class BceDistance(Bce):
+    def forward(self, x_confidence, t_confidence):  # pylint: disable=arguments-differ
+        t_sign = t_confidence.clone()
+        t_sign[t_confidence > 0.0] = 1.0
+        t_sign[t_confidence <= 0.0] = -1.0
+        # construct target location relative to x but without backpropagating through x
+        x = x_confidence.detach()
+
+        focal_loss_modification = 1.0
+        p_bar = 1.0 / (1.0 + torch.exp(t_sign * x))
+        if self.focal_alpha:
+            focal_loss_modification *= self.focal_alpha
+        if self.focal_gamma == 1.0:
+            p = 1.0 - p_bar
+
+            # includes simplifications for numerical stability
+            # neg_ln_p = torch.log(1 + torch.exp(-t_sign * x))
+            # even more stability:
+            neg_ln_p = torch.nn.functional.softplus(-t_sign * x)
+
+            focal_loss_modification = focal_loss_modification * (p_bar + p * neg_ln_p)
+        elif self.focal_gamma == 0.0:
+            pass
+        else:
+            raise NotImplementedError
+        target = x + t_sign * p_bar * focal_loss_modification
+
+        # construct distance with x that backpropagates gradients
+        d = x_confidence - target
+
+        # background clamp
+        if self.background_clamp:
+            d[(x < self.background_clamp) & (t_sign == -1.0)] = 0.0
+
+        # nan target
+        d[torch.isnan(t_confidence)] = 0.0
+
+        return d
+
+
 class Scale(torch.nn.Module):
     b = 1.0
     log_space = False
@@ -183,6 +223,13 @@ class Scale(torch.nn.Module):
             loss = self.soft_clamp(loss)
 
         return loss
+
+
+class ScaleDistance(Scale):
+    def forward(self, x_scales, t_scales):  # pylint: disable=arguments-differ
+        d = 1.0 / self.b * (x_scales - t_scales)
+        d[torch.isnan(d)] = 0.0
+        return d
 
 
 class Laplace(torch.nn.Module):
@@ -254,6 +301,36 @@ class Laplace(torch.nn.Module):
         if self.weight is not None:
             losses = losses * self.weight
         return losses
+
+
+class RegressionDistance:
+    @staticmethod
+    def __call__(x_regs, t_regs, t_sigma_min, t_scales):
+        d = x_regs - t_regs
+        d = torch.cat([d, t_sigma_min], dim=2)
+        d[torch.isnan(d)] = 0.0
+
+        # L2 distance for coordinate pair
+        d_shape = d.shape
+        d = d.reshape(d_shape[0], d_shape[1], -1, 3, d_shape[-2], d_shape[-1])
+        d = torch.linalg.norm(d, ord=2, dim=3)
+
+        # 68% inside of t_sigma
+        if t_scales.shape[2]:
+            t_sigma = 0.5 * t_scales
+            t_sigma[torch.isnan(t_sigma)] = 0.5  # assume a sigma when not given
+        elif t_regs.shape[2] == 4:
+            # two regressions without scales is detection, i.e. second
+            # regression targets are width and height
+            t_scales = torch.linalg.norm(0.5 * t_regs[:, :, 2:], ord=2, dim=2, keepdim=True)
+            t_sigma = 0.5 * t_scales
+            t_sigma[torch.isnan(t_sigma)] = 5.0  # assume a sigma when not given
+            t_sigma = torch.repeat_interleave(t_sigma, 2, dim=2)
+        else:
+            t_sigma = 0.5
+        d = 1.0 / t_sigma * d
+
+        return d
 
 
 def l1_loss(x1, x2, _, t1, t2, weight=None):

@@ -73,9 +73,9 @@ BASE_FACTORIES['tresnet50'] = lambda: TrackingBase(BASE_FACTORIES['resnet50']())
 
 #: headmeta class to head class
 HEADS = {
-    headmeta.Cif: heads.CompositeField3,
-    headmeta.Caf: heads.CompositeField3,
-    headmeta.CifDet: heads.CompositeField3,
+    headmeta.Cif: heads.CompositeField4,
+    headmeta.Caf: heads.CompositeField4,
+    headmeta.CifDet: heads.CompositeField4,
     headmeta.TSingleImageCif: tracking_heads.TBaseSingleImage,
     headmeta.TSingleImageCaf: tracking_heads.TBaseSingleImage,
     headmeta.Tcaf: tracking_heads.Tcaf,

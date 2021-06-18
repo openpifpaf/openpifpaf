@@ -136,7 +136,7 @@ def main():
     datamodule = datasets.factory(args.dataset)
 
     net_cpu, start_epoch = network.Factory().factory(head_metas=datamodule.head_metas)
-    loss = network.losses.Factory().factory(net_cpu.head_nets)
+    loss = network.losses.Factory().factory(datamodule.head_metas)
 
     checkpoint_shell = None
     if not args.disable_cuda and torch.cuda.device_count() > 1 and not args.ddp:

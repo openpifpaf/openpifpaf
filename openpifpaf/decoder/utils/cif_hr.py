@@ -24,11 +24,11 @@ class CifHr:
         return self.fill(all_fields, [meta])
 
     def accumulate(self, len_cifs, t, p, stride, min_scale):
-        p = p[:, p[0] > self.v_threshold]
+        p = p[:, p[1] > self.v_threshold]
         if min_scale:
             p = p[:, p[4] > min_scale / stride]
 
-        v, x, y, _, scale = p
+        _, v, x, y, scale = p
         x = x * stride
         y = y * stride
         sigma = np.maximum(1.0, 0.5 * scale * stride)
@@ -70,12 +70,12 @@ class CifHr:
 
 class CifDetHr(CifHr):
     def accumulate(self, len_cifs, t, p, stride, min_scale):
-        p = p[:, p[0] > self.v_threshold]
+        p = p[:, p[1] > self.v_threshold]
         if min_scale:
             p = p[:, p[4] > min_scale / stride]
             p = p[:, p[5] > min_scale / stride]
 
-        v, x, y, w, h, _, __ = p
+        _, v, x, y, w, h = p
         x = x * stride
         y = y * stride
         sigma = np.maximum(1.0, 0.1 * np.minimum(w, h) * stride)
