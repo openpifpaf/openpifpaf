@@ -41,9 +41,11 @@ def test_forward_noinplace():
 
     with torch.no_grad():
         openpifpaf.network.heads.CompositeField3.inplace_ops = True
+        openpifpaf.network.heads.CompositeField4.inplace_ops = True
         ref_cif, ref_caf = model(dummy_image_batch)
 
         openpifpaf.network.heads.CompositeField3.inplace_ops = False
+        openpifpaf.network.heads.CompositeField4.inplace_ops = False
         cif, caf = model(dummy_image_batch)
 
     np.testing.assert_allclose(ref_cif.numpy(), cif.numpy())
@@ -51,3 +53,4 @@ def test_forward_noinplace():
 
     # back to default
     openpifpaf.network.heads.CompositeField3.inplace_ops = True
+    openpifpaf.network.heads.CompositeField4.inplace_ops = True
