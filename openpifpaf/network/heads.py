@@ -216,6 +216,14 @@ class CompositeField3(HeadNetwork):
             first_scale_feature = self.meta.n_confidences + self.meta.n_vectors * 3
             scales_x = x[:, :, first_scale_feature:first_scale_feature + self.meta.n_scales]
             scales_x[:] = torch.nn.functional.softplus(scales_x)
+
+            # remove width in the middle and add one to the front (v4 style)
+            first_width_feature = self.meta.n_confidences + self.meta.n_vectors * 2
+            x = torch.cat([
+                x[:, :, first_width_feature:first_width_feature + 1],
+                x[:, :, :first_width_feature],
+                x[:, :, self.meta.n_confidences + self.meta.n_vectors * 3:],
+            ], dim=2)
         elif not self.training and not self.inplace_ops:
             # TODO: CoreMLv4 does not like strided slices.
             # Strides are avoided when switching the first and second dim
@@ -242,15 +250,15 @@ class CompositeField3(HeadNetwork):
 
             # regressions logb
             first_reglogb_feature = self.meta.n_confidences + self.meta.n_vectors * 2
-            regs_logb = x[:, first_reglogb_feature:first_reglogb_feature + self.meta.n_vectors]
+            single_reg_logb = x[:, first_reglogb_feature:first_reglogb_feature + 1]
 
             # scale
             first_scale_feature = self.meta.n_confidences + self.meta.n_vectors * 3
             scales_x = x[:, first_scale_feature:first_scale_feature + self.meta.n_scales]
             scales_x = torch.nn.functional.softplus(scales_x)
 
-            # concat
-            x = torch.cat([classes_x, *regs_x, regs_logb, scales_x], dim=1)
+            # concat with width in front (v4 style)
+            x = torch.cat([single_reg_logb, classes_x, *regs_x, scales_x], dim=1)
 
             # TODO: CoreMLv4 problem (see above).
             x = torch.transpose(x, 1, 2)
@@ -338,9 +346,6 @@ class CompositeField4(HeadNetwork):
         )
 
         if not self.training and self.inplace_ops:
-            # width
-            width_x = x[:, :, 0:1]
-
             # classification
             classes_x = x[:, :, 1:1 + self.meta.n_confidences]
             torch.sigmoid_(classes_x)
