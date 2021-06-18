@@ -74,7 +74,7 @@ def rotate(image, anns, meta, angle):
 
 
 def _prepad(image, anns, meta, angle):
-    if abs(angle) < 1.0:
+    if abs(angle) < 0.3:
         return image, anns, meta
 
     w, h = image.size
@@ -116,7 +116,7 @@ class RotateBy90(Preprocess):
 class RotateUniform(Preprocess):
     """Rotate by a random angle uniformly drawn from a given angle range."""
 
-    def __init__(self, max_angle=30.0, prepad=False):
+    def __init__(self, max_angle=30.0, prepad=True):
         super().__init__()
         self.max_angle = max_angle
         self.prepad = prepad
