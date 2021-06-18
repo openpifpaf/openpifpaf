@@ -9,7 +9,7 @@ LOG = logging.getLogger(__name__)
 
 
 class CompositeLossByComponent(torch.nn.Module):
-    """Default loss until v0.12.11."""
+    """Default loss until v0.12"""
 
     prescale = 1.0
     regression_loss = components.Laplace()
@@ -195,7 +195,7 @@ class CompositeLossByComponent(torch.nn.Module):
 
 
 class CompositeLoss(torch.nn.Module):
-    """Default loss since v0.12.12."""
+    """Default loss since v0.13"""
 
     soft_clamp_value = 5.0
 
@@ -260,7 +260,11 @@ class CompositeLoss(torch.nn.Module):
         # t = t.double()
         t_confidence = t[:, :, 0:self.n_confidences]
         t_regs = t[:, :, self.n_confidences:1 + self.n_vectors * 2]
-        t_sigma_min = t[:, :, self.n_confidences + self.n_vectors * 2:self.n_confidences + self.n_vectors * 3]
+        t_sigma_min = t[
+            :,
+            :,
+            self.n_confidences + self.n_vectors * 2:self.n_confidences + self.n_vectors * 3
+        ]
         t_scales = t[:, :, self.n_confidences + self.n_vectors * 3:]
 
         d_confidence = self.bce_distance(x_confidence, t_confidence)

@@ -303,8 +303,9 @@ class Laplace(torch.nn.Module):
         return losses
 
 
-class RegressionDistance(torch.nn.Module):
-    def forward(self, x_regs, t_regs, t_sigma_min, t_scales):
+class RegressionDistance:
+    @staticmethod
+    def __call__(x_regs, t_regs, t_sigma_min, t_scales):
         d = x_regs - t_regs
         d = torch.cat([d, t_sigma_min], dim=2)
         d[torch.isnan(d)] = 0.0
