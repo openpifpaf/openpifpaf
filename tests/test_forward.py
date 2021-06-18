@@ -14,7 +14,7 @@ def test_forward():
     dummy_image_batch = torch.zeros((1, 3, 241, 321))
     cif, caf = model(dummy_image_batch)
     assert cif.shape == (1, 17, 5, 16, 21)
-    assert caf.shape == (1, 19, 9, 16, 21)
+    assert caf.shape == (1, 19, 8, 16, 21)
 
 
 def test_forward_upsample():
@@ -27,7 +27,7 @@ def test_forward_upsample():
     dummy_image_batch = torch.zeros((1, 3, 241, 321))
     cif, caf = model(dummy_image_batch)
     assert cif.shape == (1, 17, 5, 31, 41)
-    assert caf.shape == (1, 19, 9, 31, 41)
+    assert caf.shape == (1, 19, 8, 31, 41)
 
 
 def test_forward_noinplace():
