@@ -3,40 +3,41 @@ import logging
 
 import torch
 
-from .. import heads
 from . import components
 
 LOG = logging.getLogger(__name__)
 
 
-class CompositeLoss(torch.nn.Module):
+class CompositeLossByComponent(torch.nn.Module):
+    """Default loss until v0.12.11."""
+
     prescale = 1.0
     regression_loss = components.Laplace()
     bce_total_soft_clamp = None
 
-    def __init__(self, head_net: heads.CompositeField3):
+    def __init__(self, head_meta):
         super().__init__()
-        self.n_vectors = head_net.meta.n_vectors
-        self.n_scales = head_net.meta.n_scales
+        self.n_vectors = head_meta.n_vectors
+        self.n_scales = head_meta.n_scales
 
         LOG.debug('%s: n_vectors = %d, n_scales = %d',
-                  head_net.meta.name, self.n_vectors, self.n_scales)
+                  head_meta.name, self.n_vectors, self.n_scales)
 
         self.confidence_loss = components.Bce()
         self.scale_losses = torch.nn.ModuleList([
             components.Scale() for _ in range(self.n_scales)])
         self.field_names = (
-            ['{}.{}.c'.format(head_net.meta.dataset, head_net.meta.name)]
-            + ['{}.{}.vec{}'.format(head_net.meta.dataset, head_net.meta.name, i + 1)
+            ['{}.{}.c'.format(head_meta.dataset, head_meta.name)]
+            + ['{}.{}.vec{}'.format(head_meta.dataset, head_meta.name, i + 1)
                for i in range(self.n_vectors)]
-            + ['{}.{}.scales{}'.format(head_net.meta.dataset, head_net.meta.name, i + 1)
+            + ['{}.{}.scales{}'.format(head_meta.dataset, head_meta.name, i + 1)
                for i in range(self.n_scales)]
         )
 
-        w = head_net.meta.training_weights
+        w = head_meta.training_weights
         self.weights = None
         if w is not None:
-            self.weights = torch.ones([1, head_net.meta.n_fields, 1, 1], requires_grad=False)
+            self.weights = torch.ones([1, head_meta.n_fields, 1, 1], requires_grad=False)
             self.weights[0, :, 0, 0] = torch.Tensor(w)
         LOG.debug("The weights for the keypoints are %s", self.weights)
         self.bce_blackout = None
@@ -193,23 +194,26 @@ class CompositeLoss(torch.nn.Module):
         return all_losses
 
 
-class CompositeLaplace(torch.nn.Module):
+class CompositeLoss(torch.nn.Module):
+    """Default loss since v0.12.12."""
+
     prescale = 1.0
     bce_total_soft_clamp = None
     soft_clamp_value = 5.0
 
-    def __init__(self, head_net: heads.CompositeField3):
+    def __init__(self, head_meta):
         super().__init__()
-        self.n_vectors = head_net.meta.n_vectors
-        self.n_scales = head_net.meta.n_scales
+        self.n_confidences = head_meta.n_confidences
+        self.n_vectors = head_meta.n_vectors
+        self.n_scales = head_meta.n_scales
 
         LOG.debug('%s: n_vectors = %d, n_scales = %d',
-                  head_net.meta.name, self.n_vectors, self.n_scales)
+                  head_meta.name, self.n_vectors, self.n_scales)
 
         self.field_names = (
-            '{}.{}.c'.format(head_net.meta.dataset, head_net.meta.name),
-            '{}.{}.vec'.format(head_net.meta.dataset, head_net.meta.name),
-            '{}.{}.scales'.format(head_net.meta.dataset, head_net.meta.name),
+            '{}.{}.c'.format(head_meta.dataset, head_meta.name),
+            '{}.{}.vec'.format(head_meta.dataset, head_meta.name),
+            '{}.{}.scales'.format(head_meta.dataset, head_meta.name),
         )
         self.distance_loss_fn = torch.nn.SmoothL1Loss(reduction='none')
         self.distance_loss_fn_l1 = torch.nn.L1Loss(reduction='none')
@@ -219,10 +223,10 @@ class CompositeLaplace(torch.nn.Module):
         if self.soft_clamp_value:
             self.soft_clamp = components.SoftClamp(self.soft_clamp_value)
 
-        w = head_net.meta.training_weights
+        w = head_meta.training_weights
         self.weights = None
         if w is not None:
-            self.weights = torch.ones([1, head_net.meta.n_fields, 1, 1], requires_grad=False)
+            self.weights = torch.ones([1, head_meta.n_fields, 1, 1], requires_grad=False)
             self.weights[0, :, 0, 0] = torch.Tensor(w)
         LOG.debug("The weights for the keypoints are %s", self.weights)
         self.bce_blackout = None
@@ -325,22 +329,20 @@ class CompositeLaplace(torch.nn.Module):
     def forward(self, x, t):
         LOG.debug('loss for %s', self.field_names)
 
-        if t is None:
-            return [None for _ in range(1 + self.n_vectors + self.n_scales)]
-        assert x.shape[2] == 1 + self.n_vectors * 3 + self.n_scales
-        assert t.shape[2] == 1 + self.n_vectors * 3 + self.n_scales
+        assert x.shape[2] == 1 + self.n_confidences + self.n_vectors * 2 + self.n_scales
+        assert t.shape[2] == self.n_confidences + self.n_vectors * 3 + self.n_scales
 
         # x = x.double()
-        x_confidence = x[:, :, 0:1]
-        x_regs = x[:, :, 1:1 + self.n_vectors * 2]
-        x_logs2 = x[:, :, 1 + self.n_vectors * 2]
-        x_scales = x[:, :, 1 + self.n_vectors * 3:]
+        x_logs2 = x[:, :, 0]
+        x_confidence = x[:, :, 1:1 + self.n_confidences]
+        x_regs = x[:, :, 1 + self.n_confidences:1 + self.n_confidences + self.n_vectors * 2]
+        x_scales = x[:, :, 1 + self.n_confidences + self.n_vectors * 2:]
 
         # t = t.double()
-        t_confidence = t[:, :, 0:1]
-        t_regs = t[:, :, 1:1 + self.n_vectors * 2]
-        t_sigma_min = t[:, :, 1 + self.n_vectors * 2:1 + self.n_vectors * 3]
-        t_scales = t[:, :, 1 + self.n_vectors * 3:]
+        t_confidence = t[:, :, 0:self.n_confidences]
+        t_regs = t[:, :, self.n_confidences:1 + self.n_vectors * 2]
+        t_sigma_min = t[:, :, self.n_confidences + self.n_vectors * 2:self.n_confidences + self.n_vectors * 3]
+        t_scales = t[:, :, self.n_confidences + self.n_vectors * 3:]
 
         d_confidence = self._confidence_distance(x_confidence, t_confidence)
         d_reg = self._reg_distance(x_regs, t_regs, t_sigma_min, t_scales)

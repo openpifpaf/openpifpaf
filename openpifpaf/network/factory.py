@@ -67,9 +67,9 @@ BASE_FACTORIES = {
 
 #: headmeta class to head class
 HEADS = {
-    headmeta.Cif: heads.CompositeField3,
-    headmeta.Caf: heads.CompositeField3,
-    headmeta.CifDet: heads.CompositeField3,
+    headmeta.Cif: heads.CompositeField4,
+    headmeta.Caf: heads.CompositeField4,
+    headmeta.CifDet: heads.CompositeField4,
 }
 
 LOG = logging.getLogger(__name__)
