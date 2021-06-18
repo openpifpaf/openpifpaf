@@ -91,7 +91,7 @@ class Detection:
         for ann_i, ann in enumerate(anns[1:], start=1):
             mask = [
                 a.score >= self.instance_threshold
-                # and a.category_id == ann.category_id
+                and a.category_id == ann.category_id
                 for a in anns[:ann_i]
             ]
             if not any(mask):
