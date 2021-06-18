@@ -6,7 +6,8 @@ import torch
 import openpifpaf
 from openpifpaf.transforms.pair import SingleImage as S
 
-from . import datasets, metric, transforms
+from . import datasets, metric
+from .normalize_transform import NormalizePosetrack
 
 from .constants import (
     KEYPOINTS,
@@ -203,7 +204,7 @@ class Posetrack2018(openpifpaf.datasets.DataModule):
             KEYPOINTS,
             openpifpaf.plugins.coco.constants.HFLIP)
         return [
-            S(transforms.NormalizePosetrack()),
+            S(NormalizePosetrack()),
             openpifpaf.transforms.RandomApply(
                 openpifpaf.transforms.pair.RandomizeOneFrame(), 0.2),
             S(openpifpaf.transforms.AddCrowdForIncompleteHead()),
@@ -293,7 +294,7 @@ class Posetrack2018(openpifpaf.datasets.DataModule):
 
         return [
             openpifpaf.transforms.pair.Ungroup(),
-            transforms.NormalizePosetrack(),
+            NormalizePosetrack(),
             rescale_t,
             padding_t,
             orientation_t,

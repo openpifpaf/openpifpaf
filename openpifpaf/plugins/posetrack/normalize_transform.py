@@ -8,28 +8,6 @@ import openpifpaf
 LOG = logging.getLogger(__name__)
 
 
-class NormalizeCocoToMpii(openpifpaf.transforms.Preprocess):
-    def __call__(self, image, anns, meta):
-        meta = copy.deepcopy(meta)
-        anns = copy.deepcopy(anns)
-
-        # # add ignore regions to annotations because head keypoints are invalid
-        # anns += [
-        #     {
-        #         'bbox': np.copy(ann['bbox']),
-        #         'keypoints': np.array([(0.0, 0.0, 0.0) for _ in range(17)], dtype=np.float32),
-        #         'iscrowd': True,
-        #         'track_id': -1,
-        #     }
-        #     for ann in anns
-        # ]
-
-        for ann in anns:
-            ann['keypoints'][[1, 2, 3, 4]] = 0.0
-
-        return image, anns, meta
-
-
 class NormalizePosetrack(openpifpaf.transforms.Preprocess):
     def __init__(self, ignore_missing_bbox=False, fix_annotations=True):
         self.ignore_missing_bbox = ignore_missing_bbox
