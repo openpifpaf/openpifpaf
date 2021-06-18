@@ -45,7 +45,7 @@ class CompositeLossByComponent(torch.nn.Module):
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
-        group = parser.add_argument_group('Composite Loss')
+        group = parser.add_argument_group('Composite Loss by Components')
         group.add_argument('--loss-prescale', default=cls.prescale, type=float)
         group.add_argument('--regression-loss', default='laplace',
                            choices=['smoothl1', 'l1', 'laplace'],
@@ -197,8 +197,6 @@ class CompositeLossByComponent(torch.nn.Module):
 class CompositeLoss(torch.nn.Module):
     """Default loss since v0.12.12."""
 
-    prescale = 1.0
-    bce_total_soft_clamp = None
     soft_clamp_value = 5.0
 
     def __init__(self, head_meta):
@@ -215,6 +213,11 @@ class CompositeLoss(torch.nn.Module):
             '{}.{}.vec'.format(head_meta.dataset, head_meta.name),
             '{}.{}.scales'.format(head_meta.dataset, head_meta.name),
         )
+
+        self.bce_distance = components.BceDistance()
+        self.regression_distance = components.RegressionDistance()
+        self.scale_distance = components.ScaleDistance()
+
         self.distance_loss_fn = torch.nn.SmoothL1Loss(reduction='none')
         self.distance_loss_fn_l1 = torch.nn.L1Loss(reduction='none')
         self.distance_loss = lambda d: self.distance_loss_fn(d, torch.zeros_like(d))
@@ -234,97 +237,13 @@ class CompositeLoss(torch.nn.Module):
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
-        group = parser.add_argument_group('Composite Laplace')
+        group = parser.add_argument_group('Composite Loss')
         group.add_argument('--soft-clamp', default=cls.soft_clamp_value, type=float,
                            help='soft clamp')
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
-        cls.prescale = args.loss_prescale
-
-        if args.regression_loss == 'smoothl1':
-            cls.regression_loss = components.SmoothL1()
-        elif args.regression_loss == 'l1':
-            cls.regression_loss = staticmethod(components.l1_loss)
-        elif args.regression_loss == 'laplace':
-            cls.regression_loss = components.Laplace()
-        elif args.regression_loss is None:
-            cls.regression_loss = components.Laplace()
-        else:
-            raise Exception('unknown regression loss type {}'.format(args.regression_loss))
-
-        cls.bce_total_soft_clamp = args.bce_total_soft_clamp
         cls.soft_clamp_value = args.soft_clamp
-
-    def _confidence_distance(self, x_confidence, t_confidence):
-        t_sign = t_confidence.clone()
-        t_sign[t_confidence > 0.0] = 1.0
-        t_sign[t_confidence <= 0.0] = -1.0
-        # construct target location relative to x but without backpropagating through x
-        x = x_confidence.detach()
-
-        focal_loss_modification = 1.0
-        p_bar = 1.0 / (1.0 + torch.exp(t_sign * x))
-        if components.Bce.focal_alpha:
-            focal_loss_modification *= components.Bce.focal_alpha
-        if components.Bce.focal_gamma == 1.0:
-            p = 1.0 - p_bar
-
-            # includes simplifications for numerical stability
-            # neg_ln_p = torch.log(1 + torch.exp(-t_sign * x))
-            # even more stability:
-            neg_ln_p = torch.nn.functional.softplus(-t_sign * x)
-
-            focal_loss_modification = focal_loss_modification * (p_bar + p * neg_ln_p)
-        elif components.Bce.focal_gamma == 0.0:
-            pass
-        else:
-            raise NotImplementedError
-        target = x + t_sign * p_bar * focal_loss_modification
-
-        # construct distance with x that backpropagates gradients
-        d = x_confidence - target
-
-        # background clamp
-        if components.Bce.background_clamp:
-            d[(x < components.Bce.background_clamp) & (t_sign == -1.0)] = 0.0
-
-        # nan target
-        d[torch.isnan(t_confidence)] = 0.0
-
-        return d
-
-    def _reg_distance(self, x_regs, t_regs, t_sigma_min, t_scales):
-        d = x_regs - t_regs
-        d = torch.cat([d, t_sigma_min], dim=2)
-        d[torch.isnan(d)] = 0.0
-
-        # L2 distance for coordinate pair
-        d_shape = d.shape
-        d = d.reshape(d_shape[0], d_shape[1], -1, 3, d_shape[-2], d_shape[-1])
-        d = torch.linalg.norm(d, ord=2, dim=3)
-
-        # 68% inside of t_sigma
-        if t_scales.shape[2]:
-            t_sigma = 0.5 * t_scales
-            t_sigma[torch.isnan(t_sigma)] = 0.5  # assume a sigma when not given
-        elif t_regs.shape[2] == 4:
-            # two regressions without scales is detection, i.e. second
-            # regression targets are width and height
-            t_scales = torch.linalg.norm(0.5 * t_regs[:, :, 2:], ord=2, dim=2, keepdim=True)
-            t_sigma = 0.5 * t_scales
-            t_sigma[torch.isnan(t_sigma)] = 5.0  # assume a sigma when not given
-            t_sigma = torch.repeat_interleave(t_sigma, 2, dim=2)
-        else:
-            t_sigma = 0.5
-        d = 1.0 / t_sigma * d
-
-        return d
-
-    def _scale_distance(self, x_scales, t_scales):
-        d = 0.1 * (x_scales - t_scales)
-        d[torch.isnan(d)] = 0.0
-        return d
 
     def forward(self, x, t):
         LOG.debug('loss for %s', self.field_names)
@@ -344,9 +263,9 @@ class CompositeLoss(torch.nn.Module):
         t_sigma_min = t[:, :, self.n_confidences + self.n_vectors * 2:self.n_confidences + self.n_vectors * 3]
         t_scales = t[:, :, self.n_confidences + self.n_vectors * 3:]
 
-        d_confidence = self._confidence_distance(x_confidence, t_confidence)
-        d_reg = self._reg_distance(x_regs, t_regs, t_sigma_min, t_scales)
-        d_scale = self._scale_distance(x_scales, t_scales)
+        d_confidence = self.bce_distance(x_confidence, t_confidence)
+        d_reg = self.regression_distance(x_regs, t_regs, t_sigma_min, t_scales)
+        d_scale = self.scale_distance(x_scales, t_scales)
 
         l_confidence = self.distance_loss(d_confidence)
         l_reg = self.distance_loss_l1(d_reg)
