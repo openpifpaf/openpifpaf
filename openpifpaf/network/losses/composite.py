@@ -231,6 +231,7 @@ class CompositeLoss(torch.nn.Module):
         if w is not None:
             self.weights = torch.ones([1, head_meta.n_fields, 1, 1], requires_grad=False)
             self.weights[0, :, 0, 0] = torch.Tensor(w)
+            self.expanded_weights = torch.unsqueeze(self.weights, 2)
         LOG.debug("The weights for the keypoints are %s", self.weights)
         self.bce_blackout = None
         self.previous_losses = None
@@ -291,6 +292,11 @@ class CompositeLoss(torch.nn.Module):
             l_reg_component = l_reg[:, :, i]
             l_reg_component[reg_mask] = l_reg_component[reg_mask] * torch.exp(-x_logb) + x_logb
         # l_scale[reg_mask] = l_scale[reg_mask] * torch.exp(-x_logs) + x_logs
+
+        if self.weights is not None:
+            l_confidence = self.weights * l_confidence
+            l_reg = self.expanded_weights * l_reg
+            l_scale = self.expanded_weights * l_scale
 
         batch_size = t.shape[0]
         losses = [
