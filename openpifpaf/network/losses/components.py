@@ -130,7 +130,7 @@ class Bce(torch.nn.Module):
 
 
 class BceDistance(Bce):
-    def forward(self, x_confidence, t_confidence):
+    def forward(self, x_confidence, t_confidence):  # pylint: disable=arguments-differ
         t_sign = t_confidence.clone()
         t_sign[t_confidence > 0.0] = 1.0
         t_sign[t_confidence <= 0.0] = -1.0
@@ -226,7 +226,7 @@ class Scale(torch.nn.Module):
 
 
 class ScaleDistance(Scale):
-    def forward(self, x_scales, t_scales):
+    def forward(self, x_scales, t_scales):  # pylint: disable=arguments-differ
         d = 1.0 / self.b * (x_scales - t_scales)
         d[torch.isnan(d)] = 0.0
         return d
