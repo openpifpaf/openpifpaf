@@ -1,6 +1,6 @@
 import torch
 
-from .heads import HeadNetwork, CompositeField3
+from .heads import HeadNetwork, CompositeField4
 
 
 class TBaseSingleImage(HeadNetwork):
@@ -15,7 +15,7 @@ class TBaseSingleImage(HeadNetwork):
 
     def __init__(self, meta, in_features):
         super().__init__(meta, in_features)
-        self.head = CompositeField3(meta, in_features)
+        self.head = CompositeField4(meta, in_features)
 
     def forward(self, *args):
         x = args[0]
@@ -69,7 +69,7 @@ class Tcaf(HeadNetwork):
             )
         self.feature_compute = self._global_feature_compute
 
-        self.head = CompositeField3(meta, self.reduced_features * 2)
+        self.head = CompositeField4(meta, self.reduced_features * 2)
 
     def forward(self, *args):
         x = args[0]
