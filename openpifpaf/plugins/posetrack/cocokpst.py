@@ -1,5 +1,4 @@
 import argparse
-from openpifpaf import headmeta
 
 import torch
 

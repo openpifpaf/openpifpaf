@@ -1,5 +1,4 @@
 import argparse
-from openpifpaf.transforms.image import ImageTransform
 
 import PIL
 import torch

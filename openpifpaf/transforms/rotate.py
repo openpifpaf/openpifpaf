@@ -73,7 +73,7 @@ def rotate(image, anns, meta, angle):
     return image, anns, meta
 
 
-def prepad(image, anns, meta, angle):
+def _prepad(image, anns, meta, angle):
     if abs(angle) < 1.0:
         return image, anns, meta
 
@@ -109,7 +109,7 @@ class RotateBy90(Preprocess):
             angle += sym_rnd2 * self.angle_perturbation
 
         if self.prepad:
-            image, anns, meta = prepad(image, anns, meta, angle)
+            image, anns, meta = _prepad(image, anns, meta, angle)
         return rotate(image, anns, meta, angle)
 
 
@@ -126,5 +126,5 @@ class RotateUniform(Preprocess):
         angle = sym_rnd * self.max_angle
 
         if self.prepad:
-            image, anns, meta = prepad(image, anns, meta, angle)
+            image, anns, meta = _prepad(image, anns, meta, angle)
         return rotate(image, anns, meta, angle)
