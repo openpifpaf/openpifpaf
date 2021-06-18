@@ -88,11 +88,11 @@ class CifDetSeeds(CifSeeds):
 
         cif = all_fields[meta.head_index]
         for field_i, p in enumerate(cif):
-            p = p[:, p[0] > self.threshold]
+            p = p[:, p[1] > self.threshold]
             if meta.decoder_min_scale:
                 p = p[:, p[4] > meta.decoder_min_scale / meta.stride]
                 p = p[:, p[5] > meta.decoder_min_scale / meta.stride]
-            c, x, y, w, h, _, __ = p
+            _, c, x, y, w, h = p
 
             if self.ablation_no_rescore:
                 v = c
