@@ -2,16 +2,18 @@ from collections import defaultdict
 import logging
 from typing import Optional
 
-from .cifcaf import CifCaf
+from .cifcaf import CifCaf, CifCafDense
 from .cifdet import CifDet
 from .decoder import Decoder
 from .multi import Multi
+from .pose_similarity import PoseSimilarity
+from .tracking_pose import TrackingPose
 from . import utils
 from ..profiler import Profiler  # , TorchProfiler
 
 LOG = logging.getLogger(__name__)
 
-DECODERS = {CifDet, CifCaf}
+DECODERS = {CifDet, CifCaf, CifCafDense, PoseSimilarity, TrackingPose}
 
 
 def cli(parser, *, workers=None):

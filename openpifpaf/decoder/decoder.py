@@ -1,4 +1,3 @@
-from abc import abstractmethod
 import argparse
 import logging
 import multiprocessing
@@ -58,11 +57,10 @@ class Decoder:
         """Take the parsed argument parser output and configure class variables."""
 
     @classmethod
-    def factory(cls, head_metas) -> List['Generator']:
+    def factory(cls, head_metas) -> List['Decoder']:
         """Create instances of an implementation."""
         raise NotImplementedError
 
-    @abstractmethod
     def __call__(self, fields, *, initial_annotations=None) -> List[annotation.Base]:
         """For single image, from fields to annotations."""
         raise NotImplementedError
