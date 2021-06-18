@@ -350,7 +350,7 @@ class CompositeLoss(torch.nn.Module):
 
         l_confidence = self.distance_loss(d_confidence)
         l_reg = self.distance_loss_l1(d_reg)
-        l_scale = self.distance_loss(d_scale)
+        l_scale = self.distance_loss_l1(d_scale)
 
         # softclamp
         if self.soft_clamp is not None:
