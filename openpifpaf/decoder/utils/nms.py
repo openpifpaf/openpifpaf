@@ -90,7 +90,7 @@ class Detection:
         all_boxes = np.stack([ann.bbox for ann in anns])
         for ann_i, ann in enumerate(anns[1:], start=1):
             mask = [
-                a.score >= self.instance_threshold
+                a.score >= ann.score
                 and a.category_id == ann.category_id
                 for a in anns[:ann_i]
             ]
