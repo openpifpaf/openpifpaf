@@ -496,7 +496,7 @@ def grow_connection_blend(float[:, :] caf_field, float x, float y, float xy_scal
         caf_field[3, score_2_i], caf_field[4, score_2_i], caf_field[5, score_2_i]]
 
     cdef float blend_d2 = (entry_1[0] - entry_2[0])**2 + (entry_1[1] - entry_2[1])**2
-    if blend_d2 > entry_1[3]**2 / 4.0:
+    if blend_d2 > entry_1[2]**2 / 4.0:
         r = entry_1[0], entry_1[1], entry_1[2], score_1 * 0.5
         return r
 
