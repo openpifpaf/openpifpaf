@@ -7,6 +7,7 @@ from .cifdet import CifDet
 from .decoder import Decoder
 from .multi import Multi
 from .pose_similarity import PoseSimilarity
+from .track_base import TrackBase
 from .tracking_pose import TrackingPose
 from . import utils
 from ..profiler import Profiler  # , TorchProfiler
@@ -43,6 +44,7 @@ def cli(parser, *, workers=None):
     group.add_argument('--caf-th', default=utils.CafScored.default_score_th, type=float,
                        help='caf threshold')
 
+    TrackBase.cli(parser)
     for dec in DECODERS:
         dec.cli(parser)
 
@@ -82,6 +84,7 @@ def configure(args):
     # TODO: caf seeds
     assert not args.caf_seeds, 'not implemented'
 
+    TrackBase.configure(args)
     for dec in DECODERS:
         dec.configure(args)
 
