@@ -199,6 +199,8 @@ class AnnRescalerDet():
 
 
 class TrackingAnnRescaler(AnnRescaler):
+    suppress_collision = True
+
     def bg_mask(self, anns, width_height, *, crowd_margin):
         """Create background mask taking crowd annotations into account."""
         anns1, anns2 = anns
@@ -252,16 +254,37 @@ class TrackingAnnRescaler(AnnRescaler):
 
         anns1_by_trackid = {ann['track_id']: ann for ann in anns1}
         keypoint_sets = [
-            np.concatenate((
-                anns1_by_trackid[ann2['track_id']]['keypoints'],
-                ann2['keypoints'],
-            ), axis=0)
+            (
+                np.concatenate((
+                    anns1_by_trackid[ann2['track_id']]['keypoints'],
+                    ann2['keypoints'],
+                ), axis=0),
+                ann2['bbox'],
+            )
             for ann2 in anns2
             if (not ann2['iscrowd']
                 and ann2['track_id'] in anns1_by_trackid)
         ]
         if not keypoint_sets:
             return []
+
+        if self.suppress_collision:
+            for kpi in range(len(keypoint_sets[0])):
+                xyv_bbox = [(kps[kpi], bbox) for kps, bbox in keypoint_sets]
+                for p_i, (xyv_p, bbox_p) in enumerate(xyv_bbox[:-1]):
+                    if xyv_p[2] < 1.0:
+                        continue
+                    for xyv_s, bbox_s in xyv_bbox[p_i + 1:]:
+                        if xyv_s[2] < 1.0:
+                            continue
+                        d_th = 0.1 * max(bbox_p[2], bbox_p[3], bbox_s[2], bbox_s[3])
+                        if abs(xyv_p[0] - xyv_s[0]) > d_th \
+                           or abs(xyv_p[1] - xyv_s[1]) > d_th:
+                            continue
+                        # print('!!!!!!!!!!!!!!!! suppressing ', kpi, p_i, xyv_p, xyv_s)
+                        xyv_p[2] = 0.0
+                        xyv_s[2] = 0.0
+        keypoint_sets = [kps for kps, _ in keypoint_sets]
 
         for keypoints in keypoint_sets:
             keypoints[:, :2] /= self.stride
