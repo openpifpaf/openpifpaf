@@ -195,11 +195,10 @@ class TrackingPose(TrackBase):
                         self.n_keypoints * position_i + self.n_keypoints
                     ] = prev_pose.joint_scales
 
-                    if self.single_seed:
-                        inverse_mask = tracking_ann.data[:, 2] < np.amax(tracking_ann.data[:, 2])
-                        tracking_ann.data[inverse_mask] = 0.0
-                        tracking_ann.joint_scales[inverse_mask] = 0.0
-
+            if self.single_seed:
+                inverse_mask = tracking_ann.data[:, 2] < np.amax(tracking_ann.data[:, 2])
+                tracking_ann.data[inverse_mask] = 0.0
+                tracking_ann.joint_scales[inverse_mask] = 0.0
             tracking_ann.data[tracking_ann.data[:, 2] < 0.05] = 0.0
             if not np.any(tracking_ann.data[:, 2] > 0.0):
                 continue
@@ -210,7 +209,7 @@ class TrackingPose(TrackBase):
         # use standard pose processor to connect to current frame
         LOG.debug('overwriting CifCaf parameters')
         CifCaf.nms = None
-        CifCaf.keypoint_threshold = 0.001
+        # CifCaf.keypoint_threshold = 0.001
         tracking_fields = [
             fields[self.cif_meta.head_index],
             np.concatenate([
