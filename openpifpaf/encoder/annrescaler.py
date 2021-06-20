@@ -272,6 +272,7 @@ class TrackingAnnRescaler(AnnRescaler):
             for p_i, (kps_p, bbox_p) in enumerate(keypoint_sets[:-1]):
                 for kps_s, bbox_s in keypoint_sets[p_i + 1:]:
                     d_th = 0.1 * max(bbox_p[2], bbox_p[3], bbox_s[2], bbox_s[3])
+                    d_th = max(16.0, d_th)
                     diff = np.abs(kps_p[:, :2] - kps_s[:, :2])
                     collision = (
                         (kps_p[:, 2] > 0.0)
