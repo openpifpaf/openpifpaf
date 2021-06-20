@@ -269,21 +269,19 @@ class TrackingAnnRescaler(AnnRescaler):
             return []
 
         if self.suppress_collision:
-            for kpi in range(len(keypoint_sets[0])):
-                xyv_bbox = [(kps[kpi], bbox) for kps, bbox in keypoint_sets]
-                for p_i, (xyv_p, bbox_p) in enumerate(xyv_bbox[:-1]):
-                    if xyv_p[2] < 1.0:
-                        continue
-                    for xyv_s, bbox_s in xyv_bbox[p_i + 1:]:
-                        if xyv_s[2] < 1.0:
-                            continue
-                        d_th = 0.1 * max(bbox_p[2], bbox_p[3], bbox_s[2], bbox_s[3])
-                        if abs(xyv_p[0] - xyv_s[0]) > d_th \
-                           or abs(xyv_p[1] - xyv_s[1]) > d_th:
-                            continue
-                        # print('!!!!!!!!!!!!!!!! suppressing ', kpi, p_i, xyv_p, xyv_s)
-                        xyv_p[2] = 0.0
-                        xyv_s[2] = 0.0
+            for p_i, (kps_p, bbox_p) in enumerate(keypoint_sets[:-1]):
+                for kps_s, bbox_s in keypoint_sets[p_i + 1:]:
+                    d_th = 0.1 * max(bbox_p[2], bbox_p[3], bbox_s[2], bbox_s[3])
+                    diff = np.abs(kps_p[:, :2] - kps_s[:, :2])
+                    collision = (
+                        (kps_p[:, 2] > 0.0)
+                        & (kps_s[:, 2] > 0.0)
+                        & (diff[:, 0] < d_th)
+                        & (diff[:, 1] < d_th)
+                    )
+                    if np.any(collision):
+                        kps_p[collision, 2] = 0.0
+                        kps_s[collision, 2] = 0.0
         keypoint_sets = [kps for kps, _ in keypoint_sets]
 
         for keypoints in keypoint_sets:
