@@ -1,3 +1,4 @@
+import argparse
 from typing import List
 
 import numpy as np
@@ -26,6 +27,31 @@ class TrackBase(Decoder):
         self.simplified_last_track_id = 0
 
         Signal.subscribe('eval_reset', self.reset)
+
+    @classmethod
+    def cli(cls, parser: argparse.ArgumentParser):
+        """Command line interface (CLI) to extend argument parser."""
+        group = parser.add_argument_group('Decoder for tracking')
+        group.add_argument('--tr-single-pose-threshold',
+                           default=cls.single_pose_threshold, type=float,
+                           help='Single-pose threshold for tracking.')
+        group.add_argument('--tr-multi-pose-threshold',
+                           default=cls.multi_pose_threshold, type=float,
+                           help='multi-pose threshold for tracking.')
+        group.add_argument('--tr-multi-pose-n',
+                           default=cls.multi_pose_n, type=float,
+                           help='multi-pose n for tracking.')
+        group.add_argument('--tr-minimum-threshold',
+                           default=cls.minimum_threshold, type=float,
+                           help='minimum-pose threshold for tracking.')
+
+    @classmethod
+    def configure(cls, args: argparse.Namespace):
+        """Take the parsed argument parser output and configure class variables."""
+        cls.single_pose_threshold = args.tr_single_pose_threshold
+        cls.multi_pose_threshold = args.tr_multi_pose_threshold
+        cls.multi_pose_n = args.tr_multi_pose_n
+        cls.minimum_threshold = args.tr_minimum_threshold
 
     @classmethod
     def factory(cls, head_metas) -> List['Decoder']:
