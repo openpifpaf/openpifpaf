@@ -145,15 +145,13 @@ class TrackingPose(TrackBase):
 
             assert ann.joint_scales is not None
             assert len(occupied) == len(ann.data)
-            for f, (xyv, joint_s) in enumerate(zip(ann.data, ann.joint_scales)):
-                v = xyv[2]
-                if v == 0.0:
-                    continue
-
-                if occupied.get(f, xyv[0], xyv[1]):
+            joint_is = np.flatnonzero(ann.data[:, 2])
+            for joint_i in joint_is:
+                xyv = ann.data[joint_i]
+                if occupied.get(joint_i, xyv[0], xyv[1]):
                     xyv[2] = 0.0
                 else:
-                    occupied.set(f, xyv[0], xyv[1], joint_s)
+                    occupied.set(joint_i, xyv[0], xyv[1], ann.joint_scales[joint_i])
 
         # keypoint threshold
         for t in tracks:
@@ -209,7 +207,7 @@ class TrackingPose(TrackBase):
         # use standard pose processor to connect to current frame
         LOG.debug('overwriting CifCaf parameters')
         CifCaf.nms = None
-        # CifCaf.keypoint_threshold = 0.001
+        CifCaf.keypoint_threshold = 0.001
         tracking_fields = [
             fields[self.cif_meta.head_index],
             np.concatenate([
