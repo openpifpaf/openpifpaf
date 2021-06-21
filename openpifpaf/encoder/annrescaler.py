@@ -7,6 +7,7 @@ LOG = logging.getLogger(__name__)
 
 class AnnRescaler():
     suppress_selfhidden = True
+    suppress_invisible = False
 
     def __init__(self, stride, pose=None):
         self.stride = stride
@@ -48,7 +49,10 @@ class AnnRescaler():
         if not keypoint_sets:
             return []
 
-        if self.suppress_selfhidden:
+        if self.suppress_invisible:
+            for kps in keypoint_sets:
+                kps[kps[:, 2] < 2.0, 2] = 0.0
+        elif self.suppress_selfhidden:
             for kpi in range(len(keypoint_sets[0])):
                 all_xyv = sorted([keypoints[kpi] for keypoints in keypoint_sets],
                                  key=lambda xyv: xyv[2], reverse=True)
@@ -267,6 +271,10 @@ class TrackingAnnRescaler(AnnRescaler):
         ]
         if not keypoint_sets:
             return []
+
+        if self.suppress_invisible:
+            for kps in keypoint_sets:
+                kps[kps[:, 2] < 2.0, 2] = 0.0
 
         if self.suppress_collision:
             for p_i, (kps_p, bbox_p) in enumerate(keypoint_sets[:-1]):

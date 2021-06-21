@@ -22,6 +22,10 @@ def cli(parser):
                        dest='encoder_suppress_selfhidden',
                        default=True, action='store_false',
                        help='[experimental]')
+    assert not AnnRescaler.suppress_invisible
+    group.add_argument('--encoder-suppress-invisible',
+                       default=False, action='store_true',
+                       help='[experimental]')
 
 
 def configure(args):
@@ -35,3 +39,4 @@ def configure(args):
 
     # configure AnnRescaler
     AnnRescaler.suppress_selfhidden = args.encoder_suppress_selfhidden
+    AnnRescaler.suppress_invisible = args.encoder_suppress_invisible
