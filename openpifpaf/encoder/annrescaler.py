@@ -273,7 +273,7 @@ class TrackingAnnRescaler(AnnRescaler):
             return []
 
         if self.suppress_invisible:
-            for kps in keypoint_sets:
+            for kps, _ in keypoint_sets:
                 kps[kps[:, 2] < 2.0, 2] = 0.0
 
         if self.suppress_collision:
