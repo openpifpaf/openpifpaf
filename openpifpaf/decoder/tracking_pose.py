@@ -201,6 +201,8 @@ class TrackingPose(TrackBase):
             if not np.any(tracking_ann.data[:, 2] > 0.0):
                 continue
             initial_annotations.append(tracking_ann)
+        initial_annotations = list(sorted(initial_annotations, key=lambda ann: ann.bbox()[3], reverse=True))
+        LOG.info('initial annotation heights: %s', [ann.bbox()[3] for ann in initial_annotations])
 
         LOG.debug('using %d initial annotations', len(initial_annotations))
 
