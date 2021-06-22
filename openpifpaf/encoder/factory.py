@@ -26,6 +26,10 @@ def cli(parser):
     group.add_argument('--encoder-suppress-invisible',
                        default=False, action='store_true',
                        help='[experimental]')
+    assert not AnnRescaler.suppress_collision
+    group.add_argument('--encoder-suppress-collision',
+                       default=False, action='store_true',
+                       help='[experimental]')
 
 
 def configure(args):
@@ -40,3 +44,4 @@ def configure(args):
     # configure AnnRescaler
     AnnRescaler.suppress_selfhidden = args.encoder_suppress_selfhidden
     AnnRescaler.suppress_invisible = args.encoder_suppress_invisible
+    AnnRescaler.suppress_collision = args.encoder_suppress_collision

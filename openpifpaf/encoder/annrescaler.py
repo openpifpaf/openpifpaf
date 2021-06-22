@@ -8,6 +8,7 @@ LOG = logging.getLogger(__name__)
 class AnnRescaler():
     suppress_selfhidden = True
     suppress_invisible = False
+    suppress_collision = False
 
     def __init__(self, stride, pose=None):
         self.stride = stride
@@ -45,9 +46,27 @@ class AnnRescaler():
 
     def keypoint_sets(self, anns):
         """Ignore annotations of crowds."""
-        keypoint_sets = [np.copy(ann['keypoints']) for ann in anns if not ann['iscrowd']]
+        keypoint_sets = [(np.copy(ann['keypoints']), ann['bbox'])
+                         for ann in anns if not ann['iscrowd']]
         if not keypoint_sets:
             return []
+
+        if self.suppress_collision:
+            for p_i, (kps_p, bbox_p) in enumerate(keypoint_sets[:-1]):
+                for kps_s, bbox_s in keypoint_sets[p_i + 1:]:
+                    d_th = 0.2 * max(bbox_p[2], bbox_p[3], bbox_s[2], bbox_s[3])
+                    d_th = max(16.0, d_th)
+                    diff = np.abs(kps_p[:, :2] - kps_s[:, :2])
+                    collision = (
+                        (kps_p[:, 2] > 0.0)
+                        & (kps_s[:, 2] > 0.0)
+                        & (diff[:, 0] < d_th)
+                        & (diff[:, 1] < d_th)
+                    )
+                    if np.any(collision):
+                        kps_p[collision, 2] = 0.0
+                        kps_s[collision, 2] = 0.0
+        keypoint_sets = [kps for kps, _ in keypoint_sets]
 
         if self.suppress_invisible:
             for kps in keypoint_sets:
@@ -203,8 +222,6 @@ class AnnRescalerDet():
 
 
 class TrackingAnnRescaler(AnnRescaler):
-    suppress_collision = True
-
     def bg_mask(self, anns, width_height, *, crowd_margin):
         """Create background mask taking crowd annotations into account."""
         anns1, anns2 = anns
@@ -272,10 +289,6 @@ class TrackingAnnRescaler(AnnRescaler):
         if not keypoint_sets:
             return []
 
-        if self.suppress_invisible:
-            for kps, _ in keypoint_sets:
-                kps[kps[:, 2] < 2.0, 2] = 0.0
-
         if self.suppress_collision:
             for p_i, (kps_p, bbox_p) in enumerate(keypoint_sets[:-1]):
                 for kps_s, bbox_s in keypoint_sets[p_i + 1:]:
@@ -292,6 +305,10 @@ class TrackingAnnRescaler(AnnRescaler):
                         kps_p[collision, 2] = 0.0
                         kps_s[collision, 2] = 0.0
         keypoint_sets = [kps for kps, _ in keypoint_sets]
+
+        if self.suppress_invisible:
+            for kps in keypoint_sets:
+                kps[kps[:, 2] < 2.0, 2] = 0.0
 
         for keypoints in keypoint_sets:
             keypoints[:, :2] /= self.stride
