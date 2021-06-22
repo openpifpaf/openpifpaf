@@ -227,6 +227,11 @@ class TrackingPose(TrackBase):
                 self.cif_meta.keypoints, self.caf_meta.skeleton)
             single_frame_ann.data[:] = tracking_ann.data[:self.n_keypoints]
             single_frame_ann.joint_scales = tracking_ann.joint_scales[:self.n_keypoints]
+            single_frame_ann.decoding_order = [
+                (jsi, jti, xyv_s, xyv_t)
+                for (jsi, jti, xyv_s, xyv_t) in tracking_ann.decoding_order
+                if jsi < self.n_keypoints and jti < self.n_keypoints
+            ]
 
             track_id = getattr(tracking_ann, 'id_', -1)
             if track_id == -1:
