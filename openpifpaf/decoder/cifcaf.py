@@ -87,6 +87,7 @@ class CifCaf(Decoder):
 
     :param: nms: set to None to switch off non-maximum suppression.
     """
+    block_joints = False
     connection_method = 'blend'
     occupancy_visualizer = visualizer.Occupancy()
     force_complete = False
@@ -160,6 +161,9 @@ class CifCaf(Decoder):
                            default=cls.keypoint_threshold_rel,
                            help='filter keypoint connections by relative score')
 
+        assert not cls.block_joints
+        group.add_argument('--cifcaf-block-joints', default=False, action='store_true',
+                           help='block joints')
         assert not cls.greedy
         group.add_argument('--greedy', default=False, action='store_true',
                            help='greedy decoding')
@@ -205,6 +209,7 @@ class CifCaf(Decoder):
         utils.nms.Keypoints.keypoint_threshold = keypoint_threshold_nms
         cls.keypoint_threshold_rel = args.keypoint_threshold_rel
 
+        cls.block_joints = args.cifcaf_block_joints
         cls.greedy = args.greedy
         cls.connection_method = args.connection_method
 
@@ -380,6 +385,8 @@ class CifCaf(Decoder):
                 new_xysv = self.connection_value(
                     ann, caf_scored, start_i, end_i, reverse_match=reverse_match)
                 if new_xysv[3] == 0.0:
+                    if self.block_joints:
+                        ann.data[end_i, 2] = 0.00001
                     continue
                 score = new_xysv[3]
                 if self.greedy:
