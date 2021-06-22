@@ -306,12 +306,12 @@ class CifCaf(Decoder):
         new_xysv = grow_connection_blend(
             caf_f, xyv[0], xyv[1], xy_scale_s, only_max)
         if new_xysv[3] == 0.0:
-            return 0.0, 0.0, 0.0, 0.0
+            return new_xysv[0], new_xysv[1], new_xysv[2], 0.0
         keypoint_score = np.sqrt(new_xysv[3] * xyv[2])  # geometric mean
         if keypoint_score < self.keypoint_threshold:
-            return 0.0, 0.0, 0.0, 0.0
+            return new_xysv[0], new_xysv[1], new_xysv[2], 0.0
         if keypoint_score < xyv[2] * self.keypoint_threshold_rel:
-            return 0.0, 0.0, 0.0, 0.0
+            return new_xysv[0], new_xysv[1], new_xysv[2], 0.0
         xy_scale_t = max(0.0, new_xysv[2])
 
         # reverse match
@@ -319,9 +319,9 @@ class CifCaf(Decoder):
             reverse_xyv = grow_connection_blend(
                 caf_b, new_xysv[0], new_xysv[1], xy_scale_t, only_max)
             if reverse_xyv[2] == 0.0:
-                return 0.0, 0.0, 0.0, 0.0
+                return new_xysv[0], new_xysv[1], new_xysv[2], 0.0
             if abs(xyv[0] - reverse_xyv[0]) + abs(xyv[1] - reverse_xyv[1]) > xy_scale_s:
-                return 0.0, 0.0, 0.0, 0.0
+                return new_xysv[0], new_xysv[1], new_xysv[2], 0.0
 
         return (new_xysv[0], new_xysv[1], new_xysv[2], keypoint_score)
 
@@ -386,7 +386,9 @@ class CifCaf(Decoder):
                     ann, caf_scored, start_i, end_i, reverse_match=reverse_match)
                 if new_xysv[3] == 0.0:
                     if self.block_joints:
+                        ann.data[end_i, :2] = new_xysv[:2]
                         ann.data[end_i, 2] = 0.00001
+                        ann.joint_scales[end_i] = new_xysv[3]
                     continue
                 score = new_xysv[3]
                 if self.greedy:

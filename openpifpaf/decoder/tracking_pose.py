@@ -207,7 +207,7 @@ class TrackingPose(TrackBase):
         # use standard pose processor to connect to current frame
         LOG.debug('overwriting CifCaf parameters')
         CifCaf.nms = None
-        CifCaf.keypoint_threshold = 0.001
+        # CifCaf.keypoint_threshold = 0.001
         tracking_fields = [
             fields[self.cif_meta.head_index],
             np.concatenate([
