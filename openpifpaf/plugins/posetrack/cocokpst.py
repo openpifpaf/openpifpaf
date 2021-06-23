@@ -24,6 +24,8 @@ except ImportError:
 
 
 class CocoKpSt(openpifpaf.datasets.DataModule):
+    max_shift = 30.0
+
     def __init__(self):
         super().__init__()
 
@@ -70,13 +72,15 @@ class CocoKpSt(openpifpaf.datasets.DataModule):
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
-        # group = parser.add_argument_group('data module CocoKpSt')
-        pass
+        group = parser.add_argument_group('data module CocoKpSt')
+        group.add_argument('--cocokpst-max-shift',
+                           default=cls.max_shift, type=float,
+                           help='max shift')
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
         # extract global information
-        pass
+        cls.max_shift = args.cocokpst_max_shift
 
     def _preprocess(self):
         bmin = openpifpaf.plugins.coco.CocoKp.bmin
@@ -125,9 +129,9 @@ class CocoKpSt(openpifpaf.datasets.DataModule):
                 [openpifpaf.plugins.coco.CocoKp.orientation_invariant, 0.4],
             )),
             openpifpaf.transforms.pair.Crop(
-                openpifpaf.plugins.coco.CocoKp.square_edge, max_shift=30.0),
+                openpifpaf.plugins.coco.CocoKp.square_edge, max_shift=self.max_shift),
             openpifpaf.transforms.pair.Pad(
-                openpifpaf.plugins.coco.CocoKp.square_edge, max_shift=30.0),
+                openpifpaf.plugins.coco.CocoKp.square_edge, max_shift=self.max_shift),
             S(openpifpaf.transforms.RandomChoice([openpifpaf.transforms.Blur(),
                                                   openpifpaf.transforms.HorizontalBlur()],
                                                  [openpifpaf.plugins.coco.CocoKp.blur / 2.0,
