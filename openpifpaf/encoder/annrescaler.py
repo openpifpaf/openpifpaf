@@ -45,7 +45,7 @@ class AnnRescaler():
         )
 
     @staticmethod
-    def suppress_collisions(keypoint_sets_bbox):
+    def suppress_collision_(keypoint_sets_bbox):
         for p_i, (kps_p, bbox_p) in enumerate(keypoint_sets_bbox[:-1]):
             for kps_s, bbox_s in keypoint_sets_bbox[p_i + 1:]:
                 d_th = 0.2 * max(bbox_p[2], bbox_p[3], bbox_s[2], bbox_s[3])
@@ -61,6 +61,26 @@ class AnnRescaler():
                     kps_p[collision, 2] = 0.0
                     kps_s[collision, 2] = 0.0
 
+    @staticmethod
+    def suppress_selfhidden_(keypoint_sets):
+        for kpi in range(len(keypoint_sets[0])):
+            all_xyv = sorted([keypoints[kpi] for keypoints in keypoint_sets],
+                              key=lambda xyv: xyv[2], reverse=True)
+            for i, xyv in enumerate(all_xyv[1:], start=1):
+                if xyv[2] > 1.0:  # is visible
+                    continue
+                if xyv[2] < 1.0:  # does not exist
+                    break
+                for prev_xyv in all_xyv[:i]:
+                    if prev_xyv[2] <= 1.0:  # do not suppress if both hidden
+                        break
+                    if np.abs(prev_xyv[0] - xyv[0]) > 32.0 \
+                        or np.abs(prev_xyv[1] - xyv[1]) > 32.0:
+                        continue
+                    LOG.debug('suppressing %s for %s (kp %d)', xyv, prev_xyv, i)
+                    xyv[2] = 0.0
+                    break  # only need to suppress a keypoint once
+
     def keypoint_sets(self, anns):
         """Ignore annotations of crowds."""
         keypoint_sets_bbox = [(np.copy(ann['keypoints']), ann['bbox'])
@@ -69,30 +89,14 @@ class AnnRescaler():
             return []
 
         if self.suppress_collision:
-            self.suppress_collisions(keypoint_sets_bbox)
+            self.suppress_collision_(keypoint_sets_bbox)
         keypoint_sets = [kps for kps, _ in keypoint_sets_bbox]
 
         if self.suppress_invisible:
             for kps in keypoint_sets:
                 kps[kps[:, 2] < 2.0, 2] = 0.0
         elif self.suppress_selfhidden:
-            for kpi in range(len(keypoint_sets[0])):
-                all_xyv = sorted([keypoints[kpi] for keypoints in keypoint_sets],
-                                 key=lambda xyv: xyv[2], reverse=True)
-                for i, xyv in enumerate(all_xyv[1:], start=1):
-                    if xyv[2] > 1.0:  # is visible
-                        continue
-                    if xyv[2] < 1.0:  # does not exist
-                        break
-                    for prev_xyv in all_xyv[:i]:
-                        if prev_xyv[2] <= 1.0:  # do not suppress if both hidden
-                            break
-                        if np.abs(prev_xyv[0] - xyv[0]) > 32.0 \
-                           or np.abs(prev_xyv[1] - xyv[1]) > 32.0:
-                            continue
-                        LOG.debug('suppressing %s for %s (kp %d)', xyv, prev_xyv, i)
-                        xyv[2] = 0.0
-                        break  # only need to suppress a keypoint once
+            self.suppress_selfhidden_(keypoint_sets)
 
         for keypoints in keypoint_sets:
             keypoints[:, :2] /= self.stride
@@ -294,7 +298,7 @@ class TrackingAnnRescaler(AnnRescaler):
             return []
 
         if self.suppress_collision:
-            self.suppress_collisions(keypoint_sets_bbox)
+            self.suppress_collision_(keypoint_sets_bbox)
         keypoint_sets = [kps for kps, _ in keypoint_sets_bbox]
 
         if self.suppress_invisible:
