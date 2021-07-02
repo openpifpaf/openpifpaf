@@ -44,29 +44,33 @@ class AnnRescaler():
             meta['valid_area'][3] / self.stride,
         )
 
+    @staticmethod
+    def suppress_collisions(keypoint_sets_bbox):
+        for p_i, (kps_p, bbox_p) in enumerate(keypoint_sets_bbox[:-1]):
+            for kps_s, bbox_s in keypoint_sets_bbox[p_i + 1:]:
+                d_th = 0.2 * max(bbox_p[2], bbox_p[3], bbox_s[2], bbox_s[3])
+                d_th = max(16.0, d_th)
+                diff = np.abs(kps_p[:, :2] - kps_s[:, :2])
+                collision = (
+                    (kps_p[:, 2] > 0.0)
+                    & (kps_s[:, 2] > 0.0)
+                    & (diff[:, 0] < d_th)
+                    & (diff[:, 1] < d_th)
+                )
+                if np.any(collision):
+                    kps_p[collision, 2] = 0.0
+                    kps_s[collision, 2] = 0.0
+
     def keypoint_sets(self, anns):
         """Ignore annotations of crowds."""
-        keypoint_sets = [(np.copy(ann['keypoints']), ann['bbox'])
-                         for ann in anns if not ann['iscrowd']]
-        if not keypoint_sets:
+        keypoint_sets_bbox = [(np.copy(ann['keypoints']), ann['bbox'])
+                              for ann in anns if not ann['iscrowd']]
+        if not keypoint_sets_bbox:
             return []
 
         if self.suppress_collision:
-            for p_i, (kps_p, bbox_p) in enumerate(keypoint_sets[:-1]):
-                for kps_s, bbox_s in keypoint_sets[p_i + 1:]:
-                    d_th = 0.2 * max(bbox_p[2], bbox_p[3], bbox_s[2], bbox_s[3])
-                    d_th = max(16.0, d_th)
-                    diff = np.abs(kps_p[:, :2] - kps_s[:, :2])
-                    collision = (
-                        (kps_p[:, 2] > 0.0)
-                        & (kps_s[:, 2] > 0.0)
-                        & (diff[:, 0] < d_th)
-                        & (diff[:, 1] < d_th)
-                    )
-                    if np.any(collision):
-                        kps_p[collision, 2] = 0.0
-                        kps_s[collision, 2] = 0.0
-        keypoint_sets = [kps for kps, _ in keypoint_sets]
+            self.suppress_collisions(keypoint_sets_bbox)
+        keypoint_sets = [kps for kps, _ in keypoint_sets_bbox]
 
         if self.suppress_invisible:
             for kps in keypoint_sets:
@@ -274,7 +278,7 @@ class TrackingAnnRescaler(AnnRescaler):
         anns1, anns2 = anns
 
         anns1_by_trackid = {ann['track_id']: ann for ann in anns1}
-        keypoint_sets = [
+        keypoint_sets_bbox = [
             (
                 np.concatenate((
                     anns1_by_trackid[ann2['track_id']]['keypoints'],
@@ -286,25 +290,12 @@ class TrackingAnnRescaler(AnnRescaler):
             if (not ann2['iscrowd']
                 and ann2['track_id'] in anns1_by_trackid)
         ]
-        if not keypoint_sets:
+        if not keypoint_sets_bbox:
             return []
 
         if self.suppress_collision:
-            for p_i, (kps_p, bbox_p) in enumerate(keypoint_sets[:-1]):
-                for kps_s, bbox_s in keypoint_sets[p_i + 1:]:
-                    d_th = 0.2 * max(bbox_p[2], bbox_p[3], bbox_s[2], bbox_s[3])
-                    d_th = max(16.0, d_th)
-                    diff = np.abs(kps_p[:, :2] - kps_s[:, :2])
-                    collision = (
-                        (kps_p[:, 2] > 0.0)
-                        & (kps_s[:, 2] > 0.0)
-                        & (diff[:, 0] < d_th)
-                        & (diff[:, 1] < d_th)
-                    )
-                    if np.any(collision):
-                        kps_p[collision, 2] = 0.0
-                        kps_s[collision, 2] = 0.0
-        keypoint_sets = [kps for kps, _ in keypoint_sets]
+            self.suppress_collisions(keypoint_sets_bbox)
+        keypoint_sets = [kps for kps, _ in keypoint_sets_bbox]
 
         if self.suppress_invisible:
             for kps in keypoint_sets:
