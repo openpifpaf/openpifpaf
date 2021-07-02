@@ -53,7 +53,7 @@ setup(
     python_requires='>=3.6',
     install_requires=[
         'importlib_metadata!=3.8.0',  # temporary for pytest
-        'numpy>=1.16,<1.21',  # upper limit for torchvision 0.10.0 compatibility
+        'numpy>=1.16',
         'pysparkling',  # for log analysis
         'python-json-logger',
         'torch>=1.7.1',
