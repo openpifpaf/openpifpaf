@@ -65,7 +65,7 @@ class AnnRescaler():
     def suppress_selfhidden_(keypoint_sets):
         for kpi in range(len(keypoint_sets[0])):
             all_xyv = sorted([keypoints[kpi] for keypoints in keypoint_sets],
-                              key=lambda xyv: xyv[2], reverse=True)
+                             key=lambda xyv: xyv[2], reverse=True)
             for i, xyv in enumerate(all_xyv[1:], start=1):
                 if xyv[2] > 1.0:  # is visible
                     continue
@@ -75,7 +75,7 @@ class AnnRescaler():
                     if prev_xyv[2] <= 1.0:  # do not suppress if both hidden
                         break
                     if np.abs(prev_xyv[0] - xyv[0]) > 32.0 \
-                        or np.abs(prev_xyv[1] - xyv[1]) > 32.0:
+                       or np.abs(prev_xyv[1] - xyv[1]) > 32.0:
                         continue
                     LOG.debug('suppressing %s for %s (kp %d)', xyv, prev_xyv, i)
                     xyv[2] = 0.0
