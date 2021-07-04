@@ -388,7 +388,7 @@ class CifCaf(Decoder):
                     if self.block_joints:
                         ann.data[end_i, :2] = new_xysv[:2]
                         ann.data[end_i, 2] = 0.00001
-                        ann.joint_scales[end_i] = new_xysv[3]
+                        ann.joint_scales[end_i] = new_xysv[2]
                     continue
                 score = new_xysv[3]
                 if self.greedy:
