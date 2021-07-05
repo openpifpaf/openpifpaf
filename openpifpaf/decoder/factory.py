@@ -25,8 +25,9 @@ def cli(parser, *, workers=None):
                        help='minimum threshold for seeds')
     assert utils.nms.Detection.instance_threshold == utils.nms.Keypoints.instance_threshold
     group.add_argument('--instance-threshold', type=float, default=None,
-                       help=('filter instances by score (0.0 with --force-complete-pose '
-                             'else {})'.format(utils.nms.Keypoints.instance_threshold)))
+                       help=('filter instances by score (default is 0.0 with '
+                             '--force-complete-pose and {} otherwise)'
+                             ''.format(utils.nms.Keypoints.instance_threshold)))
     group.add_argument('--decoder-workers', default=workers, type=int,
                        help='number of workers for pose decoding')
     group.add_argument('--caf-seeds', default=False, action='store_true',
