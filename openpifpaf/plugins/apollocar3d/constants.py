@@ -326,11 +326,11 @@ HFLIP_ids = {
 
 HFLIP_66 = {}
 checklist = []
-for ind, flipped in HFLIP_ids.items():
-    HFLIP_66[CAR_KEYPOINTS_66[ind]] = CAR_KEYPOINTS_66[flipped]
-    HFLIP_66[CAR_KEYPOINTS_66[flipped]] = CAR_KEYPOINTS_66[ind]
+for ind in HFLIP_ids:
+    HFLIP_66[CAR_KEYPOINTS_66[ind]] = CAR_KEYPOINTS_66[HFLIP_ids[ind]]
+    HFLIP_66[CAR_KEYPOINTS_66[HFLIP_ids[ind]]] = CAR_KEYPOINTS_66[ind]
     checklist.append(ind)
-    checklist.append(flipped)
+    checklist.append(HFLIP_ids[ind])
 assert sorted(checklist) == list(range(len(CAR_KEYPOINTS_66)))
 assert len(HFLIP_66) == len(CAR_KEYPOINTS_66)
 
@@ -429,7 +429,7 @@ CAR_POSE_HALF = np.array([
     [[-P_X, P_Y_BOTTOM, BACK_Z]])  # 65
 
 CAR_POSE_66 = CAR_POSE_HALF
-for key in HFLIP_ids.keys():
+for key in HFLIP_ids:
     CAR_POSE_66[HFLIP_ids[key], :] = CAR_POSE_HALF[key, :]
     CAR_POSE_66[HFLIP_ids[key], 0] = -CAR_POSE_HALF[key, 0]
 assert not np.any(CAR_POSE_66 == np.nan)
