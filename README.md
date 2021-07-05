@@ -29,16 +29,13 @@ Continuously tested on Linux, MacOS and Windows:
 
 Previous [CVPR 2019 paper](http://openaccess.thecvf.com/content_CVPR_2019/html/Kreiss_PifPaf_Composite_Fields_for_Human_Pose_Estimation_CVPR_2019_paper.html).
 
+
 # [Guide](https://openpifpaf.github.io/intro.html)
 
-Detailed instructions on our __[OpenPifPaf Guide](https://openpifpaf.github.io/intro.html)__.
-
+Detailed documentation is in our __[OpenPifPaf Guide](https://openpifpaf.github.io/intro.html)__.
 For developers, there is also the
 __[DEV Guide](https://openpifpaf.github.io/dev/intro.html)__
 which is the same guide but based on the latest code in the `main` branch.
-
-
-[CC-BY-2.0]: https://creativecommons.org/licenses/by/2.0/
 
 
 # Examples
@@ -51,7 +48,9 @@ Created with:
 pip3 install openpifpaf matplotlib
 python3 -m openpifpaf.predict docs/coco/000000081988.jpg --image-output
 ```
+
 ---
+
 Here is the [tutorial for body, foot, face and hand keypoints](https://openpifpaf.github.io/plugins_wholebody.html). Example:
 ![example image with overlaid wholebody pose predictions](https://raw.githubusercontent.com/openpifpaf/openpifpaf/main/docs/soccer.jpeg.predictions.jpeg)
 
@@ -61,7 +60,9 @@ Created with:
 python -m openpifpaf.predict guide/wholebody/soccer.jpeg \
   --checkpoint=shufflenetv2k30-wholebody --line-width=2 --image-output
 ```
+
 ---
+
 Here is the [tutorial for car keypoints](https://openpifpaf.github.io/plugins_apollocar3d.html). Example:
 ![example image cars](https://raw.githubusercontent.com/openpifpaf/openpifpaf/main/docs/peterbourg.jpg.predictions.jpeg)
 
@@ -88,7 +89,11 @@ python -m openpifpaf.predict guide/images tappo_loomo.jpg \
   --long-edge=500
 ```
 
+
 # Commercial License
 
 This software is available for licensing via the EPFL Technology Transfer
 Office (https://tto.epfl.ch/, info.tto@epfl.ch).
+
+
+[CC-BY-2.0]: https://creativecommons.org/licenses/by/2.0/
