@@ -23,15 +23,17 @@ face_skeleton = [
     (72, 84), (84, 85), (85, 86), (86, 87), (87, 88), (88, 78),  # upper lip
     (72, 91), (91, 90), (90, 89), (89, 78)]  # lower lip
 
-lefthand_skeleton = [
+lefthand_skeleton = ([
     (92, 10),  # connect to wrist
     (92, 93), (92, 97), (92, 101), (92, 105),  # connect to finger starts
     (92, 109)] + [(x, x + 1) for s in [93, 97, 101, 105, 109] for x in range(s, s + 3)]  # four f.
+    + [(94, 97), (97, 101), (101, 105), (105, 109)])
 
-righthand_skeleton = [
+righthand_skeleton = ([
     (113, 11),  # connect to wrist
     (113, 114), (113, 118), (113, 122), (113, 126),   # connect to finger starts
     (113, 130)] + [(x, x + 1) for s in [114, 118, 122, 126, 130] for x in range(s, s + 3)]
+    + [(115, 118), (118, 122), (122, 126), (126, 130)])
 
 WHOLEBODY_SKELETON = body_foot_skeleton + face_skeleton + lefthand_skeleton + righthand_skeleton
 
