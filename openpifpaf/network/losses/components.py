@@ -130,12 +130,12 @@ class Bce(torch.nn.Module):
 
 
 class BceDistance(Bce):
-    def forward(self, x_confidence, t_confidence):  # pylint: disable=arguments-differ
-        t_sign = t_confidence.clone()
-        t_sign[t_confidence > 0.0] = 1.0
-        t_sign[t_confidence <= 0.0] = -1.0
+    def forward(self, x, t):
+        t_sign = t.clone()
+        t_sign[t > 0.0] = 1.0
+        t_sign[t <= 0.0] = -1.0
         # construct target location relative to x but without backpropagating through x
-        x = x_confidence.detach()
+        x = x.detach()
 
         focal_loss_modification = 1.0
         p_bar = 1.0 / (1.0 + torch.exp(t_sign * x))
@@ -157,14 +157,14 @@ class BceDistance(Bce):
         target = x + t_sign * p_bar * focal_loss_modification
 
         # construct distance with x that backpropagates gradients
-        d = x_confidence - target
+        d = x - target
 
         # background clamp
         if self.background_clamp:
             d[(x < self.background_clamp) & (t_sign == -1.0)] = 0.0
 
         # nan target
-        d[torch.isnan(t_confidence)] = 0.0
+        d[torch.isnan(t)] = 0.0
 
         return d
 
@@ -226,7 +226,7 @@ class Scale(torch.nn.Module):
 
 
 class ScaleDistance(Scale):
-    def forward(self, x_scales, t_scales):  # pylint: disable=arguments-differ
+    def forward(self, x_scales, t_scales):  # pylint: disable=arguments-renamed
         d = 1.0 / self.b * (x_scales - t_scales)
         d[torch.isnan(d)] = 0.0
         return d

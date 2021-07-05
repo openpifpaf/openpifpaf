@@ -34,6 +34,7 @@ class Posetrack2018(openpifpaf.datasets.DataModule):
     bmin = 0.1
     sample_pairing = 0.0
     image_aug = 0.0
+    max_shift = 30.0
 
     eval_long_edge = 801
     eval_orientation_invariant = 0.0
@@ -130,6 +131,8 @@ class Posetrack2018(openpifpaf.datasets.DataModule):
         group.add_argument('--posetrack-image-augmentations', default=cls.image_aug,
                            type=float,
                            help='autocontrast, equalize, invert, solarize')
+        group.add_argument('--posetrack-max-shift', default=cls.max_shift, type=float,
+                           help='max shift')
 
         group.add_argument('--posetrack-eval-long-edge', default=cls.eval_long_edge, type=int)
         assert not cls.eval_extended_scale
@@ -161,6 +164,7 @@ class Posetrack2018(openpifpaf.datasets.DataModule):
         cls.bmin = args.posetrack_bmin
         cls.sample_pairing = args.posetrack_sample_pairing
         cls.image_aug = args.posetrack_image_augmentations
+        cls.max_shift = args.posetrack_max_shift
 
         # evaluation
         cls.eval_long_edge = args.posetrack_eval_long_edge
@@ -214,10 +218,10 @@ class Posetrack2018(openpifpaf.datasets.DataModule):
             S(openpifpaf.transforms.RandomChoice(
                 [openpifpaf.transforms.RotateBy90(angle_perturbation=30.0, prepad=True),
                  openpifpaf.transforms.RotateUniform(30.0)],
-                [0.25, 0.4],
+                [0.25],
             )),
-            openpifpaf.transforms.pair.Crop(cls.square_edge, max_shift=30.0),
-            openpifpaf.transforms.pair.Pad(cls.square_edge, max_shift=30.0),
+            openpifpaf.transforms.pair.Crop(cls.square_edge, max_shift=cls.max_shift),
+            openpifpaf.transforms.pair.Pad(cls.square_edge, max_shift=cls.max_shift),
             openpifpaf.transforms.RandomApply(
                 openpifpaf.transforms.pair.SamplePairing(), cls.sample_pairing),
             S(openpifpaf.transforms.RandomChoice([

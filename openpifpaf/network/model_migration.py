@@ -61,3 +61,8 @@ def tcaf_shared_preprocessing(model):
         tracking_heads.Tcaf._global_feature_reduction = m.feature_reduction
         tracking_heads.Tcaf._global_feature_compute = m.feature_compute
         return
+
+
+MODEL_MIGRATION.add(fix_feature_cache)
+MODEL_MIGRATION.add(subscribe_cache_reset)
+MODEL_MIGRATION.add(tcaf_shared_preprocessing)

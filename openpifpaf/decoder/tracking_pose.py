@@ -145,15 +145,13 @@ class TrackingPose(TrackBase):
 
             assert ann.joint_scales is not None
             assert len(occupied) == len(ann.data)
-            for f, (xyv, joint_s) in enumerate(zip(ann.data, ann.joint_scales)):
-                v = xyv[2]
-                if v == 0.0:
-                    continue
-
-                if occupied.get(f, xyv[0], xyv[1]):
+            joint_is = np.flatnonzero(ann.data[:, 2])
+            for joint_i in joint_is:
+                xyv = ann.data[joint_i]
+                if occupied.get(joint_i, xyv[0], xyv[1]):
                     xyv[2] = 0.0
                 else:
-                    occupied.set(f, xyv[0], xyv[1], joint_s)
+                    occupied.set(joint_i, xyv[0], xyv[1], ann.joint_scales[joint_i])
 
         # keypoint threshold
         for t in tracks:
@@ -195,22 +193,24 @@ class TrackingPose(TrackBase):
                         self.n_keypoints * position_i + self.n_keypoints
                     ] = prev_pose.joint_scales
 
-                    if self.single_seed:
-                        inverse_mask = tracking_ann.data[:, 2] < np.amax(tracking_ann.data[:, 2])
-                        tracking_ann.data[inverse_mask] = 0.0
-                        tracking_ann.joint_scales[inverse_mask] = 0.0
-
+            if self.single_seed:
+                inverse_mask = tracking_ann.data[:, 2] < np.amax(tracking_ann.data[:, 2])
+                tracking_ann.data[inverse_mask] = 0.0
+                tracking_ann.joint_scales[inverse_mask] = 0.0
             tracking_ann.data[tracking_ann.data[:, 2] < 0.05] = 0.0
             if not np.any(tracking_ann.data[:, 2] > 0.0):
                 continue
             initial_annotations.append(tracking_ann)
+        initial_annotations = list(sorted(
+            initial_annotations, key=lambda ann: ann.bbox()[3], reverse=True))
+        LOG.debug('initial annotation heights: %s', [ann.bbox()[3] for ann in initial_annotations])
 
         LOG.debug('using %d initial annotations', len(initial_annotations))
 
         # use standard pose processor to connect to current frame
         LOG.debug('overwriting CifCaf parameters')
         CifCaf.nms = None
-        CifCaf.keypoint_threshold = 0.001
+        # CifCaf.keypoint_threshold = 0.001
         tracking_fields = [
             fields[self.cif_meta.head_index],
             np.concatenate([
@@ -230,6 +230,11 @@ class TrackingPose(TrackBase):
                 self.cif_meta.keypoints, self.caf_meta.skeleton)
             single_frame_ann.data[:] = tracking_ann.data[:self.n_keypoints]
             single_frame_ann.joint_scales = tracking_ann.joint_scales[:self.n_keypoints]
+            single_frame_ann.decoding_order = [
+                (jsi, jti, xyv_s, xyv_t)
+                for (jsi, jti, xyv_s, xyv_t) in tracking_ann.decoding_order
+                if jsi < self.n_keypoints and jti < self.n_keypoints
+            ]
 
             track_id = getattr(tracking_ann, 'id_', -1)
             if track_id == -1:

@@ -42,6 +42,10 @@ class NormalizePosetrack(openpifpaf.transforms.Preprocess):
             ann['image_id'] = image_id
             ann['keypoints'] = np.asarray(ann['keypoints'], dtype=np.float32).reshape(-1, 3)
 
+            # Posetrack does not distinguish between visible keypoints and
+            # invisible keypoints. Treat all annotated keypoints as visible.
+            ann['keypoints'][ann['keypoints'][:, 2] > 0.0, 2] = 2.0
+
             # Fix keypoints.
             # PoseTrack data contains some bad data.
             if self.fix_annotations:
