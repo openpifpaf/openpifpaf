@@ -63,6 +63,10 @@ BASE_FACTORIES = {
     'shufflenetv2k44': lambda: basenetworks.ShuffleNetV2K(
         'shufflenetv2k44', [12, 24, 8], [32, 512, 1024, 2048, 2048]),
     'squeezenet': lambda: basenetworks.SqueezeNet('squeezenet', torchvision.models.squeezenet1_1),
+    'effnetv2_s': lambda: basenetworks.EffNetV2_small('effnetv2_s'),
+    'effnetv2_m': lambda: basenetworks.EffNetV2_medium('effnetv2_m'),
+    'effnetv2_l': lambda: basenetworks.EffNetV2_large('effnetv2_l'),
+    'effnetv2_xl': lambda: basenetworks.EffNetV2_extra_large('effnetv2_xl'),
 }
 
 #: headmeta class to head class

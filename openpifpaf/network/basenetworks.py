@@ -2,6 +2,7 @@ import argparse
 import logging
 import torch
 import torchvision.models
+from . import effnetv2
 
 LOG = logging.getLogger(__name__)
 
@@ -496,3 +497,75 @@ class SqueezeNet(BaseNetwork):
     @classmethod
     def configure(cls, args: argparse.Namespace):
         cls.pretrained = args.squeezenet_pretrained
+
+class EffNetV2_small(BaseNetwork):
+    def __init__(self, name, out_features=1792):
+        super().__init__(name, stride=32, out_features=out_features)
+        self.backbone = effnetv2.effnetv2_s()
+        self.backbone._initialize_weights()  # TODO make this CLI configurable
+
+    def forward(self, x):
+        x = self.backbone.forward(x)
+        return x
+
+    @classmethod
+    def cli(cls, parser: argparse.ArgumentParser):
+        pass
+    
+    @classmethod
+    def configure(cls, args: argparse.Namespace):
+        pass
+
+class EffNetV2_medium(BaseNetwork):
+    def __init__(self, name, out_features=1792):
+        super().__init__(name, stride=32, out_features=out_features)
+        self.backbone = effnetv2.effnetv2_m()
+        self.backbone._initialize_weights()  # TODO make this CLI configurable
+
+    def forward(self, x):
+        x = self.backbone.forward(x)
+        return x
+
+    @classmethod
+    def cli(cls, parser: argparse.ArgumentParser):
+        pass
+    
+    @classmethod
+    def configure(cls, args: argparse.Namespace):
+        pass
+
+class EffNetV2_large(BaseNetwork):
+    def __init__(self, name, out_features=1792):
+        super().__init__(name, stride=32, out_features=out_features)
+        self.backbone = effnetv2.effnetv2_l()
+        self.backbone._initialize_weights()  # TODO make this CLI configurable
+
+    def forward(self, x):
+        x = self.backbone.forward(x)
+        return x
+
+    @classmethod
+    def cli(cls, parser: argparse.ArgumentParser):
+        pass
+    
+    @classmethod
+    def configure(cls, args: argparse.Namespace):
+        pass
+
+class EffNetV2_extra_large(BaseNetwork):
+    def __init__(self, name, out_features=1792):
+        super().__init__(name, stride=32, out_features=out_features)
+        self.backbone = effnetv2.effnetv2_xl()
+        self.backbone._initialize_weights()  # TODO make this CLI configurable
+
+    def forward(self, x):
+        x = self.backbone.forward(x)
+        return x
+
+    @classmethod
+    def cli(cls, parser: argparse.ArgumentParser):
+        pass
+    
+    @classmethod
+    def configure(cls, args: argparse.Namespace):
+        pass
