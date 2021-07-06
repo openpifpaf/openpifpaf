@@ -34,7 +34,9 @@ BASE_TYPES = set([
     basenetworks.ShuffleNetV2,
     basenetworks.ShuffleNetV2K,
     basenetworks.SqueezeNet,
-])
+    basenetworks.BotNet,
+])  # TODO add EffNetV2, once they are cleaned up and have CLI options
+
 BASE_FACTORIES = {
     'mobilenetv2': lambda: basenetworks.MobileNetV2('mobilenetv2', torchvision.models.mobilenet_v2),
     'mobilenetv3large': lambda: basenetworks.MobileNetV3(
@@ -67,6 +69,7 @@ BASE_FACTORIES = {
     'effnetv2_m': lambda: basenetworks.EffNetV2_medium('effnetv2_m'),
     'effnetv2_l': lambda: basenetworks.EffNetV2_large('effnetv2_l'),
     'effnetv2_xl': lambda: basenetworks.EffNetV2_extra_large('effnetv2_xl'),
+    'botnet': lambda: basenetworks.BotNet('botnet'),
 }
 
 #: headmeta class to head class

@@ -2,7 +2,9 @@ import argparse
 import logging
 import torch
 import torchvision.models
+from math import ceil
 from . import effnetv2
+from . import bottleneck_transformer
 
 LOG = logging.getLogger(__name__)
 
@@ -569,3 +571,46 @@ class EffNetV2_extra_large(BaseNetwork):
     @classmethod
     def configure(cls, args: argparse.Namespace):
         pass
+
+class BotNet(BaseNetwork):
+    input_image_size = 640
+    def __init__(self, name, out_features=2048):
+        super().__init__(name, stride=8, out_features=out_features)
+        
+        layer = bottleneck_transformer.BottleStack(
+            dim = 256,
+            fmap_size = int(ceil(self.input_image_size/4)),  # default img size is 640 x 640
+            dim_out = 2048,
+            proj_factor = 4,
+            downsample = True,
+            heads = 4,
+            dim_head = 128,
+            rel_pos_emb = True,
+            activation = torch.nn.ReLU()
+        )
+        
+        resnet = torchvision.models.resnet50()
+        
+        # model surgery
+        resnet_parts = list(resnet.children())
+        self.backbone = torch.nn.Sequential(
+            *resnet_parts[:5],
+            layer,
+        )
+        
+
+    def forward(self, x):
+        x = self.backbone.forward(x)
+        return x
+
+    @classmethod
+    def cli(cls, parser: argparse.ArgumentParser):
+        group = parser.add_argument_group('BotNet')
+        group.add_argument('--botnet-input-image-size',
+                           default=cls.input_image_size, type=int,
+                           help='stride of the optional 2nd input convolution')
+    
+    @classmethod
+    def configure(cls, args: argparse.Namespace):
+        cls.input_image_size = args.botnet_input_image_size
+
