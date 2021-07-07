@@ -144,16 +144,15 @@ class CifCaf(Decoder):
                            help='filter keypoint connections by relative score')
 
         assert not CppCifCaf.get_greedy()
-        assert not cls.block_joints  # TODO port to C++
-        group.add_argument('--cifcaf-block-joints', default=False, action='store_true',
-                           help='block joints')
-        assert not cls.greedy
         group.add_argument('--greedy', default=False, action='store_true',
                            help='greedy decoding')
         group.add_argument('--connection-method',
                            default=cls.connection_method,
                            choices=('max', 'blend'),
                            help='connection method to use, max is faster')
+        assert not cls.block_joints  # TODO port to C++
+        group.add_argument('--cifcaf-block-joints', default=False, action='store_true',
+                           help='block joints')
 
         assert CppCifCaf.get_reverse_match()
         group.add_argument('--no-reverse-match',
