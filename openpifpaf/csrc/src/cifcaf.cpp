@@ -19,7 +19,7 @@ void test_op_int64(int64_t v) { std::cout << v << std::endl; }
 void test_op_double(double v) { std::cout << v << std::endl; }
 
 
-
+bool CifCaf::block_joints = false;
 bool CifCaf::greedy = false;
 double CifCaf::keypoint_threshold = 0.15;
 double CifCaf::keypoint_threshold_rel = 0.5;
@@ -239,7 +239,13 @@ void CifCaf::_grow(
         if (entry.joint.v == 0.0) {
             Joint new_joint = _connection_value(
                 *ann, caf_fb, entry.start_i, entry.end_i, reverse_match);
-            if (new_joint.v == 0.0) continue;
+            if (new_joint.v == 0.0) {
+                if (block_joints) {
+                    new_joint.v = 0.00001;
+                    entry.joint = new_joint;
+                }
+                continue;
+            }
 
             if (!greedy) {
                 // if self.confidence_scales is not None:
@@ -326,22 +332,30 @@ Joint CifCaf::_connection_value(
     const Joint& start_j = ann[start_i];
     Joint new_j = grow_connection_blend(
         caf_f, start_j.x, start_j.y, start_j.s, only_max);
-    if (new_j.v == 0.0) return { 0.0, 0.0, 0.0, 0.0 };
+    if (new_j.v == 0.0) return new_j;
 
     new_j.v = sqrt(new_j.v * start_j.v);  // geometric mean
-    if (new_j.v < keypoint_threshold)
-        return { 0.0, 0.0, 0.0, 0.0 };
-    if (new_j.v < start_j.v * keypoint_threshold_rel)
-        return { 0.0, 0.0, 0.0, 0.0 };
+    if (new_j.v < keypoint_threshold) {
+        new_j.v = 0.0;
+        return new_j;
+    }
+    if (new_j.v < start_j.v * keypoint_threshold_rel) {
+        new_j.v = 0.0;
+        return new_j;
+    }
 
     // reverse match
     if (reverse_match && reverse_match_) {
         Joint reverse_j = grow_connection_blend(
             caf_b, new_j.x, new_j.y, new_j.s, only_max);
-        if (reverse_j.v == 0.0)
-            return { 0.0, 0.0, 0.0, 0.0 };
-        if (fabs(start_j.x - reverse_j.x) + fabs(start_j.y - reverse_j.y) > start_j.s)
-            return { 0.0, 0.0, 0.0, 0.0 };
+        if (reverse_j.v == 0.0) {
+            new_j.v = 0.0;
+            return new_j;
+        }
+        if (fabs(start_j.x - reverse_j.x) + fabs(start_j.y - reverse_j.y) > start_j.s) {
+            new_j.v = 0.0;
+            return new_j;
+        }
     }
 
     return new_j;

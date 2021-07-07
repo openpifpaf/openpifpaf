@@ -1,5 +1,4 @@
 import argparse
-from collections import defaultdict
 import logging
 import time
 from typing import List
@@ -84,7 +83,6 @@ class CifCaf(Decoder):
 
     :param: nms: set to None to switch off non-maximum suppression.
     """
-    block_joints = False
     connection_method = 'blend'
     occupancy_visualizer = visualizer.Occupancy()
     nms_before_force_complete = False
@@ -150,7 +148,7 @@ class CifCaf(Decoder):
                            default=cls.connection_method,
                            choices=('max', 'blend'),
                            help='connection method to use, max is faster')
-        assert not cls.block_joints  # TODO port to C++
+        assert not CppCifCaf.get_block_joints()
         group.add_argument('--cifcaf-block-joints', default=False, action='store_true',
                            help='block joints')
 
@@ -195,8 +193,7 @@ class CifCaf(Decoder):
         CppCifCaf.set_keypoint_threshold_rel(args.keypoint_threshold_rel)
 
         CppCifCaf.set_greedy(args.greedy)
-        cls.block_joints = args.cifcaf_block_joints
-        cls.greedy = args.greedy
+        CppCifCaf.set_block_joints(args.cifcaf_block_joints)
         cls.connection_method = args.connection_method
 
         cls.reverse_match = args.reverse_match

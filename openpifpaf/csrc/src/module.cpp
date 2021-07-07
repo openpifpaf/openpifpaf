@@ -14,6 +14,8 @@ PyMODINIT_FUNC PyInit__cpp(void) {
 
 TORCH_LIBRARY(openpifpaf_decoder, m) {
     m.class_<openpifpaf::decoder::CifCaf>("CifCaf")
+        .def_static("set_block_joints", &openpifpaf::decoder::CifCaf::set_block_joints)
+        .def_static("get_block_joints", &openpifpaf::decoder::CifCaf::get_block_joints)
         .def_static("set_greedy", &openpifpaf::decoder::CifCaf::set_greedy)
         .def_static("get_greedy", &openpifpaf::decoder::CifCaf::get_greedy)
         .def_static("set_keypoint_threshold", &openpifpaf::decoder::CifCaf::set_keypoint_threshold)

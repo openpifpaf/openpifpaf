@@ -68,6 +68,7 @@ struct OPENPIFPAF_API CifCaf : torch::CustomClassHolder {
     const int64_t n_keypoints;
     const torch::Tensor skeleton;
 
+    static bool block_joints;
     static bool greedy;
     static double keypoint_threshold;
     static double keypoint_threshold_rel;
@@ -75,6 +76,7 @@ struct OPENPIFPAF_API CifCaf : torch::CustomClassHolder {
     static bool force_complete;
     static double force_complete_caf_th;
 
+    STATIC_GETSET(bool, block_joints)
     STATIC_GETSET(bool, greedy)
     STATIC_GETSET(double, keypoint_threshold)
     STATIC_GETSET(double, keypoint_threshold_rel)
