@@ -79,7 +79,7 @@ setup(
         'python-json-logger',
         'torch>=1.7.1',
         'torchvision>=0.8.2',
-        'pillow<8.3',  # upper limit for torchvision 0.10.0 compatibility
+        'pillow!=8.3.0',  # exclusion torchvision 0.10.0 compatibility
         'dataclasses; python_version<"3.7"',
     ],
     extras_require={

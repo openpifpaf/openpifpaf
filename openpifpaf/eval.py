@@ -60,7 +60,7 @@ def cli():
     decoder.cli(parser)
     logger.cli(parser)
     network.Factory.cli(parser)
-    Predictor.cli(parser)
+    Predictor.cli(parser, skip_batch_size=True, skip_loader_workers=True)
     show.cli(parser)
     visualizer.cli(parser)
 
