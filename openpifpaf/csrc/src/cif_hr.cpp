@@ -141,6 +141,47 @@ void CifHr::reset(const at::IntArrayRef& shape, int64_t stride) {
 }
 
 
+void cifdet_hr_accumulate_op(const torch::Tensor& accumulated,
+                             double accumulated_revision,
+                             const torch::Tensor& cifdet_field,
+                             int64_t stride,
+                             double v_threshold,
+                             int64_t neighbors,
+                             double min_scale,
+                             double factor) {
+    auto cifdet_field_a = cifdet_field.accessor<float, 4>();
+    float min_scale_f = min_scale / stride;
+
+    float v, x, y, w, h, sigma;
+    for (int64_t f=0; f < cifdet_field_a.size(0); f++) {
+        for (int64_t j=0; j < cifdet_field_a.size(2); j++) {
+            for (int64_t i=0; i < cifdet_field_a.size(3); i++) {
+                v = cifdet_field_a[f][1][j][i];
+                if (v < v_threshold) continue;
+
+                w = cifdet_field_a[f][4][j][i];
+                h = cifdet_field_a[f][5][j][i];
+                if (w < min_scale_f || h < min_scale_f) continue;
+
+                x = cifdet_field_a[f][2][j][i] * stride;
+                y = cifdet_field_a[f][3][j][i] * stride;
+                sigma = fmax(1.0, 0.1 * fmin(w, h) * stride);
+
+                // Occupancy covers 2sigma.
+                // Restrict this accumulation to 1sigma so that seeds for the same joint
+                // are properly suppressed.
+                cif_hr_add_gauss_op(accumulated, accumulated_revision, f, v / neighbors * factor, x, y, sigma, 1.0);
+            }
+        }
+    }
+}
+
+
+void CifDetHr::accumulate(const torch::Tensor& cifdet_field, int64_t stride, double min_scale, double factor) {
+    cifdet_hr_accumulate_op(accumulated, revision, cifdet_field, stride, threshold, neighbors, min_scale, factor);
+}
+
+
 }  // namespace utils
 }  // namespace decoder
 }  // namespace openpifpaf

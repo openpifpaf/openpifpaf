@@ -22,6 +22,15 @@ struct Seed {
 };
 
 
+struct DetSeed {
+    int64_t c;
+    float v, x, y, w, h;
+
+    DetSeed(int64_t c_, float v_, float x_, float y_, float w_, float h_)
+        : c(c_), v(v_), x(x_), y(y_), w(w_), h(h_) { }
+};
+
+
 struct CifSeeds : torch::CustomClassHolder {
     torch::TensorAccessor<float, 3UL> cifhr_a;
     double cifhr_revision;
@@ -37,8 +46,24 @@ struct CifSeeds : torch::CustomClassHolder {
     { }
     void fill(const torch::Tensor& cif_field, int64_t stride);
     std::tuple<torch::Tensor, torch::Tensor> get(void);
+};
 
-    float cifhr_value(int64_t f, float x, float y, float default_value = -1.0);
+
+struct CifDetSeeds : torch::CustomClassHolder {
+    torch::TensorAccessor<float, 3UL> cifhr_a;
+    double cifhr_revision;
+    std::vector<DetSeed> seeds;
+
+    static double threshold;
+
+    STATIC_GETSET(double, threshold)
+
+    CifDetSeeds(const torch::Tensor& cifhr_, double cifhr_revision_)
+    : cifhr_a(cifhr_.accessor<float, 3>()),
+      cifhr_revision(cifhr_revision_)
+    { }
+    void fill(const torch::Tensor& cifdet_field, int64_t stride);
+    std::tuple<torch::Tensor, torch::Tensor> get(void);
 };
 
 

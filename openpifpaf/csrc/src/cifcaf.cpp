@@ -7,16 +7,12 @@
 #include "openpifpaf/decoder/utils/caf_scored.hpp"
 #include "openpifpaf/decoder/utils/cif_hr.hpp"
 #include "openpifpaf/decoder/utils/cif_seeds.hpp"
-#include "openpifpaf/decoder/utils/nms.hpp"
+#include "openpifpaf/decoder/utils/nms_keypoints.hpp"
 #include "openpifpaf/decoder/utils/occupancy.hpp"
 
 
 namespace openpifpaf {
 namespace decoder {
-
-
-void test_op_int64(int64_t v) { std::cout << v << std::endl; }
-void test_op_double(double v) { std::cout << v << std::endl; }
 
 
 bool CifCaf::block_joints = false;
@@ -74,7 +70,7 @@ Joint grow_connection_blend(const torch::Tensor& caf, double x, double y, double
     if (only_max)
         return { score_1, entry_1[0], entry_1[1], entry_1[2] };
     if (score_2 < 0.01 || score_2 < 0.5 * score_1)
-        return { 0.5 * score_1, entry_1[0], entry_1[1], entry_1[3] };
+        return { 0.5 * score_1, entry_1[0], entry_1[1], entry_1[2] };
 
     // blend
     float entry_2[3] = {  // xys

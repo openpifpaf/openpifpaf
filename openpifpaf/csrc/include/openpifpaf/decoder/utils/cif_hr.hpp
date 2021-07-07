@@ -63,6 +63,11 @@ struct CifHr : torch::CustomClassHolder {
 };
 
 
+struct CifDetHr : CifHr {
+    void accumulate(const torch::Tensor& cifdet_field, int64_t stride, double min_scale = 0.0, double factor = 1.0);
+};
+
+
 }  // namespace utils
 }  // namespace decoder
 }  // namespace openpifpaf

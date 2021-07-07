@@ -35,13 +35,16 @@ TORCH_LIBRARY(openpifpaf_decoder, m) {
     m.def("grow_connection_blend", openpifpaf::decoder::grow_connection_blend_py);
 
     m.def("cifcaf_op", openpifpaf::decoder::cifcaf_op);
+}
 
-    m.def("test_op_int64", openpifpaf::decoder::test_op_int64);
-    m.def("test_op_double", openpifpaf::decoder::test_op_double);
-    m.class_<openpifpaf::decoder::TestClass>("TestClass")
-        .def(torch::init<>())
-        .def("op_int64", &openpifpaf::decoder::TestClass::op_int64)
-        .def("op_double", &openpifpaf::decoder::TestClass::op_double)
+
+TORCH_LIBRARY(openpifpaf_decoder, m) {
+    m.class_<openpifpaf::decoder::CifDet>("CifDet")
+        .def_static("set_max_detections_before_nms", &openpifpaf::decoder::CifCaf::set_max_detections_before_nms)
+        .def_static("get_max_detections_before_nms", &openpifpaf::decoder::CifCaf::get_max_detections_before_nms)
+
+        .def(torch::init<int64_t, const torch::Tensor&>())
+        .def("call", &openpifpaf::decoder::CifDet::call)
     ;
 }
 

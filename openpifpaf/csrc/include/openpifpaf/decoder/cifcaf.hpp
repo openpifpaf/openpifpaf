@@ -27,15 +27,6 @@ struct Joint {
 };
 
 
-void test_op_int64(int64_t v);
-void test_op_double(double v);
-
-struct OPENPIFPAF_API TestClass : torch::CustomClassHolder {
-    void op_int64(int64_t v) { std::cout << v << std::endl; }
-    void op_double(double v) { std::cout << v << std::endl; }
-};
-
-
 std::vector<double> grow_connection_blend_py(const torch::Tensor& caf, double x, double y, double s, bool only_max);
 
 

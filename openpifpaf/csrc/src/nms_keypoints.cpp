@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#include "openpifpaf/decoder/utils/nms.hpp"
+#include "openpifpaf/decoder/utils/nms_keypoints.hpp"
 
 
 namespace openpifpaf {
