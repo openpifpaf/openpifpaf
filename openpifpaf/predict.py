@@ -41,10 +41,6 @@ def cli():
     parser.add_argument('--json-output', default=None, nargs='?', const=True,
                         help='Whether to output a json file, '
                              'with the option to specify the output path or directory')
-    parser.add_argument('--batch-size', default=1, type=int,
-                        help='processing batch size')
-    parser.add_argument('--loader-workers', default=None, type=int,
-                        help='number of workers for data loading')
     parser.add_argument('--disable-cuda', action='store_true',
                         help='disable CUDA')
     args = parser.parse_args()
@@ -108,8 +104,7 @@ def main():
         visualize_image=(args.show or args.image_output is not None),
         visualize_processed_image=args.debug,
     )
-    for pred, _, meta in predictor.images(
-            args.images, batch_size=args.batch_size, loader_workers=args.loader_workers):
+    for pred, _, meta in predictor.images(args.images):
         # json output
         if args.json_output is not None:
             json_out_name = out_name(
