@@ -1,6 +1,11 @@
 # History
 
-* [main](https://github.com/openpifpaf/openpifpaf/compare/v0.12.11...main)
+* [main](https://github.com/openpifpaf/openpifpaf/compare/v0.12.12...main)
+* [0.12.12](https://github.com/openpifpaf/openpifpaf/compare/v0.12.11...v0.12.12) (2021-07-07)
+    * constrain Pillow dependency below 8.3 for torchvision compatibility
+    * Wholebody fixes [#451](https://github.com/openpifpaf/openpifpaf/pull/451)
+    * det decoder: nms by category and minor fix to nms suppression
+    * debug: properly show crowd annotations in encoder debug plots
 * [0.12.11](https://github.com/openpifpaf/openpifpaf/compare/v0.12.10...v0.12.11) (2021-06-11)
     * wheels for aarch64
     * new pretrained models: mobilenetv3large and resnet18-cocodet
