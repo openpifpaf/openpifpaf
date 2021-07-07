@@ -2,12 +2,16 @@
 
 import torchvision
 
+from . import pair
 from .annotations import AnnotationJitter, NormalizeAnnotations
+from .assertion import Assert
 from .compose import Compose
 from .crop import Crop
+from .deinterlace import Deinterlace
 from .encoders import Encoders
 from .hflip import HFlip
-from .image import Blur, ImageTransform, JpegCompression
+from .image import Blur, HorizontalBlur, ImageTransform, JpegCompression
+from .impute import AddCrowdForIncompleteHead
 from .minsize import MinSize
 from .multi_scale import MultiScale
 from .pad import CenterPad, CenterPadTight, SquarePad
@@ -43,11 +47,14 @@ TRAIN_TRANSFORM = Compose([
 __all__ = [
     'Preprocess',
     'AnnotationJitter', 'NormalizeAnnotations',
+    'Assert',
     'Compose',
     'Crop',
+    'Deinterlace',
     'Encoders',
     'HFlip',
-    'Blur', 'ImageTransform', 'JpegCompression',
+    'Blur', 'HorizontalBlur', 'ImageTransform', 'JpegCompression',
+    'AddCrowdForIncompleteHead',
     'MinSize',
     'MultiScale',
     'CenterPad', 'CenterPadTight', 'SquarePad',

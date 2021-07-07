@@ -30,10 +30,10 @@ jobs:
     - uses: FedericoCarboni/setup-ffmpeg@v1
       id: setup-ffmpeg
 
-    - name: Set up Python 3.7
+    - name: Set up Python 3.8
       uses: actions/setup-python@v1
       with:
-        python-version: 3.7
+        python-version: 3.8
 
     - name: Install PyTorch without CUDA
       run: pip install torch==1.7.1+cpu torchvision==0.8.2+cpu -f https://download.pytorch.org/whl/torch_stable.html
@@ -42,9 +42,6 @@ jobs:
       run: |
         pip install .[dev,test]
         sudo apt install jq
-
-    - name: Custom theme with on-this-page
-      run: pip install --upgrade https://github.com/svenkreiss/sphinx-book-theme/archive/onthispage.zip
 
     # make sure KernelSpec in all notebooks is python3
     - name: Normalize KernelSpec
@@ -62,7 +59,7 @@ jobs:
       run: cd guide && python download_data.py
 
     - name: Build the guide
-      run: cd guide && jupyter-book build .
+      run: cd guide && jupyter-book build -W --keep-going .
 
     # Push the book's HTML to gh-pages
     - name: GitHub Pages action

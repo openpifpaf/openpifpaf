@@ -9,7 +9,16 @@ import torchvision
 
 from .. import headmeta
 from ..configurable import Configurable
-from . import basenetworks, heads, nets
+from . import basenetworks, heads, model_migration, nets, tracking_heads
+from .tracking_base import TrackingBase
+
+
+# monkey patch torchvision for mobilenetv2 checkpoint backwards compatibility
+if hasattr(torchvision.models, 'mobilenetv2') \
+   and not hasattr(torchvision.models.mobilenet, 'ConvBNReLU'):
+    torchvision.models.mobilenet.ConvBNReLU = torchvision.models.mobilenetv2.ConvBNReLU
+    torchvision.models.mobilenet.InvertedResidual = torchvision.models.mobilenetv2.InvertedResidual
+
 
 # generate hash values with: shasum -a 256 filename.pkl
 
@@ -17,36 +26,23 @@ PRETRAINED_UNAVAILABLE = object()
 
 # Dataset cocokp is implied. All other datasets need to be explicit.
 # Use http instead of https to avoid SSL certificate issues on Windows.
-CHECKPOINT_URLS = {
-    'mobilenetv2': ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
-                    'v0.12a5/mobilenetv2-201112-193315-cocokp-1728a9f5.pkl'),
-    'resnet18': PRETRAINED_UNAVAILABLE,
-    'resnet50': ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
-                 'v0.12.2/resnet50-210224-202010-cocokp-o10s-d020d7f1.pkl'),
-    'resnet101': PRETRAINED_UNAVAILABLE,
-    'resnet152': PRETRAINED_UNAVAILABLE,
-    'shufflenetv2x1': PRETRAINED_UNAVAILABLE,
-    'shufflenetv2x2': PRETRAINED_UNAVAILABLE,
-    'shufflenetv2k16': ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
-                        'v0.12.6/shufflenetv2k16-210404-110105-cocokp-o10s-f90ed364.pkl'),
-    'shufflenetv2k16-withdense': (
-        'http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
-        'v0.12b4/shufflenetv2k16-210221-131426-cocokp-o10s-627d901e.pkl'
-    ),
-    'shufflenetv2k30': ('http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
-                        'v0.12.6/shufflenetv2k30-210409-024202-cocokp-o10s-f4fb0807.pkl'),
-    'shufflenetv2k44': PRETRAINED_UNAVAILABLE,
-}
+CHECKPOINT_URLS = {}
 
 BASE_TYPES = set([
     basenetworks.MobileNetV2,
+    basenetworks.MobileNetV3,
     basenetworks.Resnet,
     basenetworks.ShuffleNetV2,
     basenetworks.ShuffleNetV2K,
     basenetworks.SqueezeNet,
+    TrackingBase,
 ])
 BASE_FACTORIES = {
     'mobilenetv2': lambda: basenetworks.MobileNetV2('mobilenetv2', torchvision.models.mobilenet_v2),
+    'mobilenetv3large': lambda: basenetworks.MobileNetV3(
+        'mobilenetv3large', torchvision.models.mobilenet_v3_large),
+    'mobilenetv3small': lambda: basenetworks.MobileNetV3(
+        'mobilenetv3small', torchvision.models.mobilenet_v3_small, 576),
     'resnet18': lambda: basenetworks.Resnet('resnet18', torchvision.models.resnet18, 512),
     'resnet50': lambda: basenetworks.Resnet('resnet50', torchvision.models.resnet50),
     'resnet101': lambda: basenetworks.Resnet('resnet101', torchvision.models.resnet101),
@@ -70,12 +66,19 @@ BASE_FACTORIES = {
         'shufflenetv2k44', [12, 24, 8], [32, 512, 1024, 2048, 2048]),
     'squeezenet': lambda: basenetworks.SqueezeNet('squeezenet', torchvision.models.squeezenet1_1),
 }
+# base factories that wrap other base factories:
+BASE_FACTORIES['tshufflenetv2k16'] = lambda: TrackingBase(BASE_FACTORIES['shufflenetv2k16']())
+BASE_FACTORIES['tshufflenetv2k30'] = lambda: TrackingBase(BASE_FACTORIES['shufflenetv2k30']())
+BASE_FACTORIES['tresnet50'] = lambda: TrackingBase(BASE_FACTORIES['resnet50']())
 
 #: headmeta class to head class
 HEADS = {
-    headmeta.Cif: heads.CompositeField3,
-    headmeta.Caf: heads.CompositeField3,
-    headmeta.CifDet: heads.CompositeField3,
+    headmeta.Cif: heads.CompositeField4,
+    headmeta.Caf: heads.CompositeField4,
+    headmeta.CifDet: heads.CompositeField4,
+    headmeta.TSingleImageCif: tracking_heads.TBaseSingleImage,
+    headmeta.TSingleImageCaf: tracking_heads.TBaseSingleImage,
+    headmeta.Tcaf: tracking_heads.Tcaf,
 }
 
 LOG = logging.getLogger(__name__)
@@ -128,18 +131,18 @@ class Factory(Configurable):
             hn.cli(parser)
 
         group = parser.add_argument_group('network configuration')
-        available_checkpoints = ['"{}"'.format(n) for n, url in CHECKPOINT_URLS.items()
+        available_checkpoints = [n for n, url in CHECKPOINT_URLS.items()
                                  if url is not PRETRAINED_UNAVAILABLE]
         group.add_argument(
             '--checkpoint', default=cls.checkpoint,
             help=(
                 'Path to a local checkpoint. '
                 'Or provide one of the following to download a pretrained model: {}'
-                ''.format(', '.join(available_checkpoints))
+                ''.format(available_checkpoints)
             )
         )
         group.add_argument('--basenet', default=cls.base_name,
-                           help='base network, e.g. resnet50')
+                           help='base network, one of {}'.format(list(BASE_FACTORIES.keys())))
         group.add_argument('--cross-talk', default=cls.cross_talk, type=float,
                            help='[experimental]')
         assert cls.download_progress
@@ -249,7 +252,7 @@ class Factory(Configurable):
         epoch = checkpoint['epoch']
 
         # normalize for backwards compatibility
-        nets.model_migration(net_cpu)
+        model_migration.model_migration(net_cpu)
 
         return net_cpu, epoch
 

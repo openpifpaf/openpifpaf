@@ -15,15 +15,27 @@ from .. import headmeta, visualizer
 LOG = logging.getLogger(__name__)
 
 
-class DenseAdapter:
-    def __init__(self, cif_meta, caf_meta, dense_caf_meta):
+class CifCafDense(Decoder):
+    dense_coupling = 0.0
+
+    def __init__(self,
+                 cif_meta: headmeta.Cif,
+                 caf_meta: headmeta.Caf,
+                 dense_caf_meta: headmeta.Caf):
+        super().__init__()
+
         self.cif_meta = cif_meta
         self.caf_meta = caf_meta
         self.dense_caf_meta = dense_caf_meta
 
+        # prefer decoders with more keypoints and associations
+        self.priority += cif_meta.n_fields / 1000.0
+        self.priority += caf_meta.n_fields / 1000.0
+        self.priority += dense_caf_meta.n_fields / 1000.0
+
         # overwrite confidence scale
         self.dense_caf_meta.confidence_scales = [
-            CifCaf.dense_coupling for _ in self.dense_caf_meta.skeleton
+            self.dense_coupling for _ in self.dense_caf_meta.skeleton
         ]
 
         concatenated_caf_meta = headmeta.Caf.concatenate(
@@ -31,11 +43,25 @@ class DenseAdapter:
         self.cifcaf = CifCaf([cif_meta], [concatenated_caf_meta])
 
     @classmethod
+    def cli(cls, parser: argparse.ArgumentParser):
+        """Command line interface (CLI) to extend argument parser."""
+        group = parser.add_argument_group('CifCafDense decoder')
+        group.add_argument('--dense-connections', nargs='?', type=float,
+                           default=0.0, const=1.0)
+
+    @classmethod
+    def configure(cls, args: argparse.Namespace):
+        """Take the parsed argument parser output and configure class variables."""
+        cls.dense_coupling = args.dense_connections
+
+    @classmethod
     def factory(cls, head_metas):
         if len(head_metas) < 3:
             return []
+        if not cls.dense_coupling:
+            return []
         return [
-            DenseAdapter(cif_meta, caf_meta, dense_meta)
+            CifCafDense(cif_meta, caf_meta, dense_meta)
             for cif_meta, caf_meta, dense_meta in zip(head_metas, head_metas[1:], head_metas[2:])
             if (isinstance(cif_meta, headmeta.Cif)
                 and isinstance(caf_meta, headmeta.Caf)
@@ -58,10 +84,10 @@ class CifCaf(Decoder):
 
     :param: nms: set to None to switch off non-maximum suppression.
     """
+    block_joints = False
     connection_method = 'blend'
     occupancy_visualizer = visualizer.Occupancy()
     nms_before_force_complete = False
-    dense_coupling = 0.0
 
     reverse_match = True
 
@@ -72,6 +98,7 @@ class CifCaf(Decoder):
                  cif_visualizers=None,
                  caf_visualizers=None):
         super().__init__()
+
         self.cif_metas = cif_metas
         self.caf_metas = caf_metas
         self.score_weights = cif_metas[0].score_weights
@@ -88,6 +115,9 @@ class CifCaf(Decoder):
             len(cif_metas[0].keypoints),
             torch.LongTensor(self.caf_metas[0].skeleton) - 1,
         )
+        # prefer decoders with more keypoints and associations
+        self.priority += sum(m.n_fields for m in cif_metas) / 1000.0
+        self.priority += sum(m.n_fields for m in caf_metas) / 1000.0
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
@@ -114,14 +144,16 @@ class CifCaf(Decoder):
                            help='filter keypoint connections by relative score')
 
         assert not CppCifCaf.get_greedy()
+        assert not cls.block_joints  # TODO port to C++
+        group.add_argument('--cifcaf-block-joints', default=False, action='store_true',
+                           help='block joints')
+        assert not cls.greedy
         group.add_argument('--greedy', default=False, action='store_true',
                            help='greedy decoding')
         group.add_argument('--connection-method',
                            default=cls.connection_method,
                            choices=('max', 'blend'),
                            help='connection method to use, max is faster')
-        group.add_argument('--dense-connections', nargs='?', type=float,
-                           default=0.0, const=1.0)
 
         assert CppCifCaf.get_reverse_match()
         group.add_argument('--no-reverse-match',
@@ -164,8 +196,9 @@ class CifCaf(Decoder):
         CppCifCaf.set_keypoint_threshold_rel(args.keypoint_threshold_rel)
 
         CppCifCaf.set_greedy(args.greedy)
+        cls.block_joints = args.cifcaf_block_joints
+        cls.greedy = args.greedy
         cls.connection_method = args.connection_method
-        cls.dense_coupling = args.dense_connections
 
         cls.reverse_match = args.reverse_match
         # TODO utils.CifSeeds.ablation_nms = args.ablation_cifseeds_nms
@@ -176,8 +209,8 @@ class CifCaf(Decoder):
 
     @classmethod
     def factory(cls, head_metas):
-        if cls.dense_coupling:
-            return DenseAdapter.factory(head_metas)
+        if CifCafDense.dense_coupling:
+            return []  # --dense-connections is requested, so use the other decoder
         return [
             CifCaf([meta], [meta_next])
             for meta, meta_next in zip(head_metas[:-1], head_metas[1:])
@@ -186,6 +219,7 @@ class CifCaf(Decoder):
         ]
 
     def __call__(self, fields, initial_annotations=None):
+        # TODO initial annotations
         start = time.perf_counter()
         annotations = self.cpp_decoder.call(
             fields[self.cif_metas[0].head_index],

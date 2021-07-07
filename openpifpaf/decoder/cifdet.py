@@ -13,10 +13,15 @@ LOG = logging.getLogger(__name__)
 
 class CifDet(Decoder):
     occupancy_visualizer = visualizer.Occupancy()
+    max_detections_before_nms = 120
 
     def __init__(self, head_metas: List[headmeta.CifDet], *, visualizers=None):
         super().__init__()
         self.metas = head_metas
+
+        # prefer decoders with more classes
+        self.priority = -1.0  # prefer keypoints over detections
+        self.priority += sum(m.n_fields for m in head_metas) / 1000.0
 
         self.visualizers = visualizers
         if self.visualizers is None:
@@ -51,6 +56,8 @@ class CifDet(Decoder):
             ann = AnnotationDet(self.metas[0].categories).set(
                 f + 1, v, (x - w / 2.0, y - h / 2.0, w, h))
             annotations.append(ann)
+            if len(annotations) >= self.max_detections_before_nms:
+                break
             occupied.set(f, x, y, 0.1 * min(w, h))
 
         self.occupancy_visualizer.predicted(occupied)

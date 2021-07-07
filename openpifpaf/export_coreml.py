@@ -23,6 +23,7 @@ def apply(model, outfile, *, input_w=129, input_h=97, minimum_deployment_target=
 
     # configure: inplace-ops are not supported
     openpifpaf.network.heads.CompositeField3.inplace_ops = False
+    openpifpaf.network.heads.CompositeField4.inplace_ops = False
 
     dummy_input = torch.randn(1, 3, input_h, input_w)
     with torch.no_grad():

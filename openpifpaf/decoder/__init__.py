@@ -4,8 +4,8 @@ from . import utils
 from .decoder import Decoder
 from .cifcaf import CifCaf
 from .cifdet import CifDet
+from .pose_similarity import PoseSimilarity
+from .tracking_pose import TrackingPose
 from .factory import cli, configure, factory
-from .profiler import Profiler
-from .profiler_autograd import ProfilerAutograd
 
 from .factory import DECODERS

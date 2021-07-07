@@ -62,25 +62,42 @@ def rotate(image, anns, meta, angle):
     meta['valid_area'] = utils.rotate_box(meta['valid_area'], w - 1, h - 1, angle)
     # fix valid area to be inside original image dimensions
     original_valid_area = meta['valid_area'].copy()
-    meta['valid_area'][0] = np.clip(meta['valid_area'][0], 0, w)
-    meta['valid_area'][1] = np.clip(meta['valid_area'][1], 0, h)
+    meta['valid_area'][0] = np.clip(meta['valid_area'][0], 0, w - 1)
+    meta['valid_area'][1] = np.clip(meta['valid_area'][1], 0, h - 1)
     new_rb_corner = original_valid_area[:2] + original_valid_area[2:]
-    new_rb_corner[0] = np.clip(new_rb_corner[0], 0, w)
-    new_rb_corner[1] = np.clip(new_rb_corner[1], 0, h)
+    new_rb_corner[0] = np.clip(new_rb_corner[0], 0, w - 1)
+    new_rb_corner[1] = np.clip(new_rb_corner[1], 0, h - 1)
     meta['valid_area'][2:] = new_rb_corner - meta['valid_area'][:2]
     LOG.debug('meta after: %s', meta)
 
     return image, anns, meta
 
 
+def _prepad(image, anns, meta, angle):
+    if abs(angle) < 0.3:
+        return image, anns, meta
+
+    w, h = image.size
+    cos_angle = math.cos(abs(angle) * math.pi / 180.0)
+    sin_angle = math.sin(abs(angle) * math.pi / 180.0)
+    LOG.debug('angle = %f, cos = %f, sin = %f', angle, cos_angle, sin_angle)
+    padded_size = (
+        int(w * cos_angle + h * sin_angle) + 1,
+        int(h * cos_angle + w * sin_angle) + 1,
+    )
+    center_pad = CenterPad(padded_size)
+    return center_pad(image, anns, meta)
+
+
 class RotateBy90(Preprocess):
     """Randomly rotate by multiples of 90 degrees."""
 
-    def __init__(self, angle_perturbation=0.0, fixed_angle=None):
+    def __init__(self, angle_perturbation=0.0, fixed_angle=None, prepad=False):
         super().__init__()
 
         self.angle_perturbation = angle_perturbation
         self.fixed_angle = fixed_angle
+        self.prepad = prepad
 
     def __call__(self, image, anns, meta):
         if self.fixed_angle is not None:
@@ -91,30 +108,23 @@ class RotateBy90(Preprocess):
             sym_rnd2 = (float(torch.rand(1).item()) - 0.5) * 2.0
             angle += sym_rnd2 * self.angle_perturbation
 
+        if self.prepad:
+            image, anns, meta = _prepad(image, anns, meta, angle)
         return rotate(image, anns, meta, angle)
 
 
 class RotateUniform(Preprocess):
     """Rotate by a random angle uniformly drawn from a given angle range."""
 
-    def __init__(self, max_angle=30.0):
+    def __init__(self, max_angle=30.0, prepad=True):
         super().__init__()
         self.max_angle = max_angle
+        self.prepad = prepad
 
     def __call__(self, image, anns, meta):
         sym_rnd = (float(torch.rand(1).item()) - 0.5) * 2.0
         angle = sym_rnd * self.max_angle
 
-        # pad first
-        if abs(angle) > 1.0:
-            w, h = image.size
-            cos_angle = math.cos(abs(angle) * math.pi / 180.0)
-            sin_angle = math.sin(abs(angle) * math.pi / 180.0)
-            padded_size = (
-                int(w * cos_angle + h * sin_angle) + 1,
-                int(h * cos_angle + w * sin_angle) + 1,
-            )
-            center_pad = CenterPad(padded_size)
-            image, anns, meta = center_pad(image, anns, meta)
-
+        if self.prepad:
+            image, anns, meta = _prepad(image, anns, meta, angle)
         return rotate(image, anns, meta, angle)

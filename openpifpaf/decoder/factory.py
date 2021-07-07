@@ -2,17 +2,19 @@ from collections import defaultdict
 import logging
 from typing import Optional
 
-from .cifcaf import CifCaf
+from .cifcaf import CifCaf, CifCafDense
 from .cifdet import CifDet
 from .decoder import Decoder
 from .multi import Multi
+from .pose_similarity import PoseSimilarity
+from .track_base import TrackBase
+from .tracking_pose import TrackingPose
 from . import utils
-from .profiler import Profiler
-from .profiler_autograd import ProfilerAutograd
+from ..profiler import Profiler  # , TorchProfiler
 
 LOG = logging.getLogger(__name__)
 
-DECODERS = {CifDet, CifCaf}
+DECODERS = {CifDet, CifCaf, CifCafDense, PoseSimilarity, TrackingPose}
 
 
 def cli(parser, *, workers=None):
@@ -26,8 +28,9 @@ def cli(parser, *, workers=None):
                        help='minimum threshold for seeds')
     # TODO assert utils.nms.Detection.instance_threshold == utils.nms.Keypoints.instance_threshold
     group.add_argument('--instance-threshold', type=float, default=None,
-                       help=('filter instances by score (0.0 with --force-complete-pose '
-                             'else {})'.format(utils.NMSKeypoints.get_instance_threshold())))
+                       help=('filter instances by score (default is 0.0 with '
+                             '--force-complete-pose and {} otherwise)'
+                             ''.format(utils.NMSKeypoints.get_instance_threshold())))
     group.add_argument('--decoder-workers', default=workers, type=int,
                        help='number of workers for pose decoding')
 
@@ -40,6 +43,7 @@ def cli(parser, *, workers=None):
     group.add_argument('--caf-th', default=utils.CafScored.get_default_score_th(), type=float,
                        help='caf threshold')
 
+    TrackBase.cli(parser)
     for dec in DECODERS:
         dec.cli(parser)
 
@@ -52,9 +56,8 @@ def configure(args):
             args.instance_threshold = utils.NMSKeypoints.get_instance_threshold()
 
     # configure Factory
-    Factory.decoder_filter_from_args(args.decoder)
+    Factory.decoder_request_from_args(args.decoder)
     Factory.profile = args.profile_decoder
-    Factory.profile_device = args.device
 
     # configure CifHr
     utils.CifHr.set_threshold(args.cif_th)
@@ -72,72 +75,76 @@ def configure(args):
     # TODO utils.nms.Detection.instance_threshold = args.instance_threshold
     utils.NMSKeypoints.set_instance_threshold(args.instance_threshold)
 
+    TrackBase.configure(args)
     for dec in DECODERS:
         dec.configure(args)
 
 
 class Factory:
-    decoder_filter: Optional[dict] = None
+    decoder_request: Optional[dict] = None
     profile = False
-    profile_device = None
 
     @classmethod
-    def decoder_filter_from_args(cls, list_str):
+    def decoder_request_from_args(cls, list_str):
         if list_str is None:
-            cls.decoder_filter = None
+            cls.decoder_request = None
             return
 
-        cls.decoder_filter = defaultdict(list)
+        cls.decoder_request = defaultdict(list)
         for dec_str in list_str:
             # pylint: disable=unsupported-assignment-operation,unsupported-membership-test,unsubscriptable-object
             if ':' not in dec_str:
-                if dec_str not in cls.decoder_filter:
-                    cls.decoder_filter[dec_str] = []
+                if dec_str not in cls.decoder_request:
+                    cls.decoder_request[dec_str] = []
                 continue
 
             dec_str, _, index = dec_str.partition(':')
             index = int(index)
-            cls.decoder_filter[dec_str].append(index)
+            cls.decoder_request[dec_str].append(index)
 
-        LOG.debug('setup decoder filter: %s', cls.decoder_filter)
+        LOG.debug('setup decoder request: %s', cls.decoder_request)
 
     @classmethod
     def decoders(cls, head_metas):
-        if cls.decoder_filter is not None:
-            # pylint: disable=unsupported-membership-test,unsubscriptable-object
-            decoders_by_class = {dec_class.__name__.lower(): dec_class
-                                 for dec_class in DECODERS}
-            decoders_by_class = {c: ds.factory(head_metas)
-                                 for c, ds in decoders_by_class.items()
-                                 if c in cls.decoder_filter}
-            LOG.debug('all decoders by class: %s', decoders_by_class)
-            decoders_by_class = {c: [d
-                                     for i, d in enumerate(ds)
-                                     if (not cls.decoder_filter[c]
-                                         or i in cls.decoder_filter[c])]
-                                 for c, ds in decoders_by_class.items()}
-            decoders = [d for ds in decoders_by_class.values() for d in ds]
-            LOG.debug('filtered decoders (%d) by class: %s', len(decoders), decoders_by_class)
-        else:
-            decoders = [
-                d
-                for dec_class in DECODERS
-                for d in dec_class.factory(head_metas)
-            ]
-            LOG.debug('created %d decoders', len(decoders))
+        def per_class(request, dec_class):
+            class_name = dec_class.__name__.lower()
+            if request is not None \
+               and class_name not in request:
+                return []
+            decoders = sorted(dec_class.factory(head_metas), key=lambda d: d.priority, reverse=True)
+            for dec_i, dec in enumerate(decoders):
+                dec.request_index = dec_i
+            if request is not None:
+                indices = set(request[class_name])
+                decoders = (d for i, d in enumerate(decoders) if i in indices)
+            return decoders
+
+        decoders = [d for dec_class in DECODERS for d in per_class(cls.decoder_request, dec_class)]
+        decoders = list(sorted(decoders, key=lambda d: d.priority, reverse=True))
+        LOG.debug('created %d decoders', len(decoders))
 
         if not decoders:
             LOG.warning('no decoders found for heads %s', [meta.name for meta in head_metas])
+        elif len(decoders) == 1:
+            pass
+        elif cls.decoder_request is None:
+            LOG.info(
+                'No specific decoder requested. Using the first one from:\n'
+                '%s\n'
+                'Use any of the above arguments to select one or multiple '
+                'decoders and to suppress this message.',
+                '\n'.join(
+                    f'  --decoder={dec.__class__.__name__.lower()}:{dec.request_index}'
+                    for dec in decoders
+                )
+            )
+            decoders = [decoders[0]]
 
         return decoders
 
     @classmethod
     def __call__(cls, head_metas):
         """Instantiate decoders."""
-        # TODO implement!
-        # dense_coupling=args.dense_coupling,
-        # dense_connections=args.dense_connections,
-
         LOG.debug('head names = %s', [meta.name for meta in head_metas])
         decoders = cls.decoders(head_metas)
 
@@ -145,8 +152,8 @@ class Factory:
             decode = decoders[0]
             decode.__class__.__call__ = Profiler(
                 decode.__call__, out_name=cls.profile)
-            decode.fields_batch = ProfilerAutograd(
-                decode.fields_batch, device=cls.profile_device, out_name=cls.profile)
+            # decode.__class__.__call__ = TorchProfiler(
+            #     decode.__call__, out_name=cls.profile)
 
         return Multi(decoders)
 

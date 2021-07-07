@@ -38,34 +38,34 @@ class CafScored:
         caf = all_fields[meta.head_index]
 
         if self.forward is None:
-            self.forward = [np.empty((9, 0), dtype=caf.dtype) for _ in caf]
-            self.backward = [np.empty((9, 0), dtype=caf.dtype) for _ in caf]
+            self.forward = [np.empty((7, 0), dtype=caf.dtype) for _ in caf]
+            self.backward = [np.empty((7, 0), dtype=caf.dtype) for _ in caf]
 
         for caf_i, nine in enumerate(caf):
-            assert nine.shape[0] == 9
+            assert nine.shape[0] == 8
 
-            mask = nine[0] > self.score_th
+            mask = nine[1] > self.score_th
             if not np.any(mask):
                 continue
             nine = nine[:, mask]
 
             if meta.decoder_min_distance:
-                dist = np.linalg.norm(nine[1:3] - nine[3:5], axis=0)
+                dist = np.linalg.norm(nine[2:4] - nine[4:6], axis=0)
                 mask_dist = dist > meta.decoder_min_distance / meta.stride
                 nine = nine[:, mask_dist]
 
             if meta.decoder_max_distance:
-                dist = np.linalg.norm(nine[1:3] - nine[3:5], axis=0)
+                dist = np.linalg.norm(nine[2:4] - nine[4:6], axis=0)
                 mask_dist = dist < meta.decoder_max_distance / meta.stride
                 nine = nine[:, mask_dist]
 
-            nine[(1, 2, 3, 4, 5, 6, 7, 8), :] *= meta.stride
+            nine[2:, :] *= meta.stride
 
-            nine_b = np.copy(nine[(0, 3, 4, 1, 2, 6, 5, 8, 7), :])
+            nine_b = np.copy(nine[(1, 4, 5, 2, 3, 7, 6), :])
             nine_b = self.rescore(nine_b, meta.skeleton[caf_i][0] - 1)
             self.backward[caf_i] = np.concatenate((self.backward[caf_i], nine_b), axis=1)
 
-            nine_f = np.copy(nine)
+            nine_f = np.copy(nine[1:, :])
             nine_f = self.rescore(nine_f, meta.skeleton[caf_i][1] - 1)
             self.forward[caf_i] = np.concatenate((self.forward[caf_i], nine_f), axis=1)
 

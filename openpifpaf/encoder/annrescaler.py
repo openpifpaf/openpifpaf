@@ -7,6 +7,8 @@ LOG = logging.getLogger(__name__)
 
 class AnnRescaler():
     suppress_selfhidden = True
+    suppress_invisible = False
+    suppress_collision = False
 
     def __init__(self, stride, pose=None):
         self.stride = stride
@@ -42,30 +44,59 @@ class AnnRescaler():
             meta['valid_area'][3] / self.stride,
         )
 
+    @staticmethod
+    def suppress_collision_(keypoint_sets_bbox):
+        for p_i, (kps_p, bbox_p) in enumerate(keypoint_sets_bbox[:-1]):
+            for kps_s, bbox_s in keypoint_sets_bbox[p_i + 1:]:
+                d_th = 0.2 * max(bbox_p[2], bbox_p[3], bbox_s[2], bbox_s[3])
+                d_th = max(16.0, d_th)
+                diff = np.abs(kps_p[:, :2] - kps_s[:, :2])
+                collision = (
+                    (kps_p[:, 2] > 0.0)
+                    & (kps_s[:, 2] > 0.0)
+                    & (diff[:, 0] < d_th)
+                    & (diff[:, 1] < d_th)
+                )
+                if np.any(collision):
+                    kps_p[collision, 2] = 0.0
+                    kps_s[collision, 2] = 0.0
+
+    @staticmethod
+    def suppress_selfhidden_(keypoint_sets):
+        for kpi in range(len(keypoint_sets[0])):
+            all_xyv = sorted([keypoints[kpi] for keypoints in keypoint_sets],
+                             key=lambda xyv: xyv[2], reverse=True)
+            for i, xyv in enumerate(all_xyv[1:], start=1):
+                if xyv[2] > 1.0:  # is visible
+                    continue
+                if xyv[2] < 1.0:  # does not exist
+                    break
+                for prev_xyv in all_xyv[:i]:
+                    if prev_xyv[2] <= 1.0:  # do not suppress if both hidden
+                        break
+                    if np.abs(prev_xyv[0] - xyv[0]) > 32.0 \
+                       or np.abs(prev_xyv[1] - xyv[1]) > 32.0:
+                        continue
+                    LOG.debug('suppressing %s for %s (kp %d)', xyv, prev_xyv, i)
+                    xyv[2] = 0.0
+                    break  # only need to suppress a keypoint once
+
     def keypoint_sets(self, anns):
         """Ignore annotations of crowds."""
-        keypoint_sets = [np.copy(ann['keypoints']) for ann in anns if not ann['iscrowd']]
-        if not keypoint_sets:
+        keypoint_sets_bbox = [(np.copy(ann['keypoints']), ann['bbox'])
+                              for ann in anns if not ann['iscrowd']]
+        if not keypoint_sets_bbox:
             return []
 
-        if self.suppress_selfhidden:
-            for kpi in range(len(keypoint_sets[0])):
-                all_xyv = sorted([keypoints[kpi] for keypoints in keypoint_sets],
-                                 key=lambda xyv: xyv[2], reverse=True)
-                for i, xyv in enumerate(all_xyv[1:], start=1):
-                    if xyv[2] > 1.0:  # is visible
-                        continue
-                    if xyv[2] < 1.0:  # does not exist
-                        break
-                    for prev_xyv in all_xyv[:i]:
-                        if prev_xyv[2] <= 1.0:  # do not suppress if both hidden
-                            break
-                        if np.abs(prev_xyv[0] - xyv[0]) > 32.0 \
-                           or np.abs(prev_xyv[1] - xyv[1]) > 32.0:
-                            continue
-                        LOG.debug('suppressing %s for %s (kp %d)', xyv, prev_xyv, i)
-                        xyv[2] = 0.0
-                        break  # only need to suppress a keypoint once
+        if self.suppress_collision:
+            self.suppress_collision_(keypoint_sets_bbox)
+        keypoint_sets = [kps for kps, _ in keypoint_sets_bbox]
+
+        if self.suppress_invisible:
+            for kps in keypoint_sets:
+                kps[kps[:, 2] < 2.0, 2] = 0.0
+        elif self.suppress_selfhidden:
+            self.suppress_selfhidden_(keypoint_sets)
 
         for keypoints in keypoint_sets:
             keypoints[:, :2] /= self.stride
@@ -196,3 +227,84 @@ class AnnRescalerDet():
             mask[ann['mask'][::self.stride, ::self.stride]] = 0
 
         return mask
+
+
+class TrackingAnnRescaler(AnnRescaler):
+    def bg_mask(self, anns, width_height, *, crowd_margin):
+        """Create background mask taking crowd annotations into account."""
+        anns1, anns2 = anns
+
+        mask = np.ones((
+            (width_height[1] - 1) // self.stride + 1,
+            (width_height[0] - 1) // self.stride + 1,
+        ), dtype=np.bool)
+        crowd_bbox = [np.inf, np.inf, 0, 0]
+        for ann in anns1 + anns2:
+            if not ann['iscrowd']:
+                valid_keypoints = 'keypoints' in ann and np.any(ann['keypoints'][:, 2] > 0)
+                if valid_keypoints:
+                    continue
+
+            if 'mask' not in ann:
+                bb = ann['bbox'].copy()
+                bb /= self.stride
+                bb[2:] += bb[:2]  # convert width and height to x2 and y2
+
+                # left top
+                left = np.clip(int(bb[0] - crowd_margin), 0, mask.shape[1] - 1)
+                top = np.clip(int(bb[1] - crowd_margin), 0, mask.shape[0] - 1)
+
+                # right bottom
+                # ceil: to round up
+                # +1: because mask upper limit is exclusive
+                right = np.clip(int(np.ceil(bb[2] + crowd_margin)) + 1,
+                                left + 1, mask.shape[1])
+                bottom = np.clip(int(np.ceil(bb[3] + crowd_margin)) + 1,
+                                 top + 1, mask.shape[0])
+
+                crowd_bbox[0] = min(crowd_bbox[0], left)
+                crowd_bbox[1] = min(crowd_bbox[1], top)
+                crowd_bbox[2] = max(crowd_bbox[2], right)
+                crowd_bbox[3] = max(crowd_bbox[3], bottom)
+                continue
+
+            assert False  # because code below is not tested
+            mask[ann['mask'][::self.stride, ::self.stride]] = 0
+
+        if crowd_bbox[1] < crowd_bbox[3] and crowd_bbox[0] < crowd_bbox[2]:
+            LOG.debug('crowd_bbox: %s', crowd_bbox)
+            mask[crowd_bbox[1]:crowd_bbox[3], crowd_bbox[0]:crowd_bbox[2]] = 0
+
+        return mask
+
+    def keypoint_sets(self, anns):
+        """Ignore annotations of crowds."""
+        anns1, anns2 = anns
+
+        anns1_by_trackid = {ann['track_id']: ann for ann in anns1}
+        keypoint_sets_bbox = [
+            (
+                np.concatenate((
+                    anns1_by_trackid[ann2['track_id']]['keypoints'],
+                    ann2['keypoints'],
+                ), axis=0),
+                ann2['bbox'],
+            )
+            for ann2 in anns2
+            if (not ann2['iscrowd']
+                and ann2['track_id'] in anns1_by_trackid)
+        ]
+        if not keypoint_sets_bbox:
+            return []
+
+        if self.suppress_collision:
+            self.suppress_collision_(keypoint_sets_bbox)
+        keypoint_sets = [kps for kps, _ in keypoint_sets_bbox]
+
+        if self.suppress_invisible:
+            for kps in keypoint_sets:
+                kps[kps[:, 2] < 2.0, 2] = 0.0
+
+        for keypoints in keypoint_sets:
+            keypoints[:, :2] /= self.stride
+        return keypoint_sets

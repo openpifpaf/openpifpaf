@@ -2,7 +2,7 @@ import copy
 import logging
 
 from .base import Base
-from ..annotation import AnnotationDet
+from ..annotation import AnnotationCrowd, AnnotationDet
 from .. import headmeta, show
 
 try:
@@ -28,6 +28,8 @@ class CifDet(Base):
 
         annotations = [
             AnnotationDet(self.meta.categories).set(ann['category_id'], None, ann['bbox'])
+            if not ann['iscrowd']
+            else AnnotationCrowd(self.meta.categories).set(ann['category_id'], ann['bbox'])
             for ann in annotation_dicts
         ]
 
@@ -36,8 +38,8 @@ class CifDet(Base):
                           annotations=annotations)
 
     def predicted(self, field):
-        self._confidences(field[:, 0])
-        self._regressions(field[:, 1:3], field[:, 3:5],
+        self._confidences(field[:, 1])
+        self._regressions(field[:, 2:4], field[:, 4:6],
                           annotations=self._ground_truth,
                           confidence_fields=field[:, 0],
                           uv_is_offset=False)

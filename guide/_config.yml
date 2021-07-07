@@ -4,6 +4,7 @@ author: <a href="https://www.svenkreiss.com">Sven Kreiss</a> and <a href="https:
 copyright: "2020-2021"
 email: research@svenkreiss.com
 logo: logo.png
+exclude_patterns: [readme.md]
 
 # latex:
 #   latex_documents:
@@ -14,14 +15,15 @@ parse:
     # don't forget to list any other extensions you want enabled,
     # including those that are enabled by default!
     - amsmath
+    - colon_fence
+    # - deflist
     - dollarmath
-
-html:
-  favicon: favicon.png
-  extra_navbar: ""
-  use_repository_button: True
-  extra_footer: |
-    <div>Powered by <a href="https://jupyterbook.org/">Jupyter Book</a>.</div>
+    # - html_admonition
+    # - html_image
+    - linkify
+    # - replacements
+    # - smartquotes
+    - substitution
 
 # Information about where the book exists on the web
 repository:
@@ -38,9 +40,25 @@ sphinx:
     autodoc_member_order: bysource
     autodoc_inherit_docstrings: False
     language: en
+    html_favicon: favicon.png
+    html_theme_options:
+      extra_navbar: ""
+      extra_footer: |
+        <p>Powered by <a href="https://jupyterbook.org/">Jupyter Book</a>.</p>
+      home_page_in_toc: True
+      launch_buttons:
+        binderhub_url: https://mybinder.org
+      path_to_docs: guide
+      repository_branch: stable
+      repository_url: https://github.com/openpifpaf/openpifpaf
+      toc_title: "On this page"
+      use_fullscreen_button: False
+      use_issues_button: True
+      use_repository_button: True
 
 execute:
   timeout: 600
+  stderr_output: error
 
 bibtex_bibfiles:
   - references.bib

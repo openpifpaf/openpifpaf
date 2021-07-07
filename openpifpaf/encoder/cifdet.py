@@ -18,7 +18,7 @@ class CifDet:
     meta: headmeta.CifDet
     rescaler: AnnRescalerDet = None
     v_threshold: int = 0
-    bmin: float = 10.0  #: in pixels
+    bmin: float = 1.0  #: in pixels
     visualizer: CifDetVisualizer = None
 
     side_length: ClassVar[int] = 5
@@ -121,7 +121,8 @@ class CifDetGenerator():
         self.fields_wh[f, :, miny:maxy, minx:maxx][:, mask] = np.expand_dims(wh, 1)
 
         # update bmin
-        bmin = self.config.bmin / self.config.meta.stride
+        half_scale = 0.5 * min(wh[0], wh[1])
+        bmin = max(0.1 * half_scale, self.config.bmin / self.config.meta.stride)
         self.fields_reg_bmin[f, miny:maxy, minx:maxx][mask] = bmin
         self.fields_wh_bmin[f, miny:maxy, minx:maxx][mask] = bmin
 

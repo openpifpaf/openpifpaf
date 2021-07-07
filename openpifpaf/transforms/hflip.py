@@ -58,6 +58,6 @@ class HFlip(Preprocess):
         assert meta['hflip'] is False
         meta['hflip'] = True
 
-        meta['valid_area'][0] = -(meta['valid_area'][0] + meta['valid_area'][2]) + w
+        meta['valid_area'][0] = -(meta['valid_area'][0] + meta['valid_area'][2]) - 1.0 + w
 
         return image, anns, meta

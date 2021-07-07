@@ -37,7 +37,12 @@ Previous [CVPR 2019 paper](http://openaccess.thecvf.com/content_CVPR_2019/html/K
 
 Image credit: "[Learning to surf](https://www.flickr.com/photos/fotologic/6038911779/in/photostream/)" by fotologic which is licensed under [CC-BY-2.0].<br />
 Created with
-{ref}`python3 -m openpifpaf.predict docs/coco/000000081988.jpg --image-min-dpi=200 --show-file-extension=jpeg --image-output <cli-help-predict>`.
+{ref}`python3 -m openpifpaf.predict docs/coco/000000081988.jpg --image-output <cli-help-predict>`.
+
+![example image with overlaid wholebody pose predictions](https://raw.githubusercontent.com/openpifpaf/openpifpaf/main/docs/soccer.jpeg.predictions.jpeg)
+Image credit: [Photo](https://de.wikipedia.org/wiki/Kamil_Vacek#/media/Datei:Kamil_Vacek_20200627.jpg) by [Lokomotive74](https://commons.wikimedia.org/wiki/User:Lokomotive74) which is licensed under [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/).<br />
+Created with
+{ref}`python3 -m openpifpaf.predict docs/wholebody/soccer.jpeg --checkpoint=shufflenetv2k30-wholebody --line-width=2 --image-output <cli-help-predict>`.
 
 More demos:
 * [openpifpafwebdemo](https://github.com/openpifpaf/openpifpafwebdemo) project (best performance). [Live](https://vitademo.epfl.ch).
@@ -61,8 +66,7 @@ pip3 install openpifpaf
 ```
 
 You need to install `matplotlib` to produce visual outputs.
-
-To modify openpifpaf itself, please follow {ref}`modify-code`.
+To modify OpenPifPaf itself, please follow {ref}`modify-code`.
 
 For a live demo, we recommend to try the
 [openpifpafwebdemo](https://github.com/openpifpaf/openpifpafwebdemo) project.
@@ -70,9 +74,9 @@ Alternatively, {ref}`python3 -m openpifpaf.video <cli-help-video>` (requires Ope
 provides a live demo as well.
 
 
-## About this Guide
+## Executable Guide
 
-This is an executable book.
+This is a [jupyter-book](https://jupyterbook.org/intro.html) or "executable book".
 Many sections of this book, like {doc}`predict_cli`, are generated from the code
 shown on the page itself:
 most pages are based on Jupyter Notebooks

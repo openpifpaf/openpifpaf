@@ -1,11 +1,11 @@
-- file: intro
-
-- part: Getting Started
+format: jb-book
+root: intro
+parts:
+- caption: Getting Started
   chapters:
   - file: predict_cli
   - file: examples
-
-- part: Chapters
+- caption: Chapters
   chapters:
   - file: predict_api
   - file: models
@@ -14,21 +14,20 @@
   - file: cli_help
   - file: plugins_overview
   - file: faq
-
-- part: Tutorials
+- caption: Tutorials
   chapters:
   - file: plugins_custom
+  - file: plugins_animalpose
+  - file: plugins_wholebody
   - file: plugins_apollocar3d
   - file: plugins_crowdpose
   - file: tutorial_opencv
   - file: plugins_cifar10
-
-- part: Reference
+- caption: Reference
   chapters:
   - file: moduledocs
   - file: bibliography
-
-- part: Development
+- caption: Development
   chapters:
   - file: dev
   - file: performance

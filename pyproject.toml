@@ -30,6 +30,8 @@ ignore-imports = "yes"  # Ignore imports when computing similarities.
 generated-members = ["numpy.*", "torch.*", "cv2.*"]
 ignored-modules = ["pycocotools"]
 disable = [
+    "consider-iterating-dictionary",
+    "consider-using-dict-items",
     "missing-docstring",
     "too-many-arguments",
     "too-many-instance-attributes",

@@ -2,7 +2,7 @@ import copy
 import logging
 
 from .base import Base
-from ..annotation import Annotation
+from ..annotation import Annotation, AnnotationCrowd
 from .. import headmeta, show
 
 try:
@@ -35,6 +35,8 @@ class Caf(Base):
                 sigmas=self.meta.sigmas,
             ).set(
                 ann['keypoints'], fixed_score='', fixed_bbox=ann['bbox'])
+            if not ann['iscrowd']
+            else AnnotationCrowd(['keypoints']).set(1, ann['bbox'])
             for ann in annotation_dicts
         ]
 
@@ -43,8 +45,8 @@ class Caf(Base):
                           annotations=annotations)
 
     def predicted(self, field):
-        self._confidences(field[:, 0])
-        self._regressions(field[:, 1:3], field[:, 3:5], field[:, 7], field[:, 8],
+        self._confidences(field[:, 1])
+        self._regressions(field[:, 2:4], field[:, 4:6], field[:, 6], field[:, 7],
                           annotations=self._ground_truth,
                           confidence_fields=field[:, 0],
                           uv_is_offset=False)

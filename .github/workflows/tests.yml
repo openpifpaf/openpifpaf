@@ -30,6 +30,11 @@ jobs:
             torch: 1.8.1+cpu
             torchvision: 0.9.1+cpu
             torch-source: https://download.pytorch.org/whl/torch_stable.html
+          - os: ubuntu-latest
+            python: 3.9
+            torch: 1.9.0+cpu
+            torchvision: 0.10.0+cpu
+            torch-source: https://download.pytorch.org/whl/torch_stable.html
           - os: macos-latest
             python: 3.7
             torch: 1.7.1
@@ -43,8 +48,8 @@ jobs:
             conda: True
           - os: macos-latest
             python: 3.9
-            torch: 1.8.1
-            torchvision: 0.9.1
+            torch: 1.9.0
+            torchvision: 0.10.0
             torch-source: https://download.pytorch.org/whl/torch_stable.html
           - os: windows-latest
             python: 3.8
@@ -129,6 +134,22 @@ jobs:
     - name: Lint C++
       if: matrix.os != 'windows-latest'  # because of path separator
       run: cpplint --recursive --linelength=120 --filter=-legal,-whitespace/parens,-whitespace/braces,-whitespace/semicolon,-readability/todo openpifpaf/csrc
+    - name: Check notebook formats and tags
+      if: matrix.slow
+      run: |
+        cd guide
+        python nb_cell_tags.py  # runs all notebooks through nbformat
+        git status
+        git diff
+        git diff-index --quiet HEAD  # exit code 1 when files were changed
+    - name: Check that notebook outputs are stripped
+      if: matrix.slow
+      run: |
+        cd guide
+        nbstripout *.ipynb
+        git status
+        git diff
+        git diff-index --quiet HEAD  # exit code 1 when files were changed
     - name: Lint and pycodestyle on notebooks
       if: matrix.slow
       run: |

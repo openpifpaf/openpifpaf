@@ -31,6 +31,9 @@ class Bce(torch.nn.Module):
     focal_clamp = True
     soft_clamp_value = 5.0
 
+    # choose low value for force-complete-pose and Focal loss modification
+    background_clamp = -15.0
+
     # 0.02 -> -3.9, 0.01 -> -4.6, 0.001 -> -7, 0.0001 -> -9
     min_bce = 0.0  # 1e-6 corresponds to x~=14, 1e-10 -> 20
 
@@ -62,6 +65,8 @@ class Bce(torch.nn.Module):
                            help='gradient clipped below')
         group.add_argument('--bce-soft-clamp', default=cls.soft_clamp_value, type=float,
                            help='soft clamp for BCE')
+        group.add_argument('--bce-background-clamp', default=cls.background_clamp, type=float,
+                           help='background clamp for BCE')
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
@@ -72,11 +77,15 @@ class Bce(torch.nn.Module):
         cls.focal_clamp = args.focal_clamp
         cls.min_bce = args.bce_min
         cls.soft_clamp_value = args.bce_soft_clamp
+        cls.background_clamp = args.bce_background_clamp
 
     def forward(self, x, t):  # pylint: disable=arguments-differ
         t_zeroone = t.clone()
         t_zeroone[t_zeroone > 0.0] = 1.0
         # x = torch.clamp(x, -20.0, 20.0)
+        if self.background_clamp is not None:
+            bg_clamp_mask = (t_zeroone == 0.0) & (x < self.background_clamp)
+            x[bg_clamp_mask] = self.background_clamp
         bce = torch.nn.functional.binary_cross_entropy_with_logits(
             x, t_zeroone, reduction='none')
         # torch.clamp_max_(bce, 10.0)
@@ -118,6 +127,46 @@ class Bce(torch.nn.Module):
             bce = bce * bg_weight
 
         return bce
+
+
+class BceDistance(Bce):
+    def forward(self, x, t):
+        t_sign = t.clone()
+        t_sign[t > 0.0] = 1.0
+        t_sign[t <= 0.0] = -1.0
+        # construct target location relative to x but without backpropagating through x
+        x = x.detach()
+
+        focal_loss_modification = 1.0
+        p_bar = 1.0 / (1.0 + torch.exp(t_sign * x))
+        if self.focal_alpha:
+            focal_loss_modification *= self.focal_alpha
+        if self.focal_gamma == 1.0:
+            p = 1.0 - p_bar
+
+            # includes simplifications for numerical stability
+            # neg_ln_p = torch.log(1 + torch.exp(-t_sign * x))
+            # even more stability:
+            neg_ln_p = torch.nn.functional.softplus(-t_sign * x)
+
+            focal_loss_modification = focal_loss_modification * (p_bar + p * neg_ln_p)
+        elif self.focal_gamma == 0.0:
+            pass
+        else:
+            raise NotImplementedError
+        target = x + t_sign * p_bar * focal_loss_modification
+
+        # construct distance with x that backpropagates gradients
+        d = x - target
+
+        # background clamp
+        if self.background_clamp:
+            d[(x < self.background_clamp) & (t_sign == -1.0)] = 0.0
+
+        # nan target
+        d[torch.isnan(t)] = 0.0
+
+        return d
 
 
 class Scale(torch.nn.Module):
@@ -176,6 +225,13 @@ class Scale(torch.nn.Module):
         return loss
 
 
+class ScaleDistance(Scale):
+    def forward(self, x_scales, t_scales):  # pylint: disable=arguments-renamed
+        d = 1.0 / self.b * (x_scales - t_scales)
+        d[torch.isnan(d)] = 0.0
+        return d
+
+
 class Laplace(torch.nn.Module):
     """Loss based on Laplace Distribution.
 
@@ -224,6 +280,7 @@ class Laplace(torch.nn.Module):
             norm = torch.clamp(norm, self.norm_clip[0], self.norm_clip[1])
 
         # constrain range of logb
+        # logb = logb + 3.0  # shift logb such that weight decay relaxes to large b
         # low range constraint: prevent strong confidence when overfitting
         # high range constraint: force some data dependence
         logb = 3.0 * torch.tanh(logb / 3.0)
@@ -244,6 +301,36 @@ class Laplace(torch.nn.Module):
         if self.weight is not None:
             losses = losses * self.weight
         return losses
+
+
+class RegressionDistance:
+    @staticmethod
+    def __call__(x_regs, t_regs, t_sigma_min, t_scales):
+        d = x_regs - t_regs
+        d = torch.cat([d, t_sigma_min], dim=2)
+        d[torch.isnan(d)] = 0.0
+
+        # L2 distance for coordinate pair
+        d_shape = d.shape
+        d = d.reshape(d_shape[0], d_shape[1], -1, 3, d_shape[-2], d_shape[-1])
+        d = torch.linalg.norm(d, ord=2, dim=3)
+
+        # 68% inside of t_sigma
+        if t_scales.shape[2]:
+            t_sigma = 0.5 * t_scales
+            t_sigma[torch.isnan(t_sigma)] = 0.5  # assume a sigma when not given
+        elif t_regs.shape[2] == 4:
+            # two regressions without scales is detection, i.e. second
+            # regression targets are width and height
+            t_scales = torch.linalg.norm(0.5 * t_regs[:, :, 2:], ord=2, dim=2, keepdim=True)
+            t_sigma = 0.5 * t_scales
+            t_sigma[torch.isnan(t_sigma)] = 5.0  # assume a sigma when not given
+            t_sigma = torch.repeat_interleave(t_sigma, 2, dim=2)
+        else:
+            t_sigma = 0.5
+        d = 1.0 / t_sigma * d
+
+        return d
 
 
 def l1_loss(x1, x2, _, t1, t2, weight=None):

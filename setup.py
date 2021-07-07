@@ -79,7 +79,7 @@ setup(
         'python-json-logger',
         'torch>=1.7.1',
         'torchvision>=0.8.2',
-        'pillow',
+        'pillow<8.3',  # upper limit for torchvision 0.10.0 compatibility
         'dataclasses; python_version<"3.7"',
     ],
     extras_require={
@@ -89,6 +89,7 @@ setup(
             'matplotlib>=3.3',
             'nbdime',
             'nbstripout',
+            'scipy',
             'sphinx-book-theme',
             'wheel',
         ],
@@ -104,6 +105,7 @@ setup(
         'test': [
             'cpplint',
             'nbconvert',
+            'nbstripout',
             'nbval',
             'onnx',
             'onnxruntime',
