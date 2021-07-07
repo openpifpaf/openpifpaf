@@ -47,12 +47,24 @@ class Predictor:
                  self.device, torch.cuda.is_available(), torch.cuda.device_count())
 
     @classmethod
-    def cli(cls, parser: argparse.ArgumentParser):
+    def cli(cls, parser: argparse.ArgumentParser, *,
+            skip_batch_size=False, skip_loader_workers=False):
+        """Add arguments.
+
+        When using this class together with datasets (e.g. in eval),
+        skip the cli arguments for batch size and loader workers as those
+        will be provided via the datasets module.
+        """
         group = parser.add_argument_group('Predictor')
-        group.add_argument('--batch-size', default=cls.batch_size, type=int,
-                           help='processing batch size')
-        group.add_argument('--loader-workers', default=cls.loader_workers, type=int,
-                           help='number of workers for data loading')
+
+        if not skip_batch_size:
+            group.add_argument('--batch-size', default=cls.batch_size, type=int,
+                               help='processing batch size')
+
+        if not skip_loader_workers:
+            group.add_argument('--loader-workers', default=cls.loader_workers, type=int,
+                               help='number of workers for data loading')
+
         group.add_argument('--long-edge', default=cls.long_edge, type=int,
                            help='rescale the long side of the image (aspect ratio maintained)')
         group.add_argument('--precise-rescaling', dest='fast_rescaling',
