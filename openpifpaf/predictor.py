@@ -10,8 +10,10 @@ LOG = logging.getLogger(__name__)
 
 
 class Predictor:
+    batch_size = 1
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     fast_rescaling = True
+    loader_workers = None
     long_edge = None
 
     def __init__(self, checkpoint=None, head_metas=None, *,
@@ -45,8 +47,24 @@ class Predictor:
                  self.device, torch.cuda.is_available(), torch.cuda.device_count())
 
     @classmethod
-    def cli(cls, parser: argparse.ArgumentParser):
+    def cli(cls, parser: argparse.ArgumentParser, *,
+            skip_batch_size=False, skip_loader_workers=False):
+        """Add arguments.
+
+        When using this class together with datasets (e.g. in eval),
+        skip the cli arguments for batch size and loader workers as those
+        will be provided via the datasets module.
+        """
         group = parser.add_argument_group('Predictor')
+
+        if not skip_batch_size:
+            group.add_argument('--batch-size', default=cls.batch_size, type=int,
+                               help='processing batch size')
+
+        if not skip_loader_workers:
+            group.add_argument('--loader-workers', default=cls.loader_workers, type=int,
+                               help='number of workers for data loading')
+
         group.add_argument('--long-edge', default=cls.long_edge, type=int,
                            help='rescale the long side of the image (aspect ratio maintained)')
         group.add_argument('--precise-rescaling', dest='fast_rescaling',
@@ -55,9 +73,11 @@ class Predictor:
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
-        cls.long_edge = args.long_edge
-        cls.fast_rescaling = args.fast_rescaling
+        cls.batch_size = args.batch_size
         cls.device = args.device
+        cls.fast_rescaling = args.fast_rescaling
+        cls.loader_workers = args.loader_workers
+        cls.long_edge = args.long_edge
 
     def _preprocess_factory(self):
         rescale_t = None
@@ -65,7 +85,8 @@ class Predictor:
             rescale_t = transforms.RescaleAbsolute(self.long_edge, fast=self.fast_rescaling)
 
         pad_t = None
-        if self.long_edge is not None:
+        if self.batch_size > 1:
+            assert self.long_edge, '--long-edge must be provided for batch size > 1'
             pad_t = transforms.CenterPad(self.long_edge)
         else:
             pad_t = transforms.CenterPadTight(16)
@@ -77,12 +98,13 @@ class Predictor:
             transforms.EVAL_TRANSFORM,
         ])
 
-    def dataset(self, data, *, batch_size=1, loader_workers=None):
+    def dataset(self, data):
+        loader_workers = self.loader_workers
         if loader_workers is None:
-            loader_workers = batch_size if len(data) > 1 else 0
+            loader_workers = self.batch_size if len(data) > 1 else 0
 
         dataloader = torch.utils.data.DataLoader(
-            data, batch_size=batch_size, shuffle=False,
+            data, batch_size=self.batch_size, shuffle=False,
             pin_memory=self.device.type != 'cpu',
             num_workers=loader_workers,
             collate_fn=datasets.collate_images_anns_meta)
