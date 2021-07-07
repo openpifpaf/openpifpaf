@@ -39,19 +39,17 @@ void CafScored::fill(const torch::Tensor& caf_field, int64_t stride, const torch
     for (int64_t f=0; f < n_fields; f++) {
         for (int64_t j=0; j < caf_field_a.size(2); j++) {
             for (int64_t i=0; i < caf_field_a.size(3); i++) {
-                c = caf_field_a[f][0][j][i];
+                c = caf_field_a[f][1][j][i];
                 if (c < score_th) continue;
 
                 CompositeAssociation ca_forward(
                     c,
-                    caf_field_a[f][1][j][i] * stride,
                     caf_field_a[f][2][j][i] * stride,
                     caf_field_a[f][3][j][i] * stride,
                     caf_field_a[f][4][j][i] * stride,
                     caf_field_a[f][5][j][i] * stride,
                     caf_field_a[f][6][j][i] * stride,
-                    caf_field_a[f][7][j][i] * stride,
-                    caf_field_a[f][8][j][i] * stride
+                    caf_field_a[f][7][j][i] * stride
                 );
                 CompositeAssociation ca_backward(
                     c,
@@ -59,8 +57,6 @@ void CafScored::fill(const torch::Tensor& caf_field, int64_t stride, const torch
                     ca_forward.y2,
                     ca_forward.x1,
                     ca_forward.y1,
-                    ca_forward.b2,
-                    ca_forward.b1,
                     ca_forward.s2,
                     ca_forward.s1
                 );
@@ -89,7 +85,7 @@ std::vector<torch::Tensor> to_tensors(const std::vector<std::vector<CompositeAss
 
     for (auto&& associations : vectors) {
         int64_t n = associations.size();
-        auto tensor = torch::from_blob(const_cast<void*>(reinterpret_cast<const void*>(associations.data())), { n, 9 });
+        auto tensor = torch::from_blob(const_cast<void*>(reinterpret_cast<const void*>(associations.data())), { n, 7 });
         // auto tensor = torch::empty({ n, 9 });
         // auto tensor_a = tensor.accessor<float, 2>();
 

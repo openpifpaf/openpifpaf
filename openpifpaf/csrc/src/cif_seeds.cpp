@@ -32,11 +32,11 @@ void CifSeeds::fill(const torch::Tensor& cif_field, int64_t stride) {
     for (int64_t f=0; f < cif_field_a.size(0); f++) {
         for (int64_t j=0; j < cif_field_a.size(2); j++) {
             for (int64_t i=0; i < cif_field_a.size(3); i++) {
-                c = cif_field_a[f][0][j][i];
+                c = cif_field_a[f][1][j][i];
                 if (c < threshold) continue;
 
-                x = cif_field_a[f][1][j][i] * stride;
-                y = cif_field_a[f][2][j][i] * stride;
+                x = cif_field_a[f][2][j][i] * stride;
+                y = cif_field_a[f][3][j][i] * stride;
                 v = 0.9 * cifhr_value(f, x, y) + 0.1 * c;
                 if (v < threshold) continue;
 

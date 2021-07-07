@@ -39,14 +39,14 @@ void cif_hr_accumulate_op(const torch::Tensor& accumulated,
     for (int64_t f=0; f < cif_field_a.size(0); f++) {
         for (int64_t j=0; j < cif_field_a.size(2); j++) {
             for (int64_t i=0; i < cif_field_a.size(3); i++) {
-                v = cif_field_a[f][0][j][i];
+                v = cif_field_a[f][1][j][i];
                 if (v < v_threshold) continue;
 
                 scale = cif_field_a[f][4][j][i];
                 if (scale < min_scale_f) continue;
 
-                x = cif_field_a[f][1][j][i] * stride;
-                y = cif_field_a[f][2][j][i] * stride;
+                x = cif_field_a[f][2][j][i] * stride;
+                y = cif_field_a[f][3][j][i] * stride;
                 sigma = fmax(1.0, 0.5 * scale * stride);
 
                 // Occupancy covers 2sigma.

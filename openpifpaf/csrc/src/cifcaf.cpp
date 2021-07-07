@@ -67,30 +67,30 @@ Joint grow_connection_blend(const torch::Tensor& caf, double x, double y, double
 
     if (score_1 == 0.0) return { 0, 0, 0, 0 };
 
-    float entry_1[4] = {  // xybs
+    float entry_1[3] = {  // xys
         caf_a[score_1_i][3], caf_a[score_1_i][4],
-        caf_a[score_1_i][6], fmax(0.0f, caf_a[score_1_i][8])
+        fmax(0.0f, caf_a[score_1_i][6])
     };
     if (only_max)
-        return { score_1, entry_1[0], entry_1[1], entry_1[3] };
+        return { score_1, entry_1[0], entry_1[1], entry_1[2] };
     if (score_2 < 0.01 || score_2 < 0.5 * score_1)
         return { 0.5 * score_1, entry_1[0], entry_1[1], entry_1[3] };
 
     // blend
-    float entry_2[4] = {  // xybs
+    float entry_2[3] = {  // xys
         caf_a[score_2_i][3], caf_a[score_2_i][4],
-        caf_a[score_2_i][6], fmax(0.0f, caf_a[score_2_i][8])
+        fmax(0.0f, caf_a[score_2_i][6])
     };
 
     float blend_d2 = std::pow(entry_1[0] - entry_2[0], 2) + std::pow(entry_1[1] - entry_2[1], 2);
-    if (blend_d2 > std::pow(entry_1[3], 2) / 4.0)
-        return { 0.5 * score_1, entry_1[0], entry_1[1], entry_1[3] };
+    if (blend_d2 > std::pow(entry_1[2], 2) / 4.0)
+        return { 0.5 * score_1, entry_1[0], entry_1[1], entry_1[2] };
 
     return {
         0.5 * (score_1 + score_2),
         (score_1 * entry_1[0] + score_2 * entry_2[0]) / (score_1 + score_2),
         (score_1 * entry_1[1] + score_2 * entry_2[1]) / (score_1 + score_2),
-        (score_1 * entry_1[3] + score_2 * entry_2[3]) / (score_1 + score_2)
+        (score_1 * entry_1[2] + score_2 * entry_2[2]) / (score_1 + score_2)
     };
 }
 
