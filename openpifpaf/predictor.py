@@ -87,7 +87,8 @@ class Predictor:
         ])
 
     def dataset(self, data):
-        if self.loader_workers is None:
+        loader_workers = self.loader_workers
+        if loader_workers is None:
             loader_workers = self.batch_size if len(data) > 1 else 0
 
         dataloader = torch.utils.data.DataLoader(

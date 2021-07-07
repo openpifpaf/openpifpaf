@@ -109,6 +109,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
 def main():
     args = cli()
 
+    Predictor.loader_workers = 1
     predictor = Predictor(
         visualize_image=(not args.json_output or args.video_output),
         visualize_processed_image=args.debug,
@@ -123,7 +124,7 @@ def main():
 
     last_loop = time.perf_counter()
     for (ax, ax_second), (preds, _, meta) in \
-            zip(animation.iter(), predictor.dataset(capture, loader_workers=1)):
+            zip(animation.iter(), predictor.dataset(capture)):
         image = visualizer.Base._image  # pylint: disable=protected-access
         if ax is None and (not args.json_output or args.video_output):
             ax, ax_second = animation.frame_init(image)
