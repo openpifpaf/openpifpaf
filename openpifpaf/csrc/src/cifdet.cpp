@@ -6,7 +6,7 @@
 
 #include "openpifpaf/decoder/utils/cif_hr.hpp"
 #include "openpifpaf/decoder/utils/cif_seeds.hpp"
-#include "openpifpaf/decoder/utils/nms_detection.hpp"
+#include "openpifpaf/decoder/utils/nms_detections.hpp"
 #include "openpifpaf/decoder/utils/occupancy.hpp"
 
 
@@ -59,7 +59,7 @@ torch::Tensor CifDet::call(
 #ifdef DEBUG
     TORCH_WARN("NMS");
 #endif
-    utils::NMSDetection().call(&occupancy, &annotations);
+    utils::NMSDetections().call(&occupancy, &annotations);
 
 #ifdef DEBUG
     TORCH_WARN("convert to tensor");

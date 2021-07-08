@@ -15,7 +15,7 @@ namespace decoder {
 namespace utils {
 
 
-struct NMSDetection : torch::CustomClassHolder {
+struct NMSDetections : torch::CustomClassHolder {
     static double suppression;
     static double suppression_soft;
     static double instance_threshold;
@@ -28,7 +28,7 @@ struct NMSDetection : torch::CustomClassHolder {
     STATIC_GETSET(double, iou_threshold)
     STATIC_GETSET(double, iou_threshold_soft)
 
-    NMSDetection() { }
+    NMSDetections() { }
 
     void call(Occupancy* occupancy, std::vector<Detection>* annotations);
 };

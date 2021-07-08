@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#include "openpifpaf/decoder/utils/nms_detection.hpp"
+#include "openpifpaf/decoder/utils/nms_detections.hpp"
 
 
 namespace openpifpaf {
@@ -10,11 +10,11 @@ namespace decoder {
 namespace utils {
 
 
-double NMSDetection::suppression = 0.1;
-double NMSDetection::suppression_soft = 0.3;
-double NMSDetection::instance_threshold = 0.15;
-double NMSDetection::iou_threshold = 0.7;
-double NMSDetection::iou_threshold_soft = 0.5;
+double NMSDetections::suppression = 0.1;
+double NMSDetections::suppression_soft = 0.3;
+double NMSDetections::instance_threshold = 0.15;
+double NMSDetections::iou_threshold = 0.7;
+double NMSDetections::iou_threshold_soft = 0.5;
 
 
 struct AnnotationCompare {
@@ -24,7 +24,7 @@ struct AnnotationCompare {
 };
 
 
-void NMSDetection::call(Occupancy* occupancy, std::vector<Detection>* annotations) {
+void NMSDetections::call(Occupancy* occupancy, std::vector<Detection>* annotations) {
     occupancy->clear();
     std::sort(annotations->begin(), annotations->end(), AnnotationCompare());
 

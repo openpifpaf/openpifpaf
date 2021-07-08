@@ -36,12 +36,7 @@ struct OPENPIFPAF_API CifDet : torch::CustomClassHolder {
     utils::CifDetHr cifDetHr;
     utils::Occupancy occupancy;
 
-    CifDet(
-    ) :
-        cifDetHr(),
-        occupancy(2.0, 4.0)
-    {
-    }
+    CifDet(void) : cifDetHr(), occupancy(2.0, 4.0) { }
 
     torch::Tensor call(
         const torch::Tensor& cifdet_field,

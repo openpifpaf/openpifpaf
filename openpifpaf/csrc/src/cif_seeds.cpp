@@ -102,7 +102,7 @@ std::tuple<torch::Tensor, torch::Tensor> CifSeeds::get(void) {
 std::tuple<torch::Tensor, torch::Tensor> CifDetSeeds::get(void) {
     std::sort(
         seeds.begin(), seeds.end(),
-        [](const Seed& a, const Seed& b) { return a.v > b.v; }
+        [](const DetSeed& a, const DetSeed& b) { return a.v > b.v; }
     );
     int64_t n_seeds = seeds.size();
 
