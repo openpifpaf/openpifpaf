@@ -86,7 +86,9 @@ class MBConv(nn.Module):
         self.identity = stride == 1 and inp == oup
         if use_se:
             self.conv = nn.Sequential(
+                # Paper Figure 2 MBConv
                 # pw
+                # inp size, outp size, kernel size, stride, padding 
                 nn.Conv2d(inp, hidden_dim, 1, 1, 0, bias=False),
                 nn.BatchNorm2d(hidden_dim),
                 SiLU(),
@@ -137,15 +139,15 @@ class EffNetV2(nn.Module):
         # building last several layers
         output_channel = _make_divisible(1792 * width_mult, 8) if width_mult > 1.0 else 1792
         self.conv = conv_1x1_bn(input_channel, output_channel)
-        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        #self.classifier = nn.Linear(output_channel, num_classes)
+        # self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+        # self.classifier = nn.Linear(output_channel, num_classes)
 
         self._initialize_weights()
 
     def forward(self, x):
         x = self.features(x)
         x = self.conv(x)
-        x = self.avgpool(x)
+        # x = self.avgpool(x)
         # x = x.view(x.size(0), -1)
         # x = self.classifier(x)
         return x
@@ -170,6 +172,7 @@ def effnetv2_s(**kwargs):
     Constructs a EfficientNetV2-S model
     """
     cfgs = [
+        # expansion ratio, channels, number of layers of this type, stride, use squeeze and excitation
         # t, c, n, s, SE
         [1,  24,  2, 1, 0],
         [4,  48,  4, 2, 0],
@@ -227,6 +230,73 @@ def effnetv2_xl(**kwargs):
         [4, 192, 16, 2, 1],
         [6, 256, 24, 1, 1],
         [6, 512, 32, 2, 1],
+        [6, 640,  8, 1, 1],
+    ]
+    return EffNetV2(cfgs, **kwargs)
+
+def effnetv2_s16_s(**kwargs):
+    """
+    Constructs a EfficientNetV2-S model
+    """
+    cfgs = [
+        # expansion ratio, channels, number of layers of this type, stride, use squeeze and excitation
+        # t, c, n, s, SE
+        [1,  24,  2, 1, 0],
+        [4,  48,  4, 2, 0],
+        [4,  64,  4, 2, 0],
+        [4, 128,  6, 2, 1],
+        [6, 160,  9, 1, 1],
+        [6, 256, 15, 1, 1],
+    ]
+    return EffNetV2(cfgs, **kwargs)
+
+
+def effnetv2_s16_m(**kwargs):
+    """
+    Constructs a EfficientNetV2-M model
+    """
+    cfgs = [
+        # t, c, n, s, SE
+        [1,  24,  3, 1, 0],
+        [4,  48,  5, 2, 0],
+        [4,  80,  5, 2, 0],
+        [4, 160,  7, 2, 1],
+        [6, 176, 14, 1, 1],
+        [6, 304, 18, 1, 1],
+        [6, 512,  5, 1, 1],
+    ]
+    return EffNetV2(cfgs, **kwargs)
+
+
+def effnetv2_s16_l(**kwargs):
+    """
+    Constructs a EfficientNetV2-L model
+    """
+    cfgs = [
+        # t, c, n, s, SE
+        [1,  32,  4, 1, 0],
+        [4,  64,  7, 2, 0],
+        [4,  96,  7, 2, 0],
+        [4, 192, 10, 2, 1],
+        [6, 224, 19, 1, 1],
+        [6, 384, 25, 1, 1],
+        [6, 640,  7, 1, 1],
+    ]
+    return EffNetV2(cfgs, **kwargs)
+
+
+def effnetv2_s16_xl(**kwargs):
+    """
+    Constructs a EfficientNetV2-XL model
+    """
+    cfgs = [
+        # t, c, n, s, SE
+        [1,  32,  4, 1, 0],
+        [4,  64,  8, 2, 0],
+        [4,  96,  8, 2, 0],
+        [4, 192, 16, 2, 1],
+        [6, 256, 24, 1, 1],
+        [6, 512, 32, 1, 1],
         [6, 640,  8, 1, 1],
     ]
     return EffNetV2(cfgs, **kwargs)

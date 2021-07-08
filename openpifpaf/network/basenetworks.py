@@ -571,16 +571,88 @@ class EffNetV2_extra_large(BaseNetwork):
     @classmethod
     def configure(cls, args: argparse.Namespace):
         pass
+    
+class EffNetV2_s16_small(BaseNetwork):
+    def __init__(self, name, out_features=1792):
+        super().__init__(name, stride=16, out_features=out_features)
+        self.backbone = effnetv2.effnetv2_s16_s()
+        self.backbone._initialize_weights()  # TODO make this CLI configurable
+
+    def forward(self, x):
+        x = self.backbone.forward(x)
+        return x
+
+    @classmethod
+    def cli(cls, parser: argparse.ArgumentParser):
+        pass
+    
+    @classmethod
+    def configure(cls, args: argparse.Namespace):
+        pass
+
+class EffNetV2_s16_medium(BaseNetwork):
+    def __init__(self, name, out_features=1792):
+        super().__init__(name, stride=16, out_features=out_features)
+        self.backbone = effnetv2.effnetv2_s16_m()
+        self.backbone._initialize_weights()  # TODO make this CLI configurable
+
+    def forward(self, x):
+        x = self.backbone.forward(x)
+        return x
+
+    @classmethod
+    def cli(cls, parser: argparse.ArgumentParser):
+        pass
+    
+    @classmethod
+    def configure(cls, args: argparse.Namespace):
+        pass
+
+class EffNetV2_s16_large(BaseNetwork):
+    def __init__(self, name, out_features=1792):
+        super().__init__(name, stride=16, out_features=out_features)
+        self.backbone = effnetv2.effnetv2_s16_l()
+        self.backbone._initialize_weights()  # TODO make this CLI configurable
+
+    def forward(self, x):
+        x = self.backbone.forward(x)
+        return x
+
+    @classmethod
+    def cli(cls, parser: argparse.ArgumentParser):
+        pass
+    
+    @classmethod
+    def configure(cls, args: argparse.Namespace):
+        pass
+
+class EffNetV2_s16_extra_large(BaseNetwork):
+    def __init__(self, name, out_features=1792):
+        super().__init__(name, stride=16, out_features=out_features)
+        self.backbone = effnetv2.effnetv2_xl()
+        self.backbone._initialize_weights()  # TODO make this CLI configurable
+
+    def forward(self, x):
+        x = self.backbone.forward(x)
+        return x
+
+    @classmethod
+    def cli(cls, parser: argparse.ArgumentParser):
+        pass
+    
+    @classmethod
+    def configure(cls, args: argparse.Namespace):
+        pass
 
 class BotNet(BaseNetwork):
     input_image_size = 640
-    def __init__(self, name, out_features=2048):
+    def __init__(self, name, out_features=512):
         super().__init__(name, stride=8, out_features=out_features)
         
         layer = bottleneck_transformer.BottleStack(
             dim = 256,
             fmap_size = int(ceil(self.input_image_size/4)),  # default img size is 640 x 640
-            dim_out = 2048,
+            dim_out = 512,
             proj_factor = 4,
             downsample = True,
             heads = 4,
@@ -608,7 +680,8 @@ class BotNet(BaseNetwork):
         group = parser.add_argument_group('BotNet')
         group.add_argument('--botnet-input-image-size',
                            default=cls.input_image_size, type=int,
-                           help='stride of the optional 2nd input convolution')
+                           help='Input image size. Needs to be the same for training and'
+                           ' prediction, as BotNet only accepts fixed input sizes')
     
     @classmethod
     def configure(cls, args: argparse.Namespace):
