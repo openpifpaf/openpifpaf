@@ -10,20 +10,23 @@ PYTHON = 'python3' if sys.platform != 'win32' else 'python'
 
 
 @pytest.mark.parametrize(
-    'batch_size,with_debug,with_dense',
+    'batch_size,with_debug,with_dense,with_catchsegv',
     # [(1, False, False), (2, False, False), (1, True, False), (1, False, True)],
     # current default models don't support dense connections
-    [(1, False, False), (2, False, False), (1, True, False)],
+    [(1, False, False, True), (2, False, False, False), (1, True, False, False)],
 )
-def test_predict(batch_size, with_debug, with_dense, tmpdir):
+def test_predict(batch_size, with_debug, with_dense, with_catchsegv, tmpdir):
     """Test predict cli.
 
     with_debug makes sure that debugging works in this environment.
     For example, at some point, --debug required matplotlib which was unintentional.
     """
 
+    print('platform', sys.platform)
     if batch_size > 1 and sys.platform.startswith('win'):
         pytest.skip('multiprocess decoding not supported on windows')
+    if not sys.platform.startswith('linux'):
+        with_catchsegv = False
 
     cmd = [
         PYTHON, '-m', 'openpifpaf.predict',
@@ -38,6 +41,8 @@ def test_predict(batch_size, with_debug, with_dense, tmpdir):
         cmd.append('--debug')
     if with_dense:
         cmd.append('--dense-connections')
+    if with_catchsegv:
+        cmd.insert(0, 'catchsegv')
 
     subprocess.run(cmd, check=True)
     assert os.path.exists(os.path.join(tmpdir, '000000081988.jpg.predictions.json'))
