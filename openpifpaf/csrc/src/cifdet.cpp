@@ -68,9 +68,14 @@ std::tuple<torch::Tensor, torch::Tensor, torch::Tensor> CifDet::call(
 #ifdef DEBUG
     TORCH_WARN("convert to tensor");
 #endif
-    auto categories_t = torch::from_blob((int64_t*)(categories.data()), categories.size(), torch::kInt64).clone();
-    auto scores_t = torch::from_blob((float*)(scores.data()), scores.size()).clone();
-    auto boxes_t = torch::from_blob((float*)(boxes.data()), { int64_t(boxes.size()), 4}).clone();
+    auto categories_t = torch::from_blob(
+        reinterpret_cast<int64_t*>(categories.data()),
+        categories.size(), torch::kInt64
+    ).clone();
+    auto scores_t = torch::from_blob(
+        reinterpret_cast<float*>(scores.data()), scores.size()).clone();
+    auto boxes_t = torch::from_blob(
+        reinterpret_cast<float*>(boxes.data()), { int64_t(boxes.size()), 4}).clone();
 
     return std::make_tuple(categories_t, scores_t, boxes_t);
 }
