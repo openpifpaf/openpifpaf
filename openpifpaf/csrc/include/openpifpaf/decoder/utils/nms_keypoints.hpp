@@ -16,7 +16,7 @@ namespace utils {
 
 
 struct AnnotationScore {
-    virtual double value(const std::vector<Joint>& annotation) const;
+    virtual double value(const std::vector<Joint>& annotation) const { return 0.0; }
     virtual ~AnnotationScore() { }
 };
 
