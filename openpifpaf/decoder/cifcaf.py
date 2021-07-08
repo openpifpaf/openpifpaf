@@ -236,5 +236,9 @@ class CifCaf(Decoder):
             ann.data[:, 2] = ann_data[:, 0]
             ann.joint_scales[:] = ann_data[:, 3]
             annotations_py.append(ann)
-        print([np.sum(ann.data[:, 2] > 0.0) for ann in annotations_py])
+
+        LOG.info('annotations %d: %s, decoder = %.1fms',
+                 len(annotations_py),
+                 [np.sum(ann.data[:, 2] > 0.0) for ann in annotations_py],
+                 (time.perf_counter() - start) * 1000.0)
         return annotations_py

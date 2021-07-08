@@ -15,6 +15,7 @@ namespace decoder {
 namespace utils {
 
 
+// TODO: remove and use torchvision nms
 struct NMSDetections : torch::CustomClassHolder {
     static double suppression;
     static double suppression_soft;

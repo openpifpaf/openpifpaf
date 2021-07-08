@@ -3,8 +3,9 @@ import logging
 import time
 from typing import List
 
+import torch
+
 from .decoder import Decoder
-from . import utils
 from ..annotation import AnnotationDet
 from .. import headmeta, visualizer
 
@@ -27,6 +28,8 @@ class CifDet(Decoder):
         if self.visualizers is None:
             self.visualizers = [visualizer.CifDet(meta) for meta in self.metas]
 
+        self.cpp_decoder = torch.classes.openpifpaf_decoder.CifDet()
+
         self.timers = defaultdict(float)
 
     @classmethod
@@ -45,25 +48,24 @@ class CifDet(Decoder):
             for vis, meta in zip(self.visualizers, self.metas):
                 vis.predicted(fields[meta.head_index])
 
-        cifhr = utils.CifDetHr().fill(fields, self.metas)
-        seeds = utils.CifDetSeeds(cifhr.accumulated).fill(fields, self.metas)
-        occupied = utils.Occupancy(cifhr.accumulated.shape, 2, min_scale=2.0)
+        categories, scores, boxes = self.cpp_decoder.call(
+            fields[self.metas[0].head_index],
+            self.metas[0].stride,
+        )
+        LOG.debug('cpp annotations = %d (%.1fms)',
+                  len(categories),
+                  (time.perf_counter() - start) * 1000.0)
+        print(categories, scores, boxes)
 
-        annotations = []
-        for v, f, x, y, w, h in seeds.get():
-            if occupied.get(f, x, y):
-                continue
-            ann = AnnotationDet(self.metas[0].categories).set(
-                f + 1, v, (x - w / 2.0, y - h / 2.0, w, h))
-            annotations.append(ann)
-            if len(annotations) >= self.max_detections_before_nms:
-                break
-            occupied.set(f, x, y, 0.1 * min(w, h))
+        # TODO: apply torchvision nms
 
-        self.occupancy_visualizer.predicted(occupied)
+        annotations_py = []
+        for c, s, box in zip(categories, scores, boxes):
+            ann = AnnotationDet(self.metas[0].categories)
+            ann.set(c, s, box)
+            annotations_py.append(ann)
 
-        annotations = utils.nms.Detection().annotations(annotations)
-        # annotations = sorted(annotations, key=lambda a: -a.score)
-
-        LOG.info('annotations %d, decoder = %.3fs', len(annotations), time.perf_counter() - start)
-        return annotations
+        LOG.info('annotations %d, decoder = %.1fms',
+                 len(annotations_py),
+                 (time.perf_counter() - start) * 1000.0)
+        return annotations_py

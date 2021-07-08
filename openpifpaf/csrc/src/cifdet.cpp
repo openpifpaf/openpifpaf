@@ -17,7 +17,12 @@ namespace decoder {
 int64_t CifDet::max_detections_before_nms = 120;
 
 
-torch::Tensor CifDet::call(
+struct BBox {
+    float x, y, w, h;
+};
+
+
+std::tuple<torch::Tensor, torch::Tensor, torch::Tensor> CifDet::call(
     const torch::Tensor& cifdet_field,
     int64_t cifdet_stride
 ) {
@@ -37,10 +42,12 @@ torch::Tensor CifDet::call(
 #endif
 
     occupancy.reset(cifDetHr_accumulated.sizes());
-    std::vector<Detection> annotations;
 
     int64_t f;
     float c, x, y, w, h;
+    std::vector<int64_t> categories;
+    std::vector<float> scores;
+    std::vector<BBox> boxes;
     for (int64_t seed_i=0; seed_i < seeds_f.size(0); seed_i++) {
         f = seeds_f_a[seed_i];
         c = seeds_vxywh_a[seed_i][0];
@@ -51,25 +58,21 @@ torch::Tensor CifDet::call(
         if (occupancy.get(f, x, y)) continue;
 
         occupancy.set(f, x, y, 0.1 * fmin(w, h));
-        annotations.push_back(Detection(f, c, x - 0.5 * w, y - 0.5 * h, w, h));
+        categories.push_back(f + 1);
+        scores.push_back(c);
+        boxes.push_back({ x - 0.5f * w, y - 0.5f * h, w, h });
 
-        if (annotations.size() > max_detections_before_nms) break;
+        if (int64_t(boxes.size()) > max_detections_before_nms) break;
     }
-
-#ifdef DEBUG
-    TORCH_WARN("NMS");
-#endif
-    utils::NMSDetections().call(&occupancy, &annotations);
 
 #ifdef DEBUG
     TORCH_WARN("convert to tensor");
 #endif
-    auto out = torch::zeros({ int64_t(annotations.size()), 5 });
-    auto out_a = out.accessor<float, 2>();
-    for (int64_t ann_i = 0; ann_i < int64_t(annotations.size()); ann_i++) {
-        auto& ann = annotations[ann_i];
-    }
-    return out;
+    auto categories_t = torch::from_blob((int64_t*)(categories.data()), categories.size(), torch::kInt64).clone();
+    auto scores_t = torch::from_blob((float*)(scores.data()), scores.size()).clone();
+    auto boxes_t = torch::from_blob((float*)(boxes.data()), { int64_t(boxes.size()), 4}).clone();
+
+    return std::make_tuple(categories_t, scores_t, boxes_t);
 }
 
 
