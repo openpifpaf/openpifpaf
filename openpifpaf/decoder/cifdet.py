@@ -4,6 +4,7 @@ import time
 from typing import List
 
 import torch
+import torchvision
 
 from .decoder import Decoder
 from ..annotation import AnnotationDet
@@ -13,8 +14,9 @@ LOG = logging.getLogger(__name__)
 
 
 class CifDet(Decoder):
-    occupancy_visualizer = visualizer.Occupancy()
+    iou_threshold = 0.5
     max_detections_before_nms = 120
+    occupancy_visualizer = visualizer.Occupancy()
 
     def __init__(self, head_metas: List[headmeta.CifDet], *, visualizers=None):
         super().__init__()
@@ -52,17 +54,17 @@ class CifDet(Decoder):
             fields[self.metas[0].head_index],
             self.metas[0].stride,
         )
+        mask = torchvision.ops.nms(boxes, scores, self.iou_threshold)
         LOG.debug('cpp annotations = %d (%.1fms)',
-                  len(categories),
+                  len(mask),
                   (time.perf_counter() - start) * 1000.0)
-        print(categories, scores, boxes)
-
-        # TODO: apply torchvision nms
 
         annotations_py = []
-        for c, s, box in zip(categories, scores, boxes):
+        for i in mask:
             ann = AnnotationDet(self.metas[0].categories)
-            ann.set(c, s, box)
+            box = boxes[i]
+            box[2:] -= box[:2]  # convert to xywh
+            ann.set(categories[i], scores[i], box)
             annotations_py.append(ann)
 
         LOG.info('annotations %d, decoder = %.1fms',

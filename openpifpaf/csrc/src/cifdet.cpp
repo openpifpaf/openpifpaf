@@ -60,7 +60,7 @@ std::tuple<torch::Tensor, torch::Tensor, torch::Tensor> CifDet::call(
         occupancy.set(f, x, y, 0.1 * fmin(w, h));
         categories.push_back(f + 1);
         scores.push_back(c);
-        boxes.push_back({ x - 0.5f * w, y - 0.5f * h, w, h });
+        boxes.push_back({ x - 0.5f * w, y - 0.5f * h, x + 0.5f * w, y + 0.5f * h });
 
         if (int64_t(boxes.size()) > max_detections_before_nms) break;
     }
