@@ -114,6 +114,9 @@ torch::Tensor CifCaf::call(
     const torch::Tensor& caf_field,
     int64_t caf_stride
 ) {
+#ifdef DEBUG
+    TORCH_WARN("cpp CifCaf::call()");
+#endif
     TORCH_CHECK(cif_field.device().is_cpu(), "cif_field must be a CPU tensor");
     TORCH_CHECK(caf_field.device().is_cpu(), "caf_field must be a CPU tensor");
 

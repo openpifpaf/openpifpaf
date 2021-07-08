@@ -58,7 +58,7 @@ jobs:
             torch-source: https://download.pytorch.org/whl/torch_stable.html
 
     env:
-      DEBUG: 1
+      DEBUG: '1'
     steps:
     - uses: actions/checkout@v2
       with:
