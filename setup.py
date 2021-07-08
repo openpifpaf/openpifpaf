@@ -32,7 +32,13 @@ def add_cpp_extension():
 
     if os.getenv('DEBUG', '0') == '1':
         print('DEBUG mode')
-        extra_compile_args += ['-g', '-O0']
+        extra_compile_args += [
+            '-g',
+            '-O0',
+            '-Weffc++',
+            '-Wuninitialized',
+            '-Werror',
+        ]
         define_macros += [('DEBUG', None)]
 
     this_dir = os.path.dirname(os.path.abspath(__file__))
