@@ -35,7 +35,6 @@ def add_cpp_extension():
         extra_compile_args += [
             '-g',
             '-O0',
-            '-Weffc++',
             '-Wuninitialized',
             '-Werror',
         ]
