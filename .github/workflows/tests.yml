@@ -96,7 +96,7 @@ jobs:
         python -m pip install --pre torch torchvision -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html
     - name: Install
       run: |
-        echo ${{DEBUG}}
+        echo ${DEBUG}
         python -m pip install -e ".[test]" --no-build-isolation
     - name: Install for training
       if: matrix.slow
