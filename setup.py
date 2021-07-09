@@ -36,7 +36,7 @@ def add_cpp_extension():
             '-g',
             '-O0',
             '-Wuninitialized',
-            '-Werror',
+            # '-Werror',  # fails in pytorch code
         ]
         define_macros += [('DEBUG', None)]
 
