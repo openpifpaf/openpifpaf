@@ -28,10 +28,9 @@ struct AnnotationCompare {
 
 void NMSKeypoints::call(Occupancy* occupancy, std::vector<std::vector<Joint> >* annotations) {
     occupancy->clear();
-    return;
-
     std::sort(annotations->begin(), annotations->end(), AnnotationCompare(score));
     TORCH_WARN("nms 1: ", annotations->size());
+    return;
 
     for (auto&& ann : *annotations) {
         TORCH_CHECK(occupancy->occupancy.size(0) == int64_t(ann.size()),
