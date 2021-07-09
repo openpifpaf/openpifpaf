@@ -1,16 +1,16 @@
+import glob
+import os
 from setuptools import setup, find_packages
 from setuptools.extension import Extension
+import sys
 import torch.utils.cpp_extension
 
 
 # This is needed for versioneer to be importable when building with PEP 517.
 # See <https://github.com/warner/python-versioneer/issues/193> and links
 # therein for more information.
-import os, sys
 sys.path.append(os.path.dirname(__file__))
 import versioneer
-
-import glob
 
 
 EXTENSIONS = []
@@ -32,12 +32,12 @@ def add_cpp_extension():
 
     if os.getenv('DEBUG', '0') == '1':
         print('DEBUG mode')
-        extra_compile_args += [
-            '-g',
-            '-O0',
-            '-Wuninitialized',
-            # '-Werror',  # fails in pytorch code
-        ]
+        extra_compile_args += ['-g', '-O0']
+        if sys.platform.startswith('linux'):
+            extra_compile_args += [
+                '-Wuninitialized',
+                # '-Werror',  # fails in pytorch code, but would be nice to have in CI
+            ]
         define_macros += [('DEBUG', None)]
 
     this_dir = os.path.dirname(os.path.abspath(__file__))
