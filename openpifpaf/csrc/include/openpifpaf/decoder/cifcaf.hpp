@@ -42,8 +42,8 @@ struct FrontierEntry {
     : max_score(max_score_), joint(joint_), start_i(start_i_), end_i(end_i_) { }
 };
 class FrontierCompare {
-    public:
-        bool operator() (const FrontierEntry& a, const FrontierEntry& b);
+ public:
+    bool operator() (const FrontierEntry& a, const FrontierEntry& b);
 };
 
 
