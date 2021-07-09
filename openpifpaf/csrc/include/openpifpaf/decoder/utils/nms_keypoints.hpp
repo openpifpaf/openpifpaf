@@ -21,7 +21,7 @@ struct AnnotationScore {
 };
 
 
-struct UniformScore : AnnotationScore {
+struct UniformScore : public AnnotationScore {
     double value(const std::vector<Joint>& annotation) const {
         std::cout << "-- score" << std::endl;
         for (auto& j : annotation) std::cout << j.v << std::endl;
