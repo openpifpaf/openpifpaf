@@ -29,6 +29,7 @@ struct UniformScore : public AnnotationScore {
             annotation.begin(), annotation.end(), 0.0,
             [](float i, const Joint& j) { return i + j.v; }
         ) / annotation.size();
+        std::cout << "score done" << std::endl;
     }
 };
 
