@@ -21,13 +21,14 @@ struct AnnotationCompare {
     explicit AnnotationCompare(std::shared_ptr<AnnotationScore> score_) : score(score_) { }
 
     bool operator() (const std::vector<Joint>& a, const std::vector<Joint>& b) {
-        return score->value(a) >= score->value(b);
+        return score->value(a) > score->value(b);
     }
 };
 
 
 void NMSKeypoints::call(Occupancy* occupancy, std::vector<std::vector<Joint> >* annotations) {
     occupancy->clear();
+    std::cout << "score: " << score->value((*annotations)[0]) << std::endl;
     std::sort(annotations->begin(), annotations->end(), AnnotationCompare(score));
     TORCH_WARN("nms 1: ", annotations->size());
     return;
