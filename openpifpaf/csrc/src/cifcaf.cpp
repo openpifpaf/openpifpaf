@@ -198,7 +198,7 @@ torch::Tensor CifCaf::call(
 #ifdef DEBUG
     TORCH_WARN("NMS");
 #endif
-    utils::NMSKeypoints().call(&occupancy, &annotations);
+    // utils::NMSKeypoints().call(&occupancy, &annotations);
 
 #ifdef DEBUG
     TORCH_WARN("convert to tensor");
