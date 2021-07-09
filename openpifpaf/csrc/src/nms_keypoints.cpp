@@ -29,12 +29,17 @@ struct AnnotationCompare {
 
 void NMSKeypoints::call(Occupancy* occupancy, std::vector<std::vector<Joint> >* annotations) {
     occupancy->clear();
+    std::cout << "test sort" << std::endl;
+    std::vector<int64_t> test_vector{ 8, 7, 1, 2, 3, 4 };
+    std::sort(test_vector.begin(), test_vector.end());
+    std::cout << test_vector[0] << std::endl;
     std::cout << "score: " << score->value((*annotations)[0]) << std::endl;
     std::cout << "score done" << std::endl;
     std::cout << AnnotationCompare(score)((*annotations)[0], (*annotations)[0]) << std::endl;
-    std::cout << "before sort" << std::endl;
     auto ann_compare = AnnotationCompare(score);
+    std::cout << "before sort" << std::endl;
     std::sort(annotations->begin(), annotations->end(), ann_compare);
+    std::cout << "sort done" << std::endl;
     TORCH_WARN("nms 1: ", annotations->size());
     return;
 
