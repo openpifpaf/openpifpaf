@@ -41,7 +41,10 @@ struct FrontierEntry {
     FrontierEntry(float max_score_, Joint joint_, int64_t start_i_, int64_t end_i_)
     : max_score(max_score_), joint(joint_), start_i(start_i_), end_i(end_i_) { }
 };
-auto frontier_compare = [](const FrontierEntry& a, const FrontierEntry& b) { return a.max_score < b.max_score; };
+class FrontierCompare {
+    public:
+        bool operator() (const FrontierEntry& a, const FrontierEntry& b);
+};
 
 
 typedef std::tuple<std::vector<torch::Tensor>, std::vector<torch::Tensor> > caf_fb_t;
@@ -77,7 +80,7 @@ struct OPENPIFPAF_API CifCaf : torch::CustomClassHolder {
 
     utils::CifHr cifhr;
     utils::Occupancy occupancy;
-    std::priority_queue<FrontierEntry, std::vector<FrontierEntry>, decltype(frontier_compare)> frontier;
+    std::priority_queue<FrontierEntry, std::vector<FrontierEntry>, FrontierCompare> frontier;
     std::unordered_set<std::pair<int64_t, int64_t>, IntPairHash > in_frontier;
 
     CifCaf(
@@ -88,7 +91,7 @@ struct OPENPIFPAF_API CifCaf : torch::CustomClassHolder {
         skeleton(skeleton_),
         cifhr(),
         occupancy(2.0, 4.0),
-        frontier(frontier_compare)
+        frontier(FrontierCompare())
     {
         TORCH_CHECK(skeleton.dtype() == torch::kInt64, "skeleton must be of type LongTensor");
     }

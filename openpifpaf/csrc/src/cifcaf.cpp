@@ -24,6 +24,11 @@ bool CifCaf::force_complete = false;
 double CifCaf::force_complete_caf_th = 0.001;
 
 
+bool FrontierCompare::operator() (const FrontierEntry& a, const FrontierEntry& b) {
+    return a.max_score < b.max_score;
+}
+
+
 Joint grow_connection_blend(const torch::Tensor& caf, double x, double y, double xy_scale, bool only_max) {
     /*
     Blending the top two candidates with a weighted average.
