@@ -1,7 +1,6 @@
 import glob
 import os
 from setuptools import setup, find_packages
-from setuptools.extension import Extension
 import sys
 import torch.utils.cpp_extension
 
