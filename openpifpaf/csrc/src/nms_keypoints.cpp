@@ -16,12 +16,12 @@ double NMSKeypoints::keypoint_threshold = 0.15;
 
 
 struct AnnotationCompare {
-    const AnnotationScore& score;
+    std::shared_ptr<AnnotationScore> score;
 
-    explicit AnnotationCompare(const AnnotationScore& score_) : score(score_) { }
+    explicit AnnotationCompare(std::shared_ptr<AnnotationScore> score_) : score(score_) { }
 
     bool operator() (const std::vector<Joint>& a, const std::vector<Joint>& b) {
-        return (score.value(a) > score.value(b));
+        return (score->value(a) > score->value(b));
     }
 };
 
@@ -29,6 +29,7 @@ struct AnnotationCompare {
 void NMSKeypoints::call(Occupancy* occupancy, std::vector<std::vector<Joint> >* annotations) {
     occupancy->clear();
     std::sort(annotations->begin(), annotations->end(), AnnotationCompare(score));
+    TORCH_WARN("nms 1: ", annotations->size());
 
     for (auto&& ann : *annotations) {
         TORCH_CHECK(occupancy->occupancy.size(0) == int64_t(ann.size()),
@@ -46,6 +47,7 @@ void NMSKeypoints::call(Occupancy* occupancy, std::vector<std::vector<Joint> >* 
         }
     }
 
+    TORCH_WARN("nms 2: ", annotations->size());
     // suppress below keypoint threshold
     for (auto&& ann : *annotations) {
         for (Joint& joint : ann) {
@@ -54,14 +56,18 @@ void NMSKeypoints::call(Occupancy* occupancy, std::vector<std::vector<Joint> >* 
         }
     }
 
+    TORCH_WARN("nms 3: ", annotations->size());
     // remove annotations below instance threshold
     annotations->erase(
         std::remove_if(annotations->begin(), annotations->end(), [=](const std::vector<Joint>& ann) {
-            return score.value(ann) < instance_threshold;
+            double s = score->value(ann);
+            std::cout << "--- " << s << " >> " << instance_threshold << std::endl;
+            return s < instance_threshold;
         }),
         annotations->end()
     );
 
+    TORCH_WARN("nms 4: ", annotations->size());
     std::sort(annotations->begin(), annotations->end(), AnnotationCompare(score));
 }
 
