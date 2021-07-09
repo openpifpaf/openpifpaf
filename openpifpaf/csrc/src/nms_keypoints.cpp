@@ -18,7 +18,7 @@ double NMSKeypoints::keypoint_threshold = 0.15;
 struct AnnotationCompare {
     std::shared_ptr<AnnotationScore> score;
 
-    explicit AnnotationCompare(std::shared_ptr<AnnotationScore> score_) : score(score_) { }
+    AnnotationCompare(std::shared_ptr<AnnotationScore> score_) : score(score_) { }
 
     bool operator() (const std::vector<Joint>& a, const std::vector<Joint>& b) {
         return (score->value(a) > score->value(b));
