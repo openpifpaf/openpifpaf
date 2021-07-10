@@ -18,6 +18,7 @@ double NMSKeypoints::keypoint_threshold = 0.15;
 struct AnnotationCompare {
     const AnnotationScore& score;
 
+    AnnotationCompare() = delete;
     explicit AnnotationCompare(const AnnotationScore& score_) : score(score_) {
         std::cout << "cstr comp" << &score <<  std::endl;
     }
