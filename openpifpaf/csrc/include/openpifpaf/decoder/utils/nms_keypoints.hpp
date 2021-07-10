@@ -36,7 +36,7 @@ struct UniformScore : public AnnotationScore {
 
 
 struct NMSKeypoints : torch::CustomClassHolder {
-    std::unique_ptr<const AnnotationScore> score;
+    AnnotationScore* score;
 
     static double suppression;
     static double instance_threshold;
