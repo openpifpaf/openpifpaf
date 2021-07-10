@@ -42,7 +42,9 @@ void NMSKeypoints::call(Occupancy* occupancy, std::vector<std::vector<Joint> >* 
         std::cout << ann[0].v << ", " << ann[1].v << ", " << ann[2].v << ", " << std::endl;
     }
     std::cout << "before sort" << std::endl;
-    std::sort(annotations->begin(), annotations->end(), ann_compare);
+    // std::sort(annotations->begin(), annotations->end(), ann_compare);
+    std::sort(annotations->begin(), annotations->end(), [](const vector<Joint> & a, const vector<Joint> & b){ return a.size() < b.size(); });
+
     std::cout << "sort done" << std::endl;
     TORCH_WARN("nms 1: ", annotations->size());
     return;
