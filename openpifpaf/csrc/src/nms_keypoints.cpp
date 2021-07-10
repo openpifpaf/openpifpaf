@@ -16,14 +16,12 @@ double NMSKeypoints::keypoint_threshold = 0.15;
 
 
 struct AnnotationCompare {
-    const std::shared_ptr<AnnotationScore>& score;
+    const AnnotationScore& score;
 
-    explicit AnnotationCompare(const std::shared_ptr<AnnotationScore>& score_) : score(score_) { }
+    explicit AnnotationCompare(const AnnotationScore& score_) : score(score_) { }
 
     bool operator() (const std::vector<Joint>& a, const std::vector<Joint>& b) const {
-        // return a.size() < b.size();
-        // std::cout << "op" << score << std::endl;
-        return (score->value(a) > score->value(b));
+        return (score.value(a) > score.value(b));
     }
 };
 
@@ -36,8 +34,8 @@ void NMSKeypoints::call(Occupancy* occupancy, std::vector<std::vector<Joint> >* 
     std::cout << test_vector[0] << std::endl;
     std::cout << "score: " << score->value((*annotations)[0]) << std::endl;
     std::cout << "score done" << std::endl;
-    std::cout << AnnotationCompare(score)((*annotations)[0], (*annotations)[0]) << std::endl;
-    auto ann_compare = AnnotationCompare(score);
+    std::cout << AnnotationCompare(*score)((*annotations)[0], (*annotations)[0]) << std::endl;
+    auto ann_compare = AnnotationCompare(*score);
     std::cout << "anns" << std::endl;
     for (auto&& ann : *annotations) {
         std::cout << ann[0].v << ", " << ann[1].v << ", " << ann[2].v << ", " << std::endl;
