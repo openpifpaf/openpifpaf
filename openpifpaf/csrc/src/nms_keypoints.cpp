@@ -15,27 +15,6 @@ double NMSKeypoints::instance_threshold = 0.15;
 double NMSKeypoints::keypoint_threshold = 0.15;
 
 
-struct AnnotationCompare {
-    const AnnotationScore& score;
-
-    AnnotationCompare() = delete;
-    explicit AnnotationCompare(const AnnotationScore& score_) : score(score_) {
-        std::cout << "cstr comp" << &score <<  std::endl;
-    }
-    AnnotationCompare(const AnnotationCompare& other) : score(other.score) {
-        std::cout << "copy comp" << &score << std::endl;
-    }
-    ~AnnotationCompare() {
-        std::cout << "destr comp" << &score << std::endl;
-    }
-
-    bool operator() (const std::vector<Joint>& a, const std::vector<Joint>& b) const {
-        std::cout << "op comp" << &score << std::endl;
-        return (score.value(a) > score.value(b));
-    }
-};
-
-
 void NMSKeypoints::call(Occupancy* occupancy, std::vector<std::vector<Joint> >* annotations) {
     occupancy->clear();
     std::cout << "test sort" << std::endl;
@@ -44,11 +23,11 @@ void NMSKeypoints::call(Occupancy* occupancy, std::vector<std::vector<Joint> >* 
     std::cout << test_vector[0] << std::endl;
     std::cout << "score: " << score->value((*annotations)[0]) << std::endl;
     std::cout << "score done" << std::endl;
-    std::cout << AnnotationCompare(*score)((*annotations)[0], (*annotations)[0]) << std::endl;
-    auto ann_compare = AnnotationCompare(*score);
-    std::cout << "copy of compare" << std::endl;
-    AnnotationCompare c2 {ann_compare};
-    std::cout << c2((*annotations)[0], (*annotations)[0]) << std::endl;
+    // std::cout << AnnotationCompare(*score)((*annotations)[0], (*annotations)[0]) << std::endl;
+    // auto ann_compare = AnnotationCompare(*score);
+    // std::cout << "copy of compare" << std::endl;
+    // AnnotationCompare c2 {ann_compare};
+    // std::cout << c2((*annotations)[0], (*annotations)[0]) << std::endl;
     std::cout << "anns" << std::endl;
     for (auto&& ann : *annotations) {
         std::cout << ann[0].v << ", " << ann[1].v << ", " << ann[2].v << ", " << std::endl;
@@ -103,7 +82,13 @@ void NMSKeypoints::call(Occupancy* occupancy, std::vector<std::vector<Joint> >* 
     );
 
     TORCH_WARN("nms 4: ", annotations->size());
-    std::sort(annotations->begin(), annotations->end(), ann_compare);
+    std::sort(
+        annotations->begin(),
+        annotations->end(),
+        [&](const std::vector<Joint> & a, const std::vector<Joint> & b) {
+            return (score->value(a) > score->value(b));
+        }
+    );
 }
 
 
