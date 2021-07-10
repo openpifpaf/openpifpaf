@@ -23,14 +23,10 @@ struct AnnotationScore {
 
 struct UniformScore : public AnnotationScore {
     double value(const std::vector<Joint>& annotation) const {
-        std::cout << "-- score: ";
-        for (auto& j : annotation) std::cout << j.v << ", ";
-        double v = std::accumulate(
+        return std::accumulate(
             annotation.begin(), annotation.end(), 0.0,
             [](float i, const Joint& j) { return i + j.v; }
         ) / annotation.size();
-        std::cout << "score done: " << v << std::endl;
-        return v;
     }
 };
 
