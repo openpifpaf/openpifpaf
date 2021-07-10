@@ -21,9 +21,9 @@ struct AnnotationCompare {
     explicit AnnotationCompare(const std::shared_ptr<AnnotationScore>& score_) : score(score_) { }
 
     bool operator() (const std::vector<Joint>& a, const std::vector<Joint>& b) const {
-        return a.size() < b.size();
+        // return a.size() < b.size();
         // std::cout << "op" << score << std::endl;
-        // return (score->value(a) > score->value(b));
+        return (score->value(a) > score->value(b));
     }
 };
 
