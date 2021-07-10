@@ -21,8 +21,9 @@ struct AnnotationCompare {
     explicit AnnotationCompare(std::shared_ptr<AnnotationScore> score_) : score(score_) { }
 
     bool operator() (const std::vector<Joint>& a, const std::vector<Joint>& b) const {
-        std::cout << "op" << score << std::endl;
-        return (score->value(a) > score->value(b));
+        return a.size() < b.size();
+        // std::cout << "op" << score << std::endl;
+        // return (score->value(a) > score->value(b));
     }
 };
 
@@ -42,14 +43,14 @@ void NMSKeypoints::call(Occupancy* occupancy, std::vector<std::vector<Joint> >* 
         std::cout << ann[0].v << ", " << ann[1].v << ", " << ann[2].v << ", " << std::endl;
     }
     std::cout << "before sort" << std::endl;
-    // std::sort(annotations->begin(), annotations->end(), ann_compare);
-    std::sort(
-        annotations->begin(),
-        annotations->end(),
-        [](const std::vector<Joint> & a, const std::vector<Joint> & b) {
-            return a.size() < b.size();
-        }
-    );
+    std::sort(annotations->begin(), annotations->end(), ann_compare);
+    // std::sort(
+    //     annotations->begin(),
+    //     annotations->end(),
+    //     [](const std::vector<Joint> & a, const std::vector<Joint> & b) {
+    //         return a.size() < b.size();
+    //     }
+    // );
 
     std::cout << "sort done" << std::endl;
     TORCH_WARN("nms 1: ", annotations->size());
