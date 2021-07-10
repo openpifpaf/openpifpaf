@@ -579,7 +579,7 @@ class EffNetV2_extra_large(BaseNetwork):
 class EffNetV2_s16_small(BaseNetwork):
     def __init__(self, name):
         backbone = effnetv2.effnetv2_s16_s()
-        super().__init__(name, stride=32, out_features=backbone.output_channel)
+        super().__init__(name, stride=16, out_features=backbone.output_channel)
         self.backbone = backbone
         self.backbone._initialize_weights()  # TODO make this CLI configurable
 
@@ -598,7 +598,7 @@ class EffNetV2_s16_small(BaseNetwork):
 class EffNetV2_s16_medium(BaseNetwork):
     def __init__(self, name):
         backbone = effnetv2.effnetv2_s16_m()
-        super().__init__(name, stride=32, out_features=backbone.output_channel)
+        super().__init__(name, stride=16, out_features=backbone.output_channel)
         self.backbone = backbone
         self.backbone._initialize_weights()  # TODO make this CLI configurable
 
