@@ -19,6 +19,7 @@ struct AnnotationCompare {
     const AnnotationScore& score;
 
     explicit AnnotationCompare(const AnnotationScore& score_) : score(score_) { }
+    AnnotationCompare(const AnnotationCompare& other) : score(other.score) { }
 
     bool operator() (const std::vector<Joint>& a, const std::vector<Joint>& b) const {
         return (score.value(a) > score.value(b));
