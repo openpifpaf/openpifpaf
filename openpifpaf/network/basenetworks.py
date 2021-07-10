@@ -501,9 +501,10 @@ class SqueezeNet(BaseNetwork):
         cls.pretrained = args.squeezenet_pretrained
 
 class EffNetV2_small(BaseNetwork):
-    def __init__(self, name, out_features=1792):
-        super().__init__(name, stride=32, out_features=out_features)
-        self.backbone = effnetv2.effnetv2_s()
+    def __init__(self, name):
+        backbone = effnetv2.effnetv2_s()
+        super().__init__(name, stride=32, out_features=backbone.output_channel)
+        self.backbone = backbone
         self.backbone._initialize_weights()  # TODO make this CLI configurable
 
     def forward(self, x):
@@ -519,9 +520,10 @@ class EffNetV2_small(BaseNetwork):
         pass
 
 class EffNetV2_medium(BaseNetwork):
-    def __init__(self, name, out_features=1792):
-        super().__init__(name, stride=32, out_features=out_features)
-        self.backbone = effnetv2.effnetv2_m()
+    def __init__(self, name):
+        backbone = effnetv2.effnetv2_m()
+        super().__init__(name, stride=32, out_features=backbone.output_channel)
+        self.backbone = backbone
         self.backbone._initialize_weights()  # TODO make this CLI configurable
 
     def forward(self, x):
@@ -537,9 +539,10 @@ class EffNetV2_medium(BaseNetwork):
         pass
 
 class EffNetV2_large(BaseNetwork):
-    def __init__(self, name, out_features=1792):
-        super().__init__(name, stride=32, out_features=out_features)
-        self.backbone = effnetv2.effnetv2_l()
+    def __init__(self, name):
+        backbone = effnetv2.effnetv2_l()
+        super().__init__(name, stride=32, out_features=backbone.output_channel)
+        self.backbone = backbone
         self.backbone._initialize_weights()  # TODO make this CLI configurable
 
     def forward(self, x):
@@ -555,9 +558,10 @@ class EffNetV2_large(BaseNetwork):
         pass
 
 class EffNetV2_extra_large(BaseNetwork):
-    def __init__(self, name, out_features=1792):
-        super().__init__(name, stride=32, out_features=out_features)
-        self.backbone = effnetv2.effnetv2_xl()
+    def __init__(self, name):
+        backbone = effnetv2.effnetv2_xl()
+        super().__init__(name, stride=32, out_features=backbone.output_channel)
+        self.backbone = backbone
         self.backbone._initialize_weights()  # TODO make this CLI configurable
 
     def forward(self, x):
@@ -573,9 +577,10 @@ class EffNetV2_extra_large(BaseNetwork):
         pass
     
 class EffNetV2_s16_small(BaseNetwork):
-    def __init__(self, name, out_features=1792):
-        super().__init__(name, stride=16, out_features=out_features)
-        self.backbone = effnetv2.effnetv2_s16_s()
+    def __init__(self, name):
+        backbone = effnetv2.effnetv2_s16_s()
+        super().__init__(name, stride=32, out_features=backbone.output_channel)
+        self.backbone = backbone
         self.backbone._initialize_weights()  # TODO make this CLI configurable
 
     def forward(self, x):
@@ -591,9 +596,10 @@ class EffNetV2_s16_small(BaseNetwork):
         pass
 
 class EffNetV2_s16_medium(BaseNetwork):
-    def __init__(self, name, out_features=1792):
-        super().__init__(name, stride=16, out_features=out_features)
-        self.backbone = effnetv2.effnetv2_s16_m()
+    def __init__(self, name):
+        backbone = effnetv2.effnetv2_s16_m()
+        super().__init__(name, stride=32, out_features=backbone.output_channel)
+        self.backbone = backbone
         self.backbone._initialize_weights()  # TODO make this CLI configurable
 
     def forward(self, x):
@@ -609,9 +615,10 @@ class EffNetV2_s16_medium(BaseNetwork):
         pass
 
 class EffNetV2_s16_large(BaseNetwork):
-    def __init__(self, name, out_features=1792):
-        super().__init__(name, stride=16, out_features=out_features)
-        self.backbone = effnetv2.effnetv2_s16_l()
+    def __init__(self, name):
+        backbone = effnetv2.effnetv2_s16_l()
+        super().__init__(name, stride=16, out_features=backbone.output_channel)
+        self.backbone = backbone
         self.backbone._initialize_weights()  # TODO make this CLI configurable
 
     def forward(self, x):
@@ -627,9 +634,10 @@ class EffNetV2_s16_large(BaseNetwork):
         pass
 
 class EffNetV2_s16_extra_large(BaseNetwork):
-    def __init__(self, name, out_features=1792):
-        super().__init__(name, stride=16, out_features=out_features)
-        self.backbone = effnetv2.effnetv2_xl()
+    def __init__(self, name):
+        backbone = effnetv2.effnetv2_s16_xl()
+        super().__init__(name, stride=16, out_features=backbone.output_channel)
+        self.backbone = backbone
         self.backbone._initialize_weights()  # TODO make this CLI configurable
 
     def forward(self, x):

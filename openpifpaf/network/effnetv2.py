@@ -136,9 +136,10 @@ class EffNetV2(nn.Module):
                 layers.append(block(input_channel, output_channel, s if i == 0 else 1, t, use_se))
                 input_channel = output_channel
         self.features = nn.Sequential(*layers)
+        self.output_channel = output_channel
         # building last several layers
-        output_channel = _make_divisible(1792 * width_mult, 8) if width_mult > 1.0 else 1792
-        self.conv = conv_1x1_bn(input_channel, output_channel)
+        # output_channel = _make_divisible(1792 * width_mult, 8) if width_mult > 1.0 else 1792
+        # self.conv = conv_1x1_bn(input_channel, output_channel)
         # self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         # self.classifier = nn.Linear(output_channel, num_classes)
 
@@ -146,7 +147,7 @@ class EffNetV2(nn.Module):
 
     def forward(self, x):
         x = self.features(x)
-        x = self.conv(x)
+        # x = self.conv(x)
         # x = self.avgpool(x)
         # x = x.view(x.size(0), -1)
         # x = self.classifier(x)
