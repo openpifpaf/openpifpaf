@@ -7,16 +7,12 @@
 #include "openpifpaf/decoder/utils/caf_scored.hpp"
 #include "openpifpaf/decoder/utils/cif_hr.hpp"
 #include "openpifpaf/decoder/utils/cif_seeds.hpp"
-#include "openpifpaf/decoder/utils/nms.hpp"
+#include "openpifpaf/decoder/utils/nms_keypoints.hpp"
 #include "openpifpaf/decoder/utils/occupancy.hpp"
 
 
 namespace openpifpaf {
 namespace decoder {
-
-
-void test_op_int64(int64_t v) { std::cout << v << std::endl; }
-void test_op_double(double v) { std::cout << v << std::endl; }
 
 
 bool CifCaf::block_joints = false;
@@ -26,6 +22,11 @@ double CifCaf::keypoint_threshold_rel = 0.5;
 bool CifCaf::reverse_match = true;
 bool CifCaf::force_complete = false;
 double CifCaf::force_complete_caf_th = 0.001;
+
+
+bool FrontierCompare::operator() (const FrontierEntry& a, const FrontierEntry& b) {
+    return a.max_score < b.max_score;
+}
 
 
 Joint grow_connection_blend(const torch::Tensor& caf, double x, double y, double xy_scale, bool only_max) {
@@ -74,7 +75,7 @@ Joint grow_connection_blend(const torch::Tensor& caf, double x, double y, double
     if (only_max)
         return { score_1, entry_1[0], entry_1[1], entry_1[2] };
     if (score_2 < 0.01 || score_2 < 0.5 * score_1)
-        return { 0.5 * score_1, entry_1[0], entry_1[1], entry_1[3] };
+        return { 0.5 * score_1, entry_1[0], entry_1[1], entry_1[2] };
 
     // blend
     float entry_2[3] = {  // xys
@@ -118,6 +119,9 @@ torch::Tensor CifCaf::call(
     const torch::Tensor& caf_field,
     int64_t caf_stride
 ) {
+#ifdef DEBUG
+    TORCH_WARN("cpp CifCaf::call()");
+#endif
     TORCH_CHECK(cif_field.device().is_cpu(), "cif_field must be a CPU tensor");
     TORCH_CHECK(caf_field.device().is_cpu(), "caf_field must be a CPU tensor");
 

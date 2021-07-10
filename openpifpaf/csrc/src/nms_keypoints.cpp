@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#include "openpifpaf/decoder/utils/nms.hpp"
+#include "openpifpaf/decoder/utils/nms_keypoints.hpp"
 
 
 namespace openpifpaf {
@@ -15,19 +15,16 @@ double NMSKeypoints::instance_threshold = 0.15;
 double NMSKeypoints::keypoint_threshold = 0.15;
 
 
-struct AnnotationCompare {
-    std::shared_ptr<AnnotationScore> score;
-    explicit AnnotationCompare(std::shared_ptr<AnnotationScore> score_) : score(score_) { }
-
-    bool operator() (const std::vector<Joint>& a, const std::vector<Joint>& b) {
-        return (score->value(a) > score->value(b));
-    }
-};
-
-
 void NMSKeypoints::call(Occupancy* occupancy, std::vector<std::vector<Joint> >* annotations) {
     occupancy->clear();
-    std::sort(annotations->begin(), annotations->end(), AnnotationCompare(score));
+
+    std::sort(
+        annotations->begin(),
+        annotations->end(),
+        [&](const std::vector<Joint> & a, const std::vector<Joint> & b) {
+            return (score->value(a) > score->value(b));
+        }
+    );
 
     for (auto&& ann : *annotations) {
         TORCH_CHECK(occupancy->occupancy.size(0) == int64_t(ann.size()),
@@ -55,13 +52,19 @@ void NMSKeypoints::call(Occupancy* occupancy, std::vector<std::vector<Joint> >* 
 
     // remove annotations below instance threshold
     annotations->erase(
-        std::remove_if(annotations->begin(), annotations->end(), [=](const std::vector<Joint>& ann) {
+        std::remove_if(annotations->begin(), annotations->end(), [&](const std::vector<Joint>& ann) {
             return (score->value(ann) < instance_threshold);
         }),
         annotations->end()
     );
 
-    std::sort(annotations->begin(), annotations->end(), AnnotationCompare(score));
+    std::sort(
+        annotations->begin(),
+        annotations->end(),
+        [&](const std::vector<Joint> & a, const std::vector<Joint> & b) {
+            return (score->value(a) > score->value(b));
+        }
+    );
 }
 
 
