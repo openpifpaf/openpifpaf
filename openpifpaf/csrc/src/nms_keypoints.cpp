@@ -37,6 +37,9 @@ void NMSKeypoints::call(Occupancy* occupancy, std::vector<std::vector<Joint> >* 
     std::cout << "score done" << std::endl;
     std::cout << AnnotationCompare(*score)((*annotations)[0], (*annotations)[0]) << std::endl;
     auto ann_compare = AnnotationCompare(*score);
+    std::cout << "copy of compare" << std::endl;
+    AnnotationCompare c2 {ann_compare};
+    std::cout << c2((*annotations)[0], (*annotations)[0]) << std::endl;
     std::cout << "anns" << std::endl;
     for (auto&& ann : *annotations) {
         std::cout << ann[0].v << ", " << ann[1].v << ", " << ann[2].v << ", " << std::endl;
