@@ -94,17 +94,4 @@ TORCH_LIBRARY(openpifpaf, m) {
         .def_static("set_suppression", &openpifpaf::decoder::utils::NMSKeypoints::set_suppression)
         .def_static("get_suppression", &openpifpaf::decoder::utils::NMSKeypoints::get_suppression)
     ;
-
-    m.class_<openpifpaf::decoder::utils::NMSDetections>("NMSDetections")
-        .def_static("set_instance_threshold", &openpifpaf::decoder::utils::NMSDetections::set_instance_threshold)
-        .def_static("get_instance_threshold", &openpifpaf::decoder::utils::NMSDetections::get_instance_threshold)
-        .def_static("set_iou_threshold", &openpifpaf::decoder::utils::NMSDetections::set_iou_threshold)
-        .def_static("get_iou_threshold", &openpifpaf::decoder::utils::NMSDetections::get_iou_threshold)
-        .def_static("set_iou_threshold_soft", &openpifpaf::decoder::utils::NMSDetections::set_iou_threshold_soft)
-        .def_static("get_iou_threshold_soft", &openpifpaf::decoder::utils::NMSDetections::get_iou_threshold_soft)
-        .def_static("set_suppression", &openpifpaf::decoder::utils::NMSDetections::set_suppression)
-        .def_static("get_suppression", &openpifpaf::decoder::utils::NMSDetections::get_suppression)
-        .def_static("set_suppression_soft", &openpifpaf::decoder::utils::NMSDetections::set_suppression_soft)
-        .def_static("get_suppression_soft", &openpifpaf::decoder::utils::NMSDetections::get_suppression_soft)
-    ;
 }
