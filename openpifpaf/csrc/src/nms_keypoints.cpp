@@ -24,6 +24,9 @@ struct AnnotationCompare {
     AnnotationCompare(const AnnotationCompare& other) : score(other.score) {
         std::cout << "copy comp" << &score << std::endl;
     }
+    ~AnnotationCompare() {
+        std::cout << "destr comp" << &score << std::endl;
+    }
 
     bool operator() (const std::vector<Joint>& a, const std::vector<Joint>& b) const {
         std::cout << "op comp" << &score << std::endl;
