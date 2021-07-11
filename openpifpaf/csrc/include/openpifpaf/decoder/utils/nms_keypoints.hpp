@@ -38,10 +38,6 @@ struct NMSKeypoints : torch::CustomClassHolder {
     static double instance_threshold;
     static double keypoint_threshold;
 
-    STATIC_GETSET(double, suppression)
-    STATIC_GETSET(double, instance_threshold)
-    STATIC_GETSET(double, keypoint_threshold)
-
     NMSKeypoints() : score(std::make_unique<UniformScore>()) { }
 
     void call(Occupancy* occupancy, std::vector<std::vector<Joint> >* annotations);

@@ -38,8 +38,6 @@ struct CifSeeds : torch::CustomClassHolder {
 
     static double threshold;
 
-    STATIC_GETSET(double, threshold)
-
     CifSeeds(const torch::Tensor& cifhr_, double cifhr_revision_)
     : cifhr_a(cifhr_.accessor<float, 3>()),
       cifhr_revision(cifhr_revision_)
@@ -55,8 +53,6 @@ struct CifDetSeeds : torch::CustomClassHolder {
     std::vector<DetSeed> seeds;
 
     static double threshold;
-
-    STATIC_GETSET(double, threshold)
 
     CifDetSeeds(const torch::Tensor& cifhr_, double cifhr_revision_)
     : cifhr_a(cifhr_.accessor<float, 3>()),

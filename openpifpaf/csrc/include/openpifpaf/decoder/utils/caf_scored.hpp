@@ -43,8 +43,6 @@ struct CafScored : torch::CustomClassHolder {
 
     static double default_score_th;
 
-    STATIC_GETSET(double, default_score_th)
-
     CafScored(
         const torch::Tensor& cifhr_,
         double cifhr_revision_,

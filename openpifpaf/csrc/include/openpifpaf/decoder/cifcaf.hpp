@@ -70,14 +70,6 @@ struct OPENPIFPAF_API CifCaf : torch::CustomClassHolder {
     static bool force_complete;
     static double force_complete_caf_th;
 
-    STATIC_GETSET(bool, block_joints)
-    STATIC_GETSET(bool, greedy)
-    STATIC_GETSET(double, keypoint_threshold)
-    STATIC_GETSET(double, keypoint_threshold_rel)
-    STATIC_GETSET(bool, reverse_match)
-    STATIC_GETSET(bool, force_complete)
-    STATIC_GETSET(double, force_complete_caf_th)
-
     utils::CifHr cifhr;
     utils::Occupancy occupancy;
     std::priority_queue<FrontierEntry, std::vector<FrontierEntry>, FrontierCompare> frontier;

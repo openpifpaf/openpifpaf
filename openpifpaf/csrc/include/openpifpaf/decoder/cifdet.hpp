@@ -31,8 +31,6 @@ struct Detection {
 struct OPENPIFPAF_API CifDet : torch::CustomClassHolder {
     static int64_t max_detections_before_nms;
 
-    STATIC_GETSET(int64_t, max_detections_before_nms)
-
     utils::CifDetHr cifDetHr;
     utils::Occupancy occupancy;
 

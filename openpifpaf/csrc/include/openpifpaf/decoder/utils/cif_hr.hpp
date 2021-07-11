@@ -41,9 +41,6 @@ struct CifHr : torch::CustomClassHolder {
     static int64_t neighbors;
     static double threshold;
 
-    STATIC_GETSET(int64_t, neighbors)
-    STATIC_GETSET(double, threshold)
-
     CifHr(
     ) : accumulated_buffer(torch::zeros({ 1, 1, 1 })),
         accumulated(
