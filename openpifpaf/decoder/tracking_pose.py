@@ -77,10 +77,10 @@ class TrackingPose(TrackBase):
 
         self.pose_generator = pose_generator or CifCaf(
             [self.tracking_cif_meta], [self.tracking_caf_meta])
-        LOG.debug('keypoint threshold: cifcaf=%f, nms=%f, %s',
-                  CifCaf.keypoint_threshold,
-                  utils.nms.Keypoints.keypoint_threshold,
-                  CifCaf.nms)
+        # LOG.debug('keypoint threshold: cifcaf=%f, nms=%f, %s',
+        #           CifCaf.keypoint_threshold,
+        #           utils.nms.Keypoints.keypoint_threshold,
+        #           CifCaf.nms)
 
         self.vis_multitracking = visualizer.MultiTracking(self.tracking_caf_meta)
 
@@ -127,7 +127,7 @@ class TrackingPose(TrackBase):
             if frame_ann is None:
                 continue
             kps = frame_ann.data
-            kps[kps[:, 2] < utils.nms.Keypoints.keypoint_threshold] = 0.0
+            kps[kps[:, 2] < utils.NMSKeypoints.get_keypoint_threshold()] = 0.0
             kps[self.invalid_keypoints] = 0.0
 
         occupied = utils.Occupancy((
@@ -159,7 +159,7 @@ class TrackingPose(TrackBase):
             if frame_ann is None:
                 continue
             kps = frame_ann.data
-            kps[kps[:, 2] < utils.nms.Keypoints.keypoint_threshold] = 0.0
+            kps[kps[:, 2] < utils.NMSKeypoints.get_keypoint_threshold()] = 0.0
 
         if self.pose_generator.occupancy_visualizer is not None:
             LOG.debug('Occupied fields after NMS')

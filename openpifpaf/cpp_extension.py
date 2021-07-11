@@ -6,7 +6,7 @@ import torch
 def register_ops():
     lib_dir = os.path.dirname(__file__)
     if hasattr(os, 'add_dll_directory'):  # for Windows
-        import ctypes
+        import ctypes  # pylint: disable=import-outside-toplevel
 
         kernel32 = ctypes.WinDLL('kernel32.dll', use_last_error=True)
         if hasattr(kernel32, 'AddDllDirectory'):

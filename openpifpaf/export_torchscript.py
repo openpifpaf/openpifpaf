@@ -17,7 +17,7 @@ class DummyDecoder(torch.nn.Module):
         super().__init__()
         self.cifhr = torch.zeros((17, 300, 400))
 
-    def forward(self, cif_head, caf_head):
+    def forward(self, cif_head):  # , caf_head  TODO
         self.cifhr[:] = 0.0
         torch.ops.openpifpaf.cif_hr_accumulate_op(self.cifhr, cif_head, 8, 0.1, 16, 0.0, 1.0)
         return self.cifhr
@@ -36,7 +36,7 @@ class EncoderDecoder(torch.nn.Module):
         return o
 
 
-def apply(model, outfile, *, input_w=129, input_h=97, minimum_deployment_target='iOS14'):
+def apply(model, outfile, *, input_w=129, input_h=97):
     image_size_warning(model.base_net.stride, input_w, input_h)
 
     # configure: inplace-ops are not supported
