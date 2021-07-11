@@ -9,53 +9,48 @@ jobs:
     strategy:
       matrix:
         include:
-          # - os: ubuntu-latest
-          #   python: 3.6
-          #   torch: 1.7.1+cpu
-          #   torchvision: 0.8.2+cpu
-          #   torch-source: https://download.pytorch.org/whl/cpu/torch_stable.html
-          # - os: ubuntu-latest
-          #   python: 3.7
-          #   torch: 1.7.1+cpu
-          #   torchvision: 0.8.2+cpu
-          #   torch-source: https://download.pytorch.org/whl/torch_stable.html
-          # - os: ubuntu-latest
-          #   python: 3.8
-          #   torch: 1.8.1+cpu
-          #   torchvision: 0.9.1+cpu
-          #   torch-source: https://download.pytorch.org/whl/torch_stable.html
-          #   slow: True
-          # - os: ubuntu-latest
-          #   python: 3.9
-          #   torch: 1.8.1+cpu
-          #   torchvision: 0.9.1+cpu
-          #   torch-source: https://download.pytorch.org/whl/torch_stable.html
+          - os: ubuntu-latest
+            python: 3.6
+            torch: 1.9.0+cpu
+            torchvision: 0.10.0+cpu
+            torch-source: https://download.pytorch.org/whl/torch_stable.html
+          - os: ubuntu-latest
+            python: 3.7
+            torch: 1.9.0+cpu
+            torchvision: 0.10.0+cpu
+            torch-source: https://download.pytorch.org/whl/torch_stable.html
+          - os: ubuntu-latest
+            python: 3.8
+            torch: 1.9.0+cpu
+            torchvision: 0.10.0+cpu
+            torch-source: https://download.pytorch.org/whl/torch_stable.html
+            slow: True
           - os: ubuntu-latest
             python: 3.9
             torch: 1.9.0+cpu
             torchvision: 0.10.0+cpu
             torch-source: https://download.pytorch.org/whl/torch_stable.html
-          # - os: macos-latest
-          #   python: 3.7
-          #   torch: 1.7.1
-          #   torchvision: 0.8.2
-          #   torch-source: https://download.pytorch.org/whl/torch_stable.html
-          # - os: macos-latest
-          #   python: 3.8
-          #   torch: 1.8.1
-          #   torchvision: 0.9.1
-          #   torch-source: https://download.pytorch.org/whl/torch_stable.html
-          #   conda: True
+          - os: macos-latest
+            python: 3.7
+            torch: 1.9.0
+            torchvision: 0.10.0
+            torch-source: https://download.pytorch.org/whl/torch_stable.html
+          - os: macos-latest
+            python: 3.8
+            torch: 1.9.0
+            torchvision: 0.10.0
+            torch-source: https://download.pytorch.org/whl/torch_stable.html
+            conda: True
           - os: macos-latest
             python: 3.9
             torch: 1.9.0
             torchvision: 0.10.0
             torch-source: https://download.pytorch.org/whl/torch_stable.html
-          # - os: windows-latest
-          #   python: 3.8
-          #   torch: 1.7.1+cpu
-          #   torchvision: 0.8.2+cpu
-          #   torch-source: https://download.pytorch.org/whl/torch_stable.html
+          - os: windows-latest
+            python: 3.8
+            torch: 1.9.0+cpu
+            torchvision: 0.10.0+cpu
+            torch-source: https://download.pytorch.org/whl/torch_stable.html
 
     env:
       DEBUG: 1
@@ -70,8 +65,6 @@ jobs:
           ~/.cache
           data-cifar10
         key: ${{ runner.os }}-${{ hashFiles('setup.py') }}
-    # - uses: ilammy/msvc-dev-cmd@v1
-    #   if: matrix.os == 'windows-latest'
     - name: Set up Python ${{ matrix.python }}
       if: ${{ !matrix.conda }}
       uses: actions/setup-python@v2
@@ -118,9 +111,9 @@ jobs:
         python -m pip freeze
         python --version
         python -c "import openpifpaf; print(openpifpaf.__version__)"
-    # - name: Lint openpifpaf
-    #   run: |
-    #     pylint openpifpaf --disable=fixme
+    - name: Lint openpifpaf
+      run: |
+        pylint openpifpaf --disable=fixme
     - name: Lint tests
       if: matrix.os != 'windows-latest'  # because of path separator
       run: |

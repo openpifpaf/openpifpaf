@@ -85,24 +85,10 @@ std::vector<torch::Tensor> to_tensors(const std::vector<std::vector<CompositeAss
 
     for (auto&& associations : vectors) {
         int64_t n = associations.size();
-        auto tensor = torch::from_blob(const_cast<void*>(reinterpret_cast<const void*>(associations.data())), { n, 7 });
-        // auto tensor = torch::empty({ n, 9 });
-        // auto tensor_a = tensor.accessor<float, 2>();
-
-        // int64_t i = 0;
-        // for (auto&& ca : associations) {
-        //     tensor_a[i][0] = ca.c;
-        //     tensor_a[i][1] = ca.x1;
-        //     tensor_a[i][2] = ca.y1;
-        //     tensor_a[i][3] = ca.x2;
-        //     tensor_a[i][4] = ca.y2;
-        //     tensor_a[i][5] = ca.b1;
-        //     tensor_a[i][6] = ca.b2;
-        //     tensor_a[i][7] = ca.s1;
-        //     tensor_a[i][8] = ca.s2;
-        //     i++;
-        // }
-
+        auto tensor = torch::from_blob(
+            const_cast<void*>(reinterpret_cast<const void*>(associations.data())),
+            { n, 7 }
+        );
         tensors.push_back(tensor);
     }
 
