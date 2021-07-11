@@ -12,7 +12,7 @@ def register_ops():
         if hasattr(kernel32, 'AddDllDirectory'):
             kernel32.AddDllDirectory.restype = ctypes.c_void_p
 
-        os.add_dll_directory(lib_dir)
+        os.add_dll_directory(lib_dir)  # pylint: disable=no-member
 
     loader_details = (
         importlib.machinery.ExtensionFileLoader,
