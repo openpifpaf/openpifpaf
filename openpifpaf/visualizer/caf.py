@@ -48,7 +48,7 @@ class Caf(Base):
         self._confidences(field[:, 1])
         self._regressions(field[:, 2:4], field[:, 4:6], field[:, 6], field[:, 7],
                           annotations=self._ground_truth,
-                          confidence_fields=field[:, 0],
+                          confidence_fields=field[:, 1],
                           uv_is_offset=False)
 
     def _confidences(self, confidences):
