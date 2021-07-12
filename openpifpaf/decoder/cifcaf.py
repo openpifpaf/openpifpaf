@@ -215,8 +215,17 @@ class CifCaf(Decoder):
         ]
 
     def __call__(self, fields, initial_annotations=None):
-        # TODO initial annotations
         start = time.perf_counter()
+        if not initial_annotations:
+            initial_annotations = []
+        LOG.debug('initial annotations = %d', len(initial_annotations))
+
+        for vis, meta in zip(self.cif_visualizers, self.cif_metas):
+            vis.predicted(fields[meta.head_index])
+        for vis, meta in zip(self.caf_visualizers, self.caf_metas):
+            vis.predicted(fields[meta.head_index])
+
+        # TODO initial annotations
         annotations = self.cpp_decoder.call(
             fields[self.cif_metas[0].head_index],
             self.cif_metas[0].stride,

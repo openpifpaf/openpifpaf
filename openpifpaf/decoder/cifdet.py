@@ -60,11 +60,12 @@ class CifDet(Decoder):
                   (time.perf_counter() - start) * 1000.0)
 
         annotations_py = []
+        boxes_np = boxes.numpy()
         for i in mask:
             ann = AnnotationDet(self.metas[0].categories)
-            box = boxes[i]
+            box = boxes_np[i]
             box[2:] -= box[:2]  # convert to xywh
-            ann.set(categories[i], scores[i], box)
+            ann.set(int(categories[i]), float(scores[i]), box)
             annotations_py.append(ann)
 
         LOG.info('annotations %d, decoder = %.1fms',
