@@ -30,7 +30,7 @@ def cli(parser, *, workers=None):
     group.add_argument('--instance-threshold', type=float, default=None,
                        help=('filter instances by score (default is 0.0 with '
                              '--force-complete-pose and {} otherwise)'
-                             ''.format(utils.NMSKeypoints.get_instance_threshold())))
+                             ''.format(utils.nms.Keypoints.get_instance_threshold())))
     group.add_argument('--decoder-workers', default=workers, type=int,
                        help='number of workers for pose decoding')
 
@@ -53,7 +53,7 @@ def configure(args):
         if args.force_complete_pose:
             args.instance_threshold = 0.0
         else:
-            args.instance_threshold = utils.NMSKeypoints.get_instance_threshold()
+            args.instance_threshold = utils.nms.Keypoints.get_instance_threshold()
 
     # configure Factory
     Factory.decoder_request_from_args(args.decoder)
@@ -73,7 +73,7 @@ def configure(args):
 
     # configure nms
     # TODO utils.nms.Detection.instance_threshold = args.instance_threshold
-    utils.NMSKeypoints.set_instance_threshold(args.instance_threshold)
+    utils.nms.Keypoints.set_instance_threshold(args.instance_threshold)
 
     TrackBase.configure(args)
     for dec in DECODERS:

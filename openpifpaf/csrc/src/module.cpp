@@ -13,7 +13,7 @@ PyMODINIT_FUNC PyInit__cpp(void) {
 
 
 // TODO the following is a temporary workaround for https://github.com/pytorch/pytorch/issues/56571
-#define STATIC_GETSET(C, T, V) .def_static("set_##V", [](T v) { C = v; }).def_static("get_##V", []() { return C; })
+#define STATIC_GETSET(C, T, V) .def_static("set_"#V, [](T v) { C = v; }).def_static("get_"#V, []() { return C; })
 
 
 TORCH_LIBRARY(openpifpaf_decoder, m) {

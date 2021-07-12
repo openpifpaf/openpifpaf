@@ -133,7 +133,7 @@ class CifCaf(Decoder):
         group.add_argument('--nms-before-force-complete', default=False, action='store_true',
                            help='run an additional NMS before completing poses')
 
-        assert utils.NMSKeypoints.get_keypoint_threshold() == CppCifCaf.get_keypoint_threshold()
+        assert utils.nms.Keypoints.get_keypoint_threshold() == CppCifCaf.get_keypoint_threshold()
         group.add_argument('--keypoint-threshold', type=float,
                            default=CppCifCaf.get_keypoint_threshold(),
                            help='filter keypoints by score')
@@ -185,7 +185,7 @@ class CifCaf(Decoder):
             args.keypoint_threshold = args.seed_threshold
 
         cls.nms_before_force_complete = args.nms_before_force_complete
-        utils.NMSKeypoints.set_keypoint_threshold(keypoint_threshold_nms)
+        utils.nms.Keypoints.set_keypoint_threshold(keypoint_threshold_nms)
 
         CppCifCaf.set_force_complete(args.force_complete_pose)
         CppCifCaf.set_force_complete_caf_th(args.force_complete_caf_th)

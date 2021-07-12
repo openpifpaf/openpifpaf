@@ -127,7 +127,7 @@ class TrackingPose(TrackBase):
             if frame_ann is None:
                 continue
             kps = frame_ann.data
-            kps[kps[:, 2] < utils.NMSKeypoints.get_keypoint_threshold()] = 0.0
+            kps[kps[:, 2] < utils.nms.Keypoints.get_keypoint_threshold()] = 0.0
             kps[self.invalid_keypoints] = 0.0
 
         occupied = utils.Occupancy((
@@ -159,7 +159,7 @@ class TrackingPose(TrackBase):
             if frame_ann is None:
                 continue
             kps = frame_ann.data
-            kps[kps[:, 2] < utils.NMSKeypoints.get_keypoint_threshold()] = 0.0
+            kps[kps[:, 2] < utils.nms.Keypoints.get_keypoint_threshold()] = 0.0
 
         if self.pose_generator.occupancy_visualizer is not None:
             LOG.debug('Occupied fields after NMS')
