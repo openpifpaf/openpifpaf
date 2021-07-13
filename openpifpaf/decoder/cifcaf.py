@@ -94,6 +94,7 @@ class CifCaf(Decoder):
                  caf_metas: List[headmeta.Caf],
                  *,
                  cif_visualizers=None,
+                 cifhr_visualizers=None,
                  caf_visualizers=None):
         super().__init__()
 
@@ -105,6 +106,12 @@ class CifCaf(Decoder):
         self.cif_visualizers = cif_visualizers
         if self.cif_visualizers is None:
             self.cif_visualizers = [visualizer.Cif(meta) for meta in cif_metas]
+        self.cifhr_visualizers = cifhr_visualizers
+        if self.cifhr_visualizers is None:
+            self.cifhr_visualizers = [
+                visualizer.CifHr(stride=meta.stride, field_names=meta.keypoints)
+                for meta in cif_metas
+            ]
         self.caf_visualizers = caf_visualizers
         if self.caf_visualizers is None:
             self.caf_visualizers = [visualizer.Caf(meta) for meta in caf_metas]
@@ -232,6 +239,9 @@ class CifCaf(Decoder):
             fields[self.caf_metas[0].head_index],
             self.caf_metas[0].stride,
         )
+        for vis in self.cifhr_visualizers:
+            fields, low = self.cpp_decoder.get_cifhr()
+            vis.predicted(fields, low)
         LOG.debug('cpp annotations = %d (%.1fms)',
                   len(annotations),
                   (time.perf_counter() - start) * 1000.0)
