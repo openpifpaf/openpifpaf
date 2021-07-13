@@ -28,7 +28,9 @@ TORCH_LIBRARY(openpifpaf_decoder, m) {
 
         .def(torch::init<int64_t, const torch::Tensor&>())
         .def("call", &openpifpaf::decoder::CifCaf::call)
-        .def("get_cifhr", [](const c10::intrusive_ptr<openpifpaf::decoder::CifCaf>& self) { return self->cifhr.get_accumulated(); });
+        .def("get_cifhr", [](const c10::intrusive_ptr<openpifpaf::decoder::CifCaf>& self) {
+            return self->cifhr.get_accumulated();
+        })
     ;
     m.def("grow_connection_blend", openpifpaf::decoder::grow_connection_blend_py);
     m.def("cifcaf_op", openpifpaf::decoder::cifcaf_op);
