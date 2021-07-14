@@ -80,7 +80,7 @@ def conv_1x1_bn(inp, oup):
 class MBConv(nn.Module):
     def __init__(self, inp, oup, stride, expand_ratio, use_se):
         super(MBConv, self).__init__()
-        assert stride in [1, 2]
+        assert stride in [-1, 1, 2]
 
         hidden_dim = round(inp * expand_ratio)
         self.identity = stride == 1 and inp == oup
@@ -93,7 +93,11 @@ class MBConv(nn.Module):
                 nn.BatchNorm2d(hidden_dim),
                 SiLU(),
                 # dw
-                nn.Conv2d(hidden_dim, hidden_dim, 3, stride, 1, groups=hidden_dim, bias=False),
+                nn.Conv2d(hidden_dim, hidden_dim, 3, stride, 1, groups=hidden_dim, bias=False) if \
+                    stride !=-1 else \
+                        nn.Conv2d(hidden_dim, hidden_dim, 3, stride=1, padding=2,
+                                  groups=hidden_dim, dilation=2, bias=False),
+                
                 nn.BatchNorm2d(hidden_dim),
                 SiLU(),
                 SELayer(inp, hidden_dim),
@@ -247,7 +251,7 @@ def effnetv2_s16_s(**kwargs):
         [4,  64,  4, 2, 0],
         [4, 128,  6, 2, 1],
         [6, 160,  9, 1, 1],
-        [6, 256, 15, 1, 1],
+        [6, 256, 15, -1, 1],
     ]
     return EffNetV2(cfgs, **kwargs)
 
@@ -263,7 +267,7 @@ def effnetv2_s16_m(**kwargs):
         [4,  80,  5, 2, 0],
         [4, 160,  7, 2, 1],
         [6, 176, 14, 1, 1],
-        [6, 304, 18, 1, 1],
+        [6, 304, 18, -1, 1],
         [6, 512,  5, 1, 1],
     ]
     return EffNetV2(cfgs, **kwargs)
@@ -280,7 +284,7 @@ def effnetv2_s16_l(**kwargs):
         [4,  96,  7, 2, 0],
         [4, 192, 10, 2, 1],
         [6, 224, 19, 1, 1],
-        [6, 384, 25, 1, 1],
+        [6, 384, 25, -1, 1],
         [6, 640,  7, 1, 1],
     ]
     return EffNetV2(cfgs, **kwargs)
@@ -297,7 +301,7 @@ def effnetv2_s16_xl(**kwargs):
         [4,  96,  8, 2, 0],
         [4, 192, 16, 2, 1],
         [6, 256, 24, 1, 1],
-        [6, 512, 32, 1, 1],
+        [6, 512, 32, -1, 1],
         [6, 640,  8, 1, 1],
     ]
     return EffNetV2(cfgs, **kwargs)
