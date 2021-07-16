@@ -92,7 +92,8 @@ struct OPENPIFPAF_API CifCaf : torch::CustomClassHolder {
         const torch::Tensor& cif_field,
         int64_t cif_stride,
         const torch::Tensor& caf_field,
-        int64_t caf_stride
+        int64_t caf_stride,
+        const torch::Tensor& initial_annotations
     );
 
     void _grow(std::vector<Joint>* ann, const caf_fb_t& caf_fb, bool reverse_match_ = true);
@@ -119,7 +120,8 @@ torch::Tensor cifcaf_op(
     const torch::Tensor& cif_field,
     int64_t cif_stride,
     const torch::Tensor& caf_field,
-    int64_t caf_stride
+    int64_t caf_stride,
+    const torch::Tensor& initial_annotations
 );
 
 

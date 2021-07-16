@@ -26,13 +26,15 @@ void NMSKeypoints::call(Occupancy* occupancy, std::vector<std::vector<Joint> >* 
         }
     );
 
+    int64_t n_occupancy = occupancy->occupancy.size(0);
     for (auto&& ann : *annotations) {
-        TORCH_CHECK(occupancy->occupancy.size(0) == int64_t(ann.size()),
-                    "NMS occupancy map must be of same size as annotation");
+        TORCH_CHECK(n_occupancy <= int64_t(ann.size()),
+                    "NMS occupancy map must be of same size or smaller as annotation");
 
         int64_t f = -1;
         for (Joint& joint : ann) {
             f++;
+            if (f >= n_occupancy) break;
             if (joint.v == 0.0) continue;
             if (occupancy->get(f, joint.x, joint.y)) {
                 joint.v *= suppression;

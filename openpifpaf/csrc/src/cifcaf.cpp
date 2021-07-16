@@ -107,9 +107,10 @@ torch::Tensor cifcaf_op(
     const torch::Tensor& cif_field,
     int64_t cif_stride,
     const torch::Tensor& caf_field,
-    int64_t caf_stride
+    int64_t caf_stride,
+    const torch::Tensor& initial_annotations
 ) {
-    return CifCaf(n_keypoints, skeleton).call(cif_field, cif_stride, caf_field, caf_stride);
+    return CifCaf(n_keypoints, skeleton).call(cif_field, cif_stride, caf_field, caf_stride, initial_annotations);
 }
 
 
@@ -117,7 +118,8 @@ torch::Tensor CifCaf::call(
     const torch::Tensor& cif_field,
     int64_t cif_stride,
     const torch::Tensor& caf_field,
-    int64_t caf_stride
+    int64_t caf_stride,
+    const torch::Tensor& initial_annotations
 ) {
 #ifdef DEBUG
     TORCH_WARN("cpp CifCaf::call()");
@@ -161,6 +163,29 @@ torch::Tensor CifCaf::call(
     occupancy.reset(cifhr_accumulated.sizes());
     std::vector<std::vector<Joint> > annotations;
 
+    // process initial annotations first
+    auto initial_annotations_a = initial_annotations.accessor<float, 3>();
+    for (int64_t ann_i=0; ann_i < initial_annotations_a.size(0); ann_i++) {
+        std::vector<Joint> annotation(n_keypoints);
+        auto ann = initial_annotations_a[ann_i];
+        for (int64_t of=0; of < n_keypoints; of++) {
+            Joint& o_joint = annotation[of];
+            o_joint.v = ann[of][0];
+            o_joint.x = ann[of][1];
+            o_joint.y = ann[of][2];
+            o_joint.s = ann[of][3];
+        }
+
+        _grow(&annotation, caf_fb);
+
+        for (int64_t of=0; of < occupancy.n_fields(); of++) {
+            Joint& o_joint = annotation[of];
+            if (o_joint.v == 0.0) continue;
+            occupancy.set(of, o_joint.x, o_joint.y, o_joint.s);
+        }
+        annotations.push_back(annotation);
+    }
+
     int64_t f;
     float x, y, s;
     for (int64_t seed_i=0; seed_i < seeds_f.size(0); seed_i++) {
@@ -182,7 +207,7 @@ torch::Tensor CifCaf::call(
 
         _grow(&annotation, caf_fb);
 
-        for (int64_t of=0; of < n_keypoints; of++) {
+        for (int64_t of=0; of < occupancy.n_fields(); of++) {
             Joint& o_joint = annotation[of];
             if (o_joint.v == 0.0) continue;
             occupancy.set(of, o_joint.x, o_joint.y, o_joint.s);

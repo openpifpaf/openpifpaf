@@ -31,6 +31,7 @@ struct Occupancy : torch::CustomClassHolder {
 
     void set(int64_t f, double x, double y, double sigma);
     bool get(int64_t f, double x, double y);
+    int64_t n_fields(void) { return occupancy.size(0); }
     void reset(const at::IntArrayRef& shape);
     void clear(void);
 };
