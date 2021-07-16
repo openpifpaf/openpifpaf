@@ -79,10 +79,6 @@ class TrackingPose(TrackBase):
         self.pose_generator = pose_generator or CifCaf(
             [self.tracking_cif_meta], [self.tracking_caf_meta])
         self.nms_occupancy = utils.Occupancy(2, 4)
-        # LOG.debug('keypoint threshold: cifcaf=%f, nms=%f, %s',
-        #           CifCaf.keypoint_threshold,
-        #           utils.nms.Keypoints.keypoint_threshold,
-        #           CifCaf.nms)
 
         self.vis_multitracking = visualizer.MultiTracking(self.tracking_caf_meta)
 

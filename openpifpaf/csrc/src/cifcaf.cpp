@@ -101,25 +101,28 @@ std::vector<double> grow_connection_blend_py(const torch::Tensor& caf, double x,
 }
 
 
-torch::Tensor cifcaf_op(
+std::tuple<torch::Tensor, torch::Tensor> cifcaf_op(
     int64_t n_keypoints,
     const torch::Tensor& skeleton,
     const torch::Tensor& cif_field,
     int64_t cif_stride,
     const torch::Tensor& caf_field,
     int64_t caf_stride,
-    const torch::Tensor& initial_annotations
+    const torch::Tensor& initial_annotations,
+    const torch::Tensor& initial_ids
 ) {
-    return CifCaf(n_keypoints, skeleton).call(cif_field, cif_stride, caf_field, caf_stride, initial_annotations);
+    return CifCaf(n_keypoints, skeleton).call(
+        cif_field, cif_stride, caf_field, caf_stride, initial_annotations, initial_ids);
 }
 
 
-torch::Tensor CifCaf::call(
+std::tuple<torch::Tensor, torch::Tensor> CifCaf::call(
     const torch::Tensor& cif_field,
     int64_t cif_stride,
     const torch::Tensor& caf_field,
     int64_t caf_stride,
-    const torch::Tensor& initial_annotations
+    const torch::Tensor& initial_annotations,
+    const torch::Tensor& initial_ids
 ) {
 #ifdef DEBUG
     TORCH_WARN("cpp CifCaf::call()");
@@ -165,8 +168,9 @@ torch::Tensor CifCaf::call(
 
     // process initial annotations first
     auto initial_annotations_a = initial_annotations.accessor<float, 3>();
+    auto initial_ids_a = initial_ids.accessor<int64_t, 1>();
     for (int64_t ann_i=0; ann_i < initial_annotations_a.size(0); ann_i++) {
-        Annotation annotation(n_keypoints);
+        Annotation annotation(n_keypoints, initial_ids_a[ann_i]);
         auto ann = initial_annotations_a[ann_i];
         for (int64_t of=0; of < n_keypoints; of++) {
             Joint& o_joint = annotation.joints[of];
@@ -228,8 +232,10 @@ torch::Tensor CifCaf::call(
 #ifdef DEBUG
     TORCH_WARN("convert to tensor");
 #endif
-    auto out = torch::zeros({ int64_t(annotations.size()), n_keypoints, 4 });
+    auto out = torch::empty({ int64_t(annotations.size()), n_keypoints, 4 });
+    auto out_ids = torch::empty({ int64_t(annotations.size()) }, torch::kInt64);
     auto out_a = out.accessor<float, 3>();
+    auto out_ids_a = out_ids.accessor<int64_t, 1>();
     for (int64_t ann_i = 0; ann_i < int64_t(annotations.size()); ann_i++) {
         auto& ann = annotations[ann_i];
         for (int64_t joint_i = 0; joint_i < n_keypoints; joint_i++) {
@@ -239,8 +245,9 @@ torch::Tensor CifCaf::call(
             out_a[ann_i][joint_i][2] = joint.y;
             out_a[ann_i][joint_i][3] = joint.s;
         }
+        out_ids_a[ann_i] = ann.id;
     }
-    return out;
+    return std::make_tuple(out, out_ids);
 }
 
 

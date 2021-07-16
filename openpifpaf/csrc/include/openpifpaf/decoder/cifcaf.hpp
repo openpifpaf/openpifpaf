@@ -100,12 +100,13 @@ struct OPENPIFPAF_API CifCaf : torch::CustomClassHolder {
         TORCH_CHECK(skeleton.dtype() == torch::kInt64, "skeleton must be of type LongTensor");
     }
 
-    torch::Tensor call(
+    std::tuple<torch::Tensor, torch::Tensor> call(
         const torch::Tensor& cif_field,
         int64_t cif_stride,
         const torch::Tensor& caf_field,
         int64_t caf_stride,
-        const torch::Tensor& initial_annotations
+        const torch::Tensor& initial_annotations,
+        const torch::Tensor& initial_ids
     );
 
     void _grow(Annotation* ann, const caf_fb_t& caf_fb, bool reverse_match_ = true);
@@ -126,14 +127,15 @@ struct OPENPIFPAF_API CifCaf : torch::CustomClassHolder {
 };
 
 
-torch::Tensor cifcaf_op(
+std::tuple<torch::Tensor, torch::Tensor> cifcaf_op(
     int64_t n_keypoints,
     const torch::Tensor& skeleton,
     const torch::Tensor& cif_field,
     int64_t cif_stride,
     const torch::Tensor& caf_field,
     int64_t caf_stride,
-    const torch::Tensor& initial_annotations
+    const torch::Tensor& initial_annotations,
+    const torch::Tensor& initial_ids
 );
 
 

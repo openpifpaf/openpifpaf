@@ -226,15 +226,18 @@ class CifCaf(Decoder):
         if not initial_annotations:
             initial_annotations_t = torch.empty(
                 (0, self.cif_metas[0].n_fields, 4))
+            initial_ids_t = torch.empty((0,), dtype=torch.int64)
         else:
             initial_annotations_t = torch.empty(
                 (len(initial_annotations), self.cif_metas[0].n_fields, 4))
-            for ann_py, ann_t in zip(initial_annotations, initial_annotations_t):
+            initial_ids_t = torch.empty((len(initial_annotations),), dtype=torch.int64)
+            for ann_i, (ann_py, ann_t) in enumerate(zip(initial_annotations, initial_annotations_t)):
                 for f in range(len(ann_py.data)):
                     ann_t[f, 0] = float(ann_py.data[f, 2])
                     ann_t[f, 1] = float(ann_py.data[f, 0])
                     ann_t[f, 2] = float(ann_py.data[f, 1])
                     ann_t[f, 3] = float(ann_py.joint_scales[f])
+                initial_ids_t[ann_i] = getattr(ann_py, 'id_', -1)
         LOG.debug('initial annotations = %d', initial_annotations_t.size(0))
         LOG.debug('initial annotations = %s', initial_annotations_t)
 
@@ -243,12 +246,13 @@ class CifCaf(Decoder):
         for vis, meta in zip(self.caf_visualizers, self.caf_metas):
             vis.predicted(fields[meta.head_index])
 
-        annotations = self.cpp_decoder.call(
+        annotations, annotation_ids = self.cpp_decoder.call(
             fields[self.cif_metas[0].head_index],
             self.cif_metas[0].stride,
             fields[self.caf_metas[0].head_index],
             self.caf_metas[0].stride,
             initial_annotations_t,
+            initial_ids_t,
         )
         for vis in self.cifhr_visualizers:
             fields, low = self.cpp_decoder.get_cifhr()
@@ -258,13 +262,14 @@ class CifCaf(Decoder):
                   (time.perf_counter() - start) * 1000.0)
 
         annotations_py = []
-        for ann_data in annotations:
+        for ann_data, ann_id in zip(annotations, annotation_ids):
             ann = Annotation(self.cif_metas[0].keypoints,
                              self.caf_metas[0].skeleton,
                              score_weights=self.score_weights)
             ann.data[:, :2] = ann_data[:, 1:3]
             ann.data[:, 2] = ann_data[:, 0]
             ann.joint_scales[:] = ann_data[:, 3]
+            ann.id_ = int(ann_id)
             annotations_py.append(ann)
 
         LOG.info('annotations %d: %s, decoder = %.1fms',
