@@ -3,6 +3,7 @@ import logging
 import time
 
 import numpy as np
+import torch
 
 from .. import headmeta, visualizer
 from ..annotation import Annotation
@@ -77,6 +78,7 @@ class TrackingPose(TrackBase):
 
         self.pose_generator = pose_generator or CifCaf(
             [self.tracking_cif_meta], [self.tracking_caf_meta])
+        self.nms_occupancy = utils.Occupancy(2, 4)
         # LOG.debug('keypoint threshold: cifcaf=%f, nms=%f, %s',
         #           CifCaf.keypoint_threshold,
         #           utils.nms.Keypoints.keypoint_threshold,
@@ -130,12 +132,11 @@ class TrackingPose(TrackBase):
             kps[kps[:, 2] < utils.nms.Keypoints.get_keypoint_threshold()] = 0.0
             kps[self.invalid_keypoints] = 0.0
 
-        occupied = utils.Occupancy((
+        self.nms_occupancy.reset((
             self.n_keypoints,
             int(max(1, max(np.max(t.frame_pose[-1][1].data[:, 1]) for t in tracks) + 1)),
             int(max(1, max(np.max(t.frame_pose[-1][1].data[:, 0]) for t in tracks) + 1)),
-        ), 2, min_scale=4)
-        LOG.debug('occupied shape = %s', occupied.occupancy.shape)
+        ))
 
         tracks = sorted(tracks, key=lambda tr: -tr.score(frame_number, current_importance=0.01))
         for track in tracks:
@@ -144,14 +145,13 @@ class TrackingPose(TrackBase):
                 continue
 
             assert ann.joint_scales is not None
-            assert len(occupied) == len(ann.data)
             joint_is = np.flatnonzero(ann.data[:, 2])
             for joint_i in joint_is:
                 xyv = ann.data[joint_i]
-                if occupied.get(joint_i, xyv[0], xyv[1]):
+                if self.nms_occupancy.get(joint_i, xyv[0], xyv[1]):
                     xyv[2] = 0.0
                 else:
-                    occupied.set(joint_i, xyv[0], xyv[1], ann.joint_scales[joint_i])
+                    self.nms_occupancy.set(joint_i, xyv[0], xyv[1], ann.joint_scales[joint_i])
 
         # keypoint threshold
         for t in tracks:
@@ -163,7 +163,7 @@ class TrackingPose(TrackBase):
 
         if self.pose_generator.occupancy_visualizer is not None:
             LOG.debug('Occupied fields after NMS')
-            self.pose_generator.occupancy_visualizer.predicted(occupied)
+            self.pose_generator.occupancy_visualizer.predicted(self.nms_occupancy)
 
     # pylint: disable=too-many-statements
     def __call__(self, fields, *, initial_annotations=None):
@@ -213,10 +213,10 @@ class TrackingPose(TrackBase):
         # CifCaf.keypoint_threshold = 0.001
         tracking_fields = [
             fields[self.cif_meta.head_index],
-            np.concatenate([
+            torch.cat([
                 fields[self.caf_meta.head_index],
                 fields[self.tcaf_meta.head_index],
-            ], axis=0)
+            ], dim=0)
         ]
         tracking_annotations = self.pose_generator(
             tracking_fields, initial_annotations=initial_annotations)
