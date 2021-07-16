@@ -374,7 +374,11 @@ Joint CifCaf::_connection_value(
     }
 
     // reverse match
-    if (reverse_match && reverse_match_) {
+    // Only compute when requested and when the start joint is within the
+    // occupancy and HR maps. For forward tracking, the source joints
+    // are not part of the predicted fields and therefore reverse matching
+    // cannot work in these cases.
+    if (reverse_match && reverse_match_ && start_i < occupancy.n_fields()) {
         Joint reverse_j = grow_connection_blend(
             caf_b, new_j.x, new_j.y, new_j.s, only_max);
         if (reverse_j.v == 0.0) {
