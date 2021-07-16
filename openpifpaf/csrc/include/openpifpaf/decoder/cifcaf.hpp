@@ -27,6 +27,18 @@ struct Joint {
 };
 
 
+struct Annotation {
+    std::vector<Joint> joints;
+    int id;
+
+    Annotation(void) : id(-1) { }
+    explicit Annotation(int n_joints) : joints(n_joints), id(-1) { }
+    explicit Annotation(const std::vector<Joint>& joints_) : joints(joints_), id(-1) { }
+    Annotation(int n_joints, int id_) : joints(n_joints), id(id_) { }
+    Annotation(const std::vector<Joint>& joints_, int id_) : joints(joints_), id(id_) { }
+};
+
+
 std::vector<double> grow_connection_blend_py(const torch::Tensor& caf, double x, double y, double s, bool only_max);
 
 
@@ -96,21 +108,21 @@ struct OPENPIFPAF_API CifCaf : torch::CustomClassHolder {
         const torch::Tensor& initial_annotations
     );
 
-    void _grow(std::vector<Joint>* ann, const caf_fb_t& caf_fb, bool reverse_match_ = true);
-    void _frontier_add_from(const std::vector<Joint>& ann, int64_t start_i);
+    void _grow(Annotation* ann, const caf_fb_t& caf_fb, bool reverse_match_ = true);
+    void _frontier_add_from(const Annotation& ann, int64_t start_i);
     Joint _connection_value(
-        const std::vector<Joint>& ann,
+        const Annotation& ann,
         const caf_fb_t& caf_fb,
         int64_t start_i,
         int64_t end_i,
         bool reverse_match = true
     );
     void _force_complete(
-        std::vector<std::vector<Joint> >* annotations,
+        std::vector<Annotation>* annotations,
         const torch::Tensor& cifhr_accumulated, double cifhr_revision,
         const torch::Tensor& caf_field, int64_t caf_stride
     );
-    void _flood_fill(std::vector<Joint>* ann);
+    void _flood_fill(Annotation* ann);
 };
 
 

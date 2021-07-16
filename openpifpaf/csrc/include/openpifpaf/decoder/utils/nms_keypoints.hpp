@@ -7,7 +7,7 @@
 
 #include "openpifpaf/utils.hpp"
 #include "openpifpaf/decoder/utils/occupancy.hpp"
-#include "openpifpaf/decoder/cifcaf.hpp"  // for Joint type
+#include "openpifpaf/decoder/cifcaf.hpp"  // for Joint and Annotation type
 
 
 namespace openpifpaf {
@@ -16,17 +16,17 @@ namespace utils {
 
 
 struct AnnotationScore {
-    virtual double value(const std::vector<Joint>& annotation) const = 0;
+    virtual double value(const Annotation& annotation) const = 0;
     virtual ~AnnotationScore() = default;
 };
 
 
 struct UniformScore : public AnnotationScore {
-    double value(const std::vector<Joint>& annotation) const {
+    double value(const Annotation& annotation) const {
         return std::accumulate(
-            annotation.begin(), annotation.end(), 0.0,
+            annotation.joints.begin(), annotation.joints.end(), 0.0,
             [](float i, const Joint& j) { return i + j.v; }
-        ) / annotation.size();
+        ) / annotation.joints.size();
     }
 };
 
@@ -40,7 +40,7 @@ struct NMSKeypoints : torch::CustomClassHolder {
 
     NMSKeypoints() : score(std::make_unique<UniformScore>()) { }
 
-    void call(Occupancy* occupancy, std::vector<std::vector<Joint> >* annotations);
+    void call(Occupancy* occupancy, std::vector<Annotation>* annotations);
 };
 
 

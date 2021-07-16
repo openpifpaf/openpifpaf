@@ -161,15 +161,15 @@ torch::Tensor CifCaf::call(
 #endif
 
     occupancy.reset(cifhr_accumulated.sizes());
-    std::vector<std::vector<Joint> > annotations;
+    std::vector<Annotation> annotations;
 
     // process initial annotations first
     auto initial_annotations_a = initial_annotations.accessor<float, 3>();
     for (int64_t ann_i=0; ann_i < initial_annotations_a.size(0); ann_i++) {
-        std::vector<Joint> annotation(n_keypoints);
+        Annotation annotation(n_keypoints);
         auto ann = initial_annotations_a[ann_i];
         for (int64_t of=0; of < n_keypoints; of++) {
-            Joint& o_joint = annotation[of];
+            Joint& o_joint = annotation.joints[of];
             o_joint.v = ann[of][0];
             o_joint.x = ann[of][1];
             o_joint.y = ann[of][2];
@@ -179,7 +179,7 @@ torch::Tensor CifCaf::call(
         _grow(&annotation, caf_fb);
 
         for (int64_t of=0; of < occupancy.n_fields(); of++) {
-            Joint& o_joint = annotation[of];
+            Joint& o_joint = annotation.joints[of];
             if (o_joint.v == 0.0) continue;
             occupancy.set(of, o_joint.x, o_joint.y, o_joint.s);
         }
@@ -195,8 +195,8 @@ torch::Tensor CifCaf::call(
         s = seeds_vxys_a[seed_i][3];
         if (occupancy.get(f, x, y)) continue;
 
-        std::vector<Joint> annotation(n_keypoints);
-        Joint& joint = annotation[f];
+        Annotation annotation(n_keypoints);
+        Joint& joint = annotation.joints[f];
         joint.v = seeds_vxys_a[seed_i][0];
         joint.x = x;
         joint.y = y;
@@ -208,7 +208,7 @@ torch::Tensor CifCaf::call(
         _grow(&annotation, caf_fb);
 
         for (int64_t of=0; of < occupancy.n_fields(); of++) {
-            Joint& o_joint = annotation[of];
+            Joint& o_joint = annotation.joints[of];
             if (o_joint.v == 0.0) continue;
             occupancy.set(of, o_joint.x, o_joint.y, o_joint.s);
         }
@@ -233,7 +233,7 @@ torch::Tensor CifCaf::call(
     for (int64_t ann_i = 0; ann_i < int64_t(annotations.size()); ann_i++) {
         auto& ann = annotations[ann_i];
         for (int64_t joint_i = 0; joint_i < n_keypoints; joint_i++) {
-            Joint& joint = ann[joint_i];
+            Joint& joint = ann.joints[joint_i];
             out_a[ann_i][joint_i][0] = joint.v;
             out_a[ann_i][joint_i][1] = joint.x;
             out_a[ann_i][joint_i][2] = joint.y;
@@ -245,7 +245,7 @@ torch::Tensor CifCaf::call(
 
 
 void CifCaf::_grow(
-    std::vector<Joint>* ann,
+    Annotation* ann,
     const caf_fb_t& caf_fb,
     bool reverse_match
 ) {
@@ -254,7 +254,7 @@ void CifCaf::_grow(
 
     // initialize frontier
     for (int64_t j=0; j < n_keypoints; j++) {
-        if ((*ann)[j].v == 0.0) continue;
+        if (ann->joints[j].v == 0.0) continue;
         _frontier_add_from(*ann, j);
     }
 
@@ -262,7 +262,7 @@ void CifCaf::_grow(
         FrontierEntry entry(frontier.top());
         frontier.pop();
         // Was the target already filled by something else?
-        if ((*ann)[entry.end_i].v > 0.0) continue;
+        if (ann->joints[entry.end_i].v > 0.0) continue;
 
         // Is entry not fully computed?
         if (entry.joint.v == 0.0) {
@@ -288,17 +288,17 @@ void CifCaf::_grow(
             entry.joint = new_joint;
         }
 
-        (*ann)[entry.end_i] = entry.joint;
+        ann->joints[entry.end_i] = entry.joint;
         _frontier_add_from(*ann, entry.end_i);
     }
 }
 
 
 void CifCaf::_frontier_add_from(
-    const std::vector<Joint>& ann,
+    const Annotation& ann,
     int64_t start_i
 ) {
-    float max_score = sqrt(ann[start_i].v);
+    float max_score = sqrt(ann.joints[start_i].v);
 
     auto skeleton_a = skeleton.accessor<int64_t, 2>();
     for (int64_t f=0; f < skeleton_a.size(0); f++) {
@@ -306,7 +306,7 @@ void CifCaf::_frontier_add_from(
         int64_t pair_1 = skeleton_a[f][1];
 
         if (pair_0 == start_i) {
-            if (ann[pair_1].v > 0.0) continue;
+            if (ann.joints[pair_1].v > 0.0) continue;
             if (in_frontier.find(std::make_pair(pair_0, pair_1)) != in_frontier.end()) {
                 continue;
             }
@@ -315,7 +315,7 @@ void CifCaf::_frontier_add_from(
             continue;
         }
         if (pair_1 == start_i) {
-            if (ann[pair_0].v > 0.0) continue;
+            if (ann.joints[pair_0].v > 0.0) continue;
             if (in_frontier.find(std::make_pair(pair_1, pair_0)) != in_frontier.end()) {
                 continue;
             }
@@ -328,7 +328,7 @@ void CifCaf::_frontier_add_from(
 
 
 Joint CifCaf::_connection_value(
-    const std::vector<Joint>& ann,
+    const Annotation& ann,
     const caf_fb_t& caf_fb,
     int64_t start_i,
     int64_t end_i,
@@ -358,7 +358,7 @@ Joint CifCaf::_connection_value(
 
     bool only_max = false;
 
-    const Joint& start_j = ann[start_i];
+    const Joint& start_j = ann.joints[start_i];
     Joint new_j = grow_connection_blend(
         caf_f, start_j.x, start_j.y, start_j.s, only_max);
     if (new_j.v == 0.0) return new_j;
@@ -396,7 +396,7 @@ Joint CifCaf::_connection_value(
 
 
 void CifCaf::_force_complete(
-    std::vector<std::vector<Joint> >* annotations,
+    std::vector<Annotation>* annotations,
     const torch::Tensor& cifhr_accumulated, double cifhr_revision,
     const torch::Tensor& caf_field, int64_t caf_stride
 ) {
@@ -410,12 +410,12 @@ void CifCaf::_force_complete(
 }
 
 
-void CifCaf::_flood_fill(std::vector<Joint>* ann) {
+void CifCaf::_flood_fill(Annotation* ann) {
     while (!frontier.empty()) frontier.pop();
 
     // initialize frontier
     for (int64_t j=0; j < n_keypoints; j++) {
-        if ((*ann)[j].v == 0.0) continue;
+        if (ann->joints[j].v == 0.0) continue;
         _frontier_add_from(*ann, j);
     }
 
@@ -423,10 +423,10 @@ void CifCaf::_flood_fill(std::vector<Joint>* ann) {
         FrontierEntry entry(frontier.top());
         frontier.pop();
         // Was the target already filled by something else?
-        if ((*ann)[entry.end_i].v > 0.0) continue;
+        if (ann->joints[entry.end_i].v > 0.0) continue;
 
-        (*ann)[entry.end_i] = (*ann)[entry.start_i];
-        (*ann)[entry.end_i].v = 0.00001;
+        ann->joints[entry.end_i] = ann->joints[entry.start_i];
+        ann->joints[entry.end_i].v = 0.00001;
         _frontier_add_from(*ann, entry.end_i);
     }
 }
