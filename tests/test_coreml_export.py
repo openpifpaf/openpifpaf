@@ -121,6 +121,7 @@ def test_trace_cifcaf_op():
             ci, 8,
             ca, 8,
             torch.empty((0, 17, 4)),
+            torch.empty((0,), dtype=torch.int64),
         ), [
             cif_field,
             caf_field,

@@ -231,13 +231,13 @@ class CifCaf(Decoder):
             initial_annotations_t = torch.empty(
                 (len(initial_annotations), self.cif_metas[0].n_fields, 4))
             initial_ids_t = torch.empty((len(initial_annotations),), dtype=torch.int64)
-            for ann_i, (ann_py, ann_t) in enumerate(zip(initial_annotations, initial_annotations_t)):
+            for i, (ann_py, ann_t) in enumerate(zip(initial_annotations, initial_annotations_t)):
                 for f in range(len(ann_py.data)):
                     ann_t[f, 0] = float(ann_py.data[f, 2])
                     ann_t[f, 1] = float(ann_py.data[f, 0])
                     ann_t[f, 2] = float(ann_py.data[f, 1])
                     ann_t[f, 3] = float(ann_py.joint_scales[f])
-                initial_ids_t[ann_i] = getattr(ann_py, 'id_', -1)
+                initial_ids_t[i] = getattr(ann_py, 'id_', -1)
         LOG.debug('initial annotations = %d', initial_annotations_t.size(0))
         LOG.debug('initial annotations = %s', initial_annotations_t)
 
