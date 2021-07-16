@@ -121,16 +121,13 @@ def main():
         video_output=args.video_output,
         second_visual=args.separate_debug_ax,
     )
+    if not args.json_output or args.video_output:
+        ax, ax_second = animation.frame_init()
+        visualizer.Base.common_ax = ax_second if args.separate_debug_ax else ax
 
     last_loop = time.perf_counter()
     for (ax, ax_second), (preds, _, meta) in \
             zip(animation.iter(), predictor.dataset(capture)):
-        image = visualizer.Base._image  # pylint: disable=protected-access
-        if ax is None and (not args.json_output or args.video_output):
-            ax, ax_second = animation.frame_init(image)
-
-        visualizer.Base.common_ax = ax_second if args.separate_debug_ax else ax
-
         start_post = time.perf_counter()
         if args.json_output:
             with open(args.json_output, 'a+') as f:
@@ -141,6 +138,7 @@ def main():
                 f.write('\n')
         if (not args.json_output or args.video_output) \
            and (args.separate_debug_ax or not args.debug_indices):
+            image = visualizer.Base._image  # pylint: disable=protected-access
             ax.imshow(image)
             annotation_painter.annotations(ax, preds)
         postprocessing_time = time.perf_counter() - start_post
