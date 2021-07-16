@@ -120,6 +120,7 @@ def test_trace_cifcaf_op():
             skeleton_m1,
             ci, 8,
             ca, 8,
+            torch.empty((0, 17, 4)),
         ), [
             cif_field,
             caf_field,
