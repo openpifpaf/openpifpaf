@@ -224,20 +224,31 @@ class CifCaf(Decoder):
     def __call__(self, fields, initial_annotations=None):
         start = time.perf_counter()
         if not initial_annotations:
-            initial_annotations = []
-        LOG.debug('initial annotations = %d', len(initial_annotations))
+            initial_annotations_t = torch.empty(
+                (0, self.cif_metas[0].n_fields, 4))
+        else:
+            initial_annotations_t = torch.empty(
+                (len(initial_annotations), self.cif_metas[0].n_fields, 4))
+            for ann_py, ann_t in zip(initial_annotations, initial_annotations_t):
+                for f in range(len(ann_py.data)):
+                    ann_t[f, 0] = float(ann_py.data[f, 2])
+                    ann_t[f, 1] = float(ann_py.data[f, 0])
+                    ann_t[f, 2] = float(ann_py.data[f, 1])
+                    ann_t[f, 3] = float(ann_py.joint_scales[f])
+        LOG.debug('initial annotations = %d', initial_annotations_t.size(0))
+        LOG.debug('initial annotations = %s', initial_annotations_t)
 
         for vis, meta in zip(self.cif_visualizers, self.cif_metas):
             vis.predicted(fields[meta.head_index])
         for vis, meta in zip(self.caf_visualizers, self.caf_metas):
             vis.predicted(fields[meta.head_index])
 
-        # TODO initial annotations
         annotations = self.cpp_decoder.call(
             fields[self.cif_metas[0].head_index],
             self.cif_metas[0].stride,
             fields[self.caf_metas[0].head_index],
             self.caf_metas[0].stride,
+            initial_annotations_t,
         )
         for vis in self.cifhr_visualizers:
             fields, low = self.cpp_decoder.get_cifhr()
