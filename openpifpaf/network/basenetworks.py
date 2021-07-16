@@ -654,13 +654,13 @@ class EffNetV2_s16_extra_large(BaseNetwork):
 
 class BotNet(BaseNetwork):
     input_image_size = 640
-    def __init__(self, name, out_features=512):
+    def __init__(self, name, out_features=2048):
         super().__init__(name, stride=8, out_features=out_features)
         
         layer = bottleneck_transformer.BottleStack(
             dim = 256,
             fmap_size = int(ceil(self.input_image_size/4)),  # default img size is 640 x 640
-            dim_out = 512,
+            dim_out = 2048,
             proj_factor = 4,
             downsample = True,
             heads = 4,
