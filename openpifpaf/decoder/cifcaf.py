@@ -222,7 +222,6 @@ class CifCaf(Decoder):
         ]
 
     def __call__(self, fields, initial_annotations=None):
-        start = time.perf_counter()
         if not initial_annotations:
             initial_annotations_t = torch.empty(
                 (0, self.cif_metas[0].n_fields, 4))
@@ -245,6 +244,7 @@ class CifCaf(Decoder):
         for vis, meta in zip(self.caf_visualizers, self.caf_metas):
             vis.predicted(fields[meta.head_index])
 
+        start = time.perf_counter()
         annotations, annotation_ids = self.cpp_decoder.call(
             fields[self.cif_metas[0].head_index],
             self.cif_metas[0].stride,
@@ -253,12 +253,12 @@ class CifCaf(Decoder):
             initial_annotations_t,
             initial_ids_t,
         )
-        for vis in self.cifhr_visualizers:
-            fields, low = self.cpp_decoder.get_cifhr()
-            vis.predicted(fields, low)
         LOG.debug('cpp annotations = %d (%.1fms)',
                   len(annotations),
                   (time.perf_counter() - start) * 1000.0)
+        for vis in self.cifhr_visualizers:
+            fields, low = self.cpp_decoder.get_cifhr()
+            vis.predicted(fields, low)
 
         annotations_py = []
         for ann_data, ann_id in zip(annotations, annotation_ids):
@@ -272,8 +272,7 @@ class CifCaf(Decoder):
                 ann.id_ = int(ann_id)
             annotations_py.append(ann)
 
-        LOG.info('annotations %d: %s, decoder = %.1fms',
+        LOG.info('annotations %d: %s',
                  len(annotations_py),
-                 [np.sum(ann.data[:, 2] > 0.0) for ann in annotations_py],
-                 (time.perf_counter() - start) * 1000.0)
+                 [np.sum(ann.data[:, 2] > 0.0) for ann in annotations_py])
         return annotations_py

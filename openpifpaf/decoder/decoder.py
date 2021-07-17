@@ -108,7 +108,7 @@ class Decoder:
             except StopIteration:
                 break
 
-        LOG.debug('nn processing time: %.3fs', time.time() - start)
+        LOG.debug('nn processing time: %.1fms', (time.time() - start) * 1000.0)
         return heads
 
     def batch(self, model, image_batch, *, device=None, gt_anns_batch=None):
@@ -131,7 +131,9 @@ class Decoder:
             self._mappable_annotations, zip(fields_batch, image_batch, gt_anns_batch))
         self.last_decoder_time = time.perf_counter() - start_decoder
 
-        LOG.debug('time: nn = %.3fs, dec = %.3fs', self.last_nn_time, self.last_decoder_time)
+        LOG.debug('time: nn = %.1fms, dec = %.1fms',
+                  self.last_nn_time * 1000.0,
+                  self.last_decoder_time * 1000.0)
         return result
 
     def _mappable_annotations(self, fields, debug_image, gt_anns):
