@@ -239,7 +239,6 @@ class CifCaf(Decoder):
                     ann_t[f, 3] = float(ann_py.joint_scales[f])
                 initial_ids_t[i] = getattr(ann_py, 'id_', -1)
         LOG.debug('initial annotations = %d', initial_annotations_t.size(0))
-        LOG.debug('initial annotations = %s', initial_annotations_t)
 
         for vis, meta in zip(self.cif_visualizers, self.cif_metas):
             vis.predicted(fields[meta.head_index])
@@ -269,7 +268,8 @@ class CifCaf(Decoder):
             ann.data[:, :2] = ann_data[:, 1:3]
             ann.data[:, 2] = ann_data[:, 0]
             ann.joint_scales[:] = ann_data[:, 3]
-            ann.id_ = int(ann_id)
+            if ann_id != -1:
+                ann.id_ = int(ann_id)
             annotations_py.append(ann)
 
         LOG.info('annotations %d: %s, decoder = %.1fms',
