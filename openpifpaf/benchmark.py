@@ -199,7 +199,7 @@ class Benchmark:
                     values_serialized += ''.join(['{0: <+8.1f} | '.format(v) for v in values[1:]])
                 print(
                     f'| {name_link: <{name_w}} | {values_serialized}'
-                    f'{t: <+15.0f} | {tdec: <+12.0f} | {file_size: >+6.1f}MB |'
+                    f'{t: <+15.0f} | {tnn: <+11.0f} | {tdec: <+12.0f} | {file_size: >+6.1f}MB |'
                 )
             else:
                 values_serialized = '__{0: <2.1f}__ | '.format(values[0])
