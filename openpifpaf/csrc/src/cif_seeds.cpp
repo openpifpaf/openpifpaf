@@ -31,37 +31,35 @@ float cifhr_value(torch::TensorAccessor<float, 3UL> cifhr_a,
 
 
 void CifSeeds::fill(const torch::Tensor& cif_field, int64_t stride) {
-    auto cif_field_a = cif_field.accessor<float, 4>();
-
-    std::unique_ptr<torch::TensorAccessor<float, 3>> max_pooled_a;
+    std::optional<torch::Tensor> max_pooled;
+    std::optional<torch::TensorAccessor<float, 3>> max_pooled_a;
     if (ablation_nms) {
         auto confidence = cif_field.index({torch::indexing::Slice(), 1});
-        auto max_pooled = torch::max_pool2d(confidence, 3, 1, 1);
-        *max_pooled_a = max_pooled.accessor<float, 3>();
+        max_pooled = torch::max_pool2d(confidence, 3, 1, 1);
+        max_pooled_a = max_pooled.value().accessor<float, 3>();
     }
 
-    float c, v, x, y, s;
+    auto cif_field_a = cif_field.accessor<float, 4>();
+    float c, x, y, s;
     for (int64_t f=0; f < cif_field_a.size(0); f++) {
         for (int64_t j=0; j < cif_field_a.size(2); j++) {
             for (int64_t i=0; i < cif_field_a.size(3); i++) {
                 c = cif_field_a[f][1][j][i];
                 if (c < threshold) continue;
+                if (ablation_nms) {
+                    if (c < max_pooled_a.value()[f][j][i]) continue;
+                }
 
                 x = cif_field_a[f][2][j][i] * stride;
                 y = cif_field_a[f][3][j][i] * stride;
 
-                if (ablation_nms) {
-                    if (v < (*max_pooled_a)[f][j][i]) continue;
+                if (!ablation_no_rescore) {
+                    c = 0.9 * cifhr_value(cifhr_a, cifhr_revision, f, x, y) + 0.1 * c;
                 }
-                if (ablation_no_rescore) {
-                    v = c;
-                } else {
-                    v = 0.9 * cifhr_value(cifhr_a, cifhr_revision, f, x, y) + 0.1 * c;
-                }
-                if (v < threshold) continue;
+                if (c < threshold) continue;
 
                 s = cif_field_a[f][4][j][i] * stride;
-                seeds.push_back(Seed(f, v, x, y, s));
+                seeds.push_back(Seed(f, c, x, y, s));
             }
         }
     }
