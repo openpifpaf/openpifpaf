@@ -31,8 +31,8 @@ float cifhr_value(torch::TensorAccessor<float, 3UL> cifhr_a,
 
 
 void CifSeeds::fill(const torch::Tensor& cif_field, int64_t stride) {
-    std::optional<torch::Tensor> max_pooled;
-    std::optional<torch::TensorAccessor<float, 3>> max_pooled_a;
+    torch::optional<torch::Tensor> max_pooled;
+    torch::optional<torch::TensorAccessor<float, 3>> max_pooled_a;
     if (ablation_nms) {
         auto confidence = cif_field.index({torch::indexing::Slice(), 1});
         max_pooled = torch::max_pool2d(confidence, 3, 1, 1);

@@ -31,8 +31,8 @@ def add_cpp_extension():
 
     if os.getenv('DEBUG', '0') == '1':
         print('DEBUG mode')
-        extra_compile_args += ['-g', '-O0']
         if sys.platform.startswith('linux'):
+            extra_compile_args += ['-g', '-O0']
             extra_compile_args += [
                 '-Wuninitialized',
                 # '-Werror',  # fails in pytorch code, but would be nice to have in CI
