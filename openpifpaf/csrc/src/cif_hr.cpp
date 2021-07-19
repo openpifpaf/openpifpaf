@@ -12,6 +12,7 @@ namespace utils {
 
 int64_t CifHr::neighbors = 16;
 double CifHr::threshold = 0.1;
+bool CifHr::ablation_skip = false;
 
 
 inline float approx_exp(float x) {
@@ -100,6 +101,8 @@ void cif_hr_add_gauss_op(const torch::Tensor& accumulated,
 
 
 void CifHr::accumulate(const torch::Tensor& cif_field, int64_t stride, double min_scale, double factor) {
+    if (ablation_skip) return;
+
     cif_hr_accumulate_op(accumulated, revision, cif_field, stride, threshold, neighbors, min_scale, factor);
 }
 

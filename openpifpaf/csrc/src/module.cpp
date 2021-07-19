@@ -58,6 +58,7 @@ TORCH_LIBRARY(openpifpaf, m) {
     m.class_<openpifpaf::decoder::utils::CifHr>("CifHr")
         STATIC_GETSET(openpifpaf::decoder::utils::CifHr::neighbors, int64_t, neighbors)
         STATIC_GETSET(openpifpaf::decoder::utils::CifHr::threshold, double, threshold)
+        STATIC_GETSET(openpifpaf::decoder::utils::CifHr::ablation_skip, bool, ablation_skip)
 
         .def(torch::init<>())
         .def("accumulate", &openpifpaf::decoder::utils::CifHr::accumulate)

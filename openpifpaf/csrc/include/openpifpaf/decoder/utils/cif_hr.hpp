@@ -40,6 +40,7 @@ struct CifHr : torch::CustomClassHolder {
     double revision;
     static int64_t neighbors;
     static double threshold;
+    static bool ablation_skip;
 
     CifHr(
     ) : accumulated_buffer(torch::zeros({ 1, 1, 1 })),
