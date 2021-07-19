@@ -204,8 +204,8 @@ class CifCaf(Decoder):
         cls.connection_method = args.connection_method
 
         cls.reverse_match = args.reverse_match
-        # TODO utils.CifSeeds.ablation_nms = args.ablation_cifseeds_nms
-        # TODO utils.CifSeeds.ablation_no_rescore = args.ablation_cifseeds_no_rescore
+        utils.CifSeeds.set_ablation_nms(args.ablation_cifseeds_nms)
+        utils.CifSeeds.set_ablation_no_rescore(args.ablation_cifseeds_no_rescore)
         # TODO utils.CafScored.ablation_no_rescore = args.ablation_caf_no_rescore
         if args.ablation_cifseeds_no_rescore and args.ablation_caf_no_rescore:
             utils.CifHr.set_ablation_skip(True)

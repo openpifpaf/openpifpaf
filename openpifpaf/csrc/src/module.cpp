@@ -68,6 +68,8 @@ TORCH_LIBRARY(openpifpaf, m) {
 
     m.class_<openpifpaf::decoder::utils::CifSeeds>("CifSeeds")
         STATIC_GETSET(openpifpaf::decoder::utils::CifSeeds::threshold, double, threshold)
+        STATIC_GETSET(openpifpaf::decoder::utils::CifSeeds::ablation_nms, bool, ablation_nms)
+        STATIC_GETSET(openpifpaf::decoder::utils::CifSeeds::ablation_no_rescore, bool, ablation_no_rescore)
 
         .def(torch::init<const torch::Tensor&, double>())
         .def("fill", &openpifpaf::decoder::utils::CifSeeds::fill)

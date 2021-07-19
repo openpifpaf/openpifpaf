@@ -37,6 +37,8 @@ struct CifSeeds : torch::CustomClassHolder {
     std::vector<Seed> seeds;
 
     static double threshold;
+    static bool ablation_nms;
+    static bool ablation_no_rescore;
 
     CifSeeds(const torch::Tensor& cifhr_, double cifhr_revision_)
     : cifhr_a(cifhr_.accessor<float, 3>()),
