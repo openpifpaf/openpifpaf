@@ -86,6 +86,7 @@ TORCH_LIBRARY(openpifpaf, m) {
 
     m.class_<openpifpaf::decoder::utils::CafScored>("CafScored")
         STATIC_GETSET(openpifpaf::decoder::utils::CafScored::default_score_th, double, default_score_th)
+        STATIC_GETSET(openpifpaf::decoder::utils::CafScored::ablation_no_rescore, bool, ablation_no_rescore)
 
         .def(torch::init<const torch::Tensor&, double, double, double>())
         .def("fill", &openpifpaf::decoder::utils::CafScored::fill)

@@ -42,6 +42,7 @@ struct CafScored : torch::CustomClassHolder {
     std::vector<std::vector<CompositeAssociation> > backward;
 
     static double default_score_th;
+    static bool ablation_no_rescore;
 
     CafScored(
         const torch::Tensor& cifhr_,

@@ -9,6 +9,7 @@ namespace utils {
 
 
 double CafScored::default_score_th = 0.2;
+bool CafScored::ablation_no_rescore = false;
 
 
 float CafScored::cifhr_value(int64_t f, float x, float y, float default_value) {
@@ -62,10 +63,12 @@ void CafScored::fill(const torch::Tensor& caf_field, int64_t stride, const torch
                 );
 
                 // rescore
-                forward_hr = cifhr_value(skeleton_a[f][1], ca_forward.x2, ca_forward.y2, 0.0);
-                backward_hr = cifhr_value(skeleton_a[f][0], ca_backward.x2, ca_backward.y2, 0.0);
-                ca_forward.c = ca_forward.c * (cif_floor + (1.0 - cif_floor) * forward_hr);
-                ca_backward.c = ca_backward.c * (cif_floor + (1.0 - cif_floor) * backward_hr);
+                if (!ablation_no_rescore) {
+                    forward_hr = cifhr_value(skeleton_a[f][1], ca_forward.x2, ca_forward.y2, 0.0);
+                    backward_hr = cifhr_value(skeleton_a[f][0], ca_backward.x2, ca_backward.y2, 0.0);
+                    ca_forward.c = ca_forward.c * (cif_floor + (1.0 - cif_floor) * forward_hr);
+                    ca_backward.c = ca_backward.c * (cif_floor + (1.0 - cif_floor) * backward_hr);
+                }
 
                 // accumulate
                 if (ca_forward.c > score_th) {
