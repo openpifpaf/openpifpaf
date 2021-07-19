@@ -241,8 +241,6 @@ def main():
                 '--cocokp-with-dense', '--dense-connections=0.1']),
         ]
     if args.v012_ablation_2:
-        eval_args_nofc = [a for a in eval_args
-                          if not a.startswith(('--force-complete', '--seed-threshold'))]
         ablations += [
             Ablation('.cifnr', eval_args + ['--ablation-cifseeds-no-rescore']),
             Ablation('.cifnr.nms', eval_args + ['--ablation-cifseeds-no-rescore',
