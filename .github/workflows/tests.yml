@@ -127,7 +127,7 @@ jobs:
         python -m pycodestyle tests/*.py
     - name: Lint C++
       if: matrix.os != 'windows-latest'  # because of path separator
-      run: cpplint --recursive --linelength=120 --filter=-legal,-whitespace/parens,-whitespace/braces,-whitespace/semicolon,-readability/todo openpifpaf/csrc
+      run: cpplint --recursive --exclude=openpifpaf/csrc/build --linelength=120 --filter=-legal,-whitespace/parens,-whitespace/braces,-whitespace/semicolon,-readability/todo openpifpaf/csrc
     - name: Check notebook formats and tags
       if: matrix.slow
       run: |
