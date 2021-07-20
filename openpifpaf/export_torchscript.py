@@ -12,15 +12,23 @@ from .export_onnx import image_size_warning
 LOG = logging.getLogger(__name__)
 
 
-class DummyDecoder(torch.nn.Module):
-    def __init__(self):
+class DecoderModule(torch.nn.Module):
+    def __init__(self, cif_meta, caf_meta):
         super().__init__()
-        self.cifhr = torch.zeros((17, 300, 400))
 
-    def forward(self, cif_head):  # , caf_head  TODO
-        self.cifhr[:] = 0.0
-        torch.ops.openpifpaf.cif_hr_accumulate_op(self.cifhr, cif_head, 8, 0.1, 16, 0.0, 1.0)
-        return self.cifhr
+        self.n_keypoints = len(cif_meta.keypoints)
+        self.skeleton = torch.LongTensor(caf_meta.skeleton) - 1
+
+    def forward(self, cif_field, caf_field):
+        initial_annotations_t = torch.empty((0, self.n_keypoints, 4))
+        initial_ids_t = torch.empty((0,), dtype=torch.int64)
+
+        return torch.ops.openpifpaf_decoder.cifcaf_op(
+            self.n_keypoints, self.skeleton,
+            cif_field, 8,
+            caf_field, 8,
+            initial_annotations_t, initial_ids_t,
+        )
 
 
 class EncoderDecoder(torch.nn.Module):
@@ -41,11 +49,12 @@ def apply(model, outfile, *, input_w=129, input_h=97):
 
     # configure: inplace-ops are not supported
     openpifpaf.network.heads.CompositeField3.inplace_ops = False
+    openpifpaf.network.heads.CompositeField4.inplace_ops = False
 
     dummy_input = torch.randn(1, 3, input_h, input_w)
     with torch.no_grad():
         traced_encoder = torch.jit.trace(model, dummy_input)
-    decoder = DummyDecoder()
+    decoder = DecoderModule(model.head_metas[0], model.head_metas[1])
 
     encoder_decoder = EncoderDecoder(traced_encoder, decoder)
     encoder_decoder = torch.jit.script(encoder_decoder)

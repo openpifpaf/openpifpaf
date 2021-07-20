@@ -1,5 +1,8 @@
 ## Build libtorch example with cmake
 
+Roughly following the
+[PyTorch Tutorial on TorchScript in C++](https://pytorch.org/tutorials/advanced/cpp_export.html).
+
 ```sh
 mkdir build
 cd build
