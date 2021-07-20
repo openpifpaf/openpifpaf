@@ -33,7 +33,7 @@ int main(int argc, const char* argv[]) {
     auto input_tensor = torch::from_blob(frame.data, {1, frame_size.height, frame_size.width, 3});
     input_tensor = input_tensor.permute({0, 3, 1, 2});
     std::cout << "input tensor sizes: " << input_tensor.sizes() << std::endl;
-    inputs.push_back((input_tensor - 0.5) * 2.0);
+    inputs.push_back((input_tensor - 0.5) * 4.0);
 
     // Execute the model and turn its output into a tensor.
     auto output = module.forward(inputs).toList();

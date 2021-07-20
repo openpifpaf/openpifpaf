@@ -12,3 +12,11 @@ cd build
 cmake -DCMAKE_PREFIX_PATH=`python -c 'import torch;print(torch.utils.cmake_prefix_path)'` ..
 cmake --build . --config Release
 ```
+
+
+## Create TorchScript Module and run Example
+
+```
+python -m openpifpaf.export_torchscript --input-height=427 --input-width=640
+./openpifpaf-example openpifpaf-shufflenetv2k16.torchscript.pt ../../../docs/coco/000000081988.jpg
+```

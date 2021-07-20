@@ -13,3 +13,6 @@ include_directories(include/)
 add_executable(openpifpaf-example main.cpp ${SRC})
 target_link_libraries(openpifpaf-example "${TORCH_LIBRARIES}")
 target_link_libraries(openpifpaf-example "${OpenCV_LIBS}")
+
+# for additional debug info:
+target_compile_definitions(openpifpaf-example PRIVATE DEBUG=1)
