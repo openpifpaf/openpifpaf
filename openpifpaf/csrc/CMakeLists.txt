@@ -11,8 +11,16 @@ include_directories( ${OpenCV_INCLUDE_DIRS} )
 file(GLOB SRC src/*.cpp)
 include_directories(include/)
 
+### for openpifpaf-image
 add_executable(openpifpaf-image cli_image.cpp ${SRC})
 target_link_libraries(openpifpaf-image "${TORCH_LIBRARIES}")
 target_link_libraries(openpifpaf-image "${OpenCV_LIBS}")
 # for additional debug info:
 target_compile_definitions(openpifpaf-image PRIVATE DEBUG=1)
+
+### for openpifpaf-video
+add_executable(openpifpaf-video cli_video.cpp ${SRC})
+target_link_libraries(openpifpaf-video "${TORCH_LIBRARIES}")
+target_link_libraries(openpifpaf-video "${OpenCV_LIBS}")
+# for additional debug info:
+target_compile_definitions(openpifpaf-video PRIVATE DEBUG=1)
