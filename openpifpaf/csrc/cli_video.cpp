@@ -16,8 +16,11 @@ int main(int argc, const char* argv[]) {
 
     // load video
     cv::VideoCapture cap;
-    if (strlen(argv[2]) == 1) cap = cv::VideoCapture(atoi(argv[2]));
-    else cap = cv::VideoCapture(argv[2]);
+    if (strlen(argv[2]) == 1) {
+        cap = cv::VideoCapture(atoi(argv[2]));
+    } else {
+        cap = cv::VideoCapture(argv[2]);
+    }
 
     while (cap.isOpened()) {
         cv::Mat frame;
@@ -45,7 +48,7 @@ int main(int argc, const char* argv[]) {
         std::cout << "output: " << output << '\n';
 
         // break on ESC key
-        char c = (char)cv::waitKey(1);
+        int c = cv::waitKey(1);
         if (c == 27) break;
     }
 }
