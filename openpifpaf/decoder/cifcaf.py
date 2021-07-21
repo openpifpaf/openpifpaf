@@ -118,7 +118,7 @@ class CifCaf(Decoder):
 
         self.cpp_decoder = torch.classes.openpifpaf_decoder.CifCaf(
             len(cif_metas[0].keypoints),
-            torch.LongTensor(self.caf_metas[0].skeleton) - 1,
+            torch.LongTensor(caf_metas[0].skeleton) - 1,
         )
         # prefer decoders with more keypoints and associations
         self.priority += sum(m.n_fields for m in cif_metas) / 1000.0

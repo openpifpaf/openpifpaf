@@ -31,6 +31,20 @@ TORCH_LIBRARY(openpifpaf_decoder, m) {
         .def("get_cifhr", [](const c10::intrusive_ptr<openpifpaf::decoder::CifCaf>& self) {
             return self->cifhr.get_accumulated();
         })
+
+        .def_pickle(
+            // __getstate__
+            [](const c10::intrusive_ptr<openpifpaf::decoder::CifCaf>& self)
+                    -> std::tuple<int64_t, torch::Tensor> {
+                return std::make_tuple(self->n_keypoints, self->skeleton);
+            },
+            // __setstate__
+            [](std::tuple<int64_t, torch::Tensor> state)
+                    -> c10::intrusive_ptr<openpifpaf::decoder::CifCaf> {
+                auto [n_keypoints, skeleton] = state;
+                return c10::make_intrusive<openpifpaf::decoder::CifCaf>(n_keypoints, skeleton);
+            }
+        )
     ;
     m.def("grow_connection_blend", openpifpaf::decoder::grow_connection_blend_py);
     m.def("cifcaf_op", openpifpaf::decoder::cifcaf_op);

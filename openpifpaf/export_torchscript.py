@@ -16,18 +16,20 @@ class DecoderModule(torch.nn.Module):
     def __init__(self, cif_meta, caf_meta):
         super().__init__()
 
-        self.n_keypoints = len(cif_meta.keypoints)
-        self.skeleton = torch.LongTensor(caf_meta.skeleton) - 1
+        self.cpp_decoder = torch.classes.openpifpaf_decoder.CifCaf(
+            len(cif_meta.keypoints),
+            torch.LongTensor(caf_meta.skeleton) - 1,
+        )
+        self.cif_stride = cif_meta.stride
+        self.caf_stride = caf_meta.stride
+        self.initial_annotations_t = torch.empty((0, len(cif_meta.keypoints), 4))
+        self.initial_ids_t = torch.empty((0,), dtype=torch.int64)
 
     def forward(self, cif_field, caf_field):
-        initial_annotations_t = torch.empty((0, self.n_keypoints, 4))
-        initial_ids_t = torch.empty((0,), dtype=torch.int64)
-
-        return torch.ops.openpifpaf_decoder.cifcaf_op(
-            self.n_keypoints, self.skeleton,
-            cif_field, 8,
-            caf_field, 8,
-            initial_annotations_t, initial_ids_t,
+        return self.cpp_decoder.call(
+            cif_field, self.cif_stride,
+            caf_field, self.caf_stride,
+            self.initial_annotations_t, self.initial_ids_t,
         )
 
 

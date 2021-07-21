@@ -47,8 +47,7 @@ int main(int argc, const char* argv[]) {
         auto output = model.forward(inputs).toList();
         std::cout << "output: " << output << '\n';
 
-        // break on ESC key
-        int c = cv::waitKey(1);
-        if (c == 27) break;
+        // show
+        cv::imshow("preview", frame);
     }
 }
