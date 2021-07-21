@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
-project(openpifpaf-example)
+project(openpifpaf-examples)
 set(CMAKE_CXX_STANDARD 17)
 
 find_package(Torch REQUIRED)
@@ -10,9 +10,9 @@ include_directories( ${OpenCV_INCLUDE_DIRS} )
 
 file(GLOB SRC src/*.cpp)
 include_directories(include/)
-add_executable(openpifpaf-example main.cpp ${SRC})
-target_link_libraries(openpifpaf-example "${TORCH_LIBRARIES}")
-target_link_libraries(openpifpaf-example "${OpenCV_LIBS}")
 
+add_executable(openpifpaf-image cli_image.cpp ${SRC})
+target_link_libraries(openpifpaf-image "${TORCH_LIBRARIES}")
+target_link_libraries(openpifpaf-image "${OpenCV_LIBS}")
 # for additional debug info:
-target_compile_definitions(openpifpaf-example PRIVATE DEBUG=1)
+target_compile_definitions(openpifpaf-image PRIVATE DEBUG=1)

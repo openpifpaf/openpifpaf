@@ -11,33 +11,22 @@ int main(int argc, const char* argv[]) {
         return -1;
     }
 
-    torch::jit::script::Module module;
-    try {
-        // Deserialize the ScriptModule from a file using torch::jit::load().
-        module = torch::jit::load(argv[1]);
-    }
-    catch (const c10::Error& e) {
-        std::cerr << "error loading the model\n";
-        return -1;
-    }
+    // load model from file
+    torch::jit::script::Module model = torch::jit::load(argv[1]);
 
-    // Create a vector of inputs.
-    std::vector<torch::jit::IValue> inputs;
-    // inputs.push_back(torch::ones({1, 3, 193, 193}));
-
+    // load image file into tensor
     cv::Mat frame = cv::imread(argv[2], 1);
     cv::Size frame_size = frame.size();
     std::cout << "frame size: " << frame_size.height << ", " << frame_size.width << std::endl;
     cv::cvtColor(frame, frame, cv::COLOR_BGR2RGB);
-    frame.convertTo(frame, CV_32FC3, 1.0f / 255.0f);
+    frame.convertTo(frame, CV_32FC3, 4.0f / 255.0f, -2.0);  // color range: [-2, 2]
     auto input_tensor = torch::from_blob(frame.data, {1, frame_size.height, frame_size.width, 3});
     input_tensor = input_tensor.permute({0, 3, 1, 2});
     std::cout << "input tensor sizes: " << input_tensor.sizes() << std::endl;
-    inputs.push_back((input_tensor - 0.5) * 4.0);
 
-    // Execute the model and turn its output into a tensor.
-    auto output = module.forward(inputs).toList();
+    // create model inputs and execute forward pass
+    std::vector<torch::jit::IValue> inputs;
+    inputs.push_back(input_tensor);
+    auto output = model.forward(inputs).toList();
     std::cout << "output: " << output << '\n';
-
-    std::cout << "ok\n";
 }
