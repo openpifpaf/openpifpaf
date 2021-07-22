@@ -1,6 +1,9 @@
 # History
 
-* [main](https://github.com/openpifpaf/openpifpaf/compare/v0.12.12...main)
+* [main](https://github.com/openpifpaf/openpifpaf/compare/v0.12.13...main)
+* [0.12.13](https://github.com/openpifpaf/openpifpaf/compare/v0.12.12...v0.12.13) (2021-07-22)
+    * fix regression: avoid CenterPad when batch=1 [#453](https://github.com/openpifpaf/openpifpaf/pull/453)
+    * include draw time in "post" time [#454](https://github.com/openpifpaf/openpifpaf/pull/454)
 * [0.12.12](https://github.com/openpifpaf/openpifpaf/compare/v0.12.11...v0.12.12) (2021-07-07)
     * constrain Pillow dependency below 8.3 for torchvision compatibility
     * Wholebody fixes [#451](https://github.com/openpifpaf/openpifpaf/pull/451)
