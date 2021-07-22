@@ -4,6 +4,7 @@ import pytest
 import torch
 
 import openpifpaf
+import openpifpaf.export_torchscript
 
 
 @pytest.mark.xfail
@@ -39,25 +40,13 @@ def test_torchscript_decoder():
         torch.jit.script(decoder)
 
 
-class ModuleWithCifHrOp(torch.nn.Module):
-    def __init__(self):
-        super().__init__()
-
-        self.cifhr = torch.zeros((17, 300, 400))
-
-    def forward(self, x):
-        torch.ops.openpifpaf.cif_hr_accumulate_op(self.cifhr, 0.0, x, 8, 0.1, 16, 0.0, 1.0)
-        return x
-
-
-def test_torchscript_cifhrop(tmpdir):
-    openpifpaf.plugin.register()
-
-    outfile = str(tmpdir.join('cifhrop.pt'))
+def test_torchscript_exportable(tmpdir):
+    outfile = str(tmpdir.join('openpifpaf-shufflenetv2k16.torchscript.pt'))
     assert not os.path.exists(outfile)
 
-    model = ModuleWithCifHrOp()
-
-    scripted_model = torch.jit.script(model)
-    torch.jit.save(scripted_model, outfile)
+    datamodule = openpifpaf.datasets.factory('cocokp')
+    model, _ = openpifpaf.network.Factory(
+        base_name='shufflenetv2k16',
+    ).factory(head_metas=datamodule.head_metas)
+    openpifpaf.export_torchscript.apply(model, outfile)
     assert os.path.exists(outfile)

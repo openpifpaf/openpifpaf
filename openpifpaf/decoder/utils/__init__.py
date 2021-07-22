@@ -3,8 +3,8 @@ import torch
 from . import nms
 
 # pylint: disable=invalid-name
-CafScored = torch.classes.openpifpaf.CafScored
-CifHr = torch.classes.openpifpaf.CifHr
-CifSeeds = torch.classes.openpifpaf.CifSeeds
-CifDetSeeds = torch.classes.openpifpaf.CifDetSeeds
-Occupancy = torch.classes.openpifpaf.Occupancy
+CafScored = torch.classes.openpifpaf_decoder_utils.CafScored
+CifHr = torch.classes.openpifpaf_decoder_utils.CifHr
+CifSeeds = torch.classes.openpifpaf_decoder_utils.CifSeeds
+CifDetSeeds = torch.classes.openpifpaf_decoder_utils.CifDetSeeds
+Occupancy = torch.classes.openpifpaf_decoder_utils.Occupancy

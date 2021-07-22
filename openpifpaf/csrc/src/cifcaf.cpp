@@ -101,28 +101,23 @@ std::vector<double> grow_connection_blend_py(const torch::Tensor& caf, double x,
 }
 
 
-std::tuple<torch::Tensor, torch::Tensor> cifcaf_op(
-    int64_t n_keypoints,
-    const torch::Tensor& skeleton,
-    const torch::Tensor& cif_field,
-    int64_t cif_stride,
-    const torch::Tensor& caf_field,
-    int64_t caf_stride,
-    const torch::Tensor& initial_annotations,
-    const torch::Tensor& initial_ids
-) {
-    return CifCaf(n_keypoints, skeleton).call(
-        cif_field, cif_stride, caf_field, caf_stride, initial_annotations, initial_ids);
-}
-
-
 std::tuple<torch::Tensor, torch::Tensor> CifCaf::call(
     const torch::Tensor& cif_field,
     int64_t cif_stride,
     const torch::Tensor& caf_field,
+    int64_t caf_stride
+) {
+    return call_with_initial_annotations(cif_field, cif_stride, caf_field, caf_stride, torch::nullopt, torch::nullopt);
+}
+
+
+std::tuple<torch::Tensor, torch::Tensor> CifCaf::call_with_initial_annotations(
+    const torch::Tensor& cif_field,
+    int64_t cif_stride,
+    const torch::Tensor& caf_field,
     int64_t caf_stride,
-    const torch::Tensor& initial_annotations,
-    const torch::Tensor& initial_ids
+    torch::optional<torch::Tensor> initial_annotations,
+    torch::optional<torch::Tensor> initial_ids
 ) {
 #ifdef DEBUG
     TORCH_WARN("cpp CifCaf::call()");
@@ -167,27 +162,31 @@ std::tuple<torch::Tensor, torch::Tensor> CifCaf::call(
     std::vector<Annotation> annotations;
 
     // process initial annotations first
-    auto initial_annotations_a = initial_annotations.accessor<float, 3>();
-    auto initial_ids_a = initial_ids.accessor<int64_t, 1>();
-    for (int64_t ann_i=0; ann_i < initial_annotations_a.size(0); ann_i++) {
-        Annotation annotation(n_keypoints, initial_ids_a[ann_i]);
-        auto ann = initial_annotations_a[ann_i];
-        for (int64_t of=0; of < n_keypoints; of++) {
-            Joint& o_joint = annotation.joints[of];
-            o_joint.v = ann[of][0];
-            o_joint.x = ann[of][1];
-            o_joint.y = ann[of][2];
-            o_joint.s = ann[of][3];
-        }
+    if (initial_annotations.has_value()) {
+        TORCH_CHECK(initial_ids.has_value(), "require initial_ids when initial_annotations are given");
 
-        _grow(&annotation, caf_fb);
+        auto initial_annotations_a = initial_annotations->accessor<float, 3>();
+        auto initial_ids_a = initial_ids->accessor<int64_t, 1>();
+        for (int64_t ann_i=0; ann_i < initial_annotations_a.size(0); ann_i++) {
+            Annotation annotation(n_keypoints, initial_ids_a[ann_i]);
+            auto ann = initial_annotations_a[ann_i];
+            for (int64_t of=0; of < n_keypoints; of++) {
+                Joint& o_joint = annotation.joints[of];
+                o_joint.v = ann[of][0];
+                o_joint.x = ann[of][1];
+                o_joint.y = ann[of][2];
+                o_joint.s = ann[of][3];
+            }
 
-        for (int64_t of=0; of < occupancy.n_fields(); of++) {
-            Joint& o_joint = annotation.joints[of];
-            if (o_joint.v == 0.0) continue;
-            occupancy.set(of, o_joint.x, o_joint.y, o_joint.s);
+            _grow(&annotation, caf_fb);
+
+            for (int64_t of=0; of < occupancy.n_fields(); of++) {
+                Joint& o_joint = annotation.joints[of];
+                if (o_joint.v == 0.0) continue;
+                occupancy.set(of, o_joint.x, o_joint.y, o_joint.s);
+            }
+            annotations.push_back(annotation);
         }
-        annotations.push_back(annotation);
     }
 
     int64_t f;

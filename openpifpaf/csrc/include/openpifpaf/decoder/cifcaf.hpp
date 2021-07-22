@@ -104,9 +104,15 @@ struct OPENPIFPAF_API CifCaf : torch::CustomClassHolder {
         const torch::Tensor& cif_field,
         int64_t cif_stride,
         const torch::Tensor& caf_field,
+        int64_t caf_stride
+    );
+    std::tuple<torch::Tensor, torch::Tensor> call_with_initial_annotations(
+        const torch::Tensor& cif_field,
+        int64_t cif_stride,
+        const torch::Tensor& caf_field,
         int64_t caf_stride,
-        const torch::Tensor& initial_annotations,
-        const torch::Tensor& initial_ids
+        torch::optional<torch::Tensor> initial_annotations = torch::nullopt,
+        torch::optional<torch::Tensor> initial_ids = torch::nullopt
     );
 
     void _grow(Annotation* ann, const caf_fb_t& caf_fb, bool reverse_match_ = true);
@@ -125,18 +131,6 @@ struct OPENPIFPAF_API CifCaf : torch::CustomClassHolder {
     );
     void _flood_fill(Annotation* ann);
 };
-
-
-std::tuple<torch::Tensor, torch::Tensor> cifcaf_op(
-    int64_t n_keypoints,
-    const torch::Tensor& skeleton,
-    const torch::Tensor& cif_field,
-    int64_t cif_stride,
-    const torch::Tensor& caf_field,
-    int64_t caf_stride,
-    const torch::Tensor& initial_annotations,
-    const torch::Tensor& initial_ids
-);
 
 
 }  // namespace decoder

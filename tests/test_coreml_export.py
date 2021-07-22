@@ -25,7 +25,7 @@ def test_coreml_exportable(tmpdir):
 class ModuleWithOccupancy(openpifpaf.network.HeadNetwork):
     def __init__(self, meta, in_features):
         super().__init__(meta, in_features)
-        self.occupancy = torch.classes.openpifpaf.Occupancy(1.0, 0.1)
+        self.occupancy = torch.classes.openpifpaf_decoder_utils.Occupancy(1.0, 0.1)
 
     def forward(self, *args):
         x = args[0]
@@ -54,7 +54,7 @@ def test_coreml_torchscript(tmpdir):
 class ModuleWithCifHr(openpifpaf.network.HeadNetwork):
     def __init__(self, meta, in_features):
         super().__init__(meta, in_features)
-        self.cifhr = torch.classes.openpifpaf.CifHr()
+        self.cifhr = torch.classes.openpifpaf_decoder_utils.CifHr()
 
     def forward(self, *args):
         x = args[0]
@@ -85,7 +85,7 @@ def test_coreml_torchscript_cifhr(tmpdir):
 
 class ModuleUsingCifHr(torch.nn.Module):
     def forward(self, x):  # pylint: disable=no-self-use
-        cifhr = torch.classes.openpifpaf.CifHr()
+        cifhr = torch.classes.openpifpaf_decoder_utils.CifHr()
         with torch.no_grad():
             cifhr.reset(x.shape[1:], 8)
             cifhr.accumulate(x[1:], 8, 0.0, 1.0)
@@ -100,31 +100,5 @@ def test_coreml_torchscript_trace():
     dummy_input = torch.randn(1, 16, 17, 33)
     with torch.no_grad():
         traced_model = torch.jit.trace(head, dummy_input)
-
-    assert traced_model is not None
-
-
-@pytest.mark.skipif(not sys.platform.startswith('darwin'), reason='coreml export only on macos')
-def test_trace_cifcaf_op():
-    datamodule = openpifpaf.datasets.factory('cocokp')
-    cifcaf_op = torch.ops.openpifpaf_decoder.cifcaf_op
-
-    cif_field = torch.randn(datamodule.head_metas[0].n_fields, 5, 17, 33)
-    caf_field = torch.randn(datamodule.head_metas[1].n_fields, 9, 17, 33)
-
-    skeleton_m1 = torch.from_numpy(np.asarray(datamodule.head_metas[1].skeleton) - 1)
-
-    with torch.no_grad():
-        traced_model = torch.jit.trace(lambda ci, ca: cifcaf_op(
-            datamodule.head_metas[0].n_fields,
-            skeleton_m1,
-            ci, 8,
-            ca, 8,
-            torch.empty((0, 17, 4)),
-            torch.empty((0,), dtype=torch.int64),
-        ), [
-            cif_field,
-            caf_field,
-        ])
 
     assert traced_model is not None

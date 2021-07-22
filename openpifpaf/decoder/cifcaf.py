@@ -223,9 +223,8 @@ class CifCaf(Decoder):
 
     def __call__(self, fields, initial_annotations=None):
         if not initial_annotations:
-            initial_annotations_t = torch.empty(
-                (0, self.cif_metas[0].n_fields, 4))
-            initial_ids_t = torch.empty((0,), dtype=torch.int64)
+            initial_annotations_t = None
+            initial_ids_t = None
         else:
             initial_annotations_t = torch.empty(
                 (len(initial_annotations), self.cif_metas[0].n_fields, 4))
@@ -237,7 +236,7 @@ class CifCaf(Decoder):
                     ann_t[f, 2] = float(ann_py.data[f, 1])
                     ann_t[f, 3] = float(ann_py.joint_scales[f])
                 initial_ids_t[i] = getattr(ann_py, 'id_', -1)
-        LOG.debug('initial annotations = %d', initial_annotations_t.size(0))
+            LOG.debug('initial annotations = %d', initial_annotations_t.size(0))
 
         for vis, meta in zip(self.cif_visualizers, self.cif_metas):
             vis.predicted(fields[meta.head_index])
@@ -245,7 +244,7 @@ class CifCaf(Decoder):
             vis.predicted(fields[meta.head_index])
 
         start = time.perf_counter()
-        annotations, annotation_ids = self.cpp_decoder.call(
+        annotations, annotation_ids = self.cpp_decoder.call_with_initial_annotations(
             fields[self.cif_metas[0].head_index],
             self.cif_metas[0].stride,
             fields[self.caf_metas[0].head_index],

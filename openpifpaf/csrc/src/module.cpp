@@ -28,6 +28,7 @@ TORCH_LIBRARY(openpifpaf_decoder, m) {
 
         .def(torch::init<int64_t, const torch::Tensor&>())
         .def("call", &openpifpaf::decoder::CifCaf::call)
+        .def("call_with_initial_annotations", &openpifpaf::decoder::CifCaf::call)
         .def("get_cifhr", [](const c10::intrusive_ptr<openpifpaf::decoder::CifCaf>& self) {
             return self->cifhr.get_accumulated();
         })
@@ -47,7 +48,6 @@ TORCH_LIBRARY(openpifpaf_decoder, m) {
         )
     ;
     m.def("grow_connection_blend", openpifpaf::decoder::grow_connection_blend_py);
-    m.def("cifcaf_op", openpifpaf::decoder::cifcaf_op);
 
     m.class_<openpifpaf::decoder::CifDet>("CifDet")
         STATIC_GETSET(openpifpaf::decoder::CifDet::max_detections_before_nms, int64_t, max_detections_before_nms)
@@ -58,9 +58,7 @@ TORCH_LIBRARY(openpifpaf_decoder, m) {
 }
 
 
-TORCH_LIBRARY(openpifpaf, m) {
-    m.def("cif_hr_accumulate_op", openpifpaf::decoder::utils::cif_hr_accumulate_op);
-
+TORCH_LIBRARY(openpifpaf_decoder_utils, m) {
     m.class_<openpifpaf::decoder::utils::Occupancy>("Occupancy")
         .def(torch::init<double, double>())
         .def("get", &openpifpaf::decoder::utils::Occupancy::get)

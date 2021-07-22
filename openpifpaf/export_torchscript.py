@@ -22,14 +22,11 @@ class DecoderModule(torch.nn.Module):
         )
         self.cif_stride = cif_meta.stride
         self.caf_stride = caf_meta.stride
-        self.initial_annotations_t = torch.empty((0, len(cif_meta.keypoints), 4))
-        self.initial_ids_t = torch.empty((0,), dtype=torch.int64)
 
     def forward(self, cif_field, caf_field):
         return self.cpp_decoder.call(
             cif_field, self.cif_stride,
             caf_field, self.caf_stride,
-            self.initial_annotations_t, self.initial_ids_t,
         )
 
 
