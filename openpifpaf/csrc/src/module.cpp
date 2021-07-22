@@ -28,7 +28,7 @@ TORCH_LIBRARY(openpifpaf_decoder, m) {
 
         .def(torch::init<int64_t, const torch::Tensor&>())
         .def("call", &openpifpaf::decoder::CifCaf::call)
-        .def("call_with_initial_annotations", &openpifpaf::decoder::CifCaf::call)
+        .def("call_with_initial_annotations", &openpifpaf::decoder::CifCaf::call_with_initial_annotations)
         .def("get_cifhr", [](const c10::intrusive_ptr<openpifpaf::decoder::CifCaf>& self) {
             return self->cifhr.get_accumulated();
         })
