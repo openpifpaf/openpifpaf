@@ -108,7 +108,7 @@ jobs:
       run: python -m pip install -e ".[coreml]" --no-build-isolation
     - name: Install OpenCV
       if: matrix.slow
-      run: sudo apt-get update && sudo apt-get --no-install-recommends install python3-opencv
+      run: sudo apt-get update && sudo apt-get --no-install-recommends install python3-opencv libopencv-dev
     - name: Print environment
       run: |
         python -m pip freeze
