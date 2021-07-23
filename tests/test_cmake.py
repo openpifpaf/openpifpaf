@@ -18,13 +18,13 @@ def test_build(tmpdir):
         cpp_folder,
     ]
     print(configure_cmd)
-    subprocess.check_output(configure_cmd, cwd=tmpdir)
+    subprocess.run(configure_cmd, cwd=tmpdir, check=True)
 
     build_cmd = [
         'cmake', '--build', '.', '-j4', '--config', 'Release'
     ]
     print(build_cmd)
-    subprocess.check_output(build_cmd, cwd=tmpdir)
+    subprocess.run(build_cmd, cwd=tmpdir, check=True)
 
     assert os.path.exists(tmpdir.join('openpifpaf-image'))
     assert os.path.exists(tmpdir.join('openpifpaf-video'))
