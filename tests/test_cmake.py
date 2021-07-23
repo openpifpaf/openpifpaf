@@ -14,7 +14,7 @@ def test_build(tmpdir):
     cmake_prefix_path = torch.utils.cmake_prefix_path
     if os.path.exists('libtorch'):
         print('found libtorch in current directory')
-        cmake_prefix_path = os.getcwd().join(['libtorch', 'share', 'cmake', 'Torch'])
+        cmake_prefix_path = os.path.join(os.getcwd(), 'libtorch', 'share', 'cmake', 'Torch')
 
     cpp_folder = os.path.join(os.path.dirname(__file__), '..', 'cpp')
     configure_cmd = [
