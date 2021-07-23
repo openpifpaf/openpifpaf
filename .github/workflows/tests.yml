@@ -166,7 +166,6 @@ jobs:
       if: matrix.slow
       env:
         PYTHONDEVMODE: 1
-        Torch_DIR: ${CWD}/libtorch/share/cmake/Torch
       run: |
         pytest -vv -s -m slow
     - name: Test
