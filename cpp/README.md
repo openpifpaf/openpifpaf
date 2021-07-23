@@ -13,6 +13,21 @@ cmake -DCMAKE_PREFIX_PATH=`python -c 'import torch;print(torch.utils.cmake_prefi
 cmake --build . --config Release
 ```
 
+On Linux, special care needs to be taken
+for binary compatibility between OpenCV and libtorch. Get the libtorch binaries
+with cxx11 ABI from [pytorch.org](https://pytorch.org/get-started/locally/),
+e.g. [libtorch-cxx11-abi-shared-with-deps-1.9.0+cpu.zip](https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-1.9.0%2Bcpu.zip). Unzip
+the downloaded file which will create a `libtorch` folder in the current directory.
+
+```sh
+mkdir build
+cd build
+cmake -DCMAKE_PREFIX_PATH=../libtorch/share/cmake/Torch ..
+cmake --build . --config Release
+```
+
+This build is tested in `tests/test_cmake.py`.
+
 
 ## Create TorchScript Module and run Examples
 
