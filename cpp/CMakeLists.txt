@@ -8,8 +8,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 find_package(OpenCV REQUIRED)
 include_directories( ${OpenCV_INCLUDE_DIRS} )
 
-file(GLOB SRC src/*.cpp)
-include_directories(include/)
+file(GLOB SRC ${CMAKE_SOURCE_DIR}/../openpifpaf/csrc/src/*.cpp)
+include_directories(${CMAKE_SOURCE_DIR}/../openpifpaf/csrc/include/)
 
 
 ### for static library
