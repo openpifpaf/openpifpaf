@@ -21,7 +21,7 @@ def test_build(tmpdir):
     subprocess.run(configure_cmd, cwd=tmpdir, check=True)
 
     build_cmd = [
-        'cmake', '--build', '.', '-j4', '--config', 'Release'
+        'cmake', '--build', '.', '-j4', '--config', 'Release', '--verbose'
     ]
     print(build_cmd)
     subprocess.run(build_cmd, cwd=tmpdir, check=True)
