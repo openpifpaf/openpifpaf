@@ -3,9 +3,13 @@ project(openpifpaf-examples)
 set(CMAKE_CXX_STANDARD 17)
 
 find_package(Torch REQUIRED)
+message(STATUS "torch cxx flags: ${TORCH_CXX_FLAGS}")
+message(STATUS "torch libraries: ${TORCH_LIBRARIES}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 
-find_package(OpenCV REQUIRED)
+find_package(OpenCV COMPONENTS core imgproc highgui imgcodecs videoio REQUIRED)
+message(STATUS "opencv include: ${OpenCV_INCLUDE_DIRS}")
+message(STATUS "opencv libraries: ${OpenCV_LIBS}")
 include_directories( ${OpenCV_INCLUDE_DIRS} )
 
 file(GLOB SRC ${CMAKE_SOURCE_DIR}/../openpifpaf/csrc/src/*.cpp)
