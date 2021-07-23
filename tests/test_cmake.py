@@ -1,9 +1,11 @@
 import os
 import subprocess
 
+import pytest
 import torch
 
 
+@pytest.mark.slow
 def test_build(tmpdir):
     assert not os.path.exists(tmpdir.join('openpifpaf-image'))
     assert not os.path.exists(tmpdir.join('openpifpaf-video'))
