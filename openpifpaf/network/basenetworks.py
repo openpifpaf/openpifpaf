@@ -496,3 +496,41 @@ class SqueezeNet(BaseNetwork):
     @classmethod
     def configure(cls, args: argparse.Namespace):
         cls.pretrained = args.squeezenet_pretrained
+
+
+class SwinTransformer(BaseNetwork):
+
+    def __init__(self, name, swin_net, out_features=2048):
+        super().__init__(name, stride=16, out_features=out_features)
+        self.backbone = swin_net(pretrained=True, out_dim=out_features)
+
+    def forward(self, x):
+        x = self.backbone(x)
+        return x
+
+    @classmethod
+    def cli(cls, parser: argparse.ArgumentParser):
+        pass
+
+    @classmethod
+    def configure(cls, args: argparse.Namespace):
+        pass
+
+
+class XCiT(BaseNetwork):
+
+    def __init__(self, name, xcit_net, out_features=2048):
+        super().__init__(name, stride=16, out_features=out_features)
+        self.backbone = xcit_net(pretrained=True, out_dim=out_features)
+
+    def forward(self, x):
+        x = self.backbone(x)
+        return x
+
+    @classmethod
+    def cli(cls, parser: argparse.ArgumentParser):
+        pass
+
+    @classmethod
+    def configure(cls, args: argparse.Namespace):
+        pass
