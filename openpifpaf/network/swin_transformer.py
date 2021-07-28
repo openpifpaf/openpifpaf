@@ -546,9 +546,8 @@ class SwinTransformer(nn.Module):
 
         # No FPN layers
         if not self.use_fpn:
-            self.upsample = nn.Sequential(
-                nn.ConvTranspose2d(8 * embed_dim, 8 * embed_dim, kernel_size=2, stride=2)
-            )
+            # Change kernel_size and padding to work with uneven downscaling
+            self.upsample = nn.ConvTranspose2d(8 * embed_dim, 8 * embed_dim, kernel_size=3, stride=2, padding=1)
             self.project = nn.Conv2d(4 * embed_dim, 8 * embed_dim, kernel_size=1, stride=1)
             self.out_projection = nn.Conv2d(8 * embed_dim, out_dim, kernel_size=1, stride=1)
 
@@ -635,7 +634,7 @@ class SwinTransformer(nn.Module):
         if self.use_fpn:
             return tuple(outs)
         else:
-            out = self.upsample(outs[-1])
+            out = self.upsample(outs[-1], output_size=outs[-2].shape)
             # Add the two feature maps
             out = out + self.project(outs[-2])
             # Project to 2048 channels
