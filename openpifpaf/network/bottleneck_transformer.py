@@ -223,6 +223,7 @@ class BottleStack(nn.Module):
         layers = []
 
         for i in range(num_layers):
+            # pylint: disable=cell-var-from-loop
             is_first = i == 0
             dim = (dim if is_first else dim_out)
             layer_downsample = is_first and downsample
