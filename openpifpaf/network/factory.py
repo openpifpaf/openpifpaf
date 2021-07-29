@@ -65,14 +65,14 @@ BASE_FACTORIES = {
     'shufflenetv2k44': lambda: basenetworks.ShuffleNetV2K(
         'shufflenetv2k44', [12, 24, 8], [32, 512, 1024, 2048, 2048]),
     'squeezenet': lambda: basenetworks.SqueezeNet('squeezenet', torchvision.models.squeezenet1_1),
-    'effnetv2_s': lambda: basenetworks.EffNetV2_small('effnetv2_s'),
-    'effnetv2_m': lambda: basenetworks.EffNetV2_medium('effnetv2_m'),
-    'effnetv2_l': lambda: basenetworks.EffNetV2_large('effnetv2_l'),
-    'effnetv2_xl': lambda: basenetworks.EffNetV2_extra_large('effnetv2_xl'),
-    'effnetv2_s16_s': lambda: basenetworks.EffNetV2_s16_small('effnetv2_s16_s'),
-    'effnetv2_s16_m': lambda: basenetworks.EffNetV2_s16_medium('effnetv2_s16_m'),
-    'effnetv2_s16_l': lambda: basenetworks.EffNetV2_s16_large('effnetv2_s16_l'),
-    'effnetv2_s16_xl': lambda: basenetworks.EffNetV2_s16_extra_large('effnetv2_s16_xl'),
+    'effnetv2_s': lambda: basenetworks.EffNetV2S('effnetv2_s'),
+    'effnetv2_m': lambda: basenetworks.EffNetV2M('effnetv2_m'),
+    'effnetv2_l': lambda: basenetworks.EffNetV2L('effnetv2_l'),
+    'effnetv2_xl': lambda: basenetworks.EffNetV2XL('effnetv2_xl'),
+    'effnetv2_s16_s': lambda: basenetworks.EffNetV2S16('effnetv2_s16_s'),
+    'effnetv2_s16_m': lambda: basenetworks.EffNetV2M16('effnetv2_s16_m'),
+    'effnetv2_s16_l': lambda: basenetworks.EffNetV2L16('effnetv2_s16_l'),
+    'effnetv2_s16_xl': lambda: basenetworks.EffNetV2XL16('effnetv2_s16_xl'),
     'botnet': lambda: basenetworks.BotNet('botnet'),
 }
 

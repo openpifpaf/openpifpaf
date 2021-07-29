@@ -1,8 +1,8 @@
 import argparse
 import logging
+from math import ceil
 import torch
 import torchvision.models
-from math import ceil
 from . import effnetv2
 from . import bottleneck_transformer
 
@@ -500,7 +500,8 @@ class SqueezeNet(BaseNetwork):
     def configure(cls, args: argparse.Namespace):
         cls.pretrained = args.squeezenet_pretrained
 
-class EffNetV2_small(BaseNetwork):
+
+class EffNetV2S(BaseNetwork):
     def __init__(self, name):
         backbone = effnetv2.effnetv2_s()
         super().__init__(name, stride=32, out_features=backbone.output_channel)
@@ -514,12 +515,13 @@ class EffNetV2_small(BaseNetwork):
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
         pass
-    
+
     @classmethod
     def configure(cls, args: argparse.Namespace):
         pass
 
-class EffNetV2_medium(BaseNetwork):
+
+class EffNetV2M(BaseNetwork):
     def __init__(self, name):
         backbone = effnetv2.effnetv2_m()
         super().__init__(name, stride=32, out_features=backbone.output_channel)
@@ -533,12 +535,13 @@ class EffNetV2_medium(BaseNetwork):
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
         pass
-    
+
     @classmethod
     def configure(cls, args: argparse.Namespace):
         pass
 
-class EffNetV2_large(BaseNetwork):
+
+class EffNetV2L(BaseNetwork):
     def __init__(self, name):
         backbone = effnetv2.effnetv2_l()
         super().__init__(name, stride=32, out_features=backbone.output_channel)
@@ -552,12 +555,13 @@ class EffNetV2_large(BaseNetwork):
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
         pass
-    
+
     @classmethod
     def configure(cls, args: argparse.Namespace):
         pass
 
-class EffNetV2_extra_large(BaseNetwork):
+
+class EffNetV2XL(BaseNetwork):
     def __init__(self, name):
         backbone = effnetv2.effnetv2_xl()
         super().__init__(name, stride=32, out_features=backbone.output_channel)
@@ -571,12 +575,13 @@ class EffNetV2_extra_large(BaseNetwork):
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
         pass
-    
+
     @classmethod
     def configure(cls, args: argparse.Namespace):
         pass
-    
-class EffNetV2_s16_small(BaseNetwork):
+
+
+class EffNetV2S16(BaseNetwork):
     def __init__(self, name):
         backbone = effnetv2.effnetv2_s16_s()
         super().__init__(name, stride=16, out_features=backbone.output_channel)
@@ -590,12 +595,13 @@ class EffNetV2_s16_small(BaseNetwork):
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
         pass
-    
+
     @classmethod
     def configure(cls, args: argparse.Namespace):
         pass
 
-class EffNetV2_s16_medium(BaseNetwork):
+
+class EffNetV2M16(BaseNetwork):
     def __init__(self, name):
         backbone = effnetv2.effnetv2_s16_m()
         super().__init__(name, stride=16, out_features=backbone.output_channel)
@@ -609,12 +615,13 @@ class EffNetV2_s16_medium(BaseNetwork):
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
         pass
-    
+
     @classmethod
     def configure(cls, args: argparse.Namespace):
         pass
 
-class EffNetV2_s16_large(BaseNetwork):
+
+class EffNetV2L16(BaseNetwork):
     def __init__(self, name):
         backbone = effnetv2.effnetv2_s16_l()
         super().__init__(name, stride=16, out_features=backbone.output_channel)
@@ -628,12 +635,13 @@ class EffNetV2_s16_large(BaseNetwork):
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
         pass
-    
+
     @classmethod
     def configure(cls, args: argparse.Namespace):
         pass
 
-class EffNetV2_s16_extra_large(BaseNetwork):
+
+class EffNetV2XL16(BaseNetwork):
     def __init__(self, name):
         backbone = effnetv2.effnetv2_s16_xl()
         super().__init__(name, stride=16, out_features=backbone.output_channel)
@@ -647,37 +655,38 @@ class EffNetV2_s16_extra_large(BaseNetwork):
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
         pass
-    
+
     @classmethod
     def configure(cls, args: argparse.Namespace):
         pass
 
+
 class BotNet(BaseNetwork):
     input_image_size = 640
+
     def __init__(self, name, out_features=2048):
         super().__init__(name, stride=8, out_features=out_features)
-        
+
         layer = bottleneck_transformer.BottleStack(
-            dim = 256,
-            fmap_size = int(ceil(self.input_image_size/4)),  # default img size is 640 x 640
-            dim_out = 2048,
-            proj_factor = 4,
-            downsample = True,
-            heads = 4,
-            dim_head = 128,
-            rel_pos_emb = True,
-            activation = torch.nn.ReLU()
+            dim=256,
+            fmap_size=int(ceil(self.input_image_size / 4)),  # default img size is 640 x 640
+            dim_out=2048,
+            proj_factor=4,
+            downsample=True,
+            heads=4,
+            dim_head=128,
+            rel_pos_emb=True,
+            activation=torch.nn.ReLU()
         )
-        
+
         resnet = torchvision.models.resnet50()
-        
+
         # model surgery
         resnet_parts = list(resnet.children())
         self.backbone = torch.nn.Sequential(
             *resnet_parts[:5],
             layer,
         )
-        
 
     def forward(self, x):
         x = self.backbone.forward(x)
@@ -690,8 +699,7 @@ class BotNet(BaseNetwork):
                            default=cls.input_image_size, type=int,
                            help='Input image size. Needs to be the same for training and'
                            ' prediction, as BotNet only accepts fixed input sizes')
-    
+
     @classmethod
     def configure(cls, args: argparse.Namespace):
         cls.input_image_size = args.botnet_input_image_size
-

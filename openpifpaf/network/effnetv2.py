@@ -1,14 +1,13 @@
 """
 Creates a EfficientNetV2 Model as defined in:
-Mingxing Tan, Quoc V. Le. (2021). 
+Mingxing Tan, Quoc V. Le. (2021).
 EfficientNetV2: Smaller Models and Faster Training
 arXiv preprint arXiv:2104.00298.
 import from https://github.com/d-li14/mobilenetv2.pytorch
 """
 
-import torch
-import torch.nn as nn
 import math
+from torch import nn
 
 __all__ = ['effnetv2_s', 'effnetv2_m', 'effnetv2_l', 'effnetv2_xl']
 
@@ -34,30 +33,24 @@ def _make_divisible(v, divisor, min_value=None):
 
 
 # SiLU (Swish) activation function
-if hasattr(nn, 'SiLU'):
-    SiLU = nn.SiLU
-else:
-    # For compatibility with old PyTorch versions
-    class SiLU(nn.Module):
-        def forward(self, x):
-            return x * torch.sigmoid(x)
+SiLU = nn.SiLU
 
- 
+
 class SELayer(nn.Module):
     def __init__(self, inp, oup, reduction=4):
-        super(SELayer, self).__init__()
+        super().__init__()
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
-        self.fc = nn.Sequential(
-                nn.Linear(oup, _make_divisible(inp // reduction, 8)),
-                SiLU(),
-                nn.Linear(_make_divisible(inp // reduction, 8), oup),
-                nn.Sigmoid()
+        self.fully_c = nn.Sequential(
+            nn.Linear(oup, _make_divisible(inp // reduction, 8)),
+            SiLU(),
+            nn.Linear(_make_divisible(inp // reduction, 8), oup),
+            nn.Sigmoid()
         )
 
     def forward(self, x):
         b, c, _, _ = x.size()
         y = self.avg_pool(x).view(b, c)
-        y = self.fc(y).view(b, c, 1, 1)
+        y = self.fully_c(y).view(b, c, 1, 1)
         return x * y
 
 
@@ -78,8 +71,9 @@ def conv_1x1_bn(inp, oup):
 
 
 class MBConv(nn.Module):
+
     def __init__(self, inp, oup, stride, expand_ratio, use_se):
-        super(MBConv, self).__init__()
+        super().__init__()
         assert stride in [-1, 1, 2]
 
         hidden_dim = round(inp * expand_ratio)
@@ -88,16 +82,15 @@ class MBConv(nn.Module):
             self.conv = nn.Sequential(
                 # Paper Figure 2 MBConv
                 # pw
-                # inp size, outp size, kernel size, stride, padding 
+                # inp size, outp size, kernel size, stride, padding
                 nn.Conv2d(inp, hidden_dim, 1, 1, 0, bias=False),
                 nn.BatchNorm2d(hidden_dim),
                 SiLU(),
                 # dw
                 nn.Conv2d(hidden_dim, hidden_dim, 3, stride, 1, groups=hidden_dim, bias=False) if \
-                    stride !=-1 else \
-                        nn.Conv2d(hidden_dim, hidden_dim, 3, stride=1, padding=2,
-                                  groups=hidden_dim, dilation=2, bias=False),
-                
+                stride != -1 else nn.Conv2d(hidden_dim, hidden_dim, 3, stride=1, padding=2,
+                                            groups=hidden_dim, dilation=2, bias=False),
+
                 nn.BatchNorm2d(hidden_dim),
                 SiLU(),
                 SELayer(inp, hidden_dim),
@@ -116,17 +109,15 @@ class MBConv(nn.Module):
                 nn.BatchNorm2d(oup),
             )
 
-
     def forward(self, x):
         if self.identity:
             return x + self.conv(x)
-        else:
-            return self.conv(x)
+        return self.conv(x)
 
 
 class EffNetV2(nn.Module):
     def __init__(self, cfgs, width_mult=1.):
-        super(EffNetV2, self).__init__()
+        super().__init__()
         self.cfgs = cfgs
 
         # building first layer
@@ -177,13 +168,13 @@ def effnetv2_s(**kwargs):
     Constructs a EfficientNetV2-S model
     """
     cfgs = [
-        # expansion ratio, channels, number of layers of this type, stride, use squeeze and excitation
+        # expansion ratio, channels, number of layers of this type, stride, use squeeze+excitation
         # t, c, n, s, SE
-        [1,  24,  2, 1, 0],
-        [4,  48,  4, 2, 0],
-        [4,  64,  4, 2, 0],
-        [4, 128,  6, 2, 1],
-        [6, 160,  9, 1, 1],
+        [1, 24, 2, 1, 0],
+        [4, 48, 4, 2, 0],
+        [4, 64, 4, 2, 0],
+        [4, 128, 6, 2, 1],
+        [6, 160, 9, 1, 1],
         [6, 256, 15, 2, 1],
     ]
     return EffNetV2(cfgs, **kwargs)
@@ -195,13 +186,13 @@ def effnetv2_m(**kwargs):
     """
     cfgs = [
         # t, c, n, s, SE
-        [1,  24,  3, 1, 0],
-        [4,  48,  5, 2, 0],
-        [4,  80,  5, 2, 0],
-        [4, 160,  7, 2, 1],
+        [1, 24, 3, 1, 0],
+        [4, 48, 5, 2, 0],
+        [4, 80, 5, 2, 0],
+        [4, 160, 7, 2, 1],
         [6, 176, 14, 1, 1],
         [6, 304, 18, 2, 1],
-        [6, 512,  5, 1, 1],
+        [6, 512, 5, 1, 1],
     ]
     return EffNetV2(cfgs, **kwargs)
 
@@ -212,13 +203,13 @@ def effnetv2_l(**kwargs):
     """
     cfgs = [
         # t, c, n, s, SE
-        [1,  32,  4, 1, 0],
-        [4,  64,  7, 2, 0],
-        [4,  96,  7, 2, 0],
+        [1, 32, 4, 1, 0],
+        [4, 64, 7, 2, 0],
+        [4, 96, 7, 2, 0],
         [4, 192, 10, 2, 1],
         [6, 224, 19, 1, 1],
         [6, 384, 25, 2, 1],
-        [6, 640,  7, 1, 1],
+        [6, 640, 7, 1, 1],
     ]
     return EffNetV2(cfgs, **kwargs)
 
@@ -229,29 +220,30 @@ def effnetv2_xl(**kwargs):
     """
     cfgs = [
         # t, c, n, s, SE
-        [1,  32,  4, 1, 0],
-        [4,  64,  8, 2, 0],
-        [4,  96,  8, 2, 0],
+        [1, 32, 4, 1, 0],
+        [4, 64, 8, 2, 0],
+        [4, 96, 8, 2, 0],
         [4, 192, 16, 2, 1],
         [6, 256, 24, 1, 1],
         [6, 512, 32, 2, 1],
-        [6, 640,  8, 1, 1],
+        [6, 640, 8, 1, 1],
     ]
     return EffNetV2(cfgs, **kwargs)
+
 
 def effnetv2_s16_s(**kwargs):
     """
     Constructs a EfficientNetV2-S model
     """
     cfgs = [
-        # expansion ratio, channels, number of layers of this type, stride, use squeeze and excitation
+        # expansion ratio, channels, number of layers of this type, stride, use squeeze+excitation
         # t, c, n, s, SE
-        [1,  24,  2, 1, 0],
-        [4,  48,  4, 2, 0],
-        [4,  64,  4, 2, 0],
-        [4, 128,  6, 2, 1],
-        [6, 160,  9, 1, 1],
-        # [6, 256, 15, -1, 1],   # -1 =use dilated conv
+        [1, 24, 2, 1, 0],
+        [4, 48, 4, 2, 0],
+        [4, 64, 4, 2, 0],
+        [4, 128, 6, 2, 1],
+        [6, 160, 9, 1, 1],
+        # [6, 256, 15, -1, 1],  # -1 =use dilated conv
     ]
     return EffNetV2(cfgs, **kwargs)
 
@@ -262,13 +254,13 @@ def effnetv2_s16_m(**kwargs):
     """
     cfgs = [
         # t, c, n, s, SE
-        [1,  24,  3, 1, 0],
-        [4,  48,  5, 2, 0],
-        [4,  80,  5, 2, 0],
-        [4, 160,  7, 2, 1],
+        [1, 24, 3, 1, 0],
+        [4, 48, 5, 2, 0],
+        [4, 80, 5, 2, 0],
+        [4, 160, 7, 2, 1],
         [6, 176, 14, 1, 1],
-        # [6, 304, 18, -1, 1],  # -1 =use dilated conv
-        # [6, 512,  5, 1, 1],
+        # [6, 304, 18, -1, 1], # -1 =use dilated conv
+        # [6, 512, 5, 1, 1],
     ]
     return EffNetV2(cfgs, **kwargs)
 
@@ -279,13 +271,13 @@ def effnetv2_s16_l(**kwargs):
     """
     cfgs = [
         # t, c, n, s, SE
-        [1,  32,  4, 1, 0],
-        [4,  64,  7, 2, 0],
-        [4,  96,  7, 2, 0],
+        [1, 32, 4, 1, 0],
+        [4, 64, 7, 2, 0],
+        [4, 96, 7, 2, 0],
         [4, 192, 10, 2, 1],
         [6, 224, 19, 1, 1],
-        # [6, 384, 25, -1, 1],   # -1 =use dilated conv
-        # [6, 640,  7, 1, 1],
+        # [6, 384, 25, -1, 1],  # -1 =use dilated conv
+        # [6, 640, 7, 1, 1],
     ]
     return EffNetV2(cfgs, **kwargs)
 
@@ -296,12 +288,12 @@ def effnetv2_s16_xl(**kwargs):
     """
     cfgs = [
         # t, c, n, s, SE
-        [1,  32,  4, 1, 0],
-        [4,  64,  8, 2, 0],
-        [4,  96,  8, 2, 0],
+        [1, 32, 4, 1, 0],
+        [4, 64, 8, 2, 0],
+        [4, 96, 8, 2, 0],
         [4, 192, 16, 2, 1],
         [6, 256, 24, 1, 1],
-        # [6, 512, 32, -1, 1],   # -1 =use dilated conv
-        # [6, 640,  8, 1, 1],
+        # [6, 512, 32, -1, 1],  # -1 =use dilated conv
+        # [6, 640, 8, 1, 1],
     ]
     return EffNetV2(cfgs, **kwargs)
