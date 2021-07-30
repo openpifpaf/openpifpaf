@@ -28,7 +28,7 @@ class InstanceScorer(torch.nn.Module):
         v = torch.tensor([ann.scale()]
                          + ann.data[:, 2].tolist()
                          + ann.joint_scales.tolist()).float()
-        with torch.no_grad():
+        with torch.inference_mode():
             return float(self.forward(v).item())
 
 

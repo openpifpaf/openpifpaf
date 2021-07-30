@@ -84,7 +84,7 @@ class Decoder:
                 return [apply(f, i) for i in items]
             return f(items)
 
-        with torch.no_grad():
+        with torch.inference_mode():
             if device is not None:
                 image_batch = image_batch.to(device, non_blocking=True)
 

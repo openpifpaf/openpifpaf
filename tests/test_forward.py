@@ -39,7 +39,7 @@ def test_forward_noinplace():
 
     dummy_image_batch = torch.zeros((1, 3, 241, 321))
 
-    with torch.no_grad():
+    with torch.inference_mode():
         openpifpaf.network.heads.CompositeField3.inplace_ops = True
         openpifpaf.network.heads.CompositeField4.inplace_ops = True
         ref_cif, ref_caf = model(dummy_image_batch)

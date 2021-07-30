@@ -86,7 +86,7 @@ def train_epoch(model, loader, optimizer):
 
 def val_epoch(model, loader):
     epoch_loss = 0.0
-    with torch.no_grad():
+    with torch.inference_mode():
         for x, y in loader:
             y_hat = model(x)
             loss = torch.nn.functional.binary_cross_entropy(y_hat, y)
@@ -118,7 +118,7 @@ def main():
         val_loss = val_epoch(model, val_loader)
         print(epoch_i, train_loss, val_loss)
 
-    with torch.no_grad():
+    with torch.inference_mode():
         post_train_data = (model(train_data[0]), train_data[1])
         post_val_data = (model(val_data[0]), val_data[1])
     plot_training_data(post_train_data, post_val_data, entryname='optimized score')
