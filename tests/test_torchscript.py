@@ -28,7 +28,7 @@ def test_torchscript_trace():
     model, _ = openpifpaf.network.Factory(
         base_name='shufflenetv2k16',
     ).factory(head_metas=datamodule.head_metas)
-    with torch.inference_mode():
+    with torch.no_grad():
         torch.jit.trace(model, torch.empty((1, 3, 81, 81)))
 
 
