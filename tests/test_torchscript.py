@@ -16,7 +16,7 @@ def test_torchscript_script():
     model, _ = openpifpaf.network.Factory(
         base_name='shufflenetv2k16',
     ).factory(head_metas=datamodule.head_metas)
-    with torch.no_grad():
+    with torch.inference_mode():
         torch.jit.script(model)
 
 
@@ -36,7 +36,7 @@ def test_torchscript_trace():
 def test_torchscript_decoder():
     datamodule = openpifpaf.datasets.factory('cocokp')
     decoder = openpifpaf.decoder.factory(datamodule.head_metas)
-    with torch.no_grad():
+    with torch.inference_mode():
         torch.jit.script(decoder)
 
 

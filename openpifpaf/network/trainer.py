@@ -216,7 +216,7 @@ class Trainer():
                 if self.train_profile and self.device.type != 'cpu':
                     torch.cuda.synchronize()
 
-        with torch.no_grad():
+        with torch.inference_mode():
             with torch.autograd.profiler.record_function('reduce-losses'):
                 loss = self.reduce_loss(loss)
                 head_losses = self.reduce_loss(head_losses)
@@ -254,7 +254,7 @@ class Trainer():
                        if head is not None else None
                        for head in targets]
 
-        with torch.no_grad():
+        with torch.inference_mode():
             outputs = self.model(data)
             loss, head_losses = self.loss(outputs, targets)
             loss = self.reduce_loss(loss)
