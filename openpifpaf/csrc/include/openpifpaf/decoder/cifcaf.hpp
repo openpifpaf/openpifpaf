@@ -39,7 +39,12 @@ struct Annotation {
 };
 
 
-std::vector<double> grow_connection_blend_py(const torch::Tensor& caf, double x, double y, double s, bool only_max);
+std::vector<double> grow_connection_blend_py(const torch::Tensor& caf,
+                                             double x,
+                                             double y,
+                                             double s,
+                                             double filter_sigmas,
+                                             bool only_max);
 
 
 struct FrontierEntry {
@@ -115,14 +120,20 @@ struct OPENPIFPAF_API CifCaf : torch::CustomClassHolder {
         torch::optional<torch::Tensor> initial_ids = torch::nullopt
     );
 
-    void _grow(Annotation* ann, const caf_fb_t& caf_fb, bool reverse_match_ = true);
+    void _grow(
+        Annotation* ann,
+        const caf_fb_t& caf_fb,
+        bool reverse_match_ = true,
+        double filter_sigmas = 1.0
+    );
     void _frontier_add_from(const Annotation& ann, int64_t start_i);
     Joint _connection_value(
         const Annotation& ann,
         const caf_fb_t& caf_fb,
         int64_t start_i,
         int64_t end_i,
-        bool reverse_match = true
+        bool reverse_match_,
+        double filter_sigmas
     );
     void _force_complete(
         std::vector<Annotation>* annotations,

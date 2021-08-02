@@ -30,7 +30,12 @@ bool FrontierCompare::operator() (const FrontierEntry& a, const FrontierEntry& b
 }
 
 
-Joint grow_connection_blend(const torch::Tensor& caf, double x, double y, double xy_scale, bool only_max) {
+Joint grow_connection_blend(const torch::Tensor& caf,
+                            double x,
+                            double y,
+                            double xy_scale,
+                            double filter_sigmas,
+                            bool only_max) {
     /*
     Blending the top two candidates with a weighted average.
 
@@ -38,7 +43,7 @@ Joint grow_connection_blend(const torch::Tensor& caf, double x, double y, double
     "BlazeFace: Sub-millisecond Neural Face Detection on Mobile GPUs".
     */
     auto caf_a = caf.accessor<float, 2>();
-    float sigma_filter = 2.0 * xy_scale;  // 2.0 = 4 sigma
+    float sigma_filter = filter_sigmas * xy_scale / 2.0;
     float sigma2 = 0.25 * xy_scale * xy_scale;
     float d2, score;
 
@@ -96,8 +101,13 @@ Joint grow_connection_blend(const torch::Tensor& caf, double x, double y, double
     };
 }
 
-std::vector<double> grow_connection_blend_py(const torch::Tensor& caf, double x, double y, double s, bool only_max) {
-    Joint j(grow_connection_blend(caf, x, y, s, only_max));
+std::vector<double> grow_connection_blend_py(const torch::Tensor& caf,
+                                             double x,
+                                             double y,
+                                             double s,
+                                             double filter_sigmas,
+                                             bool only_max) {
+    Joint j(grow_connection_blend(caf, x, y, s, filter_sigmas, only_max));
     return { j.x, j.y, j.s, j.v };  // xysv
 }
 
@@ -254,7 +264,8 @@ std::tuple<torch::Tensor, torch::Tensor> CifCaf::call_with_initial_annotations(
 void CifCaf::_grow(
     Annotation* ann,
     const caf_fb_t& caf_fb,
-    bool reverse_match
+    bool reverse_match_,
+    double filter_sigmas
 ) {
     while (!frontier.empty()) frontier.pop();
     in_frontier.clear();
@@ -274,7 +285,7 @@ void CifCaf::_grow(
         // Is entry not fully computed?
         if (entry.joint.v == 0.0) {
             Joint new_joint = _connection_value(
-                *ann, caf_fb, entry.start_i, entry.end_i, reverse_match);
+                *ann, caf_fb, entry.start_i, entry.end_i, reverse_match_, filter_sigmas);
             if (new_joint.v == 0.0) {
                 if (block_joints) {
                     new_joint.v = 0.00001;
@@ -339,7 +350,8 @@ Joint CifCaf::_connection_value(
     const caf_fb_t& caf_fb,
     int64_t start_i,
     int64_t end_i,
-    bool reverse_match_
+    bool reverse_match_,
+    double filter_sigmas
 ) {
     int64_t caf_i = 0;
     bool forward = true;
@@ -363,19 +375,15 @@ Joint CifCaf::_connection_value(
     auto caf_f = forward ? std::get<0>(caf_fb)[caf_i] : std::get<1>(caf_fb)[caf_i];
     auto caf_b = forward ? std::get<1>(caf_fb)[caf_i] : std::get<0>(caf_fb)[caf_i];
 
-    bool only_max = false;
+    bool only_max = false;  // TODO make configurable
 
     const Joint& start_j = ann.joints[start_i];
     Joint new_j = grow_connection_blend(
-        caf_f, start_j.x, start_j.y, start_j.s, only_max);
+        caf_f, start_j.x, start_j.y, start_j.s, filter_sigmas, only_max);
     if (new_j.v == 0.0) return new_j;
 
     new_j.v = sqrt(new_j.v * start_j.v);  // geometric mean
-    if (new_j.v < keypoint_threshold) {
-        new_j.v = 0.0;
-        return new_j;
-    }
-    if (new_j.v < start_j.v * keypoint_threshold_rel) {
+    if (new_j.v < keypoint_threshold || new_j.v < start_j.v * keypoint_threshold_rel) {
         new_j.v = 0.0;
         return new_j;
     }
@@ -387,7 +395,7 @@ Joint CifCaf::_connection_value(
     // cannot work in these cases.
     if (reverse_match && reverse_match_ && start_i < occupancy.n_fields()) {
         Joint reverse_j = grow_connection_blend(
-            caf_b, new_j.x, new_j.y, new_j.s, only_max);
+            caf_b, new_j.x, new_j.y, new_j.s, filter_sigmas, only_max);
         if (reverse_j.v == 0.0) {
             new_j.v = 0.0;
             return new_j;
@@ -412,7 +420,7 @@ void CifCaf::_force_complete(
     auto caf_fb = caf_scored.get();
 
     for (auto&& ann : *annotations) {
-        _grow(&ann, caf_fb, false);
+        _grow(&ann, caf_fb, false, 4.0);
     }
 }
 
