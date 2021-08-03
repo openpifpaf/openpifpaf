@@ -20,7 +20,7 @@ class Cif:
     rescaler: Union[AnnRescaler, AnnRescalerBall]
     name: str
     sigmas: list
-    v_threshold: int = 0
+    v_threshold: int = 0            #### this is were you can choose if unvisible keypoints should be considered in the training or not
     visualizer: CifVisualizer = None
 
     side_length: ClassVar[int] = 4      # area around the keypoint to be supervised
@@ -33,7 +33,6 @@ class Cif:
 class CifGenerator(object):
     def __init__(self, config: Cif):
         self.config = config
-
         self.intensities = None
         self.fields_reg = None
         self.fields_scale = None

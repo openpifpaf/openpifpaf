@@ -20,6 +20,8 @@ def cli(parser):
     group = parser.add_argument_group('CIF encoder')
     group.add_argument('--cif-side-length', default=Cif.side_length, type=int,
                        help='side length of the CIF field')
+    group.add_argument('--visiblity-threshold', default=Cif.v_threshold, type=int,
+                        help='minimum visibily of the keypoints (0 or 1)')
 
     group = parser.add_argument_group('CAF encoder')
     group.add_argument('--caf-min-size', default=Caf.min_size, type=int,
@@ -33,6 +35,7 @@ def cli(parser):
 def configure(args):
     # configure CIF
     Cif.side_length = args.cif_side_length
+    Cif.v_threshold = args.visiblity_threshold
 
     # configure CAF
     Caf.min_size = args.caf_min_size
@@ -40,11 +43,12 @@ def configure(args):
     Caf.aspect_ratio = args.caf_aspect_ratio
 
 
-def factory(headnets, basenet_stride):
-    return [factory_head(head_net, basenet_stride) for head_net in headnets]
+def factory(headnets, basenet_stride, args=None):
+    v_threshold = args.visiblity_threshold if args is not None else None
+    return [factory_head(head_net, basenet_stride, v_threshold=v_threshold) for head_net in headnets]
 
 
-def factory_head(head_net: network.heads.CompositeField, basenet_stride):
+def factory_head(head_net: network.heads.CompositeField, basenet_stride, v_threshold=None):
     meta = head_net.meta
     if isinstance(meta, network.heads.PanopticDeeplabMeta):
         LOG.info('selected encoder PAN')
@@ -95,11 +99,11 @@ def factory_head(head_net: network.heads.CompositeField, basenet_stride):
                         name=meta.name,
                     sigmas=meta.sigmas,
                     visualizer=vis)
-
         return Cif(AnnRescaler(stride, len(meta.keypoints), meta.pose), 
                 name=meta.name,
                 sigmas=meta.sigmas,
-                visualizer=vis)
+                visualizer=vis,
+                v_threshold=v_threshold if v_threshold is not None else 0)
 
     if isinstance(meta, network.heads.AssociationMeta):
         n_keypoints = len(meta.keypoints)

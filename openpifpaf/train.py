@@ -133,7 +133,7 @@ def main():
         net = torch.nn.DataParallel(net)
 
     loss = network.losses.factory_from_args(args, net_cpu.head_nets)
-    target_transforms = encoder.factory(net_cpu.head_nets, net_cpu.base_net.stride)
+    target_transforms = encoder.factory(net_cpu.head_nets, net_cpu.base_net.stride, args=args)
 
     ### to handle checkpoint problem (introduce the right dataset configs)
     heads = []

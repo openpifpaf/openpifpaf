@@ -82,6 +82,15 @@ def cli(parser, *,
 
     parser.add_argument('--disable-left-right-check', default=False, action='store_true')
 
+    parser.add_argument('--dist-th-knee', default=0, type=float,
+                        help='it is for left right check')
+    parser.add_argument('--dist-th-ankle', default=0, type=float,
+                        help='it is for left right check')
+    parser.add_argument('--dist-th-wrist', default=0, type=float,
+                        help='it is for left right check')
+
+    parser.add_argument('--dist-percent', default=False, action='store_true')
+
 
 def configure(args):
     # default value for keypoint filter depends on whether complete pose is forced
@@ -250,6 +259,7 @@ def factory_decode(head_nets, *,
                     dec_filter_smaller_than=args.decod_discard_smaller,
                     dec_filter_less_than=args.decod_discard_lesskp,
                     disable_left_right_check=args.disable_left_right_check,
+                    args=args,
                 )
 
         return CifPan(

@@ -76,6 +76,7 @@ class CifPanBall(Generator):
                  dec_filter_smaller_than=100,
                  dec_filter_less_than=5,
                  disable_left_right_check=False,
+                 args=None,
                 ):
         super().__init__(worker_pool)
         if nms is True:
@@ -109,6 +110,7 @@ class CifPanBall(Generator):
         self.dec_filter_smaller_than = dec_filter_smaller_than
         self.dec_filter_less_than = dec_filter_less_than
         self.disable_left_right_check = disable_left_right_check
+        self.args = args
 
         # init by_target and by_source
         # self.by_target = defaultdict(dict)
@@ -120,7 +122,7 @@ class CifPanBall(Generator):
         #     self.by_source[j1][j2] = (caf_i, True)
         #     self.by_source[j2][j1] = (caf_i, False)
 
-    def __call__(self, fields, initial_annotations=None, debug=None):
+    def __call__(self, fields, initial_annotations=None, debug=None, ground_truth=None):
         # debug = {}
         if self.field_config_cent is not None:
             cif, pan, cif_ball, cif_cent = fields
@@ -133,6 +135,7 @@ class CifPanBall(Generator):
         Ci, Bi = (17, 0)
         LEFT_KNEE, RIGHT_KNEE = (13, 14)
         LEFT_ANKLE, RIGHT_ANKLE = (15, 16)
+        LEFT_WRIST, RIGHT_WRIST = (9, 10)
 
         start = time.perf_counter()
         if not initial_annotations:
@@ -345,22 +348,24 @@ class CifPanBall(Generator):
         # plt.figure(figsize=(20,20))
         inssss = np.zeros_like(panoptic)
         ids = np.random.permutation(len(annotations))
-
+        skipped_keypoints = []
         if self.decode_masks_first:
             for i in range(len(annotations)):
                 skip_right_ankle = False
                 skip_right_knee = False
+                skip_right_wrist = False
                 annotation = annotations[i]
                 centroid_mask = (classes == 1) & (instances == i)
                 for f, cif in enumerate(cifhr.accumulated):
                     if f == Ci:
                         continue
-                    if (f == RIGHT_ANKLE and skip_right_ankle) or (f == RIGHT_KNEE and skip_right_knee):
+                    if (f == RIGHT_ANKLE and skip_right_ankle) or (f == RIGHT_KNEE and skip_right_knee) or (f == RIGHT_WRIST and skip_right_wrist):
                         continue
                     cif_masked = cif * centroid_mask
                     x, y =np.unravel_index(np.argmax(cif_masked, axis=None), cif_masked.shape)  # argmax retunrs a flat value, we need unravel ind 
                     if cif_masked[x,y] > self.max_pool_th:
                         if not self.disable_left_right_check:
+                            print('--------------------------------')
                             if f == LEFT_KNEE:
                                 print('position of left knee', x, y)
                                 cif_max_value = np.max(cif_masked)
@@ -373,14 +378,17 @@ class CifPanBall(Generator):
                                 print('cif max of right knee', cif_max_value_2)
                                 dist_ = np.sqrt((y - y_right)**2 + (x - x_right)**2)
                                 print('dist', dist_)
-                                if True: #dist_ < 0.1 * centroid_mask.sum():
+                                print('dist th', self.args.dist_th_knee)
+                                if (dist_ < self.args.dist_th_knee and not self.args.dist_percent) or (dist_ < self.args.dist_th_knee * centroid_mask.sum() and self.args.dist_percent):
                                     if cif_max_value > cif_max_value_2:
                                         skip_right_knee = True
                                         pass
                                         print('skip right knee')
+                                        skipped_keypoints.append((RIGHT_KNEE, x_right, y_right))
                                     else:
                                         skip_right_knee = False
-                                        print('not skiping right knee')
+                                        print('skip left knee')
+                                        skipped_keypoints.append((LEFT_KNEE, x, y))
                                         continue
                                 else:
                                     pass
@@ -396,14 +404,44 @@ class CifPanBall(Generator):
                                 print('cif max of right ankle', cif_max_value_2)
                                 dist_ = np.sqrt((y - y_right_ankle)**2 + (x - x_right_ankle)**2)
                                 print('dist', dist_)
-                                if True: #dist_ < 0.1 * centroid_mask.sum():
+                                print('dist th', self.args.dist_th_ankle)
+                                if (dist_ < self.args.dist_th_ankle and not self.args.dist_percent) or (dist_ < self.args.dist_th_ankle * centroid_mask.sum() and self.args.dist_percent):
                                     if cif_max_value > cif_max_value_2:
                                         skip_right_ankle = True
                                         pass
                                         print('skip right ankle')
+                                        skipped_keypoints.append((RIGHT_ANKLE, x_right_ankle, y_right_ankle))
                                     else:
                                         skip_right_ankle = False
-                                        print('not skiping right ankle')
+                                        print('skip left ankle')
+                                        skipped_keypoints.append((LEFT_ANKLE, x, y))
+                                        continue
+                                else:
+                                    pass
+                            
+                            elif f == LEFT_WRIST:
+                                print('position of left wrist', x, y)
+                                cif_max_value = np.max(cif_masked)
+                                print('cif max of left wrist', cif_max_value)
+                                cif_right_wrist = cifhr.accumulated[f+1]
+                                cif_masked = cif_right_wrist * centroid_mask
+                                cif_max_value_2 = np.max(cif_masked)
+                                x_right_wrist, y_right_wrist =np.unravel_index(np.argmax(cif_masked, axis=None), cif_masked.shape)  # argmax retunrs a flat value, we need unravel ind 
+                                print('position of right wrist', x_right_wrist, y_right_wrist)
+                                print('cif max of right wrist', cif_max_value_2)
+                                dist_ = np.sqrt((y - y_right_wrist)**2 + (x - x_right_wrist)**2)
+                                print('dist', dist_)
+                                print('dist th', self.args.dist_th_wrist)
+                                if (dist_ < self.args.dist_th_wrist and not self.args.dist_percent) or (dist_ < self.args.dist_th_wrist * centroid_mask.sum() and self.args.dist_percent):
+                                    if cif_max_value > cif_max_value_2:
+                                        skip_right_wrist = True
+                                        pass
+                                        print('skip right wrist')
+                                        skipped_keypoints.append((RIGHT_WRIST, x_right_wrist, y_right_wrist))
+                                    else:
+                                        skip_right_wrist = False
+                                        print('skip left wrist')
+                                        skipped_keypoints.append((LEFT_WRIST, x, y))
                                         continue
                                 else:
                                     pass
@@ -483,7 +521,8 @@ class CifPanBall(Generator):
                 centers_fyxv=centers_fyxv,
                 annotations=annotations,
                 fields=fields,
-                panoptic=panoptic
+                panoptic=panoptic,
+                skipped_keypoints=skipped_keypoints,
             )
         return annotations
     

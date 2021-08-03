@@ -33,12 +33,12 @@ ANNOTATIONS_TESTDEV = 'data-mscoco/annotations/image_info_test-dev2017.json'
 ANNOTATIONS_TEST = 'data-mscoco/annotations/image_info_test2017.json'
 IMAGE_DIR_TEST = 'data-mscoco/images/test2017/'
 
-ANNOTATIONS_VAL = '/scratch/mistasse/coco/annotations/person_keypoints_val2017.json'
-DET_ANNOTATIONS_VAL = '/scratch/mistasse/coco/annotations/instances_val2017.json'
-IMAGE_DIR_VAL = '/scratch/mistasse/coco/images/val2017/'
-ANNOTATIONS_TESTDEV = '/scratch/mistasse/coco/annotations/image_info_test-dev2017.json'
-ANNOTATIONS_TEST = '/scratch/mistasse/coco/annotations/image_info_test2017.json'
-IMAGE_DIR_TEST = '/scratch/mistasse/coco/images/test2017/'
+ANNOTATIONS_VAL = '/scratch/abolfazl/coco/annotations/person_keypoints_val2017.json'
+DET_ANNOTATIONS_VAL = '/scratch/abolfazl/coco/annotations/instances_val2017.json'
+IMAGE_DIR_VAL = '/scratch/abolfazl/coco/images/val2017/'
+ANNOTATIONS_TESTDEV = '/scratch/abolfazl/coco/annotations/image_info_test-dev2017.json'
+ANNOTATIONS_TEST = '/scratch/abolfazl/coco/annotations/image_info_test2017.json'
+IMAGE_DIR_TEST = '/scratch/abolfazl/coco/images/test2017/'
 
 # ANNOTATIONS_VAL = '/data/mistasse/coco/annotations/person_keypoints_val2017.json'
 # DET_ANNOTATIONS_VAL = '/data/mistasse/coco/annotations/instances_val2017.json'
@@ -65,7 +65,10 @@ class EvalCoco(object):
                  max_per_image=20,
                  category_ids=None,
                  iou_type='keypoints',
-                 small_threshold=0.0):
+                 small_threshold=0.0,
+                 considerUnvisible=True,
+                 mask_unvisible_keypoints=False,
+                 target_keypoints=None):
         if category_ids is None:
             category_ids = [1]
 
@@ -81,6 +84,9 @@ class EvalCoco(object):
         self.eval = None
         self.decoder_time = 0.0
         self.nn_time = 0.0
+        self.considerUnvisible = considerUnvisible
+        self.mask_unvisible_keypoints = mask_unvisible_keypoints
+        self.target_keypoints = target_keypoints
 
         LOG.debug('max = %d, category ids = %s, iou_type = %s',
                   self.max_per_image, self.category_ids, self.iou_type)
@@ -94,7 +100,7 @@ class EvalCoco(object):
 
         coco_eval = self.coco.loadRes(predictions)
 
-        self.eval = COCOeval(self.coco, coco_eval, iouType=self.iou_type)
+        self.eval = COCOeval(self.coco, coco_eval, iouType=self.iou_type, considerUnvisible=self.considerUnvisible, mask_unvisible_keypoints=self.mask_unvisible_keypoints, target_keypoints=self.target_keypoints)
         LOG.info('cat_ids: %s', self.category_ids)
         if self.category_ids:
             self.eval.params.catIds = self.category_ids
@@ -102,6 +108,8 @@ class EvalCoco(object):
         if image_ids is not None:
             print('image ids', image_ids)
             self.eval.params.imgIds = image_ids
+
+        print('~~~~~~~~~~~~~~~~~~~~~~~~~~~ run evaluate')
         self.eval.evaluate()
         self.eval.accumulate()
         self.eval.summarize()
@@ -238,6 +246,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
 
     network.cli(parser)
     decoder.cli(parser, force_complete_pose=True)
+    encoder.cli(parser)
     show.cli(parser)
     visualizer.cli(parser)
 
@@ -299,6 +308,13 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
                         help='discard with number of keypoints less than')
 
     parser.add_argument('--n-images', default=None, type=int)
+
+    parser.add_argument('--only-visible-keypoints', default=False, action='store_true')
+    parser.add_argument('--mask-unvisible-keypoints', default=False, action='store_true')
+
+    group.add_argument('--list-mask-unvisible-keypoints', default=None, nargs='+',
+                       help='list of keypoints you wish to remove unvisible ones of')
+    
     args = parser.parse_args()
 
     if args.debug_images:
@@ -623,6 +639,7 @@ def main():
     json_output = []
 
     print('Checkpoint:', args.checkpoint)
+    
     print('Max pool TH:', args.max_pool_th)
     print('Prediction Filtering Disabled: ', args.disable_pred_filter)
 
@@ -643,7 +660,7 @@ def main():
     #####
     target_transforms = None
     # if args.oracle_data:
-    target_transforms = encoder.factory(model_cpu.head_nets, model_cpu.base_net.stride)
+    target_transforms = encoder.factory(model_cpu.head_nets, model_cpu.base_net.stride, args=args)
     
     data_loader = dataloader_from_args(args, target_transforms=target_transforms, heads=model_cpu.head_nets)
     #####
@@ -668,6 +685,9 @@ def main():
         max_per_image=100 if args.detection_annotations else 20,
         category_ids=[] if args.detection_annotations else [1],
         iou_type='bbox' if args.detection_annotations else 'keypoints',
+        considerUnvisible = not args.only_visible_keypoints,
+        mask_unvisible_keypoints = args.mask_unvisible_keypoints,
+        target_keypoints = args.list_mask_unvisible_keypoints
     )
     total_start = time.time()
     loop_start = time.time()
@@ -694,7 +714,7 @@ def main():
         model.eval()
         # print('State of Model (Trainig)4?:', model.training)
         # print('state dict', model.head_nets[0].state_dict()['conv.weight'])
-        print('META:', meta_batch)
+        # print('META:', meta_batch)
         pred_batch = processor.batch(model, image_tensors, device=args.device, oracle_masks=args.oracle_data, target_batch=target_batch)
         print('number of people in pred 1', len(pred_batch[0]))
         eval_coco.decoder_time += processor.last_decoder_time
@@ -807,7 +827,14 @@ def main():
 
     output_file.write('\nCheckpoint: ' + str(args.checkpoint))
     output_file.write('\nMax pool TH: ' + str(args.max_pool_th))
-    output_file.write('\nLeft and Right check: ' + 'Disabled' if args.disable_left_right_check else 'Enabled')
+    output_file.write('\nLeft and Right check: ' + str('Disabled' if args.disable_left_right_check else 'Enabled'))
+    output_file.write('\nConsider unvisible keypoints: ' + str('No' if args.only_visible_keypoints else 'Yes'))
+    output_file.write('\nMask unvisible keypoints: ' + str('Yes' if args.mask_unvisible_keypoints else 'No'))
+    output_file.write('\nList of keypoints that unvisible ones are discarded'+ str(args.list_mask_unvisible_keypoints))
+    output_file.write('\nDist. th knee: '+ str(args.dist_th_knee))
+    output_file.write('\nDist. th ankle: '+ str(args.dist_th_ankle))
+    output_file.write('\nDist. th wrist: '+ str(args.dist_th_wrist))
+    output_file.write('\nDist percent: '+ str(args.dist_percent))
     output_file.write('\nOracle: ' + str(args.oracle_data))
     output_file.write('\nDecode mask first: ' + str(args.decode_masks_first))
     output_file.write('\nDecoder Filtering Strategy: ' + 'Filter Smaller than ' + str(args.decod_discard_smaller) +
