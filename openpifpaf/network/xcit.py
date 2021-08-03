@@ -356,7 +356,7 @@ class XCiT(nn.Module):
             elif patch_size == 8:
                 self.out_projection = nn.Sequential(
                     nn.Conv2d(embed_dim, out_dim, kernel_size=1, stride=1),
-                    nn.MaxPool2d(kernel_size=2, stride=2),
+                    nn.MaxPool2d(kernel_size=2, stride=2, ceil_mode=True),
                 )
             else:
                 raise ValueError("Invalid patch size for network")
