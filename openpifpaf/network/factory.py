@@ -66,11 +66,11 @@ BASE_FACTORIES = {
     'shufflenetv2k44': lambda: basenetworks.ShuffleNetV2K(
         'shufflenetv2k44', [12, 24, 8], [32, 512, 1024, 2048, 2048]),
     'squeezenet': lambda: basenetworks.SqueezeNet('squeezenet', torchvision.models.squeezenet1_1),
-    # Swin architectures: swin_t is roughly equivalent to resnet50
+    # Swin architectures: swin_t is roughly equivalent to to original resnet50 (not the modified one from openpifpaf)
     'swin_t': lambda: basenetworks.SwinTransformer('swin_t', swin_net=swin_transformer.swin_tiny_patch4_window7),
     'swin_s': lambda: basenetworks.SwinTransformer('swin_s', swin_net=swin_transformer.swin_small_patch4_window7),
     'swin_b': lambda: basenetworks.SwinTransformer('swin_b', swin_net=swin_transformer.swin_base_patch4_window7),
-    # XCiT architectures: xcit_small_12_p16 is roughly equivalent to resnet50
+    # XCiT architectures: xcit_small_12_p16 is roughly equivalent to original resnet50 (not the modified one from openpifpaf)
     'xcit_nano_12_p16': lambda: basenetworks.XCiT('xcit_nano_12_p16', xcit_net=xcit.xcit_nano_12_p16),
     'xcit_tiny_12_p16': lambda: basenetworks.XCiT('xcit_tiny_12_p16', xcit_net=xcit.xcit_tiny_12_p16),
     'xcit_tiny_24_p16': lambda: basenetworks.XCiT('xcit_tiny_24_p16', xcit_net=xcit.xcit_tiny_24_p16),
@@ -78,6 +78,14 @@ BASE_FACTORIES = {
     'xcit_small_24_p16': lambda: basenetworks.XCiT('xcit_small_24_p16', xcit_net=xcit.xcit_small_24_p16),
     'xcit_medium_24_p16': lambda: basenetworks.XCiT('xcit_medium_24_p16', xcit_net=xcit.xcit_medium_24_p16),
     'xcit_large_24_p16': lambda: basenetworks.XCiT('xcit_large_24_p16', xcit_net=xcit.xcit_large_24_p16),
+    'xcit_nano_12_p8': lambda : basenetworks.XCiT('xcit_nano_12_p8', xcit_net=xcit.xcit_nano_12_p8),
+    'xcit_tiny_12_p8': lambda: basenetworks.XCiT('xcit_tiny_12_p8', xcit_net=xcit.xcit_tiny_12_p8),
+    'xcit_tiny_24_p8': lambda: basenetworks.XCiT('xcit_tiny_24_p8', xcit_net=xcit.xcit_tiny_24_p8),
+    'xcit_small_12_p8': lambda: basenetworks.XCiT('xcit_small_12_p8', xcit_net=xcit.xcit_small_12_p8),
+    'xcit_small_24_p8': lambda: basenetworks.XCiT('xcit_small_24_p8', xcit_net=xcit.xcit_small_24_p8),
+    'xcit_medium_24_p8': lambda: basenetworks.XCiT('xcit_medium_24_p8', xcit_net=xcit.xcit_medium_24_p8),
+    'xcit_large_24_p8': lambda: basenetworks.XCiT('xcit_large_24_p8', xcit_net=xcit.xcit_large_24_p8),
+
 }
 
 #: headmeta class to head class

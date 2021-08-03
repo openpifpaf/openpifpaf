@@ -347,7 +347,19 @@ class XCiT(nn.Module):
         if use_fpn:
             self.fpn1, self.fpn2, self.fpn3, self.fpn4 = self.init_fpn(patch_size, embed_dim)
         else:
-            self.out_projection = nn.Conv2d(embed_dim, out_dim, kernel_size=1, stride=1)
+            # Out Projection layer added, not present in original implementation
+            if patch_size == 16:
+                self.out_projection = nn.Sequential(
+                    nn.Conv2d(embed_dim, out_dim, kernel_size=1, stride=1),
+                )
+
+            elif patch_size == 8:
+                self.out_projection = nn.Sequential(
+                    nn.Conv2d(embed_dim, out_dim, kernel_size=1, stride=1),
+                    nn.MaxPool2d(kernel_size=2, stride=2),
+                )
+            else:
+                raise ValueError("Invalid patch size for network")
 
     def init_fpn(self, patch_size, embed_dim):
         """Initializes layers for FPN if used"""
@@ -530,5 +542,68 @@ def xcit_large_24_p16(pretrained=True, **kwargs):
         patch_size=16, embed_dim=768, depth=24, num_heads=16, mlp_ratio=4, qkv_bias=True,
         norm_layer=partial(nn.LayerNorm, eps=1e-6), eta=1e-5, tokens_norm=True, **kwargs)
     url = "https://dl.fbaipublicfiles.com/xcit/xcit_large_24_p16_384_dist.pth"
+    model.init_weights(url if pretrained else None)
+    return model
+
+# Patch size 8x8 models
+def xcit_nano_12_p8(pretrained=True, **kwargs):
+    model = XCiT(
+        patch_size=8, embed_dim=128, depth=12, num_heads=4, mlp_ratio=4, qkv_bias=True,
+        norm_layer=partial(nn.LayerNorm, eps=1e-6), eta=1.0, tokens_norm=False, **kwargs)
+    url = "https://dl.fbaipublicfiles.com/xcit/xcit_nano_12_p8_384_dist.pth"
+    model.init_weights(url if pretrained else None)
+    return model
+
+
+def xcit_tiny_12_p8(pretrained=True, **kwargs):
+    model = XCiT(
+        patch_size=8, embed_dim=192, depth=12, num_heads=4, mlp_ratio=4, qkv_bias=True,
+        norm_layer=partial(nn.LayerNorm, eps=1e-6), eta=1.0, tokens_norm=True, **kwargs)
+    url = "https://dl.fbaipublicfiles.com/xcit/xcit_tiny_12_p8_384_dist.pth"
+    model.init_weights(url if pretrained else None)
+    return model
+
+
+def xcit_small_12_p8(pretrained=True, **kwargs):
+    model = XCiT(
+        patch_size=8, embed_dim=384, depth=12, num_heads=8, mlp_ratio=4, qkv_bias=True,
+        norm_layer=partial(nn.LayerNorm, eps=1e-6), eta=1.0, tokens_norm=True, **kwargs)
+    url = "https://dl.fbaipublicfiles.com/xcit/xcit_small_12_p8_384_dist.pth"
+    model.init_weights(url if pretrained else None)
+    return model
+
+
+def xcit_tiny_24_p8(pretrained=True, **kwargs):
+    model = XCiT(
+        patch_size=8, embed_dim=192, depth=24, num_heads=4, mlp_ratio=4, qkv_bias=True,
+        norm_layer=partial(nn.LayerNorm, eps=1e-6), eta=1e-5, tokens_norm=True, **kwargs)
+    url = "https://dl.fbaipublicfiles.com/xcit/xcit_tiny_24_p8_384_dist.pth"
+    model.init_weights(url if pretrained else None)
+    return model
+
+
+def xcit_small_24_p8(pretrained=True, **kwargs):
+    model = XCiT(
+        patch_size=8, embed_dim=384, depth=24, num_heads=8, mlp_ratio=4, qkv_bias=True,
+        norm_layer=partial(nn.LayerNorm, eps=1e-6), eta=1e-5, tokens_norm=True, **kwargs)
+    url = "https://dl.fbaipublicfiles.com/xcit/xcit_small_24_p8_384_dist.pth"
+    model.init_weights(url if pretrained else None)
+    return model
+
+
+def xcit_medium_24_p8(pretrained=True, **kwargs):
+    model = XCiT(
+        patch_size=8, embed_dim=512, depth=24, num_heads=8, mlp_ratio=4, qkv_bias=True,
+        norm_layer=partial(nn.LayerNorm, eps=1e-6), eta=1e-5, tokens_norm=True, **kwargs)
+    url = "https://dl.fbaipublicfiles.com/xcit/xcit_medium_24_p8_384_dist.pth"
+    model.init_weights(url if pretrained else None)
+    return model
+
+
+def xcit_large_24_p8(pretrained=None, **kwargs):
+    model = XCiT(
+        patch_size=8, embed_dim=768, depth=24, num_heads=16, mlp_ratio=4, qkv_bias=True,
+        norm_layer=partial(nn.LayerNorm, eps=1e-6), eta=1e-5, tokens_norm=True, **kwargs)
+    url = "https://dl.fbaipublicfiles.com/xcit/xcit_large_24_p8_384_dist.pth"
     model.init_weights(url if pretrained else None)
     return model

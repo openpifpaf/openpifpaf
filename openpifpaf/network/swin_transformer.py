@@ -545,6 +545,7 @@ class SwinTransformer(nn.Module):
             self.add_module(layer_name, layer)
 
         # No FPN layers
+        # Upsampling + out projection added, not in original implementation
         if not self.use_fpn:
             # Change kernel_size and padding to work with uneven downscaling
             self.upsample = nn.ConvTranspose2d(8 * embed_dim, 8 * embed_dim, kernel_size=3, stride=2, padding=1)
