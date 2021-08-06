@@ -536,7 +536,7 @@ class SwinTransformer(BaseNetwork):
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
         group = parser.add_argument_group('SwinTransformer')
-        group.add_argument('--swin_out-features',
+        group.add_argument('--swin-out-features',
                            default=cls.out_features, type=int,
                            help='number of output features for optional projection layer '
                                 '(None for no projection layer)')
