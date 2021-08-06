@@ -505,7 +505,7 @@ class SwinTransformer(BaseNetwork):
     def __init__(self, name, swin_net):
         embed_dim = swin_net().embed_dim
         has_projection = isinstance(self.out_features, int)
-        self.out_features = self.out_features if has_projection else embed_dim
+        self.out_features = self.out_features if has_projection else 8 * embed_dim
 
         super().__init__(name, stride=16, out_features=self.out_features)
 
@@ -559,7 +559,7 @@ class XCiT(BaseNetwork):
     def __init__(self, name, xcit_net, out_features=2048):
         embed_dim = xcit_net().embed_dim
         has_projection = isinstance(self.out_features, int)
-        self.out_features = self.out_features if has_projection else (8 * embed_dim)
+        self.out_features = self.out_features if has_projection else embed_dim
 
         super().__init__(name, stride=self.stride, out_features=out_features)
 
@@ -568,7 +568,7 @@ class XCiT(BaseNetwork):
         if has_projection:
             LOG.debug('adding output projection to %d features', self.out_features)
             self.out_projection = torch.nn.Conv2d(
-                8 * embed_dim, self.out_features, kernel_size=1, stride=1)
+                embed_dim, self.out_features, kernel_size=1, stride=1)
         else:
             LOG.debug('no output projection')
             self.out_projection = torch.nn.Identity()
