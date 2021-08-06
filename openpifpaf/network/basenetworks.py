@@ -556,12 +556,12 @@ class XCiT(BaseNetwork):
     out_features = None
     stride = 16
 
-    def __init__(self, name, xcit_net, out_features=2048):
+    def __init__(self, name, xcit_net):
         embed_dim = xcit_net().embed_dim
         has_projection = isinstance(self.out_features, int)
         self.out_features = self.out_features if has_projection else embed_dim
 
-        super().__init__(name, stride=self.stride, out_features=out_features)
+        super().__init__(name, stride=self.stride, out_features=self.out_features)
 
         self.backbone = xcit_net(pretrained=self.pretrained)
 
