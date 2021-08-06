@@ -65,7 +65,7 @@ setup(
         'backbones': [
             'timm>=0.4.9',  # For Swin Transformer and XCiT
 
-        ]
+        ],
         'dev': [
             'cython',
             'flameprof',
