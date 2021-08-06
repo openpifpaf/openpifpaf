@@ -503,22 +503,23 @@ class SwinTransformer(BaseNetwork):
     out_features = None
 
     def __init__(self, name, swin_net):
-        # Initialize backbone first to get embed dim
-        self.backbone = swin_net(pretrained=self.pretrained)
+        embed_dim = swin_net().embed_dim
         has_projection = not isinstance(self.out_features, int)
-        self.out_features = self.out_features if has_projection else self.backbone.embed_dim
+        self.out_features = self.out_features if has_projection else embed_dim
 
         super().__init__(name, stride=16, out_features=self.out_features)
 
+        self.backbone = swin_net(pretrained=self.pretrained)
+
         # Layers to obtain output feature map
         self.upsample = torch.nn.ConvTranspose2d(
-            8 * self.backbone.embed_dim, 8 * self.backbone.embed_dim, kernel_size=3, stride=2, padding=1)
+            8 * embed_dim, 8 * embed_dim, kernel_size=3, stride=2, padding=1)
         self.project = torch.nn.Conv2d(
-            4 * self.backbone.embed_dim, 8 * self.backbone.embed_dim, kernel_size=1, stride=1)
+            4 * embed_dim, 8 * embed_dim, kernel_size=1, stride=1)
         if has_projection:
             LOG.debug('adding output projection to %d features', self.out_features)
             self.out_projection = torch.nn.Conv2d(
-                8 * self.backbone.embed_dim, self.out_features, kernel_size=1, stride=1)
+                8 * embed_dim, self.out_features, kernel_size=1, stride=1)
         else:
             LOG.debug('no output projection')
             self.out_projection = torch.nn.Identity()
@@ -556,22 +557,27 @@ class XCiT(BaseNetwork):
     stride = 16
 
     def __init__(self, name, xcit_net, out_features=2048):
-        self.backbone = xcit_net(pretrained=self.pretrained)
+        embed_dim = xcit_net().embed_dim
         has_projection = not isinstance(self.out_features, int)
-        self.out_features = self.out_features if has_projection else self.backbone.embed_dim
+        self.out_features = self.out_features if has_projection else embed_dim
 
-        if not (self.stride == 16 or (self.stride == 8 and self.backbone.patch_size == 8)):
-            raise ValueError("Invalid stride: must be 16 for patch size 16, or either 8 and 16 for patch size 8")
+
 
         super().__init__(name, stride=self.stride, out_features=out_features)
+
+        self.backbone = xcit_net(pretrained=self.pretrained)
 
         if has_projection:
             LOG.debug('adding output projection to %d features', self.out_features)
             self.out_projection = torch.nn.Conv2d(
-                8 * self.backbone.embed_dim, self.out_features, kernel_size=1, stride=1)
+                8 * embed_dim, self.out_features, kernel_size=1, stride=1)
         else:
             LOG.debug('no output projection')
             self.out_projection = torch.nn.Identity()
+
+        if not (self.stride == 16 or (self.stride == 8 and self.backbone.patch_size == 8)):
+            raise ValueError('Invalid stride: must be 16 for patch size 16,'
+                             ' or either 8 and 16 for patch size 8')
 
         if self.backbone.patch_size == 8 and self.stride == 16:
             self.out_block = torch.nn.Sequential(
