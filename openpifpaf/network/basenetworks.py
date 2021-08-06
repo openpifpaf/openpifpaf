@@ -499,38 +499,112 @@ class SqueezeNet(BaseNetwork):
 
 
 class SwinTransformer(BaseNetwork):
+    pretrained = True
+    out_features = None
 
-    def __init__(self, name, swin_net, out_features=2048):
-        super().__init__(name, stride=16, out_features=out_features)
-        self.backbone = swin_net(pretrained=True, out_dim=out_features)
+    def __init__(self, name, swin_net):
+        # Initialize backbone first to get embed dim
+        self.backbone = swin_net(pretrained=self.pretrained)
+        has_projection = not isinstance(self.out_features, int)
+        self.out_features = self.out_features if has_projection else self.backbone.embed_dim
+
+        super().__init__(name, stride=16, out_features=self.out_features)
+
+        # Layers to obtain output feature map
+        self.upsample = torch.nn.ConvTranspose2d(
+            8 * self.backbone.embed_dim, 8 * self.backbone.embed_dim, kernel_size=3, stride=2, padding=1)
+        self.project = torch.nn.Conv2d(
+            4 * self.backbone.embed_dim, 8 * self.backbone.embed_dim, kernel_size=1, stride=1)
+        if has_projection:
+            LOG.debug('adding output projection to %d features', self.out_features)
+            self.out_projection = torch.nn.Conv2d(
+                8 * self.backbone.embed_dim, self.out_features, kernel_size=1, stride=1)
+        else:
+            LOG.debug('no output projection')
+            self.out_projection = torch.nn.Identity()
 
     def forward(self, x):
-        x = self.backbone(x)
+        outs = self.backbone(x)
+
+        # Upsample final feature map of stride 32 and merge it with feature map of stride 16
+        x = self.upsample(outs[-1], output_size=outs[-2].shape)
+        x = x + self.project(outs[-2])
+        x = self.out_projection(x)
         return x
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
-        pass
+        group = parser.add_argument_group('SwinTransformer')
+        group.add_argument('--swin_out-features',
+                           default=cls.out_features, type=int,
+                           help='number of output features for optional projection layer,'
+                                '(no projection layer by default)')
+
+        group.add_argument('--swin-no-pretrain', dest='swin_pretrained',
+                           default=True, action='store_false',
+                           help='use randomly initialized models')
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
-        pass
+        cls.out_features = args.swin_out_features
+        cls.pretrained = args.swin_pretrained
 
 
 class XCiT(BaseNetwork):
+    pretrained = True
+    out_features = None
+    stride = 16
 
     def __init__(self, name, xcit_net, out_features=2048):
-        super().__init__(name, stride=16, out_features=out_features)
-        self.backbone = xcit_net(pretrained=True, out_dim=out_features)
+        self.backbone = xcit_net(pretrained=self.pretrained)
+        has_projection = not isinstance(self.out_features, int)
+        self.out_features = self.out_features if has_projection else self.backbone.embed_dim
+
+        if not (self.stride == 16 or (self.stride == 8 and self.backbone.patch_size == 8)):
+            raise ValueError("Invalid stride: must be 16 for patch size 16, or either 8 and 16 for patch size 8")
+
+        super().__init__(name, stride=self.stride, out_features=out_features)
+
+        if has_projection:
+            LOG.debug('adding output projection to %d features', self.out_features)
+            self.out_projection = torch.nn.Conv2d(
+                8 * self.backbone.embed_dim, self.out_features, kernel_size=1, stride=1)
+        else:
+            LOG.debug('no output projection')
+            self.out_projection = torch.nn.Identity()
+
+        if self.backbone.patch_size == 8 and self.stride == 16:
+            self.out_block = torch.nn.Sequential(
+                self.out_projection,
+                torch.nn.MaxPool2d(kernel_size=2, stride=2, ceil_mode=True)
+            )
+        else:
+            self.out_block = torch.nn.Sequential(self.out_projection)
 
     def forward(self, x):
         x = self.backbone(x)
+        x = self.out_block(x)
         return x
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
-        pass
+        group = parser.add_argument_group('XCiT')
+        group.add_argument('--xcit-out-features',
+                           default=cls.out_features, type=int,
+                           help='number of output features for optional projection layer,'
+                                '(no projection layer by default)')
+
+        group.add_argument('--xcit-stride',
+                           default=cls.stride, type=int,
+                           help='stride (must be 16 for patch size 16, and 8 or 16 for patch size 8,'
+                                '(default: %(default)s)')
+
+        group.add_argument('--xcit-no-pretrain', dest='xcit_pretrained',
+                           default=True, action='store_false',
+                           help='use randomly initialized models')
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
-        pass
+        cls.out_features = args.xcit_out_features
+        cls.stride = args.xcit_stride
+        cls.pretrained = args.xcit_pretrained

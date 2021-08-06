@@ -7,8 +7,8 @@ Paper:
 # Copyright (c) 2015-present, Facebook, Inc.
 # All rights reserved.
 # --------------------------------------------------------
-# Refactoring, modifications to class arguments, and addition of output feature maps
-# and pretrained model loading added by David Mizrahi
+# Refactoring, modifications to class arguments and
+# loading of pretrained model weights by David Mizrahi
 # --------------------------------------------------------
 
 import math
@@ -302,7 +302,7 @@ class XCiT(nn.Module):
                  depth=12, num_heads=12, mlp_ratio=4., qkv_bias=True, qk_scale=None,
                  drop_rate=0., attn_drop_rate=0., drop_path_rate=0., norm_layer=None,
                  cls_attn_layers=2, use_pos=True, eta=None, tokens_norm=False, use_fpn=False,
-                 out_indices=[3, 5, 7, 11], out_dim=2048):
+                 out_indices=[3, 5, 7, 11]):
         """
         Args:
             patch_size (int, tuple): patch size
@@ -322,7 +322,6 @@ class XCiT(nn.Module):
             tokens_norm: (bool) Whether to normalize all tokens or just the cls_token in the CA (not used)
             use_fpn: (bool) if True, use FPN features
             out_indices: (list) Indices of layers from which FPN features are extracted
-            out_dim: (int) Output dimension if no FPN is used
         """
         super().__init__()
         self.num_features = self.embed_dim = embed_dim
@@ -345,22 +344,10 @@ class XCiT(nn.Module):
 
         self.use_fpn = use_fpn
         self.out_indices = out_indices
+        self.patch_size = patch_size
+
         if use_fpn:
             self.fpn1, self.fpn2, self.fpn3, self.fpn4 = self.init_fpn(patch_size, embed_dim)
-        else:
-            # Out Projection layer added, not present in original implementation
-            if patch_size == 16:
-                self.out_projection = nn.Sequential(
-                    nn.Conv2d(embed_dim, out_dim, kernel_size=1, stride=1),
-                )
-
-            elif patch_size == 8:
-                self.out_projection = nn.Sequential(
-                    nn.Conv2d(embed_dim, out_dim, kernel_size=1, stride=1),
-                    nn.MaxPool2d(kernel_size=2, stride=2, ceil_mode=True),
-                )
-            else:
-                raise ValueError("Invalid patch size for network")
 
     def init_fpn(self, patch_size, embed_dim):
         """Initializes layers for FPN if used"""
@@ -474,7 +461,6 @@ class XCiT(nn.Module):
 
             # Permute and project to obtain feature map
             xp = x.permute(0, 2, 1).reshape(B, -1, Hp, Wp)
-            xp = self.out_projection(xp)
             return xp
 
     def forward(self, x):

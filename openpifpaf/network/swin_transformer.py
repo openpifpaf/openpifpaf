@@ -1,10 +1,10 @@
 # --------------------------------------------------------
 # Swin Transformer
 # Copyright (c) 2021 Microsoft
-# Licensed under The MIT License [see LICENSE for details]
+# Licensed under The MIT License
 # Written by Ze Liu, Yutong Lin, Yixuan Wei
 # --------------------------------------------------------
-# Refactoring and addition of output feature maps and pretrained model loading by David Mizrahi
+# Refactoring and loading of pretrained model weights by David Mizrahi
 # --------------------------------------------------------
 
 import torch
@@ -455,12 +455,10 @@ class SwinTransformer(nn.Module):
         norm_layer (nn.Module): Normalization layer. Default: nn.LayerNorm.
         ape (bool): If True, add absolute position embedding to the patch embedding. Default: False.
         patch_norm (bool): If True, add normalization after patch embedding. Default: True.
-        use_fpn (bool): If True, outputs FPN, otherwise, outputs a single feature map
         out_indices (Sequence[int]): Output from which stages (for FPN)
         frozen_stages (int): Stages to be frozen (stop grad and set eval mode).
             -1 means not freezing any parameters.
         use_checkpoint (bool): Whether to use checkpointing to save memory. Default: False.
-        out_dim (int): Output dimension if no FPN
     """
 
     def __init__(self,
@@ -480,11 +478,9 @@ class SwinTransformer(nn.Module):
                  norm_layer=nn.LayerNorm,
                  ape=False,
                  patch_norm=True,
-                 use_fpn=False,
                  out_indices=(0, 1, 2, 3),
                  frozen_stages=-1,
-                 use_checkpoint=False,
-                 out_dim=2048):
+                 use_checkpoint=False):
         super().__init__()
 
         self.pretrain_img_size = pretrain_img_size
@@ -494,7 +490,6 @@ class SwinTransformer(nn.Module):
         self.patch_norm = patch_norm
         self.out_indices = out_indices
         self.frozen_stages = frozen_stages
-        self.use_fpn = use_fpn
 
         # split image into non-overlapping patches
         self.patch_embed = PatchEmbed(
@@ -543,14 +538,6 @@ class SwinTransformer(nn.Module):
             layer = norm_layer(num_features[i_layer])
             layer_name = f'norm{i_layer}'
             self.add_module(layer_name, layer)
-
-        # No FPN layers
-        # Upsampling + out projection added, not in original implementation
-        if not self.use_fpn:
-            # Change kernel_size and padding to work with uneven downscaling
-            self.upsample = nn.ConvTranspose2d(8 * embed_dim, 8 * embed_dim, kernel_size=3, stride=2, padding=1)
-            self.project = nn.Conv2d(4 * embed_dim, 8 * embed_dim, kernel_size=1, stride=1)
-            self.out_projection = nn.Conv2d(8 * embed_dim, out_dim, kernel_size=1, stride=1)
 
         self._freeze_stages()
 
@@ -632,15 +619,7 @@ class SwinTransformer(nn.Module):
                 out = x_out.view(-1, H, W, self.num_features[i]).permute(0, 3, 1, 2).contiguous()
                 outs.append(out)
 
-        if self.use_fpn:
-            return tuple(outs)
-        else:
-            out = self.upsample(outs[-1], output_size=outs[-2].shape)
-            # Add the two feature maps
-            out = out + self.project(outs[-2])
-            # Project to 2048 channels
-            out = self.out_projection(out)
-            return out
+        return tuple(outs)
 
     def train(self, mode=True):
         """Convert the model into training mode while keep layers freezed."""
