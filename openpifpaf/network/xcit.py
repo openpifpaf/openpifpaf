@@ -1,5 +1,5 @@
 """ Cross-Covariance Image Transformer (XCiT) in PyTorch
-Same as the official implementation, with some                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           adaptations.
+Same as the official implementation, with some minor adaptations.
     - https://github.com/facebookresearch/xcit/blob/master/detection/backbone/xcit.py
 Paper:
     - https://arxiv.org/abs/2106.09681
@@ -139,6 +139,7 @@ class LPI(nn.Module):
 
         return x
 
+
 # Not used for dense feature maps
 class ClassAttention(nn.Module):
     """Class Attention Layer as in CaiT https://arxiv.org/abs/2103.17239
@@ -171,6 +172,7 @@ class ClassAttention(nn.Module):
         x = torch.cat([self.proj_drop(cls_tkn), x[:, 1:]], dim=1)
         return x
 
+
 # Not used for dense feature maps
 class ClassAttentionBlock(nn.Module):
     """Class Attention Layer as in CaiT https://arxiv.org/abs/2103.17239
@@ -199,7 +201,6 @@ class ClassAttentionBlock(nn.Module):
         else:
             self.gamma1, self.gamma2 = 1.0, 1.0
 
-        # FIXME: A hack for models pre-trained with layernorm over all the tokens not just the CLS
         self.tokens_norm = tokens_norm
 
     def forward(self, x, H, W, mask=None):
@@ -318,7 +319,7 @@ class XCiT(nn.Module):
             cls_attn_layers: (int) Depth of Class attention layers (not used for dense feature maps)
             use_pos: (bool) whether to use positional encoding
             eta: (float) layerscale initialization value
-            tokens_norm: (bool) Whether to normalize all tokens or just the cls_token in the CA (not used for dense feature maps)
+            tokens_norm: (bool) Whether to normalize all tokens or just the cls_token in the CA (not used)
             use_fpn: (bool) if True, use FPN features
             out_indices: (list) Indices of layers from which FPN features are extracted
             out_dim: (int) Output dimension if no FPN is used
@@ -544,6 +545,7 @@ def xcit_large_24_p16(pretrained=True, **kwargs):
     url = "https://dl.fbaipublicfiles.com/xcit/xcit_large_24_p16_384_dist.pth"
     model.init_weights(url if pretrained else None)
     return model
+
 
 # Patch size 8x8 models
 def xcit_nano_12_p8(pretrained=True, **kwargs):
