@@ -10,6 +10,7 @@ Paper:
 # Refactoring, modifications to class arguments and
 # loading of pretrained model weights by David Mizrahi
 # --------------------------------------------------------
+# pylint: skip-file
 
 import math
 from functools import partial

@@ -6,6 +6,8 @@
 # --------------------------------------------------------
 # Refactoring and loading of pretrained model weights by David Mizrahi
 # --------------------------------------------------------
+# pylint: skip-file
+
 
 import torch
 import torch.nn as nn

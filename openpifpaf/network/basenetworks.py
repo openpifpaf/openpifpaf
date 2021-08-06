@@ -600,7 +600,8 @@ class XCiT(BaseNetwork):
 
         group.add_argument('--xcit-stride',
                            default=cls.stride, type=int,
-                           help='stride (must be 16 for patch size 16, and 8 or 16 for patch size 8)')
+                           help='stride (must be 16 for patch size 16, '
+                                'and 8 or 16 for patch size 8)')
 
         group.add_argument('--xcit-no-pretrain', dest='xcit_pretrained',
                            default=True, action='store_false',
