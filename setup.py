@@ -92,7 +92,7 @@ setup(
             'onnx',
             'onnxruntime',
             'onnx-simplifier>=0.2.9; python_version<"3.9"',  # Python 3.9 not supported yet
-            'pylint!=2.9.5,!=2.9.4',  # avoid 2.9.4 and 2.9.5 for time.perf_counter deprecation warnings
+            'pylint<2.9.4',  # avoid 2.9.4 and up for time.perf_counter deprecation warnings
             'pycodestyle',
             'pytest',
             'opencv-python',
