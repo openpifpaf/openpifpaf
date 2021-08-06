@@ -60,9 +60,12 @@ setup(
         'torchvision>=0.8.2',
         'pillow!=8.3.0',  # exclusion torchvision 0.10.0 compatibility
         'dataclasses; python_version<"3.7"',
-        'timm>=0.4.9',  # For Swin and XCiT
     ],
     extras_require={
+        'backbones': [
+            'timm>=0.4.9',  # For Swin Transformer and XCiT
+
+        ]
         'dev': [
             'cython',
             'flameprof',
