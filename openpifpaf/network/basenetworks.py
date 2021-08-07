@@ -501,21 +501,27 @@ class SqueezeNet(BaseNetwork):
 class SwinTransformer(BaseNetwork):
     pretrained = True
     out_features = None
+    stride = 16
 
     def __init__(self, name, swin_net):
         embed_dim = swin_net().embed_dim
         has_projection = isinstance(self.out_features, int)
         self.out_features = self.out_features if has_projection else 8 * embed_dim
 
-        super().__init__(name, stride=16, out_features=self.out_features)
+        super().__init__(name, stride=self.stride, out_features=self.out_features)
 
         self.backbone = swin_net(pretrained=self.pretrained)
 
+        if not (self.stride == 16 or self.stride == 32):
+            raise ValueError('Invalid stride: must be 16 or 32')
+
         # Layers to obtain output feature map
-        self.upsample = torch.nn.ConvTranspose2d(
-            8 * embed_dim, 8 * embed_dim, kernel_size=3, stride=2, padding=1)
-        self.project = torch.nn.Conv2d(
-            4 * embed_dim, 8 * embed_dim, kernel_size=1, stride=1)
+        if self.stride == 16:
+            self.upsample = torch.nn.ConvTranspose2d(
+                8 * embed_dim, 8 * embed_dim, kernel_size=3, stride=2, padding=1)
+            self.project = torch.nn.Conv2d(
+                4 * embed_dim, 8 * embed_dim, kernel_size=1, stride=1)
+
         if has_projection:
             LOG.debug('adding output projection to %d features', self.out_features)
             self.out_projection = torch.nn.Conv2d(
@@ -527,9 +533,14 @@ class SwinTransformer(BaseNetwork):
     def forward(self, x):
         outs = self.backbone(x)
 
-        # Upsample final feature map of stride 32 and merge it with feature map of stride 16
-        x = self.upsample(outs[-1], output_size=outs[-2].shape)
-        x = x + self.project(outs[-2])
+        if self.stride == 16:
+            # Upsample feature map of stride 32
+            x = self.upsample(outs[-1], output_size=outs[-2].shape)
+            # Merge with feature map of stride 16
+            x = x + self.project(outs[-2])
+        else:
+            x = outs[-1]
+
         x = self.out_projection(x)
         return x
 
@@ -540,6 +551,10 @@ class SwinTransformer(BaseNetwork):
                            default=cls.out_features, type=int,
                            help='number of output features for optional projection layer '
                                 '(None for no projection layer)')
+
+        group.add_argument('--swin-stride',
+                           default=cls.stride, type=int,
+                           help='stride (must be 16 or 32)')
 
         group.add_argument('--swin-no-pretrain', dest='swin_pretrained',
                            default=True, action='store_false',
