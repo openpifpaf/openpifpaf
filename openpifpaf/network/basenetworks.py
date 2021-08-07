@@ -563,6 +563,7 @@ class SwinTransformer(BaseNetwork):
     @classmethod
     def configure(cls, args: argparse.Namespace):
         cls.out_features = args.swin_out_features
+        cls.stride = args.swin_stride
         cls.pretrained = args.swin_pretrained
 
 
