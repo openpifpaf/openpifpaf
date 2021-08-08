@@ -19,8 +19,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from timm.models.vision_transformer import Mlp
-from timm.models.layers import DropPath, trunc_normal_, to_2tuple
+try:
+    from timm.models.vision_transformer import Mlp
+    from timm.models.layers import DropPath, trunc_normal_, to_2tuple
+except ImportError:
+    pass
 
 
 class PositionalEncodingFourier(nn.Module):
