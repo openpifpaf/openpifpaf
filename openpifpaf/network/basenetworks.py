@@ -562,7 +562,7 @@ class SwinTransformer(BaseNetwork):
                            help='number of output features for optional projection layer '
                                 '(None for no projection layer)')
 
-        group.add_argument('--swin-no-output-upsample', dest='swin_output_upsampple',
+        group.add_argument('--swin-no-output-upsample', dest='swin_output_upsample',
                            default=True, action='store_false',
                            help='if used, no upsampling of last feature map by merging '
                                 'it with higher res feature map from previous layer')
