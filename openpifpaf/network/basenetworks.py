@@ -501,7 +501,7 @@ class SqueezeNet(BaseNetwork):
 class SwinTransformer(BaseNetwork):
     pretrained = True
     out_features = None
-    output_upsample = True
+    out_upsample = True
     input_upsample = False
 
     def __init__(self, name, swin_net):
@@ -512,9 +512,11 @@ class SwinTransformer(BaseNetwork):
         stride = 32
 
         if self.input_upsample:
+            LOG.debug('swin input upsampling')
             stride //= 2
 
-        if self.output_upsample:
+        if self.out_upsample:
+            LOG.debug('swin output upsampling')
             stride //= 2
 
         super().__init__(name, stride=stride, out_features=self.out_features)
@@ -522,7 +524,7 @@ class SwinTransformer(BaseNetwork):
         self.backbone = swin_net(pretrained=self.pretrained)
 
         # Layers to obtain output feature map
-        if self.output_upsample:
+        if self.out_upsample:
             self.upsample = torch.nn.ConvTranspose2d(
                 8 * embed_dim, 8 * embed_dim, kernel_size=3, stride=2, padding=1)
             self.project = torch.nn.Conv2d(
@@ -543,7 +545,7 @@ class SwinTransformer(BaseNetwork):
 
         outs = self.backbone(x)
 
-        if self.output_upsample:
+        if self.out_upsample:
             # Upsample feature map of stride 32
             x = self.upsample(outs[-1], output_size=outs[-2].shape)
             # Merge with feature map of stride 16
@@ -562,7 +564,7 @@ class SwinTransformer(BaseNetwork):
                            help='number of output features for optional projection layer '
                                 '(None for no projection layer)')
 
-        group.add_argument('--swin-no-output-upsample', dest='swin_output_upsample',
+        group.add_argument('--swin-no-out-upsample', dest='swin_out_upsample',
                            default=True, action='store_false',
                            help='if used, no upsampling of last feature map by merging '
                                 'it with higher res feature map from previous layer')
@@ -577,22 +579,25 @@ class SwinTransformer(BaseNetwork):
     @classmethod
     def configure(cls, args: argparse.Namespace):
         cls.out_features = args.swin_out_features
-        cls.pretrained = args.swin_pretrained
-        cls.output_upsample = args.swin_output_upsample
+        cls.out_upsample = args.swin_out_upsample
         cls.input_upsample = args.swin_input_upsample
+        cls.pretrained = args.swin_pretrained
 
 
 class XCiT(BaseNetwork):
     pretrained = True
     out_features = None
-    stride = 16
+    out_maxpool = False
 
     def __init__(self, name, xcit_net):
         embed_dim = xcit_net().embed_dim
+        patch_size = xcit_net().patch_size
         has_projection = isinstance(self.out_features, int)
         self.out_features = self.out_features if has_projection else embed_dim
 
-        super().__init__(name, stride=self.stride, out_features=self.out_features)
+        stride = patch_size * 2 if self.out_maxpool else patch_size
+
+        super().__init__(name, stride=stride, out_features=self.out_features)
 
         self.backbone = xcit_net(pretrained=self.pretrained)
 
@@ -604,11 +609,8 @@ class XCiT(BaseNetwork):
             LOG.debug('no output projection')
             self.out_projection = torch.nn.Identity()
 
-        if not (self.stride == 16 or (self.stride == 8 and self.backbone.patch_size == 8)):
-            raise ValueError('Invalid stride: must be 16 for patch size 16,'
-                             ' or either 8 and 16 for patch size 8')
-
-        if self.backbone.patch_size == 8 and self.stride == 16:
+        if self.out_maxpool:
+            LOG.debug('output max-pooling')
             self.out_block = torch.nn.Sequential(
                 self.out_projection,
                 torch.nn.MaxPool2d(kernel_size=2, stride=2, ceil_mode=True)
@@ -629,10 +631,8 @@ class XCiT(BaseNetwork):
                            help='number of output features for optional projection layer '
                                 '(None for no projection layer)')
 
-        group.add_argument('--xcit-stride',
-                           default=cls.stride, type=int,
-                           help='stride (must be 16 for patch size 16, '
-                                'and 8 or 16 for patch size 8)')
+        group.add_argument('--xcit-out-maxpool', default=False, action='store_true',
+                           help='adds max-pooling to output feature map')
 
         group.add_argument('--xcit-no-pretrain', dest='xcit_pretrained',
                            default=True, action='store_false',
@@ -641,5 +641,5 @@ class XCiT(BaseNetwork):
     @classmethod
     def configure(cls, args: argparse.Namespace):
         cls.out_features = args.xcit_out_features
-        cls.stride = args.xcit_stride
+        cls.out_maxpool = args.xcit_out_maxpool
         cls.pretrained = args.xcit_pretrained
