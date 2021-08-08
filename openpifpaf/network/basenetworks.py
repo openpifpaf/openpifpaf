@@ -502,13 +502,15 @@ class SwinTransformer(BaseNetwork):
     pretrained = True
     out_features = None
     stride = 16
+    input_upsample = False
 
     def __init__(self, name, swin_net):
         embed_dim = swin_net().embed_dim
         has_projection = isinstance(self.out_features, int)
         self.out_features = self.out_features if has_projection else 8 * embed_dim
 
-        super().__init__(name, stride=self.stride, out_features=self.out_features)
+        super().__init__(name, stride=self.stride // 2 if self.input_upsample else self.stride,
+                         out_features=self.out_features)
 
         self.backbone = swin_net(pretrained=self.pretrained)
 
@@ -531,6 +533,10 @@ class SwinTransformer(BaseNetwork):
             self.out_projection = torch.nn.Identity()
 
     def forward(self, x):
+
+        if self.input_upsample:
+            x = torch.nn.functional.interpolate(x, scale_factor=2, mode='nearest')
+
         outs = self.backbone(x)
 
         if self.stride == 16:
@@ -554,17 +560,23 @@ class SwinTransformer(BaseNetwork):
 
         group.add_argument('--swin-stride',
                            default=cls.stride, type=int,
-                           help='stride (must be 16 or 32)')
+                           help='stride (must be 16 or 32), '
+                                'gets halved if input is upsampled')
 
         group.add_argument('--swin-no-pretrain', dest='swin_pretrained',
                            default=True, action='store_false',
                            help='use randomly initialized models')
+
+        group.add_argument('--swin-input-upsample', default=False, action='store_true',
+                           help="Scales input image by a factor of 2 for higher res feature maps")
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
         cls.out_features = args.swin_out_features
         cls.stride = args.swin_stride
         cls.pretrained = args.swin_pretrained
+        cls.input_upsample = args.swin_input_upsample
+
 
 
 class XCiT(BaseNetwork):
