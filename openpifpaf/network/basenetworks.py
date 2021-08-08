@@ -564,13 +564,13 @@ class SwinTransformer(BaseNetwork):
                            help='number of output features for optional projection layer '
                                 '(None for no projection layer)')
 
+        group.add_argument('--swin-input-upsample', default=False, action='store_true',
+                           help='scales input image by a factor of 2 for higher res feature maps')
+
         group.add_argument('--swin-no-out-upsample', dest='swin_out_upsample',
                            default=True, action='store_false',
                            help='if used, no upsampling of last feature map by merging '
                                 'it with higher res feature map from previous layer')
-
-        group.add_argument('--swin-input-upsample', default=False, action='store_true',
-                           help='scales input image by a factor of 2 for higher res feature maps')
 
         group.add_argument('--swin-no-pretrain', dest='swin_pretrained',
                            default=True, action='store_false',
@@ -580,7 +580,6 @@ class SwinTransformer(BaseNetwork):
     def configure(cls, args: argparse.Namespace):
         cls.out_features = args.swin_out_features
         cls.out_upsample = args.swin_out_upsample
-        cls.input_upsample = args.swin_input_upsample
         cls.pretrained = args.swin_pretrained
 
 
@@ -632,7 +631,7 @@ class XCiT(BaseNetwork):
                                 '(None for no projection layer)')
 
         group.add_argument('--xcit-out-maxpool', default=False, action='store_true',
-                           help='adds max-pooling to output feature map')
+                           help='adds max-pooling to backbone output feature map')
 
         group.add_argument('--xcit-no-pretrain', dest='xcit_pretrained',
                            default=True, action='store_false',
