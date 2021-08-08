@@ -288,11 +288,12 @@ class CompositeLoss(torch.nn.Module):
         x_logs2 = 3.0 * torch.tanh(x_logs2[reg_mask] / 3.0)
         l_confidence = l_confidence[:, :, 0]
         l_confidence[reg_mask] = l_confidence[reg_mask] * torch.exp(-x_logs2) + 0.5 * x_logs2
+        # We want b=sigma. Therefore, log_b = 0.5 * log_s2
+        x_logb = 0.5 * x_logs2
+        reg_factor = torch.exp(-x_logb)
         for i in range(l_reg.shape[2]):
-            # We want b=sigma. Therefore, log_b = 0.5 * log_s2
-            x_logb = 0.5 * x_logs2
             l_reg_component = l_reg[:, :, i]
-            l_reg_component[reg_mask] = l_reg_component[reg_mask] * torch.exp(-x_logb) + x_logb
+            l_reg_component[reg_mask] = l_reg_component[reg_mask] * reg_factor + x_logb
         # l_scale[reg_mask] = l_scale[reg_mask] * torch.exp(-x_logs) + x_logs
 
         if self.weights is not None:
