@@ -62,6 +62,9 @@ setup(
         'dataclasses; python_version<"3.7"',
     ],
     extras_require={
+        'backbones': [
+            'timm>=0.4.9',  # For Swin Transformer and XCiT
+        ],
         'dev': [
             'cython',
             'flameprof',
