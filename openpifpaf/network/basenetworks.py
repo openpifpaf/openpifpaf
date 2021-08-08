@@ -501,7 +501,7 @@ class SqueezeNet(BaseNetwork):
 class SwinTransformer(BaseNetwork):
     pretrained = True
     out_features = None
-    stride = 16
+    output_upsample = True
     input_upsample = False
 
     def __init__(self, name, swin_net):
@@ -509,16 +509,20 @@ class SwinTransformer(BaseNetwork):
         has_projection = isinstance(self.out_features, int)
         self.out_features = self.out_features if has_projection else 8 * embed_dim
 
-        super().__init__(name, stride=self.stride // 2 if self.input_upsample else self.stride,
-                         out_features=self.out_features)
+        stride = 32
+
+        if self.input_upsample:
+            stride //= 2
+
+        if self.output_upsample:
+            stride //= 2
+
+        super().__init__(name, stride=stride, out_features=self.out_features)
 
         self.backbone = swin_net(pretrained=self.pretrained)
 
-        if not (self.stride == 16 or self.stride == 32):
-            raise ValueError('Invalid stride: must be 16 or 32')
-
         # Layers to obtain output feature map
-        if self.stride == 16:
+        if self.output_upsample:
             self.upsample = torch.nn.ConvTranspose2d(
                 8 * embed_dim, 8 * embed_dim, kernel_size=3, stride=2, padding=1)
             self.project = torch.nn.Conv2d(
@@ -539,7 +543,7 @@ class SwinTransformer(BaseNetwork):
 
         outs = self.backbone(x)
 
-        if self.stride == 16:
+        if self.output_upsample:
             # Upsample feature map of stride 32
             x = self.upsample(outs[-1], output_size=outs[-2].shape)
             # Merge with feature map of stride 16
@@ -558,25 +562,24 @@ class SwinTransformer(BaseNetwork):
                            help='number of output features for optional projection layer '
                                 '(None for no projection layer)')
 
-        group.add_argument('--swin-stride',
-                           default=cls.stride, type=int,
-                           help='stride (must be 16 or 32), '
-                                'gets halved if input is upsampled')
+        group.add_argument('--swin-no-output-upsample', dest='swin_output_upsampple',
+                           default=True, action='store_false',
+                           help='if used, no upsampling of last feature map by merging '
+                                'it with higher res feature map from previous layer')
+
+        group.add_argument('--swin-input-upsample', default=False, action='store_true',
+                           help='scales input image by a factor of 2 for higher res feature maps')
 
         group.add_argument('--swin-no-pretrain', dest='swin_pretrained',
                            default=True, action='store_false',
                            help='use randomly initialized models')
 
-        group.add_argument('--swin-input-upsample', default=False, action='store_true',
-                           help="Scales input image by a factor of 2 for higher res feature maps")
-
     @classmethod
     def configure(cls, args: argparse.Namespace):
         cls.out_features = args.swin_out_features
-        cls.stride = args.swin_stride
         cls.pretrained = args.swin_pretrained
+        cls.output_upsample = args.swin_output_upsample
         cls.input_upsample = args.swin_input_upsample
-
 
 
 class XCiT(BaseNetwork):
