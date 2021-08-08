@@ -6,6 +6,7 @@ Paper:
 """
 # Copyright (c) 2015-present, Facebook, Inc.
 # All rights reserved.
+# Licensed under The Apache-2.0 License [see docs/LICENSE.XCIT for details]
 # --------------------------------------------------------
 # Refactoring, modifications to class arguments and
 # loading of pretrained model weights by David Mizrahi

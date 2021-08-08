@@ -1,7 +1,7 @@
 # --------------------------------------------------------
 # Swin Transformer
 # Copyright (c) 2021 Microsoft
-# Licensed under The MIT License
+# Licensed under The MIT License [see docs/LICENSE.SWIN for details]
 # Written by Ze Liu, Yutong Lin, Yixuan Wei
 # --------------------------------------------------------
 # Refactoring and loading of pretrained model weights by David Mizrahi
