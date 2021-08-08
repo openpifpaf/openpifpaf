@@ -21,8 +21,6 @@ except ImportError:
     pass
 
 
-
-
 class Mlp(nn.Module):
     """ Multilayer perceptron."""
 
