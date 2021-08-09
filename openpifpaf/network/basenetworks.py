@@ -574,7 +574,7 @@ class SwinTransformer(BaseNetwork):
 
     def forward(self, x):
         if self.input_upsample_op is not None:
-            x = self.upsample_layer(x)
+            x = self.input_upsample_op(x)
 
         outs = self.backbone(x)
 
