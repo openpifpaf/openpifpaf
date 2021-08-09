@@ -516,7 +516,7 @@ class FPNOutBlock(torch.nn.Module):
                 fmap_channels[-2], fmap_channels[-1], kernel_size=1, stride=1)
 
         if has_projection:
-            LOG.debug('adding output projection to %d features', self.out_features)
+            LOG.debug('adding output projection to %d features', out_features)
             self.out_projection = torch.nn.Conv2d(
                 fmap_channels[-1], out_features, kernel_size=1, stride=1)
         else:
