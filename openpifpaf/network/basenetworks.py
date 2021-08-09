@@ -498,6 +498,45 @@ class SqueezeNet(BaseNetwork):
         cls.pretrained = args.squeezenet_pretrained
 
 
+class FPNOutBlock(torch.nn.Module):
+    """Block that handles feature maps usually passed to a FPN architecture,
+     to output a single feature map"""
+
+    def __init__(self, fmap_channels, out_upsample=True, out_features=None):
+        super().__init__()
+
+        self.out_upsample = out_upsample
+        has_projection = isinstance(self.out_features, int)
+
+        # Layers to obtain output feature map
+        if out_upsample:
+            self.upsample = torch.nn.ConvTranspose2d(
+                fmap_channels[-1], fmap_channels[-1], kernel_size=3, stride=2, padding=1)
+            self.project = torch.nn.Conv2d(
+                fmap_channels[-2], fmap_channels[-1], kernel_size=1, stride=1)
+
+        if has_projection:
+            LOG.debug('adding output projection to %d features', self.out_features)
+            self.out_projection = torch.nn.Conv2d(
+                fmap_channels[-1], out_features, kernel_size=1, stride=1)
+        else:
+            LOG.debug('no output projection')
+            self.out_projection = torch.nn.Identity()
+
+    def forward(self, outs):
+
+        if self.out_upsample:
+            # Upsample final feature map
+            x = self.upsample(outs[-1], output_size=outs[-2].shape)
+            # Merge with feature map of previous level
+            x = x + self.project(outs[-2])
+        else:
+            x = outs[-1]
+
+        x = self.out_projection(x)
+        return x
+
+
 class SwinTransformer(BaseNetwork):
     pretrained = True
     out_features = None
@@ -523,6 +562,14 @@ class SwinTransformer(BaseNetwork):
 
         self.backbone = swin_net(pretrained=self.pretrained)
 
+        if self.input_upsample:
+            self.in_block = torch.nn.Upsample(scale_factor=2)
+        else:
+            self.in_block = torch.nn.Identity()
+
+        self.out_block = FPNOutBlock([embed_dim, 2 * embed_dim, 4 * embed_dim, 8 * embed_dim],
+                                     self.out_upsample, self.out_features)
+
         # Layers to obtain output feature map
         if self.out_upsample:
             self.upsample = torch.nn.ConvTranspose2d(
@@ -539,21 +586,9 @@ class SwinTransformer(BaseNetwork):
             self.out_projection = torch.nn.Identity()
 
     def forward(self, x):
-
-        if self.input_upsample:
-            x = torch.nn.functional.interpolate(x, scale_factor=2, mode='nearest')
-
+        x = self.in_block(x)
         outs = self.backbone(x)
-
-        if self.out_upsample:
-            # Upsample feature map of stride 32
-            x = self.upsample(outs[-1], output_size=outs[-2].shape)
-            # Merge with feature map of stride 16
-            x = x + self.project(outs[-2])
-        else:
-            x = outs[-1]
-
-        x = self.out_projection(x)
+        x = self.out_block(outs)
         return x
 
     @classmethod
