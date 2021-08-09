@@ -512,11 +512,11 @@ class FPN(torch.nn.Module):
 
         # Start from the higher-level features (start from the smaller feature maps)
         for i in range(1, 2 + self.num_upsample):
-            lateral_conv = torch.nn.Conv2d(in_channels[-i], out_channels, stride=1)
+            lateral_conv = torch.nn.Conv2d(in_channels[-i], out_channels, 1)
             self.lateral_convs.append(lateral_conv)
 
         # Only one single refine conv for the largest feature map
-        self.refine_conv = torch.nn.Conv2d(out_channels, out_channels, stride=3, padding=1)
+        self.refine_conv = torch.nn.Conv2d(out_channels, out_channels, 3, padding=1)
 
     def forward(self, inputs):
         # FPN top-down pathway
@@ -525,7 +525,8 @@ class FPN(torch.nn.Module):
                     for lateral_conv, x in zip(self.lateral_convs, inputs[::-1])]
 
         for i in range(1, 1 + self.num_upsample):
-            laterals[i] += torch.nn.functional.interpolate(laterals[i - 1], size=laterals[i].shape[2:])
+            laterals[i] += torch.nn.functional.interpolate(
+                laterals[i - 1], size=laterals[i].shape[2:], mode='nearest')
 
         x = self.refine_conv(laterals[-1])
         return x
@@ -591,7 +592,7 @@ class SwinTransformer(BaseNetwork):
                                 'to obtain higher res feature maps')
 
         group.add_argument('--swin-fpn-out-channels',
-                           default=cls.out_channels, type=int,
+                           default=cls.fpn_out_channels, type=int,
                            help='output channels of the FPN (None to use the '
                                 'default number of channels of the Swin network)')
 
@@ -615,18 +616,18 @@ class SwinTransformer(BaseNetwork):
 
 class XCiT(BaseNetwork):
     pretrained = True
-    out_features = None
+    out_channels = None
     out_maxpool = False
 
     def __init__(self, name, xcit_net):
         embed_dim = xcit_net().embed_dim
         patch_size = xcit_net().patch_size
-        has_projection = isinstance(self.out_features, int)
-        self.out_features = self.out_features if has_projection else embed_dim
+        has_projection = isinstance(self.out_channels, int)
+        self.out_channels = self.out_channels if has_projection else embed_dim
 
         stride = patch_size * 2 if self.out_maxpool else patch_size
 
-        super().__init__(name, stride=stride, out_features=self.out_features)
+        super().__init__(name, stride=stride, out_features=self.out_channels)
 
         self.backbone = xcit_net(pretrained=self.pretrained)
 
@@ -656,7 +657,7 @@ class XCiT(BaseNetwork):
     def cli(cls, parser: argparse.ArgumentParser):
         group = parser.add_argument_group('XCiT')
         group.add_argument('--xcit-out-channels',
-                           default=cls.out_features, type=int,
+                           default=cls.out_channels, type=int,
                            help='number of output channels for optional projection layer '
                                 '(None for no projection layer)')
 
@@ -669,6 +670,6 @@ class XCiT(BaseNetwork):
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
-        cls.out_features = args.xcit_out_features
+        cls.out_channels = args.xcit_out_channels
         cls.out_maxpool = args.xcit_out_maxpool
         cls.pretrained = args.xcit_pretrained
