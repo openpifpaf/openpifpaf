@@ -498,54 +498,55 @@ class SqueezeNet(BaseNetwork):
         cls.pretrained = args.squeezenet_pretrained
 
 
-class FPNOutBlock(torch.nn.Module):
-    """Block that handles feature maps usually passed to a FPN architecture,
-     to output a single feature map"""
+class FPN(torch.nn.Module):
+    """Feature Pyramid Network, modified to only refine and return the feature map
+    of a single pyramid level"""
 
-    def __init__(self, fmap_channels, out_upsample=True, out_features=None, has_projection=False):
+    def __init__(self, in_channels, out_channels, fpn_level=3):
+
         super().__init__()
 
-        self.out_upsample = out_upsample
+        self.num_upsample = 4 - fpn_level
 
-        # Layers to obtain output feature map
-        if out_upsample:
-            self.upsample = torch.nn.ConvTranspose2d(
-                fmap_channels[-1], fmap_channels[-1], kernel_size=3, stride=2, padding=1)
-            self.project = torch.nn.Conv2d(
-                fmap_channels[-2], fmap_channels[-1], kernel_size=1, stride=1)
+        self.lateral_convs = torch.nn.ModuleList()
 
-        if has_projection:
-            LOG.debug('adding output projection to %d features', out_features)
-            self.out_projection = torch.nn.Conv2d(
-                fmap_channels[-1], out_features, kernel_size=1, stride=1)
-        else:
-            LOG.debug('no output projection')
-            self.out_projection = torch.nn.Identity()
+        # Start from the higher-level features (start from the smaller feature maps)
+        for i in range(1, 2 + self.num_upsample):
+            lateral_conv = torch.nn.Conv2d(in_channels[-i], out_channels, stride=1)
+            self.lateral_convs.append(lateral_conv)
 
-    def forward(self, outs):
+        # Only one single refine conv for the largest feature map
+        self.refine_conv = torch.nn.Conv2d(out_channels, out_channels, stride=3, padding=1)
 
-        if self.out_upsample:
-            # Upsample final feature map
-            x = self.upsample(outs[-1], output_size=outs[-2].shape)
-            # Merge with feature map of previous level
-            x = x + self.project(outs[-2])
-        else:
-            x = outs[-1]
+    def forward(self, inputs):
+        # FPN top-down pathway
+        # Start from the higher-level features (start from the smaller feature maps)
+        laterals = [lateral_conv(x)
+                    for lateral_conv, x in zip(self.lateral_convs, inputs[::-1])]
 
-        x = self.out_projection(x)
+        for i in range(1, 1 + self.num_upsample):
+            laterals[i] += torch.nn.functional.interpolate(laterals[i - 1], size=laterals[i].shape[2:])
+
+        x = self.refine_conv(laterals[-1])
         return x
 
 
 class SwinTransformer(BaseNetwork):
+    """Swin Transformer, with optional FPN and input upsampling to obtain higher resolution
+    feature maps"""
     pretrained = True
-    out_features = None
-    out_upsample = True
     input_upsample = False
+    use_fpn = False
+    fpn_level = 3
+    fpn_out_channels = None
 
     def __init__(self, name, swin_net):
         embed_dim = swin_net().embed_dim
-        has_projection = isinstance(self.out_features, int)
-        backbone_out_features = self.out_features if has_projection else 8 * embed_dim
+
+        if not self.use_fpn or self.fpn_out_channels is None:
+            self.out_features = 8 * embed_dim
+        else:
+            self.out_features = self.fpn_out_channels
 
         stride = 32
 
@@ -553,11 +554,11 @@ class SwinTransformer(BaseNetwork):
             LOG.debug('swin input upsampling')
             stride //= 2
 
-        if self.out_upsample:
-            LOG.debug('swin output upsampling')
-            stride //= 2
+        if self.use_fpn:
+            LOG.debug('swin output FPN level: %d', self.fpn_level)
+            stride //= 2 ** (4 - self.fpn_level)
 
-        super().__init__(name, stride=stride, out_features=backbone_out_features)
+        super().__init__(name, stride=stride, out_features=self.out_features)
 
         if self.input_upsample:
             self.in_block = torch.nn.Upsample(scale_factor=2)
@@ -566,8 +567,11 @@ class SwinTransformer(BaseNetwork):
 
         self.backbone = swin_net(pretrained=self.pretrained)
 
-        self.out_block = FPNOutBlock([embed_dim, 2 * embed_dim, 4 * embed_dim, 8 * embed_dim],
-                                     self.out_upsample, self.out_features, has_projection)
+        if self.use_fpn:
+            self.out_block = FPN([embed_dim, 2 * embed_dim, 4 * embed_dim, 8 * embed_dim],
+                                 self.out_features, self.fpn_level)
+        else:
+            self.out_block = torch.nn.Identity()
 
     def forward(self, x):
         x = self.in_block(x)
@@ -578,18 +582,23 @@ class SwinTransformer(BaseNetwork):
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
         group = parser.add_argument_group('SwinTransformer')
-        group.add_argument('--swin-out-features',
-                           default=cls.out_features, type=int,
-                           help='number of output features for optional projection layer '
-                                '(None for no projection layer)')
 
         group.add_argument('--swin-input-upsample', default=False, action='store_true',
                            help='scales input image by a factor of 2 for higher res feature maps')
 
-        group.add_argument('--swin-no-out-upsample', dest='swin_out_upsample',
-                           default=True, action='store_false',
-                           help='if used, no upsampling of last feature map by merging '
-                                'it with higher res feature map from previous layer')
+        group.add_argument('--swin-use-fpn', default=False, action='store_true',
+                           help='adds a FPN after the Swin network '
+                                'to obtain higher res feature maps')
+
+        group.add_argument('--swin-fpn-out-channels',
+                           default=cls.out_channels, type=int,
+                           help='output channels of the FPN (None to use the '
+                                'default number of channels of the Swin network)')
+
+        group.add_argument('--swin-fpn-level',
+                           default=cls.fpn_level, type=int,
+                           help='FPN pyramid level, must be between 1 '
+                                '(highest resolution) and 4 (lowest resolution)')
 
         group.add_argument('--swin-no-pretrain', dest='swin_pretrained',
                            default=True, action='store_false',
@@ -597,9 +606,10 @@ class SwinTransformer(BaseNetwork):
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
-        cls.out_features = args.swin_out_features
         cls.input_upsample = args.swin_input_upsample
-        cls.out_upsample = args.swin_out_upsample
+        cls.use_fpn = args.swin_use_fpn
+        cls.fpn_out_channels = args.swin_fpn_out_channels
+        cls.fpn_level = args.swin_fpn_level
         cls.pretrained = args.swin_pretrained
 
 
@@ -621,7 +631,7 @@ class XCiT(BaseNetwork):
         self.backbone = xcit_net(pretrained=self.pretrained)
 
         if has_projection:
-            LOG.debug('adding output projection to %d features', self.out_features)
+            LOG.debug('adding output projection to %d channels', self.out_features)
             self.out_projection = torch.nn.Conv2d(
                 embed_dim, self.out_features, kernel_size=1, stride=1)
         else:
@@ -645,9 +655,9 @@ class XCiT(BaseNetwork):
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
         group = parser.add_argument_group('XCiT')
-        group.add_argument('--xcit-out-features',
+        group.add_argument('--xcit-out-channels',
                            default=cls.out_features, type=int,
-                           help='number of output features for optional projection layer '
+                           help='number of output channels for optional projection layer '
                                 '(None for no projection layer)')
 
         group.add_argument('--xcit-out-maxpool', default=False, action='store_true',
