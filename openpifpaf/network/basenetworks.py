@@ -506,7 +506,7 @@ class FPN(torch.nn.Module):
 
         super().__init__()
 
-        self.num_upsample_ops = 4 - fpn_level
+        self.num_upsample_ops = len(in_channels) - fpn_level
 
         self.lateral_convs = torch.nn.ModuleList()
 
