@@ -506,12 +506,12 @@ class FPN(torch.nn.Module):
 
         super().__init__()
 
-        self.num_upsample = 4 - fpn_level
+        self.num_upsample_ops = 4 - fpn_level
 
         self.lateral_convs = torch.nn.ModuleList()
 
         # Start from the higher-level features (start from the smaller feature maps)
-        for i in range(1, 2 + self.num_upsample):
+        for i in range(1, 2 + self.num_upsample_ops):
             lateral_conv = torch.nn.Conv2d(in_channels[-i], out_channels, 1)
             self.lateral_convs.append(lateral_conv)
 
@@ -524,7 +524,7 @@ class FPN(torch.nn.Module):
         laterals = [lateral_conv(x)
                     for lateral_conv, x in zip(self.lateral_convs, inputs[::-1])]
 
-        for i in range(1, 1 + self.num_upsample):
+        for i in range(1, 1 + self.num_upsample_ops):
             laterals[i] += torch.nn.functional.interpolate(
                 laterals[i - 1], size=laterals[i].shape[2:], mode='nearest')
 
