@@ -559,12 +559,12 @@ class SwinTransformer(BaseNetwork):
 
         super().__init__(name, stride=stride, out_features=backbone_out_features)
 
-        self.backbone = swin_net(pretrained=self.pretrained)
-
         if self.input_upsample:
             self.in_block = torch.nn.Upsample(scale_factor=2)
         else:
             self.in_block = torch.nn.Identity()
+
+        self.backbone = swin_net(pretrained=self.pretrained)
 
         self.out_block = FPNOutBlock([embed_dim, 2 * embed_dim, 4 * embed_dim, 8 * embed_dim],
                                      self.out_upsample, self.out_features, has_projection)
