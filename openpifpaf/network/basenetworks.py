@@ -546,7 +546,7 @@ class SwinTransformer(BaseNetwork):
     def __init__(self, name, swin_net):
         embed_dim = swin_net().embed_dim
         has_projection = isinstance(self.out_features, int)
-        self.out_features = self.out_features if has_projection else 8 * embed_dim
+        backbone_out_features = self.out_features if has_projection else 8 * embed_dim
 
         stride = 32
 
@@ -558,7 +558,7 @@ class SwinTransformer(BaseNetwork):
             LOG.debug('swin output upsampling')
             stride //= 2
 
-        super().__init__(name, stride=stride, out_features=self.out_features)
+        super().__init__(name, stride=stride, out_features=backbone_out_features)
 
         self.backbone = swin_net(pretrained=self.pretrained)
 
@@ -569,21 +569,6 @@ class SwinTransformer(BaseNetwork):
 
         self.out_block = FPNOutBlock([embed_dim, 2 * embed_dim, 4 * embed_dim, 8 * embed_dim],
                                      self.out_upsample, self.out_features)
-
-        # Layers to obtain output feature map
-        if self.out_upsample:
-            self.upsample = torch.nn.ConvTranspose2d(
-                8 * embed_dim, 8 * embed_dim, kernel_size=3, stride=2, padding=1)
-            self.project = torch.nn.Conv2d(
-                4 * embed_dim, 8 * embed_dim, kernel_size=1, stride=1)
-
-        if has_projection:
-            LOG.debug('adding output projection to %d features', self.out_features)
-            self.out_projection = torch.nn.Conv2d(
-                8 * embed_dim, self.out_features, kernel_size=1, stride=1)
-        else:
-            LOG.debug('no output projection')
-            self.out_projection = torch.nn.Identity()
 
     def forward(self, x):
         x = self.in_block(x)
