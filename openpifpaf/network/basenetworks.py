@@ -502,11 +502,10 @@ class FPNOutBlock(torch.nn.Module):
     """Block that handles feature maps usually passed to a FPN architecture,
      to output a single feature map"""
 
-    def __init__(self, fmap_channels, out_upsample=True, out_features=None):
+    def __init__(self, fmap_channels, out_upsample=True, out_features=None, has_projection=False):
         super().__init__()
 
         self.out_upsample = out_upsample
-        has_projection = isinstance(out_features, int)
 
         # Layers to obtain output feature map
         if out_upsample:
@@ -568,7 +567,7 @@ class SwinTransformer(BaseNetwork):
             self.in_block = torch.nn.Identity()
 
         self.out_block = FPNOutBlock([embed_dim, 2 * embed_dim, 4 * embed_dim, 8 * embed_dim],
-                                     self.out_upsample, self.out_features)
+                                     self.out_upsample, self.out_features, has_projection)
 
     def forward(self, x):
         x = self.in_block(x)
