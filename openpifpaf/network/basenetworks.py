@@ -559,25 +559,32 @@ class SwinTransformer(BaseNetwork):
             LOG.debug('swin output FPN level: %d', self.fpn_level)
             stride //= 2 ** (4 - self.fpn_level)
 
+        self.no_fpn = not self.use_fpn
+
         super().__init__(name, stride=stride, out_features=self.out_features)
 
+        self.upsample_layer = None
         if self.input_upsample:
-            self.in_block = torch.nn.Upsample(scale_factor=2)
-        else:
-            self.in_block = torch.nn.Identity()
+            self.upsample_layer = torch.nn.Upsample(scale_factor=2)
 
         self.backbone = swin_net(pretrained=self.pretrained)
 
+        self.fpn = None
         if self.use_fpn:
-            self.out_block = FPN([embed_dim, 2 * embed_dim, 4 * embed_dim, 8 * embed_dim],
-                                 self.out_features, self.fpn_level)
-        else:
-            self.out_block = torch.nn.Identity()
+            self.fpn = FPN([embed_dim, 2 * embed_dim, 4 * embed_dim, 8 * embed_dim],
+                           self.out_features, self.fpn_level)
 
     def forward(self, x):
-        x = self.in_block(x)
+        if self.upsample_layer is not None:
+            x = self.upsample_layer(x)
+
         outs = self.backbone(x)
-        x = self.out_block(outs)
+
+        if self.fpn is not None:
+            x = self.fpn(outs)
+        else:
+            x = outs[-1]
+
         return x
 
     @classmethod
