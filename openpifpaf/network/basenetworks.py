@@ -506,7 +506,7 @@ class FPNOutBlock(torch.nn.Module):
         super().__init__()
 
         self.out_upsample = out_upsample
-        has_projection = isinstance(self.out_features, int)
+        has_projection = isinstance(out_features, int)
 
         # Layers to obtain output feature map
         if out_upsample:
