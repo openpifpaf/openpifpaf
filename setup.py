@@ -60,7 +60,6 @@ setup(
         'torchvision>=0.8.2',
         'pillow!=8.3.0',  # exclusion torchvision 0.10.0 compatibility
         'dataclasses; python_version<"3.7"',
-        'einops>=0.3',  # required for BotNet
     ],
     extras_require={
         'backbones': [
