@@ -536,6 +536,7 @@ class SwinTransformer(BaseNetwork):
     """Swin Transformer, with optional FPN and input upsampling to obtain higher resolution
     feature maps"""
     pretrained = True
+    drop_path_rate = 0.2
     input_upsample = False
     use_fpn = False
     fpn_level = 3
@@ -565,7 +566,8 @@ class SwinTransformer(BaseNetwork):
         if self.input_upsample:
             self.input_upsample_op = torch.nn.Upsample(scale_factor=2)
 
-        self.backbone = swin_net(pretrained=self.pretrained)
+        self.backbone = swin_net(pretrained=self.pretrained,
+                                 drop_path_rate=self.drop_path_rate)
 
         self.fpn = None
         if self.use_fpn:
@@ -588,6 +590,9 @@ class SwinTransformer(BaseNetwork):
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
         group = parser.add_argument_group('SwinTransformer')
+
+        group.add_argument('--swin-drop-path-rate', default=cls.drop_path_rate, type=float,
+                           help="drop path (stochastic depth) rate")
 
         group.add_argument('--swin-input-upsample', default=False, action='store_true',
                            help='scales input image by a factor of 2 for higher res feature maps')
