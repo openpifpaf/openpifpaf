@@ -499,8 +499,11 @@ class SqueezeNet(BaseNetwork):
 
 
 class FPN(torch.nn.Module):
-    """Feature Pyramid Network, modified to only refine and return the feature map
-    of a single pyramid level"""
+    """ Feature Pyramid Network (https://arxiv.org/abs/1612.03144).
+
+    This implementation has been modified to only refine and return
+    the feature map of a single pyramid level.
+    """
 
     def __init__(self, in_channels, out_channels, fpn_level=3):
 
