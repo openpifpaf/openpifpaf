@@ -3,7 +3,10 @@
 import torch
 from torch import nn, einsum
 
-from einops import rearrange
+try:
+    from einops import rearrange
+except ImportError:
+    rearrange = None
 
 
 def pair(x):
