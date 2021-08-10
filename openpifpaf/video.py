@@ -109,6 +109,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
 def main():
     args = cli()
 
+    Predictor.loader_workers = 1
     predictor = Predictor(
         visualize_image=(not args.json_output or args.video_output),
         visualize_processed_image=args.debug,
@@ -123,7 +124,7 @@ def main():
 
     last_loop = time.perf_counter()
     for (ax, ax_second), (preds, _, meta) in \
-            zip(animation.iter(), predictor.dataset(capture, loader_workers=1)):
+            zip(animation.iter(), predictor.dataset(capture)):
         image = visualizer.Base._image  # pylint: disable=protected-access
         if ax is None and (not args.json_output or args.video_output):
             ax, ax_second = animation.frame_init(image)
@@ -139,10 +140,12 @@ def main():
                 }, f, separators=(',', ':'))
                 f.write('\n')
         if (not args.json_output or args.video_output) \
-           and (args.separate_debug_ax or not (args.debug or args.debug_indices)):
+           and (args.separate_debug_ax or not args.debug_indices):
             ax.imshow(image)
             annotation_painter.annotations(ax, preds)
         postprocessing_time = time.perf_counter() - start_post
+        if animation.last_draw_time is not None:
+            postprocessing_time += animation.last_draw_time
 
         LOG.info('frame %d, loop time = %.0fms (pre = %.1fms, post = %.1fms), FPS = %.1f',
                  meta['frame_i'],

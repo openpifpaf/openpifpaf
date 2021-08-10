@@ -58,11 +58,14 @@ setup(
         'python-json-logger',
         'torch>=1.7.1',
         'torchvision>=0.8.2',
-        'pillow<8.3',  # upper limit for torchvision 0.10.0 compatibility
+        'pillow!=8.3.0',  # exclusion torchvision 0.10.0 compatibility
         'dataclasses; python_version<"3.7"',
         'einops>=0.3',  # required for BotNet
     ],
     extras_require={
+        'backbones': [
+            'timm>=0.4.9',  # For Swin Transformer and XCiT
+        ],
         'dev': [
             'cython',
             'flameprof',
@@ -89,7 +92,7 @@ setup(
             'onnx',
             'onnxruntime',
             'onnx-simplifier>=0.2.9; python_version<"3.9"',  # Python 3.9 not supported yet
-            'pylint',
+            'pylint<2.9.4',  # avoid 2.9.4 and up for time.perf_counter deprecation warnings
             'pycodestyle',
             'pytest',
             'opencv-python',

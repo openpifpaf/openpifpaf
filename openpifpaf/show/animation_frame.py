@@ -1,4 +1,5 @@
 import logging
+import time
 
 import numpy as np
 
@@ -82,6 +83,7 @@ class AnimationFrame:
         self.ax = None
         self.ax_second = None
         self._skip_frame = False
+        self.last_draw_time = None
 
         LOG.info('video output = %s', video_output)
 
@@ -107,6 +109,8 @@ class AnimationFrame:
                     self._skip_frame = False
                     continue
 
+                start = time.perf_counter()
+
                 # Lazy setup of video writer (needs to be after first yield
                 # because only that might setup `self.fig`).
                 if self.video_writer and not video_writer_is_setup:
@@ -122,6 +126,8 @@ class AnimationFrame:
                     self.clean_axis(self.ax)
                 if self.ax_second:
                     self.clean_axis(self.ax_second)
+
+                self.last_draw_time = time.perf_counter() - start
 
         finally:
             if self.video_writer:
