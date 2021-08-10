@@ -37,6 +37,7 @@ BASE_TYPES = set([
     basenetworks.SqueezeNet,
     basenetworks.SwinTransformer,
     basenetworks.XCiT,
+    basenetworks.EffNetV2,
 ])
 BASE_FACTORIES = {
     'mobilenetv2': lambda: basenetworks.MobileNetV2('mobilenetv2', torchvision.models.mobilenet_v2),
