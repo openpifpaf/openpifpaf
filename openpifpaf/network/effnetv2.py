@@ -1,9 +1,10 @@
 """
+Copyright (c) by Duo Li licensed under the MIT license. [see docs/LICENSE.EFFNETV2 for details]
+
 Creates a EfficientNetV2 Model as defined in:
 Mingxing Tan, Quoc V. Le. (2021).
 EfficientNetV2: Smaller Models and Faster Training
 arXiv preprint arXiv:2104.00298.
-import from https://github.com/d-li14/mobilenetv2.pytorch
 """
 
 import math

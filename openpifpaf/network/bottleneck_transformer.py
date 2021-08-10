@@ -1,12 +1,9 @@
+# Copyright (c) by Phil Wang licensed under the MIT license. [see docs/LICENSE.BOTNET for details]
+
 import torch
 from torch import nn, einsum
 
 from einops import rearrange
-
-# translated from tensorflow code
-# https://gist.github.com/aravindsrinivas/56359b79f0ce4449bcb04ab4b56a57a2
-
-# positional embedding helpers
 
 
 def pair(x):
