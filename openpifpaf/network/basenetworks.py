@@ -1,8 +1,8 @@
 import argparse
 import logging
+import math
 import torch
 import torchvision.models
-import math
 from . import effnetv2
 from . import bottleneck_transformer
 
