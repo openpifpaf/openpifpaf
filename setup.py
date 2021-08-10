@@ -65,6 +65,7 @@ setup(
     extras_require={
         'backbones': [
             'timm>=0.4.9',  # For Swin Transformer and XCiT
+            'einops>=0.3',  # required for BotNet
         ],
         'dev': [
             'cython',
