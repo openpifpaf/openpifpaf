@@ -88,6 +88,15 @@ BASE_FACTORIES = {
     'xcit_small_24_p8': lambda: basenetworks.XCiT('xcit_small_24_p8', xcit.xcit_small_24_p8),
     'xcit_medium_24_p8': lambda: basenetworks.XCiT('xcit_medium_24_p8', xcit.xcit_medium_24_p8),
     'xcit_large_24_p8': lambda: basenetworks.XCiT('xcit_large_24_p8', xcit.xcit_large_24_p8),
+    'effnetv2_s': lambda: basenetworks.EffNetV2S('effnetv2_s'),
+    'effnetv2_m': lambda: basenetworks.EffNetV2M('effnetv2_m'),
+    'effnetv2_l': lambda: basenetworks.EffNetV2L('effnetv2_l'),
+    'effnetv2_xl': lambda: basenetworks.EffNetV2XL('effnetv2_xl'),
+    'effnetv2_s16_s': lambda: basenetworks.EffNetV2S16('effnetv2_s16_s'),
+    'effnetv2_s16_m': lambda: basenetworks.EffNetV2M16('effnetv2_s16_m'),
+    'effnetv2_s16_l': lambda: basenetworks.EffNetV2L16('effnetv2_s16_l'),
+    'effnetv2_s16_xl': lambda: basenetworks.EffNetV2XL16('effnetv2_s16_xl'),
+    'botnet': lambda: basenetworks.BotNet('botnet'),
 }
 
 #: headmeta class to head class
