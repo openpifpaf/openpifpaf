@@ -617,6 +617,7 @@ class SwinTransformer(BaseNetwork):
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
+        cls.drop_path_rate = args.swin_drop_path_rate
         cls.input_upsample = args.swin_input_upsample
         cls.use_fpn = args.swin_use_fpn
         cls.fpn_out_channels = args.swin_fpn_out_channels
