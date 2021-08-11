@@ -635,7 +635,7 @@ class SwinTransformer(nn.Module):
 
 def swin_tiny_patch4_window7(pretrained=True, **kwargs):
     model = SwinTransformer(embed_dim=96, depths=(2, 2, 6, 2), num_heads=(3, 6, 12, 24),
-                            window_size=7, ape=False, drop_path_rate=0.2, patch_norm=True,
+                            window_size=7, ape=False, patch_norm=True,
                             use_checkpoint=False, **kwargs)
     url = "https://github.com/SwinTransformer/storage/releases/download/v1.0.0/swin_tiny_patch4_window7_224.pth"
     model.init_weights(url if pretrained else None)
@@ -644,7 +644,7 @@ def swin_tiny_patch4_window7(pretrained=True, **kwargs):
 
 def swin_small_patch4_window7(pretrained=True, **kwargs):
     model = SwinTransformer(embed_dim=96, depths=(2, 2, 18, 2), num_heads=(3, 6, 12, 24),
-                            window_size=7, ape=False, drop_path_rate=0.2, patch_norm=True,
+                            window_size=7, ape=False, patch_norm=True,
                             use_checkpoint=False, **kwargs)
     url = "https://github.com/SwinTransformer/storage/releases/download/v1.0.0/swin_small_patch4_window7_224.pth"
     model.init_weights(url if pretrained else None)
@@ -653,7 +653,7 @@ def swin_small_patch4_window7(pretrained=True, **kwargs):
 
 def swin_base_patch4_window7(pretrained=True, **kwargs):
     model = SwinTransformer(embed_dim=128, depths=(2, 2, 18, 2), num_heads=(4, 8, 16, 32),
-                            window_size=7, ape=False, drop_path_rate=0.2, patch_norm=True,
+                            window_size=7, ape=False, patch_norm=True,
                             use_checkpoint=False, **kwargs)
     # Note: For Swin-B, 384x384x ImageNet-1K pretraining and ImageNet-22K pretraining is also available
     url = "https://github.com/SwinTransformer/storage/releases/download/v1.0.0/swin_base_patch4_window7_224.pth"
