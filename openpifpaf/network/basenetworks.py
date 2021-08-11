@@ -1,7 +1,10 @@
 import argparse
 import logging
+import math
 import torch
 import torchvision.models
+from . import effnetv2
+from . import bottleneck_transformer
 
 LOG = logging.getLogger(__name__)
 
@@ -496,3 +499,199 @@ class SqueezeNet(BaseNetwork):
     @classmethod
     def configure(cls, args: argparse.Namespace):
         cls.pretrained = args.squeezenet_pretrained
+
+
+class SwinTransformer(BaseNetwork):
+    pretrained = True
+    out_features = None
+    stride = 16
+
+    def __init__(self, name, swin_net):
+        embed_dim = swin_net().embed_dim
+        has_projection = isinstance(self.out_features, int)
+        self.out_features = self.out_features if has_projection else 8 * embed_dim
+
+        super().__init__(name, stride=self.stride, out_features=self.out_features)
+
+        self.backbone = swin_net(pretrained=self.pretrained)
+
+        if not (self.stride == 16 or self.stride == 32):
+            raise ValueError('Invalid stride: must be 16 or 32')
+
+        # Layers to obtain output feature map
+        if self.stride == 16:
+            self.upsample = torch.nn.ConvTranspose2d(
+                8 * embed_dim, 8 * embed_dim, kernel_size=3, stride=2, padding=1)
+            self.project = torch.nn.Conv2d(
+                4 * embed_dim, 8 * embed_dim, kernel_size=1, stride=1)
+
+        if has_projection:
+            LOG.debug('adding output projection to %d features', self.out_features)
+            self.out_projection = torch.nn.Conv2d(
+                8 * embed_dim, self.out_features, kernel_size=1, stride=1)
+        else:
+            LOG.debug('no output projection')
+            self.out_projection = torch.nn.Identity()
+
+    def forward(self, x):
+        outs = self.backbone(x)
+
+        if self.stride == 16:
+            # Upsample feature map of stride 32
+            x = self.upsample(outs[-1], output_size=outs[-2].shape)
+            # Merge with feature map of stride 16
+            x = x + self.project(outs[-2])
+        else:
+            x = outs[-1]
+
+        x = self.out_projection(x)
+        return x
+
+    @classmethod
+    def cli(cls, parser: argparse.ArgumentParser):
+        group = parser.add_argument_group('SwinTransformer')
+        group.add_argument('--swin-out-features',
+                           default=cls.out_features, type=int,
+                           help='number of output features for optional projection layer '
+                                '(None for no projection layer)')
+
+        group.add_argument('--swin-stride',
+                           default=cls.stride, type=int,
+                           help='stride (must be 16 or 32)')
+
+        group.add_argument('--swin-no-pretrain', dest='swin_pretrained',
+                           default=True, action='store_false',
+                           help='use randomly initialized models')
+
+    @classmethod
+    def configure(cls, args: argparse.Namespace):
+        cls.out_features = args.swin_out_features
+        cls.stride = args.swin_stride
+        cls.pretrained = args.swin_pretrained
+
+
+class XCiT(BaseNetwork):
+    pretrained = True
+    out_features = None
+    stride = 16
+
+    def __init__(self, name, xcit_net):
+        embed_dim = xcit_net().embed_dim
+        has_projection = isinstance(self.out_features, int)
+        self.out_features = self.out_features if has_projection else embed_dim
+
+        super().__init__(name, stride=self.stride, out_features=self.out_features)
+
+        self.backbone = xcit_net(pretrained=self.pretrained)
+
+        if has_projection:
+            LOG.debug('adding output projection to %d features', self.out_features)
+            self.out_projection = torch.nn.Conv2d(
+                embed_dim, self.out_features, kernel_size=1, stride=1)
+        else:
+            LOG.debug('no output projection')
+            self.out_projection = torch.nn.Identity()
+
+        if not (self.stride == 16 or (self.stride == 8 and self.backbone.patch_size == 8)):
+            raise ValueError('Invalid stride: must be 16 for patch size 16,'
+                             ' or either 8 and 16 for patch size 8')
+
+        if self.backbone.patch_size == 8 and self.stride == 16:
+            self.out_block = torch.nn.Sequential(
+                self.out_projection,
+                torch.nn.MaxPool2d(kernel_size=2, stride=2, ceil_mode=True)
+            )
+        else:
+            self.out_block = torch.nn.Sequential(self.out_projection)
+
+    def forward(self, x):
+        x = self.backbone(x)
+        x = self.out_block(x)
+        return x
+
+    @classmethod
+    def cli(cls, parser: argparse.ArgumentParser):
+        group = parser.add_argument_group('XCiT')
+        group.add_argument('--xcit-out-features',
+                           default=cls.out_features, type=int,
+                           help='number of output features for optional projection layer '
+                                '(None for no projection layer)')
+
+        group.add_argument('--xcit-stride',
+                           default=cls.stride, type=int,
+                           help='stride (must be 16 for patch size 16, '
+                                'and 8 or 16 for patch size 8)')
+
+        group.add_argument('--xcit-no-pretrain', dest='xcit_pretrained',
+                           default=True, action='store_false',
+                           help='use randomly initialized models')
+
+    @classmethod
+    def configure(cls, args: argparse.Namespace):
+        cls.out_features = args.xcit_out_features
+        cls.stride = args.xcit_stride
+        cls.pretrained = args.xcit_pretrained
+
+
+class EffNetV2(BaseNetwork):
+    def __init__(self, name, configuration, stride):
+        backbone = effnetv2.EffNetV2(configuration)
+        super().__init__(name, stride=stride, out_features=backbone.output_channel)
+        self.backbone = backbone
+        self.backbone._initialize_weights()
+
+    def forward(self, x):
+        x = self.backbone.forward(x)
+        return x
+
+    @classmethod
+    def cli(cls, parser: argparse.ArgumentParser):
+        pass
+
+    @classmethod
+    def configure(cls, args: argparse.Namespace):
+        pass
+
+
+class BotNet(BaseNetwork):
+    input_image_size = 640
+
+    def __init__(self, name, out_features=2048):
+        super().__init__(name, stride=8, out_features=out_features)
+
+        layer = bottleneck_transformer.BottleStack(
+            dim=256,
+            fmap_size=int(math.ceil(self.input_image_size / 4)),  # default img size is 640 x 640
+            dim_out=2048,
+            proj_factor=4,
+            downsample=True,
+            heads=4,
+            dim_head=128,
+            rel_pos_emb=True,
+            activation=torch.nn.ReLU()
+        )
+
+        resnet = torchvision.models.resnet50()
+
+        # model surgery
+        resnet_parts = list(resnet.children())
+        self.backbone = torch.nn.Sequential(
+            *resnet_parts[:5],
+            layer,
+        )
+
+    def forward(self, x):
+        x = self.backbone.forward(x)
+        return x
+
+    @classmethod
+    def cli(cls, parser: argparse.ArgumentParser):
+        group = parser.add_argument_group('BotNet')
+        group.add_argument('--botnet-input-image-size',
+                           default=cls.input_image_size, type=int,
+                           help='Input image size. Needs to be the same for training and'
+                           ' prediction, as BotNet only accepts fixed input sizes')
+
+    @classmethod
+    def configure(cls, args: argparse.Namespace):
+        cls.input_image_size = args.botnet_input_image_size

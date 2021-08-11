@@ -10,6 +10,7 @@ import torchvision
 from .. import headmeta
 from ..configurable import Configurable
 from . import basenetworks, heads, model_migration, nets, tracking_heads
+from . import swin_transformer, xcit
 from .tracking_base import TrackingBase
 
 
@@ -35,6 +36,9 @@ BASE_TYPES = set([
     basenetworks.ShuffleNetV2,
     basenetworks.ShuffleNetV2K,
     basenetworks.SqueezeNet,
+    basenetworks.SwinTransformer,
+    basenetworks.XCiT,
+    basenetworks.EffNetV2,
     TrackingBase,
 ])
 BASE_FACTORIES = {
@@ -65,6 +69,118 @@ BASE_FACTORIES = {
     'shufflenetv2k44': lambda: basenetworks.ShuffleNetV2K(
         'shufflenetv2k44', [12, 24, 8], [32, 512, 1024, 2048, 2048]),
     'squeezenet': lambda: basenetworks.SqueezeNet('squeezenet', torchvision.models.squeezenet1_1),
+    # Swin architectures: swin_t is roughly equivalent to unmodified resnet50
+    'swin_t': lambda: basenetworks.SwinTransformer(
+        'swin_t', swin_transformer.swin_tiny_patch4_window7),
+    'swin_s': lambda: basenetworks.SwinTransformer(
+        'swin_s', swin_transformer.swin_small_patch4_window7),
+    'swin_b': lambda: basenetworks.SwinTransformer(
+        'swin_b', swin_transformer.swin_base_patch4_window7),
+    # XCiT architectures: xcit_small_12_p16 is roughly equivalent to unmodified resnet50
+    'xcit_nano_12_p16': lambda: basenetworks.XCiT('xcit_nano_12_p16', xcit.xcit_nano_12_p16),
+    'xcit_tiny_12_p16': lambda: basenetworks.XCiT('xcit_tiny_12_p16', xcit.xcit_tiny_12_p16),
+    'xcit_tiny_24_p16': lambda: basenetworks.XCiT('xcit_tiny_24_p16', xcit.xcit_tiny_24_p16),
+    'xcit_small_12_p16': lambda: basenetworks.XCiT('xcit_small_12_p16', xcit.xcit_small_12_p16),
+    'xcit_small_24_p16': lambda: basenetworks.XCiT('xcit_small_24_p16', xcit.xcit_small_24_p16),
+    'xcit_medium_24_p16': lambda: basenetworks.XCiT('xcit_medium_24_p16', xcit.xcit_medium_24_p16),
+    'xcit_large_24_p16': lambda: basenetworks.XCiT('xcit_large_24_p16', xcit.xcit_large_24_p16),
+    'xcit_nano_12_p8': lambda: basenetworks.XCiT('xcit_nano_12_p8', xcit.xcit_nano_12_p8),
+    'xcit_tiny_12_p8': lambda: basenetworks.XCiT('xcit_tiny_12_p8', xcit.xcit_tiny_12_p8),
+    'xcit_tiny_24_p8': lambda: basenetworks.XCiT('xcit_tiny_24_p8', xcit.xcit_tiny_24_p8),
+    'xcit_small_12_p8': lambda: basenetworks.XCiT('xcit_small_12_p8', xcit.xcit_small_12_p8),
+    'xcit_small_24_p8': lambda: basenetworks.XCiT('xcit_small_24_p8', xcit.xcit_small_24_p8),
+    'xcit_medium_24_p8': lambda: basenetworks.XCiT('xcit_medium_24_p8', xcit.xcit_medium_24_p8),
+    'xcit_large_24_p8': lambda: basenetworks.XCiT('xcit_large_24_p8', xcit.xcit_large_24_p8),
+    # Parameters for the EffNetV2 construction
+    # expansion ratio, channels, number of layers of this type, stride, use squeeze+excitation
+    # t, c, n, s, SE
+    'effnetv2_s': lambda: basenetworks.EffNetV2('effnetv2_s',
+                                                [
+                                                    [1, 24, 2, 1, 0],
+                                                    [4, 48, 4, 2, 0],
+                                                    [4, 64, 4, 2, 0],
+                                                    [4, 128, 6, 2, 1],
+                                                    [6, 160, 9, 1, 1],
+                                                    [6, 256, 15, 2, 1],
+                                                ],
+                                                stride=32),
+    'effnetv2_m': lambda: basenetworks.EffNetV2('effnetv2_m',
+                                                [
+                                                    [1, 24, 3, 1, 0],
+                                                    [4, 48, 5, 2, 0],
+                                                    [4, 80, 5, 2, 0],
+                                                    [4, 160, 7, 2, 1],
+                                                    [6, 176, 14, 1, 1],
+                                                    [6, 304, 18, 2, 1],
+                                                    [6, 512, 5, 1, 1],
+                                                ],
+                                                stride=32),
+    'effnetv2_l': lambda: basenetworks.EffNetV2('effnetv2_l',
+                                                [
+                                                    [1, 32, 4, 1, 0],
+                                                    [4, 64, 7, 2, 0],
+                                                    [4, 96, 7, 2, 0],
+                                                    [4, 192, 10, 2, 1],
+                                                    [6, 224, 19, 1, 1],
+                                                    [6, 384, 25, 2, 1],
+                                                    [6, 640, 7, 1, 1],
+                                                ],
+                                                stride=32),
+    'effnetv2_xl': lambda: basenetworks.EffNetV2('effnetv2_xl',
+                                                 [
+                                                     [1, 32, 4, 1, 0],
+                                                     [4, 64, 8, 2, 0],
+                                                     [4, 96, 8, 2, 0],
+                                                     [4, 192, 16, 2, 1],
+                                                     [6, 256, 24, 1, 1],
+                                                     [6, 512, 32, 2, 1],
+                                                     [6, 640, 8, 1, 1],
+                                                 ],
+                                                 stride=32),
+    'effnetv2_s16_s': lambda: basenetworks.EffNetV2('effnetv2_s16_s',
+                                                    [
+                                                        [1, 24, 2, 1, 0],
+                                                        [4, 48, 4, 2, 0],
+                                                        [4, 64, 4, 2, 0],
+                                                        [4, 128, 6, 2, 1],
+                                                        [6, 160, 9, 1, 1],
+                                                        # [6, 256, 15, -1, 1],  # -1 = dilated con
+                                                    ],
+                                                    stride=16),
+    'effnetv2_s16_m': lambda: basenetworks.EffNetV2('effnetv2_s16_m',
+                                                    [
+                                                        [1, 24, 3, 1, 0],
+                                                        [4, 48, 5, 2, 0],
+                                                        [4, 80, 5, 2, 0],
+                                                        [4, 160, 7, 2, 1],
+                                                        [6, 176, 14, 1, 1],
+                                                        # [6, 304, 18, -1, 1], # -1 = dilated conv
+                                                        # [6, 512, 5, 1, 1],
+                                                    ],
+                                                    stride=16),
+    'effnetv2_s16_l': lambda: basenetworks.EffNetV2('effnetv2_s16_l',
+                                                    [
+                                                        [1, 32, 4, 1, 0],
+                                                        [4, 64, 7, 2, 0],
+                                                        [4, 96, 7, 2, 0],
+                                                        [4, 192, 10, 2, 1],
+                                                        [6, 224, 19, 1, 1],
+                                                        # [6, 384, 25, -1, 1],  # -1=dilated conv
+                                                        # [6, 640, 7, 1, 1],
+                                                    ],
+                                                    stride=16),
+    'effnetv2_s16_xl': lambda: basenetworks.EffNetV2('effnetv2_s16_xl',
+                                                     [
+                                                         [1, 32, 4, 1, 0],
+                                                         [4, 64, 8, 2, 0],
+                                                         [4, 96, 8, 2, 0],
+                                                         [4, 192, 16, 2, 1],
+                                                         [6, 256, 24, 1, 1],
+                                                         # [6, 512, 32, -1, 1],  # -1 = dilated c
+                                                         # [6, 640, 8, 1, 1],
+                                                     ],
+                                                     stride=16),
+    'botnet': lambda: basenetworks.BotNet('botnet'),
 }
 # base factories that wrap other base factories:
 BASE_FACTORIES['tshufflenetv2k16'] = lambda: TrackingBase(BASE_FACTORIES['shufflenetv2k16']())
