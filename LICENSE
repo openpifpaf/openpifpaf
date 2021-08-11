@@ -3,6 +3,12 @@ Copyright 2019-2021 by Sven Kreiss and contributors. All rights reserved.
 This project and all its files are licensed under
 GNU AGPLv3 or later version.
 
+The following files have other licenses:
+- openpifpaf/network/swin_transformer.py: docs/LICENSE.SWIN
+- openpifpaf/network/xcit.py: docs/LICENSE.XCIT
+- openpifpaf/network/effnetv2.py: docs/LICENSE.EFFNETV2
+- openpifpaf/network/bottleneck_transformer.py: docs/LICENSE.BOTNET
+
 If this license is not suitable for your business or project
 please contact EPFL-TTO (https://tto.epfl.ch/) for a full commercial license.
 
