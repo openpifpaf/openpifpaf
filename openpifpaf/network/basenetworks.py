@@ -502,10 +502,15 @@ class SqueezeNet(BaseNetwork):
 
 
 class FPN(torch.nn.Module):
-    """ Feature Pyramid Network (https://arxiv.org/abs/1612.03144).
+    """ Feature Pyramid Network (https://arxiv.org/abs/1612.03144), modified to only
+    refine and return the feature map of a single pyramid level.
 
-    This implementation has been modified to only refine and return
-    the feature map of a single pyramid level.
+    This implementation is more computationally efficient than torchvision's
+    FeaturePyramidNetwork when only a single feature map is needed, as it avoids refining
+    (i.e. applying a 3x3 conv on) feature maps that aren't used later on.
+
+    For example, for Swin, if only the feature map of stride 8 (fpn_level=2) is needed,
+    the feature maps of stride 4, 16 and 32 won't get refined with this implementation.
     """
 
     def __init__(self, in_channels, out_channels, fpn_level=3):
