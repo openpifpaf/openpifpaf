@@ -308,12 +308,13 @@ class RegressionDistance:
     def __call__(x_regs, t_regs, t_sigma_min, t_scales):
         d = x_regs - t_regs
         d = torch.cat([d, t_sigma_min], dim=2)
-        d[torch.isnan(d)] = 0.0
 
         # L2 distance for coordinate pair
         d_shape = d.shape
         d = d.reshape(d_shape[0], d_shape[1], -1, 3, d_shape[-2], d_shape[-1])
+        d[torch.isnan(d)] = float('inf')
         d = torch.linalg.norm(d, ord=2, dim=3)
+        d[~torch.isfinite(d)] = 0.0
 
         # 68% inside of t_sigma
         if t_scales.shape[2]:
