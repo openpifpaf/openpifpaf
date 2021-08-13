@@ -14,4 +14,3 @@ def register():
     openpifpaf.CHECKPOINT_URLS['shufflenetv2k30-apollo-66'] = \
         "http://github.com/DuncanZauss/openpifpaf_assets/releases/" \
         "download/v0.1.0/sk30_apollo_66kp.pkl"
-
