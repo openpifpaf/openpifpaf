@@ -655,7 +655,37 @@ def swin_base_patch4_window7(pretrained=True, **kwargs):
     model = SwinTransformer(embed_dim=128, depths=(2, 2, 18, 2), num_heads=(4, 8, 16, 32),
                             window_size=7, ape=False, patch_norm=True,
                             use_checkpoint=False, **kwargs)
-    # Note: For Swin-B, 384x384x ImageNet-1K pretraining and ImageNet-22K pretraining is also available
+    # Note: For Swin-B, ImageNet-22K pretraining is also available
     url = "https://github.com/SwinTransformer/storage/releases/download/v1.0.0/swin_base_patch4_window7_224.pth"
+    model.init_weights(url if pretrained else None)
+    return model
+
+
+def swin_base_patch4_window12(pretrained=True, **kwargs):
+    model = SwinTransformer(embed_dim=128, depths=(2, 2, 18, 2), num_heads=(4, 8, 16, 32),
+                            window_size=12, ape=False, patch_norm=True,
+                            use_checkpoint=False, **kwargs)
+    # Note: Using ImageNet-22k pretraining
+    url = "https://github.com/SwinTransformer/storage/releases/download/v1.0.0/swin_base_patch4_window12_384_22k.pth"
+    model.init_weights(url if pretrained else None)
+    return model
+
+
+def swin_large_patch4_window7(pretrained=True, **kwargs):
+    model = SwinTransformer(embed_dim=192, depths=(2, 2, 18, 2), num_heads=(6, 12, 24, 48),
+                            window_size=7, ape=False, patch_norm=True,
+                            use_checkpoint=False, **kwargs)
+    # Note: Using ImageNet-22k pretraining
+    url = "https://github.com/SwinTransformer/storage/releases/download/v1.0.0/swin_large_patch4_window7_224_22k.pth"
+    model.init_weights(url if pretrained else None)
+    return model
+
+
+def swin_large_patch4_window12(pretrained=True, **kwargs):
+    model = SwinTransformer(embed_dim=192, depths=(2, 2, 18, 2), num_heads=(6, 12, 24, 48),
+                            window_size=12, ape=False, patch_norm=True,
+                            use_checkpoint=False, **kwargs)
+    # Note: Using ImageNet-22k pretraining
+    url = "https://github.com/SwinTransformer/storage/releases/download/v1.0.0/swin_large_patch4_window12_384_22k.pth"
     model.init_weights(url if pretrained else None)
     return model
