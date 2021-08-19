@@ -134,34 +134,34 @@ class BceDistance(Bce):
         t_sign = t.clone()
         t_sign[t > 0.0] = 1.0
         t_sign[t <= 0.0] = -1.0
-        # construct target location relative to x but without backpropagating through x
-        x = x.detach()
 
+        # construct target location relative to x but without backpropagating through x
+        x_detached = x.detach()
         focal_loss_modification = 1.0
-        p_bar = 1.0 / (1.0 + torch.exp(t_sign * x))
+        p_bar = 1.0 / (1.0 + torch.exp(t_sign * x_detached))
         if self.focal_alpha:
             focal_loss_modification *= self.focal_alpha
         if self.focal_gamma == 1.0:
             p = 1.0 - p_bar
 
             # includes simplifications for numerical stability
-            # neg_ln_p = torch.log(1 + torch.exp(-t_sign * x))
+            # neg_ln_p = torch.log(1 + torch.exp(-t_sign * x_detached))
             # even more stability:
-            neg_ln_p = torch.nn.functional.softplus(-t_sign * x)
+            neg_ln_p = torch.nn.functional.softplus(-t_sign * x_detached)
 
             focal_loss_modification = focal_loss_modification * (p_bar + p * neg_ln_p)
         elif self.focal_gamma == 0.0:
             pass
         else:
             raise NotImplementedError
-        target = x + t_sign * p_bar * focal_loss_modification
+        target = x_detached + t_sign * p_bar * focal_loss_modification
 
         # construct distance with x that backpropagates gradients
         d = x - target
 
         # background clamp
         if self.background_clamp:
-            d[(x < self.background_clamp) & (t_sign == -1.0)] = 0.0
+            d[(x_detached < self.background_clamp) & (t_sign == -1.0)] = 0.0
 
         # nan target
         d[torch.isnan(t)] = 0.0
@@ -308,12 +308,13 @@ class RegressionDistance:
     def __call__(x_regs, t_regs, t_sigma_min, t_scales):
         d = x_regs - t_regs
         d = torch.cat([d, t_sigma_min], dim=2)
-        d[torch.isnan(d)] = 0.0
 
         # L2 distance for coordinate pair
         d_shape = d.shape
         d = d.reshape(d_shape[0], d_shape[1], -1, 3, d_shape[-2], d_shape[-1])
+        d[torch.isnan(d)] = float('inf')
         d = torch.linalg.norm(d, ord=2, dim=3)
+        d[~torch.isfinite(d)] = 0.0
 
         # 68% inside of t_sigma
         if t_scales.shape[2]:

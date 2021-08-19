@@ -203,7 +203,7 @@ class Plots():
         ax.set_xlabel('epoch')
         ax.set_ylabel(field_name, fontsize=8 if len(field_name) < 30 else 5)
         last_five_y = np.concatenate(last_five_y)
-        if not self.share_y and last_five_y.shape[0]:
+        if not self.share_y and last_five_y.size >= 2:
             ax.set_ylim(np.min(last_five_y), np.max(last_five_y))
         # ax.set_ylim(0.0, 1.0)
         # if min(y) > -0.1:

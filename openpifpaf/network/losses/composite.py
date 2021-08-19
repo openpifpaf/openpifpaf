@@ -294,7 +294,10 @@ class CompositeLoss(torch.nn.Module):
         for i in range(l_reg.shape[2]):
             l_reg_component = l_reg[:, :, i]
             l_reg_component[reg_mask] = l_reg_component[reg_mask] * reg_factor + x_logb
-        # l_scale[reg_mask] = l_scale[reg_mask] * torch.exp(-x_logs) + x_logs
+        # scale_factor = torch.exp(-x_logs2)
+        # for i in range(l_scale.shape[2]):
+        #     l_scale_component = l_scale[:, :, i]
+        #     l_scale_component[reg_mask] = l_scale_component[reg_mask] * scale_factor + 0.5 * x_logs2
 
         if self.weights is not None:
             l_confidence = self.weights * l_confidence

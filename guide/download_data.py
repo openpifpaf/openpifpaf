@@ -11,6 +11,8 @@ def main():
                                download_progress=False).factory()
     openpifpaf.network.Factory(checkpoint='shufflenetv2k16-apollo-24',
                                download_progress=False).factory()
+    openpifpaf.network.Factory(checkpoint='shufflenetv2k16-nuscenes',
+                               download_progress=False).factory()
 
 
 if __name__ == '__main__':
