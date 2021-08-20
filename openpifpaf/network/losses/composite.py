@@ -242,6 +242,7 @@ class CompositeLoss(torch.nn.Module):
     def configure(cls, args: argparse.Namespace):
         cls.soft_clamp_value = args.soft_clamp
 
+    # pylint: disable=too-many-statements
     def forward(self, x, t):
         LOG.debug('loss for %s', self.field_names)
 
