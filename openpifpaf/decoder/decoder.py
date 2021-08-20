@@ -24,6 +24,7 @@ class Decoder:
     When creating a new generator, the main implementation goes into `__call__()`.
     """
     default_worker_pool = None
+    torch_decoder = True
 
     def __init__(self):
         self.priority = 0.0  # reference priority for single image CifCaf
@@ -71,8 +72,8 @@ class Decoder:
             if k not in ('worker_pool',)
         }
 
-    @staticmethod
-    def fields_batch(model, image_batch, *, device=None):
+    @classmethod
+    def fields_batch(cls, model, image_batch, *, device=None):
         """From image batch to field batch."""
         start = time.time()
 
@@ -93,7 +94,10 @@ class Decoder:
 
             # to numpy
             with torch.autograd.profiler.record_function('tonumpy'):
-                heads = apply(lambda x: x.cpu().numpy(), heads)
+                if cls.torch_decoder:
+                    heads = apply(lambda x: x.cpu(), heads)
+                else:
+                    heads = apply(lambda x: x.cpu().numpy(), heads)
 
         # index by frame (item in batch)
         head_iter = apply(iter, heads)
@@ -104,7 +108,7 @@ class Decoder:
             except StopIteration:
                 break
 
-        LOG.debug('nn processing time: %.3fs', time.time() - start)
+        LOG.debug('nn processing time: %.1fms', (time.time() - start) * 1000.0)
         return heads
 
     def batch(self, model, image_batch, *, device=None, gt_anns_batch=None):
@@ -127,7 +131,9 @@ class Decoder:
             self._mappable_annotations, zip(fields_batch, image_batch, gt_anns_batch))
         self.last_decoder_time = time.perf_counter() - start_decoder
 
-        LOG.debug('time: nn = %.3fs, dec = %.3fs', self.last_nn_time, self.last_decoder_time)
+        LOG.debug('time: nn = %.1fms, dec = %.1fms',
+                  self.last_nn_time * 1000.0,
+                  self.last_decoder_time * 1000.0)
         return result
 
     def _mappable_annotations(self, fields, debug_image, gt_anns):

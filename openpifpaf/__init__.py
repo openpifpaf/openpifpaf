@@ -1,8 +1,14 @@
 """An open implementation of PifPaf."""
 
+# pylint: disable=wrong-import-position
+
 from ._version import get_versions
 __version__ = get_versions()['version']
 del get_versions
+
+# register ops first
+from . import cpp_extension
+cpp_extension.register_ops()
 
 from .annotation import Annotation, AnnotationDet
 from .configurable import Configurable

@@ -169,7 +169,7 @@ class Benchmark:
         labels = ''.join(['{0: <8} | '.format(l) for l in self.stat_text_labels(first_stats)])
         print(
             f'| {name_title: <{name_w}} | {labels}'
-            't_{total} [ms]  | t_{dec} [ms] |     size |'
+            't_{total} [ms] | t_{NN} [ms] | t_{dec} [ms] |     size |'
         )
 
         reference_values = None
@@ -181,6 +181,7 @@ class Benchmark:
         for name, data in sorted(stats.items(), key=lambda b_d: self.stat_values(b_d[1])[0]):
             values = self.stat_values(data)
             t = 1000.0 * data['total_time'] / data['n_images']
+            tnn = 1000.0 * data['nn_time'] / data['n_images']
             tdec = 1000.0 * data['decoder_time'] / data['n_images']
             file_size = data['file_size'] / 1024 / 1024
 
@@ -190,6 +191,7 @@ class Benchmark:
                 values = [v - r for v, r in zip(values, reference_values)]
                 t -= 1000.0 * reference['total_time'] / reference['n_images']
                 tdec -= 1000.0 * reference['decoder_time'] / reference['n_images']
+                tnn -= 1000.0 * reference['nn_time'] / reference['n_images']
                 file_size -= reference['file_size'] / 1024 / 1024
 
                 values_serialized = '__{0: <+2.1f}__ | '.format(values[0])
@@ -197,7 +199,7 @@ class Benchmark:
                     values_serialized += ''.join(['{0: <+8.1f} | '.format(v) for v in values[1:]])
                 print(
                     f'| {name_link: <{name_w}} | {values_serialized}'
-                    f'{t: <+15.0f} | {tdec: <+12.0f} | {file_size: >+6.1f}MB |'
+                    f'{t: <+15.0f} | {tnn: <+11.0f} | {tdec: <+12.0f} | {file_size: >+6.1f}MB |'
                 )
             else:
                 values_serialized = '__{0: <2.1f}__ | '.format(values[0])
@@ -205,7 +207,7 @@ class Benchmark:
                     values_serialized += ''.join(['{0: <8.1f} | '.format(v) for v in values[1:]])
                 print(
                     f'| {name_link: <{name_w}} | {values_serialized}'
-                    f'{t: <15.0f} | {tdec: <12.0f} | {file_size: >6.1f}MB |'
+                    f'{t: <15.0f} | {tnn: <11.0f} | {tdec: <12.0f} | {file_size: >6.1f}MB |'
                 )
 
         return self
@@ -241,8 +243,6 @@ def main():
                 '--cocokp-with-dense', '--dense-connections=0.1']),
         ]
     if args.v012_ablation_2:
-        eval_args_nofc = [a for a in eval_args
-                          if not a.startswith(('--force-complete', '--seed-threshold'))]
         ablations += [
             Ablation('.cifnr', eval_args + ['--ablation-cifseeds-no-rescore']),
             Ablation('.cifnr.nms', eval_args + ['--ablation-cifseeds-no-rescore',

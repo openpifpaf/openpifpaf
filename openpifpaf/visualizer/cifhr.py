@@ -14,10 +14,10 @@ class CifHr(Base):
         self.stride = stride
         self.field_names = field_names
 
-    def predicted(self, fields):
+    def predicted(self, fields, low=0.0):
         for f in self.indices('hr'):
             LOG.debug('%d (field name: %s)',
                       f, self.field_names[f] if self.field_names else 'unknown')
             with self.image_canvas(self._processed_image, margin=[0.0, 0.01, 0.05, 0.01]) as ax:
-                o = ax.imshow(fields[f], alpha=0.9, vmin=0.0, vmax=1.0, cmap='Oranges')
+                o = ax.imshow(fields[f], alpha=0.9, vmin=low, vmax=low + 1.0, cmap='Oranges')
                 self.colorbar(ax, o)

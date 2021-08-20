@@ -17,8 +17,8 @@ def localize(x):
     model.eval()
 
     decode = openpifpaf.decoder.factory(datamodule.head_metas)
-    cif_ref = decode.fields_batch(model, torch.unsqueeze(black, 0))[0][0]
-    cif = decode.fields_batch(model, torch.unsqueeze(im, 0))[0][0]
+    cif_ref = decode.fields_batch(model, torch.unsqueeze(black, 0))[0][0].numpy()
+    cif = decode.fields_batch(model, torch.unsqueeze(im, 0))[0][0].numpy()
 
     # intensity only, first field, first row
     cif_ref = cif_ref[0][0][0]
