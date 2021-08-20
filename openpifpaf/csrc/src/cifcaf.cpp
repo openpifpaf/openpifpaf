@@ -1,6 +1,5 @@
-#include <math.h>
-
 #include <algorithm>
+#include <cmath>
 #include <queue>
 
 #include "openpifpaf/decoder/cifcaf.hpp"

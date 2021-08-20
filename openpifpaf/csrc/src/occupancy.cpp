@@ -1,6 +1,5 @@
-#include <math.h>
-
 #include <algorithm>
+#include <cmath>
 
 #include "openpifpaf/decoder/utils/occupancy.hpp"
 
