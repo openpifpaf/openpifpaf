@@ -163,10 +163,13 @@ class BceDistance(Bce):
         if self.background_clamp:
             d[(x_detached < self.background_clamp) & (t_sign == -1.0)] = 0.0
 
-        # nan target
-        d[torch.isnan(t)] = 0.0
-
         return d
+
+
+class BceL2(BceDistance):
+    def forward(self, x, t):
+        d = super().forward(x, t)
+        return torch.nn.functional.smooth_l1_loss(d, torch.zeros_like(d), reduction='none')
 
 
 class Scale(torch.nn.Module):
@@ -202,32 +205,34 @@ class Scale(torch.nn.Module):
             cls.relative = False
         cls.soft_clamp_value = args.scale_soft_clamp
 
-    def forward(self, logs, t):  # pylint: disable=arguments-differ
+    def forward(self, x, t):  # pylint: disable=arguments-differ
         assert not (self.log_space and self.relative)
 
-        s = torch.nn.functional.softplus(logs)
-        loss = torch.nn.functional.l1_loss(
-            s if not self.log_space else torch.log(s),
+        x = torch.nn.functional.softplus(x)
+        d = torch.nn.functional.l1_loss(
+            x if not self.log_space else torch.log(x),
             t if not self.log_space else torch.log(t),
             reduction='none',
         )
         if self.clip is not None:
-            loss = torch.clamp(loss, self.clip[0], self.clip[1])
+            d = torch.clamp(d, self.clip[0], self.clip[1])
 
         denominator = self.b
         if self.relative:
             denominator = self.b * (self.relative_eps + t)
-        loss = loss / denominator
+        d = d / denominator
 
         if self.soft_clamp is not None:
-            loss = self.soft_clamp(loss)
+            d = self.soft_clamp(d)
 
+        loss = torch.nn.functional.smooth_l1_loss(d, torch.zeros_like(d), reduction='none')
         return loss
 
 
 class ScaleDistance(Scale):
-    def forward(self, x_scales, t_scales):  # pylint: disable=arguments-renamed
-        d = 1.0 / self.b * (x_scales - t_scales)
+    def forward(self, x, t):
+        x = torch.nn.functional.softplus(x)
+        d = 1.0 / self.b * (x - t)
         d[torch.isnan(d)] = 0.0
         return d
 
@@ -327,6 +332,42 @@ class RegressionDistance:
             t_sigma = 0.5 * t_scales
             t_sigma[torch.isnan(t_sigma)] = 5.0  # assume a sigma when not given
             t_sigma = torch.repeat_interleave(t_sigma, 2, dim=2)
+        else:
+            t_sigma = 0.5
+        d = 1.0 / t_sigma * d
+
+        return d
+
+
+class RegressionLoss:
+    @staticmethod
+    def __call__(x_regs, t_regs, t_sigma_min, t_scales):
+        """Only t_regs is guaranteed to be valid.
+        Imputes t_sigma_min and and t_scales with guesses.
+        """
+        x_regs = x_regs.reshape(t_regs.shape[0], -1, 2)
+        t_regs = t_regs.reshape(t_regs.shape[0], -1, 2)
+        t_sigma_min = t_sigma_min.unsqueeze(-1)
+        t_scales = t_scales.unsqueeze(-1)
+
+        d = x_regs - t_regs
+        t_sigma_min_imputed = t_sigma_min.clone()
+        t_sigma_min_imputed[torch.isnan(t_sigma_min)] = 0.1
+        d = torch.cat([d, t_sigma_min_imputed], dim=2)
+
+        # L2 distance for coordinate pair
+        d = torch.linalg.norm(d, ord=2, dim=2, keepdim=True)
+
+        # 68% inside of t_sigma
+        if t_scales.shape[1]:
+            t_sigma = 0.5 * t_scales
+            t_sigma[torch.isnan(t_sigma)] = 0.5
+        elif t_regs.shape[1] == 2:
+            # two regressions without scales is detection, i.e. second
+            # regression targets are width and height
+            t_scales = torch.linalg.norm(t_regs[:, 1:2], ord=2, dim=2, keepdim=True)
+            t_sigma = 0.25 * t_scales
+            t_sigma = torch.repeat_interleave(t_sigma, 2, dim=1)
         else:
             t_sigma = 0.5
         d = 1.0 / t_sigma * d
