@@ -77,7 +77,7 @@ Joint grow_connection_blend(const torch::Tensor& caf,
 
     float entry_1[3] = {  // xys
         caf_a[score_1_i][3], caf_a[score_1_i][4],
-        fmax(0.0f, caf_a[score_1_i][6])
+        fmaxf(0.0f, caf_a[score_1_i][6])
     };
     if (only_max)
         return { score_1, entry_1[0], entry_1[1], entry_1[2] };
@@ -87,7 +87,7 @@ Joint grow_connection_blend(const torch::Tensor& caf,
     // blend
     float entry_2[3] = {  // xys
         caf_a[score_2_i][3], caf_a[score_2_i][4],
-        fmax(0.0f, caf_a[score_2_i][6])
+        fmaxf(0.0f, caf_a[score_2_i][6])
     };
 
     float blend_d2 = std::pow(entry_1[0] - entry_2[0], 2) + std::pow(entry_1[1] - entry_2[1], 2);

@@ -47,7 +47,7 @@ void cif_hr_accumulate_op(const torch::Tensor& accumulated,
 
                 x = cif_field_a[f][2][j][i] * stride;
                 y = cif_field_a[f][3][j][i] * stride;
-                sigma = fmax(1.0, 0.5 * scale * stride);
+                sigma = fmaxf(1.0, 0.5 * scale * stride);
 
                 // Occupancy covers 2sigma.
                 // Restrict this accumulation to 1sigma so that seeds for the same joint
@@ -92,8 +92,8 @@ void cif_hr_add_gauss_op(const torch::Tensor& accumulated,
                 vv = v * approx_exp(-0.5 * (deltax2 + deltay2) / sigma2);
             }
 
-            accumulated_a[f][yy][xx] = fmax(accumulated_a[f][yy][xx], accumulated_revision) + vv;
-            accumulated_a[f][yy][xx] = fmin(accumulated_a[f][yy][xx], accumulated_revision + 1.0);
+            accumulated_a[f][yy][xx] = fmaxf(accumulated_a[f][yy][xx], accumulated_revision) + vv;
+            accumulated_a[f][yy][xx] = fminf(accumulated_a[f][yy][xx], accumulated_revision + 1.0);
         }
     }
 }
@@ -167,7 +167,7 @@ void cifdet_hr_accumulate_op(const torch::Tensor& accumulated,
 
                 x = cifdet_field_a[f][2][j][i] * stride;
                 y = cifdet_field_a[f][3][j][i] * stride;
-                sigma = fmax(1.0, 0.1 * fmin(w, h) * stride);
+                sigma = fmaxf(1.0, 0.1 * fmin(w, h) * stride);
 
                 // Occupancy covers 2sigma.
                 // Restrict this accumulation to 1sigma so that seeds for the same joint
