@@ -222,12 +222,11 @@ class CompositeLoss(torch.nn.Module):
         if self.soft_clamp_value:
             self.soft_clamp = components.SoftClamp(self.soft_clamp_value)
 
-        w = head_meta.training_weights
         self.weights = None
-        if w is not None:
-            self.weights = torch.ones([1, head_meta.n_fields, 1, 1], requires_grad=False)
-            self.weights[0, :, 0, 0] = torch.Tensor(w)
-            self.expanded_weights = torch.unsqueeze(self.weights, 2)
+        if head_meta.training_weights is not None:
+            assert len(head_meta.training_weights) == head_meta.n_fields
+            self.weights = torch.Tensor(head_meta.training_weights).reshape(1, -1, 1, 1, 1)
+
         LOG.debug("The weights for the keypoints are %s", self.weights)
         self.bce_blackout = None
         self.previous_losses = None
@@ -322,10 +321,12 @@ class CompositeLoss(torch.nn.Module):
         #     l_scale_component = l_scale_component * scale_factor + 0.5 * x_logs2
 
         if self.weights is not None:
-            l_confidence_bg = self.weights * l_confidence_bg
-            l_confidence = self.weights * l_confidence
-            l_reg = self.expanded_weights * l_reg
-            l_scale = self.expanded_weights * l_scale
+            full_weights = torch.empty_like(t_confidence_raw)
+            full_weights[:] = self.weights
+            l_confidence_bg = full_weights[bg_mask] * l_confidence_bg
+            l_confidence = full_weights[c_mask] * l_confidence
+            l_reg = full_weights.unsqueeze(-1)[reg_mask] * l_reg
+            l_scale = full_weights[scale_mask] * l_scale
 
         batch_size = t.shape[0]
         losses = [
