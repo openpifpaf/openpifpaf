@@ -41,6 +41,8 @@ Joint grow_connection_blend(const torch::Tensor& caf,
     Similar to the post processing step in
     "BlazeFace: Sub-millisecond Neural Face Detection on Mobile GPUs".
     */
+    xy_scale = fmax(xy_scale, 0.5);  // enforce a minimum scale
+
     auto caf_a = caf.accessor<float, 2>();
     float sigma_filter = filter_sigmas * xy_scale / 2.0;
     float sigma2 = 0.25 * xy_scale * xy_scale;
