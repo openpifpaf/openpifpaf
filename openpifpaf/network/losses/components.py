@@ -371,10 +371,11 @@ class RegressionLoss:
             t_sigma = 0.5 * t_scales
             t_sigma[torch.isnan(t_sigma)] = 0.5
         elif t_regs.shape[1] == 2:
-            # two regressions without scales is detection, i.e. second
-            # regression targets are width and height
+            # Two regressions without scales is detection, i.e. second
+            # regression targets are width and height.
+            # Assume a regression sigma of 10% of the scale.
             t_scales = torch.linalg.norm(t_regs[:, 1:2], ord=2, dim=2, keepdim=True)
-            t_sigma = 0.25 * t_scales
+            t_sigma = 0.1 * t_scales
             t_sigma = torch.repeat_interleave(t_sigma, 2, dim=1)
         else:
             t_sigma = 0.5
