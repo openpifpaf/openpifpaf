@@ -15,7 +15,9 @@ LOG = logging.getLogger(__name__)
 
 class CifDet(Decoder):
     iou_threshold = 0.5
+    instance_threshold = 0.15
     occupancy_visualizer = visualizer.Occupancy()
+    suppression = 0.1
 
     def __init__(self, head_metas: List[headmeta.CifDet], *, visualizers=None):
         super().__init__()
@@ -53,18 +55,24 @@ class CifDet(Decoder):
             fields[self.metas[0].head_index],
             self.metas[0].stride,
         )
-        mask = torchvision.ops.nms(boxes, scores, self.iou_threshold)
+        keep_index = torchvision.ops.nms(boxes, scores, self.iou_threshold)
+        pre_nms_scores = scores.clone()
+        scores *= self.suppression
+        scores[keep_index] = pre_nms_scores[keep_index]
+        filter_mask = scores > self.instance_threshold
+        categories = categories[filter_mask]
+        scores = scores[filter_mask]
+        boxes = boxes[filter_mask]
         LOG.debug('cpp annotations = %d (%.1fms)',
-                  len(mask),
+                  len(scores),
                   (time.perf_counter() - start) * 1000.0)
 
         annotations_py = []
         boxes_np = boxes.numpy()
-        for i in mask:
+        boxes_np[:, 2:] -= boxes_np[:, :2]  # convert to xywh
+        for category, score, box in zip(categories, scores, boxes_np):
             ann = AnnotationDet(self.metas[0].categories)
-            box = boxes_np[i]
-            box[2:] -= box[:2]  # convert to xywh
-            ann.set(int(categories[i]), float(scores[i]), box)
+            ann.set(int(category), float(score), box)
             annotations_py.append(ann)
 
         LOG.info('annotations %d, decoder = %.1fms',

@@ -27,6 +27,7 @@ def cli(parser, *, workers=None):
     assert utils.CifSeeds.get_threshold() == utils.CifDetSeeds.get_threshold()
     group.add_argument('--seed-threshold', default=utils.CifSeeds.get_threshold(), type=float,
                        help='minimum threshold for seeds')
+    assert CifDet.instance_threshold == utils.nms.Keypoints.get_instance_threshold()
     group.add_argument('--instance-threshold', type=float, default=None,
                        help=('filter instances by score (default is 0.0 with '
                              '--force-complete-pose and {} otherwise)'
@@ -72,8 +73,9 @@ def configure(args):
     # configure generators
     Decoder.default_worker_pool = args.decoder_workers
 
-    # configure nms
+    # configure instance threshold
     utils.nms.Keypoints.set_instance_threshold(args.instance_threshold)
+    CifDet.instance_threshold = args.instance_threshold
 
     TrackBase.configure(args)
     for dec in DECODERS:
