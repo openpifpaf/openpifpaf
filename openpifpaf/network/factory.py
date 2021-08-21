@@ -74,6 +74,12 @@ BASE_FACTORIES = {
         'swin_s', swin_transformer.swin_small_patch4_window7),
     'swin_b': lambda: basenetworks.SwinTransformer(
         'swin_b', swin_transformer.swin_base_patch4_window7),
+    'swin_b_window_12': lambda: basenetworks.SwinTransformer(
+        'swin_b_window_12', swin_transformer.swin_base_patch4_window12),
+    'swin_l': lambda: basenetworks.SwinTransformer(
+        'swin_l', swin_transformer.swin_large_patch4_window7),
+    'swin_l_window_12': lambda: basenetworks.SwinTransformer(
+        'swin_l_window_12', swin_transformer.swin_large_patch4_window12),
     # XCiT architectures: xcit_small_12_p16 is roughly equivalent to unmodified resnet50
     'xcit_nano_12_p16': lambda: basenetworks.XCiT('xcit_nano_12_p16', xcit.xcit_nano_12_p16),
     'xcit_tiny_12_p16': lambda: basenetworks.XCiT('xcit_tiny_12_p16', xcit.xcit_tiny_12_p16),
