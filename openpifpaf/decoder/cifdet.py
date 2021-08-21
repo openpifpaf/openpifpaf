@@ -15,7 +15,6 @@ LOG = logging.getLogger(__name__)
 
 class CifDet(Decoder):
     iou_threshold = 0.5
-    max_detections_before_nms = 120
     occupancy_visualizer = visualizer.Occupancy()
 
     def __init__(self, head_metas: List[headmeta.CifDet], *, visualizers=None):
