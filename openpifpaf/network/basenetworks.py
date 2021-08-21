@@ -577,8 +577,14 @@ class SwinTransformer(BaseNetwork):
         if self.input_upsample:
             self.input_upsample_op = torch.nn.Upsample(scale_factor=2)
 
+        if not self.use_fpn:
+            out_indices = [3,]
+        else:
+            out_indices = list(range(self.fpn_level - 1, 4))
+
         self.backbone = swin_net(pretrained=self.pretrained,
-                                 drop_path_rate=self.drop_path_rate)
+                                 drop_path_rate=self.drop_path_rate,
+                                 out_indices=out_indices)
 
         self.fpn = None
         if self.use_fpn:
