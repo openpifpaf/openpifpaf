@@ -150,6 +150,14 @@ class BceDistance(Bce):
             neg_ln_p = torch.nn.functional.softplus(-t_sign * x_detached)
 
             focal_loss_modification = focal_loss_modification * (p_bar + p * neg_ln_p)
+        elif self.focal_gamma > 0.0:
+            p = 1.0 - p_bar
+            neg_ln_p = torch.nn.functional.softplus(-t_sign * x_detached)
+
+            focal_loss_modification = focal_loss_modification * (
+                p_bar ** self.focal_gamma
+                + self.focal_gamma * p_bar ** (self.focal_gamma - 1.0) * p * neg_ln_p
+            )
         elif self.focal_gamma == 0.0:
             pass
         else:
