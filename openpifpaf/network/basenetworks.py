@@ -578,7 +578,7 @@ class SwinTransformer(BaseNetwork):
             self.input_upsample_op = torch.nn.Upsample(scale_factor=2)
 
         if not self.use_fpn:
-            out_indices = [3,]
+            out_indices = [3, ]
         else:
             out_indices = list(range(self.fpn_level - 1, 4))
 
