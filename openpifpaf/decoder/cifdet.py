@@ -16,6 +16,7 @@ LOG = logging.getLogger(__name__)
 class CifDet(Decoder):
     iou_threshold = 0.5
     instance_threshold = 0.15
+    nms_by_category = True
     occupancy_visualizer = visualizer.Occupancy()
     suppression = 0.1
 
@@ -55,7 +56,12 @@ class CifDet(Decoder):
             fields[self.metas[0].head_index],
             self.metas[0].stride,
         )
-        keep_index = torchvision.ops.nms(boxes, scores, self.iou_threshold)
+
+        # nms
+        if self.nms_by_category:
+            keep_index = torchvision.ops.batched_nms(boxes, scores, categories, self.iou_threshold)
+        else:
+            keep_index = torchvision.ops.nms(boxes, scores, self.iou_threshold)
         pre_nms_scores = scores.clone()
         scores *= self.suppression
         scores[keep_index] = pre_nms_scores[keep_index]
@@ -67,6 +73,7 @@ class CifDet(Decoder):
                   len(scores),
                   (time.perf_counter() - start) * 1000.0)
 
+        # convert to py
         annotations_py = []
         boxes_np = boxes.numpy()
         boxes_np[:, 2:] -= boxes_np[:, :2]  # convert to xywh
