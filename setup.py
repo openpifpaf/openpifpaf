@@ -107,8 +107,7 @@ setup(
             'onnx-simplifier>=0.2.9; python_version<"3.9"',  # Python 3.9 not supported yet
         ],
         'coreml': [
-            'coremltools>=4.1',
-            'numpy>=1.16,<1.20',  # compatibility with coremltools
+            'coremltools>=5.0b3',
         ],
         'test': [
             'cpplint',
