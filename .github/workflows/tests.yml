@@ -54,6 +54,7 @@ jobs:
 
     env:
       DEBUG: 1
+      DEVELOPER_DIR: /Applications/Xcode_12.5.app/Contents/Developer
     steps:
     - uses: actions/checkout@v2
       with:
