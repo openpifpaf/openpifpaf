@@ -57,7 +57,7 @@ jobs:
       # DEVELOPER_DIR: /Applications/Xcode_12.4.app/Contents/Developer
     steps:
     - run: ls -n /Applications/ | grep Xcode*
-      if: matrix.os == 'macos-latest'
+      if: matrix.os == 'macos-11'
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
@@ -104,10 +104,10 @@ jobs:
       if: matrix.slow
       run: ffmpeg -codecs
     - name: Install for MacOSX - libomp
-      if: matrix.os == 'macos-latest'
+      if: matrix.os == 'macos-11'
       run: brew install libomp  # required for onnxruntime
     - name: Install for MacOSX - CoreML
-      if: matrix.os == 'macos-latest'
+      if: matrix.os == 'macos-11'
       run: python -m pip install -e ".[coreml]" --no-build-isolation
     - name: Install OpenCV
       if: matrix.slow
