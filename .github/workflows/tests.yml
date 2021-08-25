@@ -54,8 +54,10 @@ jobs:
 
     env:
       DEBUG: 1
-      DEVELOPER_DIR: /Applications/Xcode_12.5.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_12.4.app/Contents/Developer
     steps:
+    - run: ls -n /Applications/ | grep Xcode*
+      if: matrix.os == 'macos-latest'
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
