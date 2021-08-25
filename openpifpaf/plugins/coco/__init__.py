@@ -28,7 +28,7 @@ def register():
     openpifpaf.CHECKPOINT_URLS['shufflenetv2x1'] = openpifpaf.PRETRAINED_UNAVAILABLE
     openpifpaf.CHECKPOINT_URLS['shufflenetv2x2'] = openpifpaf.PRETRAINED_UNAVAILABLE
     openpifpaf.CHECKPOINT_URLS['shufflenetv2k16'] = (
-        'https://github.com/openpifpaf/torchhub/releases/download/v0.13/'
+        'http://github.com/openpifpaf/torchhub/releases/download/v0.13/'
         'shufflenetv2k16-210820-232500-cocokp-slurm726069-edge513-o10s-7189450a.pkl')
     openpifpaf.CHECKPOINT_URLS['shufflenetv2k16-withdense'] = (
         'http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
