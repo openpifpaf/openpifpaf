@@ -30,18 +30,18 @@ jobs:
             torch: 1.9.0+cpu
             torchvision: 0.10.0+cpu
             torch-source: https://download.pytorch.org/whl/torch_stable.html
-          - os: macos-latest
+          - os: macos-11
             python: 3.7
             torch: 1.9.0
             torchvision: 0.10.0
             torch-source: https://download.pytorch.org/whl/torch_stable.html
-          - os: macos-latest
+          - os: macos-11
             python: 3.8
             torch: 1.9.0
             torchvision: 0.10.0
             torch-source: https://download.pytorch.org/whl/torch_stable.html
             conda: True
-          - os: macos-latest
+          - os: macos-11
             python: 3.9
             torch: 1.9.0
             torchvision: 0.10.0
@@ -54,7 +54,7 @@ jobs:
 
     env:
       DEBUG: 1
-      DEVELOPER_DIR: /Applications/Xcode_12.4.app/Contents/Developer
+      # DEVELOPER_DIR: /Applications/Xcode_12.4.app/Contents/Developer
     steps:
     - run: ls -n /Applications/ | grep Xcode*
       if: matrix.os == 'macos-latest'
