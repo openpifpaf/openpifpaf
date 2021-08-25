@@ -353,8 +353,8 @@ class RegressionLoss:
         """Only t_regs is guaranteed to be valid.
         Imputes t_sigma_min and and t_scales with guesses.
         """
-        x_regs = x_regs.reshape(t_regs.shape[0], -1, 2)
-        t_regs = t_regs.reshape(t_regs.shape[0], -1, 2)
+        x_regs = x_regs.reshape(t_regs.shape[0], t_regs.shape[1] // 2, 2)
+        t_regs = t_regs.reshape(t_regs.shape[0], t_regs.shape[1] // 2, 2)
         t_sigma_min = t_sigma_min.unsqueeze(-1)
         t_scales = t_scales.unsqueeze(-1)
 
