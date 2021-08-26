@@ -691,6 +691,7 @@ def main():
     )
     total_start = time.time()
     loop_start = time.time()
+    pq_stat = PQ.PQStat()
     for batch_i, (image_tensors, anns_batch, meta_batch, target_batch) in enumerate(data_loader):
         LOG.info('batch %d, last loop: %.3fs, batches per second=%.1f',
                  batch_i, time.time() - loop_start,
@@ -715,7 +716,7 @@ def main():
         # print('State of Model (Trainig)4?:', model.training)
         # print('state dict', model.head_nets[0].state_dict()['conv.weight'])
         # print('META:', meta_batch)
-        pred_batch = processor.batch(model, image_tensors, device=args.device, oracle_masks=args.oracle_data, target_batch=target_batch)
+        pred_batch = processor.batch(model, image_tensors, device=args.device, oracle_masks=args.oracle_data, target_batch=target_batch, anns_batch=anns_batch)
         print('number of people in pred 1', len(pred_batch[0]))
         eval_coco.decoder_time += processor.last_decoder_time
         eval_coco.nn_time += processor.last_nn_time
@@ -723,7 +724,7 @@ def main():
         # loop over batch
         assert len(image_tensors) == len(anns_batch)
         assert len(image_tensors) == len(meta_batch)
-
+        
         for image, pred, anns, meta in zip(image_tensors, pred_batch, anns_batch, meta_batch):
             eval_coco.from_predictions(pred, meta, debug=args.debug, gt=anns)
 
@@ -735,7 +736,7 @@ def main():
                 json_data['score'] = p.json_data()['score']
                 json_output.append(json_data)
 
-            pq_stat = PQ.PQStat()
+            
             if not args.disable_pan_quality:
                 target_pan = target_batch[1]['panoptic']
                 segments = []

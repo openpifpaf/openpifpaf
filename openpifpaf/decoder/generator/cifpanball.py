@@ -122,7 +122,7 @@ class CifPanBall(Generator):
         #     self.by_source[j1][j2] = (caf_i, True)
         #     self.by_source[j2][j1] = (caf_i, False)
 
-    def __call__(self, fields, initial_annotations=None, debug=None, ground_truth=None):
+    def __call__(self, fields, initial_annotations=None, debug=None):
         # debug = {}
         if self.field_config_cent is not None:
             cif, pan, cif_ball, cif_cent = fields
@@ -130,6 +130,12 @@ class CifPanBall(Generator):
             cif, pan, cif_ball = fields
             
         semantic, offsets = pan['semantic'], pan['offset']
+
+        # if self.args.use_panoptic_deeplab_output_decode:
+        #     from PIL import Image
+        #     seman_image = Image.open('/home/ucl/elen/abolfazl/panopticdeeplabsport/outputs_resnet_real_change_id_bg_less_it_dec_ch_128_bs4/debug_test/semantic_pred_53.png')
+        #     print('image size',seman_image.size)
+
 
         # Ci, Bi = (17, object()) if self.ball else (17, 18)
         Ci, Bi = (17, 0)
@@ -461,6 +467,82 @@ class CifPanBall(Generator):
         # plt.show()
         # print('show')
 
+        list_kp_hidden_predicted = []
+        list_kp_visible_predicted = []
+
+        list_kp_double_both_visible = []
+        list_kp_double_one_visible = []
+        list_kp_double_none_visible = []
+
+        if self.args.use_gt_mask_for_left_right_check and self.anns_batch is not None:
+            doubles = {
+                0: 0,
+                1: 2,
+                2: 1,
+                3: 4,
+                4: 3,
+                5: 6,
+                6: 5,
+                7: 8,
+                8: 7,
+                9: 10,
+                10: 9,
+                11: 12,
+                12: 11,
+                13: 14,
+                14: 13,
+                15: 16,
+                16: 15
+            }
+            anns = self.anns_batch[0]
+            # print('in if', self.anns_batch)
+            
+            for ann in anns:
+                iou = np.zeros((len(annotations),1))
+                for ix, pred in enumerate(annotations):
+                    iou[ix] = (ann['bmask'] * pred.mask).sum()
+                ix = np.argmax(iou)
+                for kp in range(17):
+                    # if ann['keypoints'][kp, 2] == 1:
+                    #     # print('ARGMAX', ix)
+                    #     # print('Before removing kp', kp, ',', annotations[ix].json_data())
+                    #     # print('Annotations            ', ann['keypoints'])
+                    #     if annotations[ix].data[kp, 2] != 0:
+                    #         # print('REMOVED!!!!!!!!!!!!!!!!!!!!!!!!')
+                    #         # print('in if', annotations[ix].data[kp, 2])
+                    #         # print('After removing kp', kp, ',', annotations[ix].json_data())
+                    #         #### find the distance and confidence of the keypoint
+                    #         dist_kp = np.sqrt((ann['keypoints'][kp, 0] - annotations[ix].data[kp, 0])**2 + (ann['keypoints'][kp, 1] - annotations[ix].data[kp, 1])**2)
+                    #         dist_kp_double = np.sqrt((ann['keypoints'][doubles[kp], 0] - annotations[ix].data[kp, 0])**2 + (ann['keypoints'][doubles[kp], 1] - annotations[ix].data[kp, 1])**2)
+
+                    #         # keypoint type, coordinates and confidence of prediction, coordinates and visibility of annotation, distance of prediction and annotation, distance of prediction and annotation of its double (left and right)
+                    #         list_kp_hidden_predicted.append((kp, ann['keypoints'][kp, :], annotations[ix].data[kp, :], dist_kp, dist_kp_double))
+                    #         # annotations[ix].add(kp, (0,0,0))
+                    # elif ann['keypoints'][kp, 2] == 2:
+                    #     if annotations[ix].data[kp, 2] != 0:
+                    #         dist_kp = np.sqrt((ann['keypoints'][kp, 0] - annotations[ix].data[kp, 0])**2 + (ann['keypoints'][kp, 1] - annotations[ix].data[kp, 1])**2)
+                    #         dist_kp_double = np.sqrt((ann['keypoints'][doubles[kp], 0] - annotations[ix].data[kp, 0])**2 + (ann['keypoints'][doubles[kp], 1] - annotations[ix].data[kp, 1])**2)
+                    #         # keypoint type, coordinates and confidence of prediction, coordinates and visibility of annotation, distance of prediction and annotation, distance of prediction and annotation of its double (left and right)
+                    #         list_kp_visible_predicted.append((kp, ann['keypoints'][kp, :], annotations[ix].data[kp, :], dist_kp, dist_kp_double))
+
+                    if kp%2 == 1:
+                        if ann['keypoints'][kp, 2] + ann['keypoints'][kp+1, 2] == 4:
+                            dist_kp_double = np.sqrt((ann['keypoints'][doubles[kp], 0] - annotations[ix].data[kp, 0])**2 + (ann['keypoints'][doubles[kp], 1] - annotations[ix].data[kp, 1])**2)
+                            # keypoint type, coordinates and confidence of prediction, coordinates and visibility of annotation, distance of prediction and annotation, distance of prediction and annotation of its double (left and right)
+                            list_kp_double_both_visible.append((kp, ann['keypoints'][kp, :], ann['keypoints'][kp+1, :], annotations[ix].data[kp, :], annotations[ix].data[kp+1, :],  dist_kp_double))
+
+                        elif ann['keypoints'][kp, 2] + ann['keypoints'][kp+1, 2] == 3:
+                            dist_kp_double = np.sqrt((ann['keypoints'][doubles[kp], 0] - annotations[ix].data[kp, 0])**2 + (ann['keypoints'][doubles[kp], 1] - annotations[ix].data[kp, 1])**2)
+                            # keypoint type, coordinates and confidence of prediction, coordinates and visibility of annotation, distance of prediction and annotation, distance of prediction and annotation of its double (left and right)
+                            list_kp_double_one_visible.append((kp, ann['keypoints'][kp, :], ann['keypoints'][kp+1, :], annotations[ix].data[kp, :], annotations[ix].data[kp+1, :],  dist_kp_double))
+
+                        elif ann['keypoints'][kp, 2] == 1 and ann['keypoints'][kp+1, 2] == 1:
+                            dist_kp_double = np.sqrt((ann['keypoints'][doubles[kp], 0] - annotations[ix].data[kp, 0])**2 + (ann['keypoints'][doubles[kp], 1] - annotations[ix].data[kp, 1])**2)
+                            # keypoint type, coordinates and confidence of prediction, coordinates and visibility of annotation, distance of prediction and annotation, distance of prediction and annotation of its double (left and right)
+                            list_kp_double_none_visible.append((kp, ann['keypoints'][kp, :], ann['keypoints'][kp+1, :], annotations[ix].data[kp, :], annotations[ix].data[kp+1, :],  dist_kp_double))
+
+
+
         # if self.ball:
         # if not self.only_output_17:
         for f, y, x, v in ball_fyxv:
@@ -506,6 +588,8 @@ class CifPanBall(Generator):
                 if np.count_nonzero(ann.mask) > self.dec_filter_smaller_than and np.count_nonzero(ann.data[:,2]) >= self.dec_filter_less_than:
                     filtered_annotations.append(ann)
             annotations = filtered_annotations
+
+        
         
         LOG.info('%d annotations: %s', len(annotations),
                  [np.sum(ann.data[:, 2] > 0.1) for ann in annotations])
@@ -523,6 +607,11 @@ class CifPanBall(Generator):
                 fields=fields,
                 panoptic=panoptic,
                 skipped_keypoints=skipped_keypoints,
+                list_kp_hidden_predicted=list_kp_hidden_predicted,
+                list_kp_visible_predicted=list_kp_visible_predicted,
+                list_kp_double_both_visible=list_kp_double_both_visible,
+                list_kp_double_one_visible=list_kp_double_one_visible, 
+                list_kp_double_none_visible=list_kp_double_none_visible,
             )
         return annotations
     

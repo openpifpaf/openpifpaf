@@ -34,6 +34,7 @@ class Generator:
 
         self.last_decoder_time = 0.0
         self.last_nn_time = 0.0
+        self.anns_batch = None
 
     def __getstate__(self):
         return {
@@ -181,9 +182,10 @@ class Generator:
         """For single image, from fields to annotations."""
         raise NotImplementedError()
 
-    def batch(self, model, image_batch, *, device=None, oracle_masks=None, target_batch=None):
+    def batch(self, model, image_batch, *, device=None, oracle_masks=None, target_batch=None, anns_batch=None):
         """From image batch straight to annotations batch."""
         start_nn = time.perf_counter()
+        self.anns_batch = anns_batch
         fields_batch = self.fields_batch(model, image_batch, device=device, oracle_masks=oracle_masks, target_batch=target_batch)
         # print('fields batch',len(fields_batch[0]))
         # print('fields batch',fields_batch)

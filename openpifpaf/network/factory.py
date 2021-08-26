@@ -198,6 +198,9 @@ def factory(
     elif len(net_cpu.head_nets) == 2 and isinstance(net_cpu.head_nets[1].meta, heads.PanopticDeeplabMeta):
         net_cpu.process_heads = heads.CifPanCollector(cif_indices)
     
+    elif len(net_cpu.head_nets) == 3 and isinstance(net_cpu.head_nets[1].meta, heads.PanopticDeeplabMeta) and net_cpu.head_nets[2].meta.name=='cent':
+        net_cpu.process_heads = heads.CifPanCentCollector(cif_indices)
+        print('correct!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
     elif len(net_cpu.head_nets) == 3 and isinstance(net_cpu.head_nets[1].meta, heads.PanopticDeeplabMeta):
         net_cpu.process_heads = heads.CifPanBallCollector(cif_indices)
         # net_cpu.process_heads = heads.CifPanCollector(cif_indices)

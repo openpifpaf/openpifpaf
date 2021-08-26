@@ -90,6 +90,11 @@ def cli(parser, *,
                         help='it is for left right check')
 
     parser.add_argument('--dist-percent', default=False, action='store_true')
+    parser.add_argument('--use-gt-mask-for-left-right-check', default=False, action='store_true',
+                        help='to find the number of cases where left and right are at the same location')
+
+    # parser.add_argument('--use-panoptic-deeplab-output-decode', default=False, action='store_true')
+    
 
 
 def configure(args):
@@ -238,7 +243,7 @@ def factory_decode(head_nets, *,
         print('heads', head_nets[2].meta)
         if len(head_nets) >= 3:
             field_config_ball = FieldConfig(cif_indices=[2])
-            field_config_cent = FieldConfig(cif_indices=[3]) if len(head_nets) == 4 else None
+            field_config_cent = FieldConfig(cif_indices=[3]) if (len(head_nets) == 4 or head_nets[2].meta.name=='cent') else None   # to work when (cif,pan,ball,cent) and (cif,pan,cent) 
             #print('field config ball', field_config_ball)
             if isinstance(head_nets[2].meta, network.heads.IntensityMeta):
                 if args.only_output_17:
