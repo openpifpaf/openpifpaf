@@ -22,7 +22,7 @@ def register():
     openpifpaf.CHECKPOINT_URLS['resnet18'] = openpifpaf.PRETRAINED_UNAVAILABLE
     openpifpaf.CHECKPOINT_URLS['resnet50'] = (
         'http://github.com/openpifpaf/torchhub/releases/download/v0.13/'
-        'resnet50-210830-150728-cocokp-slurm728641-edge513-o10s.pkl.log')
+        'resnet50-210830-150728-cocokp-slurm728641-edge513-o10s-ecd30da4.pkl')
     openpifpaf.CHECKPOINT_URLS['resnet101'] = openpifpaf.PRETRAINED_UNAVAILABLE
     openpifpaf.CHECKPOINT_URLS['resnet152'] = openpifpaf.PRETRAINED_UNAVAILABLE
     openpifpaf.CHECKPOINT_URLS['shufflenetv2x1'] = openpifpaf.PRETRAINED_UNAVAILABLE
