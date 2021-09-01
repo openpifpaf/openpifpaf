@@ -21,8 +21,8 @@ def register():
         'mobilenetv3large-210820-184901-cocokp-slurm725985-edge513-o10s-6c76cbfb.pkl')
     openpifpaf.CHECKPOINT_URLS['resnet18'] = openpifpaf.PRETRAINED_UNAVAILABLE
     openpifpaf.CHECKPOINT_URLS['resnet50'] = (
-        'http://github.com/vita-epfl/openpifpaf-torchhub/releases/download/'
-        'v0.12.2/resnet50-210224-202010-cocokp-o10s-d020d7f1.pkl')
+        'http://github.com/openpifpaf/torchhub/releases/download/v0.13/'
+        'resnet50-210830-150728-cocokp-slurm728641-edge513-o10s.pkl.log')
     openpifpaf.CHECKPOINT_URLS['resnet101'] = openpifpaf.PRETRAINED_UNAVAILABLE
     openpifpaf.CHECKPOINT_URLS['resnet152'] = openpifpaf.PRETRAINED_UNAVAILABLE
     openpifpaf.CHECKPOINT_URLS['shufflenetv2x1'] = openpifpaf.PRETRAINED_UNAVAILABLE
