@@ -4,3 +4,6 @@
 .footer a {
     color: #aaa;
 }
+.table td p, .table th p {
+    margin: 0;
+}
