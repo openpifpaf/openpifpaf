@@ -95,7 +95,7 @@ Performance metrics on the COCO val set obtained with a GTX1080Ti:
 Command to reproduce this table: {ref}`python -m openpifpaf.benchmark --checkpoints resnet50 shufflenetv2k16 shufflenetv2k30 <cli-help-benchmark>`.
 
 Pretrained model files are shared in the
-__[openpifpaf-torchhub](https://github.com/vita-epfl/openpifpaf-torchhub/releases)__
+__[openpifpaf/torchhub](https://github.com/openpifpaf/torchhub/releases)__
 repository and linked from the checkpoint names in the table above.
 The pretrained models are downloaded automatically when
 using the command line option `--checkpoint checkpointasintableabove`.
