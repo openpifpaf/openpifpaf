@@ -17,6 +17,8 @@ PyMODINIT_FUNC PyInit__cpp(void) {
 
 
 TORCH_LIBRARY(openpifpaf_decoder, m) {
+    m.def("set_quiet", openpifpaf::set_quiet);
+
     m.class_<openpifpaf::decoder::CifCaf>("CifCaf")
         STATIC_GETSET(openpifpaf::decoder::CifCaf::block_joints, bool, block_joints)
         STATIC_GETSET(openpifpaf::decoder::CifCaf::greedy, bool, greedy)
