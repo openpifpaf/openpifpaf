@@ -15,7 +15,7 @@
 namespace openpifpaf {
 
 inline bool quiet = false;
-void set_quiet(bool v=true);
+void set_quiet(bool v = true);
 #define OPENPIFPAF_WARN(...) if (!quiet) { TORCH_WARN(__VA_ARGS__); }
 
 }  // namespace openpifpaf
