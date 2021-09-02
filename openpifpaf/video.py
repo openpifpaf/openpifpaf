@@ -106,12 +106,15 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     LOG.debug('neural network device: %s', args.device)
 
     # standard filenames
-    if args.video_output is True:
+    if args.video_output is not None:
+        # print('video output',args.video_output)
         args.video_output = '{}.trackandfield.mp4'.format(args.source)
         if os.path.exists(args.video_output):
             os.remove(args.video_output)
+
+    # print('video output',args.video_output)
     assert args.video_output is None or not os.path.exists(args.video_output)
-    if args.json_output is True:
+    if args.json_output is not None:
         args.json_output = '{}.trackandfield.json'.format(args.source)
         if os.path.exists(args.json_output):
             os.remove(args.json_output)

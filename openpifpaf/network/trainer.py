@@ -210,10 +210,10 @@ class Trainer(object):
             with torch.autograd.profiler.record_function('ema'):
                 self.step_ema()
 
-        # del targets
-        with torch.no_grad():
-            if len(outputs) > 1: # to get panoptic output
-                self.outputs = outputs[1]['semantic'].detach().cpu()
+        # # del targets
+        # with torch.no_grad():
+        #     if len(outputs) > 1: # to get panoptic output
+        #         self.outputs = outputs[1]['semantic'].detach().cpu()
 
         return (
             float(loss.detach().item()) if loss is not None else None,
@@ -236,8 +236,8 @@ class Trainer(object):
             
             loss, head_losses = self.loss(outputs, targets)
 
-            if len(outputs) > 1: # to get panoptic output
-                self.outputs = outputs[1]['semantic'].detach().cpu()
+            # if len(outputs) > 1: # to get panoptic output
+            #     self.outputs = outputs[1]['semantic'].detach().cpu()
 
 
         return (

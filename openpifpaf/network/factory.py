@@ -82,7 +82,8 @@ def factory(
         multi_scale_hflip=True,
         download_progress=True,
         weights=None,
-        load_pif_weights=False):
+        load_pif_weights=False,
+        add_ball_head_from_checkpoint=None):
 
     if base_name:
         assert head_names
@@ -128,6 +129,10 @@ def factory(
                 net_cpu.load_state_dict(checkpoint['model_state_dict'])
                 print('NETWORK FACTORY: state dict loaded')
                 epoch = checkpoint['epoch']
+
+                if add_ball_head_from_checkpoint is not None:
+                    checkpoint_ball = torch.load(add_ball_head_from_checkpoint, map_location='cpu')
+                    net_cpu.head_nets[2].load_state_dict(checkpoint_ball['model_state_dict'].head_nets[0])
                 
                 # normalize for backwards compatibility
                 nets.model_migration(net_cpu)
@@ -194,6 +199,10 @@ def factory(
 
     if isinstance(net_cpu.head_nets[0].meta, heads.DetectionMeta):
         net_cpu.process_heads = heads.CifdetCollector(cif_indices)
+
+    elif net_cpu.head_nets[0].meta.name == 'pan' and net_cpu.head_nets[1].meta.name == 'cent':
+        print('PanCentCollector!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+        net_cpu.process_heads = heads.PanCentCollector(cif_indices)
 
     elif len(net_cpu.head_nets) == 2 and isinstance(net_cpu.head_nets[1].meta, heads.PanopticDeeplabMeta):
         net_cpu.process_heads = heads.CifPanCollector(cif_indices)
@@ -482,6 +491,10 @@ def cli(parser):
     group.add_argument('--weights',
                        default=None,
                        help='load network weights')
+    
+    group.add_argument('--add-ball-head-from-checkpoint',
+                       default=None,
+                       help='load weights of the ball')
 
     group = parser.add_argument_group('head')
     group.add_argument('--head-dropout', default=heads.CompositeFieldFused.dropout_p, type=float,

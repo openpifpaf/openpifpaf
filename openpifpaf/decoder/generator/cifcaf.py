@@ -67,82 +67,89 @@ class CifCaf(Generator):
 
     def __call__(self, fields, initial_annotations=None, debug=None):
         # debug = {}
-        start = time.perf_counter()
-        if not initial_annotations:
-            initial_annotations = []
-        LOG.debug('initial annotations = %d', len(initial_annotations))
+        with torch.autograd.profiler.profile() as prof:
+            start = time.perf_counter()
+            if not initial_annotations:
+                initial_annotations = []
+            LOG.debug('initial annotations = %d', len(initial_annotations))
 
-        if self.field_config.cif_visualizers:
-            for vis, cif_i in zip(self.field_config.cif_visualizers, self.field_config.cif_indices):
-                vis.predicted(fields[cif_i])
-        if self.field_config.caf_visualizers:
-            for vis, caf_i in zip(self.field_config.caf_visualizers, self.field_config.caf_indices):
-                vis.predicted(fields[caf_i])
+            if self.field_config.cif_visualizers:
+                for vis, cif_i in zip(self.field_config.cif_visualizers, self.field_config.cif_indices):
+                    vis.predicted(fields[cif_i])
+            if self.field_config.caf_visualizers:
+                for vis, caf_i in zip(self.field_config.caf_visualizers, self.field_config.caf_indices):
+                    vis.predicted(fields[caf_i])
 
-        cifhr = CifHr(self.field_config).fill(fields)
-        
+            cifhr = CifHr(self.field_config).fill(fields)
+            
 
-        def cif_local_max(cif, kernel_size=13, pad=6):
-            """Use torch for max pooling"""
-            cif = torch.tensor(cif)
-            cif_m = torch.max_pool2d(cif[None], kernel_size, stride=1, padding=pad)[0] == cif      #### 7 padding=3
-            # cif_m &= cif > 0.1# * cif.max()
-            cif_m &= cif > 0.1
-            return np.asarray(cif_m)
+            # def cif_local_max(cif, kernel_size=13, pad=6):
+            #     """Use torch for max pooling"""
+            #     cif = torch.tensor(cif)
+            #     cif_m = torch.max_pool2d(cif[None], kernel_size, stride=1, padding=pad)[0] == cif      #### 7 padding=3
+            #     # cif_m &= cif > 0.1# * cif.max()
+            #     cif_m &= cif > 0.1
+            #     return np.asarray(cif_m)
 
-        keypoints_yx = []
-        keypoints_yx = [np.stack(np.nonzero(cif_local_max(cif)), axis=-1)
-                            for cif in cifhr.accumulated]
-        if debug is not None:
-            debug.update(
-                cifhr=cifhr,
-                fields=fields,
-                keypoints_yx=keypoints_yx,
-            )
-        # import pickle
-        # with open('file_pif_PIFPAF.pkl','wb') as f:
-        #     pickle.dump(debug, f)
-        # # torch.save(debug, 'file_pif_PIFPAF.pt')
-        # print('DEBUG:', debug)
-        # print('CIFCAF: file saved!!!!!!!!!!!!!!!!!!!')
-        seeds = CifSeeds(cifhr.accumulated, self.field_config).fill(fields)
-        caf_scored = CafScored(cifhr.accumulated, self.field_config, self.skeleton).fill(fields)
+            # keypoints_yx = []
+            # keypoints_yx = [np.stack(np.nonzero(cif_local_max(cif)), axis=-1)
+            #                     for cif in cifhr.accumulated]
+            # if debug is not None:
+            #     debug.update(
+            #         cifhr=cifhr,
+            #         fields=fields,
+            #         keypoints_yx=keypoints_yx,
+            #     )
+            
+            # import pickle
+            # with open('file_pif_PIFPAF.pkl','wb') as f:
+            #     pickle.dump(debug, f)
+            # # torch.save(debug, 'file_pif_PIFPAF.pt')
+            # print('DEBUG:', debug)
+            # print('CIFCAF: file saved!!!!!!!!!!!!!!!!!!!')
+            seeds = CifSeeds(cifhr.accumulated, self.field_config).fill(fields)
+            caf_scored = CafScored(cifhr.accumulated, self.field_config, self.skeleton).fill(fields)
 
-        occupied = Occupancy(cifhr.accumulated.shape, 2, min_scale=4)
-        annotations = []
+            occupied = Occupancy(cifhr.accumulated.shape, 2, min_scale=4)
+            annotations = []
 
-        def mark_occupied(ann):
-            for joint_i, xyv in enumerate(ann.data):
-                if xyv[2] == 0.0:
+            def mark_occupied(ann):
+                for joint_i, xyv in enumerate(ann.data):
+                    if xyv[2] == 0.0:
+                        continue
+
+                    width = ann.joint_scales[joint_i]
+                    occupied.set(joint_i, xyv[0], xyv[1], width)  # width = 2 * sigma
+
+            for ann in initial_annotations:
+                self._grow(ann, caf_scored)
+                annotations.append(ann)
+                mark_occupied(ann)
+
+            for v, f, x, y, s in seeds.get():
+                if occupied.get(f, x, y):
                     continue
 
-                width = ann.joint_scales[joint_i]
-                occupied.set(joint_i, xyv[0], xyv[1], width)  # width = 2 * sigma
+                ann = Annotation(self.keypoints, self.out_skeleton).add(f, (x, y, v))
+                ann.joint_scales[f] = s
+                self._grow(ann, caf_scored)
+                annotations.append(ann)
+                mark_occupied(ann)
 
-        for ann in initial_annotations:
-            self._grow(ann, caf_scored)
-            annotations.append(ann)
-            mark_occupied(ann)
+            self.occupancy_visualizer.predicted(occupied)
 
-        for v, f, x, y, s in seeds.get():
-            if occupied.get(f, x, y):
-                continue
+            LOG.debug('annotations %d, %.3fs', len(annotations), time.perf_counter() - start)
 
-            ann = Annotation(self.keypoints, self.out_skeleton).add(f, (x, y, v))
-            ann.joint_scales[f] = s
-            self._grow(ann, caf_scored)
-            annotations.append(ann)
-            mark_occupied(ann)
+            if self.force_complete:
+                annotations = self.complete_annotations(cifhr, fields, annotations)
 
-        self.occupancy_visualizer.predicted(occupied)
+            if self.nms is not None:
+                annotations = self.nms.annotations(annotations)
 
-        LOG.debug('annotations %d, %.3fs', len(annotations), time.perf_counter() - start)
-
-        if self.force_complete:
-            annotations = self.complete_annotations(cifhr, fields, annotations)
-
-        if self.nms is not None:
-            annotations = self.nms.annotations(annotations)
+        with open('runtime_decoder_pifpaf_log.txt','a') as f:
+                f.write('-------------------------------------------------------')
+                f.write('-------------------------------------------------------')
+                f.write(str(prof.key_averages().table(sort_by="self_cpu_time_total")))
 
         LOG.info('%d annotations: %s', len(annotations),
                  [np.sum(ann.data[:, 2] > 0.1) for ann in annotations])

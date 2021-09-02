@@ -50,6 +50,7 @@ def factory(headnets, basenet_stride, args=None):
 
 def factory_head(head_net: network.heads.CompositeField, basenet_stride, v_threshold=None):
     meta = head_net.meta
+    # print('type of meta',type(meta))
     if isinstance(meta, network.heads.PanopticDeeplabMeta):
         LOG.info('selected encoder PAN')
         
@@ -77,6 +78,7 @@ def factory_head(head_net: network.heads.CompositeField, basenet_stride, v_thres
                       visualizer=vis)
 
     if isinstance(meta, network.heads.IntensityMeta):
+        # print('INTNESTIY META!!!!!!!!!!!!!!')
         LOG.info('selected encoder CIF for %s', meta.name)
         vis = visualizer.Cif(meta.name,
                              stride=stride,

@@ -461,10 +461,10 @@ class DeepSportDataset(torch.utils.data.Dataset):
         # plt.imshow(image)
         # plt.figure(figsize=(10,10))
         
-        for aaa in anns:
-            assert len(aaa['keypoints']) == 17 or len(aaa['keypoints']) == 17*3, len(aaa['keypoints'])
-            if self.config == 'cif cent':
-                assert len(aaa['cent']) == 3, len(aaa['cent'])
+        # for aaa in anns:
+        #     assert len(aaa['keypoints']) == 17 or len(aaa['keypoints']) == 17*3, len(aaa['keypoints'])
+        #     if self.config == 'cif cent':
+        #         assert len(aaa['cent']) == 3, len(aaa['cent'])
         # for aaa in anns:
         
             

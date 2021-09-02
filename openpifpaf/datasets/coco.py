@@ -122,7 +122,7 @@ class Coco(torch.utils.data.Dataset):
 
         # self.Get_number_of_images_with_ball()
         # if eval_coco:
-        #     self.ids = [188465]
+        #     self.ids = [458755]
 
         self.preprocess = preprocess or transforms.EVAL_TRANSFORM
         self.target_transforms = target_transforms

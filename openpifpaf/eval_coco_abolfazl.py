@@ -5,6 +5,7 @@ from ast import parse
 import json
 import logging
 import os
+import pickle
 import sys
 import time
 import zipfile
@@ -692,6 +693,10 @@ def main():
     total_start = time.time()
     loop_start = time.time()
     pq_stat = PQ.PQStat()
+    import pickle
+    with open('data_loader_coco.pkl','wb') as f_d:
+        print('pkl written !')
+        pickle.dump(data_loader, f_d)
     for batch_i, (image_tensors, anns_batch, meta_batch, target_batch) in enumerate(data_loader):
         LOG.info('batch %d, last loop: %.3fs, batches per second=%.1f',
                  batch_i, time.time() - loop_start,

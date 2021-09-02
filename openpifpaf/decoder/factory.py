@@ -93,7 +93,7 @@ def cli(parser, *,
     parser.add_argument('--use-gt-mask-for-left-right-check', default=False, action='store_true',
                         help='to find the number of cases where left and right are at the same location')
 
-    # parser.add_argument('--use-panoptic-deeplab-output-decode', default=False, action='store_true')
+    parser.add_argument('--use-panoptic-deeplab-output-decode', default=False, action='store_true')
     
 
 
@@ -225,7 +225,29 @@ def factory_decode(head_nets, *,
     # print('in decoder')
     # for h in head_nets:
     #     print(type(h.meta))
+    if head_nets[0].meta.name == 'pan' and head_nets[1].meta.name == 'cent':
+        field_config = FieldConfig()
+        field_config_ball = FieldConfig(cif_indices=[2])
+        field_config_cent = FieldConfig(cif_indices=[3])
 
+        return CifPanBall(
+                    field_config,
+                    field_config_ball,
+                    field_config_cent=field_config_cent, 
+                    keypoints=head_nets[0].meta.keypoints,
+                    out_skeleton=head_nets[0].meta.skeleton,
+                    worker_pool=worker_pool,
+                    kp_ball=['ball'], #head_nets[2].meta.keypoints,
+                    adaptive_max_pool_th=args.adaptive_max_pool_th,
+                    max_pool_th=args.max_pool_th,
+                    decode_masks_first=args.decode_masks_first,
+                    only_output_17=args.only_output_17,
+                    disable_pred_filter=args.disable_pred_filter,
+                    dec_filter_smaller_than=args.decod_discard_smaller,
+                    dec_filter_less_than=args.decod_discard_lesskp,
+                    disable_left_right_check=args.disable_left_right_check,
+                    args=args,
+                )
     #     print(isinstance(h.meta, network.heads.PanopticDeeplabMeta))
     if isinstance(head_nets[0].meta, network.heads.IntensityMeta) \
        and isinstance(head_nets[1].meta, network.heads.PanopticDeeplabMeta):
@@ -244,7 +266,8 @@ def factory_decode(head_nets, *,
         if len(head_nets) >= 3:
             field_config_ball = FieldConfig(cif_indices=[2])
             field_config_cent = FieldConfig(cif_indices=[3]) if (len(head_nets) == 4 or head_nets[2].meta.name=='cent') else None   # to work when (cif,pan,ball,cent) and (cif,pan,cent) 
-            #print('field config ball', field_config_ball)
+            print('field config ball', field_config_ball)
+            print('field config cent', field_config_cent)
             if isinstance(head_nets[2].meta, network.heads.IntensityMeta):
                 if args.only_output_17:
                     print('cifpanball with 17 outputs')

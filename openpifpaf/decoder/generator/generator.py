@@ -61,9 +61,15 @@ class Generator:
             if device is not None:
                 image_batch = image_batch.to(device, non_blocking=True)
 
-            with torch.autograd.profiler.record_function('model'):
+            # with torch.autograd.profiler.record_function('model'):
+            with torch.autograd.profiler.profile() as prof:
                 heads = model(image_batch)
-
+            with open('runtime_network_log.txt','a') as f:
+                f.write('-------------------------------------------------------')
+                f.write('-------------------------------------------------------')
+                f.write(str(prof.key_averages().table(sort_by="self_cpu_time_total")))
+            # print(prof.key_averages().table(sort_by="self_cpu_time_total"))
+            # print(prof)
             # to numpy
             with torch.autograd.profiler.record_function('tonumpy'):
                 heads = apply(lambda x: x.cpu().numpy(), heads)
@@ -182,10 +188,11 @@ class Generator:
         """For single image, from fields to annotations."""
         raise NotImplementedError()
 
-    def batch(self, model, image_batch, *, device=None, oracle_masks=None, target_batch=None, anns_batch=None):
+    def batch(self, model, image_batch, *, device=None, oracle_masks=None, target_batch=None, anns_batch=None, numb=None):
         """From image batch straight to annotations batch."""
         start_nn = time.perf_counter()
         self.anns_batch = anns_batch
+        self.numb = numb
         fields_batch = self.fields_batch(model, image_batch, device=device, oracle_masks=oracle_masks, target_batch=target_batch)
         # print('fields batch',len(fields_batch[0]))
         # print('fields batch',fields_batch)
@@ -200,7 +207,10 @@ class Generator:
         result = self.worker_pool.starmap(
             self._mappable_annotations, zip(fields_batch, image_batch))
         self.last_decoder_time = time.perf_counter() - start_decoder
-
+        with open('runtime_execute_log.txt','a') as f:
+            f.write('\n-------------------------------------------------------')
+            f.write('\n-------------------------------------------------------')
+            f.write('\ntime: nn = {nn_t:.3f}s, dec = {dec_t:.3f}s'.format(nn_t=self.last_nn_time*1000, dec_t=self.last_decoder_time*1000))
         LOG.debug('time: nn = %.3fs, dec = %.3fs', self.last_nn_time, self.last_decoder_time)
         return result
 
