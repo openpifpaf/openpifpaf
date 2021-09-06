@@ -361,11 +361,11 @@ class Factory(Configurable):
             else:
                 try:
                     checkpoint = torch.load(checkpoint)
-                except FileNotFoundError:
+                except FileNotFoundError as e:
                     raise Exception('Checkpoint "{}" not found. Pre-trained checkpoints: {}'.format(
                         checkpoint,
                         [k for k, v in CHECKPOINT_URLS.items() if v is not PRETRAINED_UNAVAILABLE]
-                    ))
+                    )) from e
 
         net_cpu: nets.Shell = checkpoint['model']
         epoch = checkpoint['epoch']
