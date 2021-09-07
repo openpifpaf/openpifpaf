@@ -35,13 +35,13 @@ def register():
         'v0.12.6/shufflenetv2k30-210409-024202-cocokp-o10s-f4fb0807.pkl')
     openpifpaf.CHECKPOINT_URLS['shufflenetv2k44'] = openpifpaf.PRETRAINED_UNAVAILABLE
     openpifpaf.CHECKPOINT_URLS['swin_s'] = (
-        'https://github.com/dmizr/openpifpaf/releases/download/'
+        'http://github.com/dmizr/openpifpaf/releases/download/'
         'v0.12.14/swin_s_fpn_lvl_3_lr_5e-5.pkl.epoch250')
     openpifpaf.CHECKPOINT_URLS['swin_b'] = (
-        'https://github.com/dmizr/openpifpaf/releases/download/'
+        'http://github.com/dmizr/openpifpaf/releases/download/'
         'v0.12.14/swin_b_fpn_lvl_3_lr_5e-5.pkl.epoch250')
     openpifpaf.CHECKPOINT_URLS['swin_t_input_upsample'] = (
-        'https://github.com/dmizr/openpifpaf/releases/download/'
+        'http://github.com/dmizr/openpifpaf/releases/download/'
         'v0.12.14/swin_t_input_upsample_no_fpn_lr_5e-5.pkl.epoch250')
 
     # object detection
