@@ -351,7 +351,7 @@ class Factory(Configurable):
 
         if CHECKPOINT_URLS.get(checkpoint, None) is PRETRAINED_UNAVAILABLE:
             raise Exception(
-                'The pretrained model for {} is not available yet '
+                'The pretrained model for "{}" is not available yet '
                 'in this release cycle. Use one of {}.'.format(
                     checkpoint,
                     [k for k, v in CHECKPOINT_URLS.items() if v is not PRETRAINED_UNAVAILABLE],
@@ -368,7 +368,13 @@ class Factory(Configurable):
                     check_hash=not checkpoint.startswith('https'),
                     progress=self.download_progress)
             else:
-                checkpoint = torch.load(checkpoint)
+                try:
+                    checkpoint = torch.load(checkpoint)
+                except FileNotFoundError as e:
+                    raise Exception('Checkpoint "{}" not found. Pre-trained checkpoints: {}'.format(
+                        checkpoint,
+                        [k for k, v in CHECKPOINT_URLS.items() if v is not PRETRAINED_UNAVAILABLE]
+                    )) from e
 
         net_cpu: nets.Shell = checkpoint['model']
         epoch = checkpoint['epoch']
