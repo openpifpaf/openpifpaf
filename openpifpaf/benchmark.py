@@ -14,8 +14,7 @@ import pysparkling
 try:
     import tabulate
 except ImportError:
-    print('pip install tabulate')
-    raise
+    tabulate = None
 
 from . import __version__
 
@@ -108,6 +107,7 @@ class Config:
 class Benchmark:
     def __init__(self, configs, output_folder, *,
                  reference_config=None, stat_filter=None, stat_scale=1.0):
+        assert tabulate is not None, 'need tabulate: pip install tabulate'
         self.configs = configs
         self.output_folder = output_folder
         self.reference_config = reference_config
