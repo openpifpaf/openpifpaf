@@ -191,20 +191,20 @@ class Benchmark:
 
             if reference_values is not None and self.reference_config.name != name:
                 values = [v - r for v, r in zip(values, reference_values)]
-                row += [f'__{values[0]: +.1f}__']
+                row += [f'__{values[0]:+.1f}__']
                 if len(values) > 1:
-                    row += [f'{v: +.1f}' for v in values[1:]]
+                    row += [f'{v:+.1f}' for v in values[1:]]
 
                 t -= 1000.0 * reference['total_time'] / reference['n_images']
                 tdec -= 1000.0 * reference['decoder_time'] / reference['n_images']
                 tnn -= 1000.0 * reference['nn_time'] / reference['n_images']
                 file_size -= reference['file_size'] / 1024 / 1024
-                row += [f'{t: +.0f}ms', f'{tnn: +.0f}ms', f'{tdec: +.0f}ms', f'{file_size: +.1f}MB']
+                row += [f'{t:+.0f}ms', f'{tnn:+.0f}ms', f'{tdec:+.0f}ms', f'{file_size:+.1f}MB']
             else:
-                row += [f'__{values[0]: .1f}__']
+                row += [f'__{values[0]:.1f}__']
                 if len(values) > 1:
-                    row += [f'{v: .1f}' for v in values[1:]]
-                row += [f'{t: .0f}ms', f'{tnn: .0f}ms', f'{tdec: .0f}ms', f'{file_size: .1f}MB']
+                    row += [f'{v:.1f}' for v in values[1:]]
+                row += [f'{t:.0f}ms', f'{tnn:.0f}ms', f'{tdec:.0f}ms', f'{file_size:.1f}MB']
 
             table.append(row)
 
