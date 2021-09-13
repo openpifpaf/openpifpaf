@@ -208,7 +208,8 @@ class Benchmark:
 
             table.append(row)
 
-        print(tabulate.tabulate(table, headers=headers, tablefmt='github'))
+        colalign = ['left'] + ['right'] * (len(headers) - 1)
+        print(tabulate.tabulate(table, headers=headers, tablefmt='pipe', colalign=colalign))
         return self
 
 
