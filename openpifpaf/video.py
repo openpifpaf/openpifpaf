@@ -125,7 +125,7 @@ def main():
     last_loop = time.perf_counter()
     for (ax, ax_second), (preds, _, meta) in \
             zip(animation.iter(), predictor.dataset(capture)):
-        image = visualizer.Base._image  # pylint: disable=protected-access
+        image = visualizer.Base.image()
         if ax is None and (not args.json_output or args.video_output):
             ax, ax_second = animation.frame_init(image)
 
