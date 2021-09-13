@@ -142,7 +142,7 @@ def evaluate(args):
     loader = datamodule.eval_loader()
     for image_i, (pred, gt_anns, image_meta) in \
             enumerate(predictor.dataloader(loader)):
-        if args.n_images is not None and image_i > args.n_images:
+        if args.n_images is not None and image_i >= args.n_images:
             break
         LOG.info('image %d / %d, last loop: %.3fs, images per second=%.1f',
                  image_i, len(loader), time.perf_counter() - loop_start,

@@ -11,6 +11,10 @@ import subprocess
 from typing import List
 
 import pysparkling
+try:
+    import tabulate
+except ImportError:
+    tabulate = None
 
 from . import __version__
 
@@ -103,6 +107,7 @@ class Config:
 class Benchmark:
     def __init__(self, configs, output_folder, *,
                  reference_config=None, stat_filter=None, stat_scale=1.0):
+        assert tabulate is not None, 'need tabulate: pip install tabulate'
         self.configs = configs
         self.output_folder = output_folder
         self.reference_config = reference_config
@@ -162,15 +167,11 @@ class Benchmark:
     def print_md(self):
         """Pretty printing markdown"""
         stats = self.stats()
-
         first_stats = list(stats.values())[0]
-        name_w = max(len(c) for c in stats.keys()) + 2
-        name_title = 'Name'
-        labels = ''.join(['{0: <8} | '.format(l) for l in self.stat_text_labels(first_stats)])
-        print(
-            f'| {name_title: <{name_w}} | {labels}'
-            't_{total} [ms] | t_{NN} [ms] | t_{dec} [ms] |     size |'
-        )
+
+        headers = ['Name']
+        headers += self.stat_text_labels(first_stats)
+        headers += ['t_total', 't_NN', 't_dec', 'size']
 
         reference_values = None
         if self.reference_config is not None:
@@ -178,6 +179,7 @@ class Benchmark:
             if reference is not None:
                 reference_values = self.stat_values(reference)
 
+        table = []
         for name, data in sorted(stats.items(), key=lambda b_d: self.stat_values(b_d[1])[0]):
             values = self.stat_values(data)
             t = 1000.0 * data['total_time'] / data['n_images']
@@ -185,31 +187,28 @@ class Benchmark:
             tdec = 1000.0 * data['decoder_time'] / data['n_images']
             file_size = data['file_size'] / 1024 / 1024
 
-            name_link = '[' + name + ']'
+            row = [f'[{name}]']
 
             if reference_values is not None and self.reference_config.name != name:
                 values = [v - r for v, r in zip(values, reference_values)]
+                row += [f'__{values[0]:+.1f}__']
+                if len(values) > 1:
+                    row += [f'{v:+.1f}' for v in values[1:]]
+
                 t -= 1000.0 * reference['total_time'] / reference['n_images']
                 tdec -= 1000.0 * reference['decoder_time'] / reference['n_images']
                 tnn -= 1000.0 * reference['nn_time'] / reference['n_images']
                 file_size -= reference['file_size'] / 1024 / 1024
-
-                values_serialized = '__{0: <+2.1f}__ | '.format(values[0])
-                if len(values) > 1:
-                    values_serialized += ''.join(['{0: <+8.1f} | '.format(v) for v in values[1:]])
-                print(
-                    f'| {name_link: <{name_w}} | {values_serialized}'
-                    f'{t: <+15.0f} | {tnn: <+11.0f} | {tdec: <+12.0f} | {file_size: >+6.1f}MB |'
-                )
+                row += [f'{t:+.0f}ms', f'{tnn:+.0f}ms', f'{tdec:+.0f}ms', f'{file_size:+.1f}MB']
             else:
-                values_serialized = '__{0: <2.1f}__ | '.format(values[0])
+                row += [f'__{values[0]:.1f}__']
                 if len(values) > 1:
-                    values_serialized += ''.join(['{0: <8.1f} | '.format(v) for v in values[1:]])
-                print(
-                    f'| {name_link: <{name_w}} | {values_serialized}'
-                    f'{t: <15.0f} | {tnn: <11.0f} | {tdec: <12.0f} | {file_size: >6.1f}MB |'
-                )
+                    row += [f'{v:.1f}' for v in values[1:]]
+                row += [f'{t:.0f}ms', f'{tnn:.0f}ms', f'{tdec:.0f}ms', f'{file_size:.1f}MB']
 
+            table.append(row)
+
+        print(tabulate.tabulate(table, headers=headers, tablefmt='github'))
         return self
 
 
