@@ -138,7 +138,7 @@ def main():
                 f.write('\n')
         if (not args.json_output or args.video_output) \
            and (args.separate_debug_ax or not args.debug_indices):
-            image = visualizer.Base._image  # pylint: disable=protected-access
+            image = visualizer.Base.image()
             ax.imshow(image)
             annotation_painter.annotations(ax, preds)
         postprocessing_time = time.perf_counter() - start_post

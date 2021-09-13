@@ -19,7 +19,7 @@ class Seeds(Base):
         if not field_indices:
             return
 
-        with self.image_canvas(self._processed_image) as ax:
+        with self.image_canvas(self.processed_image()) as ax:
             show.white_screen(ax)
             for f in field_indices:
                 if f == -1:

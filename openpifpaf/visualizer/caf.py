@@ -57,7 +57,7 @@ class Caf(Base):
                       self.meta.keypoints[self.meta.skeleton[f][0] - 1],
                       self.meta.keypoints[self.meta.skeleton[f][1] - 1])
 
-            with self.image_canvas(self._processed_image, margin=[0.0, 0.01, 0.05, 0.01]) as ax:
+            with self.image_canvas(self.processed_image(), margin=[0.0, 0.01, 0.05, 0.01]) as ax:
                 im = ax.imshow(self.scale_scalar(confidences[f], self.meta.stride),
                                alpha=0.9, vmin=0.0, vmax=1.0, cmap=CMAP_BLUES_NAN)
                 self.colorbar(ax, im)
@@ -71,7 +71,7 @@ class Caf(Base):
                       self.meta.keypoints[self.meta.skeleton[f][1] - 1])
             confidence_field = confidence_fields[f] if confidence_fields is not None else None
 
-            with self.image_canvas(self._processed_image, margin=[0.0, 0.01, 0.05, 0.01]) as ax:
+            with self.image_canvas(self.processed_image(), margin=[0.0, 0.01, 0.05, 0.01]) as ax:
                 show.white_screen(ax, alpha=0.5)
                 if annotations:
                     self.annotation_painter.annotations(ax, annotations, color='lightgray')

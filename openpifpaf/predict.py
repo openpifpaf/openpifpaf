@@ -119,7 +119,7 @@ def main():
             image_out_name = out_name(
                 args.image_output, meta['file_name'], '.predictions.' + ext)
             LOG.debug('image output = %s', image_out_name)
-            image = visualizer.Base._image  # pylint: disable=protected-access
+            image = visualizer.Base.image()
             with show.image_canvas(image, image_out_name) as ax:
                 annotation_painter.annotations(ax, pred)
 
