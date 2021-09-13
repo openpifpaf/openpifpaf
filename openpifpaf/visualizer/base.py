@@ -64,12 +64,12 @@ class Base:
             Base._processed_image = None
             return
 
-        def process_image():
+        def process_image(image):
             image = np.moveaxis(np.asarray(image), 0, -1)
             image = np.clip(image / cls.processed_image_intensity_spread * 0.5 + 0.5, 0.0, 1.0)
             return image
 
-        Base._processed_image = process_image
+        Base._processed_image = lambda: process_image(image)
 
     @staticmethod
     def ground_truth(ground_truth):
