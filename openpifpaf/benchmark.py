@@ -166,7 +166,9 @@ class Benchmark:
         first_stats = list(stats.values())[0]
         name_w = max(len(c) for c in stats.keys()) + 2
         name_title = 'Name'
-        labels = ''.join(['{0: <8} | '.format(l) for l in self.stat_text_labels(first_stats)])
+        labels = f'{self.stat_text_labels(first_stats)[0]: <9} | '
+        if len(first_stats) > 1:
+            labels += ''.join([f'{l: <6} | ' for l in self.stat_text_labels(first_stats[1:])])
         print(
             f'| {name_title: <{name_w}} | {labels}'
             't_{total} [ms] | t_{NN} [ms] | t_{dec} [ms] |     size |'
@@ -194,20 +196,20 @@ class Benchmark:
                 tnn -= 1000.0 * reference['nn_time'] / reference['n_images']
                 file_size -= reference['file_size'] / 1024 / 1024
 
-                values_serialized = '__{0: <+2.1f}__ | '.format(values[0])
+                values_serialized = '__{0: <+3.1f}__ | '.format(values[0])
                 if len(values) > 1:
-                    values_serialized += ''.join(['{0: <+8.1f} | '.format(v) for v in values[1:]])
+                    values_serialized += ''.join(['{0: <+6.1f} | '.format(v) for v in values[1:]])
                 print(
                     f'| {name_link: <{name_w}} | {values_serialized}'
-                    f'{t: <+15.0f} | {tnn: <+11.0f} | {tdec: <+12.0f} | {file_size: >+6.1f}MB |'
+                    f'{t: <+14.0f} | {tnn: <+11.0f} | {tdec: <+12.0f} | {file_size: >+6.1f}MB |'
                 )
             else:
-                values_serialized = '__{0: <2.1f}__ | '.format(values[0])
+                values_serialized = '__{0: <3.1f}__ | '.format(values[0])
                 if len(values) > 1:
-                    values_serialized += ''.join(['{0: <8.1f} | '.format(v) for v in values[1:]])
+                    values_serialized += ''.join(['{0: <6.1f} | '.format(v) for v in values[1:]])
                 print(
                     f'| {name_link: <{name_w}} | {values_serialized}'
-                    f'{t: <15.0f} | {tnn: <11.0f} | {tdec: <12.0f} | {file_size: >6.1f}MB |'
+                    f'{t: <14.0f} | {tnn: <11.0f} | {tdec: <12.0f} | {file_size: >6.1f}MB |'
                 )
 
         return self
