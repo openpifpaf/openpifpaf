@@ -38,31 +38,32 @@ class Base:
 
         LOG.debug('%s: indices = %s', head_name, self.indices())
 
-    @staticmethod
-    def image(image=IMAGENOTGIVEN, meta=None):
+    @classmethod
+    def image(cls, image=IMAGENOTGIVEN, meta=None):
         if image is IMAGENOTGIVEN:  # getter
             if callable(Base._image):  # check whether stored value is lazy
-                Base._image = Base._image()
+                Base._image = Base._image()  # pylint: disable=not-callable
             return Base._image
 
         if image is None:
             Base._image = None
             Base._image_meta = None
-            return
+            return cls
 
         Base._image = lambda: np.asarray(image)
         Base._image_meta = meta
+        return cls
 
     @classmethod
     def processed_image(cls, image=IMAGENOTGIVEN):
         if image is IMAGENOTGIVEN:  # getter
             if callable(Base._processed_image):  # check whether stored value is lazy
-                Base._processed_image = Base._processed_image()
+                Base._processed_image = Base._processed_image()  # pylint: disable=not-callable
             return Base._processed_image
 
         if image is None:
             Base._processed_image = None
-            return
+            return cls
 
         def process_image(image):
             image = np.moveaxis(np.asarray(image), 0, -1)
@@ -70,6 +71,7 @@ class Base:
             return image
 
         Base._processed_image = lambda: process_image(image)
+        return cls
 
     @staticmethod
     def ground_truth(ground_truth):
