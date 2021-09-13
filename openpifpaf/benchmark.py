@@ -171,7 +171,7 @@ class Benchmark:
 
         headers = ['Name']
         headers += self.stat_text_labels(first_stats)
-        headers += ['t_{total} [ms]', 't_{NN} [ms]', 't_{dec} [ms]', 'size']
+        headers += ['t_{total}', 't_{NN}', 't_{dec}', 'size']
 
         reference_values = None
         if self.reference_config is not None:
@@ -199,12 +199,12 @@ class Benchmark:
                 tdec -= 1000.0 * reference['decoder_time'] / reference['n_images']
                 tnn -= 1000.0 * reference['nn_time'] / reference['n_images']
                 file_size -= reference['file_size'] / 1024 / 1024
-                row += [f'{t: +.0f}', f'{tnn: +.0f}', f'{tdec: +.0f}', f'{file_size: +.1f}MB']
+                row += [f'{t: +.0f}ms', f'{tnn: +.0f}ms', f'{tdec: +.0f}ms', f'{file_size: +.1f}MB']
             else:
                 row += [f'__{values[0]: .1f}__']
                 if len(values) > 1:
                     row += [f'{v: .1f}' for v in values[1:]]
-                row += [f'{t: .0f}', f'{tnn: .0f}', f'{tdec: .0f}', f'{file_size: .1f}MB']
+                row += [f'{t: .0f}ms', f'{tnn: .0f}ms', f'{tdec: .0f}ms', f'{file_size: .1f}MB']
 
             table.append(row)
 
