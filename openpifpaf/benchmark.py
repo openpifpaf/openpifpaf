@@ -208,7 +208,7 @@ class Benchmark:
 
             table.append(row)
 
-        tabulate(table, headers=headers, style='github')
+        tabulate.tabulate(table, headers=headers, style='github')
         return self
 
 
