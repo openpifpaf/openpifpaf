@@ -171,7 +171,7 @@ class Benchmark:
 
         headers = ['Name']
         headers += self.stat_text_labels(first_stats)
-        headers += ['t_{total}', 't_{NN}', 't_{dec}', 'size']
+        headers += ['t_total', 't_NN', 't_dec', 'size']
 
         reference_values = None
         if self.reference_config is not None:
