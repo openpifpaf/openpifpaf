@@ -142,8 +142,6 @@ def evaluate(args):
     loader = datamodule.eval_loader()
     for image_i, (pred, gt_anns, image_meta) in \
             enumerate(predictor.dataloader(loader)):
-        if args.n_images is not None and image_i >= args.n_images:
-            break
         LOG.info('image %d / %d, last loop: %.3fs, images per second=%.1f',
                  image_i, len(loader), time.perf_counter() - loop_start,
                  image_i / max(1, (time.perf_counter() - total_start)))
@@ -162,6 +160,9 @@ def evaluate(args):
                 if args.show_final_ground_truth:
                     annotation_painter.annotations(ax, gt_anns, color='grey')
                 annotation_painter.annotations(ax, pred)
+
+        if args.n_images is not None and image_i >= args.n_images - 1:
+            break
 
     total_time = time.perf_counter() - total_start
 
