@@ -71,13 +71,19 @@ def cli():
     parser.add_argument('--no-skip-epoch0', dest='skip_epoch0',
                         default=True, action='store_false',
                         help='do not skip eval for epoch 0')
-    parser.add_argument('--watch', default=False, const=60, nargs='?', type=int)
+    parser.add_argument('--watch', default=False, const=60, nargs='?', type=int,
+                        help=('Watch a directory for new checkpoint files. '
+                              'Optionally specify the number of seconds between checks.')
+                        )
     parser.add_argument('--disable-cuda', action='store_true',
                         help='disable CUDA')
     parser.add_argument('--write-predictions', default=False, action='store_true',
                         help='write a json and a zip file of the predictions')
-    parser.add_argument('--show-final-image', default=False, action='store_true')
-    parser.add_argument('--show-final-ground-truth', default=False, action='store_true')
+    parser.add_argument('--show-final-image', default=False, action='store_true',
+                        help='show the final image')
+    parser.add_argument('--show-final-ground-truth', default=False, action='store_true',
+                        help='show the final image with ground truth annotations')
+    parser.add_argument('--n-images', default=None, type=int)
     args = parser.parse_args()
 
     logger.configure(args, LOG)
@@ -136,6 +142,8 @@ def evaluate(args):
     loader = datamodule.eval_loader()
     for image_i, (pred, gt_anns, image_meta) in \
             enumerate(predictor.dataloader(loader)):
+        if args.n_images is not None and image_i > args.n_images:
+            break
         LOG.info('image %d / %d, last loop: %.3fs, images per second=%.1f',
                  image_i, len(loader), time.perf_counter() - loop_start,
                  image_i / max(1, (time.perf_counter() - total_start)))
