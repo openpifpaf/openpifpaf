@@ -14,6 +14,7 @@ except ImportError:
     make_axes_locatable = None
 
 LOG = logging.getLogger(__name__)
+IMAGENOTGIVEN = object()
 
 
 def itemsetter(list_, index, value):
@@ -38,24 +39,37 @@ class Base:
         LOG.debug('%s: indices = %s', head_name, self.indices())
 
     @staticmethod
-    def image(image, meta=None):
+    def image(image=IMAGENOTGIVEN, meta=None):
+        if image is IMAGENOTGIVEN:  # getter
+            if callable(Base._image):  # check whether stored value is lazy
+                Base._image = Base._image()
+            return Base._image
+
         if image is None:
             Base._image = None
             Base._image_meta = None
             return
 
-        Base._image = np.asarray(image)
+        Base._image = lambda: np.asarray(image)
         Base._image_meta = meta
 
     @classmethod
-    def processed_image(cls, image):
+    def processed_image(cls, image=IMAGENOTGIVEN):
+        if image is IMAGENOTGIVEN:  # getter
+            if callable(Base._processed_image):  # check whether stored value is lazy
+                Base._processed_image = Base._processed_image()
+            return Base._processed_image
+
         if image is None:
             Base._processed_image = None
             return
 
-        image = np.moveaxis(np.asarray(image), 0, -1)
-        image = np.clip(image / cls.processed_image_intensity_spread * 0.5 + 0.5, 0.0, 1.0)
-        Base._processed_image = image
+        def process_image():
+            image = np.moveaxis(np.asarray(image), 0, -1)
+            image = np.clip(image / cls.processed_image_intensity_spread * 0.5 + 0.5, 0.0, 1.0)
+            return image
+
+        Base._processed_image = process_image
 
     @staticmethod
     def ground_truth(ground_truth):
