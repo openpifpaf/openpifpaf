@@ -136,8 +136,8 @@ def evaluate(args):
     datamodule = datasets.factory(args.dataset)
     predictor = Predictor(head_metas=datamodule.head_metas)
 
-    loader = datamodule.eval_loader()
-    loader_iter = enumerate(predictor.enumerated_dataloader(enumerate(loader)))
+    data_loader = datamodule.eval_loader()
+    prediction_loader = predictor.enumerated_dataloader(enumerate(data_loader))
     if args.loader_warmup:
         LOG.info('Data loader warmup (%.1fs) ...', args.loader_warmup)
         time.sleep(args.loader_warmup)
@@ -147,9 +147,9 @@ def evaluate(args):
     total_start = time.perf_counter()
     loop_start = time.perf_counter()
 
-    for image_i, (pred, gt_anns, image_meta) in loader_iter:
+    for image_i, (pred, gt_anns, image_meta) in enumerate(prediction_loader):
         LOG.info('image %d / %d, last loop: %.3fs, images per second=%.1f',
-                 image_i, len(loader), time.perf_counter() - loop_start,
+                 image_i, len(data_loader), time.perf_counter() - loop_start,
                  image_i / max(1, (time.perf_counter() - total_start)))
         loop_start = time.perf_counter()
 
