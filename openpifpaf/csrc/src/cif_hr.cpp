@@ -93,8 +93,9 @@ void cif_hr_add_gauss_op(const torch::Tensor& accumulated,
                 vv = v * approx_exp(-0.5 * (deltax2 + deltay2) / sigma2);
             }
 
-            accumulated_a[f][yy][xx] = fmaxf(accumulated_a[f][yy][xx], accumulated_revision) + vv;
-            accumulated_a[f][yy][xx] = fminf(accumulated_a[f][yy][xx], accumulated_revision + 1.0);
+            auto& entry = accumulated_a[f][yy][xx];
+            entry = fmaxf(entry, accumulated_revision) + vv;
+            entry = fminf(entry, accumulated_revision + 1.0);
         }
     }
 }
