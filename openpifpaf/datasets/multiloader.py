@@ -50,15 +50,17 @@ class MultiLoader:
         if n_batches:
             self.n_batches = min(self.n_batches, n_batches)
 
+        # create iter() before __iter__ call below to warmup loaders
+        self.loader_iters = [iter(l) for l in self.loaders]
+        self.n_loaded = [0 for _ in self.loaders]
+
     def __iter__(self):
-        loader_iters = [iter(l) for l in self.loaders]
-        n_loaded = [0 for _ in self.loaders]
         while True:
-            loader_index = int(np.argmin([n / w for n, w in zip(n_loaded, self._weights)]))
-            next_batch = next(loader_iters[loader_index], None)
+            loader_index = int(np.argmin([n / w for n, w in zip(self.n_loaded, self._weights)]))
+            next_batch = next(self.loader_iters[loader_index], None)
             if next_batch is None:
                 break
-            n_loaded[loader_index] += 1
+            self.n_loaded[loader_index] += 1
             MultiLoader.last_task_index = loader_index
 
             # convert targets to multi-targets
@@ -69,7 +71,7 @@ class MultiLoader:
 
             yield image_batch, multi_target_batch, meta_batch
 
-            if sum(n_loaded) >= self.n_batches:
+            if sum(self.n_loaded) >= self.n_batches:
                 break
 
     def __len__(self):
