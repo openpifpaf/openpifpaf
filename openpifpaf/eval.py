@@ -139,6 +139,7 @@ def evaluate(args):
     loader = datamodule.eval_loader()
     loader_iter = enumerate(predictor.enumerated_dataloader(enumerate(loader)))
     if args.loader_warmup:
+        sys.stdout.flush()
         LOG.info('Data loader warmup (%.1fs) ...', args.loader_warmup)
         time.sleep(args.loader_warmup)
         LOG.info('Done.')
