@@ -111,8 +111,8 @@ class Predictor:
 
         yield from self.dataloader(dataloader)
 
-    def dataloader(self, dataloader):
-        for batch_i, item in enumerate(dataloader):
+    def enumerated_dataloader(self, enumerated_dataloader):
+        for batch_i, item in enumerated_dataloader:
             if len(item) == 3:
                 processed_image_batch, gt_anns_batch, meta_batch = item
                 image_batch = [None for _ in processed_image_batch]
@@ -144,6 +144,9 @@ class Predictor:
                     pred = [ann.json_data() for ann in pred]
 
                 yield pred, gt_anns, meta
+
+    def dataloader(self, dataloader):
+        yield from self.enumerated_dataloader(enumerate(dataloader))
 
     def images(self, file_names, **kwargs):
         data = datasets.ImageList(

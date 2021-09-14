@@ -84,6 +84,7 @@ def cli():
     parser.add_argument('--show-final-ground-truth', default=False, action='store_true',
                         help='show the final image with ground truth annotations')
     parser.add_argument('--n-images', default=None, type=int)
+    parser.add_argument('--loader-warmup', default=3.0, type=float)
     args = parser.parse_args()
 
     logger.configure(args, LOG)
@@ -135,15 +136,20 @@ def evaluate(args):
     datamodule = datasets.factory(args.dataset)
     predictor = Predictor(head_metas=datamodule.head_metas)
 
+    data_loader = datamodule.eval_loader()
+    prediction_loader = predictor.enumerated_dataloader(enumerate(data_loader))
+    if args.loader_warmup:
+        LOG.info('Data loader warmup (%.1fs) ...', args.loader_warmup)
+        time.sleep(args.loader_warmup)
+        LOG.info('Done.')
+
     metrics = datamodule.metrics()
     total_start = time.perf_counter()
     loop_start = time.perf_counter()
 
-    loader = datamodule.eval_loader()
-    for image_i, (pred, gt_anns, image_meta) in \
-            enumerate(predictor.dataloader(loader)):
+    for image_i, (pred, gt_anns, image_meta) in enumerate(prediction_loader):
         LOG.info('image %d / %d, last loop: %.3fs, images per second=%.1f',
-                 image_i, len(loader), time.perf_counter() - loop_start,
+                 image_i, len(data_loader), time.perf_counter() - loop_start,
                  image_i / max(1, (time.perf_counter() - total_start)))
         loop_start = time.perf_counter()
 
