@@ -111,8 +111,8 @@ class Predictor:
 
         yield from self.dataloader(dataloader)
 
-    def dataloader(self, dataloader):
-        for batch_i, item in enumerate(dataloader):
+    def enumerated_dataloader(self, enumerated_dataloader):
+        for batch_i, item in enumerated_dataloader:
             if len(item) == 3:
                 processed_image_batch, gt_anns_batch, meta_batch = item
                 image_batch = [None for _ in processed_image_batch]
