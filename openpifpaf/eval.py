@@ -137,7 +137,7 @@ def evaluate(args):
     predictor = Predictor(head_metas=datamodule.head_metas)
     loader = datamodule.eval_loader()
     len_loader = len(loader)
-    loader_iter = enumerate(predictor.dataloader(loader))
+    loader_iter = enumerate(predictor.enumerated_dataloader(enumerate(loader)))
     time.sleep(args.loader_warmup)
 
     metrics = datamodule.metrics()

@@ -145,6 +145,9 @@ class Predictor:
 
                 yield pred, gt_anns, meta
 
+    def dataloader(self, dataloader):
+        yield from self.enumerated_dataloader(enumerate(dataloader))
+
     def images(self, file_names, **kwargs):
         data = datasets.ImageList(
             file_names, preprocess=self.preprocess, with_raw_image=True)
