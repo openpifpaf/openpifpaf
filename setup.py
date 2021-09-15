@@ -41,18 +41,14 @@ def add_cpp_extension():
 
     this_dir = os.path.dirname(os.path.abspath(__file__))
     EXTENSIONS.append(
-        setuptools.Extension(
+        torch.utils.cpp_extension.CppExtension(
             'openpifpaf._cpp',
             glob.glob(os.path.join(this_dir, 'openpifpaf', 'csrc', 'src', '**', '*.cpp'), recursive=True),
             depends=glob.glob(os.path.join(this_dir, 'openpifpaf', 'csrc', 'include', '**', '*.hpp'), recursive=True),
-            include_dirs=[
-                os.path.join(this_dir, 'openpifpaf', 'csrc', 'include'),
-            ] + torch.utils.cpp_extension.include_paths(),
+            include_dirs=[os.path.join(this_dir, 'openpifpaf', 'csrc', 'include')],
             define_macros=define_macros,
             extra_compile_args=extra_compile_args,
             extra_link_args=extra_link_args,
-            library_dirs=torch.utils.cpp_extension.library_paths(),
-            libraries=['c10', 'torch', 'torch_python'],
         )
     )
     assert 'build_ext' not in CMD_CLASS

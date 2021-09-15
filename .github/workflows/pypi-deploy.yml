@@ -57,7 +57,7 @@ jobs:
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
           CIBW_ARCHS_LINUX: x86_64 aarch64
-          CIBW_REPAIR_WHEEL_COMMAND_LINUX: "pip install torch; python -c 'import torch;print(torch.utils.cmake_prefix_path)'; LD_LIBRARY_PATH=`python -c 'import torch;print(torch.utils.cmake_prefix_path)'`/../../lib auditwheel repair -w {dest_dir} {wheel}"
+          CIBW_REPAIR_WHEEL_COMMAND_LINUX: "pip install torch; python -c 'import torch;print(torch.utils.cmake_prefix_path)'; LD_LIBRARY_PATH=`python -c 'import torch;print(torch.utils.cmake_prefix_path)'`/../../lib auditwheel repair -w {dest_dir} {wheel}; pip uninstall torch"
         run: |
           python -m cibuildwheel --output-dir wheelhouse
 
