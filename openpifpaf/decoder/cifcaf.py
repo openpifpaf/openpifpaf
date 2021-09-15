@@ -273,5 +273,5 @@ class CifCaf(Decoder):
 
         LOG.info('annotations %d: %s',
                  len(annotations_py),
-                 [np.sum(ann.data[:, 2] > 0.0) for ann in annotations_py])
+                 [np.sum(ann.data[:, 2] > 0.1) for ann in annotations_py])
         return annotations_py
