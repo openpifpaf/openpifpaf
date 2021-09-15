@@ -230,15 +230,15 @@ std::tuple<torch::Tensor, torch::Tensor> CifCaf::call_with_initial_annotations(
         annotations.push_back(annotation);
     }
 
-    if (force_complete) {
-        _force_complete(&annotations, cifhr_accumulated, cifhr_revision, caf_field, caf_stride);
-        for (auto&& ann : annotations) _flood_fill(&ann);
-    }
-
 #ifdef DEBUG
     TORCH_WARN("NMS");
 #endif
     utils::NMSKeypoints().call(&occupancy, &annotations);
+
+    if (force_complete) {
+        _force_complete(&annotations, cifhr_accumulated, cifhr_revision, caf_field, caf_stride);
+        for (auto&& ann : annotations) _flood_fill(&ann);
+    }
 
 #ifdef DEBUG
     TORCH_WARN("convert to tensor");
@@ -421,13 +421,23 @@ void CifCaf::_force_complete(
     auto caf_fb = caf_scored.get();
 
     for (auto&& ann : *annotations) {
+        std::vector<float> confidences_before;
+        for (Joint& joint : ann.joints) confidences_before.push_back(joint.v);
+
         _grow(&ann, caf_fb, false, 4.0);
+
+        // assign fixed lowest confidence to joints completed here
+        for (int64_t j=0; j < n_keypoints; j++) {
+            if (ann.joints[j].v == 0.0 || confidences_before[j] > 0.0) continue;
+            ann.joints[j].v = 0.0001;
+        }
     }
 }
 
 
 void CifCaf::_flood_fill(Annotation* ann) {
     while (!frontier.empty()) frontier.pop();
+    in_frontier.clear();
 
     // initialize frontier
     for (int64_t j=0; j < n_keypoints; j++) {
