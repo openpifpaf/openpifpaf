@@ -8,7 +8,7 @@ namespace decoder {
 namespace utils {
 
 
-double CafScored::default_score_th = 0.2;
+double CafScored::default_score_th = 0.3;
 bool CafScored::ablation_no_rescore = false;
 
 

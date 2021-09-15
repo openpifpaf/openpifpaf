@@ -11,7 +11,7 @@ namespace utils {
 
 
 int64_t CifHr::neighbors = 16;
-double CifHr::threshold = 0.1;
+double CifHr::threshold = 0.3;
 bool CifHr::ablation_skip = false;
 
 
