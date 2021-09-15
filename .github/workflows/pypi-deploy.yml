@@ -50,22 +50,16 @@ jobs:
         run: |
           python -m pip install cibuildwheel==2.1.2
 
-      - name: LibTorch shared libraries
-        run: |
-          mkdir -p /tmp/libtorch-linux
-          wget -q -O /tmp/libtorch-linux/libtorch.zip https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-1.9.0%2Bcpu.zip
-          unzip /tmp/libtorch-linux/libtorch.zip -d /tmp/libtorch-linux
-
-      # cp3[6,7,8,9]-macosx* cp3[6,7,8,9]-win_amd64
+      # cp3[6,7,8,9]-manylinux* cp3[6,7,8,9]-macosx* cp3[6,7,8,9]-win_amd64
       - name: Build wheels
         env:
-          CIBW_BUILD: "cp3[6,7,8,9]-manylinux*"
+          CIBW_BUILD: "cp39-manylinux*"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
           CIBW_ARCHS_LINUX: x86_64 aarch64
+          CIBW_REPAIR_WHEEL_COMMAND_LINUX: "LD_LIBRARY_PATH=/opt/_internal/pipx/venvs/lib/python3.9/site-packages/torch/lib/:${LD_LIBRARY_PATH} auditwheel repair -w {dest_dir} {wheel}"
         run: |
-          echo /tmp/libtorch-linux/libtorch/lib:${LD_LIBRARY_PATH}
-          LD_LIBRARY_PATH=/tmp/libtorch-linux/libtorch/lib:${LD_LIBRARY_PATH} python -m cibuildwheel --output-dir wheelhouse
+          python -m cibuildwheel --output-dir wheelhouse
 
       - uses: actions/upload-artifact@v2
         with:
