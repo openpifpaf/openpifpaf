@@ -3,7 +3,7 @@
 * [main](https://github.com/openpifpaf/openpifpaf/compare/v0.12.14...main)
 * [0.12.14](https://github.com/openpifpaf/openpifpaf/compare/v0.12.13...v0.12.14) (2021-09-15)
     * new NuScenes plugin [#467](https://github.com/openpifpaf/openpifpaf/pull/467), [#472](https://github.com/openpifpaf/openpifpaf/pull/472)
-    * new transformer backbones [#463](https://github.com/openpifpaf/openpifpaf/pull/463), [#471](https://github.com/openpifpaf/openpifpaf/pull/471), [#481](https://github.com/openpifpaf/openpifpaf/pull/481), [#488](https://github.com/openpifpaf/openpifpaf/pull/488)
+    * new transformer backbones [#463](https://github.com/openpifpaf/openpifpaf/pull/463), [#471](https://github.com/openpifpaf/openpifpaf/pull/471), [#481](https://github.com/openpifpaf/openpifpaf/pull/481), [#488](https://github.com/openpifpaf/openpifpaf/pull/488): pretrained `swin_s`, `swin_b`, `swin_t_input_upsample`
     * new Apollo checkpoints [#473](https://github.com/openpifpaf/openpifpaf/pull/473)
     * lazy ops for visualizer [#490](https://github.com/openpifpaf/openpifpaf/pull/490)
 * [0.12.13](https://github.com/openpifpaf/openpifpaf/compare/v0.12.12...v0.12.13) (2021-07-22)
