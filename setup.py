@@ -1,6 +1,6 @@
 import glob
 import os
-from setuptools import setup, find_packages
+import setuptools
 import sys
 import torch.utils.cpp_extension
 
@@ -41,14 +41,18 @@ def add_cpp_extension():
 
     this_dir = os.path.dirname(os.path.abspath(__file__))
     EXTENSIONS.append(
-        torch.utils.cpp_extension.CppExtension(
+        setuptools.Extension(
             'openpifpaf._cpp',
             glob.glob(os.path.join(this_dir, 'openpifpaf', 'csrc', 'src', '**', '*.cpp'), recursive=True),
             depends=glob.glob(os.path.join(this_dir, 'openpifpaf', 'csrc', 'include', '**', '*.hpp'), recursive=True),
-            include_dirs=[os.path.join(this_dir, 'openpifpaf', 'csrc', 'include')],
+            include_dirs=[
+                os.path.join(this_dir, 'openpifpaf', 'csrc', 'include'),
+            ] + torch.utils.cpp_extension.include_paths(),
             define_macros=define_macros,
             extra_compile_args=extra_compile_args,
             extra_link_args=extra_link_args,
+            library_dirs=torch.utils.cpp_extension.library_paths(),
+            libraries=['c10'],
         )
     )
     assert 'build_ext' not in CMD_CLASS
@@ -56,7 +60,7 @@ def add_cpp_extension():
 
 
 add_cpp_extension()
-setup(
+setuptools.setup(
     name='openpifpaf',
     version=versioneer.get_version(),
     license='GNU AGPLv3',
@@ -67,7 +71,7 @@ setup(
     author_email='research@svenkreiss.com',
     url='https://github.com/openpifpaf/openpifpaf',
 
-    packages=find_packages(),
+    packages=setuptools.find_packages(),
     package_data={
         'openpifpaf': ['*.dll', '*.dylib', '*.so'],
     },

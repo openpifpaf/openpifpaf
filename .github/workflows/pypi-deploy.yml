@@ -61,6 +61,8 @@ jobs:
         run: |
           python -m cibuildwheel --output-dir wheelhouse
 
+      - run: ls -hla ./wheelhouse
+
       - uses: actions/upload-artifact@v2
         with:
           path: ./wheelhouse/*.whl
