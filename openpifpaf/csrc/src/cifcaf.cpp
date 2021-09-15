@@ -429,7 +429,7 @@ void CifCaf::_force_complete(
         // assign fixed lowest confidence to joints completed here
         for (int64_t j=0; j < n_keypoints; j++) {
             if (ann.joints[j].v == 0.0 || confidences_before[j] > 0.0) continue;
-            ann.joints[j].v = 0.0001;
+            ann.joints[j].v = fmax(ann.joints[j].v, 0.01) * 0.0001;
         }
     }
 }
@@ -452,7 +452,7 @@ void CifCaf::_flood_fill(Annotation* ann) {
         if (ann->joints[entry.end_i].v > 0.0) continue;
 
         ann->joints[entry.end_i] = ann->joints[entry.start_i];
-        ann->joints[entry.end_i].v = 0.00001;
+        ann->joints[entry.end_i].v = fmax(ann->joints[entry.end_i].v, 0.01) * 0.00001;
         _frontier_add_from(*ann, entry.end_i);
     }
 }
