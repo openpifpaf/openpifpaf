@@ -230,15 +230,15 @@ std::tuple<torch::Tensor, torch::Tensor> CifCaf::call_with_initial_annotations(
         annotations.push_back(annotation);
     }
 
-#ifdef DEBUG
-    TORCH_WARN("NMS");
-#endif
-    utils::NMSKeypoints().call(&occupancy, &annotations);
-
     if (force_complete) {
         _force_complete(&annotations, cifhr_accumulated, cifhr_revision, caf_field, caf_stride);
         for (auto&& ann : annotations) _flood_fill(&ann);
     }
+
+#ifdef DEBUG
+    TORCH_WARN("NMS");
+#endif
+    utils::NMSKeypoints().call(&occupancy, &annotations);
 
 #ifdef DEBUG
     TORCH_WARN("convert to tensor");
