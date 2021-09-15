@@ -1,6 +1,11 @@
 # History
 
-* [main](https://github.com/openpifpaf/openpifpaf/compare/v0.12.13...main)
+* [main](https://github.com/openpifpaf/openpifpaf/compare/v0.12.14...main)
+* [0.12.14](https://github.com/openpifpaf/openpifpaf/compare/v0.12.13...v0.12.14) (2021-09-15)
+    * new NuScenes plugin [#467](https://github.com/openpifpaf/openpifpaf/pull/467), [#472](https://github.com/openpifpaf/openpifpaf/pull/472)
+    * new transformer backbones [#463](https://github.com/openpifpaf/openpifpaf/pull/463), [#471](https://github.com/openpifpaf/openpifpaf/pull/471), [#481](https://github.com/openpifpaf/openpifpaf/pull/481), [#488](https://github.com/openpifpaf/openpifpaf/pull/488)
+    * new Apollo checkpoints [#473](https://github.com/openpifpaf/openpifpaf/pull/473)
+    * lazy ops for visualizer [#490](https://github.com/openpifpaf/openpifpaf/pull/490)
 * [0.12.13](https://github.com/openpifpaf/openpifpaf/compare/v0.12.12...v0.12.13) (2021-07-22)
     * fix regression: avoid CenterPad when batch=1 [#453](https://github.com/openpifpaf/openpifpaf/pull/453)
     * include draw time in "post" time [#454](https://github.com/openpifpaf/openpifpaf/pull/454)
