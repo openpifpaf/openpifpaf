@@ -56,7 +56,8 @@ jobs:
           wget -q -O libtorch-linux/libtorch.zip https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-1.9.0%2Bcpu.zip
           unzip libtorch-linux/libtorch.zip -d libtorch-linux
           pwd
-          echo ${pwd}/libtorch-linux:${LD_LIBRARY_PATH}
+          echo ${CWD}
+          echo ${CWD}/libtorch-linux/libtorch/lib:${LD_LIBRARY_PATH}
           ls
           ls libtorch-linux
 
@@ -68,7 +69,7 @@ jobs:
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
           CIBW_ARCHS_LINUX: x86_64 aarch64
         run: |
-          LD_LIBRARY_PATH=${pwd}/libtorch-linux:${LD_LIBRARY_PATH} python -m cibuildwheel --output-dir wheelhouse
+          LD_LIBRARY_PATH=${CWD}/libtorch-linux/libtorch/lib:${LD_LIBRARY_PATH} python -m cibuildwheel --output-dir wheelhouse
 
       - uses: actions/upload-artifact@v2
         with:
