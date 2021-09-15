@@ -52,7 +52,7 @@ def add_cpp_extension():
             extra_compile_args=extra_compile_args,
             extra_link_args=extra_link_args,
             library_dirs=torch.utils.cpp_extension.library_paths(),
-            libraries=['c10'],
+            libraries=['c10', 'torch', 'torch_python'],
         )
     )
     assert 'build_ext' not in CMD_CLASS
