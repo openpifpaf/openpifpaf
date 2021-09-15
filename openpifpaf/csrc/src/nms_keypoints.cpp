@@ -9,7 +9,7 @@ namespace decoder {
 namespace utils {
 
 
-double NMSKeypoints::suppression = 0.0;
+double NMSKeypoints::suppression = 0.00001;  // larger zero for force-complete
 double NMSKeypoints::instance_threshold = 0.15;
 double NMSKeypoints::keypoint_threshold = 0.15;
 

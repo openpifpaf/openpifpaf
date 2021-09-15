@@ -428,6 +428,7 @@ void CifCaf::_force_complete(
 
 void CifCaf::_flood_fill(Annotation* ann) {
     while (!frontier.empty()) frontier.pop();
+    in_frontier.clear();
 
     // initialize frontier
     for (int64_t j=0; j < n_keypoints; j++) {
