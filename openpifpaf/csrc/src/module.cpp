@@ -16,9 +16,12 @@ PyMODINIT_FUNC PyInit__cpp(void) {
 #define STATIC_GETSET(C, T, V) .def_static("set_"#V, [](T v) { C = v; }).def_static("get_"#V, []() { return C; })
 
 
-TORCH_LIBRARY(openpifpaf_decoder, m) {
+TORCH_LIBRARY(openpifpaf, m) {
     m.def("set_quiet", openpifpaf::set_quiet);
+}
 
+
+TORCH_LIBRARY(openpifpaf_decoder, m) {
     m.class_<openpifpaf::decoder::CifCaf>("CifCaf")
         STATIC_GETSET(openpifpaf::decoder::CifCaf::block_joints, bool, block_joints)
         STATIC_GETSET(openpifpaf::decoder::CifCaf::greedy, bool, greedy)

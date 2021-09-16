@@ -47,7 +47,7 @@ def configure(args: argparse.Namespace, local_logger=None):
         local_logger.setLevel(log_level)
 
     if log_level in (logging.WARNING, logging.ERROR):
-        torch.ops.openpifpaf_decoder.set_quiet(True)
+        torch.ops.openpifpaf.set_quiet(True)
 
 
 def train_configure(args):
