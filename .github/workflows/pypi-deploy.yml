@@ -51,7 +51,7 @@ jobs:
 
       - name: Build wheels
         env:
-          CIBW_BUILD: "cp3[6,7,8,9]-manylinux* cp3[6,7,8,9]-macosx* cp3[6,7,8,9]-win_amd64"
+          CIBW_BUILD: "cp3[7,8,9]-manylinux* cp3[7,8,9]-macosx* cp3[7,8,9]-win_amd64"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_MANYLINUX_AARCH64_IMAGE: manylinux2014
           MACOSX_DEPLOYMENT_TARGET: "10.14"  # for C++17 support
