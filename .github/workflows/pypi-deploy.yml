@@ -54,7 +54,6 @@ jobs:
         env:
           CIBW_BUILD: "cp3[6,7,8,9]-manylinux* cp3[6,7,8,9]-macosx* cp3[6,7,8,9]-win_amd64"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
-          CIBW_ENVIRONMENT_MACOS: "MACOSX_DEPLOYMENT_TARGET=10.14"
           MACOSX_DEPLOYMENT_TARGET: "10.14"
           CIBW_ARCHS_MACOS: arm64  # x86_64 universal2
           CIBW_ARCHS_LINUX: x86_64 aarch64
