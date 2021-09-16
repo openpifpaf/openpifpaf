@@ -14,16 +14,6 @@ namespace decoder {
 namespace utils {
 
 
-void cif_hr_accumulate_op(const torch::Tensor& accumulated,
-                          double accumulated_revision,
-                          const torch::Tensor& cif_field,
-                          int64_t stride,
-                          double v_threshold,
-                          int64_t neighbors,
-                          double min_scale = 0.0,
-                          double factor = 1.0);
-
-
 void cif_hr_add_gauss_op(const torch::Tensor& accumulated,
                          float accumulated_revision,
                          int64_t f,
@@ -55,7 +45,7 @@ struct CifHr : torch::CustomClassHolder {
     { }
 
     void accumulate(const torch::Tensor& cif_field, int64_t stride, double min_scale = 0.0, double factor = 1.0);
-    void add_gauss(int64_t f, double v, double x, double y, double sigma, double truncate = 1.0);
+    void add_gauss(int64_t f, float v, float x, float y, float sigma, float truncate = 1.0);
     std::tuple<torch::Tensor, double> get_accumulated(void);
     void reset(const at::IntArrayRef& shape, int64_t stride);
 };
