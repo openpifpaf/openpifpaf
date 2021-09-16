@@ -20,7 +20,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-20.04]  #, windows-latest, macos-latest]
+        os: [ubuntu-20.04, windows-latest, macos-11]
 
     steps:
       - uses: actions/checkout@v2
@@ -47,29 +47,21 @@ jobs:
           platforms: all
 
       - name: Install cibuildwheel
-        run: |
-          python -m pip install cibuildwheel==2.1.2
+        run: python -m pip install cibuildwheel==2.1.2
 
-      - name: LibTorch shared libraries
-        run: |
-          mkdir libtorch-linux
-          wget -q -O libtorch-linux/libtorch.zip https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-1.9.0%2Bcpu.zip
-          unzip libtorch-linux/libtorch.zip -d libtorch-linux
-          pwd
-          echo ${CWD}
-          echo ${CWD}/libtorch-linux/libtorch/lib:${LD_LIBRARY_PATH}
-          ls
-          ls libtorch-linux
-
-      # cp3[6,7,8,9]-macosx* cp3[6,7,8,9]-win_amd64
       - name: Build wheels
         env:
-          CIBW_BUILD: "cp3[6,7,8,9]-manylinux*"
+          CIBW_BUILD: "cp3[6,7,8,9]-manylinux* cp3[6,7,8,9]-macosx* cp3[6,7,8,9]-win_amd64"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
-          CIBW_ARCHS_MACOS: x86_64 universal2 arm64
+          MACOSX_DEPLOYMENT_TARGET: "10.14"  # for C++17 support
+          CIBW_ARCHS_MACOS: arm64  x86_64 universal2
           CIBW_ARCHS_LINUX: x86_64 aarch64
-        run: |
-          LD_LIBRARY_PATH=${CWD}/libtorch-linux/libtorch/lib:${LD_LIBRARY_PATH} python -m cibuildwheel --output-dir wheelhouse
+          # CIBW_REPAIR_WHEEL_COMMAND_LINUX: "pip install torch; python -c 'import torch;print(torch.utils.cmake_prefix_path)'; LD_LIBRARY_PATH=`python -c 'import torch;print(torch.utils.cmake_prefix_path)'`/../../lib auditwheel repair -w {dest_dir} {wheel}; pip uninstall -y torch"
+          CIBW_REPAIR_WHEEL_COMMAND: ""  # deactivate repair wheel for now (embeds 100s of MB of PyTorch libraries otherweise)
+        run: python -m cibuildwheel --output-dir wheelhouse
+
+      - run: ls -hla ./wheelhouse
+        if: runner.os == 'Linux'
 
       - uses: actions/upload-artifact@v2
         with:
