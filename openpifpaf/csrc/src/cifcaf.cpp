@@ -232,7 +232,7 @@ std::tuple<torch::Tensor, torch::Tensor> CifCaf::call_with_initial_annotations(
 
     if (force_complete) {
         _force_complete(&annotations, cifhr_accumulated, cifhr_revision, caf_field, caf_stride);
-        for (auto&& ann : annotations) _flood_fill(&ann);
+        for (auto& ann : annotations) _flood_fill(&ann);
     }
 
 #ifdef DEBUG
@@ -420,7 +420,7 @@ void CifCaf::_force_complete(
     caf_scored.fill(caf_field, caf_stride, skeleton);
     auto caf_fb = caf_scored.get();
 
-    for (auto&& ann : *annotations) {
+    for (auto& ann : *annotations) {
         _grow(&ann, caf_fb, false, 4.0);
     }
 }

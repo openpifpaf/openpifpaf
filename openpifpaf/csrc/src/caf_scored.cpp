@@ -86,7 +86,7 @@ void CafScored::fill(const torch::Tensor& caf_field, int64_t stride, const torch
 std::vector<torch::Tensor> to_tensors(const std::vector<std::vector<CompositeAssociation> >& vectors) {
     std::vector<torch::Tensor> tensors;
 
-    for (auto&& associations : vectors) {
+    for (const auto& associations : vectors) {
         int64_t n = associations.size();
         auto tensor = torch::from_blob(
             const_cast<void*>(reinterpret_cast<const void*>(associations.data())),
