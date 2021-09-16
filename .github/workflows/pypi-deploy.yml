@@ -20,7 +20,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-20.04, windows-latest, macos-10.15]
+        os: [ubuntu-20.04, windows-latest, macos-11]
 
     steps:
       - uses: actions/checkout@v2
@@ -54,6 +54,8 @@ jobs:
         env:
           CIBW_BUILD: "cp3[6,7,8,9]-manylinux* cp3[6,7,8,9]-macosx* cp3[6,7,8,9]-win_amd64"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
+          CIBW_ENVIRONMENT_MACOS: "MACOSX_DEPLOYMENT_TARGET=10.14"
+          MACOSX_DEPLOYMENT_TARGET: "10.14"
           CIBW_ARCHS_MACOS: arm64  # x86_64 universal2
           CIBW_ARCHS_LINUX: x86_64 aarch64
           # CIBW_REPAIR_WHEEL_COMMAND_LINUX: "pip install torch; python -c 'import torch;print(torch.utils.cmake_prefix_path)'; LD_LIBRARY_PATH=`python -c 'import torch;print(torch.utils.cmake_prefix_path)'`/../../lib auditwheel repair -w {dest_dir} {wheel}; pip uninstall -y torch"
