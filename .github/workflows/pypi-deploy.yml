@@ -47,8 +47,7 @@ jobs:
           platforms: all
 
       - name: Install cibuildwheel
-        run: |
-          python -m pip install cibuildwheel==2.1.2
+        run: python -m pip install cibuildwheel==2.1.2
 
       - name: Build wheels
         env:
@@ -59,10 +58,10 @@ jobs:
           CIBW_ARCHS_LINUX: x86_64 aarch64
           # CIBW_REPAIR_WHEEL_COMMAND_LINUX: "pip install torch; python -c 'import torch;print(torch.utils.cmake_prefix_path)'; LD_LIBRARY_PATH=`python -c 'import torch;print(torch.utils.cmake_prefix_path)'`/../../lib auditwheel repair -w {dest_dir} {wheel}; pip uninstall -y torch"
           CIBW_REPAIR_WHEEL_COMMAND: ""  # deactivate repair wheel for now (embeds 100s of MB of PyTorch libraries otherweise)
-        run: |
-          python -m cibuildwheel --output-dir wheelhouse
+        run: python -m cibuildwheel --output-dir wheelhouse
 
       - run: ls -hla ./wheelhouse
+        if: runner.os == 'Linux'
 
       - uses: actions/upload-artifact@v2
         with:
