@@ -33,11 +33,13 @@ float cifhr_value(at::TensorAccessor<float, 3UL> cifhr_a,
 void CifSeeds::fill(const at::Tensor& cif_field, int64_t stride) {
     at::optional<at::Tensor> max_pooled;
     at::optional<at::TensorAccessor<float, 3>> max_pooled_a;
-    if (ablation_nms) {
-        auto confidence = cif_field.index({torch::indexing::Slice(), 1});
-        max_pooled = torch::max_pool2d(confidence, 3, 1, 1);
-        max_pooled_a = max_pooled.value().accessor<float, 3>();
-    }
+
+    // REMOVE TORCH OPS THAT REQUIRE THE HUGE libtorch_cpu LIBRARY
+    // if (ablation_nms) {
+    //     auto confidence = cif_field.index({torch::indexing::Slice(), 1});
+    //     max_pooled = torch::max_pool2d(confidence, 3, 1, 1);
+    //     max_pooled_a = max_pooled.value().accessor<float, 3>();
+    // }
 
     auto cif_field_a = cif_field.accessor<float, 4>();
     float c, x, y, s;
