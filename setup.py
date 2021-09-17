@@ -51,7 +51,7 @@ def add_cpp_extension():
                 os.path.join(this_dir, 'openpifpaf', 'csrc', 'include')
             ] + torch.utils.cpp_extension.include_paths(),
             library_dirs=torch.utils.cpp_extension.library_paths(),
-            libraries=['c10', 'torch', 'torch_python'],  # do not include the large torch_cpu library
+            libraries=['c10', 'torch', 'torch_cpu', 'torch_python'],  # do not include the large torch_cpu library
             language='c++',
             define_macros=define_macros,
             extra_compile_args=extra_compile_args,
