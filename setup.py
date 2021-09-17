@@ -18,7 +18,7 @@ CMD_CLASS = versioneer.get_cmdclass()
 
 def add_cpp_extension():
     extra_compile_args = [
-        '-std=c++17' if not sys.platform.startswith("win") else '/std:c++17',
+        '-std=c++17' if not sys.platform.startswith('win') else '/std:c++17',
     ]
     extra_link_args = []
     define_macros = [
@@ -32,12 +32,14 @@ def add_cpp_extension():
     if os.getenv('DEBUG', '0') == '1':
         print('DEBUG mode')
         if sys.platform.startswith('linux'):
-            extra_compile_args += ['-g', '-O0']
+            extra_compile_args += ['-g', '-Og']
             extra_compile_args += [
                 '-Wuninitialized',
                 # '-Werror',  # fails in pytorch code, but would be nice to have in CI
             ]
         define_macros += [('DEBUG', None)]
+    else:
+        extra_compile_args += ['-O2'] if not sys.platform.startswith('win') else ['/O2']
 
     this_dir = os.path.dirname(os.path.abspath(__file__))
     EXTENSIONS.append(
