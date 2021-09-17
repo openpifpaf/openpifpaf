@@ -1,3 +1,6 @@
+#include <ATen/ATen.h>
+#include <torch/types.h>
+
 #include <algorithm>
 
 #include "openpifpaf/decoder/utils/cif_seeds.hpp"
@@ -99,8 +102,8 @@ std::tuple<at::Tensor, at::Tensor> CifSeeds::get(void) {
     );
     int64_t n_seeds = seeds.size();
 
-    auto field_tensor = torch::empty({ n_seeds }, torch::dtype(torch::kInt64));
-    auto seed_tensor = torch::empty({ n_seeds, 4 });
+    auto field_tensor = at::empty({ n_seeds }, torch::dtype(torch::kInt64));
+    auto seed_tensor = at::empty({ n_seeds, 4 });
     auto field_tensor_a = field_tensor.accessor<int64_t, 1>();
     auto seed_tensor_a = seed_tensor.accessor<float, 2>();
 
@@ -123,8 +126,8 @@ std::tuple<at::Tensor, at::Tensor> CifDetSeeds::get(void) {
     );
     int64_t n_seeds = seeds.size();
 
-    auto field_tensor = torch::empty({ n_seeds }, torch::dtype(torch::kInt64));
-    auto seed_tensor = torch::empty({ n_seeds, 5 });
+    auto field_tensor = at::empty({ n_seeds }, torch::dtype(torch::kInt64));
+    auto seed_tensor = at::empty({ n_seeds, 5 });
     auto field_tensor_a = field_tensor.accessor<int64_t, 1>();
     auto seed_tensor_a = seed_tensor.accessor<float, 2>();
 
