@@ -51,14 +51,13 @@ jobs:
 
       - name: Build wheels
         env:
-          CIBW_ENVIRONMENT: "DEBUG=1"
           CIBW_BUILD: "cp3[6789]-manylinux* cp3[6789]-macosx* cp3[6789]-win_amd64"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_MANYLINUX_AARCH64_IMAGE: manylinux2014
           MACOSX_DEPLOYMENT_TARGET: "10.14"  # for C++17 support
           CIBW_ARCHS_MACOS: arm64 x86_64 universal2
           CIBW_ARCHS_LINUX: x86_64 aarch64
-          CIBW_REPAIR_WHEEL_COMMAND_LINUX: "pip install torch; python -c 'import torch;print(torch.utils.cmake_prefix_path)'; LD_LIBRARY_PATH=`python -c 'import torch;print(torch.utils.cmake_prefix_path)'`/../../lib auditwheel repair -w {dest_dir} {wheel}; pip uninstall -y torch"
+          CIBW_REPAIR_WHEEL_COMMAND_LINUX: "pip install torch; python -c 'import torch.utils.cpp_extesion;print(torch.utils.cpp_extesion.library_paths())'; LD_LIBRARY_PATH=`python -c 'import torch.utils.cpp_extesion;print(torch.utils.cpp_extesion.library_paths())'` auditwheel repair -w {dest_dir} {wheel}; pip uninstall -y torch"
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: ""  # deactivate repair wheel for now (embeds 100s of MB of PyTorch libraries otherweise)
         run: python -m cibuildwheel --output-dir wheelhouse
 
