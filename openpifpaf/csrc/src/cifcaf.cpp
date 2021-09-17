@@ -29,7 +29,7 @@ bool FrontierCompare::operator() (const FrontierEntry& a, const FrontierEntry& b
 }
 
 
-Joint grow_connection_blend(const torch::Tensor& caf,
+Joint grow_connection_blend(const at::Tensor& caf,
                             double x,
                             double y,
                             double xy_scale,
@@ -102,7 +102,7 @@ Joint grow_connection_blend(const torch::Tensor& caf,
     };
 }
 
-std::vector<double> grow_connection_blend_py(const torch::Tensor& caf,
+std::vector<double> grow_connection_blend_py(const at::Tensor& caf,
                                              double x,
                                              double y,
                                              double s,
@@ -113,23 +113,23 @@ std::vector<double> grow_connection_blend_py(const torch::Tensor& caf,
 }
 
 
-std::tuple<torch::Tensor, torch::Tensor> CifCaf::call(
-    const torch::Tensor& cif_field,
+std::tuple<at::Tensor, at::Tensor> CifCaf::call(
+    const at::Tensor& cif_field,
     int64_t cif_stride,
-    const torch::Tensor& caf_field,
+    const at::Tensor& caf_field,
     int64_t caf_stride
 ) {
     return call_with_initial_annotations(cif_field, cif_stride, caf_field, caf_stride, torch::nullopt, torch::nullopt);
 }
 
 
-std::tuple<torch::Tensor, torch::Tensor> CifCaf::call_with_initial_annotations(
-    const torch::Tensor& cif_field,
+std::tuple<at::Tensor, at::Tensor> CifCaf::call_with_initial_annotations(
+    const at::Tensor& cif_field,
     int64_t cif_stride,
-    const torch::Tensor& caf_field,
+    const at::Tensor& caf_field,
     int64_t caf_stride,
-    torch::optional<torch::Tensor> initial_annotations,
-    torch::optional<torch::Tensor> initial_ids
+    at::optional<at::Tensor> initial_annotations,
+    at::optional<at::Tensor> initial_ids
 ) {
 #ifdef DEBUG
     TORCH_WARN("cpp CifCaf::call()");
@@ -163,10 +163,10 @@ std::tuple<torch::Tensor, torch::Tensor> CifCaf::call_with_initial_annotations(
     TORCH_WARN("caf scored done");
     auto caf_f = std::get<0>(caf_fb);
     int64_t n_caf_f = std::accumulate(caf_f.begin(), caf_f.end(), 0,
-                                      [](int64_t a, torch::Tensor& b) { return a + b.size(0); });
+                                      [](int64_t a, at::Tensor& b) { return a + b.size(0); });
     auto caf_b = std::get<1>(caf_fb);
     int64_t n_caf_b = std::accumulate(caf_b.begin(), caf_b.end(), 0,
-                                      [](int64_t a, torch::Tensor& b) { return a + b.size(0); });
+                                      [](int64_t a, at::Tensor& b) { return a + b.size(0); });
     TORCH_WARN("caf forward=", n_caf_f, " caf backward=", n_caf_b);
 #endif
 
@@ -413,8 +413,8 @@ Joint CifCaf::_connection_value(
 
 void CifCaf::_force_complete(
     std::vector<Annotation>* annotations,
-    const torch::Tensor& cifhr_accumulated, double cifhr_revision,
-    const torch::Tensor& caf_field, int64_t caf_stride
+    const at::Tensor& cifhr_accumulated, double cifhr_revision,
+    const at::Tensor& caf_field, int64_t caf_stride
 ) {
     utils::CafScored caf_scored(cifhr_accumulated, cifhr_revision, force_complete_caf_th, 0.1);
     caf_scored.fill(caf_field, caf_stride, skeleton);

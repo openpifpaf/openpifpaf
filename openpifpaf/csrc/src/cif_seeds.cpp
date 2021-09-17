@@ -14,7 +14,7 @@ bool CifSeeds::ablation_nms = false;
 bool CifSeeds::ablation_no_rescore = false;
 
 
-float cifhr_value(torch::TensorAccessor<float, 3UL> cifhr_a,
+float cifhr_value(at::TensorAccessor<float, 3UL> cifhr_a,
                   double cifhr_revision,
                   int64_t f, float x, float y, float default_value = -1.0) {
     float max_x = static_cast<float>(cifhr_a.size(2)) - 0.51;
@@ -30,9 +30,9 @@ float cifhr_value(torch::TensorAccessor<float, 3UL> cifhr_a,
 }
 
 
-void CifSeeds::fill(const torch::Tensor& cif_field, int64_t stride) {
-    torch::optional<torch::Tensor> max_pooled;
-    torch::optional<torch::TensorAccessor<float, 3>> max_pooled_a;
+void CifSeeds::fill(const at::Tensor& cif_field, int64_t stride) {
+    at::optional<at::Tensor> max_pooled;
+    at::optional<at::TensorAccessor<float, 3>> max_pooled_a;
     if (ablation_nms) {
         auto confidence = cif_field.index({torch::indexing::Slice(), 1});
         max_pooled = torch::max_pool2d(confidence, 3, 1, 1);
@@ -66,7 +66,7 @@ void CifSeeds::fill(const torch::Tensor& cif_field, int64_t stride) {
 }
 
 
-void CifDetSeeds::fill(const torch::Tensor& cifdet_field, int64_t stride) {
+void CifDetSeeds::fill(const at::Tensor& cifdet_field, int64_t stride) {
     auto cif_field_a = cifdet_field.accessor<float, 4>();
 
     float c, v, x, y, w, h;
@@ -90,7 +90,7 @@ void CifDetSeeds::fill(const torch::Tensor& cifdet_field, int64_t stride) {
 }
 
 
-std::tuple<torch::Tensor, torch::Tensor> CifSeeds::get(void) {
+std::tuple<at::Tensor, at::Tensor> CifSeeds::get(void) {
     std::sort(
         seeds.begin(), seeds.end(),
         [](const Seed& a, const Seed& b) { return a.v > b.v; }
@@ -114,7 +114,7 @@ std::tuple<torch::Tensor, torch::Tensor> CifSeeds::get(void) {
 }
 
 
-std::tuple<torch::Tensor, torch::Tensor> CifDetSeeds::get(void) {
+std::tuple<at::Tensor, at::Tensor> CifDetSeeds::get(void) {
     std::sort(
         seeds.begin(), seeds.end(),
         [](const DetSeed& a, const DetSeed& b) { return a.v > b.v; }

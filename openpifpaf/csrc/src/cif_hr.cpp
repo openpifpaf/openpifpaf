@@ -25,7 +25,7 @@ inline float approx_exp(float x) {
 }
 
 
-void CifHr::accumulate(const torch::Tensor& cif_field, int64_t stride, double min_scale, double factor) {
+void CifHr::accumulate(const at::Tensor& cif_field, int64_t stride, double min_scale, double factor) {
     if (ablation_skip) return;
 
     auto cif_field_a = cif_field.accessor<float, 4>();
@@ -89,7 +89,7 @@ void CifHr::add_gauss(int64_t f, float v, float x, float y, float sigma, float t
 }
 
 
-std::tuple<torch::Tensor, double> CifHr::get_accumulated(void) {
+std::tuple<at::Tensor, double> CifHr::get_accumulated(void) {
     return { accumulated, revision };
 }
 
@@ -121,7 +121,7 @@ void CifHr::reset(const at::IntArrayRef& shape, int64_t stride) {
 }
 
 
-void CifDetHr::accumulate(const torch::Tensor& cifdet_field, int64_t stride, double min_scale, double factor) {
+void CifDetHr::accumulate(const at::Tensor& cifdet_field, int64_t stride, double min_scale, double factor) {
     auto cifdet_field_a = cifdet_field.accessor<float, 4>();
     float min_scale_f = min_scale / stride;
 

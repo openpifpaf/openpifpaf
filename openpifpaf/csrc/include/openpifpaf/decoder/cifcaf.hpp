@@ -1,6 +1,8 @@
 #pragma once
 
-#include <torch/script.h>
+#include <ATen/core/Tensor.h>
+#include <torch/custom_class.h>
+#include <torch/types.h>
 
 #include <algorithm>
 #include <queue>
@@ -39,7 +41,7 @@ struct Annotation {
 };
 
 
-std::vector<double> grow_connection_blend_py(const torch::Tensor& caf,
+std::vector<double> grow_connection_blend_py(const at::Tensor& caf,
                                              double x,
                                              double y,
                                              double s,
@@ -64,7 +66,7 @@ class FrontierCompare {
 };
 
 
-typedef std::tuple<std::vector<torch::Tensor>, std::vector<torch::Tensor> > caf_fb_t;
+typedef std::tuple<std::vector<at::Tensor>, std::vector<at::Tensor> > caf_fb_t;
 
 struct IntPairHash {
     std::size_t operator()(std::pair<int64_t, int64_t> const& p) const noexcept {
@@ -77,7 +79,7 @@ struct IntPairHash {
 
 struct OPENPIFPAF_API CifCaf : torch::CustomClassHolder {
     const int64_t n_keypoints;
-    const torch::Tensor skeleton;
+    const at::Tensor skeleton;
 
     static bool block_joints;
     static bool greedy;
@@ -94,7 +96,7 @@ struct OPENPIFPAF_API CifCaf : torch::CustomClassHolder {
 
     CifCaf(
         int64_t n_keypoints_,
-        const torch::Tensor& skeleton_
+        const at::Tensor& skeleton_
     ) :
         n_keypoints(n_keypoints_),
         skeleton(skeleton_),
@@ -105,19 +107,19 @@ struct OPENPIFPAF_API CifCaf : torch::CustomClassHolder {
         TORCH_CHECK(skeleton.dtype() == torch::kInt64, "skeleton must be of type LongTensor");
     }
 
-    std::tuple<torch::Tensor, torch::Tensor> call(
-        const torch::Tensor& cif_field,
+    std::tuple<at::Tensor, at::Tensor> call(
+        const at::Tensor& cif_field,
         int64_t cif_stride,
-        const torch::Tensor& caf_field,
+        const at::Tensor& caf_field,
         int64_t caf_stride
     );
-    std::tuple<torch::Tensor, torch::Tensor> call_with_initial_annotations(
-        const torch::Tensor& cif_field,
+    std::tuple<at::Tensor, at::Tensor> call_with_initial_annotations(
+        const at::Tensor& cif_field,
         int64_t cif_stride,
-        const torch::Tensor& caf_field,
+        const at::Tensor& caf_field,
         int64_t caf_stride,
-        torch::optional<torch::Tensor> initial_annotations = torch::nullopt,
-        torch::optional<torch::Tensor> initial_ids = torch::nullopt
+        at::optional<at::Tensor> initial_annotations = at::nullopt,
+        at::optional<at::Tensor> initial_ids = at::nullopt
     );
 
     void _grow(
@@ -137,8 +139,8 @@ struct OPENPIFPAF_API CifCaf : torch::CustomClassHolder {
     );
     void _force_complete(
         std::vector<Annotation>* annotations,
-        const torch::Tensor& cifhr_accumulated, double cifhr_revision,
-        const torch::Tensor& caf_field, int64_t caf_stride
+        const at::Tensor& cifhr_accumulated, double cifhr_revision,
+        const at::Tensor& caf_field, int64_t caf_stride
     );
     void _flood_fill(Annotation* ann);
 };

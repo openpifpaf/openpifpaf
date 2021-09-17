@@ -1,3 +1,6 @@
+#include <ATen/core/Tensor.h>
+#include <torch/types.h>
+
 #include <algorithm>
 #include <cmath>
 #include <queue>
@@ -21,8 +24,8 @@ struct BBox {
 };
 
 
-std::tuple<torch::Tensor, torch::Tensor, torch::Tensor> CifDet::call(
-    const torch::Tensor& cifdet_field,
+std::tuple<at::Tensor, at::Tensor, at::Tensor> CifDet::call(
+    const at::Tensor& cifdet_field,
     int64_t cifdet_stride
 ) {
     TORCH_CHECK(cifdet_field.device().is_cpu(), "cifdet_field must be a CPU tensor");
@@ -67,13 +70,13 @@ std::tuple<torch::Tensor, torch::Tensor, torch::Tensor> CifDet::call(
 #ifdef DEBUG
     TORCH_WARN("convert to tensor");
 #endif
-    auto categories_t = torch::from_blob(
+    auto categories_t = at::from_blob(
         reinterpret_cast<int64_t*>(categories.data()),
         categories.size(), torch::kInt64
     ).clone();
-    auto scores_t = torch::from_blob(
+    auto scores_t = at::from_blob(
         reinterpret_cast<float*>(scores.data()), scores.size()).clone();
-    auto boxes_t = torch::from_blob(
+    auto boxes_t = at::from_blob(
         reinterpret_cast<float*>(boxes.data()), { int64_t(boxes.size()), 4}).clone();
 
     return std::make_tuple(categories_t, scores_t, boxes_t);

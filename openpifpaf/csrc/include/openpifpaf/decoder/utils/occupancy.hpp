@@ -1,6 +1,9 @@
 #pragma once
 
-#include <torch/script.h>
+#include <ATen/core/Tensor.h>
+#include <ATen/TensorIndexing.h>
+#include <torch/custom_class.h>
+#include <torch/types.h>
 
 
 namespace openpifpaf {
@@ -9,8 +12,8 @@ namespace utils {
 
 
 struct Occupancy : torch::CustomClassHolder {
-    torch::Tensor occupancy_buffer;
-    torch::Tensor occupancy;
+    at::Tensor occupancy_buffer;
+    at::Tensor occupancy;
     double reduction;
     double min_scale_reduced;
     int64_t revision;
@@ -18,7 +21,7 @@ struct Occupancy : torch::CustomClassHolder {
     Occupancy(
         double reduction,
         double min_scale
-    ) : occupancy_buffer(torch::zeros({ 1, 1, 1 }, torch::kInt16)),
+    ) : occupancy_buffer(at::zeros({ 1, 1, 1 }, torch::kInt16)),
         occupancy(occupancy_buffer.index({
             at::indexing::Slice(0, 1),
             at::indexing::Slice(0, 1),
