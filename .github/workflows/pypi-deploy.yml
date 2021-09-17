@@ -51,6 +51,7 @@ jobs:
 
       - name: Build wheels
         env:
+          CIBW_ENVIRONMENT: "DEBUG=1"
           CIBW_BUILD: "cp3[6789]-manylinux* cp3[6789]-macosx* cp3[6789]-win_amd64"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_MANYLINUX_AARCH64_IMAGE: manylinux2014
