@@ -56,7 +56,7 @@ jobs:
           CIBW_MANYLINUX_AARCH64_IMAGE: manylinux2014
           MACOSX_DEPLOYMENT_TARGET: "10.14"  # for C++17 support
           CIBW_ARCHS_MACOS: arm64 x86_64 universal2
-          CIBW_ARCHS_LINUX: x86_64 aarch64
+          CIBW_ARCHS_LINUX: x86_64
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: "pip3 install torch==1.9.0+cpu -f https://download.pytorch.org/whl/torch_stable.html; python -c 'import torch.utils.cpp_extension;print(torch.utils.cpp_extension.library_paths())'; LD_LIBRARY_PATH=`python -c 'import torch.utils.cpp_extension;print(torch.utils.cpp_extension.library_paths())'` auditwheel repair -w {dest_dir} {wheel}; pip uninstall -y torch"
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: ""  # deactivate repair wheel for now (embeds 100s of MB of PyTorch libraries otherweise)
         run: python -m cibuildwheel --output-dir wheelhouse
