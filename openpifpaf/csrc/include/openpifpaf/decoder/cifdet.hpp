@@ -1,7 +1,6 @@
 #pragma once
 
-#include <ATen/core/Tensor.h>
-#include <torch/custom_class.h>
+#include <torch/script.h>
 
 #include <algorithm>
 #include <queue>
@@ -37,8 +36,8 @@ struct OPENPIFPAF_API CifDet : torch::CustomClassHolder {
 
     CifDet(void) : cifDetHr(), occupancy(2.0, 4.0) { }
 
-    std::tuple<at::Tensor, at::Tensor, at::Tensor> call(
-        const at::Tensor& cifdet_field,
+    std::tuple<torch::Tensor, torch::Tensor, torch::Tensor> call(
+        const torch::Tensor& cifdet_field,
         int64_t cifdet_stride
     );
 };

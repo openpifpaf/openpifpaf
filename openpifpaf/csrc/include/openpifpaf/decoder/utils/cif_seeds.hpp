@@ -1,7 +1,6 @@
 #pragma once
 
-#include <ATen/core/Tensor.h>
-#include <torch/custom_class.h>
+#include <torch/script.h>
 
 #include <tuple>
 #include <vector>
@@ -33,7 +32,7 @@ struct DetSeed {
 
 
 struct CifSeeds : torch::CustomClassHolder {
-    at::TensorAccessor<float, 3UL> cifhr_a;
+    torch::TensorAccessor<float, 3UL> cifhr_a;
     double cifhr_revision;
     std::vector<Seed> seeds;
 
@@ -41,28 +40,28 @@ struct CifSeeds : torch::CustomClassHolder {
     static bool ablation_nms;
     static bool ablation_no_rescore;
 
-    CifSeeds(const at::Tensor& cifhr_, double cifhr_revision_)
+    CifSeeds(const torch::Tensor& cifhr_, double cifhr_revision_)
     : cifhr_a(cifhr_.accessor<float, 3>()),
       cifhr_revision(cifhr_revision_)
     { }
-    void fill(const at::Tensor& cif_field, int64_t stride);
-    std::tuple<at::Tensor, at::Tensor> get(void);
+    void fill(const torch::Tensor& cif_field, int64_t stride);
+    std::tuple<torch::Tensor, torch::Tensor> get(void);
 };
 
 
 struct CifDetSeeds : torch::CustomClassHolder {
-    at::TensorAccessor<float, 3UL> cifhr_a;
+    torch::TensorAccessor<float, 3UL> cifhr_a;
     double cifhr_revision;
     std::vector<DetSeed> seeds;
 
     static double threshold;
 
-    CifDetSeeds(const at::Tensor& cifhr_, double cifhr_revision_)
+    CifDetSeeds(const torch::Tensor& cifhr_, double cifhr_revision_)
     : cifhr_a(cifhr_.accessor<float, 3>()),
       cifhr_revision(cifhr_revision_)
     { }
-    void fill(const at::Tensor& cifdet_field, int64_t stride);
-    std::tuple<at::Tensor, at::Tensor> get(void);
+    void fill(const torch::Tensor& cifdet_field, int64_t stride);
+    std::tuple<torch::Tensor, torch::Tensor> get(void);
 };
 
 

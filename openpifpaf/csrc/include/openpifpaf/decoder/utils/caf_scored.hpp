@@ -1,7 +1,6 @@
 #pragma once
 
-#include <ATen/core/Tensor.h>
-#include <torch/custom_class.h>
+#include <torch/script.h>
 
 #include <tuple>
 #include <vector>
@@ -34,7 +33,7 @@ struct CompositeAssociation {
 
 
 struct CafScored : torch::CustomClassHolder {
-    at::TensorAccessor<float, 3UL> cifhr_a;
+    torch::TensorAccessor<float, 3UL> cifhr_a;
     double cifhr_revision;
     double score_th;
     double cif_floor;
@@ -46,7 +45,7 @@ struct CafScored : torch::CustomClassHolder {
     static bool ablation_no_rescore;
 
     CafScored(
-        const at::Tensor& cifhr_,
+        const torch::Tensor& cifhr_,
         double cifhr_revision_,
         double score_th_ = -1.0,
         double cif_floor_ = 0.1
@@ -56,8 +55,8 @@ struct CafScored : torch::CustomClassHolder {
         score_th(score_th_ >= 0.0 ? score_th_ : default_score_th),
         cif_floor(cif_floor_)
     { }
-    void fill(const at::Tensor& caf_field, int64_t stride, const at::Tensor& skeleton);
-    std::tuple<std::vector<at::Tensor>, std::vector<at::Tensor> > get(void);
+    void fill(const torch::Tensor& caf_field, int64_t stride, const torch::Tensor& skeleton);
+    std::tuple<std::vector<torch::Tensor>, std::vector<torch::Tensor> > get(void);
 
     float cifhr_value(int64_t f, float x, float y, float default_value = -1.0);
 };

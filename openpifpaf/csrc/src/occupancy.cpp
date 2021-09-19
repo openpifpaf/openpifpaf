@@ -1,6 +1,3 @@
-#include <ATen/core/Tensor.h>
-#include <torch/types.h>
-
 #include <algorithm>
 #include <cmath>
 
@@ -54,7 +51,7 @@ void Occupancy::reset(const at::IntArrayRef& shape) {
         || occupancy_buffer.size(2) < i
     ) {
         OPENPIFPAF_WARN("resizing occupancy buffer");
-        occupancy_buffer = at::zeros({
+        occupancy_buffer = torch::zeros({
             shape[0],
             std::max(j, i),
             std::max(j, i)

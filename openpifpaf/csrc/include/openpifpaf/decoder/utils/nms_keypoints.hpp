@@ -1,7 +1,6 @@
 #pragma once
 
-#include <ATen/core/Tensor.h>
-#include <torch/custom_class.h>
+#include <torch/script.h>
 
 #include <memory>
 #include <vector>

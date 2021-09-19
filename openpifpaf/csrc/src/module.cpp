@@ -1,3 +1,5 @@
+#include <torch/script.h>
+
 #include "openpifpaf.hpp"
 
 
@@ -29,7 +31,7 @@ TORCH_LIBRARY(openpifpaf_decoder, m) {
         STATIC_GETSET(openpifpaf::decoder::CifCaf::force_complete, bool, force_complete)
         STATIC_GETSET(openpifpaf::decoder::CifCaf::force_complete_caf_th, double, force_complete_caf_th)
 
-        .def(torch::init<int64_t, const at::Tensor&>())
+        .def(torch::init<int64_t, const torch::Tensor&>())
         .def("call", &openpifpaf::decoder::CifCaf::call)
         .def("call_with_initial_annotations", &openpifpaf::decoder::CifCaf::call_with_initial_annotations)
         .def("get_cifhr", [](const c10::intrusive_ptr<openpifpaf::decoder::CifCaf>& self) {
@@ -39,11 +41,11 @@ TORCH_LIBRARY(openpifpaf_decoder, m) {
         .def_pickle(
             // __getstate__
             [](const c10::intrusive_ptr<openpifpaf::decoder::CifCaf>& self)
-                    -> std::tuple<int64_t, at::Tensor> {
+                    -> std::tuple<int64_t, torch::Tensor> {
                 return std::make_tuple(self->n_keypoints, self->skeleton);
             },
             // __setstate__
-            [](std::tuple<int64_t, at::Tensor> state)
+            [](std::tuple<int64_t, torch::Tensor> state)
                     -> c10::intrusive_ptr<openpifpaf::decoder::CifCaf> {
                 auto [n_keypoints, skeleton] = state;
                 return c10::make_intrusive<openpifpaf::decoder::CifCaf>(n_keypoints, skeleton);
@@ -86,7 +88,7 @@ TORCH_LIBRARY(openpifpaf_decoder_utils, m) {
         STATIC_GETSET(openpifpaf::decoder::utils::CifSeeds::ablation_nms, bool, ablation_nms)
         STATIC_GETSET(openpifpaf::decoder::utils::CifSeeds::ablation_no_rescore, bool, ablation_no_rescore)
 
-        .def(torch::init<const at::Tensor&, double>())
+        .def(torch::init<const torch::Tensor&, double>())
         .def("fill", &openpifpaf::decoder::utils::CifSeeds::fill)
         .def("get", &openpifpaf::decoder::utils::CifSeeds::get)
     ;
@@ -94,7 +96,7 @@ TORCH_LIBRARY(openpifpaf_decoder_utils, m) {
     m.class_<openpifpaf::decoder::utils::CifDetSeeds>("CifDetSeeds")
         STATIC_GETSET(openpifpaf::decoder::utils::CifDetSeeds::threshold, double, threshold)
 
-        .def(torch::init<const at::Tensor&, double>())
+        .def(torch::init<const torch::Tensor&, double>())
         .def("fill", &openpifpaf::decoder::utils::CifDetSeeds::fill)
         .def("get", &openpifpaf::decoder::utils::CifDetSeeds::get)
     ;
@@ -103,7 +105,7 @@ TORCH_LIBRARY(openpifpaf_decoder_utils, m) {
         STATIC_GETSET(openpifpaf::decoder::utils::CafScored::default_score_th, double, default_score_th)
         STATIC_GETSET(openpifpaf::decoder::utils::CafScored::ablation_no_rescore, bool, ablation_no_rescore)
 
-        .def(torch::init<const at::Tensor&, double, double, double>())
+        .def(torch::init<const torch::Tensor&, double, double, double>())
         .def("fill", &openpifpaf::decoder::utils::CafScored::fill)
         .def("get", &openpifpaf::decoder::utils::CafScored::get)
     ;

@@ -1,6 +1,3 @@
-#include <ATen/core/Tensor.h>
-#include <torch/types.h>
-
 #include <algorithm>
 
 #include "openpifpaf/decoder/utils/caf_scored.hpp"
@@ -29,7 +26,7 @@ float CafScored::cifhr_value(int64_t f, float x, float y, float default_value) {
 }
 
 
-void CafScored::fill(const at::Tensor& caf_field, int64_t stride, const at::Tensor& skeleton) {
+void CafScored::fill(const torch::Tensor& caf_field, int64_t stride, const torch::Tensor& skeleton) {
     TORCH_CHECK(skeleton.dtype() == torch::kInt64, "skeleton must be of type LongTensor");
 
     auto caf_field_a = caf_field.accessor<float, 4>();
@@ -86,12 +83,12 @@ void CafScored::fill(const at::Tensor& caf_field, int64_t stride, const at::Tens
 }
 
 
-std::vector<at::Tensor> to_tensors(const std::vector<std::vector<CompositeAssociation> >& vectors) {
-    std::vector<at::Tensor> tensors;
+std::vector<torch::Tensor> to_tensors(const std::vector<std::vector<CompositeAssociation> >& vectors) {
+    std::vector<torch::Tensor> tensors;
 
     for (const auto& associations : vectors) {
         int64_t n = associations.size();
-        auto tensor = at::from_blob(
+        auto tensor = torch::from_blob(
             const_cast<void*>(reinterpret_cast<const void*>(associations.data())),
             { n, 7 }
         );
@@ -102,7 +99,7 @@ std::vector<at::Tensor> to_tensors(const std::vector<std::vector<CompositeAssoci
 }
 
 
-std::tuple<std::vector<at::Tensor>, std::vector<at::Tensor> > CafScored::get(void) {
+std::tuple<std::vector<torch::Tensor>, std::vector<torch::Tensor> > CafScored::get(void) {
     return { to_tensors(forward), to_tensors(backward) };
 }
 
