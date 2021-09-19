@@ -38,8 +38,6 @@ def add_cpp_extension():
                 # '-Werror',  # fails in pytorch code, but would be nice to have in CI
             ]
         define_macros += [('DEBUG', None)]
-    else:
-        extra_compile_args += ['-O2'] if not sys.platform.startswith('win') else ['/O2']
 
     this_dir = os.path.dirname(os.path.abspath(__file__))
     EXTENSIONS.append(
