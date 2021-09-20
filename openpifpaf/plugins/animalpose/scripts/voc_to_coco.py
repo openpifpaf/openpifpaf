@@ -227,7 +227,7 @@ class VocToCoco:
         """
         Initiate Json for training and val phase
         """
-        self.json_file["info"] = dict(url="https://github.com/vita-epfl/openpifpaf",
+        self.json_file["info"] = dict(url="https://github.com/openpifpaf/openpifpaf",
                                       date_created=time.strftime(
                                           "%a, %d %b %Y %H:%M:%S +0000", time.localtime()),
                                       description="Animalpose dataset with MS-COCO format")

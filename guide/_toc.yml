@@ -8,6 +8,7 @@ parts:
 - caption: Chapters
   chapters:
   - file: predict_api
+  - file: compute
   - file: models
   - file: datasets
   - file: train

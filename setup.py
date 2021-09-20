@@ -1,45 +1,64 @@
-from setuptools import setup, find_packages
-from setuptools.extension import Extension
+import glob
+import os
+import setuptools
+import sys
+import torch.utils.cpp_extension
 
 
 # This is needed for versioneer to be importable when building with PEP 517.
 # See <https://github.com/warner/python-versioneer/issues/193> and links
 # therein for more information.
-import os, sys
 sys.path.append(os.path.dirname(__file__))
 import versioneer
 
 
-try:
-    from Cython.Build import cythonize
-except ImportError:
-    cythonize = None
-
-try:
-    import numpy
-except ImportError as e:
-    print('install numpy first')
-    raise e
+EXTENSIONS = []
+CMD_CLASS = versioneer.get_cmdclass()
 
 
-if cythonize is not None:
-    EXTENSIONS = cythonize([Extension('openpifpaf.functional',
-                                      ['openpifpaf/functional.pyx'],
-                                      include_dirs=[numpy.get_include()]),
-                            ],
-                           annotate=True,
-                           compiler_directives={'language_level': 3})
-else:
-    EXTENSIONS = [Extension('openpifpaf.functional',
-                            ['openpifpaf/functional.c'],
-                            include_dirs=[numpy.get_include()])]
+def add_cpp_extension():
+    extra_compile_args = [
+        '-std=c++17' if not sys.platform.startswith('win') else '/std:c++17',
+    ]
+    extra_link_args = []
+    define_macros = [
+        ('_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS', None),  # mostly for the pytorch codebase
+    ]
+
+    if sys.platform.startswith('win'):
+        extra_compile_args += ['/permissive']
+        define_macros += [('OPENPIFPAF_DLLEXPORT', None)]
+
+    if os.getenv('DEBUG', '0') == '1':
+        print('DEBUG mode')
+        if sys.platform.startswith('linux'):
+            extra_compile_args += ['-g', '-Og']
+            extra_compile_args += [
+                '-Wuninitialized',
+                # '-Werror',  # fails in pytorch code, but would be nice to have in CI
+            ]
+        define_macros += [('DEBUG', None)]
+
+    this_dir = os.path.dirname(os.path.abspath(__file__))
+    EXTENSIONS.append(
+        torch.utils.cpp_extension.CppExtension(
+            'openpifpaf._cpp',
+            glob.glob(os.path.join(this_dir, 'openpifpaf', 'csrc', 'src', '**', '*.cpp'), recursive=True),
+            depends=glob.glob(os.path.join(this_dir, 'openpifpaf', 'csrc', 'include', '**', '*.hpp'), recursive=True),
+            include_dirs=[os.path.join(this_dir, 'openpifpaf', 'csrc', 'include')],
+            define_macros=define_macros,
+            extra_compile_args=extra_compile_args,
+            extra_link_args=extra_link_args,
+        )
+    )
+    assert 'build_ext' not in CMD_CLASS
+    CMD_CLASS['build_ext'] = torch.utils.cpp_extension.BuildExtension.with_options(no_python_abi_suffix=True)
 
 
-setup(
+add_cpp_extension()
+setuptools.setup(
     name='openpifpaf',
     version=versioneer.get_version(),
-    cmdclass=versioneer.get_cmdclass(),
-    packages=find_packages(),
     license='GNU AGPLv3',
     description='PifPaf: Composite Fields for Human Pose Estimation',
     long_description=open('README.md', encoding='utf-8').read(),
@@ -47,6 +66,12 @@ setup(
     author='Sven Kreiss',
     author_email='research@svenkreiss.com',
     url='https://github.com/openpifpaf/openpifpaf',
+
+    packages=setuptools.find_packages(),
+    package_data={
+        'openpifpaf': ['*.dll', '*.dylib', '*.so'],
+    },
+    cmdclass=CMD_CLASS,
     ext_modules=EXTENSIONS,
     zip_safe=False,
 
@@ -56,8 +81,8 @@ setup(
         'numpy>=1.16',
         'pysparkling',  # for log analysis
         'python-json-logger',
-        'torch>=1.7.1',
-        'torchvision>=0.8.2',
+        'torch>=1.9.0',
+        'torchvision>=0.10.0',
         'pillow!=8.3.0',  # exclusion torchvision 0.10.0 compatibility
         'dataclasses; python_version<"3.7"',
     ],
@@ -67,7 +92,6 @@ setup(
             'einops>=0.3',  # required for BotNet
         ],
         'dev': [
-            'cython',
             'flameprof',
             'jupyter-book>=0.9.1',
             'matplotlib>=3.3',
@@ -83,9 +107,10 @@ setup(
             'onnx-simplifier>=0.2.9; python_version<"3.9"',  # Python 3.9 not supported yet
         ],
         'coreml': [
-            'coremltools>=4.1',
+            'coremltools>=5.0b3',
         ],
         'test': [
+            'cpplint',
             'nbconvert',
             'nbstripout',
             'nbval',

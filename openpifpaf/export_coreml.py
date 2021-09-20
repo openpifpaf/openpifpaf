@@ -3,6 +3,7 @@
 import argparse
 import logging
 
+import PIL
 import torch
 
 import openpifpaf
@@ -23,6 +24,7 @@ def apply(model, outfile, *, input_w=129, input_h=97, minimum_deployment_target=
 
     # configure: inplace-ops are not supported
     openpifpaf.network.heads.CompositeField3.inplace_ops = False
+    openpifpaf.network.heads.CompositeField4.inplace_ops = False
 
     dummy_input = torch.randn(1, 3, input_h, input_w)
     with torch.no_grad():
@@ -53,9 +55,10 @@ def apply(model, outfile, *, input_w=129, input_h=97, minimum_deployment_target=
 
     coreml_model.save(outfile)
 
-    # # test predict
-    # test_predict = coreml_model.predict({'input_1': dummy_input.numpy()})
-    # print('!!!!!!!!', test_predict)
+    # test predict
+    image_input = PIL.Image.new('RGB', (input_w, input_h))
+    test_predict = coreml_model.predict({'image': image_input})
+    print('!!!!!!!!', test_predict)
 
 
 def print_preprocessing_spec(out_name):

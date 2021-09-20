@@ -74,35 +74,28 @@ Alternatively, {ref}`python3 -m openpifpaf.video <cli-help-video>` (requires Ope
 provides a live demo as well.
 
 
-## Executable Guide
-
-This is a [jupyter-book](https://jupyterbook.org/intro.html) or "executable book".
-Many sections of this book, like {doc}`predict_cli`, are generated from the code
-shown on the page itself:
-most pages are based on Jupyter Notebooks
-that can be downloaded or launched interactively in the cloud by clicking on the rocket
-at the top and selecting a cloud provider like _Binder_.
-The code on the page is all the code required to reproduce that particular page.
-
-
 ## Pre-trained Models
 
 Performance metrics on the COCO val set obtained with a GTX1080Ti:
 
-| Checkpoint                | AP       | APᴹ      | APᴸ      | t_{total} [ms]  | t_{dec} [ms] |     size |
-|--------------------------:|:--------:|:--------:|:--------:|:---------------:|:------------:|---------:|
-| [resnet50]                | __68.2__ | 65.8     | 72.7     | 64              | 22           |   98.0MB |
-| [shufflenetv2k16]         | __67.2__ | 62.7     | 74.6     | 51              | 19           |   39.3MB |
-| [shufflenetv2k30]         | __71.0__ | 66.6     | 78.5     | 92              | 16           |  115.6MB |
+| Name               | AP       | AP0.5    | AP0.75   | APM      | APL      | t_{total} [ms] | t_{NN} [ms] | t_{dec} [ms] |     size |
+|-------------------:|:--------:|:--------:|:--------:|:--------:|:--------:|---------------:|------------:|-------------:|---------:|
+| [mobilenetv3small] | __47.1__ | 73.9     | 49.5     | 40.1     | 58.0     | 26             | 9           | 14           |    5.8MB |
+| [mobilenetv3large] | __58.4__ | 82.3     | 63.4     | 52.3     | 67.9     | 34             | 19          | 12           |   15.0MB |
+| [resnet50]         | __68.1__ | 87.8     | 74.4     | 65.4     | 73.0     | 53             | 38          | 12           |   97.4MB |
+| [shufflenetv2k16]  | __68.1__ | 87.6     | 74.5     | 63.0     | 76.0     | 40             | 28          | 10           |   38.9MB |
+| [shufflenetv2k30]  | __71.8__ | 89.4     | 78.1     | 67.0     | 79.5     | 81             | 71          | 8            |  115.0MB |
 
-[resnet50]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.12.2/resnet50-210224-202010-cocokp-o10s-d020d7f1.pkl
-[shufflenetv2k16]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.12b4/shufflenetv2k16-210214-123448-cocokp-o10s-e2ae3708.pkl
-[shufflenetv2k30]: https://github.com/vita-epfl/openpifpaf-torchhub/releases/download/v0.12.2/shufflenetv2k30-210224-074128-cocokp-o10s-59ca2b89.pkl
+[mobilenetv3large]: https://github.com/openpifpaf/torchhub/releases/download/v0.13/mobilenetv3large-210820-184901-cocokp-slurm725985-edge513-o10s-6c76cbfb.pkl
+[mobilenetv3small]: https://github.com/openpifpaf/torchhub/releases/download/v0.13/mobilenetv3small-210822-213409-cocokp-slurm726252-edge513-o10s-803b24ae.pkl
+[resnet50]: https://github.com/openpifpaf/torchhub/releases/download/v0.13/resnet50-210830-150728-cocokp-slurm728641-edge513-o10s-ecd30da4.pkl
+[shufflenetv2k16]: https://github.com/openpifpaf/torchhub/releases/download/v0.13/shufflenetv2k16-210820-232500-cocokp-slurm726069-edge513-o10s-7189450a.pkl
+[shufflenetv2k30]: https://github.com/openpifpaf/torchhub/releases/download/v0.13/shufflenetv2k30-210821-003923-cocokp-slurm726072-edge513-o10s-5fe1c400.pkl
 
 Command to reproduce this table: {ref}`python -m openpifpaf.benchmark --checkpoints resnet50 shufflenetv2k16 shufflenetv2k30 <cli-help-benchmark>`.
 
 Pretrained model files are shared in the
-__[openpifpaf-torchhub](https://github.com/vita-epfl/openpifpaf-torchhub/releases)__
+__[openpifpaf/torchhub](https://github.com/openpifpaf/torchhub/releases)__
 repository and linked from the checkpoint names in the table above.
 The pretrained models are downloaded automatically when
 using the command line option `--checkpoint checkpointasintableabove`.
@@ -110,7 +103,6 @@ using the command line option `--checkpoint checkpointasintableabove`.
 
 ## Related Projects
 
-* [pose tracker](https://github.com/openpifpaf/openpifpaf_posetrack): "OpenPifPaf: Composite Fields for Semantic Keypoint Detection and Spatio-Temporal Association".
 * [neuralet](https://neuralet.com/article/pose-estimation-on-nvidia-jetson-platforms-using-openpifpaf/): TensorRT execution, including Docker images for NVidia Jetson.
 * [fall detection using pose estimation](https://towardsdatascience.com/fall-detection-using-pose-estimation-a8f7fd77081d): illustrated with many example video clips.
 * [physio pose](https://medium.com/@_samkitjain/physio-pose-a-virtual-physiotherapy-assistant-7d1c17db3159): "A virtual physiotherapy assistant".
@@ -120,6 +112,17 @@ using the command line option `--checkpoint checkpointasintableabove`.
 * [GitHub dependency graph](https://github.com/openpifpaf/openpifpaf/network/dependents): auto-detected Github repositories that use OpenPifPaf.
 
 Open an [issue](https://github.com/openpifpaf/openpifpaf/issues) to suggest more projects.
+
+
+## Executable Guide
+
+This is a [jupyter-book](https://jupyterbook.org/intro.html) or "executable book".
+Many sections of this book, like {doc}`predict_cli`, are generated from the code
+shown on the page itself:
+most pages are based on Jupyter Notebooks
+that can be downloaded or launched interactively in the cloud by clicking on the rocket
+at the top and selecting a cloud provider like _Binder_.
+The code on the page is all the code required to reproduce that particular page.
 
 
 ## Citation

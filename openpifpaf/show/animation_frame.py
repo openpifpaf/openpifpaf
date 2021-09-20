@@ -135,14 +135,14 @@ class AnimationFrame:
             if self.fig:
                 plt.close(self.fig)
 
-    def frame_init(self, image):
+    def frame_init(self, aspect_ratio=10.0 / 16.0):
         if plt is None:
             return None, None
 
         if 'figsize' not in self.fig_init_args:
             self.fig_init_args['figsize'] = (
                 self.fig_width,
-                self.fig_width * image.shape[0] / image.shape[1]
+                self.fig_width * aspect_ratio,
             )
             if self.second_visual:
                 self.fig_init_args['figsize'] = (
@@ -161,11 +161,7 @@ class AnimationFrame:
             self.ax_second = None
             self.fig.add_axes(self.ax)
         self.ax.set_axis_off()
-        # self.ax.set_xlim(0, image.shape[1])
-        # self.ax.set_ylim(image.shape[0], 0)
         if self.ax_second is not None:
             self.ax_second.set_axis_off()
-            # self.ax_second.set_xlim(0, image.shape[1])
-            # self.ax_second.set_ylim(image.shape[0], 0)
 
         return self.ax, self.ax_second

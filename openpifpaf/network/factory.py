@@ -9,8 +9,9 @@ import torchvision
 
 from .. import headmeta
 from ..configurable import Configurable
-from . import basenetworks, heads, nets
+from . import basenetworks, heads, model_migration, nets, tracking_heads
 from . import swin_transformer, xcit
+from .tracking_base import TrackingBase
 
 
 # monkey patch torchvision for mobilenetv2 checkpoint backwards compatibility
@@ -38,6 +39,7 @@ BASE_TYPES = set([
     basenetworks.SwinTransformer,
     basenetworks.XCiT,
     basenetworks.EffNetV2,
+    TrackingBase,
 ])
 BASE_FACTORIES = {
     'mobilenetv2': lambda: basenetworks.MobileNetV2('mobilenetv2', torchvision.models.mobilenet_v2),
@@ -186,12 +188,19 @@ BASE_FACTORIES = {
                                                      stride=16),
     'botnet': lambda: basenetworks.BotNet('botnet'),
 }
+# base factories that wrap other base factories:
+BASE_FACTORIES['tshufflenetv2k16'] = lambda: TrackingBase(BASE_FACTORIES['shufflenetv2k16']())
+BASE_FACTORIES['tshufflenetv2k30'] = lambda: TrackingBase(BASE_FACTORIES['shufflenetv2k30']())
+BASE_FACTORIES['tresnet50'] = lambda: TrackingBase(BASE_FACTORIES['resnet50']())
 
 #: headmeta class to head class
 HEADS = {
-    headmeta.Cif: heads.CompositeField3,
-    headmeta.Caf: heads.CompositeField3,
-    headmeta.CifDet: heads.CompositeField3,
+    headmeta.Cif: heads.CompositeField4,
+    headmeta.Caf: heads.CompositeField4,
+    headmeta.CifDet: heads.CompositeField4,
+    headmeta.TSingleImageCif: tracking_heads.TBaseSingleImage,
+    headmeta.TSingleImageCaf: tracking_heads.TBaseSingleImage,
+    headmeta.Tcaf: tracking_heads.Tcaf,
 }
 
 LOG = logging.getLogger(__name__)
@@ -371,7 +380,7 @@ class Factory(Configurable):
         epoch = checkpoint['epoch']
 
         # normalize for backwards compatibility
-        nets.model_migration(net_cpu)
+        model_migration.model_migration(net_cpu)
 
         return net_cpu, epoch
 

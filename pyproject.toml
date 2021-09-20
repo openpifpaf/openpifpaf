@@ -1,6 +1,10 @@
 [build-system]
 build-backend = "setuptools.build_meta"
-requires = ["cython!=0.29.23", "numpy", "setuptools", "wheel"]
+requires = [
+    "setuptools",
+    "torch>=1.7.1",
+    "wheel",
+]
 
 [tool.pytest.ini_options]
 minversion = "6.0"
@@ -23,8 +27,8 @@ ignore-docstrings = "yes"  # Ignore docstrings when computing similarities.
 ignore-imports = "yes"  # Ignore imports when computing similarities.
 
 [tool.pylint.TYPECHECK]
-generated-members = ["numpy.*", "torch.*", "cv2.*", "openpifpaf.functional.*"]
-ignored-modules = ["openpifpaf.functional", "pycocotools"]
+generated-members = ["numpy.*", "torch.*", "cv2.*"]
+ignored-modules = ["pycocotools"]
 disable = [
     "consider-iterating-dictionary",
     "consider-using-dict-items",

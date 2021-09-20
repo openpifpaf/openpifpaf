@@ -3,8 +3,10 @@ import logging
 import time
 from typing import List
 
+import torch
+import torchvision
+
 from .decoder import Decoder
-from . import utils
 from ..annotation import AnnotationDet
 from .. import headmeta, visualizer
 
@@ -12,8 +14,11 @@ LOG = logging.getLogger(__name__)
 
 
 class CifDet(Decoder):
+    iou_threshold = 0.5
+    instance_threshold = 0.15
+    nms_by_category = True
     occupancy_visualizer = visualizer.Occupancy()
-    max_detections_before_nms = 120
+    suppression = 0.1
 
     def __init__(self, head_metas: List[headmeta.CifDet], *, visualizers=None):
         super().__init__()
@@ -26,6 +31,8 @@ class CifDet(Decoder):
         self.visualizers = visualizers
         if self.visualizers is None:
             self.visualizers = [visualizer.CifDet(meta) for meta in self.metas]
+
+        self.cpp_decoder = torch.classes.openpifpaf_decoder.CifDet()
 
         self.timers = defaultdict(float)
 
@@ -45,25 +52,37 @@ class CifDet(Decoder):
             for vis, meta in zip(self.visualizers, self.metas):
                 vis.predicted(fields[meta.head_index])
 
-        cifhr = utils.CifDetHr().fill(fields, self.metas)
-        seeds = utils.CifDetSeeds(cifhr.accumulated).fill(fields, self.metas)
-        occupied = utils.Occupancy(cifhr.accumulated.shape, 2, min_scale=2.0)
+        categories, scores, boxes = self.cpp_decoder.call(
+            fields[self.metas[0].head_index],
+            self.metas[0].stride,
+        )
 
-        annotations = []
-        for v, f, x, y, w, h in seeds.get():
-            if occupied.get(f, x, y):
-                continue
-            ann = AnnotationDet(self.metas[0].categories).set(
-                f + 1, v, (x - w / 2.0, y - h / 2.0, w, h))
-            annotations.append(ann)
-            if len(annotations) >= self.max_detections_before_nms:
-                break
-            occupied.set(f, x, y, 0.1 * min(w, h))
+        # nms
+        if self.nms_by_category:
+            keep_index = torchvision.ops.batched_nms(boxes, scores, categories, self.iou_threshold)
+        else:
+            keep_index = torchvision.ops.nms(boxes, scores, self.iou_threshold)
+        pre_nms_scores = scores.clone()
+        scores *= self.suppression
+        scores[keep_index] = pre_nms_scores[keep_index]
+        filter_mask = scores > self.instance_threshold
+        categories = categories[filter_mask]
+        scores = scores[filter_mask]
+        boxes = boxes[filter_mask]
+        LOG.debug('cpp annotations = %d (%.1fms)',
+                  len(scores),
+                  (time.perf_counter() - start) * 1000.0)
 
-        self.occupancy_visualizer.predicted(occupied)
+        # convert to py
+        annotations_py = []
+        boxes_np = boxes.numpy()
+        boxes_np[:, 2:] -= boxes_np[:, :2]  # convert to xywh
+        for category, score, box in zip(categories, scores, boxes_np):
+            ann = AnnotationDet(self.metas[0].categories)
+            ann.set(int(category), float(score), box)
+            annotations_py.append(ann)
 
-        annotations = utils.nms.Detection().annotations(annotations)
-        # annotations = sorted(annotations, key=lambda a: -a.score)
-
-        LOG.info('annotations %d, decoder = %.3fs', len(annotations), time.perf_counter() - start)
-        return annotations
+        LOG.info('annotations %d, decoder = %.1fms',
+                 len(annotations_py),
+                 (time.perf_counter() - start) * 1000.0)
+        return annotations_py

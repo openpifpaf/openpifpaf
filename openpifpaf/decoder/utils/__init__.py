@@ -1,6 +1,10 @@
-from .caf_scored import CafScored
-from .caf_seeds import CafSeeds
-from .cif_hr import CifHr, CifDetHr
-from .cif_seeds import CifSeeds, CifDetSeeds
+import torch
+
 from . import nms
-from ...functional import Occupancy
+
+# pylint: disable=invalid-name
+CafScored = torch.classes.openpifpaf_decoder_utils.CafScored
+CifHr = torch.classes.openpifpaf_decoder_utils.CifHr
+CifSeeds = torch.classes.openpifpaf_decoder_utils.CifSeeds
+CifDetSeeds = torch.classes.openpifpaf_decoder_utils.CifDetSeeds
+Occupancy = torch.classes.openpifpaf_decoder_utils.Occupancy

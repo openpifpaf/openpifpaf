@@ -22,7 +22,8 @@ class CenterPad(Preprocess):
         meta = copy.deepcopy(meta)
         anns = copy.deepcopy(anns)
 
-        LOG.debug('valid area before pad: %s, image size = %s', meta['valid_area'], image.size)
+        LOG.debug('valid area before pad: %s, image size = %s, target size = %s',
+                  meta['valid_area'], image.size, self.target_size)
         image, anns, ltrb = self.center_pad(image, anns)
         meta['offset'] -= ltrb[:2]
         meta['valid_area'][:2] += ltrb[:2]
