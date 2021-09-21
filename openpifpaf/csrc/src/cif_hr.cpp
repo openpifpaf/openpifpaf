@@ -99,7 +99,7 @@ void CifHr::reset(const at::IntArrayRef& shape, int64_t stride) {
         || accumulated_buffer.size(1) < (shape[2] - 1) * stride + 1
         || accumulated_buffer.size(2) < (shape[3] - 1) * stride + 1
     ) {
-        OPENPIFPAF_WARN("resizing cifhr buffer");
+        OPENPIFPAF_INFO("resizing cifhr buffer");
         accumulated_buffer = torch::zeros({
             shape[0],
             (std::max(shape[2], shape[3]) - 1) * stride + 1,
