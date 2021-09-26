@@ -1,6 +1,8 @@
 # History
 
-* [main](https://github.com/openpifpaf/openpifpaf/compare/v0.12.14...main)
+* [main](https://github.com/openpifpaf/openpifpaf/compare/v0.13.0...main)
+* [0.13.0](https://github.com/openpifpaf/openpifpaf/compare/v0.12.14...v0.13.0) (2021-09-26)
+    * major rewrite of the decoders to C++ backed by libtorch
 * [0.12.14](https://github.com/openpifpaf/openpifpaf/compare/v0.12.13...v0.12.14) (2021-09-15)
     * new NuScenes plugin [#467](https://github.com/openpifpaf/openpifpaf/pull/467), [#472](https://github.com/openpifpaf/openpifpaf/pull/472)
     * new transformer backbones [#463](https://github.com/openpifpaf/openpifpaf/pull/463), [#471](https://github.com/openpifpaf/openpifpaf/pull/471), [#481](https://github.com/openpifpaf/openpifpaf/pull/481), [#488](https://github.com/openpifpaf/openpifpaf/pull/488): pretrained `swin_s`, `swin_b`, `swin_t_input_upsample`
