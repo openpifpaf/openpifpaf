@@ -159,12 +159,8 @@ def main():
 
     # data
     data = datasets.ImageList(args.images, preprocess=preprocess)
-    # data_loader = torch.utils.data.DataLoader(
-    #     data, batch_size=args.batch_size, shuffle=False,
-    #     pin_memory=args.pin_memory, num_workers=args.loader_workers,
-    #     collate_fn=datasets.collate_images_anns_meta)
 
-    ### AMA
+
     data_loader = torch.utils.data.DataLoader(
         data, batch_size=args.batch_size, shuffle=False,
         pin_memory=args.pin_memory, num_workers=args.loader_workers,
@@ -175,10 +171,9 @@ def main():
         color_connections=not args.monocolor_connections,
         linewidth=args.line_width,
     )
-    # print('HERERERER',processor)
+
     if isinstance(processor, decoder.CifCent):  # Check if cifcent decoder
-        # print('yyyyyyyyyyyyyyyyyyyyyyy')
-        # show.A
+
         keypoint_painter = show.KeypointCentPainter(
             color_connections=not args.monocolor_connections,
             linewidth=args.line_width,
@@ -191,8 +186,6 @@ def main():
 
         # unbatch
         for pred, meta in zip(pred_batch, meta_batch):
-            #print('meta')
-            #print(meta)
             LOG.info('batch %d: %s', batch_i, meta['file_name'])
 
             # load the original image if necessary
@@ -211,7 +204,6 @@ def main():
                 LOG.debug('json output = %s', json_out_name)
                 with open(json_out_name, 'w') as f:
                     json.dump([ann.json_data() for ann in pred], f)
-                    # print('PRED',[ann.json_data() for ann in pred])
 
             if args.show or args.image_output is not None:
                 image_out_name = out_name(

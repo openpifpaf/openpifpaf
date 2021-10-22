@@ -38,6 +38,9 @@ def factory_from_args(args):
         download_progress=args.download_progress,
         weights=args.weights,
         load_pif_weights=args.enable_load_pif_weights,
+        player_only=args.player_only,
+        ball_only=args.ball_only,
+        segmentation_only=args.segmentation_only,
     )
 
 
@@ -83,7 +86,10 @@ def factory(
         download_progress=True,
         weights=None,
         load_pif_weights=False,
-        add_ball_head_from_checkpoint=None):
+        add_ball_head_from_checkpoint=None,
+        player_only=False,
+        ball_only=False,
+        segmentation_only=False):
 
     if base_name:
         assert head_names
@@ -101,23 +107,8 @@ def factory(
                     old_model = checkpoint['model']
                     state_dict = old_model.base_net.state_dict()
                     net_cpu.base_net.load_state_dict(state_dict)
-                    if load_pif_weights:            ########### wrong!
+                    if load_pif_weights: 
                         pif_state_dict = old_model.head_nets[0].state_dict()
-                        # weight_shape = pif_state_dict['conv.weight'].shape
-                        # bias_shape = pif_state_dict['conv.bias'].shape
-                        # weight_zero = torch.zeros((weight_shape[0]+20, weight_shape[1], weight_shape[2], weight_shape[3]))
-                        # bias_zero = torch.zeros((bias_shape[0]+20))
-
-                        # weight_zero[:weight_shape[0],:,:,:] = pif_state_dict['conv.weight']
-                        # weight_zero[weight_shape[0]:,:,:,:] = pif_state_dict['conv.weight'][-20:,:,:,:]
-                        # bias_zero[:bias_shape[0]] = pif_state_dict['conv.bias']
-                        # bias_zero[bias_shape[0]:] = pif_state_dict['conv.bias'][-20:]
-
-                        # pif_state_dict['conv.weight'] = weight_zero
-                        # pif_state_dict['conv.bias'] = bias_zero
-
-                        # net_cpu.head_nets[0].load_state_dict(pif_state_dict)
-
                         net_cpu.head_nets[0].load_state_dict(pif_state_dict)
         else:
             checkpoint = torch.load(checkpoint, map_location='cpu')
@@ -125,26 +116,51 @@ def factory(
             if 'model_state_dict' in checkpoint:
                 print('NETWORK FACTORY: model has state dict')
                 net_cpu = factory_from_scratch(base_name, head_names, pretrained=pretrained)
+                if player_only:
+                    loaded_state_dict = checkpoint['model_state_dict']
+                    base_net_dict = {k.replace('base_net.', ''): v for k,v in loaded_state_dict.items() if k.startswith('base_net')}
+                    net_cpu.base_net.load_state_dict(base_net_dict)
+                    head_net_dict = {k.replace('head_nets.0.', ''): v for k,v in loaded_state_dict.items() if k.startswith('head_nets.0')}
+                    net_cpu.head_nets[0].load_state_dict(head_net_dict)
+                    head_net_dict = {k.replace('head_nets.1.', ''): v for k,v in loaded_state_dict.items() if k.startswith('head_nets.1')}
+                    net_cpu.head_nets[1].load_state_dict(head_net_dict)
+                    head_net_dict = {k.replace('head_nets.3.', ''): v for k,v in loaded_state_dict.items() if k.startswith('head_nets.3')}
+                    net_cpu.head_nets[2].load_state_dict(head_net_dict)
+                    epoch = checkpoint['epoch']
                 
-                net_cpu.load_state_dict(checkpoint['model_state_dict'])
-                print('NETWORK FACTORY: state dict loaded')
-                epoch = checkpoint['epoch']
+                elif ball_only:
+                    loaded_state_dict = checkpoint['model_state_dict']
+                    base_net_dict = {k.replace('base_net.', ''): v for k,v in loaded_state_dict.items() if k.startswith('base_net')}
+                    net_cpu.base_net.load_state_dict(base_net_dict)
+                    head_net_dict = {k.replace('head_nets.2.', ''): v for k,v in loaded_state_dict.items() if k.startswith('head_nets.2')}
+                    net_cpu.head_nets[0].load_state_dict(head_net_dict)
+                    epoch = checkpoint['epoch']
 
-                if add_ball_head_from_checkpoint is not None:
-                    checkpoint_ball = torch.load(add_ball_head_from_checkpoint, map_location='cpu')
-                    net_cpu.head_nets[2].load_state_dict(checkpoint_ball['model_state_dict'].head_nets[0])
+                elif segmentation_only:
+                    loaded_state_dict = checkpoint['model_state_dict']
+                    base_net_dict = {k.replace('base_net.', ''): v for k,v in loaded_state_dict.items() if k.startswith('base_net')}
+                    net_cpu.base_net.load_state_dict(base_net_dict)
+                    head_net_dict = {k.replace('head_nets.1.', ''): v for k,v in loaded_state_dict.items() if k.startswith('head_nets.1')}
+                    net_cpu.head_nets[0].load_state_dict(head_net_dict)
+                    head_net_dict = {k.replace('head_nets.3.', ''): v for k,v in loaded_state_dict.items() if k.startswith('head_nets.3')}
+                    net_cpu.head_nets[1].load_state_dict(head_net_dict)
+                    epoch = checkpoint['epoch']
+                
+                else:
+                    net_cpu.load_state_dict(checkpoint['model_state_dict'])
+                    print('NETWORK FACTORY: state dict loaded')
+                    epoch = checkpoint['epoch']
+
+                    if add_ball_head_from_checkpoint is not None:
+                        checkpoint_ball = torch.load(add_ball_head_from_checkpoint, map_location='cpu')
+                        net_cpu.head_nets[2].load_state_dict(checkpoint_ball['model_state_dict'].head_nets[0])
                 
                 # normalize for backwards compatibility
                 nets.model_migration(net_cpu)
 
                 # initialize for eval
                 net_cpu.eval()
-                print('NETWORK FACTORY: model on eval')
 
-                # print("Model's state_dict:")
-                # for param in net_cpu.base_net.parameters():
-                #     print(param.data)
-                # raise
             else:
                 raise 'model_state_dict not in checkpoint dict! if the checkpoint is .pkl remove --basenet and --headnets!'
     else:
@@ -168,18 +184,8 @@ def factory(
         else:
             checkpoint = torch.load(checkpoint)
 
-        # if 'model_state_dict' in checkpoint:
-        #     assert base_name is not None
-        #     assert head_names is not None
-        #     net_cpu = factory_from_scratch(base_name, head_names, pretrained=pretrained)
-        #     net_cpu.load_state_dict(checkpoint['model_state_dict'])
-        # else:
-        #     assert base_name is None
-        #     assert head_names is None
         net_cpu = checkpoint['model']
         epoch = checkpoint['epoch']
-
-        # tb_filename = checkpoint['tb_filename']
 
         # normalize for backwards compatibility
         nets.model_migration(net_cpu)
@@ -201,7 +207,6 @@ def factory(
         net_cpu.process_heads = heads.CifdetCollector(cif_indices)
 
     elif net_cpu.head_nets[0].meta.name == 'pan' and net_cpu.head_nets[1].meta.name == 'cent':
-        print('PanCentCollector!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
         net_cpu.process_heads = heads.PanCentCollector(cif_indices)
 
     elif len(net_cpu.head_nets) == 2 and isinstance(net_cpu.head_nets[1].meta, heads.PanopticDeeplabMeta):
@@ -209,10 +214,8 @@ def factory(
     
     elif len(net_cpu.head_nets) == 3 and isinstance(net_cpu.head_nets[1].meta, heads.PanopticDeeplabMeta) and net_cpu.head_nets[2].meta.name=='cent':
         net_cpu.process_heads = heads.CifPanCentCollector(cif_indices)
-        print('correct!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
     elif len(net_cpu.head_nets) == 3 and isinstance(net_cpu.head_nets[1].meta, heads.PanopticDeeplabMeta):
         net_cpu.process_heads = heads.CifPanBallCollector(cif_indices)
-        # net_cpu.process_heads = heads.CifPanCollector(cif_indices)
 
     elif len(net_cpu.head_nets) == 4 and isinstance(net_cpu.head_nets[1].meta, heads.PanopticDeeplabMeta):
         net_cpu.process_heads = heads.CifPanBallCentCollector(cif_indices)
@@ -349,7 +352,7 @@ def shufflenet_factory_from_scratch(basename, base_vision, out_features, head_me
     ]
 
     panoptic = len([hm for hm in head_metas if hm.name == "pan"]) > 0
-    # has_ball = len([hm for hm in head_metas if hm.name == "ball"]) > 0
+    
 
     BaseNetwork = basenetworks.BaseNetworkWithSkips if panoptic else basenetworks.BaseNetwork
     basenet = BaseNetwork(
@@ -360,17 +363,6 @@ def shufflenet_factory_from_scratch(basename, base_vision, out_features, head_me
     )
 
     headnets = [facrtory_head_single(hd, basenet.out_features) for hd in head_metas]
-
-    # headnets = [heads.CompositeFieldFused(h, basenet.out_features) for h in head_metas]
-    # headnets = [heads.CompositeFieldFused(head_metas[0], basenet.out_features)]
-
-
-    # if has_ball:
-    #     head_metas = [hm for hm in head_metas if hm.name == "ball"][0]
-    #     headnets.append(heads.CompositeFieldFused(head_metas, basenet.out_features))
-
-    # if panoptic:  # Integrate a panoptic-deeplab decoder
-    #     headnets.append(heads.PanopticDeeplabHead(head_metas[1], basenet.out_features))
 
 
     net_cpu = nets.Shell(basenet, headnets)
@@ -424,25 +416,6 @@ def resnet_factory_from_scratch(basename, base_vision, out_features, head_metas)
     headnets = [facrtory_head_single(hd, basenet.out_features) for hd in head_metas]
 
 
-    # headnets = [heads.CompositeFieldFused(h, basenet.out_features) for h in head_metas]
-
-    # headnets = [heads.CompositeFieldFused(head_metas[0], basenet.out_features)]
-
-    # if len(head_metas) > 1 and isinstance(head_metas[1], heads.AssociationMeta):    ## for caf
-    #     headnets.append(heads.CompositeFieldFused(head_metas[1], basenet.out_features))
-
-
-    # #### AMA
-    # if len(head_metas) > 1 and isinstance(head_metas[1], heads.SegmentationMeta):
-    #     headnets.append(heads.InstanceSegHead(head_metas[1], basenet.out_features))
-
-
-    # if panoptic:  # Integrate a panoptic-deeplab decoder
-    #     headnets.append(heads.PanopticDeeplabHead(head_metas[1], basenet.out_features))
-
-    # if has_ball:
-    #     head_met = [hm for hm in head_metas if hm.name == "ball"][0]
-    #     headnets.append(heads.CompositeFieldFused(head_met, basenet.out_features))
 
     net_cpu = nets.Shell(basenet, headnets)
     nets.model_defaults(net_cpu)
@@ -506,3 +479,7 @@ def cli(parser):
     group.add_argument('--enable-freeze-encoder', default=False, action='store_true')
 
     group.add_argument('--enable-load-pif-weights', default=False, action='store_true')
+
+    group.add_argument('--player-only', default=False, action='store_true')
+    group.add_argument('--ball-only', default=False, action='store_true')
+    group.add_argument('--segmentation-only', default=False, action='store_true')

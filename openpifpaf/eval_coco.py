@@ -302,20 +302,7 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     if args.loader_workers is None:
         args.loader_workers = max(2, args.batch_size)
 
-    # if args.dataset == 'val' and not args.detection_annotations:
-    #     args.image_dir = IMAGE_DIR_VAL
-    #     args.annotation_file = ANNOTATIONS_VAL
-    # elif args.dataset == 'val' and args.detection_annotations:
-    #     args.image_dir = IMAGE_DIR_VAL
-    #     args.annotation_file = DET_ANNOTATIONS_VAL
-    # elif args.dataset == 'test':
-    #     args.image_dir = IMAGE_DIR_TEST
-    #     args.annotation_file = ANNOTATIONS_TEST
-    # elif args.dataset == 'test-dev':
-    #     args.image_dir = IMAGE_DIR_TEST
-    #     args.annotation_file = ANNOTATIONS_TESTDEV
-    # else:
-    #     raise Exception
+
 
     if args.dataset == 'val' and not args.detection_annotations:
         args.image_dir = IMAGE_DIR_VAL

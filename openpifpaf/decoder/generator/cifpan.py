@@ -107,7 +107,6 @@ class CifPan(Generator):
         if not initial_annotations:
             initial_annotations = []
         LOG.debug('initial annotations = %d', len(initial_annotations))
-
         # print(self.field_config)
         # if self.field_config.cif_visualizers:
         #     for vis, cif_i in zip(self.field_config.cif_visualizers, self.field_config.cif_indices):

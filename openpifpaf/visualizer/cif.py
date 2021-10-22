@@ -50,7 +50,7 @@ class Cif(BaseVisualizer):
 
             with self.image_canvas(self._processed_image) as ax:
                 img = self.scale_scalar(confidences[f], self.stride)
-                #imageio.imwrite("/tmp/cif_confidences.png", img)
+                
                 im = ax.imshow(img,
                                alpha=0.9, vmin=0.0, vmax=1.0, cmap='Oranges')
                 self.colorbar(ax, im)

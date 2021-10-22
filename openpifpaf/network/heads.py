@@ -179,15 +179,7 @@ class CifPanBallCollector(torch.nn.Module):
 
     def forward(self, *args):
         heads = args[0]
-        # print('len heads', len(args))
-        # print(len(heads[0]))
-        # print(len(heads[0][0]))
-        # print(len(heads[0][0].shape))
-        # print(heads[0].shape)
-        # print(heads[1].shape)
-        # print(heads[2].shape)
         heads_ball = heads[2]
-        # print('len heads ball', len(heads_ball))
 
         # concat fields
         cif_heads = [self.concat_fields(self.selector(heads, head_index))
@@ -251,16 +243,8 @@ class CifPanBallCentCollector(torch.nn.Module):
 
     def forward(self, *args):
         heads = args[0]
-        # print('len heads', len(args))
-        # print(len(heads[0]))
-        # print(len(heads[0][0]))
-        # print(len(heads[0][0].shape))
-        # print(heads[0].shape)
-        # print(heads[1].shape)
-        # print(heads[2].shape)
         heads_cent = heads[3]
         heads_ball = heads[2]
-        # print('len heads ball', len(heads_ball))
 
         # concat fields
         cif_heads = [self.concat_fields(self.selector(heads, head_index))
@@ -290,7 +274,6 @@ class CifPanBallCentCollector(torch.nn.Module):
         if cif_cent_head is not None:
             cif_cent_head[:, :, 1:3].add_(index_field)
 
-        # print('cif head', cif_head.shape)
 
         return cif_head, heads[1], cif_ball_head, cif_cent_head
 
@@ -331,16 +314,7 @@ class CifPanCentCollector(torch.nn.Module):
 
     def forward(self, *args):
         heads = args[0]
-        # print('len heads', len(args))
-        # print(len(heads[0]))
-        # print(len(heads[0][0]))
-        # print(len(heads[0][0].shape))
-        # print(heads[0].shape)
-        # print(heads[1].shape)
-        # print(heads[2].shape)
         heads_cent = heads[2]
-        # print('len heads ball', len(heads_ball))
-
         # concat fields
         cif_heads = [self.concat_fields(self.selector(heads, head_index))
                      for head_index in self.cif_indices]
@@ -363,12 +337,9 @@ class CifPanCentCollector(torch.nn.Module):
         if cif_cent_head is not None:
             cif_cent_head[:, :, 1:3].add_(index_field)
 
-        # print('cif head', cif_cent_head.shape)
-        # print(type(cif_cent_head))
-        cif_ball_head = torch.zeros(cif_cent_head.shape)
-        # import copy
-        # cif_ball_head = copy.deepcopy(cif_cent_head)    #just to create a dummy ball head (don't want to create a whole new decoder)
 
+        cif_ball_head = torch.zeros(cif_cent_head.shape)
+        
         return cif_head, heads[1], cif_ball_head, cif_cent_head
 
 class PanCentCollector(torch.nn.Module):
@@ -403,30 +374,18 @@ class PanCentCollector(torch.nn.Module):
         if len(heads) == 1:
             return heads[0]
 
-        # LOG.debug('heads = %s', [h.shape for h in heads])
+        
         return torch.cat(heads, dim=1)
 
     def forward(self, *args):
         heads = args[0]
-        # print('len heads', len(args))
-        # print(len(heads[0]))
-        # print(len(heads[0][0]))
-        # print(len(heads[0][0].shape))
-        # print(heads[0].shape)
-        # print(heads[1].shape)
-        # print(heads[2].shape)
+        
         heads_cent = heads[1]
-        # print('len heads ball', len(heads_ball))
-
-        # concat fields
-        # cif_heads = [self.concat_fields(self.selector(heads, head_index))
-        #              for head_index in self.cif_indices]
 
         
         cif_cent_heads = [self.concat_fields(heads_cent)]
 
         # concat heads
-        # cif_head = self.concat_heads(cif_heads)
 
         cif_cent_head = self.concat_heads(cif_cent_heads)
 
@@ -434,18 +393,12 @@ class PanCentCollector(torch.nn.Module):
         index_field = index_field_torch(cif_cent_head.shape[-2:], device=cif_cent_head.device)
 
 
-        # if cif_head is not None:
-        #     cif_head[:, :, 1:3].add_(index_field)
 
         if cif_cent_head is not None:
             cif_cent_head[:, :, 1:3].add_(index_field)
 
-        # print('cif head', cif_cent_head.shape)
-        # print(type(cif_cent_head))
-        cif_ball_head = torch.zeros(cif_cent_head.shape)
 
-        # import copy
-        # cif_ball_head = copy.deepcopy(cif_cent_head)    #just to create a dummy ball head (don't want to create a whole new decoder)
+        cif_ball_head = torch.zeros(cif_cent_head.shape)
 
         return None, heads[0], cif_ball_head, cif_cent_head
 
@@ -815,9 +768,7 @@ class CompositeField(torch.nn.Module):
                           reg_x.shape[3])
             for reg_x in regs_x
         ]
-        # print('pif head')
-        # print(regs_x.shape[2])
-        # print(regs_x.shape[3])
+
 
         return classes_x + regs_x + regs_logb + scales_x
 
@@ -909,9 +860,6 @@ class CompositeFieldFused(torch.nn.Module):
         if not self.training:
             scales_x = torch.exp(scales_x)
 
-        # print('pif head')
-        # print(regs_x.shape[-1])
-        # print(regs_x.shape[-2])
 
         return classes_x, regs_x, regs_logb, scales_x
 
@@ -927,10 +875,6 @@ class InstanceSegHead(torch.nn.Module):
                  kernel_size=1, padding=0, dilation=1):
         super().__init__()
 
-        # LOG.debug('%s config: fields = %d, confidences = %d, vectors = %d, scales = %d '
-        #           'kernel = %d, padding = %d, dilation = %d',
-        #           meta.name, meta.n_fields, meta.n_confidences, meta.n_vectors, meta.n_scales,
-        #           kernel_size, padding, dilation)
 
         self.meta = meta
         self.dropout = torch.nn.Dropout2d(p=self.dropout_p)
@@ -996,10 +940,6 @@ class InstanceSegHead(torch.nn.Module):
         if not self.training:
             sigma_x = torch.tanh(sigma_x)
 
-        # print('seg head factory')
-        # print(seed_x.shape)
-        # print(regs_x.shape)
-        # print(sigma_x.shape)
 
         return seed_x, regs_x, sigma_x
 

@@ -189,18 +189,6 @@ def factory_decode(head_nets, *,
        and len(head_nets) == 1:
         field_config = FieldConfig()
 
-
-        # skeleton = head_nets[1].meta.skeleton
-        # print(skeleton)
-        # if dense_connections:
-        #     field_config.confidence_scales = (
-        #         [1.0 for _ in skeleton] +
-        #         [dense_coupling for _ in head_nets[2].meta.skeleton]
-        #     )
-        #     skeleton += head_nets[2].meta.skeleton
-
-        # print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-        # print('decoder fact', head_nets[0].meta.keypoints)
         field_config.cif_visualizers = [
             visualizer.Cif(head_nets[i].meta.name,
                            stride=head_nets[i].stride(basenet_stride),
@@ -208,13 +196,6 @@ def factory_decode(head_nets, *,
                            skeleton=head_nets[0].meta.draw_skeleton)
             for i in field_config.cif_indices
         ]
-        # field_config.caf_visualizers = [
-        #     visualizer.Caf(head_nets[i].meta.name,
-        #                    stride=head_nets[i].stride(basenet_stride),
-        #                    keypoints=head_nets[1].meta.keypoints,
-        #                    skeleton=skeleton)
-        #     for i in field_config.caf_indices
-        # ]
 
         return CifCent(
             field_config,
@@ -222,9 +203,6 @@ def factory_decode(head_nets, *,
             worker_pool=worker_pool,
         )
 
-    # print('in decoder')
-    # for h in head_nets:
-    #     print(type(h.meta))
     if head_nets[0].meta.name == 'pan' and head_nets[1].meta.name == 'cent':
         field_config = FieldConfig()
         field_config_ball = FieldConfig(cif_indices=[2])
@@ -248,7 +226,6 @@ def factory_decode(head_nets, *,
                     disable_left_right_check=args.disable_left_right_check,
                     args=args,
                 )
-    #     print(isinstance(h.meta, network.heads.PanopticDeeplabMeta))
     if isinstance(head_nets[0].meta, network.heads.IntensityMeta) \
        and isinstance(head_nets[1].meta, network.heads.PanopticDeeplabMeta):
         field_config = FieldConfig()
@@ -304,7 +281,6 @@ def factory_decode(head_nets, *,
         
 
         skeleton = head_nets[1].meta.skeleton
-        # print(skeleton)
         if dense_connections:
             field_config.confidence_scales = (
                 [1.0 for _ in skeleton] +

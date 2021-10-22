@@ -18,7 +18,7 @@ class Crop(Preprocess):
     def __call__(self, image, anns, meta):
         meta = copy.deepcopy(meta)
         anns = copy.deepcopy(anns)
-        # anns_inst = copy.deepcopy(anns_inst)
+
 
         original_valid_area = meta['valid_area'].copy()
         # print('valid area', original_valid_area)
@@ -46,7 +46,7 @@ class Crop(Preprocess):
             new_rb = np.maximum(ann['bbox'][:2], new_rb)
             new_rb = np.minimum(meta['valid_area'][:2] + meta['valid_area'][2:], new_rb)
             ann['bbox'][2:] = new_rb - ann['bbox'][:2]
-            # print('after 3', ann['kp_ball'])
+            
             if 'put_nan' in ann:
                 skip_removing_anns=True # because we don't have bbox for ball
 
@@ -97,7 +97,7 @@ class Crop(Preprocess):
         else:
             area_of_interest = valid_area
 
-        # print('area of interest', area_of_interest)
+        
 
         w, h = image.size
         padding = int(self.long_edge / 2.0)
@@ -130,19 +130,14 @@ class Crop(Preprocess):
         # print('ltrb', ltrb)
         image = image.crop(ltrb)
 
-        ### AMA crop masks
-
-        # for mask_idx in range(len(mask)):
-        #     mask[mask_idx] = mask[mask_idx][y_offset:y_offset + new_h, x_offset:x_offset+new_w]
-
-        # crop keypoints
+        
         for ann in anns:
             # print('before', ann['kp_ball'])
             ann['keypoints'][:, 0] -= x_offset
             ann['keypoints'][:, 1] -= y_offset
             ann['bbox'][0] -= x_offset
             ann['bbox'][1] -= y_offset
-            # print('after 1', ann['kp_ball'])
+            
             if 'kp_ball' in ann:
                 ann['kp_ball'][:, 0] -= x_offset
                 ann['kp_ball'][:, 1] -= y_offset
@@ -151,9 +146,7 @@ class Crop(Preprocess):
                 ann['cent'][:, 0] -= x_offset
                 ann['cent'][:, 1] -= y_offset
 
-            # print('after 2', ann['kp_ball'])
-
-            ### AMA crop masks
+            
             ann['bmask'] = ann['bmask'][y_offset:y_offset + new_h, x_offset:x_offset+new_w]
 
         return image, anns, np.array(ltrb)

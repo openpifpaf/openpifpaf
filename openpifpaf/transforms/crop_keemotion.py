@@ -14,11 +14,10 @@ class CropKeemotion(Preprocess):
         self.long_edge = long_edge
         self.use_area_of_interest = use_area_of_interest
 
-    ### AMA
     def __call__(self, image, anns, meta):
         meta = copy.deepcopy(meta)
         anns = copy.deepcopy(anns)
-        # anns_inst = copy.deepcopy(anns_inst)
+
 
         original_valid_area = meta['valid_area'].copy()
 
@@ -72,14 +71,6 @@ class CropKeemotion(Preprocess):
         max_x = max(anns_of_interest[rand_inst][0] + edge_length / 2, valid_area[2])
         max_y = max(anns_of_interest[rand_inst][1] + edge_length / 2, valid_area[3])
 
-        # min_x = min(np.min(ann['keypoints'][ann['keypoints'][:, 2] > 0, 0])
-        #             for ann in anns_of_interest) - 50
-        # min_y = min(np.min(ann['keypoints'][ann['keypoints'][:, 2] > 0, 1])
-        #             for ann in anns_of_interest) - 50
-        # max_x = max(np.max(ann['keypoints'][ann['keypoints'][:, 2] > 0, 0])
-        #             for ann in anns_of_interest) + 50
-        # max_y = max(np.max(ann['keypoints'][ann['keypoints'][:, 2] > 0, 1])
-        #             for ann in anns_of_interest) + 50
 
         # Make sure to stay inside of valid area.
         # Also make sure that the remaining window inside the valid area
@@ -96,7 +87,6 @@ class CropKeemotion(Preprocess):
 
         return (left, top, right - left, bottom - top)
 
-    ### AMA
     def crop(self, image, anns, valid_area):
         if self.use_area_of_interest:
             area_of_interest = self.area_of_interest(anns, valid_area, self.long_edge)
@@ -133,11 +123,7 @@ class CropKeemotion(Preprocess):
         ltrb = (x_offset, y_offset, x_offset + new_w, y_offset + new_h)
         image = image.crop(ltrb)
 
-        ### AMA crop masks
-
-        # for mask_idx in range(len(mask)):
-        #     mask[mask_idx] = mask[mask_idx][y_offset:y_offset + new_h, x_offset:x_offset+new_w]
-
+        
         # crop keypoints
         for ann in anns:
             ann['keypoints'][:, 0] -= x_offset

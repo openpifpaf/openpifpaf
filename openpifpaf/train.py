@@ -140,15 +140,12 @@ def main():
     for hd in net_cpu.head_nets:
         heads.append(hd.meta.name)
 
-    # print('in train ', heads)
     train_loader, val_loader = datasets.train_factory(args, target_transforms, heads=heads)
-    # loaders = datasets.train_factory(args, target_transforms, heads=heads)
 
     optimizer = optimize.factory_optimizer(
         args, list(net.parameters()) + list(loss.parameters()))
     lr_scheduler = optimize.factory_lrscheduler(args, optimizer, len(train_loader))
 
-    # checkpoint = torch.load(arg.checkpoint)
 
     trainer = network.Trainer(
         net, loss, optimizer, args.output,

@@ -24,26 +24,13 @@ class RegularCE(nn.Module):
 
     def forward(self, logits, labels, **kwargs):
         
-        # print(logits.shape)
-        # print(labels.shape)
-        # print(torch.max(torch.max(torch.max(labels))))
-        # print(torch.min(torch.min(torch.min(labels))))
-        # print(min(labels))
-        # print(logits.shape)
         if 'semantic_weights' in kwargs:
             pixel_losses = self.criterion(logits, labels) * kwargs['semantic_weights']
-            # print(pixel_losses.shape)
             pixel_losses = pixel_losses.contiguous().view(-1)
-            # print(pixel_losses.shape)
         else:
-            # print(pixel_losses.shape)
             pixel_losses = self.criterion(logits, labels).contiguous().view(-1)
-            # print(pixel_losses.shape)
         mask = labels.contiguous().view(-1) != self.ignore_label
-        # print(mask.shape)
         pixel_losses = pixel_losses[mask]
-        # print(pixel_losses.shape)
-        # raise
         return pixel_losses.mean()
 
 

@@ -10,7 +10,7 @@ from .preprocess import Preprocess
 
 LOG = logging.getLogger(__name__)
 
-### AMA add mask to input and return args
+
 
 class ImageTransform(Preprocess):
     def __init__(self, image_transform):

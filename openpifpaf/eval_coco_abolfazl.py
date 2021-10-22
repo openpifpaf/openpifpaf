@@ -34,19 +34,7 @@ ANNOTATIONS_TESTDEV = 'data-mscoco/annotations/image_info_test-dev2017.json'
 ANNOTATIONS_TEST = 'data-mscoco/annotations/image_info_test2017.json'
 IMAGE_DIR_TEST = 'data-mscoco/images/test2017/'
 
-ANNOTATIONS_VAL = '/scratch/abolfazl/coco/annotations/person_keypoints_val2017.json'
-DET_ANNOTATIONS_VAL = '/scratch/abolfazl/coco/annotations/instances_val2017.json'
-IMAGE_DIR_VAL = '/scratch/abolfazl/coco/images/val2017/'
-ANNOTATIONS_TESTDEV = '/scratch/abolfazl/coco/annotations/image_info_test-dev2017.json'
-ANNOTATIONS_TEST = '/scratch/abolfazl/coco/annotations/image_info_test2017.json'
-IMAGE_DIR_TEST = '/scratch/abolfazl/coco/images/test2017/'
 
-# ANNOTATIONS_VAL = '/data/mistasse/coco/annotations/person_keypoints_val2017.json'
-# DET_ANNOTATIONS_VAL = '/data/mistasse/coco/annotations/instances_val2017.json'
-# IMAGE_DIR_VAL = '/data/mistasse/coco/images/val2017/'
-# ANNOTATIONS_TESTDEV = '/data/mistasse/coco/annotations/image_info_test-dev2017.json'
-# ANNOTATIONS_TEST = '/data/mistasse/coco/annotations/image_info_test2017.json'
-# IMAGE_DIR_TEST = '/data/mistasse/coco/images/test2017/'
 
 LOG = logging.getLogger(__name__)
 
@@ -107,10 +95,8 @@ class EvalCoco(object):
             self.eval.params.catIds = self.category_ids
 
         if image_ids is not None:
-            print('image ids', image_ids)
             self.eval.params.imgIds = image_ids
 
-        print('~~~~~~~~~~~~~~~~~~~~~~~~~~~ run evaluate')
         self.eval.evaluate()
         self.eval.accumulate()
         self.eval.summarize()
@@ -344,20 +330,6 @@ def cli():  # pylint: disable=too-many-statements,too-many-branches
     if args.loader_workers is None:
         args.loader_workers = max(2, args.batch_size)
 
-    # if args.dataset == 'val' and not args.detection_annotations:
-    #     args.image_dir = IMAGE_DIR_VAL
-    #     args.annotation_file = ANNOTATIONS_VAL
-    # elif args.dataset == 'val' and args.detection_annotations:
-    #     args.image_dir = IMAGE_DIR_VAL
-    #     args.annotation_file = DET_ANNOTATIONS_VAL
-    # elif args.dataset == 'test':
-    #     args.image_dir = IMAGE_DIR_TEST
-    #     args.annotation_file = ANNOTATIONS_TEST
-    # elif args.dataset == 'test-dev':
-    #     args.image_dir = IMAGE_DIR_TEST
-    #     args.annotation_file = ANNOTATIONS_TESTDEV
-    # else:
-    #     raise Exception
 
     if args.dataset == 'val' and not args.detection_annotations:
         args.image_dir = IMAGE_DIR_VAL
@@ -667,17 +639,8 @@ def main():
     #####
     model = model_cpu.to(args.device)
     model.eval()
-    # print('State of Model (Trainig)1?:', model.training)
-    # if not args.disable_cuda and torch.cuda.device_count() > 1:
-    #     LOG.info('Using multiple GPUs: %d', torch.cuda.device_count())
-    #     model = torch.nn.DataParallel(model)
-    #     model.base_net = model_cpu.base_net
-    #     model.head_nets = model_cpu.head_nets
-    # print('State of Model (Trainig)2?:', model.training)
+
     processor = decoder.factory_from_args(args, model)
-    # print('State of Model (Trainig)3?:', model.training)
-    # processor.instance_scorer = decocder.instance_scorer.InstanceScoreRecorder()
-    # processor.instance_scorer = torch.load('instance_scorer.pkl')
 
     coco = pycocotools.coco.COCO(args.annotation_file)
     eval_coco = EvalCoco(
@@ -707,20 +670,14 @@ def main():
             break
 
         loop_start = time.time()
-        # print('anns:', len(anns_batch))
-        # print('target:', len(target_batch[0]))
-        # print('anns_batch:', anns_batch)
-        # print('meta_batch:', meta_batch)
-        # print('target_batch:', target_batch)
+
         if len([a
                 for anns in anns_batch
                 for a in anns
                 if np.any(a['keypoints'][:, 2] > 0)]) < args.min_ann:
             continue
         model.eval()
-        # print('State of Model (Trainig)4?:', model.training)
-        # print('state dict', model.head_nets[0].state_dict()['conv.weight'])
-        # print('META:', meta_batch)
+
         pred_batch = processor.batch(model, image_tensors, device=args.device, oracle_masks=args.oracle_data, target_batch=target_batch, anns_batch=anns_batch)
         print('number of people in pred 1', len(pred_batch[0]))
         eval_coco.decoder_time += processor.last_decoder_time
@@ -746,10 +703,7 @@ def main():
                 target_pan = target_batch[1]['panoptic']
                 segments = []
                 panoptic = np.zeros((image.shape[1:3]), np.uint16)
-                print('--------------------------------------------------')
-                print('image id', meta['image_id'])
                 n_humans = 0
-                print('number of people in pred', len(pred))
                 for ann in pred:
                     if ann.category_id == 1 and ann.mask.any():
                         if (np.count_nonzero(ann.mask) < args.discard_smaller
@@ -766,10 +720,6 @@ def main():
                             
                         })
                 
-                print('instance pred', n_humans)
-
-                # image_id = meta['file_name'].split('/')[-1].replace('.png', '')
-                # panoptic_name = 'output/%s.png'%image_id
 
                 background = panoptic == 0
                 if background.any():
@@ -779,19 +729,10 @@ def main():
                         'category_id': 2,
                         
                     })
-                print('segments pred', segments)
+
                 # ground truth
                 segments_gt = []
                 panoptic_gt = target_pan.cpu().numpy()
-                # unique_ids, id_cnt = np.unique(panoptic_gt, return_counts=True)
-                # for u, cnt in zip(unique_ids, id_cnt):
-                #     if u > 0: # and u < 3000:
-                #         segments_gt.append({
-                #             'id': u,
-                #             'category_id': 1,
-                #             'iscrowd': 0,
-                #             'area': cnt,
-                #         })
 
                 for ann in anns:
                     if ann['category_id'] == 1:
@@ -801,8 +742,7 @@ def main():
                             'iscrowd': ann['iscrowd'],
                             'area': ann['bmask'].sum(),
                         })
-                # print('unique ids ann', unique_ids)
-                # print('count', id_cnt)
+
                 print('number of people in gt', len(segments_gt))
                 background = panoptic_gt == 0
                 if background.any():
@@ -813,15 +753,12 @@ def main():
                         'iscrowd': 0,
                         'area': background.sum(),
                     })
-                print('segments gt', segments_gt)
+
                 pq_stat += pq_compute_single_core(panoptic, segments, panoptic_gt, segments_gt)
-                print("PQ")
-                # if len(unique_ids) > 2:
-                print(show_pq_results(pq_stat))
+
 
     total_time = time.time() - total_start
 
-    # processor.instance_scorer.write_data('instance_score_data.json')
 
     # model stats
     count_ops = list(eval_coco.count_ops(model_cpu))

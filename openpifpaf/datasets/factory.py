@@ -12,41 +12,15 @@ from .. import transforms
 from .multidataset import MultiDataset
 
 
-# YOU SHOULD MAKE SYMBOLIC LINKS in a COCO folder
-# $ mkdir COCO
-# $ cd COCO
-# $ ln -s /data/mistasse/coco/annotations annotations
-# $ ln -s /data/mistasse/coco/images images
-# COCOKP_ANNOTATIONS_TRAIN = 'COCO/annotations/person_keypoints_train2017.json'
-# COCOKP_ANNOTATIONS_VAL = 'COCO/annotations/person_keypoints_val2017.json'
-# COCODET_ANNOTATIONS_TRAIN = 'COCO/annotations/instances_train2017.json'
-# COCODET_ANNOTATIONS_VAL = 'COCO/annotations/instances_val2017.json'
-# COCO_IMAGE_DIR_TRAIN = 'COCO/images/train2017/'
-# COCO_IMAGE_DIR_VAL = 'COCO/images/val2017/'
-# KEEMOTION_DIR = '/data/mistasse/keemotion/km_complete_player_ball_full_res/'
 
-COCOKP_ANNOTATIONS_TRAIN = '/scratch/abolfazl/coco/annotations/person_keypoints_train2017.json'
-COCOKP_ANNOTATIONS_VAL = '/scratch/abolfazl/coco/annotations/person_keypoints_val2017.json'
-COCODET_ANNOTATIONS_TRAIN = '/scratch/abolfazl/coco/annotations/instances_train2017.json'
-COCODET_ANNOTATIONS_VAL = '/scratch/abolfazl/coco/annotations/instances_val2017.json'
-COCO_IMAGE_DIR_TRAIN = '/scratch/abolfazl/coco/images/train2017/'
-COCO_IMAGE_DIR_VAL = '/scratch/abolfazl/coco/images/val2017/'
-KEEMOTION_DIR = '/scratch/mistasse/keemotion/km_complete_player_ball_full_res/'
+COCOKP_ANNOTATIONS_TRAIN = 'COCO/annotations/person_keypoints_train2017.json'
+COCOKP_ANNOTATIONS_VAL = 'COCO/annotations/person_keypoints_val2017.json'
+COCODET_ANNOTATIONS_TRAIN = 'COCO/annotations/instances_train2017.json'
+COCODET_ANNOTATIONS_VAL = 'COCO/annotations/instances_val2017.json'
+COCO_IMAGE_DIR_TRAIN = 'COCO/images/train2017/'
+COCO_IMAGE_DIR_VAL = 'COCO/images/val2017/'
+# KEEMOTION_DIR = '/scratch/mistasse/keemotion/km_complete_player_ball_full_res/'
 
-# COCOKP_ANNOTATIONS_TRAIN = '/scratch/mistasse/coco/annotations/person_keypoints_train2017.json'
-# COCOKP_ANNOTATIONS_VAL = '/scratch/mistasse/coco/annotations/person_keypoints_val2017.json'
-# COCODET_ANNOTATIONS_TRAIN = '/scratch/mistasse/coco/annotations/instances_train2017.json'
-# COCODET_ANNOTATIONS_VAL = '/scratch/mistasse/coco/annotations/instances_val2017.json'
-# COCO_IMAGE_DIR_TRAIN = '/scratch/mistasse/coco/images/train2017/'
-# COCO_IMAGE_DIR_VAL = '/scratch/mistasse/coco/images/val2017/'
-
-# COCOKP_ANNOTATIONS_TRAIN = 'data-mscoco/annotations/person_keypoints_train2017.json'
-# COCOKP_ANNOTATIONS_VAL = 'data-mscoco/annotations/person_keypoints_val2017.json'
-# COCODET_ANNOTATIONS_TRAIN = 'data-mscoco/annotations/instances_train2017.json'
-# COCODET_ANNOTATIONS_VAL = 'data-mscoco/annotations/instances_val2017.json'
-# COCO_IMAGE_DIR_TRAIN = 'data-mscoco/images/train2017/'
-# COCO_IMAGE_DIR_VAL = 'data-mscoco/images/val2017/'
-# KEEMOTION_DIR = 'keemotion/'
 
 
 def train_cli(parser):
@@ -328,16 +302,6 @@ def train_deepsport_factory(args, target_transforms, heads=None, batch_size=None
         rescale_images=args.rescale_images,
         heads=heads)
 
-    # config = ['cif']
-
-    # if 'cifball' in heads:
-    #     config = ['cifball']
-    # elif 'cifcentball' in heads:
-    #     config = ['cifcentball']
-    # elif 'cifcent' in heads:
-    #     config = ['cifcent']
-    # if 'ball' in heads:
-    #     config.'ball'
 
     train_data, val_data = build_DeepSportBall_datasets(
         pickled_dataset_filename=args.deepsport_pickled_dataset,
@@ -473,7 +437,6 @@ def train_cocokpinst_factory(args, target_transforms, heads=None, batch_size=Non
     if args.loader_workers is None:
         args.loader_workers = args.batch_size
 
-    # category_ids = [1, 37] if 'cifball' in args.headnets or 'cifcentball' in args.headnets else [1]
 
     config = 'cif'
     category_ids = [1]
@@ -500,8 +463,7 @@ def train_cocokpinst_factory(args, target_transforms, heads=None, batch_size=Non
         if 'ball' in heads:
             category_ids = [1, 37]
             ball = True
-    # else:
-    #     raise Exception('Error in dataset facrtory!')
+    
 
     train_data = Coco(
         image_dir=args.coco_train_image_dir,
@@ -510,7 +472,6 @@ def train_cocokpinst_factory(args, target_transforms, heads=None, batch_size=Non
         preprocess=preprocess,
         target_transforms=target_transforms,
         n_images=args.n_images,
-        # n_images=16,
         category_ids=category_ids,
         image_filter='kp_inst',
         config=config,
@@ -518,7 +479,7 @@ def train_cocokpinst_factory(args, target_transforms, heads=None, batch_size=Non
         filter_for_medium=args.filter_for_medium_coco,
         eval_coco=False,
     )
-    # return train_data
+    
     
     if args.duplicate_data:
         train_data = torch.utils.data.ConcatDataset(
@@ -527,12 +488,7 @@ def train_cocokpinst_factory(args, target_transforms, heads=None, batch_size=Non
         train_data, batch_size=batch_size, shuffle=not args.debug,
         pin_memory=args.pin_memory, num_workers=args.loader_workers, drop_last=True,
         collate_fn=collate_images_targets_inst_meta,)
-        # timeout=10000.)
 
-    # train_loader = torch.utils.data.DataLoader(
-    #     train_data, batch_size=args.batch_size, shuffle=False,
-    #     pin_memory=args.pin_memory, drop_last=True,
-    #     collate_fn=collate_images_targets_inst_meta,)
 
     val_data = Coco(
         image_dir=args.coco_val_image_dir,
@@ -591,7 +547,6 @@ def train_keemotion_factory(args, target_transforms, heads=None, batch_size=None
 
 
 def train_single_factory(args, target_transforms, dataset=None, heads=None, batch_size=None):
-    # print('faccccccccccc',dataset)
     if dataset in ('deepsport'):
         print('batch size for deepsport', batch_size)
         return train_deepsport_factory(args, target_transforms, heads=heads, batch_size=batch_size)
@@ -621,12 +576,8 @@ def train_factory(args, target_transforms, heads=None):
     else:
         batch_sizes = [args.batch_size]
 
-        ## without the multi dataset
-
         return train_single_factory(args, target_transforms, dataset=args.dataset, heads=heads, batch_size=args.batch_size)
-    # print('train_factory',args.dataset)
     dataloaders = [train_single_factory(args, target_transforms, dataset=ds, heads=heads, batch_size=btch_sz) for ds, btch_sz in zip(args.dataset.split('-'), batch_sizes)]
     train_dataloaders = [tr_dl for tr_dl, _ in dataloaders]
     val_dataloaders = [val_dl for _, val_dl in dataloaders]
-    # print('train_factory',dataloaders)
     return MultiDataset(heads, train_dataloaders), MultiDataset(heads, val_dataloaders)

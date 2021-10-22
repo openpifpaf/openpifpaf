@@ -78,25 +78,18 @@ def factory_head(head_net: network.heads.CompositeField, basenet_stride, v_thres
                       visualizer=vis)
 
     if isinstance(meta, network.heads.IntensityMeta):
-        # print('INTNESTIY META!!!!!!!!!!!!!!')
         LOG.info('selected encoder CIF for %s', meta.name)
         vis = visualizer.Cif(meta.name,
                              stride=stride,
                              keypoints=meta.keypoints, skeleton=meta.draw_skeleton)
-        # # print('!!!!!!!!!!!!!',meta.name)
-        # ball = False
-        # if meta.name in ['cifcentball', 'cifball']:
-        #     ball = True
-        # # print('!!!!!!!!!!!!!',ball)
+
         if meta.name == 'ball':
-            print('!!!!!!! BALL !!!!!!')
             return CifBall(AnnRescalerBall(stride, len(meta.keypoints), meta.pose),
                     name=meta.name,
                     sigmas=meta.sigmas,
                     visualizer=vis)
 
         elif meta.name == 'cent':
-            print('!!!!!!! CENTER !!!!!!')
             return CifCent(AnnRescalerCent(stride, len(meta.keypoints), meta.pose), 
                         name=meta.name,
                     sigmas=meta.sigmas,

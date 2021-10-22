@@ -6,7 +6,6 @@ import torchvision
 
 from .preprocess import Preprocess
 
-### AMA
 import numpy as np
 
 LOG = logging.getLogger(__name__)
@@ -22,7 +21,6 @@ class CenterPad(Preprocess):
     def __call__(self, image, anns, meta):
         meta = copy.deepcopy(meta)
         anns = copy.deepcopy(anns)
-        # mask = copy.deepcopy(mask)
 
         LOG.debug('valid area before pad: %s, image size = %s', meta['valid_area'], image.size)
         image, anns, ltrb = self.center_pad(image, anns)
@@ -57,7 +55,6 @@ class CenterPad(Preprocess):
 
         # pad annotations
         for ann in anns:
-            # print('before', ann['kp_ball'])
             ann['keypoints'][:, 0] += ltrb[0]
             ann['keypoints'][:, 1] += ltrb[1]
             ann['bbox'][0] += ltrb[0]
@@ -70,15 +67,11 @@ class CenterPad(Preprocess):
             if 'cent' in ann:
                 ann['cent'][:, 0] += ltrb[0]
                 ann['cent'][:, 1] += ltrb[1]
-            # print('after', ann['kp_ball'])
 
 
             ann['bmask'] = np.pad(ann['bmask'], ((top, bottom), (left, right)))
 
-        ### AMA pad masks
 
-        # for mask_idx in range(len(mask)):
-        #     mask[mask_idx] = np.pad(mask[mask_idx], ((top, bottom), (left, right)))
 
         return image, anns, ltrb
 
@@ -135,10 +128,6 @@ class CenterPadTight(Preprocess):
 
             ann['bmask'] = np.pad(ann['bmask'], ((top, bottom), (left, right)))
 
-        ### AMA pad masks
-
-        # for mask_idx in range(len(mask)):
-        #     mask[mask_idx] = np.pad(mask[mask_idx], ((top, bottom), (left, right)))
 
         return image, anns, ltrb
 

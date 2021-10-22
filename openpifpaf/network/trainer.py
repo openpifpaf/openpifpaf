@@ -72,7 +72,6 @@ class Trainer(object):
         tb_datetime = datetime.datetime.now()
         tb_hostname = socket.gethostname()
         checkpoint = torch.load(self.train_args.checkpoint) if self.train_args.checkpoint else None
-        # filename = checkpoint["tb_filename"] if checkpoint and "tb_filename" in checkpoint else os.path.basename(self.train_args.output)
         filename = os.path.basename(self.train_args.output)
         self.tb_filename = os.path.join('runs', filename)
         self.writer = SummaryWriter(self.tb_filename)
@@ -84,15 +83,12 @@ class Trainer(object):
                 if 'wandb_id' in checkpoint:
                     self.wandb_id = checkpoint['wandb_id']
                     print('wandb_id from checkpoint', self.wandb_id)
-                # self.wandb_id = '2u8qdm42'
-                print('Nothing', self.wandb_id)
             else:
                 self.wandb_id = wandb.util.generate_id()
                 print('new wandb_id', self.wandb_id)
 
             self.wandb_dir = train_args.wandb_dir
     
-            # self.wandb_id = wandb.util.generate_id() if wandb_id is None else wandb_id
             wandb.init(project='DeepSportLab', entity='deepsport', id=self.wandb_id, config=train_args, resume='allow', dir=self.wandb_dir)
 
             wandb.watch(self.model, log="all", log_freq=5000)
@@ -170,15 +166,11 @@ class Trainer(object):
             self.train(train_scenes, epoch)
 
 
-            # self.write_model(epoch + 1, epoch == epochs - 1)
             self.write_state_dict(epoch+1, epoch == epochs - 1)
             self.val(val_scenes, epoch + 1)
             
-
             self.writer.flush()
 
-        # torch.onnx.export(self.model.cpu(), self.data_end, "model.onnx")
-        # wandb.save("model.onnx")
 
 
 
@@ -210,10 +202,7 @@ class Trainer(object):
             with torch.autograd.profiler.record_function('ema'):
                 self.step_ema()
 
-        # # del targets
-        # with torch.no_grad():
-        #     if len(outputs) > 1: # to get panoptic output
-        #         self.outputs = outputs[1]['semantic'].detach().cpu()
+
 
         return (
             float(loss.detach().item()) if loss is not None else None,
@@ -226,7 +215,6 @@ class Trainer(object):
         if self.device:
             data = data.to(self.device, non_blocking=True)
 
-            # if len(targets)==2 and len(targets[1])==4:          # when panoptic head is operating
 
             targets = apply(lambda x: x.to(self.device), targets)
                 
@@ -236,8 +224,6 @@ class Trainer(object):
             
             loss, head_losses = self.loss(outputs, targets)
 
-            # if len(outputs) > 1: # to get panoptic output
-            #     self.outputs = outputs[1]['semantic'].detach().cpu()
 
 
         return (
@@ -252,11 +238,9 @@ class Trainer(object):
         if self.fix_batch_norm:
             for m in self.model.modules():
                 if isinstance(m, (torch.nn.BatchNorm1d, torch.nn.BatchNorm2d)):
-                    # print('fixing parameters for {}. Min var = {}'.format(
-                    #     m, torch.min(m.running_var)))
+
                     m.eval()
-                    # m.weight.requires_grad = False
-                    # m.bias.requires_grad = False
+
 
         self.ema_restore()
         self.ema = None
@@ -276,32 +260,16 @@ class Trainer(object):
             batch_start = time.time()
             apply_gradients = batch_idx % self.stride_apply == 0
 
-            # print('enumerate', batch_idx)
-            # print('enumerate', data.shape)
-            # print('enumerate', len(target))
             
             loss, head_losses = self.train_batch(data, target, apply_gradients, batch_idx=batch_idx, epoch=epoch, meta=meta)
 
             for ix, hl in enumerate(head_losses):
-                # if np.isnan(hl.astype('float64')) or np.isinf(hl.astype('float64')):
                 if hl is not None:
                     if math.isnan(hl) or math.isinf(hl):
                         print('Head_loss: ' + str(ix) + str(hl))
                         print('All head losses:', head_losses)
                         print('loss:', loss)
-                        # print('Meta:', meta)
                         
-                        # wandb.log({"train loss nan" : [wandb.Image(i.cpu(), masks={'ground truth': {'mask_data': seman.numpy().astype('int'), 'class_labels': {0:'bg',1:'people',2:'ball'}},},\
-                        #                                          caption=m['file_name']) for i,seman,m in zip(data,target[1]['semantic'].cpu(), meta)]})
-
-            
-            # print(meta)
-            # wandb.log({"examples" : [wandb.Image(i, caption=m['file_name']) for i,m in zip(data, meta)]})
-            # wandb.log({"GT" : [wandb.Image(i.numpy().astype('int'), caption=m['file_name']) for i, m in zip(target[1]['semantic'], meta)]})
-
-            
-            # wandb.log({"meta": meta})
-                
 
 
             # update epoch accumulates
@@ -318,9 +286,7 @@ class Trainer(object):
 
             batch_time = time.time() - batch_start
 
-            # wandb.log({"train loss": loss, 'lr': self.lr(), 'batch_idx': epoch * len(scenes) + batch_idx})
-            # for hd_idx, head_ls in enumerate(head_losses):
-            #     wandb.log({"train loss/ head"+ self.LOSS_NAMES[hd_idx]: head_ls, 'epoch': epoch+1})
+            
             if not self.train_args.disable_wandb:
                 in_dict = {
                     "train loss": loss,
@@ -385,21 +351,6 @@ class Trainer(object):
             
             log_wandb(in_dict)
 
-        # wandb.log({"train loss": epoch_loss/len(scenes), 'lr': self.lr()})
-        # if hasattr(self.loss, 'batch_meta'):
-        #     sigmas = self.loss.batch_meta()
-        # for hd_idx, head_ls in enumerate(head_epoch_losses):
-        #     wandb.log({"train loss/ head"+ self.LOSS_NAMES[hd_idx]: head_ls / max(1, head_epoch_counts[hd_idx]), 'epoch': epoch+1})
-        #     if hasattr(self.loss, 'batch_meta'):
-        #         wandb.log({"Sigma/ head"+ self.LOSS_NAMES[hd_idx]: .5/sigmas['mtl_sigmas'][hd_idx]**2, 'epoch': epoch+1})
-                    
-
-        ###################### Weights and Biases 
-        # classes = self.outputs.argmax(axis=0)
-        # wandb.log({"train images" : [wandb.Image(i.cpu(), masks={'ground truth': {'mask_data': seman.numpy().astype('int'), 'class_labels': {0:'bg',1:'people',2:'ball'}}, \
-        #                                                     'prediction': {'mask_data': out.numpy().astype('int'), 'class_labels': {0:'bg',1:'people',2:'ball'}} },\
-        #                                                          caption=m['file_name']) for i,seman,out,m in zip(data,target[1]['semantic'].cpu(), classes, meta)]})
-        
 
         ########### tensorboard stuff 
         self.writer.add_scalar('Learning Rate/lr ', self.lr(), epoch + 1)
@@ -414,8 +365,7 @@ class Trainer(object):
                 self.writer.add_scalar('Train Loss/head '+ self.LOSS_NAMES[hd_idx], head_ls / max(1, head_epoch_counts[hd_idx]), epoch + 1)
                 if hasattr(self.loss, 'batch_meta'):
                     self.writer.add_scalar('Sigmas/head '+ self.LOSS_NAMES[hd_idx], .5/sigmas['mtl_sigmas'][hd_idx]**2, epoch + 1)
-                    # self.writer.add_scalar('Sigmas/head '+ self.LOSS_NAMES[hd_idx], .5/(3.0 * torch.tanh(sigmas['mtl_sigmas'][hd_idx] / 3.0))**2, epoch + 1)
-                    
+                              
         except:
             print('error')
 
@@ -427,36 +377,24 @@ class Trainer(object):
         if self.fix_batch_norm:
             for m in self.model.modules():
                 if isinstance(m, (torch.nn.BatchNorm1d, torch.nn.BatchNorm2d)):
-                    # print('fixing parameters for {}. Min var = {}'.format(
-                    #     m, torch.min(m.running_var)))
                     m.eval()
-                    # m.weight.requires_grad = False
-                    # m.bias.requires_grad = False
 
         epoch_loss = 0.0
         head_epoch_losses = None
         head_epoch_counts = None
         
-        # scenes.valIter()
-        
-        # for batch_idx in range(scenes.getValLen()):
-        #     data, target, _ = scenes.getValNext(batch_idx)
 
         for batch_idx, (data, target, meta) in enumerate(scenes):
             self.data_end = copy.deepcopy(data)
             loss, head_losses = self.val_batch(data, target,batch_idx=batch_idx, epoch=epoch)
 
             for ix, hl in enumerate(head_losses):
-                # if np.isnan(hl.astype('float64')) or np.isinf(hl.astype('float64')):
                 if hl is not None:
                     if math.isnan(hl) or math.isinf(hl):
                         print('Head_loss: ' + str(ix) + str(hl))
                         print('All head losses:', head_losses)
                         print('loss:', loss)
-                        # print('Meta:', meta)
-                        # wandb.log({"val loss nan" : [wandb.Image(i.cpu(), masks={'ground truth': {'mask_data': seman.numpy().astype('int'), 'class_labels': {0:'bg',1:'people',2:'ball'}},},\
-                        #                                             caption=m['file_name']) for i,seman,m in zip(data,target[1]['semantic'].cpu(), meta)]})
-
+                        
             # update epoch accumulates
             if loss is not None:
                 epoch_loss += loss
@@ -472,9 +410,6 @@ class Trainer(object):
             
 
             eval_time = time.time() - start_time
-            # wandb.log({"val loss": loss, 'lr': self.lr(), 'batch_idx_val': batch_idx})
-            # for hd_idx, head_ls in enumerate(head_losses):
-            #     wandb.log({"val loss/ head"+ self.LOSS_NAMES[hd_idx]: head_ls})
 
             if not self.train_args.disable_wandb:
                 in_dict = {
@@ -507,20 +442,7 @@ class Trainer(object):
             
             log_wandb(in_dict)
 
-        # wandb.log({"val loss": epoch_loss/len(scenes), 'epoch': epoch})
-        # for hd_idx, head_ls in enumerate(head_epoch_losses):
-        #     wandb.log({"val loss/ head"+ self.LOSS_NAMES[hd_idx]: head_ls / max(1, head_epoch_counts[hd_idx]), 'epoch': epoch})
-
-        ###################### Weights and Biases 
-        # classes = self.outputs.argmax(axis=0)
-        # # data = apply(lambda x: x.cpu(), data)
-        # # target = apply(lambda x: x.cpu(), target)
-
-        # # wandb
-        # wandb.log({"val images" : [wandb.Image(i.cpu(), masks={'ground truth': {'mask_data': seman.numpy().astype('int'), 'class_labels': {0:'bg',1:'people',2:'ball'}}, \
-        #                                                     'prediction': {'mask_data': out.numpy().astype('int'), 'class_labels': {0:'bg',1:'people',2:'ball'}} },\
-        #                                                          caption=m['file_name']) for i,seman,out,m in zip(data,target[1]['semantic'].cpu(), classes, meta)]})
-
+       
         ########### tensorboard stuff 
         try:
             self.writer.add_scalar('Val Loss/Total loss', epoch_loss / len(scenes), epoch)
@@ -626,21 +548,3 @@ class Trainer(object):
             assert param.requires_grad == True
 
 
-    
-
-
-    # def wandb_log_images(self, data, targets, outputs, meta, log_type='train images'):
-
-    #     ###################### Weights and Biases 
-    #     classes_label = {
-    #         0: 'bg',
-    #         1: 'people',
-    #         2: 'ball'
-    #     }
-        
-    #     # classes = outputs.argmax(axis=0)
-    #     wandb.log({log_type : [wandb.Image(i, masks={ \
-    #                                                 'ground truth': {'mask_data': seman.numpy().astype('int'), 'class_labels': classes_label}, \
-    #                                                 'prediction': {'mask_data': out.numpy().astype('int'), 'class_labels': classes_label}},\
-    #                                             caption=m['file_name']) \
-    #                              for i,seman,out,m in zip(data, targets, outputs, meta)]})

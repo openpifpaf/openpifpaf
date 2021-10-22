@@ -48,8 +48,6 @@ class PanopticTargetGenerator(object):
         x0, y0 = 3 * sigma + 1, 3 * sigma + 1
         self.g = np.exp(- ((x - x0) ** 2 + (y - y0) ** 2) / (2 * sigma ** 2))
 
-        # print('thing list', self.thing_list)
-        # raise
 
     def catId2semanId(self, catId):
         if catId == 1:  # people
@@ -87,28 +85,14 @@ class PanopticTargetGenerator(object):
         """
         start_time = time.time()
         
-        # assert len(anns) != 0, len(anns)
-        # print((image[0].shape))
         panoptic = np.zeros((image[0].shape)) # shape of image
-        # print(panoptic.shape)
         for ann in anns:
-            # print(msk.shape)
-            # print(masks.shape)
-            # ann['bmask'] *= ann['id']
-            
-            # print(ann['id'])
-            # print(ann['bmask'].shape)
             panoptic += ann['bmask'] * ann['id']
-            # panoptic += ann['category_id'] * ann['bmask']
 
-        
-        # panoptic = np.clip(masks, 0, 1)    # build semantic mask of people
-        # panoptic = self.rgb2id(panoptic)
         height, width = panoptic.shape[0], panoptic.shape[1]
         semantic = np.zeros_like(panoptic, dtype=np.uint8)
-        # foreground = np.zeros_like(panoptic, dtype=np.uint8)
         center = np.zeros((1, height, width), dtype=np.float32)
-        # center_pts = []
+        
         offset = np.zeros((2, height, width), dtype=np.float32)
         y_coord = np.ones_like(panoptic, dtype=np.float32)
         x_coord = np.ones_like(panoptic, dtype=np.float32)
@@ -121,7 +105,7 @@ class PanopticTargetGenerator(object):
         # (1) It is labeled as `ignore_label`
         # (2) It is crowd region (iscrowd=1)
         # (3) (Optional) It is stuff region (for offset branch)
-        # center_weights = np.zeros_like(panoptic, dtype=np.uint8)
+
         offset_weights = np.zeros_like(panoptic, dtype=np.uint8)
         for seg in anns:
             cat_id = seg["category_id"]
@@ -129,21 +113,16 @@ class PanopticTargetGenerator(object):
 
             if cat_id in self.thing_list:           # decide if consider ball or not
                 seman_id = self.catId2semanId(cat_id)
-                # print(seman_id)
-                # assert seman_id == 1, seman_id
                 if self.ignore_crowd_in_semantic:
                     if not seg['iscrowd']:
                         semantic[panoptic == seg['id']] = seman_id
                 else:
                     semantic[panoptic == seg['id']] = seman_id
 
-                
-                # if cat_id in self.thing_list:
-                #     foreground[panoptic == cat_id] = 1
+
                 if not seg['iscrowd']:
                     # Ignored regions are not in `segments`.
                     # Handle crowd region.
-                    # center_weights[panoptic == seg["id"]] = 1
                     if self.ignore_stuff_in_offset:
                         # Handle stuff region.
                         if cat_id in self.thing_list:
@@ -163,7 +142,7 @@ class PanopticTargetGenerator(object):
                         semantic_weights[panoptic == seg["id"]] = self.small_instance_weight
 
                     center_y, center_x = np.mean(mask_index[0]), np.mean(mask_index[1])
-                    # center_pts.append([center_y, center_x])
+                    
 
                     # generate center heatmap
                     y, x = int(center_y), int(center_x)
@@ -191,45 +170,24 @@ class PanopticTargetGenerator(object):
                     offset[offset_y_index] = center_y - y_coord[mask_index]
                     offset[offset_x_index] = center_x - x_coord[mask_index]
         
-        # print('PAN time: ', time.time() - start_time)
 
         if pq_computation:
                 return dict(
                 semantic=torch.as_tensor(semantic.astype('long')),
                 panoptic=torch.as_tensor(panoptic.astype(np.float32)),
-                # foreground=torch.as_tensor(foreground.astype('long')),
-                # center=torch.as_tensor(center.astype(np.float32)),
-                # center_points=center_pts,
                 offset=torch.as_tensor(offset.astype(np.float32)),
                 semantic_weights=torch.as_tensor(semantic_weights.astype(np.float32)),
-                # center_weights=torch.as_tensor(center_weights.astype(np.float32)),
                 offset_weights=torch.as_tensor(offset_weights.astype(np.float32))
             )    
 
         return dict(
             semantic=torch.as_tensor(semantic.astype('long')),
             panoptic=torch.as_tensor(panoptic.astype(np.float32)),
-            # foreground=torch.as_tensor(foreground.astype('long')),
-            # center=torch.as_tensor(center.astype(np.float32)),
-            # center_points=center_pts,
             offset=torch.as_tensor(offset.astype(np.float32)),
             semantic_weights=torch.as_tensor(semantic_weights.astype(np.float32)),
-            # center_weights=torch.as_tensor(center_weights.astype(np.float32)),
             offset_weights=torch.as_tensor(offset_weights.astype(np.float32))
         )
-        # return {'name': 'pan',
-        # 'value':
-        #     dict(
-        #     semantic=torch.as_tensor(semantic.astype('long')),
-        #     # foreground=torch.as_tensor(foreground.astype('long')),
-        #     # center=torch.as_tensor(center.astype(np.float32)),
-        #     # center_points=center_pts,
-        #     offset=torch.as_tensor(offset.astype(np.float32)),
-        #     semantic_weights=torch.as_tensor(semantic_weights.astype(np.float32)),
-        #     # center_weights=torch.as_tensor(center_weights.astype(np.float32)),
-        #     offset_weights=torch.as_tensor(offset_weights.astype(np.float32))
-        # )
-        # }
+
         
 
 

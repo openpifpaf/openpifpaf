@@ -31,13 +31,9 @@ class AnnotationPainter:
     def annotations(self, ax, annotations, *,
                     color=None, colors=None, texts=None, subtexts=None):
         by_classname = defaultdict(list)
-        # print('in annotations', type(annotations[0]))
-        # print(len(annotations[0]))
-        # print(annotations[0][0].shape)
-        # print(annotations[0])
+
 
         for ann_i, ann in enumerate(annotations):
-            #print(ann.__class__.__name__)
             by_classname[ann.__class__.__name__].append((ann_i, ann))
 
         for classname, i_anns in by_classname.items():
@@ -45,8 +41,6 @@ class AnnotationPainter:
             this_colors = [colors[i] for i, _ in i_anns] if colors else None
             this_texts = [texts[i] for i, _ in i_anns] if texts else None
             this_subtexts = [subtexts[i] for i, _ in i_anns] if subtexts else None
-            # print(self.painters)
-            # print(classname)
             self.painters[classname].annotations(
                 ax, anns,
                 color=color, colors=this_colors, texts=this_texts, subtexts=this_subtexts)

@@ -46,9 +46,6 @@ class CifGenerator(object):
         start_time = time.time()
         width_height_original = image.shape[2:0:-1]
 
-        # print('777777777777777777777in cif')
-        # print(image.shape)
-        # print(width_height_original)
         self.put_nan = False
         
         if len(anns) > 0 and len(self.config.sigmas) > 1:           ## to handle deepsport lack of annotation
@@ -56,39 +53,20 @@ class CifGenerator(object):
                 self.put_nan = True
 
         keypoint_sets = self.config.rescaler.keypoint_sets(anns)
-        # print('keypoint_set shape',keypoint_sets.shape)
-        # print(len(keypoint_sets))
         bg_mask = self.config.rescaler.bg_mask(anns, width_height_original)
-        # print(bg_mask.shape)
         valid_area = self.config.rescaler.valid_area(meta)
-        # print(valid_area)
         LOG.debug('valid area: %s, pif side length = %d', valid_area, self.config.side_length)
 
         n_fields = keypoint_sets.shape[1]
-        # print(n_fields)
         self.init_fields(n_fields, bg_mask)
         self.fill(keypoint_sets, meta)
         
         fields = self.fields(valid_area)
-        # print('fields')
-        # print(len(fields))
-        # print(len(fields[0]))
-        # print(len(fields[0][0]))
-        
-        # print(len(fields[1]))
-        # print(len(fields[1][0]))
-        # print(len(fields[2]))
-        # print(len(fields[2][0]))
         self.config.visualizer.processed_image(image)
         self.config.visualizer.targets(fields, keypoint_sets=keypoint_sets)
 
-        # print('CIF time:', time.time()-start_time)
-        # print(fields[0].shape)
 
         return fields
-        # return {'name': self.config.name,
-        # 'value': fields
-        # }
 
     def init_fields(self, n_fields, bg_mask):
         field_w = bg_mask.shape[1] + 2 * self.config.padding
@@ -141,9 +119,7 @@ class CifGenerator(object):
 
     def fill_keypoints(self, keypoints, other_keypoints, meta):
         scale = self.config.rescaler.scale(keypoints, meta)
-        # print('CIF; scale',scale)
-        # print(self.config.sigmas)
-        # print('cif',len(self.config.sigmas))
+        
         for f, xyv in enumerate(keypoints):
             if xyv[2] <= self.config.v_threshold:
                 continue
@@ -152,13 +128,6 @@ class CifGenerator(object):
                          if other_kps[f, 2] > self.config.v_threshold]
             max_r = self.max_r(xyv, other_xyv)
 
-            # print('CIF; scale', f)
-            # print(self.config.sigmas[f-1])
-            # print(self.config.sigmas[f])
-
-            # if isinstance(self.config.sigmas, float):    # when only ball
-            #     joint_scale = scale if self.config.sigmas is None else scale * self.config.sigmas
-            # else:    
             joint_scale = scale if self.config.sigmas is None else scale * self.config.sigmas[f]
             joint_scale = np.min([joint_scale, np.min(max_r) * 0.25])
 
@@ -169,7 +138,6 @@ class CifGenerator(object):
         minx, miny = int(ij[0]), int(ij[1])
         
         maxx, maxy = minx + self.config.side_length, miny + self.config.side_length
-        # print('in cif', minx, maxx, miny, maxy)
 
         if minx < 0 or maxx > self.intensities.shape[2] or \
            miny < 0 or maxy > self.intensities.shape[1]:
@@ -186,7 +154,6 @@ class CifGenerator(object):
         self.fields_reg_l[f, miny:maxy, minx:maxx][mask] = sink_l[mask]
 
         # update intensity
-        # print('in cif intensities', f,mask)
         self.intensities[f, miny:maxy, minx:maxx][mask] = 1.0
 
         # update regression
@@ -203,37 +170,19 @@ class CifGenerator(object):
 
     def fields(self, valid_area):
         p = self.config.padding
-        # print(p)
 
-        # import os
-        # import pickle
-        # if not os.path.isfile('cif.pickle'):
-        #     with open('cif.pickle','wb') as f:
-        #         pickle.dump((self.intensities, self.fields_reg, self.fields_scale),f)
         
         intensities = self.intensities[:, p:-p, p:-p]
         
         fields_reg = self.fields_reg[:, :, p:-p, p:-p]
         fields_scale = self.fields_scale[:, p:-p, p:-p]
-        # print(fields_scale.shape)
-
-        # if not os.path.isfile('cif_2.pickle'):
-        #     with open('cif_2.pickle','wb') as f:
-        #         pickle.dump((intensities, fields_reg, fields_scale),f)
+        
 
         mask_valid_area(intensities, valid_area)
         mask_valid_area(fields_reg[:, 0], valid_area, fill_value=np.nan)
         mask_valid_area(fields_reg[:, 1], valid_area, fill_value=np.nan)
         mask_valid_area(fields_scale, valid_area, fill_value=np.nan)
                 
-        # print("_____________cif_____________")
-        # print(intensities.shape)
-        # print(fields_reg.shape)
-        # print(fields_scale.shape)
-
-        # if not os.path.isfile('cif_3.pickle'):
-        #     with open('cif_3.pickle','wb') as f:
-        #         pickle.dump((intensities, fields_reg, fields_scale),f)
 
         return (
             torch.from_numpy(intensities),

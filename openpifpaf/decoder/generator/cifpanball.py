@@ -124,9 +124,12 @@ class CifPanBall(Generator):
 
     def __call__(self, fields, initial_annotations=None, debug=None):
         # debug = {}
+        # print('cifpanball////////////////////////////////////////////////////////////////')
         with torch.autograd.profiler.profile() as prof:
             if self.field_config_cent is not None:
                 cif, pan, cif_ball, cif_cent = fields
+                if np.all(cif_ball == 0):
+                    self.ball = False
             else:
                 cif, pan, cif_ball = fields
             
@@ -137,14 +140,14 @@ class CifPanBall(Generator):
             Ñ = None
             def cif_local_max(cif, kernel_size=13, pad=6):
                 """Use torch for max pooling"""
-                cif = torch.tensor(cif) #.to('cuda')
+                cif = torch.tensor(cif).to('cuda')
                 cif_m = torch.max_pool2d(cif[None], kernel_size, stride=1, padding=pad)[0] == cif      #### 7 padding=3
                 # cif_m &= cif > 0.1# * cif.max()
                 cif_m &= cif > self.max_pool_th
-                # cif_m = torch.stack(torch.nonzero(cif_m, as_tuple=True), dim=-1)
-                # return np.asarray(cif_m.cpu())
-                return np.asarray(cif_m)
-
+                cif_m = torch.stack(torch.nonzero(cif_m, as_tuple=True), dim=-1)
+                return np.asarray(cif_m.cpu())
+                # return np.asarray(cif_m)
+            start_decoder = time.perf_counter()
             if cif is None:         # decode only segmentation
                 # with torch.autograd.profiler.profile() as prof_seg:
                 cifhr_cent = CifHr(self.field_config_cent).fill(fields)
@@ -160,7 +163,7 @@ class CifPanBall(Generator):
                             )
 
                 distances2 = np.square(difference).sum(axis=1)      # [I,H,W]
-                instances_score = distances2.min(axis=0)
+                # instances_score = distances2.min(axis=0)
                 instances = distances2.argmin(axis=0)               # [H,W]
                 centers_fyxv = [
                     (0, y, x, cifhr_cent.accumulated[0,y,x])
@@ -192,6 +195,12 @@ class CifPanBall(Generator):
                 #     f.write('-------------------------------------------------------')
                 #     f.write('-------------------------------------------------------')
                 #     f.write(str(prof_seg.key_averages().table(sort_by="self_cpu_time_total")))
+
+                last_decoder_time = time.perf_counter() - start_decoder
+                with open('runtime_execute_in_decoder_log.txt','a') as f:
+                    f.write('\n-------------------------------------------------------')
+                    f.write('\n-------------------------------------------------------')
+                    f.write('\ntime: dec = {dec_t:.3f}ms'.format(dec_t=last_decoder_time*1000))
                 return annotations
             # print('seman size', semantic.shape)
             # print('offsets size', offsets.shape)
@@ -222,7 +231,8 @@ class CifPanBall(Generator):
             # print('pif fields',fields[0].shape)
             # print('CIFPANBALL: field config cent',self.field_config_cent)
             cifhr = CifHr(self.field_config).fill(fields)
-            cifhr_ball = CifHr(self.field_config_ball).fill(fields)
+            if self.ball:
+                cifhr_ball = CifHr(self.field_config_ball).fill(fields)
             if self.field_config_cent is not None:
                 cifhr_cent = CifHr(self.field_config_cent).fill(fields)
 
@@ -241,14 +251,15 @@ class CifPanBall(Generator):
             if self.decode_masks_first:
                 for i_k, cif in enumerate(cifhr.accumulated):
                     if i_k == Ci:
-                        # keypoints_yx.append(cif_local_max(cif))
-                        keypoints_yx.append(np.stack(np.nonzero(cif_local_max(cif)), axis=-1))
+                        keypoints_yx.append(cif_local_max(cif))
+                        # keypoints_yx.append(np.stack(np.nonzero(cif_local_max(cif)), axis=-1))
+                        # print(keypoints_yx[-1].shape)
                     else:
                         keypoints_yx.append(np.stack(np.nonzero(cif), axis=-1))
             else:
                 keypoints_yx = [cif_local_max(cif)
                                 for cif in cifhr.accumulated]
-
+            # print('keypoint yx', keypoints_yx)
             # print('cifhr.accumulated shape', cifhr.accumulated[0].shape)
             # from matplotlib import pyplot as plt
             # plt.figure(figsize=(15,15))
@@ -258,20 +269,21 @@ class CifPanBall(Generator):
 
             # ball_fyxv = [np.stack(np.nonzero(cif_local_max(cif, kernel_size=51, pad=25)), axis=-1)
             #                 for cif in cifhr_ball.accumulated]
-
-
-            ball_from_mask = [np.unravel_index(np.argmax(cifhr_ball.accumulated[0]), cifhr_ball.accumulated[0].shape)]
-            ball_fyxv = [
-                (Bi, y, x, cifhr_ball.accumulated[0][y,x])
-                for y, x in ball_from_mask
-            ]
+            ball_fyxv = []
+            if self.ball:
+                ball_from_mask = [np.unravel_index(np.argmax(cifhr_ball.accumulated[0]), cifhr_ball.accumulated[0].shape)]
+                ball_fyxv = [
+                    (Bi, y, x, cifhr_ball.accumulated[0][y,x])
+                    for y, x in ball_from_mask
+                ]
             # ball_fyxv = ball_fyxv_from_mask
             # print('balls::::', ball_fyxv_from_mask)
             if self.field_config_cent is not None:
-                # center_yx = [cif_local_max(cif)
-                #             for cif in cifhr_cent.accumulated]
-                center_yx = [np.stack(np.nonzero(cif_local_max(cif)), axis=-1)
+                center_yx = [cif_local_max(cif)
                             for cif in cifhr_cent.accumulated]
+                # center_yx = [np.stack(np.nonzero(cif_local_max(cif)), axis=-1)
+                #             for cif in cifhr_cent.accumulated]
+                # print(center_yx)
                             
                 # print('center YX', center_yx)
                 keypoints_yx += center_yx
@@ -330,7 +342,7 @@ class CifPanBall(Generator):
                         )
 
             distances2 = np.square(difference).sum(axis=1)      # [I,H,W]
-            instances_score = distances2.min(axis=0)
+            # instances_score = distances2.min(axis=0)
             instances = distances2.argmin(axis=0)               # [H,W]
             # print('unique instances', np.unique(instances))
             # instances += 1  # to make sure the ids start from 1 and not 0
@@ -393,6 +405,7 @@ class CifPanBall(Generator):
             #     (Bi, y, x, cifhr_ball.accumulated[Bi,y,x])
             #     for y, x in ball_fyxv[Bi]
             # ]
+
             keypoints_fyxiv = [
                 (f, y, x, instances[y,x], cifhr.accumulated[f,y,x])
                 # (f, y, x, instances[y,x], 2.)
@@ -712,7 +725,7 @@ class CifPanBall(Generator):
                 cifhr=cifhr,
                 has_ball=self.ball,
                 instances=instances,
-                instances_score=instances_score,
+                # instances_score=instances_score,
                 keypoints_yx=keypoints_yx,
                 keypoints_fyxiv=keypoints_fyxiv,
                 centers_fyxv=centers_fyxv,

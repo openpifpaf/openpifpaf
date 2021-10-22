@@ -210,7 +210,7 @@ class Generator:
         with open('runtime_execute_log.txt','a') as f:
             f.write('\n-------------------------------------------------------')
             f.write('\n-------------------------------------------------------')
-            f.write('\ntime: nn = {nn_t:.3f}s, dec = {dec_t:.3f}s'.format(nn_t=self.last_nn_time*1000, dec_t=self.last_decoder_time*1000))
+            f.write('\ntime: nn = {nn_t:.3f}ms, dec = {dec_t:.3f}ms'.format(nn_t=self.last_nn_time*1000, dec_t=self.last_decoder_time*1000))
         LOG.debug('time: nn = %.3fs, dec = %.3fs', self.last_nn_time, self.last_decoder_time)
         return result
 

@@ -80,39 +80,15 @@ class Coco(torch.utils.data.Dataset):
                 self.filter_for_keypoint_annotations()
                 if filter_for_medium:
                     self.filter_for_medium_people()
-                # self.filter_for_kp_ball_annotations()
+
                 self.ids += self.ids_ball
-                # for i in self.ids_ball:
-                #     if i not in self.ids:
-                #         self.ids.append(i) 
                 
                 self.ids = list(dict.fromkeys(self.ids))        ## remove duplicate image Ids
 
-            # self.filter_for_annotations()
-            # print(self.category_ids)
-            # print(len(self.ids))
             
-            # print(len(self.ids_inst))
-            # self.filter_for_annotations()
-            ### AMA union of kp and inst annotations
-            # self.ids_ = []
-            # for idx in self.ids:
-            #     if idx in self.ids_inst:
-            #         self.ids_.append(idx)
-            # self.ids = self.ids_
-            
-
-            # if self.category_ids != [1]:
-                
-            #     self.ids += self.ids_ball
-                
-            #     self.ids = list(dict.fromkeys(self.ids))        ## remove duplicate image Ids
-                
-            # self.filter_for_keypoint_annotations_inst()
         else:
             raise Exception('unknown value for image_filter: {}'.format(image_filter))
 
-        # self.ids = [327701]     # for a debug
         
 
         if n_images:
@@ -120,9 +96,6 @@ class Coco(torch.utils.data.Dataset):
         LOG.info('Images: %d', len(self.ids))
         print('Number of images: ', len(self.ids))
 
-        # self.Get_number_of_images_with_ball()
-        # if eval_coco:
-        #     self.ids = [458755]
 
         self.preprocess = preprocess or transforms.EVAL_TRANSFORM
         self.target_transforms = target_transforms
@@ -155,43 +128,16 @@ class Coco(torch.utils.data.Dataset):
                 mask = self.coco_inst.annToMask(ann)
                 if mask.sum() < 0.01 * (np.ones_like(mask)).sum():
                     if ix == len(anns) - 1 and len(anns) > 1:
-                        # if n_t_plot:
-                        #     print('image id (kept 1):', image_id)
-                        #     image_info = self.coco.loadImgs(image_id)[0]
-                        #     with open(os.path.join(self.image_dir, image_info['file_name']), 'rb') as f:
-                        #         image = Image.open(f).convert('RGB')
-                        #         plt.imshow(image)
-                        #         plt.show()
                         return True
                     else:
                         continue
                 if len([v for v in ann['keypoints'][2::3] if v > 0.0]) > 5:
                     if ix == len(anns) - 1:
-                        # if n_t_plot:
-                        #     print('image id (kept 2):', image_id)
-                        #     image_info = self.coco.loadImgs(image_id)[0]
-                        #     with open(os.path.join(self.image_dir, image_info['file_name']), 'rb') as f:
-                        #         image = Image.open(f).convert('RGB')
-                        #         plt.imshow(image)
-                        #         plt.show()
                         return True
                     else:
                         continue
-                # if n_t_plot:
-                #     print('image id (1):', image_id)
-                #     image_info = self.coco.loadImgs(image_id)[0]
-                #     with open(os.path.join(self.image_dir, image_info['file_name']), 'rb') as f:
-                #         image = Image.open(f).convert('RGB')
-                #         plt.imshow(image)
-                #         plt.show()
                 return False
-            # if n_t_plot:
-            #     print('image id (2):', image_id)
-            #     image_info = self.coco.loadImgs(image_id)[0]
-            #     with open(os.path.join(self.image_dir, image_info['file_name']), 'rb') as f:
-            #         image = Image.open(f).convert('RGB')
-            #         plt.imshow(image)
-            #         plt.show()
+
             return False
         num_to_plot = [False for _ in self.ids]
         for i in range(30):
@@ -395,8 +341,6 @@ class Coco(torch.utils.data.Dataset):
     def __getitem__(self, index):
 
         image_id = self.ids[index]
-        # print('------------------------------------------')
-        # print('----------- IMAGAE ID: ', image_id)
 
         image_info = self.coco.loadImgs(image_id)[0]
         LOG.debug(image_info)
@@ -419,13 +363,8 @@ class Coco(torch.utils.data.Dataset):
         anns = copy.deepcopy(anns)
         
         
-        # assert anns != []
 
         if self.ann_inst_file is not None:
-            # ann_ids_inst = self.coco_inst.getAnnIds(imgIds=image_id, catIds=[1])
-            # anns_inst = self.coco_inst.loadAnns(ann_ids_inst)
-            
-            # print id
             
             for i in anns:
                 i['bmask'] = self.coco_inst.annToMask(i)
@@ -436,11 +375,9 @@ class Coco(torch.utils.data.Dataset):
                 pass
 
             elif self.config == 'cifcent':
-                # print('cifcent added')
                 anns = self.add_center(anns)
 
             elif self.config == 'cif cent':
-                # print('center added')
                 anns = self.add_center_sp(anns)
 
             elif self.config == 'cifball':
@@ -451,9 +388,7 @@ class Coco(torch.utils.data.Dataset):
                 anns_inst = self.coco_inst.loadAnns(ann_ids_inst)
                 anns_inst = copy.deepcopy(anns_inst)
                 for i in anns_inst:
-                    # ann_mask_id = i['id']
                     i['bmask'] = self.coco_inst.annToMask(i)
-                    # mask_ball.append(self.coco_inst.annToMask(i) * ann_mask_id) 
 
                 if len(anns_inst) is not 0:
 
@@ -466,31 +401,25 @@ class Coco(torch.utils.data.Dataset):
             elif self.config == 'cifcentball':
                 anns = self.add_center(anns)
                 anns = self.add_center(anns, visiblity=0)        # add fake ball keypoint
-                # mask_ball = []
                 ann_ids_inst = self.coco_inst.getAnnIds(imgIds=image_id, catIds=[37])
                 anns_inst = self.coco_inst.loadAnns(ann_ids_inst)
                 anns_inst = copy.deepcopy(anns_inst)
                 for i in anns_inst:
-                    # ann_mask_id = i['id']
                     i['bmask'] = self.coco_inst.annToMask(i)
-                    # mask_ball.append(self.coco_inst.annToMask(i) * ann_mask_id)
 
                 anns_ball = self.empty_person_keypoint(anns_inst, n_keypoints=18)     # add fake people
                 anns_ball = self.add_center(anns_ball)        # add ball keypoint
                 anns += anns_ball
 
             if self.ball:
-                # print('ball added')
                 ann_ids_inst = self.coco_inst.getAnnIds(imgIds=image_id, catIds=[37])
                 anns_inst = self.coco_inst.loadAnns(ann_ids_inst)
                 anns_inst = copy.deepcopy(anns_inst)
                 for i in anns_inst:
-                    # ann_mask_id = i['id']
                     i['bmask'] = self.coco_inst.annToMask(i)
 
                 for ann in anns:
                     ann['kp_ball'] = [0,0,0]
-                    # ann['kp_ball'] = np.zeros((1, 3))
                 n_keypoints = 18 if self.config == 'cifcent' else 17
                 anns_ball = self.add_ball(anns_inst, n_keypoints=n_keypoints)
                 # anns_ball = self.empty_person_keypoint(anns_ball, n_keypoints=18)   # add fake people
@@ -501,40 +430,16 @@ class Coco(torch.utils.data.Dataset):
             import pickle
             with open('coco_1.pickle','wb') as f:
                 pickle.dump((image, anns),f)
-        # anns = []
 
-        # anns = copy.deepcopy(anns)
-        
-        # try:
-        # import matplotlib.pyplot as plt
-        # plt.figure(figsize=(10,10))
-        # plt.imshow(image)
-        # plt.figure(figsize=(10,10))
-        # print('number of anns',len(anns))
         for aaa in anns:
             n_keypoints = 18 if self.config == 'cifcent' else 17
             assert len(aaa['keypoints']) == 3*n_keypoints, len(aaa['keypoints'])
-            # print('---------------- anns', aaa['cent'])
             if self.config == 'cif cent':
                 assert len(aaa['cent']) == 3, len(aaa['cent'])
-        #     plt.scatter(aaa['kp_ball'][0],aaa['kp_ball'][1],linewidths=4)
-            # plt.show
+
         image, anns, meta = self.preprocess(image, anns, meta)
-        # plt.figure(figsize=(10,10))
-        # plt.imshow(image)
-        # plt.figure(figsize=(10,10))
-        # for aaa in anns:
-        # print('number of anns',len(anns))
-        #     plt.scatter(aaa['kp_ball'][0,0],aaa['kp_ball'][0,1],linewidths=4)
-        #     plt.show
-        # except:
-        #     print('image_id_2: ', image_id)
-        #     import pickle
-        #     with open('coco_2.pickle','wb') as f:
-        #         pickle.dump((image, anns),f)
 
         # mask valid TODO still necessary?
-        # print('after augmentation')
         meta['keypoints_GT'] = []
         for i in anns:
             meta['keypoints_GT'].append(i['keypoints'])
@@ -552,38 +457,13 @@ class Coco(torch.utils.data.Dataset):
                 continue
             STAT_LOG.debug({'bbox': [int(v) for v in ann['bbox']]})
 
-
-        # transform targets
-        # try:
-        #     if self.target_transforms is not None:
-        #         anns = [t(image, anns, meta) for t in self.target_transforms]
-        # except:
-        #     print('image_id_3: ', image_id)
-        #     import pickle
-        #     with open('coco_3.pickle','wb') as f:
-        #         pickle.dump((image, anns),f)
         
         anns_trans = []
         if self.target_transforms is not None:
             for t in self.target_transforms:
-                # try:
                 anns_trans.append(t(image, anns, meta))
-                # except:
-                #     print('image_id_3: ', image_id, t)
+                
         if self.eval_coco:
-            # print('in coco')
-            # print(len(anns_trans[0]))
-            # print(anns_trans[0][0].shape)
-            # print(anns_trans[0][1].shape)
-            # print(anns_trans[0][2].shape)
-            # print(len(anns_trans[2]))
-            # print(anns_trans[2][0].shape)
-            # print(anns_trans[2][1].shape)
-            # print(anns_trans[2][2].shape)
-            # print(len(anns_trans[3]))
-            # print(anns_trans[3][0].shape)
-            # print(anns_trans[3][1].shape)
-            # print(anns_trans[3][2].shape)
             return image, anns, meta, anns_trans
 
         anns = anns_trans
@@ -592,5 +472,4 @@ class Coco(torch.utils.data.Dataset):
 
     def __len__(self):
         return len(self.ids)
-        # return 50
         

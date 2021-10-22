@@ -16,10 +16,8 @@ class _HorizontalSwap():
 
     def __call__(self, keypoints):
         target = np.zeros(keypoints.shape)
-        # print('cons',len(keypoints))
-        # print('hflip',len(self.keypoints))
+        
         for source_i, xyv in enumerate(keypoints):
-            # print('source i', source_i)
             source_name = self.keypoints[source_i]
             target_name = self.hflip.get(source_name)
             if target_name:
@@ -36,16 +34,14 @@ class HFlip(Preprocess):
     def __init__(self, keypoints, hflip):
         self.swap = _HorizontalSwap(keypoints, hflip)
 
-    ### AMA
+
     def __call__(self, image, anns, meta):
         meta = copy.deepcopy(meta)
         anns = copy.deepcopy(anns)
-        # mask = copy.deepcopy(mask)
 
         w, _ = image.size
         image = image.transpose(PIL.Image.FLIP_LEFT_RIGHT)
         for ann in anns:
-            # print('before', ann['kp_ball'])
             ann['keypoints'][:, 0] = -ann['keypoints'][:, 0] - 1.0 + w
             if self.swap is not None and not ann['iscrowd']:
                 ann['keypoints'] = self.swap(ann['keypoints'])
@@ -59,17 +55,11 @@ class HFlip(Preprocess):
                 ann['cent'][:, 0] = -ann['cent'][:, 0] - 1.0 + w
 
             ann['bmask'] = np.flip(ann['bmask'], axis=1)
-            # print('after', ann['kp_ball'])
 
-        ### AMA
-        # for mask_idx in range(len(mask)):
-        #     mask[mask_idx] = np.flip(mask[mask_idx], axis=1)
 
         assert meta['hflip'] is False
         meta['hflip'] = True
 
-        # print('valid area (hflip)', meta['valid_area'])
         meta['valid_area'][0] = -(meta['valid_area'][0] + meta['valid_area'][2]) + w
-        # print('valid area (hflip) a', meta['valid_area'])
 
         return image, anns, meta

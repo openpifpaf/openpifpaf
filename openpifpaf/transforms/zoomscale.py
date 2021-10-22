@@ -21,9 +21,5 @@ class ZoomScale(Preprocess):
         anns = copy.deepcopy(anns)
         for ann in anns:
             ann['bmask'] = ann['bmask'][top:bottom, left:right]
-            # print('mask size', ann['bmask'].shape)
-
-        # print('image size', image.size)
-        # print('mask size', anns[0]['bmask'].shape)
-
+            
         return image, anns, meta

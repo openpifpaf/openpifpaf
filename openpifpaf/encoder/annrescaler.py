@@ -54,13 +54,8 @@ class AnnRescaler(object):
             (width_height[1] - 1) // self.stride + 1,
             (width_height[0] - 1) // self.stride + 1,
         ), dtype=np.bool)
-        # print('iciicccccccc')
-        # print(anns)
         for ann in anns:
-            # if 'put_nan' in ann:
-            #     # print('put nan')
-            #     mask[:,:] = 0
-            #     continue
+
 
             if not ann['iscrowd']:
                 valid_keypoints = 'keypoints' in ann and np.any(ann['keypoints'][:, 2] > 0)
@@ -88,23 +83,15 @@ class AnnRescaler(object):
         return mask
 
     def scale(self, keypoints, meta=None):
-        # print('in annrescaler', len(keypoints))
-        # print(self.pose.shape)
-        # if self.ball == True:
-        #     keypoints = keypoints[:-1]  ## remove ball from keypoints
         visible = keypoints[:, 2] > 0
-        # print('in annrescaler', np.sum(visible))
-        # print(self.n_keypoints)
         if np.sum(visible) < 3 and self.n_keypoints == 18:   # for center detection
-            # print('in annrescaler', np.sum(visible))
             return 1    # return 1 as scale
 
         if self.n_keypoints == 1: # only for ball
             if meta and "ball_size" in meta:
                 return meta["ball_size"]
             return 1
-        # if self.n_keypoints == 2:   # when only ball as keypoint
-        #     return 1
+
         elif np.sum(visible) < 3:
             return np.nan
 
@@ -112,9 +99,7 @@ class AnnRescaler(object):
             (np.max(keypoints[visible, 0]) - np.min(keypoints[visible, 0])) *
             (np.max(keypoints[visible, 1]) - np.min(keypoints[visible, 1]))
         )
-        # print('in annresaler')
-        # print(self.pose.shape)
-        # print(visible.shape)
+
         area_ref = (
             (np.max(self.pose[visible, 0]) - np.min(self.pose[visible, 0])) *
             (np.max(self.pose[visible, 1]) - np.min(self.pose[visible, 1]))
@@ -174,7 +159,7 @@ class AnnRescalerDet(object):
                 continue
 
             if 'mask' not in ann:
-                # field_i = ann['category_id'] - 1
+
                 field_i = 0     # if we only have 1 category    (BALL)
                 bb = ann['bbox'].copy()
                 bb /= self.stride

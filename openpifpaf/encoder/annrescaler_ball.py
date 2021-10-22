@@ -6,9 +6,8 @@ LOG = logging.getLogger(__name__)
 
 
 class AnnRescalerBall(object):
-    def __init__(self, stride, n_keypoints, pose):#, ball=False):
+    def __init__(self, stride, n_keypoints, pose):
 
-        #self.ball = ball
         self.stride = stride
         self.n_keypoints = n_keypoints
         self.pose = pose
@@ -42,14 +41,11 @@ class AnnRescalerBall(object):
         """Ignore annotations of crowds."""
         keypoint_sets = [ann['kp_ball'] for ann in anns]
        
-        # print(len(keypoint_sets))
-        # assert len(keypoint_sets) > 0, len(keypoint_sets)
+
         if not keypoint_sets:
-            # raise
             return np.zeros((0, self.n_keypoints, 3))
 
         keypoint_sets = np.stack(keypoint_sets)
-        # print('keypoint_set shape in',keypoint_sets.shape)
         keypoint_sets[:, :, :2] /= self.stride
         return keypoint_sets
 
@@ -83,10 +79,6 @@ class AnnRescalerBall(object):
 
     def scale(self, keypoints):
         return 1
-        # print('in annrescaler', len(keypoints))
-        # print(self.pose.shape)
-        # if self.ball == True:
-        #     keypoints = keypoints[:-1]  ## remove ball from keypoints
         visible = keypoints[:, 2] > 0
         # print('in annrescaler', np.sum(visible))
         # print(self.n_keypoints)

@@ -16,7 +16,6 @@ class BaseNetwork(torch.nn.Module):
         self.stride = stride
         self.out_features = out_features
 
-        # print(list(net.children()))
         LOG.info('stride = %d', self.stride)
         LOG.info('output features = %d', self.out_features)
 
@@ -35,7 +34,6 @@ class BaseNetworkWithSkips(torch.nn.Module):
         self.stride = stride
         self.out_features = out_features
 
-        # print(list(net.children()))
         LOG.info('stride = %d', self.stride)
         LOG.info('output features = %d', self.out_features)
 
@@ -47,7 +45,6 @@ class BaseNetworkWithSkips(torch.nn.Module):
             x =  module(x)
             outputs["res%d"%(i+1)] = x
         x.all_outputs = outputs
-        # print({k: v.shape for k, v in x.all_outputs.items()})
         return x
 
 #### TODO (maybe after submission) convert Normal Conv to Atrous Conv and see the change (deeplab v3 has done it)

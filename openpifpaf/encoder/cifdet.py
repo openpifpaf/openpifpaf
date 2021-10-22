@@ -73,7 +73,6 @@ class CifDetGenerator(object):
         for category_id, bbox in detections:
             xy = bbox[:2] + 0.5 * bbox[2:]
             wh = bbox[2:]
-            # self.fill_detection(category_id - 1, xy, wh)
             self.fill_detection(0, xy, wh)          # if we have only one category to detect (BALL)
 
     def fill_detection(self, f, xy, wh):

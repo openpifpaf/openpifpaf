@@ -259,18 +259,7 @@ class DeepSportDataset(torch.utils.data.Dataset):
 
         self.config = config[0]
         
-        # self.Get_number_of_images_with_ball()
-        # print('Number of images deepsport:', len(self.keys))
-
-        # KS-FR-LEMANS_24652_1513026063427_1_0
-        # self.keys=[ViewKey(instant_key=InstantKey(arena_label='KS-FR-LEMANS', game_id=24652, timestamp=1513026063427), camera=1, index=0)]
-        # keyss = []
-        # for key in self.keys:
-        #     if key.instant_key.arena_label == 'KS-FR-LEMANS' and key.instant_key.game_id == 24652 and \
-        #                 key.instant_key.timestamp == 1513026063427 and key.camera == 1 and key.index==0:
-        #         keyss.append(key)
-
-        # self.keys = keyss
+        
         print('Number of images deepsport:', len(self.keys))
         LOG.info('Number of images deepsport: %d', len(self.keys))
 
@@ -329,22 +318,17 @@ class DeepSportDataset(torch.utils.data.Dataset):
                 visiblity = 0
 
             key = "kp_ball"   # Custom CifBall decoding
-            # key = "keypoints" # normal Cif decoding
+            
             ann[key] = []
             ann[key].append(int(x))      # add center for y
             ann[key].append(int(y))      # add center for x
             ann[key].append(visiblity)
-
-            # ann["kp_ball"][:] = np.asarray((int(x), int(y), visibility))
-            # print('222',ann['kp_ball'].shape)
-            # ann["bmask"] = mask
             ann['bmask'] = np.zeros_like(mask)      # to get the mask of ball from human_masks !!!
             return ann
         key = self.keys[index]
-        # print(index)
-        # print(key)
+        
         data = self.dataset.query_item(key)
-        # data2 = self.dataset.query_item(key)
+        
         
         if data is None:
             # print("Warning: failed to query {}. Using another key.".format(key), file=sys.stderr)
@@ -365,41 +349,26 @@ class DeepSportDataset(torch.utils.data.Dataset):
             'file_name': str(key.instant_key.arena_label)+'_'+str(key.instant_key.game_id)+
                         '_'+str(key.instant_key.timestamp)+'_'+str(key.camera)+'_'+str(key.index),
         }
-        # ViewKey(instant_key=InstantKey(arena_label='KS-AT-VIENNA', game_id=29887, timestamp=1513447440420), camera=0, index=0)
-        # print(str(key))
+        
         if "ball_size" in data:
             meta['ball_size'] = data["size"]
         
 
         if self.config in ['cif', 'cifcent', 'pan']:
-            # print('here')
+            
             annotation = data['human_masks']
-            # if self.ball:
-                # ball_map = data["mask"]
-                # ball_class = 3001
-                # # annotation[annotation == 0 and ball_map == 1] = ball_class
-                # ball_map = copy.deepcopy(annotation - ball_map)
-                # annotation = np.where(ball_map > 5000, ball_class, annotation)  # because annotation is uint
-                # if np.all(ball_map < 5000):
-                #     print(key)
-
-            # import matplotlib.pyplot as plt
-            # plt.imshow(annotation)
-            # plt.colorbar()
-            # plt.show()
+            
             H, W = annotation.shape
             meshgrid = np.meshgrid(np.arange(H), np.arange(W), indexing='ij')
             meshgrid = np.stack(meshgrid, axis=-1)
             
-            # anns = []
-            ## keemotion.py (maxime)
             ins_id, id_c = np.unique(annotation, return_counts=True)
             for instance_id, id_count in zip(ins_id, id_c):
                 if instance_id < 1000 or id_count < 10:
                     continue
-                # print('count', id_count)
+                
                 label = instance_id // 1000
-                # print(label)
+                
                 if label not in [1, 3]:
                     continue
                 category_id = self.map_categories[label]
@@ -420,24 +389,7 @@ class DeepSportDataset(torch.utils.data.Dataset):
                 kp_ball = np.zeros((1,3))
                 if label == 1 and n_keypoints > 17:
                     keypoints[17,:] = (*center, 2)
-                # elif label == 3 and self.ball:
-                    
-                #     kp_ball[:] = np.asarray((*center, 2))
-                    # print(kp_ball)
-                # else:
-                #     pass
-                # kp_ball = []
-                # if self.ball:
                 
-                # kp_ball = [0, 0, 0]
-                # if label == 3:
-                #     kp_ball = [data["x"], data["y"], data["visible"]]
-
-                    # raise NotImplementedError('Class label %d'%label)
-                # plt.figure()
-                # plt.imshow(mask.astype(np.int64))
-
-                # print('shape kp_ball 2', kp_ball.shape)
 
                 anns.append({
                     'num_keypoints': 1,
@@ -454,54 +406,10 @@ class DeepSportDataset(torch.utils.data.Dataset):
                     'bbox': bbox,
                     'put_nan': True
                 })
-        # print('length anns',len(anns))
-        # raise
-        # import matplotlib.pyplot as plt
-        # plt.figure(figsize=(10,10))
-        # plt.imshow(image)
-        # plt.figure(figsize=(10,10))
         
-        # for aaa in anns:
-        #     assert len(aaa['keypoints']) == 17 or len(aaa['keypoints']) == 17*3, len(aaa['keypoints'])
-        #     if self.config == 'cif cent':
-        #         assert len(aaa['cent']) == 3, len(aaa['cent'])
-        # for aaa in anns:
-        
-            
-        #     # if aaa['kp_ball'][0,2] == 2:
-        #     # plt.figure(figsize=(10,10))
-        #     plt.scatter(aaa['kp_ball'][0],aaa['kp_ball'][1],linewidths=4)
-        # print(len(anns))
-        # for aaa in anns:    
-        #     # plt.figure(figsize=(10,10))
-            
-            # print('before',aaa['kp_ball'])
-        #     plt.imshow(aaa['bmask'], alpha=.5)
-
-        # plt.show
         image = Image.fromarray(image)
-        # print(type(anns))
+        
         image, anns, meta = self.preprocess(image, anns, meta)
-        # print(type(anns))
-        # plt.figure(figsize=(10,10))
-        # # plt.imshow(image)
-        
-        # print(len(anns))
-        # for aaa in anns:
-        #     print('after',aaa['kp_ball'])
-            
-        #     # if aaa['kp_ball'][0,2] == 2:
-        #     # plt.figure(figsize=(10,10))
-        #     plt.scatter(aaa['kp_ball'][0,0],aaa['kp_ball'][0,1],linewidths=4)
-
-        # for aaa in anns:    
-        #     # plt.figure(figsize=(10,10))
-        #     plt.imshow(aaa['bmask'], alpha=.5)
-            
-        
-        # plt.show
-        # raise
-        # transform targets
         if False:# self.oks_computation:
             if self.target_transforms is not None:
                 anns = [t(image, anns, meta, pq_computation=False) for t in self.target_transforms]
@@ -509,12 +417,6 @@ class DeepSportDataset(torch.utils.data.Dataset):
             if self.target_transforms is not None:
                 anns = [t(image, anns, meta) for t in self.target_transforms]
         
-        # import pickle
-        # pickle.dump((anns, image, meta), open("/tmp/auie.pickle", "wb"))
-        # import time
-        # print("sleeping 0.1 second")
-        # time.sleep(0.1)
-        # print("has ball?:", np.any(data["mask"]))
         if self.oks_computation:
             return image, anns, meta, data, key      # return the view for oks computation
         return image, anns, meta

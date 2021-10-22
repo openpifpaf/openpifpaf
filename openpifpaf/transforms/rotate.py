@@ -20,12 +20,10 @@ class RotateBy90(Preprocess):
         self.angle_perturbation = angle_perturbation
         self.fixed_angle = fixed_angle
 
-    ### AMA
     def __call__(self, image, anns, meta):
         meta = copy.deepcopy(meta)
         anns = copy.deepcopy(anns)
-        # mask = copy.deepcopy(mask)
-
+        
         w, h = image.size
         if self.fixed_angle is not None:
             angle = self.fixed_angle
@@ -74,7 +72,7 @@ class RotateBy90(Preprocess):
                 else:
                     ann['bmask'] = scipy.ndimage.rotate(ann['bmask'], angle=angle, cval=127, reshape=False)
 
-        # rotate keypoints
+
         cangle = math.cos(angle / 180.0 * math.pi)
         sangle = math.sin(angle / 180.0 * math.pi)
         for ann in anns:

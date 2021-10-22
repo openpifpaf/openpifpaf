@@ -15,8 +15,7 @@ class NormalizeAnnotations(Preprocess):
         anns = copy.deepcopy(anns)
 
         for ann in anns:
-            # print('before', ann['kp_ball'])
-            # print(type(ann['kp_ball']))
+            
             if 'keypoints' not in ann:
                 ann['keypoints'] = []
             if 'kp_ball' not in ann:
@@ -37,18 +36,12 @@ class NormalizeAnnotations(Preprocess):
             if 'cent' in ann:
                 ann['cent'] = np.asarray(ann['cent'], dtype=np.float32).reshape(-1, 3)
 
-            # print('ann kp_ball',ann['kp_ball'])
-            # print('ann cent',ann['cent'])
-            # print(type(ann['kp_ball']))
         return anns
 
-    # def __call__(self, image, anns, meta):
-    ### AMA
+
     def __call__(self, image, anns, meta):
-        # print('in annotations')
-        # print(anns)
+
         anns = self.normalize_annotations(anns)
-        # print(anns)
 
         if meta is None:
             meta = {}
@@ -67,9 +60,7 @@ class NormalizeAnnotations(Preprocess):
         for k, v in meta_from_image.items():
             if k not in meta:
                 meta[k] = v
-        # print('valid area at first', meta['valid_area'])
-        # return image, anns, meta
-        ### AMA
+
         return image, anns, meta
 
 
@@ -83,7 +74,6 @@ class AnnotationJitter(Preprocess):
         anns = copy.deepcopy(anns)
 
         for ann in anns:
-            # print('before', ann['kp_ball'])
             keypoints_xy = ann['keypoints'][:, :2]
             sym_rnd_kp = (torch.rand(*keypoints_xy.shape).numpy() - 0.5) * 2.0
             keypoints_xy += self.epsilon * sym_rnd_kp
@@ -100,5 +90,4 @@ class AnnotationJitter(Preprocess):
                 cent_xy = ann['cent'][:, :2]
                 sym_rnd_cent = (torch.rand(*cent_xy.shape).numpy() - 0.5) * 2.0
                 cent_xy += self.epsilon * sym_rnd_cent
-            # print('after', ann['kp_ball'])
         return image, anns, meta

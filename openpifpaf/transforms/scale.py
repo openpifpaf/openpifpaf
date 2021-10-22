@@ -21,12 +21,10 @@ def _scale(image, anns, meta, target_w, target_h, resample, *, fast=False):
     """
     meta = copy.deepcopy(meta)
     anns = copy.deepcopy(anns)
-    # mask = copy.deepcopy(mask)
     w, h = image.size
 
     assert resample in (0, 2, 3)
-    # print('in scale', h, w, target_h, target_w)
-
+    
     # scale image
     if fast:
         image = image.resize((target_w, target_h), resample)
@@ -52,11 +50,9 @@ def _scale(image, anns, meta, target_w, target_h, resample, *, fast=False):
         warnings.simplefilter('ignore')
 
         for ann in anns:
-            # if hasattr(ann, 'bmask'):
-            # print('Scale done!')
-            # print('in scale mask', ann['bmask'].shape)
+            
             ann['bmask'] = scipy.ndimage.zoom(ann['bmask'], (target_h / h, target_w / w))
-            # print('in scale mask', ann['bmask'].shape)
+            
     # rescale keypoints
     x_scale = (image.size[0] - 1) / (w - 1)
     y_scale = (image.size[1] - 1) / (h - 1)
@@ -101,8 +97,6 @@ class RescaleRelative(Preprocess):
         self.fast = fast
         self.power_law = power_law
 
-    # def __call__(self, image, anns, meta):
-    ### AMA
     def __call__(self, image, anns, meta):
         if isinstance(self.scale_range, tuple):
             if self.power_law:
@@ -124,7 +118,6 @@ class RescaleRelative(Preprocess):
             scale_factor = self.scale_range
 
         w, h = image.size
-        # print('in scale', image.size)
         if self.absolute_reference is not None:
             if w > h:
                 h *= self.absolute_reference / w
