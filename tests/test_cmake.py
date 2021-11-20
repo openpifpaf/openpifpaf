@@ -6,6 +6,7 @@ import torch
 
 
 @pytest.mark.slow
+@pytest.mark.opencv
 def test_build(tmpdir):
     assert not os.path.exists(tmpdir.join('openpifpaf-image'))
     assert not os.path.exists(tmpdir.join('openpifpaf-video'))
