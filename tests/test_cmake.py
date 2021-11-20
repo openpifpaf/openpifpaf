@@ -1,10 +1,12 @@
 import os
 import subprocess
+import sys
 
 import pytest
 import torch
 
 
+@pytest.mark.skipif(sys.platform.startswith('win'), reason='opencv test not validated')
 @pytest.mark.slow
 def test_build(tmpdir):
     assert not os.path.exists(tmpdir.join('openpifpaf-image'))
