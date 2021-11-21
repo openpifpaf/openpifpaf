@@ -5,4 +5,4 @@ recursive-include src/openpifpaf/csrc *
 include src/openpifpaf/_version.py
 include pyproject.toml
 include LICENSE
-include docs/LICENSE.AGPL
+recursive-include docs LICENSE*
