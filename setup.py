@@ -13,7 +13,7 @@ import versioneer
 
 
 EXTENSIONS = []
-CMD_CLASS = versioneer.get_cmdclass()
+CMD_CLASS = {}
 
 
 def add_cpp_extension():
@@ -52,11 +52,12 @@ def add_cpp_extension():
             extra_link_args=extra_link_args,
         )
     )
-    assert 'build_ext' not in CMD_CLASS
+    assert 'build_ext' not in CMD_CLASS, f"build_ext in CMD_CLASS: {CMD_CLASS}"
     CMD_CLASS['build_ext'] = torch.utils.cpp_extension.BuildExtension.with_options(no_python_abi_suffix=True)
 
 
 add_cpp_extension()
+CMD_CLASS = versioneer.get_cmdclass(CMD_CLASS)
 setuptools.setup(
     name='openpifpaf',
     version=versioneer.get_version(),
