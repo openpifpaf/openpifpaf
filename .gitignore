@@ -3,7 +3,6 @@
 .vscode
 *.so
 .idea
-openpifpaf/.idea
 
 # Python
 *.pyc
@@ -15,9 +14,9 @@ __pycache__
 dist/
 .pytest_cache/
 .ipynb_checkpoints/
-openpifpaf/functional.cpython-*
-openpifpaf/functional.html
-openpifpaf/functional.c
+src/openpifpaf/functional.cpython-*
+src/openpifpaf/functional.html
+src/openpifpaf/functional.c
 
 # guide
 guide/_build/

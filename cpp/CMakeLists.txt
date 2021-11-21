@@ -12,8 +12,8 @@ message(STATUS "opencv include: ${OpenCV_INCLUDE_DIRS}")
 message(STATUS "opencv libraries: ${OpenCV_LIBS}")
 include_directories( ${OpenCV_INCLUDE_DIRS} )
 
-file(GLOB SRC ${CMAKE_SOURCE_DIR}/../openpifpaf/csrc/src/*.cpp)
-include_directories(${CMAKE_SOURCE_DIR}/../openpifpaf/csrc/include/)
+file(GLOB SRC ${CMAKE_SOURCE_DIR}/../src/openpifpaf/csrc/src/*.cpp)
+include_directories(${CMAKE_SOURCE_DIR}/../src/openpifpaf/csrc/include/)
 
 
 ### for static library

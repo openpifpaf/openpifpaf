@@ -40,12 +40,13 @@ def add_cpp_extension():
         define_macros += [('DEBUG', None)]
 
     this_dir = os.path.dirname(os.path.abspath(__file__))
+    csrc_dir = os.path.join(this_dir, 'src', 'openpifpaf', 'csrc')
     EXTENSIONS.append(
         torch.utils.cpp_extension.CppExtension(
             'openpifpaf._cpp',
-            glob.glob(os.path.join(this_dir, 'openpifpaf', 'csrc', 'src', '**', '*.cpp'), recursive=True),
-            depends=glob.glob(os.path.join(this_dir, 'openpifpaf', 'csrc', 'include', '**', '*.hpp'), recursive=True),
-            include_dirs=[os.path.join(this_dir, 'openpifpaf', 'csrc', 'include')],
+            glob.glob(os.path.join(csrc_dir, 'src', '**', '*.cpp'), recursive=True),
+            depends=glob.glob(os.path.join(csrc_dir, 'include', '**', '*.hpp'), recursive=True),
+            include_dirs=[os.path.join(csrc_dir, 'include')],
             define_macros=define_macros,
             extra_compile_args=extra_compile_args,
             extra_link_args=extra_link_args,
@@ -67,7 +68,8 @@ setuptools.setup(
     author_email='research@svenkreiss.com',
     url='https://github.com/openpifpaf/openpifpaf',
 
-    packages=setuptools.find_packages(),
+    packages=setuptools.find_packages('src'),
+    package_dir={'': 'src'},
     package_data={
         'openpifpaf': ['*.dll', '*.dylib', '*.so'],
     },
