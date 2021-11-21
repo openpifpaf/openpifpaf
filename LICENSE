@@ -1,7 +1,7 @@
 Copyright 2019-2021 by Sven Kreiss and contributors. All rights reserved.
 
 This project and all its files are licensed under
-GNU AGPLv3 or later version.
+GNU AGPLv3 or later version. A copy is included in docs/LICENSE.AGPL.
 
 The following files have other licenses:
 - openpifpaf/network/swin_transformer.py: docs/LICENSE.SWIN
