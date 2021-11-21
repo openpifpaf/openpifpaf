@@ -9,7 +9,7 @@ requires = [
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = "--nbval-lax --current-env --doctest-modules"
-testpaths = ["tests", "openpifpaf"]
+testpaths = ["tests", "src/openpifpaf"]
 markers = ["slow: marks tests as slow (deselect with '-m \"not slow\"')"]
 
 [tool.pylint.BASIC]
