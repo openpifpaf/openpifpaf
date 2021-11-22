@@ -10,11 +10,13 @@ LOG = logging.getLogger(__name__)
 
 
 class Predictor:
-    batch_size = 1
-    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-    fast_rescaling = True
-    loader_workers = None
-    long_edge = None
+    """Convenience class to predict from various inputs with a common configuration."""
+
+    batch_size = 1  #: batch size
+    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')  #: device
+    fast_rescaling = True  #: fast rescaling
+    loader_workers = None  #: loader workers
+    long_edge = None  #: long edge
 
     def __init__(self, checkpoint=None, head_metas=None, *,
                  json_data=False,
@@ -49,7 +51,7 @@ class Predictor:
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser, *,
             skip_batch_size=False, skip_loader_workers=False):
-        """Add arguments.
+        """Add command line arguments.
 
         When using this class together with datasets (e.g. in eval),
         skip the cli arguments for batch size and loader workers as those
@@ -73,6 +75,7 @@ class Predictor:
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
+        """Configure from command line parser."""
         cls.batch_size = args.batch_size
         cls.device = args.device
         cls.fast_rescaling = args.fast_rescaling
@@ -99,6 +102,7 @@ class Predictor:
         ])
 
     def dataset(self, data):
+        """Predict from a dataset."""
         loader_workers = self.loader_workers
         if loader_workers is None:
             loader_workers = self.batch_size if len(data) > 1 else 0
@@ -112,6 +116,7 @@ class Predictor:
         yield from self.dataloader(dataloader)
 
     def enumerated_dataloader(self, enumerated_dataloader):
+        """Predict from an enumerated dataloader."""
         for batch_i, item in enumerated_dataloader:
             if len(item) == 3:
                 processed_image_batch, gt_anns_batch, meta_batch = item
@@ -146,32 +151,40 @@ class Predictor:
                 yield pred, gt_anns, meta
 
     def dataloader(self, dataloader):
+        """Predict from a dataloader."""
         yield from self.enumerated_dataloader(enumerate(dataloader))
 
+    def image(self, file_name):
+        """Predict from an image file name."""
+        return next(iter(self.images([file_name])))
+
     def images(self, file_names, **kwargs):
+        """Predict from image file names."""
         data = datasets.ImageList(
             file_names, preprocess=self.preprocess, with_raw_image=True)
         yield from self.dataset(data, **kwargs)
 
+    def pil_image(self, image):
+        """Predict from a Pillow image."""
+        return next(iter(self.pil_images([image])))
+
     def pil_images(self, pil_images, **kwargs):
+        """Predict from Pillow images."""
         data = datasets.PilImageList(
             pil_images, preprocess=self.preprocess, with_raw_image=True)
         yield from self.dataset(data, **kwargs)
 
+    def numpy_image(self, image):
+        """Predict from a numpy image."""
+        return next(iter(self.numpy_images([image])))
+
     def numpy_images(self, numpy_images, **kwargs):
+        """Predict from numpy images."""
         data = datasets.NumpyImageList(
             numpy_images, preprocess=self.preprocess, with_raw_image=True)
         yield from self.dataset(data, **kwargs)
 
-    def image(self, file_name):
-        return next(iter(self.images([file_name])))
-
-    def pil_image(self, image):
-        return next(iter(self.pil_images([image])))
-
-    def numpy_image(self, image):
-        return next(iter(self.numpy_images([image])))
-
     def image_file(self, file_pointer):
+        """Predict from an opened image file pointer."""
         pil_image = PIL.Image.open(file_pointer).convert('RGB')
         return self.pil_image(pil_image)
