@@ -17,8 +17,8 @@ jobs:
             torch-source: https://download.pytorch.org/whl/torch_stable.html
           - os: ubuntu-latest
             python: 3.7
-            torch: 1.9.0+cpu
-            torchvision: 0.10.0+cpu
+            torch: 1.10.0+cpu
+            torchvision: 0.11.1+cpu
             torch-source: https://download.pytorch.org/whl/torch_stable.html
           - os: ubuntu-latest
             python: 3.8
@@ -44,8 +44,8 @@ jobs:
             conda: True
           - os: macos-11
             python: 3.9
-            torch: 1.9.0
-            torchvision: 0.10.0
+            torch: 1.10.0
+            torchvision: 0.11.1
             torch-source: https://download.pytorch.org/whl/torch_stable.html
           - os: windows-latest
             python: 3.8
