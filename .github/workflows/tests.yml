@@ -196,5 +196,5 @@ jobs:
         mkdir sdist_test_dir
         cd sdist_test_dir
         python -m pip uninstall -y openpifpaf
-        python -m pip install ../dist/openpifpaf*
+        python -m pip install --no-build-isolation ../dist/openpifpaf*
         python -c "import openpifpaf"
