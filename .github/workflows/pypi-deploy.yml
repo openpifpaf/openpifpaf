@@ -15,74 +15,74 @@ on:
       - published
 
 jobs:
-  # build_wheels:
-  #   name: Build wheels on ${{ matrix.os }}
-  #   runs-on: ${{ matrix.os }}
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       include:
-  #         - os: ubuntu-20.04
-  #           linux_archs: "x86_64"
-  #           linux_torch_version: "torch==1.9.0+cpu -f https://download.pytorch.org/whl/torch_stable.html"
-  #         - os: ubuntu-20.04
-  #           linux_archs: "aarch64"
-  #           linux_torch_version: "torch==1.9.0 -f https://download.pytorch.org/whl/torch_stable.html"
-  #         - os: windows-latest
-  #         - os: macos-11
-  #           macos_archs: "x86_64"
-  #         - os: macos-11
-  #           macos_archs: "arm64"
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-20.04
+            linux_archs: "x86_64"
+            linux_torch_version: "torch==1.9.0+cpu -f https://download.pytorch.org/whl/torch_stable.html"
+          - os: ubuntu-20.04
+            linux_archs: "aarch64"
+            linux_torch_version: "torch==1.9.0 -f https://download.pytorch.org/whl/torch_stable.html"
+          - os: windows-latest
+          - os: macos-11
+            macos_archs: "x86_64"
+          - os: macos-11
+            macos_archs: "arm64"
 
-  #   steps:
-  #     - uses: actions/checkout@v2
-  #       with:
-  #         fetch-depth: 0
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
-  #     - name: Cache checkpoints and data
-  #       uses: actions/cache@v2
-  #       with:
-  #         path: |
-  #           ~/.cache
-  #           data-cifar10
-  #         key: ${{ runner.os }}-${{ hashFiles('setup.py') }}
+      - name: Cache checkpoints and data
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache
+            data-cifar10
+          key: ${{ runner.os }}-${{ hashFiles('setup.py') }}
 
-  #     - uses: actions/setup-python@v2
-  #       name: Install Python
-  #       with:
-  #         python-version: '3.7'
+      - uses: actions/setup-python@v2
+        name: Install Python
+        with:
+          python-version: '3.7'
 
-  #     - name: Set up QEMU
-  #       if: runner.os == 'Linux'
-  #       uses: docker/setup-qemu-action@v1
-  #       with:
-  #         platforms: all
+      - name: Set up QEMU
+        if: runner.os == 'Linux'
+        uses: docker/setup-qemu-action@v1
+        with:
+          platforms: all
 
-  #     - name: Install cibuildwheel
-  #       run: python -m pip install cibuildwheel==2.1.2
+      - name: Install cibuildwheel
+        run: python -m pip install cibuildwheel==2.3.0
 
-  #     - name: Build wheels
-  #       env:
-  #         CIBW_BUILD: "cp3[6789]-manylinux* cp3[6789]-macosx* cp3[6789]-win_amd64"
-  #         CIBW_BUILD_VERBOSITY: 1
-  #         CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
-  #         CIBW_MANYLINUX_AARCH64_IMAGE: manylinux2014
-  #         MACOSX_DEPLOYMENT_TARGET: "10.14"  # for C++17 support
-  #         CIBW_ARCHS_MACOS: ${{ matrix.macos_archs }}
-  #         CIBW_ARCHS_LINUX: ${{ matrix.linux_archs }}
-  #         CIBW_REPAIR_WHEEL_COMMAND_LINUX: "pip3 install ${{ matrix.linux_torch_version }}; python -c 'import torch.utils.cpp_extension;print(torch.utils.cpp_extension.library_paths()[0])'; LD_LIBRARY_PATH=`python -c 'import torch.utils.cpp_extension;print(torch.utils.cpp_extension.library_paths()[0])'` auditwheel repair -w {dest_dir} {wheel}"
-  #         CIBW_REPAIR_WHEEL_COMMAND_MACOS: "pip3 install torch; DYLD_LIBRARY_PATH=`python -c 'import torch.utils.cpp_extension;print(torch.utils.cpp_extension.library_paths()[0])'` delocate-listdeps {wheel} && DYLD_LIBRARY_PATH=`python -c 'import torch.utils.cpp_extension;print(torch.utils.cpp_extension.library_paths()[0])'` delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}"
-  #         # CIBW_BEFORE_BUILD: "pip3 install --pre torch -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html"
-  #         # CIBW_REPAIR_WHEEL_COMMAND_LINUX: "pip3 install --pre torch -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html; python -c 'import torch.utils.cpp_extension;print(torch.utils.cpp_extension.library_paths()[0])'; LD_LIBRARY_PATH=`python -c 'import torch.utils.cpp_extension;print(torch.utils.cpp_extension.library_paths()[0])'` auditwheel repair -w {dest_dir} {wheel}"
-  #         # CIBW_REPAIR_WHEEL_COMMAND_MACOS: ""  # deactivate repair wheel for now (embeds 100s of MB of PyTorch libraries otherweise)
-  #       run: python -m cibuildwheel --output-dir wheelhouse
+      - name: Build wheels
+        env:
+          CIBW_BUILD: "cp3[6789]-manylinux* cp3[6789]-macosx* cp3[6789]-win_amd64"
+          CIBW_BUILD_VERBOSITY: 1
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
+          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux2014
+          MACOSX_DEPLOYMENT_TARGET: "10.14"  # for C++17 support
+          CIBW_ARCHS_MACOS: ${{ matrix.macos_archs }}
+          CIBW_ARCHS_LINUX: ${{ matrix.linux_archs }}
+          # CIBW_REPAIR_WHEEL_COMMAND_LINUX: "pip3 install ${{ matrix.linux_torch_version }}; python -c 'import torch.utils.cpp_extension;print(torch.utils.cpp_extension.library_paths()[0])'; LD_LIBRARY_PATH=`python -c 'import torch.utils.cpp_extension;print(torch.utils.cpp_extension.library_paths()[0])'` auditwheel repair -w {dest_dir} {wheel}"
+          # CIBW_REPAIR_WHEEL_COMMAND_MACOS: "pip3 install torch; DYLD_LIBRARY_PATH=`python -c 'import torch.utils.cpp_extension;print(torch.utils.cpp_extension.library_paths()[0])'` delocate-listdeps {wheel} && DYLD_LIBRARY_PATH=`python -c 'import torch.utils.cpp_extension;print(torch.utils.cpp_extension.library_paths()[0])'` delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}"
+          # CIBW_BEFORE_BUILD: "pip3 install --pre torch -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html"
+          # CIBW_REPAIR_WHEEL_COMMAND_LINUX: "pip3 install --pre torch -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html; python -c 'import torch.utils.cpp_extension;print(torch.utils.cpp_extension.library_paths()[0])'; LD_LIBRARY_PATH=`python -c 'import torch.utils.cpp_extension;print(torch.utils.cpp_extension.library_paths()[0])'` auditwheel repair -w {dest_dir} {wheel}"
+          # CIBW_REPAIR_WHEEL_COMMAND_MACOS: ""  # deactivate repair wheel for now (embeds 100s of MB of PyTorch libraries otherweise)
+        run: python -m cibuildwheel --output-dir wheelhouse
 
-  #     - run: ls -hla ./wheelhouse
-  #       if: runner.os != 'Windows'
+      - run: ls -hla ./wheelhouse
+        if: runner.os != 'Windows'
 
-  #     - uses: actions/upload-artifact@v2
-  #       with:
-  #         path: ./wheelhouse/*.whl
+      - uses: actions/upload-artifact@v2
+        with:
+          path: ./wheelhouse/*.whl
 
   build_sdist:
     name: Build source distribution
