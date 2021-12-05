@@ -7,17 +7,18 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
             python: 3.6
-            torch: 1.9.0+cpu
-            torchvision: 0.10.0+cpu
+            torch: 1.9.1+cpu
+            torchvision: 0.10.1+cpu
             torch-source: https://download.pytorch.org/whl/torch_stable.html
           - os: ubuntu-latest
             python: 3.7
-            torch: 1.9.0+cpu
-            torchvision: 0.10.0+cpu
+            torch: 1.10.0+cpu
+            torchvision: 0.11.1+cpu
             torch-source: https://download.pytorch.org/whl/torch_stable.html
           - os: ubuntu-latest
             python: 3.8
@@ -188,3 +189,12 @@ jobs:
       if: matrix.slow && matrix.os == 'ubuntu-latest'
       run: |
         cd guide && pytest --nbval-lax --current-env *.ipynb && cd ..
+    - name: Sdist works
+      if: matrix.os != 'windows-latest'  # because of path separator
+      run: |
+        python setup.py sdist
+        mkdir sdist_test_dir
+        cd sdist_test_dir
+        python -m pip uninstall -y openpifpaf
+        python -m pip install --no-build-isolation ../dist/openpifpaf*
+        python -c "import openpifpaf"

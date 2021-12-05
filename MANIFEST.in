@@ -1,6 +1,5 @@
 include versioneer.py
 exclude src/openpifpaf/_cpp.so
-exclude src/openpifpaf/functional*
 recursive-include src/openpifpaf/csrc *
 include src/openpifpaf/_version.py
 include pyproject.toml
