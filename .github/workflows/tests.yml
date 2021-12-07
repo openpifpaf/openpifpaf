@@ -189,12 +189,22 @@ jobs:
       if: matrix.slow && matrix.os == 'ubuntu-latest'
       run: |
         cd guide && pytest --nbval-lax --current-env *.ipynb && cd ..
-    - name: Sdist works
+
+    - name: generate sdist
+      run: python setup.py sdist
+    - name: sdist installable without build isolation
       if: matrix.os != 'windows-latest'  # because of path separator
       run: |
-        python setup.py sdist
         mkdir sdist_test_dir
         cd sdist_test_dir
         python -m pip uninstall -y openpifpaf
         python -m pip install --no-build-isolation ../dist/openpifpaf*
         python -c "import openpifpaf"
+    # - name: sdist installable with build isolation
+    #   if: matrix.os != 'windows-latest'  # because of path separator
+    #   run: |
+    #     mkdir sdist_with_build_isolation_test_dir
+    #     cd sdist_with_build_isolation_test_dir
+    #     python -m pip uninstall -y openpifpaf
+    #     python -m pip install ../dist/openpifpaf*
+    #     python -c "import openpifpaf"
