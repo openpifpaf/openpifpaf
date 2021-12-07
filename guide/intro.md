@@ -57,12 +57,11 @@ More demos:
 
 ## Install
 
-Python 3 is required. Python 2 is not supported.
-Do not clone this repository
-and make sure there is no folder named `openpifpaf` in your current directory.
+Do not clone this repository.
+Make sure there is no folder named `openpifpaf` in your current directory.
 
 ```sh
-pip3 install openpifpaf
+pip3 install --no-build-isolation openpifpaf
 ```
 
 You need to install `matplotlib` to produce visual outputs.
@@ -72,6 +71,9 @@ For a live demo, we recommend to try the
 [openpifpafwebdemo](https://github.com/openpifpaf/openpifpafwebdemo) project.
 Alternatively, {ref}`python3 -m openpifpaf.video <cli-help-video>` (requires OpenCV)
 provides a live demo as well.
+
+_Only on MacOS (Dec 2021)_: There seems to be an issue with Torch 1.10. Please try
+to stick with Torch 1.9 for now.
 
 
 ## Pre-trained Models
