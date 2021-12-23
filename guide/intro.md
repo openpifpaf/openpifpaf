@@ -128,17 +128,25 @@ at the top and selecting a cloud provider like _Binder_.
 The code on the page is all the code required to reproduce that particular page.
 
 
+(citation)=
 ## Citation
 
+Reference {cite}`kreiss2021openpifpaf`,
+[arxiv.org/abs/2103.02440](https://arxiv.org/abs/2103.02440)
 ```
 @article{kreiss2021openpifpaf,
   title = {{OpenPifPaf: Composite Fields for Semantic Keypoint Detection and Spatio-Temporal Association}},
   author = {Sven Kreiss and Lorenzo Bertoni and Alexandre Alahi},
-  journal = {arXiv preprint arXiv:2103.02440},
+  journal = {IEEE Transactions on Intelligent Transportation Systems},
+  pages = {1-14},
   month = {March},
   year = {2021}
 }
+```
 
+Reference {cite}`kreiss2019pifpaf`,
+[arxiv.org/abs/1903.06593](https://arxiv.org/abs/1903.06593)
+```
 @InProceedings{kreiss2019pifpaf,
   author = {Kreiss, Sven and Bertoni, Lorenzo and Alahi, Alexandre},
   title = {{PifPaf: Composite Fields for Human Pose Estimation}},
@@ -147,7 +155,6 @@ The code on the page is all the code required to reproduce that particular page.
   year = {2019}
 }
 ```
-References: {cite}`kreiss2021openpifpaf, kreiss2019pifpaf`
 
 [CC-BY-2.0]: https://creativecommons.org/licenses/by/2.0/
 

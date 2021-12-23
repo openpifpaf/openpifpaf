@@ -1,6 +1,6 @@
 *.ipynb filter=nbstripout
-*.ipynb	diff=jupyternotebook
-*.ipynb	merge=jupyternotebook
+*.zpln filter=nbstripout
+*.ipynb diff=ipynb
 docs/** filter= diff=
 src/openpifpaf/_version.py export-subst
 src/openpifpaf/functional.c linguist-vendored
