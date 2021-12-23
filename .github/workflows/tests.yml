@@ -17,45 +17,40 @@ jobs:
             torch-source: https://download.pytorch.org/whl/torch_stable.html
           - os: ubuntu-latest
             python: 3.7
-            torch: 1.10.0+cpu
-            torchvision: 0.11.1+cpu
+            torch: 1.9.1+cpu
+            torchvision: 0.10.1+cpu
             torch-source: https://download.pytorch.org/whl/torch_stable.html
           - os: ubuntu-latest
             python: 3.8
-            torch: 1.9.0+cpu
-            torchvision: 0.10.0+cpu
+            torch: 1.9.1+cpu
+            torchvision: 0.10.1+cpu
             torch-source: https://download.pytorch.org/whl/torch_stable.html
             slow: True
           - os: ubuntu-latest
             python: 3.9
-            torch: 1.10.0+cpu
-            torchvision: 0.11.1+cpu
+            torch: 1.9.1+cpu
+            torchvision: 0.10.1+cpu
             torch-source: https://download.pytorch.org/whl/torch_stable.html
           - os: macos-11
             python: 3.7
-            torch: 1.9.0
-            torchvision: 0.10.0
+            torch: 1.9.1
+            torchvision: 0.10.1
             torch-source: https://download.pytorch.org/whl/torch_stable.html
           - os: macos-11
             python: 3.8
-            torch: 1.9.0
-            torchvision: 0.10.0
+            torch: 1.9.1
+            torchvision: 0.10.1
             torch-source: https://download.pytorch.org/whl/torch_stable.html
             conda: True
           - os: macos-11
             python: 3.9
-            torch: 1.9.0
-            torchvision: 0.10.0
+            torch: 1.9.1
+            torchvision: 0.10.1
             torch-source: https://download.pytorch.org/whl/torch_stable.html
           - os: windows-latest
             python: 3.8
-            torch: 1.9.0+cpu
-            torchvision: 0.10.0+cpu
-            torch-source: https://download.pytorch.org/whl/torch_stable.html
-          - os: windows-latest
-            python: 3.8
-            torch: 1.10.0+cpu
-            torchvision: 0.11.1+cpu
+            torch: 1.9.1+cpu
+            torchvision: 0.10.1+cpu
             torch-source: https://download.pytorch.org/whl/torch_stable.html
             slow: True
 
@@ -200,11 +195,11 @@ jobs:
         python -m pip uninstall -y openpifpaf
         python -m pip install --no-build-isolation ../dist/openpifpaf*
         python -c "import openpifpaf"
-    # - name: sdist installable with build isolation
-    #   if: matrix.os != 'windows-latest'  # because of path separator
-    #   run: |
-    #     mkdir sdist_with_build_isolation_test_dir
-    #     cd sdist_with_build_isolation_test_dir
-    #     python -m pip uninstall -y openpifpaf
-    #     python -m pip install ../dist/openpifpaf*
-    #     python -c "import openpifpaf"
+    - name: sdist installable with build isolation
+      if: matrix.os != 'windows-latest'  # because of path separator
+      run: |
+        mkdir sdist_with_build_isolation_test_dir
+        cd sdist_with_build_isolation_test_dir
+        python -m pip uninstall -y openpifpaf
+        python -m pip install ../dist/openpifpaf*
+        python -c "import openpifpaf"
