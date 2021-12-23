@@ -61,7 +61,7 @@ Do not clone this repository.
 Make sure there is no folder named `openpifpaf` in your current directory.
 
 ```sh
-pip3 install --no-build-isolation openpifpaf
+pip3 install openpifpaf
 ```
 
 You need to install `matplotlib` to produce visual outputs.

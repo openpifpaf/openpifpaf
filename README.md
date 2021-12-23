@@ -45,8 +45,7 @@ which is the same guide but based on the latest code in the `main` branch.
 Image credit: "[Learning to surf](https://www.flickr.com/photos/fotologic/6038911779/in/photostream/)" by fotologic which is licensed under [CC-BY-2.0].<br />
 Created with:
 ```sh
-pip3 install matplotlib
-pip3 install --no-build-isolation openpifpaf
+pip3 install matplotlib openpifpaf
 python3 -m openpifpaf.predict docs/coco/000000081988.jpg --image-output
 ```
 
