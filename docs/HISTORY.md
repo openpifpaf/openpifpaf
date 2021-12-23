@@ -1,6 +1,8 @@
 # History
 
-* [main](https://github.com/openpifpaf/openpifpaf/compare/v0.13.0...main)
+* [main](https://github.com/openpifpaf/openpifpaf/compare/v0.13.1...main)
+* [0.13.1](https://github.com/openpifpaf/openpifpaf/compare/v0.13.0...v0.13.1) (2021-12-23)
+    * fix torch==1.9.0 and torchvision==0.10.0 to solve install issues
 * [0.13.0](https://github.com/openpifpaf/openpifpaf/compare/v0.12.14...v0.13.0) (2021-09-26)
     * major rewrite of the decoders to C++ backed by libtorch
 * [0.12.14](https://github.com/openpifpaf/openpifpaf/compare/v0.12.13...v0.12.14) (2021-09-15)
