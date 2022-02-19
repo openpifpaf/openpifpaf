@@ -70,7 +70,7 @@ class CifCafDense(Decoder):
     def __call__(self, fields, initial_annotations=None):
         cifcaf_fields = [
             fields[self.cif_meta.head_index],
-            np.concatenate([
+            torch.cat([
                 fields[self.caf_meta.head_index],
                 fields[self.dense_caf_meta.head_index],
             ], axis=0)
