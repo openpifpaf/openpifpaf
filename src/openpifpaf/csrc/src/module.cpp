@@ -1,6 +1,6 @@
 #include <torch/script.h>
 
-#include "openpifpaf.hpp"
+#include "openpifpaf/openpifpaf.hpp"
 
 
 // Win32 needs this.
