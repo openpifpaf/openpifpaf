@@ -83,9 +83,8 @@ jobs:
       if: matrix.conda
     - run: python --version
     - name: Install pre-requisites
-      # temporarily removed pip upgrade
       run: |
-        python -m pip install --upgrade setuptools wheel
+        python -m pip install --upgrade pip setuptools wheel
         python -m pip install torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }} -f ${{ matrix.torch-source }}
     - name: Install
       run: |
