@@ -84,8 +84,8 @@ setuptools.setup(
         'numpy>=1.16',
         'pysparkling',  # for log analysis
         'python-json-logger',
-        'torch==1.10.2',
-        'torchvision==0.11.3',
+        'torch==1.11.0',
+        'torchvision==0.12.0',
         'pillow!=8.3.0',  # exclusion torchvision 0.10.0 compatibility
         'dataclasses; python_version<"3.7"',
     ],
