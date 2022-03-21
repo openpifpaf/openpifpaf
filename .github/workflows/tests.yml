@@ -11,46 +11,41 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            python: 3.6
-            torch: 1.9.0+cpu
-            torchvision: 0.10.0+cpu
-            torch-source: https://download.pytorch.org/whl/torch_stable.html
-          - os: ubuntu-latest
             python: 3.7
-            torch: 1.9.0+cpu
-            torchvision: 0.10.0+cpu
+            torch: 1.11.0+cpu
+            torchvision: 0.12.0+cpu
             torch-source: https://download.pytorch.org/whl/torch_stable.html
           - os: ubuntu-latest
             python: 3.8
-            torch: 1.9.0+cpu
-            torchvision: 0.10.0+cpu
+            torch: 1.11.0+cpu
+            torchvision: 0.12.0+cpu
             torch-source: https://download.pytorch.org/whl/torch_stable.html
             slow: True
           - os: ubuntu-latest
             python: 3.9
-            torch: 1.9.0+cpu
-            torchvision: 0.10.0+cpu
+            torch: 1.11.0+cpu
+            torchvision: 0.12.0+cpu
             torch-source: https://download.pytorch.org/whl/torch_stable.html
           - os: macos-11
             python: 3.7
-            torch: 1.9.0
-            torchvision: 0.10.0
+            torch: 1.11.0
+            torchvision: 0.12.0
             torch-source: https://download.pytorch.org/whl/torch_stable.html
           - os: macos-11
             python: 3.8
-            torch: 1.9.0
-            torchvision: 0.10.0
+            torch: 1.11.0
+            torchvision: 0.12.0
             torch-source: https://download.pytorch.org/whl/torch_stable.html
             conda: True
           - os: macos-11
             python: 3.9
-            torch: 1.9.0
-            torchvision: 0.10.0
+            torch: 1.11.0
+            torchvision: 0.12.0
             torch-source: https://download.pytorch.org/whl/torch_stable.html
           - os: windows-latest
             python: 3.8
-            torch: 1.9.0+cpu
-            torchvision: 0.10.0+cpu
+            torch: 1.11.0+cpu
+            torchvision: 0.12.0+cpu
             torch-source: https://download.pytorch.org/whl/torch_stable.html
             slow: True
 
@@ -114,8 +109,8 @@ jobs:
     - name: Download libtorch binaries compiled with CXX11-ABI=1
       if: matrix.slow && matrix.os == 'ubuntu-latest'
       run: |
-        wget https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-1.9.0%2Bcpu.zip
-        unzip libtorch-cxx11-abi-shared-with-deps-1.9.0+cpu.zip
+        wget https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-1.11.0%2Bcpu.zip
+        unzip libtorch-cxx11-abi-shared-with-deps-1.11.0+cpu.zip
         ls
         ls libtorch
         ls libtorch/lib
