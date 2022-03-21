@@ -10,12 +10,23 @@ PYTHON = 'python3' if sys.platform != 'win32' else 'python'
 
 
 @pytest.mark.parametrize(
-    'batch_size,with_debug,with_dense,with_catchsegv',
-    # [(1, False, False), (2, False, False), (1, True, False), (1, False, True)],
+    'batch_size,with_debug,with_dense,with_catchsegv,with_decoder_workers',
     # current default models don't support dense connections
-    [(1, False, False, True), (2, False, False, False), (1, True, False, False)],
+    [
+        (1, False, False, True, False),
+        (2, False, False, False, False),
+        (1, True, False, False, False),
+        (1, False, False, False, True),
+    ],
 )
-def test_predict(batch_size, with_debug, with_dense, with_catchsegv, tmpdir):
+def test_predict(
+    batch_size,
+    with_debug,
+    with_dense,
+    with_catchsegv,
+    with_decoder_workers,
+    tmpdir,
+):
     """Test predict cli.
 
     with_debug makes sure that debugging works in this environment.
@@ -25,6 +36,8 @@ def test_predict(batch_size, with_debug, with_dense, with_catchsegv, tmpdir):
     print('platform', sys.platform)
     if batch_size > 1 and sys.platform.startswith('win'):
         pytest.skip('multiprocess decoding not supported on windows')
+    if with_decoder_workers and sys.platform.startswith('win'):
+        pytest.skip('multiple decoder workers not supported on windows')
     if not sys.platform.startswith('linux'):
         with_catchsegv = False
 
@@ -43,6 +56,8 @@ def test_predict(batch_size, with_debug, with_dense, with_catchsegv, tmpdir):
         cmd.append('--dense-connections')
     if with_catchsegv:
         cmd.insert(0, 'catchsegv')
+    if with_decoder_workers:
+        cmd.append('--decoder-workers=2')
 
     subprocess.run(cmd, check=True)
     assert os.path.exists(os.path.join(tmpdir, '000000081988.jpg.predictions.json'))
