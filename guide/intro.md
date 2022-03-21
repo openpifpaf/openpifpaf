@@ -121,10 +121,11 @@ Open an [issue](https://github.com/openpifpaf/openpifpaf/issues) to suggest more
 
 This is a [jupyter-book](https://jupyterbook.org/intro.html) or "executable book".
 Many sections of this book, like {doc}`predict_cli`, are generated from the code
-shown on the page itself:
-most pages are based on Jupyter Notebooks
-that can be downloaded or launched interactively in the cloud by clicking on the rocket
-at the top and selecting a cloud provider like _Binder_.
+shown on the page itself.
+Most pages are auto-generated from
+[Jupyter Notebooks on GitHub](https://github.com/openpifpaf/openpifpaf/tree/main/guide).
+The notebooks can be launched interactively in the cloud by clicking on the rocket
+at the top and selecting _Binder_.
 The code on the page is all the code required to reproduce that particular page.
 
 
