@@ -36,6 +36,8 @@ def test_predict(
     print('platform', sys.platform)
     if batch_size > 1 and sys.platform.startswith('win'):
         pytest.skip('multiprocess decoding not supported on windows')
+    if with_decoder_workers and sys.platform.startswith('win'):
+        pytest.skip('multiple decoder workers not supported on windows')
     if not sys.platform.startswith('linux'):
         with_catchsegv = False
 
