@@ -1,6 +1,10 @@
 # History
 
-* [main](https://github.com/openpifpaf/openpifpaf/compare/v0.13.1...main)
+* [main](https://github.com/openpifpaf/openpifpaf/compare/v0.13.2...main)
+* [0.13.2](https://github.com/openpifpaf/openpifpaf/compare/v0.13.1...v0.13.2) (2022-03-21)
+    * add zip source distribution to PyPi for Windows
+    * upgrade to torch==1.11.0 and torchvision==0.12.0
+    * add "suggest edit" button to Guide
 * [0.13.1](https://github.com/openpifpaf/openpifpaf/compare/v0.13.0...v0.13.1) (2021-12-23)
     * fix torch==1.9.0 and torchvision==0.10.0 to solve install issues
 * [0.13.0](https://github.com/openpifpaf/openpifpaf/compare/v0.12.14...v0.13.0) (2021-09-26)
