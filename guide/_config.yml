@@ -1,7 +1,7 @@
 # Book settings
 title: OpenPifPaf Guide
 author: <a href="https://www.svenkreiss.com">Sven Kreiss</a> and <a href="https://github.com/openpifpaf/openpifpaf/graphs/contributors">contributors</a>.
-copyright: "2020-2021"
+copyright: "2020-2022"
 email: research@svenkreiss.com
 logo: logo.png
 exclude_patterns: [readme.md]
@@ -55,6 +55,7 @@ sphinx:
       use_fullscreen_button: False
       use_issues_button: True
       use_repository_button: True
+      use_edit_page_button: true
 
 execute:
   timeout: 600
