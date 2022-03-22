@@ -27,6 +27,11 @@ jobs:
             torchvision: 0.12.0+cpu
             torch-source: https://download.pytorch.org/whl/torch_stable.html
             conda: True
+          - os: ubuntu-latest
+            python: '3.10'
+            torch: 1.11.0+cpu
+            torchvision: 0.12.0+cpu
+            torch-source: https://download.pytorch.org/whl/torch_stable.html
           - os: macos-11
             python: 3.7
             torch: 1.11.0
