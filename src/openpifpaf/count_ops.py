@@ -15,11 +15,13 @@ import openpifpaf
 
 try:
     import thop
-except ImportError as e:
-    raise Exception('need to install thop (pip install thop) for this script') from e
+except ImportError:
+    thop = None
 
 
 def count(model):
+    if thop is None:
+        raise Exception('thop not found. Run "pip3 install thop".')
     dummy_input = torch.randn(1, 3, 641, 641)
     return thop.profile(model, inputs=(dummy_input, ))
 

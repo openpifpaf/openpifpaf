@@ -117,14 +117,11 @@ setuptools.setup(
             'nbconvert',
             'nbstripout',
             'nbval',
-            'onnx',
-            'onnxruntime',
-            'onnx-simplifier>=0.2.9; python_version<"3.9"',  # Python 3.9 not supported yet
+            'opencv-python',
             'pylint<2.9.4',  # avoid 2.9.4 and up for time.perf_counter deprecation warnings
             'pycodestyle',
             'pytest',
-            'opencv-python',
-            'thop',
+            'thop; python_version<"3.10"',
         ],
         'train': [
             'matplotlib>=3.3',  # required by pycocotools

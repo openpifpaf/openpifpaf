@@ -7,7 +7,7 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false
+      # fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
@@ -15,40 +15,52 @@ jobs:
             torch: 1.11.0+cpu
             torchvision: 0.12.0+cpu
             torch-source: https://download.pytorch.org/whl/torch_stable.html
+            onnx: True
           - os: ubuntu-latest
             python: 3.8
             torch: 1.11.0+cpu
             torchvision: 0.12.0+cpu
             torch-source: https://download.pytorch.org/whl/torch_stable.html
             slow: True
+            onnx: True
           - os: ubuntu-latest
             python: 3.9
             torch: 1.11.0+cpu
             torchvision: 0.12.0+cpu
             torch-source: https://download.pytorch.org/whl/torch_stable.html
             conda: True
+            onnx: True
+          - os: ubuntu-latest
+            python: '3.10'
+            torch: 1.11.0+cpu
+            torchvision: 0.12.0+cpu
+            torch-source: https://download.pytorch.org/whl/torch_stable.html
           - os: macos-11
             python: 3.7
             torch: 1.11.0
             torchvision: 0.12.0
             torch-source: https://download.pytorch.org/whl/torch_stable.html
+            onnx: True
           - os: macos-11
             python: 3.8
             torch: 1.11.0
             torchvision: 0.12.0
             torch-source: https://download.pytorch.org/whl/torch_stable.html
             conda: True
+            onnx: True
           - os: macos-11
             python: 3.9
             torch: 1.11.0
             torchvision: 0.12.0
             torch-source: https://download.pytorch.org/whl/torch_stable.html
+            onnx: True
           - os: windows-latest
             python: 3.8
             torch: 1.11.0+cpu
             torchvision: 0.12.0+cpu
             torch-source: https://download.pytorch.org/whl/torch_stable.html
             slow: True
+            onnx: True
 
     env:
       DEBUG: 1
@@ -88,9 +100,10 @@ jobs:
         python -m pip install --upgrade pip setuptools wheel
         python -m pip install torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }} -f ${{ matrix.torch-source }}
     - name: Install
-      run: |
-        echo ${DEBUG}
-        python -m pip install -e ".[test]" --no-build-isolation
+      run: python -m pip install -e ".[test]" --no-build-isolation
+    - name: Install ONNX dependencies
+      if: matrix.onnx
+      run: python -m pip install -e ".[onnx]" --no-build-isolation
     - name: Install for training
       if: matrix.slow
       run: python -m pip install -e ".[train]" --no-build-isolation
