@@ -39,13 +39,14 @@ def add_cpp_extension():
             ]
         define_macros += [('DEBUG', None)]
 
+    this_dir = os.path.dirname(os.path.abspath(__file__))
     csrc_dir = os.path.join('src', 'openpifpaf', 'csrc')
     EXTENSIONS.append(
         torch.utils.cpp_extension.CppExtension(
             'openpifpaf._cpp',
             glob.glob(os.path.join(csrc_dir, 'src', '**', '*.cpp'), recursive=True),
-            depends=glob.glob(os.path.join(csrc_dir, 'include', '**', '*.hpp'), recursive=True),
-            include_dirs=[os.path.join(csrc_dir, 'include')],
+            depends=glob.glob(os.path.join(this_dir, csrc_dir, 'include', '**', '*.hpp'), recursive=True),
+            include_dirs=[os.path.join(this_dir, csrc_dir, 'include')],
             define_macros=define_macros,
             extra_compile_args=extra_compile_args,
             extra_link_args=extra_link_args,
@@ -77,7 +78,7 @@ setuptools.setup(
     ext_modules=EXTENSIONS,
     zip_safe=False,
 
-    python_requires='>=3.6',
+    python_requires='>=3.7',
     install_requires=[
         'importlib_metadata!=3.8.0',  # temporary for pytest
         'numpy>=1.16',
