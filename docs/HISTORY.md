@@ -1,6 +1,9 @@
 # History
 
-* [main](https://github.com/openpifpaf/openpifpaf/compare/v0.13.2...main)
+* [main](https://github.com/openpifpaf/openpifpaf/compare/v0.13.3...main)
+* [0.13.3](https://github.com/openpifpaf/openpifpaf/compare/v0.13.2...v0.13.3) (2022-03-22)
+    * fixes for Python 3.10
+    * use relative paths for cpp_extension source files
 * [0.13.2](https://github.com/openpifpaf/openpifpaf/compare/v0.13.1...v0.13.2) (2022-03-21)
     * upgrade to torch==1.11.0 and torchvision==0.12.0
     * add "suggest edit" button to Guide
