@@ -16,7 +16,6 @@ import openpifpaf
 try:
     import thop
 except ImportError:
-    print('warning: run "pip3 install thop" to count parameters and ops')
     thop = None
 
 
