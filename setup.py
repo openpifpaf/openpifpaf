@@ -39,8 +39,7 @@ def add_cpp_extension():
             ]
         define_macros += [('DEBUG', None)]
 
-    this_dir = os.path.dirname(os.path.abspath(__file__))
-    csrc_dir = os.path.join(this_dir, 'src', 'openpifpaf', 'csrc')
+    csrc_dir = os.path.join('src', 'openpifpaf', 'csrc')
     EXTENSIONS.append(
         torch.utils.cpp_extension.CppExtension(
             'openpifpaf._cpp',
