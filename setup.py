@@ -121,7 +121,7 @@ setuptools.setup(
             'pylint<2.9.4',  # avoid 2.9.4 and up for time.perf_counter deprecation warnings
             'pycodestyle',
             'pytest',
-            'thop',
+            'thop; python_version<"3.10"',
         ],
         'train': [
             'matplotlib>=3.3',  # required by pycocotools

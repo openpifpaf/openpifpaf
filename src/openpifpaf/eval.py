@@ -10,11 +10,16 @@ import sys
 import time
 
 import PIL
-import thop
 import torch
 
 from . import datasets, decoder, logger, network, show, visualizer, __version__
 from .predictor import Predictor
+
+try:
+    import thop
+except ImportError:
+    print('warning: run "pip3 install thop" to count parameters and ops')
+    thop = None
 
 LOG = logging.getLogger(__name__)
 
@@ -108,6 +113,8 @@ def cli():
 
 
 def count_ops(model, height=641, width=641):
+    if thop is None:
+        return -1, -1
     device = next(model.parameters()).device
     dummy_input = torch.randn(1, 3, height, width, device=device)
     gmacs, params = thop.profile(model, inputs=(dummy_input, ))
