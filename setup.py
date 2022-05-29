@@ -105,7 +105,7 @@ setuptools.setup(
             'wheel',
         ],
         'onnx': [
-            'onnx',
+            'onnx<1.11',  # temporarily until tests pass again
             'onnxruntime',
             'onnx-simplifier>=0.2.9; python_version<"3.9"',  # Python 3.9 not supported yet
         ],
