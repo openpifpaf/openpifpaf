@@ -98,6 +98,8 @@ class PoseSimilarity(TrackBase):
                 cost[track_i + len(self.active), pose_i] = 100.0
         LOG.debug('cost time = %.3fs', time.perf_counter() - cost_start)
 
+        if scipy is None:
+            raise Exception('scipy not found. Run "pip3 install scipy" to install.')
         track_indices, pose_indices = scipy.optimize.linear_sum_assignment(cost)
         matched_poses = set()
         for track_i, pose_i in zip(track_indices, pose_indices):
