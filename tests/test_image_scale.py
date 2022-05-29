@@ -11,7 +11,7 @@ except ImportError:
     cv2 = None
 
 
-@pytest.mark.parametrize('resample', [PIL.Image.BILINEAR, PIL.Image.BICUBIC])
+@pytest.mark.parametrize('resample', [PIL.Resampling.BILINEAR, PIL.Resampling.BICUBIC])
 @pytest.mark.xfail
 def test_pil_resize(resample):
     d_in = np.array([[0, 10, 20, 30, 40, 50]], dtype=np.uint8)

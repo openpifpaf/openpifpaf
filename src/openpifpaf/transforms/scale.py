@@ -25,8 +25,8 @@ def _scale(image, anns, meta, target_w, target_h, resample, *, fast=False):
     """target_w and target_h as integers
 
     Internally, resample in Pillow are aliases:
-    PIL.Image.BILINEAR = 2
-    PIL.Image.BICUBIC = 3
+    PIL.Resampling.BILINEAR = 2
+    PIL.Resampling.BICUBIC = 3
     """
     meta = copy.deepcopy(meta)
     anns = copy.deepcopy(anns)
@@ -91,7 +91,7 @@ class RescaleRelative(Preprocess):
     """Rescale relative to input image."""
 
     def __init__(self, scale_range=(0.5, 1.0), *,
-                 resample=PIL.Image.BILINEAR,
+                 resample=PIL.Resampling.BILINEAR,
                  absolute_reference=None,
                  fast=False,
                  power_law=False,
@@ -146,7 +146,7 @@ class RescaleRelative(Preprocess):
 class RescaleAbsolute(Preprocess):
     """Rescale to a given size."""
 
-    def __init__(self, long_edge, *, fast=False, resample=PIL.Image.BILINEAR):
+    def __init__(self, long_edge, *, fast=False, resample=PIL.Resampling.BILINEAR):
         self.long_edge = long_edge
         self.fast = fast
         self.resample = resample
@@ -173,7 +173,7 @@ class ScaleMix(Preprocess):
     def __init__(self, scale_threshold, *,
                  upscale_factor=2.0,
                  downscale_factor=0.5,
-                 resample=PIL.Image.BILINEAR):
+                 resample=PIL.Resampling.BILINEAR):
         self.scale_threshold = scale_threshold
         self.upscale_factor = upscale_factor
         self.downscale_factor = downscale_factor
