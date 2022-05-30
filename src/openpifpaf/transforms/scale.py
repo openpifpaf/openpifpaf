@@ -3,7 +3,7 @@ import logging
 import warnings
 
 import numpy as np
-import PIL
+import PIL.Image
 import torch
 
 from .preprocess import Preprocess
