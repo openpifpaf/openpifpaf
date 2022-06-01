@@ -41,15 +41,6 @@ jobs:
     - name: Install dependencies
       run: |
         pip install .[dev,test]
-        sudo apt install jq
-
-    # make sure KernelSpec in all notebooks is python3
-    - name: Normalize KernelSpec
-      run: |
-        for fn in guide/*.ipynb; do
-          jq '(.metadata.kernelspec.name,.metadata.kernelspec.display_name)="python3"' ${fn} > ${fn}_
-          mv ${fn}_ ${fn}
-        done
 
     # Build the guide
     - name: Build the artwork for guide
