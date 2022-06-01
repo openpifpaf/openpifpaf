@@ -96,6 +96,7 @@ setuptools.setup(
         ],
         'dev': [
             'flameprof',
+            'ipython<8',  # temporarily added to avoid broken output cells in jupyter-book
             'jupyter-book>=0.9.1',
             'matplotlib>=3.3',
             'nbdime',
