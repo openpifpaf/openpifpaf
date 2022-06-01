@@ -1,6 +1,10 @@
 # History
 
-* [main](https://github.com/openpifpaf/openpifpaf/compare/v0.13.3...main)
+* [main](https://github.com/openpifpaf/openpifpaf/compare/v0.13.4...main)
+* [0.13.4](https://github.com/openpifpaf/openpifpaf/compare/v0.13.3...v0.13.4) (2022-06-01)
+    * restrict protobuf version
+    * compatibility for future PIL versions
+    * patch for pretrained MobileNetv3 models
 * [0.13.3](https://github.com/openpifpaf/openpifpaf/compare/v0.13.2...v0.13.3) (2022-03-22)
     * fixes for Python 3.10
     * use relative paths for cpp_extension source files
