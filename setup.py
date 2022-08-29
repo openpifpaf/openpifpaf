@@ -90,10 +90,6 @@ setuptools.setup(
         'dataclasses; python_version<"3.7"',
     ],
     extras_require={
-        'backbones': [
-            'timm>=0.4.9',  # For Swin Transformer and XCiT
-            'einops>=0.3',  # required for BotNet
-        ],
         'dev': [
             'flameprof',
             'ipython<8',  # temporarily added to avoid broken output cells in jupyter-book
@@ -104,6 +100,9 @@ setuptools.setup(
             'scipy',
             'sphinx-book-theme',
             'wheel',
+        ],
+        'extras': [
+            'openpifpaf-extras',
         ],
         'onnx': [
             'onnx',
