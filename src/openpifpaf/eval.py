@@ -117,7 +117,7 @@ def count_ops(model, height=641, width=641):
         return -1, -1
     device = next(model.parameters()).device
     dummy_input = torch.randn(1, 3, height, width, device=device)
-    gmacs, params = thop.profile(model, inputs=(dummy_input, ))
+    gmacs, params = thop.profile(model, inputs=(dummy_input, ))  # pylint: disable=unbalanced-tuple-unpacking
     LOG.info('GMACs = {0:.2f}, million params = {1:.2f}'.format(gmacs / 1e9, params / 1e6))
     return gmacs, params
 
