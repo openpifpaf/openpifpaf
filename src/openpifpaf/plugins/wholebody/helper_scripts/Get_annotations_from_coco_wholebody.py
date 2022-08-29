@@ -29,7 +29,7 @@ def main():
     discard_count = 0
     crowd_count = 0
     for ann_dict in orig_data["annotations"]:
-        if not(all(x == 0 for x in ann_dict["keypoints"])):  # If all zero, only bbox
+        if not all(x == 0 for x in ann_dict["keypoints"]):  # If all zero, only bbox
             new_dict = copy.deepcopy(ann_dict)
             for entry in drop_attribute_list:
                 new_dict.pop(entry)
