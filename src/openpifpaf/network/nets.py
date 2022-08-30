@@ -32,12 +32,15 @@ class Shell(torch.nn.Module):
 
         self.head_nets = head_nets
 
-    def forward(self, image_batch):
+    def forward(self, image_batch, head_mask=None):
         if self.process_input is not None:
             image_batch = self.process_input(image_batch)
 
         x = self.base_net(image_batch)
-        head_outputs = tuple(hn(x) for hn in self.head_nets)
+        if head_mask is not None:
+            head_outputs = tuple(hn(x) if m else None for hn, m in zip(self.head_nets, head_mask))
+        else:
+            head_outputs = tuple(hn(x) for hn in self.head_nets)
 
         if self.process_heads is not None:
             head_outputs = self.process_heads(head_outputs)
