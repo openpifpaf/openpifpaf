@@ -102,7 +102,7 @@ setuptools.setup(
             'wheel',
         ],
         'extras': [
-            'openpifpaf-extras',
+            'openpifpaf-extras>=0.0.2',
         ],
         'onnx': [
             'onnx',
