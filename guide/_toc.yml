@@ -25,6 +25,7 @@ parts:
   - file: plugins_nuscenes
   - file: tutorial_opencv
   - file: plugins_cifar10
+  - file: plugins_extras
 - caption: Reference
   chapters:
   - file: moduledocs

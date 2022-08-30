@@ -40,7 +40,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install .[dev,test]
+        pip install .[dev,extras,test]
 
     # Build the guide
     - name: Build the artwork for guide
