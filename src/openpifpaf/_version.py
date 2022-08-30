@@ -260,7 +260,7 @@ def git_pieces_from_vcs(tag_prefix, root, verbose, runner=run_command):
     describe_out, rc = runner(GITS, [
         "describe", "--tags", "--dirty", "--always", "--long",
         "--match", f"{tag_prefix}[[:digit:]]*"
-        ], cwd=root)
+    ], cwd=root)
     # --long was added in git-1.5.5
     if describe_out is None:
         raise NotThisMethod("'git describe' failed")
