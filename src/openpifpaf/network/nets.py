@@ -6,14 +6,13 @@ LOG = logging.getLogger(__name__)
 
 class Shell(torch.nn.Module):
     def __init__(self, base_net, head_nets, *,
-                 process_input=None, process_heads=None, head_mask=None):
+                 process_input=None, process_heads=None):
         super().__init__()
 
         self.base_net = base_net
         self.head_nets = None
         self.process_input = process_input
         self.process_heads = process_heads
-        self.head_mask = head_mask
 
         self.set_head_nets(head_nets)
 
@@ -38,11 +37,7 @@ class Shell(torch.nn.Module):
             image_batch = self.process_input(image_batch)
 
         x = self.base_net(image_batch)
-        if self.head_mask is not None:
-            head_outputs = tuple(hn(x) if m else None
-                                 for hn, m in zip(self.head_nets, self.head_mask))
-        else:
-            head_outputs = tuple(hn(x) for hn in self.head_nets)
+        head_outputs = tuple(hn(x) for hn in self.head_nets)
 
         if self.process_heads is not None:
             head_outputs = self.process_heads(head_outputs)
