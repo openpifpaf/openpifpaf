@@ -192,7 +192,7 @@ jobs:
     - name: Test guide
       if: matrix.slow && matrix.os == 'ubuntu-latest'
       run: |
-        cd guide && pytest --nbval-lax --current-env *.ipynb && cd ..
+        cd guide && pytest -v -s --nbval-lax --current-env *.ipynb && cd ..
 
     - name: generate sdist
       run: python setup.py sdist
