@@ -24,10 +24,10 @@ jobs:
   #       include:
   #         - os: ubuntu-20.04
   #           linux_archs: "x86_64"
-  #           linux_torch_version: "torch==1.11.0+cpu -f https://download.pytorch.org/whl/torch_stable.html"
+  #           linux_torch_version: "torch==1.12.1+cpu -f https://download.pytorch.org/whl/torch_stable.html"
   #         - os: ubuntu-20.04
   #           linux_archs: "aarch64"
-  #           linux_torch_version: "torch==1.11.0 -f https://download.pytorch.org/whl/torch_stable.html"
+  #           linux_torch_version: "torch==1.12.1 -f https://download.pytorch.org/whl/torch_stable.html"
   #         - os: windows-latest
   #         - os: macos-11
   #           macos_archs: "x86_64"
