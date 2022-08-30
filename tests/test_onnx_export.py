@@ -15,6 +15,80 @@ except ImportError:
 
 
 @pytest.mark.skipif(onnxruntime is None, reason='onnxruntime unavailable')
+def test_onnx_exportable_dummy(tmpdir):
+    outfile = str(tmpdir.join('openpifpaf-dummy.onnx'))
+    assert not os.path.exists(outfile)
+
+    model = torch.nn.ReLU()
+    openpifpaf.export_onnx.apply(model, outfile, verbose=False,
+                                 skip_image_check=True, output_names=["dummy"])
+    assert os.path.exists(outfile)
+    openpifpaf.export_onnx.check(outfile)
+
+
+@pytest.mark.skipif(onnxruntime is None, reason='onnxruntime unavailable')
+def test_onnx_exportable_only_base(tmpdir):
+    outfile = str(tmpdir.join('openpifpaf-dummy.onnx'))
+    assert not os.path.exists(outfile)
+
+    datamodule = openpifpaf.datasets.factory('cocokp')
+    model, _ = openpifpaf.network.Factory(
+        base_name='shufflenetv2k16',
+    ).factory(head_metas=datamodule.head_metas)
+    openpifpaf.export_onnx.apply(model.base_net, outfile, verbose=False,
+                                 skip_image_check=True, output_names=["dummy"])
+    assert os.path.exists(outfile)
+    openpifpaf.export_onnx.check(outfile)
+
+
+@pytest.mark.skipif(onnxruntime is None, reason='onnxruntime unavailable')
+def test_onnx_exportable_cifdet(tmpdir):
+    outfile = str(tmpdir.join('openpifpaf-dummy.onnx'))
+    assert not os.path.exists(outfile)
+
+    datamodule = openpifpaf.datasets.factory('cocodet')
+    model, _ = openpifpaf.network.Factory(
+        base_name='shufflenetv2k16',
+    ).factory(head_metas=datamodule.head_metas)
+    openpifpaf.export_onnx.apply(model.base_net, outfile, verbose=False,
+                                 skip_image_check=True, output_names=["cifdet"])
+    assert os.path.exists(outfile)
+    openpifpaf.export_onnx.check(outfile)
+
+
+@pytest.mark.skipif(onnxruntime is None, reason='onnxruntime unavailable')
+def test_onnx_exportable_cif_only(tmpdir):
+    outfile = str(tmpdir.join('openpifpaf-shufflenetv2k16.onnx'))
+    assert not os.path.exists(outfile)
+
+    datamodule = openpifpaf.datasets.factory('cocokp')
+    model, _ = openpifpaf.network.Factory(
+        base_name='shufflenetv2k16',
+    ).factory(head_metas=datamodule.head_metas)
+    openpifpaf.export_onnx.apply(model.head_nets[0], outfile,
+                                 channels=1392, input_h=1, input_w=1, verbose=False,
+                                 skip_image_check=True, output_names=["cif"])
+    assert os.path.exists(outfile)
+    openpifpaf.export_onnx.check(outfile)
+
+
+@pytest.mark.skipif(onnxruntime is None, reason='onnxruntime unavailable')
+def test_onnx_exportable_caf_only(tmpdir):
+    outfile = str(tmpdir.join('openpifpaf-shufflenetv2k16.onnx'))
+    assert not os.path.exists(outfile)
+
+    datamodule = openpifpaf.datasets.factory('cocokp')
+    model, _ = openpifpaf.network.Factory(
+        base_name='shufflenetv2k16',
+    ).factory(head_metas=datamodule.head_metas)
+    openpifpaf.export_onnx.apply(model.head_nets[1], outfile,
+                                 channels=1392, input_h=1, input_w=1, verbose=False,
+                                 skip_image_check=True, output_names=["caf"])
+    assert os.path.exists(outfile)
+    openpifpaf.export_onnx.check(outfile)
+
+
+@pytest.mark.skipif(onnxruntime is None, reason='onnxruntime unavailable')
 def test_onnx_exportable(tmpdir):
     outfile = str(tmpdir.join('openpifpaf-shufflenetv2k16.onnx'))
     assert not os.path.exists(outfile)

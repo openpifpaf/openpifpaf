@@ -48,18 +48,22 @@ def image_size_warning(basenet_stride, input_w, input_h):
         )
 
 
-def apply(model, outfile, verbose=True, input_w=129, input_h=97):
-    image_size_warning(model.base_net.stride, input_w, input_h)
+def apply(model, outfile, verbose=True, input_w=129, input_h=97, channels=3, *,
+          output_names=None, skip_image_check=False):
+    if output_names is None:
+        output_names = ['cif', 'caf']
+    if not skip_image_check:
+        image_size_warning(model.base_net.stride, input_w, input_h)
 
     # configure
     openpifpaf.network.heads.CompositeField3.inplace_ops = False
     openpifpaf.network.heads.CompositeField4.inplace_ops = False
 
-    dummy_input = torch.randn(1, 3, input_h, input_w)
+    dummy_input = torch.randn(1, channels, input_h, input_w)
 
     torch.onnx.export(
         model, dummy_input, outfile, verbose=verbose,
-        input_names=['input_batch'], output_names=['cif', 'caf'],
+        input_names=['input_batch'], output_names=output_names,
         # keep_initializers_as_inputs=True,
         opset_version=11,
         do_constant_folding=True,
