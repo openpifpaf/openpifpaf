@@ -23,7 +23,8 @@ def count(model):
     if thop is None:
         raise Exception('thop not found. Run "pip3 install thop".')
     dummy_input = torch.randn(1, 3, 641, 641)
-    return thop.profile(model, inputs=(dummy_input, ))
+    gmacs, params = thop.profile(model, inputs=(dummy_input, ))  # pylint: disable=unbalanced-tuple-unpacking
+    return gmacs, params
 
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
