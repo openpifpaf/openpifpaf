@@ -1,6 +1,10 @@
 # History
 
-* [main](https://github.com/openpifpaf/openpifpaf/compare/v0.13.4...main)
+* [main](https://github.com/openpifpaf/openpifpaf/compare/v0.13.5...main)
+* [0.13.5](https://github.com/openpifpaf/openpifpaf/compare/v0.13.4...v0.13.5) (2022-08-30)
+    * PyTorch 1.12.1 and TorchVision 0.13.1
+    * factor out openpifpaf_extras
+    * versioneer 0.21 -> 0.23
 * [0.13.4](https://github.com/openpifpaf/openpifpaf/compare/v0.13.3...v0.13.4) (2022-06-01)
     * restrict protobuf version
     * compatibility for future PIL versions
