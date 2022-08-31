@@ -17,11 +17,10 @@ def model_migration(net_cpu):
         if not hasattr(m, '_non_persistent_buffers_set'):
             m._non_persistent_buffers_set = set()
 
-    for m in net_cpu.modules():
-        if m.__class__.__name__ != 'InvertedResidualK':
-            continue
-        if not hasattr(m, 'branch1'):
+        if m.__class__.__name__ == 'InvertedResidualK' and not hasattr(m, 'branch1'):
             m.branch1 = None
+        if m.__class__.__name__ == 'GELU' and not hasattr(m, 'approximate'):
+            m.approximate = 'none'
 
     if not hasattr(net_cpu, 'head_nets') and hasattr(net_cpu, '_head_nets'):
         net_cpu.head_nets = net_cpu._head_nets
