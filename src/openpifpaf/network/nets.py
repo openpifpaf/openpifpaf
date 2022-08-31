@@ -32,7 +32,7 @@ class Shell(torch.nn.Module):
 
         self.head_nets = head_nets
 
-    def forward(self, image_batch, *, head_mask=None):
+    def forward(self, image_batch, head_mask=None):
         if self.process_input is not None:
             image_batch = self.process_input(image_batch)
 
