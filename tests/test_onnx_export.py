@@ -15,7 +15,7 @@ except ImportError:
 
 
 @pytest.mark.skipif(onnxruntime is None, reason='onnxruntime unavailable')
-def test_onnx_exportable_dummy(tmpdir):
+def test_dummy(tmpdir):
     outfile = str(tmpdir.join('openpifpaf-dummy.onnx'))
     assert not os.path.exists(outfile)
 
@@ -27,7 +27,7 @@ def test_onnx_exportable_dummy(tmpdir):
 
 
 @pytest.mark.skipif(onnxruntime is None, reason='onnxruntime unavailable')
-def test_onnx_exportable_only_base(tmpdir):
+def test_only_base(tmpdir):
     outfile = str(tmpdir.join('openpifpaf-dummy.onnx'))
     assert not os.path.exists(outfile)
 
@@ -42,7 +42,7 @@ def test_onnx_exportable_only_base(tmpdir):
 
 
 @pytest.mark.skipif(onnxruntime is None, reason='onnxruntime unavailable')
-def test_onnx_exportable_cifdet(tmpdir):
+def test_cifdet(tmpdir):
     outfile = str(tmpdir.join('openpifpaf-dummy.onnx'))
     assert not os.path.exists(outfile)
 
@@ -57,7 +57,7 @@ def test_onnx_exportable_cifdet(tmpdir):
 
 
 @pytest.mark.skipif(onnxruntime is None, reason='onnxruntime unavailable')
-def test_onnx_exportable_cif_only(tmpdir):
+def test_cif_only(tmpdir):
     outfile = str(tmpdir.join('openpifpaf-shufflenetv2k16.onnx'))
     assert not os.path.exists(outfile)
 
@@ -73,7 +73,7 @@ def test_onnx_exportable_cif_only(tmpdir):
 
 
 @pytest.mark.skipif(onnxruntime is None, reason='onnxruntime unavailable')
-def test_onnx_exportable_caf_only(tmpdir):
+def test_caf_only(tmpdir):
     outfile = str(tmpdir.join('openpifpaf-shufflenetv2k16.onnx'))
     assert not os.path.exists(outfile)
 
@@ -89,7 +89,7 @@ def test_onnx_exportable_caf_only(tmpdir):
 
 
 @pytest.mark.skipif(onnxruntime is None, reason='onnxruntime unavailable')
-def test_onnx_exportable(tmpdir):
+def test_shufflenetv2k16(tmpdir):
     outfile = str(tmpdir.join('openpifpaf-shufflenetv2k16.onnx'))
     assert not os.path.exists(outfile)
 
