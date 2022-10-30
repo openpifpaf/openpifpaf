@@ -1,6 +1,8 @@
 # History
 
-* [main](https://github.com/openpifpaf/openpifpaf/compare/v0.13.6...main)
+* [main](https://github.com/openpifpaf/openpifpaf/compare/v0.13.7...main)
+* [0.13.7](https://github.com/openpifpaf/openpifpaf/compare/v0.13.6...v0.13.7) (2022-11-02)
+    * PyTorch 1.13.0 and TorchVision 0.14.0
 * [0.13.6](https://github.com/openpifpaf/openpifpaf/compare/v0.13.5...v0.13.6) (2022-11-02)
     * compatibility fixes (Pillow, pycocotools)
     * CI: new scheduled tests
