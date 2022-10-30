@@ -106,7 +106,7 @@ class CocoDataset(torch.utils.data.Dataset):
         anns = self.coco.loadAnns(ann_ids)
         anns = copy.deepcopy(anns)
 
-        image_info = self.coco.loadImgs(image_id)[0]
+        image_info = self.coco.loadImgs([image_id])[0]
         LOG.debug(image_info)
         local_file_path = os.path.join(self.image_dir, image_info['file_name'])
         with open(local_file_path, 'rb') as f:

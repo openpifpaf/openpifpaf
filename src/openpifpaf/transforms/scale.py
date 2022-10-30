@@ -18,6 +18,10 @@ try:
 except ImportError:
     scipy = None  # pylint: disable=invalid-name
 
+# For Pillow<9 compatibility
+if not hasattr(PIL.Image, "Resampling"):
+    PIL.Image.Resampling = PIL.Image
+
 LOG = logging.getLogger(__name__)
 
 

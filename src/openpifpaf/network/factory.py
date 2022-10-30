@@ -15,6 +15,7 @@ from .tracking_base import TrackingBase
 
 # monkey patch torchvision for mobilenetv2 checkpoint backwards compatibility
 if hasattr(torchvision.models, 'mobilenetv2') \
+   and hasattr(torchvision.models.mobilenetv2, 'ConvBNReLU') \
    and not hasattr(torchvision.models.mobilenet, 'ConvBNReLU'):
     torchvision.models.mobilenet.ConvBNReLU = torchvision.models.mobilenetv2.ConvBNReLU
     torchvision.models.mobilenet.InvertedResidual = torchvision.models.mobilenetv2.InvertedResidual
