@@ -59,7 +59,10 @@ def cli():
                         help='disable CUDA')
     parser.add_argument('--ddp', default=False, action='store_true',
                         help='[experimental] DistributedDataParallel')
-    parser.add_argument('--local_rank', default=None, type=int,
+    default_local_rank = os.environ.get('LOCAL_RANK')
+    if default_local_rank is not None:
+        default_local_rank = int(default_local_rank)
+    parser.add_argument('--local_rank', default=default_local_rank, type=int,
                         help='[experimental] for torch.distributed.launch')
     parser.add_argument('--no-sync-batchnorm', dest='sync_batchnorm',
                         default=True, action='store_false',

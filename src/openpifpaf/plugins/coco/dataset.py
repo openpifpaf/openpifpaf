@@ -102,12 +102,13 @@ class CocoDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, index):
         image_id = self.ids[index]
-        ann_ids = self.coco.getAnnIds(imgIds=image_id, catIds=self.category_ids)
+        ann_ids = self.coco.getAnnIds(imgIds=[image_id], catIds=self.category_ids)
         anns = self.coco.loadAnns(ann_ids)
         anns = copy.deepcopy(anns)
+        LOG.debug('image %s with %d annotations', image_id, len(anns))
 
         image_info = self.coco.loadImgs([image_id])[0]
-        LOG.debug(image_info)
+        LOG.debug('image %s info: %s', image_id, image_info)
         local_file_path = os.path.join(self.image_dir, image_info['file_name'])
         with open(local_file_path, 'rb') as f:
             image = Image.open(f).convert('RGB')
