@@ -72,11 +72,11 @@ jobs:
     steps:
     - run: ls -n /Applications/ | grep Xcode*
       if: matrix.os == 'macos-11'
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 0
     - name: Cache checkpoints and data
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: |
           ~/.cache
@@ -84,7 +84,7 @@ jobs:
         key: ${{ runner.os }}-${{ hashFiles('setup.py') }}
     - name: Set up Python ${{ matrix.python }}
       if: ${{ !matrix.conda }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python }}
     - name: Set up Conda
