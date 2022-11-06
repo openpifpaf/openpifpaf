@@ -27,7 +27,10 @@ def apply(model, outfile, *, input_w=129, input_h=97, minimum_deployment_target=
     openpifpaf.network.heads.CompositeField4.inplace_ops = False
 
     dummy_input = torch.randn(1, 3, input_h, input_w)
-    with torch.no_grad():
+    with torch.inference_mode():
+        # initialize
+        model(dummy_input)
+
         traced_model = torch.jit.trace(model, dummy_input)
 
     coreml_model = coremltools.convert(

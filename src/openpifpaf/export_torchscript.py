@@ -51,6 +51,10 @@ def apply(model, outfile, *, input_w=129, input_h=97):
     openpifpaf.network.heads.CompositeField4.inplace_ops = False
 
     dummy_input = torch.randn(1, 3, input_h, input_w)
+    with torch.inference_mode():
+        # initialize cached states
+        model(dummy_input)
+
     with torch.no_grad():
         traced_encoder = torch.jit.trace(model, dummy_input)
     decoder = DecoderModule(model.head_metas[0], model.head_metas[1])

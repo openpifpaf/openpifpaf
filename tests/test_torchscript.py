@@ -17,9 +17,13 @@ def test_torchscript_script():
         base_name='shufflenetv2k16',
     ).factory(head_metas=datamodule.head_metas)
     with torch.inference_mode():
+        # initialize
+        model(torch.empty((1, 3, 81, 97)))
+
         torch.jit.script(model)
 
 
+@pytest.mark.xfail
 def test_torchscript_script_head():
     openpifpaf.network.heads.CompositeField3.inplace_ops = False
     openpifpaf.network.heads.CompositeField4.inplace_ops = False
@@ -28,11 +32,14 @@ def test_torchscript_script_head():
     model, _ = openpifpaf.network.Factory(
         base_name='shufflenetv2k16',
     ).factory(head_metas=datamodule.head_metas)
+
     with torch.inference_mode():
+        # initialize
+        model(torch.empty((1, 3, 81, 97)))
+
         torch.jit.script(model.head_nets[0])
 
 
-@pytest.mark.xfail
 def test_torchscript_trace():
     openpifpaf.network.heads.CompositeField3.inplace_ops = False
     openpifpaf.network.heads.CompositeField4.inplace_ops = False

@@ -4,6 +4,7 @@ import argparse
 import functools
 import logging
 import math
+import typing as t
 
 import torch
 
@@ -12,8 +13,10 @@ from .. import headmeta
 LOG = logging.getLogger(__name__)
 
 
-@functools.lru_cache(maxsize=16)
-def index_field_torch(shape, *, device=None, unsqueeze=(0, 0)):
+@functools.lru_cache(16)
+def index_field_torch(shape: t.Tuple[int, int],
+                      device: torch.device,
+                      unsqueeze: t.Tuple[int, int] = (0, 0)) -> torch.Tensor:
     assert len(shape) == 2
     xy = torch.empty((2, shape[0], shape[1]), device=device)
     xy[0] = torch.arange(shape[1], device=device)
@@ -268,7 +271,6 @@ class CompositeField3(HeadNetwork):
 
 class CompositeField4(HeadNetwork):
     dropout_p = 0.0
-    inplace_ops = True
 
     def __init__(self,
                  meta: headmeta.Base,
@@ -290,6 +292,17 @@ class CompositeField4(HeadNetwork):
             kernel_size, padding=padding, dilation=dilation,
         )
 
+        # direct access (in PyTorch 1.13, the tracer cannot handle retrieving
+        # ints from a dataclass in the forward() method)
+        self.n_fields = meta.n_fields
+        self.n_confidences = meta.n_confidences
+        self.n_vectors = meta.n_vectors
+        self.n_scales = meta.n_scales
+        self.vector_offsets = meta.vector_offsets
+        self.upsample_stride = meta.upsample_stride
+
+        # self._index_field: t.Optional[torch.Tensor] = None  # cache index field
+
         # upsample
         assert meta.upsample_stride >= 1
         self.upsample_op = None
@@ -301,28 +314,28 @@ class CompositeField4(HeadNetwork):
         group = parser.add_argument_group('CompositeField4')
         group.add_argument('--cf4-dropout', default=cls.dropout_p, type=float,
                            help='[experimental] zeroing probability of feature in head input')
-        assert cls.inplace_ops
-        group.add_argument('--cf4-no-inplace-ops', dest='cf4_inplace_ops',
-                           default=True, action='store_false',
-                           help='alternative graph without inplace ops')
+        # assert cls.inplace_ops
+        # group.add_argument('--cf4-no-inplace-ops', dest='cf4_inplace_ops',
+        #                    default=True, action='store_false',
+        #                    help='alternative graph without inplace ops')
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
         cls.dropout_p = args.cf4_dropout
-        cls.inplace_ops = args.cf4_inplace_ops
+        # cls.inplace_ops = args.cf4_inplace_ops
 
     @property
     def sparse_task_parameters(self):
         return [self.conv.weight]
 
-    def forward(self, x):  # pylint: disable=arguments-differ
+    def forward(self, x: torch.Tensor) -> torch.Tensor:  # pylint: disable=arguments-differ
         x = self.dropout(x)
         x = self.conv(x)
         # upscale
         if self.upsample_op is not None:
             x = self.upsample_op(x)
-            low_cut = (self.meta.upsample_stride - 1) // 2
-            high_cut = math.ceil((self.meta.upsample_stride - 1) / 2.0)
+            low_cut = (self.upsample_stride - 1) // 2
+            high_cut = math.ceil((self.upsample_stride - 1) / 2.0)
             if self.training:
                 # negative axes not supported by ONNX TensorRT
                 x = x[:, :, low_cut:-high_cut, low_cut:-high_cut]
@@ -334,37 +347,37 @@ class CompositeField4(HeadNetwork):
         # Convert to int so that shape is constant in ONNX export.
         x_size = x.size()
         batch_size = x_size[0]
-        feature_height = int(x_size[2])
-        feature_width = int(x_size[3])
+        feature_height = x_size[2]
+        feature_width = x_size[3]
 
         x = x.view(
             batch_size,
-            self.meta.n_fields,
+            self.n_fields,
             self.n_components,
             feature_height,
             feature_width
         )
 
-        if not self.training and self.inplace_ops:
+        if not self.training and not (torch.jit.is_scripting() or torch.jit.is_tracing()):
             # classification
-            classes_x = x[:, :, 1:1 + self.meta.n_confidences]
+            classes_x = x[:, :, 1:1 + self.n_confidences]
             torch.sigmoid_(classes_x)
 
             # regressions x: add index
-            if self.meta.n_vectors > 0:
+            if self.n_vectors > 0:
                 index_field = index_field_torch((feature_height, feature_width), device=x.device)
-                first_reg_feature = 1 + self.meta.n_confidences
-                for i, do_offset in enumerate(self.meta.vector_offsets):
+                first_reg_feature = 1 + self.n_confidences
+                for i, do_offset in enumerate(self.vector_offsets):
                     if not do_offset:
                         continue
                     reg_x = x[:, :, first_reg_feature + i * 2:first_reg_feature + (i + 1) * 2]
                     reg_x.add_(index_field)
 
             # scale
-            first_scale_feature = 1 + self.meta.n_confidences + self.meta.n_vectors * 2
-            scales_x = x[:, :, first_scale_feature:first_scale_feature + self.meta.n_scales]
+            first_scale_feature = 1 + self.n_confidences + self.n_vectors * 2
+            scales_x = x[:, :, first_scale_feature:first_scale_feature + self.n_scales]
             scales_x[:] = torch.nn.functional.softplus(scales_x)
-        elif not self.training and not self.inplace_ops:
+        elif not self.training and (torch.jit.is_scripting() or torch.jit.is_tracing()):
             # TODO: CoreMLv4 does not like strided slices.
             # Strides are avoided when switching the first and second dim
             # temporarily.
@@ -374,14 +387,14 @@ class CompositeField4(HeadNetwork):
             width_x = x[:, 0:1]
 
             # classification
-            classes_x = x[:, 1:1 + self.meta.n_confidences]
+            classes_x = x[:, 1:1 + self.n_confidences]
             classes_x = torch.sigmoid(classes_x)
 
             # regressions x
-            first_reg_feature = 1 + self.meta.n_confidences
+            first_reg_feature = 1 + self.n_confidences
             regs_x = [
                 x[:, first_reg_feature + i * 2:first_reg_feature + (i + 1) * 2]
-                for i in range(self.meta.n_vectors)
+                for i in range(self.n_vectors)
             ]
             # regressions x: add index
             index_field = index_field_torch(
@@ -389,15 +402,15 @@ class CompositeField4(HeadNetwork):
             # TODO: coreml export does not work with the index_field creation in the graph.
             index_field = torch.from_numpy(index_field.numpy())
             regs_x = [reg_x + index_field if do_offset else reg_x
-                      for reg_x, do_offset in zip(regs_x, self.meta.vector_offsets)]
+                      for reg_x, do_offset in zip(regs_x, self.vector_offsets)]
 
             # scale
-            first_scale_feature = 1 + self.meta.n_confidences + self.meta.n_vectors * 2
-            scales_x = x[:, first_scale_feature:first_scale_feature + self.meta.n_scales]
+            first_scale_feature = 1 + self.n_confidences + self.n_vectors * 2
+            scales_x = x[:, first_scale_feature:first_scale_feature + self.n_scales]
             scales_x = torch.nn.functional.softplus(scales_x)
 
             # concat
-            x = torch.cat([width_x, classes_x, *regs_x, scales_x], dim=1)
+            x = torch.cat([width_x, classes_x] + regs_x + [scales_x], dim=1)
 
             # TODO: CoreMLv4 problem (see above).
             x = torch.transpose(x, 1, 2)
