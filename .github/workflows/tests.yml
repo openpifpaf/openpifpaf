@@ -112,7 +112,7 @@ jobs:
       if: matrix.slow
       run: python -m pip install -e ".[extras,train]" --no-build-isolation
     - name: Install ffmpeg for Guide test
-      uses: FedericoCarboni/setup-ffmpeg@v1
+      uses: FedericoCarboni/setup-ffmpeg@v2
       if: matrix.slow
       id: setup-ffmpeg
     - name: ffmpeg codecs
