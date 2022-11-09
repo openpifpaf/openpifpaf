@@ -43,7 +43,7 @@ class Cif(Base):
     n_vectors: ClassVar[int] = 1
     n_scales: ClassVar[int] = 1
 
-    vector_offsets = [True]
+    vector_offsets = (True,)
     decoder_min_scale = 0.0
     decoder_seed_mask: List[int] = None
 
@@ -70,7 +70,7 @@ class Caf(Base):
     n_vectors: ClassVar[int] = 2
     n_scales: ClassVar[int] = 2
 
-    vector_offsets = [True, True]
+    vector_offsets = (True, True)
     decoder_min_distance = 0.0
     decoder_max_distance = float('inf')
     decoder_confidence_scales: List[float] = None
@@ -118,7 +118,7 @@ class CifDet(Base):
     n_vectors: ClassVar[int] = 2
     n_scales: ClassVar[int] = 0
 
-    vector_offsets = [True, False]
+    vector_offsets = (True, False)
     decoder_min_scale = 0.0
 
     training_weights: List[float] = None
@@ -158,7 +158,7 @@ class Tcaf(Base):
 
     training_weights: List[float] = None
 
-    vector_offsets = [True, True]
+    vector_offsets = (True, True)
 
     def __post_init__(self):
         if self.keypoints is None:

@@ -314,15 +314,10 @@ class CompositeField4(HeadNetwork):
         group = parser.add_argument_group('CompositeField4')
         group.add_argument('--cf4-dropout', default=cls.dropout_p, type=float,
                            help='[experimental] zeroing probability of feature in head input')
-        # assert cls.inplace_ops
-        # group.add_argument('--cf4-no-inplace-ops', dest='cf4_inplace_ops',
-        #                    default=True, action='store_false',
-        #                    help='alternative graph without inplace ops')
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
         cls.dropout_p = args.cf4_dropout
-        # cls.inplace_ops = args.cf4_inplace_ops
 
     @property
     def sparse_task_parameters(self):

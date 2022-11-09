@@ -9,9 +9,6 @@ import openpifpaf.export_torchscript
 
 @pytest.mark.xfail
 def test_torchscript_script():
-    openpifpaf.network.heads.CompositeField3.inplace_ops = False
-    openpifpaf.network.heads.CompositeField4.inplace_ops = False
-
     datamodule = openpifpaf.datasets.factory('cocokp')
     model, _ = openpifpaf.network.Factory(
         base_name='shufflenetv2k16',
@@ -25,9 +22,6 @@ def test_torchscript_script():
 
 @pytest.mark.xfail
 def test_torchscript_script_head():
-    openpifpaf.network.heads.CompositeField3.inplace_ops = False
-    openpifpaf.network.heads.CompositeField4.inplace_ops = False
-
     datamodule = openpifpaf.datasets.factory('cocokp')
     model, _ = openpifpaf.network.Factory(
         base_name='shufflenetv2k16',
@@ -41,9 +35,6 @@ def test_torchscript_script_head():
 
 
 def test_torchscript_trace():
-    openpifpaf.network.heads.CompositeField3.inplace_ops = False
-    openpifpaf.network.heads.CompositeField4.inplace_ops = False
-
     datamodule = openpifpaf.datasets.factory('cocokp')
     model, _ = openpifpaf.network.Factory(
         base_name='shufflenetv2k16',
@@ -53,9 +44,6 @@ def test_torchscript_trace():
 
 
 def test_torchscript_trace_backbone():
-    openpifpaf.network.heads.CompositeField3.inplace_ops = False
-    openpifpaf.network.heads.CompositeField4.inplace_ops = False
-
     datamodule = openpifpaf.datasets.factory('cocokp')
     model, _ = openpifpaf.network.Factory(
         base_name='shufflenetv2k16',
