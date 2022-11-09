@@ -17,6 +17,9 @@ from .constants import (
 
 
 class Posetrack2017(openpifpaf.datasets.DataModule):
+    debug = False
+    pin_memory = False
+
     # cli configurable
     train_annotations = 'data-posetrack2017/annotations/train/*.json'
     val_annotations = 'data-posetrack2017/annotations/val/*.json'

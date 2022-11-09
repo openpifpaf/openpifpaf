@@ -1,9 +1,11 @@
 import copy
 import math
 import logging
+import typing as t
 
 import torch
 import torchvision
+import torchvision.transforms.functional
 
 from .preprocess import Preprocess
 
@@ -13,10 +15,10 @@ LOG = logging.getLogger(__name__)
 class CenterPad(Preprocess):
     """Pad to a square of given size."""
 
-    def __init__(self, target_size: int):
+    def __init__(self, target_size: t.Union[int, t.Tuple[int, int]]):
         if isinstance(target_size, int):
             target_size = (target_size, target_size)
-        self.target_size = target_size
+        self.target_size: t.Tuple[int, int] = target_size
 
     def __call__(self, image, anns, meta):
         meta = copy.deepcopy(meta)
@@ -91,12 +93,12 @@ class CenterPadTight(Preprocess):
         bottom = target_height - h - top
         right = max(0, right)
         bottom = max(0, bottom)
-        ltrb = (left, top, right, bottom)
+        ltrb = [left, top, right, bottom]
         LOG.debug('pad with %s', ltrb)
 
         # pad image
         image = torchvision.transforms.functional.pad(
-            image, ltrb, fill=(124, 116, 104))
+            image, ltrb, fill=(124, 116, 104))  # type: ignore
 
         # pad annotations
         for ann in anns:

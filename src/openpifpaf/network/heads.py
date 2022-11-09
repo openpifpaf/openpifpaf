@@ -298,7 +298,7 @@ class CompositeField4(HeadNetwork):
         self.n_confidences = meta.n_confidences
         self.n_vectors = meta.n_vectors
         self.n_scales = meta.n_scales
-        self.vector_offsets = meta.vector_offsets
+        self.vector_offsets = tuple(meta.vector_offsets)
         self.upsample_stride = meta.upsample_stride
 
         # self._index_field: t.Optional[torch.Tensor] = None  # cache index field

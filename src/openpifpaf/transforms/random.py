@@ -1,6 +1,6 @@
 import itertools
 import logging
-from typing import List
+from typing import List, Optional
 
 import torch
 
@@ -27,7 +27,7 @@ class RandomApply(Preprocess):
 
 class RandomChoice(Preprocess):
     """Choose a single random transform."""
-    def __init__(self, transforms: List[Preprocess], probabilities: List[float]):
+    def __init__(self, transforms: List[Optional[Preprocess]], probabilities: List[float]):
         if sum(probabilities) < 1.0 and len(transforms) == len(probabilities):
             transforms.append(None)
         self.transforms = transforms

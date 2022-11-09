@@ -1,5 +1,6 @@
 import argparse
 import logging
+from typing import Callable
 
 import torch
 
@@ -12,7 +13,7 @@ class CompositeLossByComponent(torch.nn.Module):
     """Default loss until v0.12"""
 
     prescale = 1.0
-    regression_loss = components.Laplace()
+    regression_loss: Callable = components.Laplace()
     bce_total_soft_clamp = None
 
     def __init__(self, head_meta):
@@ -61,7 +62,7 @@ class CompositeLossByComponent(torch.nn.Module):
         if args.regression_loss == 'smoothl1':
             cls.regression_loss = components.SmoothL1()
         elif args.regression_loss == 'l1':
-            cls.regression_loss = staticmethod(components.l1_loss)
+            cls.regression_loss = staticmethod(components.l1_loss)  # type: ignore
         elif args.regression_loss == 'laplace':
             cls.regression_loss = components.Laplace()
         elif args.regression_loss is None:

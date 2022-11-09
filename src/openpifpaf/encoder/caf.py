@@ -1,6 +1,6 @@
 import dataclasses
 import logging
-from typing import ClassVar, List, Tuple
+from typing import ClassVar, List, Optional, Tuple
 
 import numpy as np
 import torch
@@ -16,11 +16,11 @@ LOG = logging.getLogger(__name__)
 @dataclasses.dataclass
 class Caf:
     meta: headmeta.Caf
-    rescaler: AnnRescaler = None
+    rescaler: Optional[AnnRescaler] = None
     v_threshold: int = 0
     bmin: float = 0.1  #: in pixels
-    visualizer: CafVisualizer = None
-    fill_plan: List[Tuple[int, int, int]] = None
+    visualizer: Optional[CafVisualizer] = None
+    fill_plan: Optional[List[Tuple[int, int, int]]] = None
 
     min_size: ClassVar[int] = 3
     fixed_size: ClassVar[bool] = False
@@ -91,7 +91,7 @@ class AssociationFiller:
             bg_mask.shape[1] + 2 * self.config.padding,
         )
         valid_area = self.rescaler.valid_area(meta)
-        LOG.debug('valid area: %s', valid_area)
+        LOG.debug('valid area: %s', valid_area)
 
         self.init_fields(bg_mask)
         self.fields_reg_l = np.full(self.field_shape, np.inf, dtype=np.float32)

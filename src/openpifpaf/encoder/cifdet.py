@@ -1,6 +1,6 @@
 import dataclasses
 import logging
-from typing import ClassVar
+from typing import ClassVar, Optional
 
 import numpy as np
 import torch
@@ -16,10 +16,10 @@ LOG = logging.getLogger(__name__)
 @dataclasses.dataclass
 class CifDet:
     meta: headmeta.CifDet
-    rescaler: AnnRescalerDet = None
+    rescaler: Optional[AnnRescalerDet] = None
     v_threshold: int = 0
     bmin: float = 1.0  #: in pixels
-    visualizer: CifDetVisualizer = None
+    visualizer: Optional[CifDetVisualizer] = None
 
     side_length: ClassVar[int] = 5
     padding: ClassVar[int] = 10
@@ -53,7 +53,7 @@ class CifDetGenerator():
         bg_mask = self.rescaler.bg_mask(anns, width_height_original,
                                         crowd_margin=(self.config.side_length - 1) / 2)
         valid_area = self.rescaler.valid_area(meta)
-        LOG.debug('valid area: %s, pif side length = %d', valid_area, self.config.side_length)
+        LOG.debug('valid area: %s, pif side length = %d', valid_area, self.config.side_length)
 
         n_fields = len(self.config.meta.categories)
         self.init_fields(n_fields, bg_mask)

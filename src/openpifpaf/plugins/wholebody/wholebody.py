@@ -21,7 +21,7 @@ from .constants import (
 try:
     import pycocotools.coco
     # monkey patch for Python 3 compat
-    pycocotools.coco.unicode = str
+    pycocotools.coco.unicode = str  # type: ignore
 except ImportError:
     pass
 
@@ -29,13 +29,18 @@ except ImportError:
 class Wholebody(openpifpaf.datasets.DataModule):
     # Coco wholebody has no test dataset
 
+    debug = False
+    pin_memory = False
+
     # cli configurable
     train_annotations = ('data-mscoco/annotations/'
                          'person_keypoints_train2017_wholebody_pifpaf_style.json')
     val_annotations = ('data-mscoco/annotations/'
                        'coco_wholebody_val_v1.0.json')
+    eval_annotations = val_annotations
     train_image_dir = 'data-mscoco/images/train2017/'
     val_image_dir = 'data-mscoco/images/val2017'
+    eval_image_dir = val_image_dir
 
     square_edge = 385
     extended_scale = False

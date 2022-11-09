@@ -1,12 +1,12 @@
 import argparse
 import logging
-from typing import List
+from typing import List, Optional
 
-import torch
+import torch.utils.data
 
 from .. import headmeta, metric
 
-LOG = logging.getLogger(__name__)
+LOG: logging.Logger = logging.getLogger(__name__)
 
 
 class DataModule:
@@ -39,7 +39,7 @@ class DataModule:
     #: might be different for different data module instances.
     #: When loading a checkpoint, entries in this list will be matched by
     #: name and dataset to entries in the checkpoint and overwritten here.
-    head_metas: List[headmeta.Base] = None
+    head_metas: Optional[List[headmeta.Base]] = None
 
     @classmethod
     def set_loader_workers(cls, value):
@@ -117,7 +117,7 @@ class DataModule:
         raise NotImplementedError
 
     @staticmethod
-    def distributed_sampler(loader: torch.utils.data.DataLoader):
+    def distributed_sampler(loader: torch.utils.data.DataLoader) -> torch.utils.data.DataLoader:
         LOG.info('Replacing sampler of %s with DistributedSampler.', loader)
         distributed_sampler = torch.utils.data.DistributedSampler(
             loader.dataset, shuffle=True, drop_last=True)

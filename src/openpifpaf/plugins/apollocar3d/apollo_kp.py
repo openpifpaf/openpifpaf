@@ -6,28 +6,31 @@ This class gives you all the handles so that you can train with a new –dataset
 The particular configuration of keypoints and skeleton is specified in the headmeta instances
 """
 
-
 import argparse
+from typing import List, Optional, Tuple
+
 import torch
+import torch.utils.data
 import numpy as np
 try:
     from pycocotools.coco import COCO
 except ImportError:
     COCO = None
 
-from openpifpaf.datasets import DataModule
-from openpifpaf import encoder, headmeta, metric, transforms
-from openpifpaf.datasets import collate_images_anns_meta, collate_images_targets_meta
-from openpifpaf.plugins.coco import CocoDataset as CocoLoader
+import openpifpaf
+import openpifpaf.transforms
 
 from .constants import get_constants, training_weights_local_centrality
 from .metrics import MeanPixelError
+from ..coco.dataset import CocoDataset
 
 
-class ApolloKp(DataModule):
+class ApolloKp(openpifpaf.datasets.DataModule):
     """
     DataModule for the Apollocar3d Dataset.
     """
+    debug = False
+    pin_memory = False
 
     train_annotations = 'data-apollocar3d/annotations/apollo_keypoints_66_train.json'
     val_annotations = 'data-apollocar3d/annotations/apollo_keypoints_66_val.json'
@@ -52,30 +55,46 @@ class ApolloKp(DataModule):
     eval_orientation_invariant = 0.0
     eval_extended_scale = False
 
+    # car-specific configuration
+    hflip = None
+    weights: Optional[List[float]] = None
+    car_categories = None
+    car_keypoints = None
+    car_skeleton: Optional[List[Tuple[int, int]]] = None
+    car_sigmas = None
+    car_pose = None
+    car_score_weights = None
+
     def __init__(self):
         super().__init__()
+
+        assert self.car_keypoints is not None
+        assert self.car_sigmas is not None
+        assert self.car_skeleton is not None
+
         if self.weights is not None:
             caf_weights = []
-            for bone in self.CAR_SKELETON:
-                caf_weights.append(max(self.weights[bone[0] - 1],
-                                       self.weights[bone[1] - 1]))
+            for bone1, bone2 in self.car_skeleton:  # pylint: disable=not-an-iterable
+                caf_weights.append(max(self.weights[bone1 - 1],
+                                       self.weights[bone2 - 1]))
             w_np = np.array(caf_weights)
             caf_weights = list(w_np / np.sum(w_np) * len(caf_weights))
         else:
             caf_weights = None
-        cif = headmeta.Cif('cif', 'apollo',
-                           keypoints=self.CAR_KEYPOINTS,
-                           sigmas=self.CAR_SIGMAS,
-                           pose=self.CAR_POSE,
-                           draw_skeleton=self.CAR_SKELETON,
-                           score_weights=self.CAR_SCORE_WEIGHTS,
-                           training_weights=self.weights)
-        caf = headmeta.Caf('caf', 'apollo',
-                           keypoints=self.CAR_KEYPOINTS,
-                           sigmas=self.CAR_SIGMAS,
-                           pose=self.CAR_POSE,
-                           skeleton=self.CAR_SKELETON,
-                           training_weights=caf_weights)
+
+        cif = openpifpaf.headmeta.Cif('cif', 'apollo',
+                                      keypoints=self.car_keypoints,
+                                      sigmas=self.car_sigmas,
+                                      pose=self.car_pose,
+                                      draw_skeleton=self.car_skeleton,
+                                      score_weights=self.car_score_weights,
+                                      training_weights=self.weights)
+        caf = openpifpaf.headmeta.Caf('caf', 'apollo',
+                                      keypoints=self.car_keypoints,
+                                      sigmas=self.car_sigmas,
+                                      pose=self.car_pose,
+                                      skeleton=self.car_skeleton,
+                                      training_weights=caf_weights)
 
         cif.upsample_stride = self.upsample_stride
         caf.upsample_stride = self.upsample_stride
@@ -170,11 +189,11 @@ class ApolloKp(DataModule):
         cls.min_kp_anns = args.apollo_min_kp_anns
         cls.b_min = args.apollo_bmin
         if args.apollo_use_24_kps:
-            (cls.CAR_KEYPOINTS, cls.CAR_SKELETON, cls.HFLIP, cls.CAR_SIGMAS, cls.CAR_POSE,
-             cls.CAR_CATEGORIES, cls.CAR_SCORE_WEIGHTS) = get_constants(24)
+            (cls.car_keypoints, cls.car_skeleton, cls.hflip, cls.car_sigmas, cls.car_pose,
+             cls.car_categories, cls.car_score_weights) = get_constants(24)
         else:
-            (cls.CAR_KEYPOINTS, cls.CAR_SKELETON, cls.HFLIP, cls.CAR_SIGMAS, cls.CAR_POSE,
-             cls.CAR_CATEGORIES, cls.CAR_SCORE_WEIGHTS) = get_constants(66)
+            (cls.car_keypoints, cls.car_skeleton, cls.hflip, cls.car_sigmas, cls.car_pose,
+             cls.car_categories, cls.car_score_weights) = get_constants(66)
         # evaluation
         cls.eval_annotation_filter = args.apollo_eval_annotation_filter
         cls.eval_long_edge = args.apollo_eval_long_edge
@@ -188,49 +207,50 @@ class ApolloKp(DataModule):
             cls.weights = None
 
     def _preprocess(self):
-        encoders = (encoder.Cif(self.head_metas[0], bmin=self.b_min),
-                    encoder.Caf(self.head_metas[1], bmin=self.b_min))
+        encoders = (openpifpaf.encoder.Cif(self.head_metas[0], bmin=self.b_min),
+                    openpifpaf.encoder.Caf(self.head_metas[1], bmin=self.b_min))
 
         if not self.augmentation:
-            return transforms.Compose([
-                transforms.NormalizeAnnotations(),
-                transforms.RescaleAbsolute(self.square_edge),
-                transforms.CenterPad(self.square_edge),
-                transforms.EVAL_TRANSFORM,
-                transforms.Encoders(encoders),
+            return openpifpaf.transforms.Compose([
+                openpifpaf.transforms.NormalizeAnnotations(),
+                openpifpaf.transforms.RescaleAbsolute(self.square_edge),
+                openpifpaf.transforms.CenterPad(self.square_edge),
+                openpifpaf.transforms.EVAL_TRANSFORM,
+                openpifpaf.transforms.Encoders(encoders),
             ])
 
         if self.extended_scale:
-            rescale_t = transforms.RescaleRelative(
+            rescale_t = openpifpaf.transforms.RescaleRelative(
                 scale_range=(0.2 * self.rescale_images,
                              2.0 * self.rescale_images),
                 power_law=True, stretch_range=(0.75, 1.33))
         else:
-            rescale_t = transforms.RescaleRelative(
+            rescale_t = openpifpaf.transforms.RescaleRelative(
                 scale_range=(0.33 * self.rescale_images,
                              1.33 * self.rescale_images),
                 power_law=True, stretch_range=(0.75, 1.33))
 
-        return transforms.Compose([
-            transforms.NormalizeAnnotations(),
-            # transforms.AnnotationJitter(),
-            transforms.RandomApply(transforms.HFlip(self.CAR_KEYPOINTS, self.HFLIP), 0.5),
+        return openpifpaf.transforms.Compose([
+            openpifpaf.transforms.NormalizeAnnotations(),
+            # openpifpaf.transforms.AnnotationJitter(),
+            openpifpaf.transforms.RandomApply(
+                openpifpaf.transforms.HFlip(self.car_keypoints, self.hflip), 0.5),
             rescale_t,
-            transforms.RandomApply(transforms.Blur(), self.blur),
-            transforms.RandomChoice(
-                [transforms.RotateBy90(),
-                 transforms.RotateUniform(30.0)],
+            openpifpaf.transforms.RandomApply(openpifpaf.transforms.Blur(), self.blur),
+            openpifpaf.transforms.RandomChoice(
+                [openpifpaf.transforms.RotateBy90(),
+                 openpifpaf.transforms.RotateUniform(30.0)],
                 [self.orientation_invariant, 0.2],
             ),
-            transforms.Crop(self.square_edge, use_area_of_interest=True),
-            transforms.CenterPad(self.square_edge),
-            transforms.MinSize(min_side=32.0),
-            transforms.TRAIN_TRANSFORM,
-            transforms.Encoders(encoders),
+            openpifpaf.transforms.Crop(self.square_edge, use_area_of_interest=True),
+            openpifpaf.transforms.CenterPad(self.square_edge),
+            openpifpaf.transforms.MinSize(min_side=32.0),
+            openpifpaf.transforms.TRAIN_TRANSFORM,
+            openpifpaf.transforms.Encoders(encoders),
         ])
 
     def train_loader(self):
-        train_data = CocoLoader(
+        train_data = CocoDataset(
             image_dir=self.train_image_dir,
             ann_file=self.train_annotations,
             preprocess=self._preprocess(),
@@ -241,10 +261,10 @@ class ApolloKp(DataModule):
         return torch.utils.data.DataLoader(
             train_data, batch_size=self.batch_size, shuffle=not self.debug,
             pin_memory=self.pin_memory, num_workers=self.loader_workers, drop_last=True,
-            collate_fn=collate_images_targets_meta)
+            collate_fn=openpifpaf.datasets.collate_images_targets_meta)
 
     def val_loader(self):
-        val_data = CocoLoader(
+        val_data = CocoDataset(
             image_dir=self.val_image_dir,
             ann_file=self.val_annotations,
             preprocess=self._preprocess(),
@@ -255,7 +275,7 @@ class ApolloKp(DataModule):
         return torch.utils.data.DataLoader(
             val_data, batch_size=self.batch_size, shuffle=False,
             pin_memory=self.pin_memory, num_workers=self.loader_workers, drop_last=True,
-            collate_fn=collate_images_targets_meta)
+            collate_fn=openpifpaf.datasets.collate_images_targets_meta)
 
     @classmethod
     def common_eval_preprocess(cls):
@@ -263,52 +283,52 @@ class ApolloKp(DataModule):
         if cls.eval_extended_scale:
             assert cls.eval_long_edge
             rescale_t = [
-                transforms.DeterministicEqualChoice([
-                    transforms.RescaleAbsolute(cls.eval_long_edge),
-                    transforms.RescaleAbsolute((cls.eval_long_edge - 1) // 2 + 1),
+                openpifpaf.transforms.DeterministicEqualChoice([
+                    openpifpaf.transforms.RescaleAbsolute(cls.eval_long_edge),
+                    openpifpaf.transforms.RescaleAbsolute((cls.eval_long_edge - 1) // 2 + 1),
                 ], salt=1)
             ]
         elif cls.eval_long_edge:
-            rescale_t = transforms.RescaleAbsolute(cls.eval_long_edge)
+            rescale_t = openpifpaf.transforms.RescaleAbsolute(cls.eval_long_edge)
 
         if cls.batch_size == 1:
-            padding_t = transforms.CenterPadTight(16)
+            padding_t = openpifpaf.transforms.CenterPadTight(16)
         else:
             assert cls.eval_long_edge
-            padding_t = transforms.CenterPad(cls.eval_long_edge)
+            padding_t = openpifpaf.transforms.CenterPad(cls.eval_long_edge)
 
         orientation_t = None
         if cls.eval_orientation_invariant:
-            orientation_t = transforms.DeterministicEqualChoice([
+            orientation_t = openpifpaf.transforms.DeterministicEqualChoice([
                 None,
-                transforms.RotateBy90(fixed_angle=90),
-                transforms.RotateBy90(fixed_angle=180),
-                transforms.RotateBy90(fixed_angle=270),
+                openpifpaf.transforms.RotateBy90(fixed_angle=90),
+                openpifpaf.transforms.RotateBy90(fixed_angle=180),
+                openpifpaf.transforms.RotateBy90(fixed_angle=270),
             ], salt=3)
 
         return [
-            transforms.NormalizeAnnotations(),
+            openpifpaf.transforms.NormalizeAnnotations(),
             rescale_t,
             padding_t,
             orientation_t,
         ]
 
     def _eval_preprocess(self):
-        return transforms.Compose([
+        return openpifpaf.transforms.Compose([
             *self.common_eval_preprocess(),
-            transforms.ToAnnotations([
-                transforms.ToKpAnnotations(
-                    self.CAR_CATEGORIES,
+            openpifpaf.transforms.ToAnnotations([
+                openpifpaf.transforms.ToKpAnnotations(
+                    self.car_categories,
                     keypoints_by_category={1: self.head_metas[0].keypoints},
                     skeleton_by_category={1: self.head_metas[1].skeleton},
                 ),
-                transforms.ToCrowdAnnotations(self.CAR_CATEGORIES),
+                openpifpaf.transforms.ToCrowdAnnotations(self.car_categories),
             ]),
-            transforms.EVAL_TRANSFORM,
+            openpifpaf.transforms.EVAL_TRANSFORM,
         ])
 
     def eval_loader(self):
-        eval_data = CocoLoader(
+        eval_data = CocoDataset(
             image_dir=self.eval_image_dir,
             ann_file=self.eval_annotations,
             preprocess=self._eval_preprocess(),
@@ -319,14 +339,16 @@ class ApolloKp(DataModule):
         return torch.utils.data.DataLoader(
             eval_data, batch_size=self.batch_size, shuffle=False,
             pin_memory=self.pin_memory, num_workers=self.loader_workers, drop_last=False,
-            collate_fn=collate_images_anns_meta)
+            collate_fn=openpifpaf.datasets.collate_images_anns_meta)
 
-# TODO: make sure that 24kp flag is activated when evaluating a 24kp model
     def metrics(self):
-        return [metric.Coco(
+        # TODO: make sure that 24kp flag is activated when evaluating a 24kp model
+        if COCO is None:
+            return []
+        return [openpifpaf.metric.Coco(
             COCO(self.eval_annotations),
             max_per_image=20,
             category_ids=[1],
             iou_type='keypoints',
-            keypoint_oks_sigmas=self.CAR_SIGMAS
+            keypoint_oks_sigmas=self.car_sigmas,
         ), MeanPixelError()]

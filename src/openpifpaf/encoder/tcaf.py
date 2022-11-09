@@ -1,6 +1,6 @@
 import dataclasses
 import logging
-from typing import ClassVar, List, Tuple
+from typing import ClassVar, List, Optional, Tuple
 
 from .. import headmeta
 from .. import visualizer as visualizer_module
@@ -15,11 +15,11 @@ class Tcaf:
     """Tracking Composite Association Field."""
 
     meta: headmeta.Tcaf
-    rescaler: TrackingAnnRescaler = None
+    rescaler: Optional[TrackingAnnRescaler] = None
     v_threshold: int = 0
     bmin: float = 0.1
-    visualizer: visualizer_module.Tcaf = None
-    fill_plan: List[Tuple[int, int, int]] = None
+    visualizer: Optional[visualizer_module.Tcaf] = None
+    fill_plan: Optional[List[Tuple[int, int, int]]] = None
 
     min_size: ClassVar[int] = 3
     fixed_size: ClassVar[bool] = True

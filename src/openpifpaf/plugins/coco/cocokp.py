@@ -25,6 +25,9 @@ except ImportError:
 
 
 class CocoKp(openpifpaf.datasets.DataModule, openpifpaf.Configurable):
+    debug = False
+    pin_memory = False
+
     _test2017_annotations = 'data-mscoco/annotations/image_info_test2017.json'
     _testdev2017_annotations = 'data-mscoco/annotations/image_info_test-dev2017.json'
     _test2017_image_dir = 'data-mscoco/images/test2017/'
