@@ -17,6 +17,7 @@ dist/
 src/openpifpaf/functional.cpython-*
 src/openpifpaf/functional.html
 src/openpifpaf/functional.c
+.pyre/
 
 # guide
 guide/_build/
