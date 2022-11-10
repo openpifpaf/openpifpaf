@@ -141,6 +141,7 @@ def test_onnxruntime(tmpdir, test_batch_dim):
         base_name='shufflenetv2k16',
     ).factory(head_metas=datamodule.head_metas)
     print(model)
+    openpifpaf.plugins.coco.CocoKp.upsample_stride = 1  # reset
 
     # export to onnx file
     openpifpaf.export_onnx.apply(model, onnx_model_file, verbose=False)

@@ -28,6 +28,8 @@ class AnimalKp(DataModule):
     """
     Adapted from the standard CocoKp class to work as external plugin
     """
+    debug = False
+    pin_memory = False
 
     train_annotations = 'data-animalpose/annotations/animal_keypoints_20_train.json'
     val_annotations = 'data-animalpose/annotations/animal_keypoints_20_val.json'

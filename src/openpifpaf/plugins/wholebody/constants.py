@@ -355,7 +355,7 @@ righthand = [0.029, 0.022, 0.035, 0.037, 0.047, 0.026, 0.025,
              0.024, 0.035, 0.018, 0.024, 0.022, 0.026, 0.017,
              0.021, 0.021, 0.032, 0.02, 0.019, 0.022, 0.031]
 
-WHOLEBODY_SIGMAS = np.array(body + foot + face + lefthand + righthand)
+WHOLEBODY_SIGMAS = body + foot + face + lefthand + righthand
 
 WHOLEBODY_SCORE_WEIGHTS = [100.0] * 3 + [1.0] * (len(WHOLEBODY_KEYPOINTS) - 3)
 

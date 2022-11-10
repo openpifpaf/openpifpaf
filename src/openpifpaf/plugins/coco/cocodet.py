@@ -1,8 +1,10 @@
 import argparse
 
 import torch
+import torch.utils.data
 
 import openpifpaf
+import openpifpaf.transforms
 
 from .cocokp import CocoKp
 from .constants import (
@@ -15,12 +17,15 @@ from .dataset import CocoDataset
 try:
     import pycocotools.coco
     # monkey patch for Python 3 compat
-    pycocotools.coco.unicode = str
+    pycocotools.coco.unicode = str  # type: ignore
 except ImportError:
     pass
 
 
 class CocoDet(openpifpaf.datasets.DataModule):
+    debug = False
+    pin_memory = False
+
     # cli configurable
     train_annotations = 'data-mscoco/annotations/instances_train2017.json'
     val_annotations = 'data-mscoco/annotations/instances_val2017.json'

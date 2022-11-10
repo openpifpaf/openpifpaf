@@ -2,6 +2,7 @@ import numpy as np
 import torch
 
 import openpifpaf
+import openpifpaf.plugins
 
 
 def test_forward():
@@ -23,6 +24,7 @@ def test_forward_upsample():
     openpifpaf.network.basenetworks.Resnet.pretrained = False
     model, _ = openpifpaf.network.Factory(base_name='resnet18').factory(
         head_metas=datamodule.head_metas)
+    openpifpaf.plugins.coco.CocoKp.upsample_stride = 1  # reset
 
     dummy_image_batch = torch.zeros((1, 3, 241, 321))
     cif, caf = model(dummy_image_batch)

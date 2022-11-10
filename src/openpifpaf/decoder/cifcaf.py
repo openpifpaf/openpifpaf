@@ -33,7 +33,7 @@ class CifCafDense(Decoder):
         self.priority += dense_caf_meta.n_fields / 1000.0
 
         # overwrite confidence scale
-        self.dense_caf_meta.confidence_scales = [
+        self.dense_caf_meta.decoder_confidence_scales = [
             self.dense_coupling for _ in self.dense_caf_meta.skeleton
         ]
 
@@ -73,7 +73,7 @@ class CifCafDense(Decoder):
             torch.cat([
                 fields[self.caf_meta.head_index],
                 fields[self.dense_caf_meta.head_index],
-            ], axis=0)
+            ], dim=0)
         ]
         return self.cifcaf(cifcaf_fields)
 

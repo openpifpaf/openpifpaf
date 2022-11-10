@@ -25,6 +25,9 @@ class NuScenes(openpifpaf.datasets.DataModule):
     # MS COCO style annotations created with:
     # https://github.com/open-mmlab/mmdetection3d/blob/master/tools/
     # data_converter/nuimage_converter.py
+    debug = False
+    pin_memory = False
+
     train_annotations = '../../../NuScenes/mscoco_style_annotations/nuimages_v1.0-train.json'
     val_annotations = '../../../NuScenes/mscoco_style_annotations/nuimages_v1.0-val.json'
     eval_annotations = '../../../NuScenes/mscoco_style_annotations/nuimages_v1.0-test.json'

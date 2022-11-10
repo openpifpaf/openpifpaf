@@ -1,7 +1,7 @@
 import argparse
 import logging
 import os
-from typing import Tuple
+from typing import Callable, Dict, Set, Tuple, Type
 import warnings
 
 import torch
@@ -14,18 +14,22 @@ from .tracking_base import TrackingBase
 
 
 # monkey patch torchvision for mobilenetv2 checkpoint backwards compatibility
-if hasattr(torchvision.models, 'mobilenetv2') \
-   and hasattr(torchvision.models.mobilenetv2, 'ConvBNReLU') \
-   and not hasattr(torchvision.models.mobilenet, 'ConvBNReLU'):
-    torchvision.models.mobilenet.ConvBNReLU = torchvision.models.mobilenetv2.ConvBNReLU
-    torchvision.models.mobilenet.InvertedResidual = torchvision.models.mobilenetv2.InvertedResidual
+if (
+    hasattr(torchvision.models, 'mobilenetv2')
+    and hasattr(torchvision.models.mobilenetv2, 'ConvBNReLU')  # type: ignore
+    and not hasattr(torchvision.models.mobilenet, 'ConvBNReLU')
+):
+    torchvision.models.mobilenet.ConvBNReLU = (  # type: ignore
+        torchvision.models.mobilenetv2.ConvBNReLU)  # type: ignore
+    torchvision.models.mobilenet.InvertedResidual = (  # type: ignore
+        torchvision.models.mobilenetv2.InvertedResidual)  # type: ignore
 
 # monkey patch torchvision for mobilenetv3 checkpoint backwards compatibility
 if hasattr(torchvision.models, 'mobilenetv3') \
    and not hasattr(torchvision.ops.misc.SqueezeExcitation, 'avgpool'):
-    torchvision.ops.misc.SqueezeExcitation.avgpool = torch.nn.AdaptiveAvgPool2d(1)
-    torchvision.ops.misc.SqueezeExcitation.activation = torch.nn.ReLU()
-    torchvision.ops.misc.SqueezeExcitation.scale_activation = torch.nn.Hardsigmoid()
+    torchvision.ops.misc.SqueezeExcitation.avgpool = torch.nn.AdaptiveAvgPool2d(1)  # type: ignore
+    torchvision.ops.misc.SqueezeExcitation.activation = torch.nn.ReLU()  # type: ignore
+    torchvision.ops.misc.SqueezeExcitation.scale_activation = torch.nn.Hardsigmoid()  # type: ignore
 
 
 # generate hash values with: shasum -a 256 filename.pkl
@@ -36,15 +40,15 @@ PRETRAINED_UNAVAILABLE = object()
 # Use http instead of https to avoid SSL certificate issues on Windows.
 CHECKPOINT_URLS = {}
 
-BASE_TYPES = set([
+BASE_TYPES: Set[Type[basenetworks.BaseNetwork]] = {
     basenetworks.MobileNetV2,
     basenetworks.MobileNetV3,
     basenetworks.Resnet,
     basenetworks.ShuffleNetV2,
     basenetworks.ShuffleNetV2K,
     TrackingBase,
-])
-BASE_FACTORIES = {
+}
+BASE_FACTORIES: Dict[str, Callable[[], basenetworks.BaseNetwork]] = {
     'mobilenetv2': lambda: basenetworks.MobileNetV2('mobilenetv2', torchvision.models.mobilenet_v2),
     'mobilenetv3large': lambda: basenetworks.MobileNetV3(
         'mobilenetv3large', torchvision.models.mobilenet_v3_large),
@@ -79,7 +83,7 @@ BASE_FACTORIES['tshufflenetv2k30'] = lambda: TrackingBase(BASE_FACTORIES['shuffl
 BASE_FACTORIES['tresnet50'] = lambda: TrackingBase(BASE_FACTORIES['resnet50']())
 
 #: headmeta class to head class
-HEADS = {
+HEADS: Dict[Type[headmeta.Base], Type[heads.HeadNetwork]] = {
     headmeta.Cif: heads.CompositeField4,
     headmeta.Caf: heads.CompositeField4,
     headmeta.CifDet: heads.CompositeField4,

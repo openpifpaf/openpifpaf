@@ -84,8 +84,8 @@ setuptools.setup(
         'numpy>=1.16',
         'pysparkling',  # for log analysis
         'python-json-logger',
-        'torch==1.12.1',
-        'torchvision==0.13.1',
+        'torch==1.13.0',
+        'torchvision==0.14.0',
         'pillow!=8.3.0',  # exclusion torchvision 0.10.0 compatibility
         'dataclasses; python_version<"3.7"',
     ],
@@ -126,7 +126,7 @@ setuptools.setup(
         ],
         'train': [
             'matplotlib>=3.3',  # required by pycocotools
-            'pycocotools>=2.0.1,!=2.0.5',  # pre-install cython (currently incompatible with numpy 1.18 or above)
+            'pycocotools>=2.0.1,!=2.0.5,!=2.0.6',  # pre-install cython (currently incompatible with numpy 1.18 or above)
             'scipy',
             'xtcocotools>=1.5; sys_platform == "linux"',  # required for wholebody eval, only wheels and only for linux on pypi
         ],

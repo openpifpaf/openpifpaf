@@ -6,7 +6,7 @@ from ..signal import Signal
 MODEL_MIGRATION = set()
 
 
-# pylint: disable=protected-access
+# pylint: disable=protected-access,too-many-branches
 def model_migration(net_cpu):
     model_defaults(net_cpu)
 
@@ -32,6 +32,19 @@ def model_migration(net_cpu):
             hn.meta.head_index = hn_i
         if hn.meta.name == 'cif' and 'score_weights' not in vars(hn.meta):
             hn.meta.score_weights = [3.0] * 3 + [1.0] * (hn.meta.n_fields - 3)
+
+        if not hasattr(hn, 'n_fields'):
+            hn.n_fields = hn.meta.n_fields
+        if not hasattr(hn, 'n_confidences'):
+            hn.n_confidences = hn.meta.n_confidences
+        if not hasattr(hn, 'n_vectors'):
+            hn.n_vectors = hn.meta.n_vectors
+        if not hasattr(hn, 'n_scales'):
+            hn.n_scales = hn.meta.n_scales
+        if not hasattr(hn, 'vector_offsets'):
+            hn.vector_offsets = hn.meta.vector_offsets
+        if not hasattr(hn, 'upsample_stride'):
+            hn.upsample_stride = hn.meta.upsample_stride
 
     for mm in MODEL_MIGRATION:
         mm(net_cpu)

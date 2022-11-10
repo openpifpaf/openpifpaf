@@ -60,6 +60,9 @@ def apply(model, outfile, verbose=True, input_w=129, input_h=97, channels=3, *,
     openpifpaf.network.heads.CompositeField4.inplace_ops = False
 
     dummy_input = torch.randn(1, channels, input_h, input_w)
+    with torch.inference_mode():
+        # initialize
+        model(dummy_input)
 
     torch.onnx.export(
         model, dummy_input, outfile, verbose=verbose,

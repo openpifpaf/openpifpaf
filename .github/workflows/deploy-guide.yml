@@ -27,7 +27,7 @@ jobs:
           data-cifar10
         key: ${{ runner.os }}-${{ hashFiles('setup.py') }}
 
-    - uses: FedericoCarboni/setup-ffmpeg@v1
+    - uses: FedericoCarboni/setup-ffmpeg@v2
       id: setup-ffmpeg
 
     - name: Set up Python 3.8
@@ -36,7 +36,7 @@ jobs:
         python-version: 3.8
 
     - name: Install PyTorch without CUDA
-      run: pip install torch==1.12.1+cpu torchvision==0.13.1+cpu -f https://download.pytorch.org/whl/torch_stable.html
+      run: pip install torch==1.13.0+cpu torchvision==0.14.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
 
     - name: Install dependencies
       run: |

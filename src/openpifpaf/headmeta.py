@@ -4,7 +4,7 @@ This includes the name, the name of the individual fields, the composition, etc.
 """
 
 from dataclasses import dataclass, field
-from typing import Any, ClassVar, List, Tuple
+from typing import Any, ClassVar, List, Optional, Tuple
 
 import numpy as np
 
@@ -14,12 +14,17 @@ class Base:
     name: str
     dataset: str
 
-    head_index: int = field(default=None, init=False)
-    base_stride: int = field(default=None, init=False)
+    head_index: Optional[int] = field(default=None, init=False)
+    base_stride: Optional[int] = field(default=None, init=False)
     upsample_stride: int = field(default=1, init=False)
 
+    n_confidences: ClassVar[int] = 1
+    n_vectors: ClassVar[int] = 1
+    n_scales: ClassVar[int] = 1
+    vector_offsets: ClassVar[List[bool]] = [True]
+
     @property
-    def stride(self) -> int:
+    def stride(self) -> Optional[int]:
         if self.base_stride is None:
             return None
         return self.base_stride // self.upsample_stride
@@ -36,21 +41,21 @@ class Cif(Base):
     keypoints: List[str]
     sigmas: List[float]
     pose: Any = None
-    draw_skeleton: List[Tuple[int, int]] = None
-    score_weights: List[float] = None
+    draw_skeleton: Optional[List[Tuple[int, int]]] = None
+    score_weights: Optional[List[float]] = None
 
     n_confidences: ClassVar[int] = 1
     n_vectors: ClassVar[int] = 1
     n_scales: ClassVar[int] = 1
+    vector_offsets: ClassVar[List[bool]] = [True]
 
-    vector_offsets = [True]
     decoder_min_scale = 0.0
-    decoder_seed_mask: List[int] = None
+    decoder_seed_mask: Optional[List[int]] = None
 
-    training_weights: List[float] = None
+    training_weights: Optional[List[float]] = None
 
     @property
-    def n_fields(self):
+    def n_fields(self) -> int:
         return len(self.keypoints)
 
 
@@ -62,23 +67,23 @@ class Caf(Base):
     sigmas: List[float]
     skeleton: List[Tuple[int, int]]
     pose: Any = None
-    sparse_skeleton: List[Tuple[int, int]] = None
+    sparse_skeleton: Optional[List[Tuple[int, int]]] = None
     dense_to_sparse_radius: float = 2.0
     only_in_field_of_view: bool = False
 
     n_confidences: ClassVar[int] = 1
     n_vectors: ClassVar[int] = 2
     n_scales: ClassVar[int] = 2
+    vector_offsets: ClassVar[List[bool]] = [True, True]
 
-    vector_offsets = [True, True]
     decoder_min_distance = 0.0
     decoder_max_distance = float('inf')
-    decoder_confidence_scales: List[float] = None
+    decoder_confidence_scales: Optional[List[float]] = None
 
-    training_weights: List[float] = None
+    training_weights: Optional[List[float]] = None
 
     @property
-    def n_fields(self):
+    def n_fields(self) -> int:
         return len(self.skeleton)
 
     @staticmethod
@@ -117,14 +122,14 @@ class CifDet(Base):
     n_confidences: ClassVar[int] = 1
     n_vectors: ClassVar[int] = 2
     n_scales: ClassVar[int] = 0
+    vector_offsets: ClassVar[List[bool]] = [True, False]
 
-    vector_offsets = [True, False]
     decoder_min_scale = 0.0
 
-    training_weights: List[float] = None
+    training_weights: Optional[List[float]] = None
 
     @property
-    def n_fields(self):
+    def n_fields(self) -> int:
         return len(self.categories)
 
 
@@ -145,42 +150,32 @@ class Tcaf(Base):
     keypoints_single_frame: List[str]
     sigmas_single_frame: List[float]
     pose_single_frame: Any
-    draw_skeleton_single_frame: List[Tuple[int, int]] = None
-    keypoints: List[str] = None
-    sigmas: List[float] = None
+    draw_skeleton_single_frame: Optional[List[Tuple[int, int]]] = None
+    keypoints: Optional[List[str]] = None
+    sigmas: Optional[List[float]] = None
     pose: Any = None
-    draw_skeleton: List[Tuple[int, int]] = None
+    draw_skeleton: Optional[List[Tuple[int, int]]] = None
     only_in_field_of_view: bool = False
 
     n_confidences: ClassVar[int] = 1
     n_vectors: ClassVar[int] = 2
     n_scales: ClassVar[int] = 2
+    vector_offsets: ClassVar[List[bool]] = [True, True]
 
-    training_weights: List[float] = None
-
-    vector_offsets = [True, True]
+    training_weights: Optional[List[float]] = None
 
     def __post_init__(self):
         if self.keypoints is None:
-            self.keypoints = np.concatenate((
-                self.keypoints_single_frame,
-                self.keypoints_single_frame,
-            ), axis=0)
+            self.keypoints = self.keypoints_single_frame + self.keypoints_single_frame
         if self.sigmas is None:
-            self.sigmas = np.concatenate((
-                self.sigmas_single_frame,
-                self.sigmas_single_frame,
-            ), axis=0)
+            self.sigmas = self.sigmas_single_frame + self.sigmas_single_frame
         if self.pose is None:
             self.pose = np.concatenate((
                 self.pose_single_frame,
                 self.pose_single_frame,
             ), axis=0)
-        if self.draw_skeleton is None:
-            self.draw_skeleton = np.concatenate((
-                self.draw_skeleton_single_frame,
-                self.draw_skeleton_single_frame,
-            ), axis=0)
+        if self.draw_skeleton is None and self.draw_skeleton_single_frame is not None:
+            self.draw_skeleton = self.draw_skeleton_single_frame + self.draw_skeleton_single_frame
 
     @property
     def skeleton(self):
@@ -188,5 +183,5 @@ class Tcaf(Base):
                 for i, _ in enumerate(self.keypoints_single_frame)]
 
     @property
-    def n_fields(self):
+    def n_fields(self) -> int:
         return len(self.keypoints_single_frame)

@@ -17,7 +17,27 @@ def test_torchscript_script():
         base_name='shufflenetv2k16',
     ).factory(head_metas=datamodule.head_metas)
     with torch.inference_mode():
+        # initialize
+        model(torch.empty((1, 3, 81, 97)))
+
         torch.jit.script(model)
+
+
+@pytest.mark.xfail
+def test_torchscript_script_head():
+    openpifpaf.network.heads.CompositeField3.inplace_ops = False
+    openpifpaf.network.heads.CompositeField4.inplace_ops = False
+
+    datamodule = openpifpaf.datasets.factory('cocokp')
+    model, _ = openpifpaf.network.Factory(
+        base_name='shufflenetv2k16',
+    ).factory(head_metas=datamodule.head_metas)
+
+    with torch.inference_mode():
+        # initialize
+        model(torch.empty((1, 3, 81, 97)))
+
+        torch.jit.script(model.head_nets[0])
 
 
 def test_torchscript_trace():
@@ -30,6 +50,15 @@ def test_torchscript_trace():
     ).factory(head_metas=datamodule.head_metas)
     with torch.no_grad():
         torch.jit.trace(model, torch.empty((1, 3, 81, 81)))
+
+
+def test_torchscript_trace_backbone():
+    datamodule = openpifpaf.datasets.factory('cocokp')
+    model, _ = openpifpaf.network.Factory(
+        base_name='shufflenetv2k16',
+    ).factory(head_metas=datamodule.head_metas)
+    with torch.no_grad():
+        torch.jit.trace(model.base_net, torch.empty((1, 3, 81, 81)))
 
 
 @pytest.mark.xfail

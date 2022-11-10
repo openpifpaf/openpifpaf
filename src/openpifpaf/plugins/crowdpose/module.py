@@ -84,6 +84,9 @@ COCO_CATEGORIES = openpifpaf.plugins.coco.constants.COCO_CATEGORIES
 
 
 class CrowdPose(openpifpaf.datasets.DataModule):
+    debug = False
+    pin_memory = False
+
     _test_annotations = 'data-crowdpose/json/crowdpose_test.json'
 
     # cli configurable

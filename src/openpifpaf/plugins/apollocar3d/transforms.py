@@ -1,5 +1,5 @@
-
 from collections import defaultdict
+from typing import List, Tuple
 
 
 def skeleton_mapping(kps_mapping):
@@ -10,7 +10,7 @@ def skeleton_mapping(kps_mapping):
     return map_sk
 
 
-def transform_skeleton(skeleton_orig, kps_mapping):
+def transform_skeleton(skeleton_orig: List[Tuple[int, int]], kps_mapping) -> List[Tuple[int, int]]:
     """
     Transform the original apollo skeleton of 66 joints into a skeleton from 1 to n
     """
@@ -18,5 +18,5 @@ def transform_skeleton(skeleton_orig, kps_mapping):
     # skeleton = [[dic_sk[i], dic_sk[j]] for i, j in SKELETON]  # TODO
     skeleton = []
     for i, j in skeleton_orig:
-        skeleton.append([map_sk[i] + 1, map_sk[j] + 1])   # skeleton starts from 1
+        skeleton.append((map_sk[i] + 1, map_sk[j] + 1))   # skeleton starts from 1
     return skeleton
