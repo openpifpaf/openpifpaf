@@ -55,6 +55,10 @@ def apply(model, outfile, verbose=True, input_w=129, input_h=97, channels=3, *,
     if not skip_image_check:
         image_size_warning(model.base_net.stride, input_w, input_h)
 
+    # configure
+    openpifpaf.network.heads.CompositeField3.inplace_ops = False
+    openpifpaf.network.heads.CompositeField4.inplace_ops = False
+
     dummy_input = torch.randn(1, channels, input_h, input_w)
     with torch.inference_mode():
         # initialize

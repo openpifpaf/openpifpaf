@@ -125,7 +125,7 @@ class HeadNetwork(torch.nn.Module):
 
 class CompositeField3(HeadNetwork):
     dropout_p = 0.0
-    inplace_ops = True
+    inplace_ops: bool = True
 
     def __init__(self,
                  meta: headmeta.Base,
@@ -271,6 +271,7 @@ class CompositeField3(HeadNetwork):
 
 class CompositeField4(HeadNetwork):
     dropout_p = 0.0
+    inplace_ops: bool = True
 
     def __init__(self,
                  meta: headmeta.Base,
@@ -301,8 +302,6 @@ class CompositeField4(HeadNetwork):
         self.vector_offsets = tuple(meta.vector_offsets)
         self.upsample_stride = meta.upsample_stride
 
-        # self._index_field: t.Optional[torch.Tensor] = None  # cache index field
-
         # upsample
         assert meta.upsample_stride >= 1
         self.upsample_op = None
@@ -314,10 +313,15 @@ class CompositeField4(HeadNetwork):
         group = parser.add_argument_group('CompositeField4')
         group.add_argument('--cf4-dropout', default=cls.dropout_p, type=float,
                            help='[experimental] zeroing probability of feature in head input')
+        assert cls.inplace_ops
+        group.add_argument('--cf4-no-inplace-ops', dest='cf4_inplace_ops',
+                           default=True, action='store_false',
+                           help='alternative graph without inplace ops')
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
         cls.dropout_p = args.cf4_dropout
+        cls.inplace_ops = args.cf4_inplace_ops
 
     @property
     def sparse_task_parameters(self):
@@ -353,7 +357,7 @@ class CompositeField4(HeadNetwork):
             feature_width
         )
 
-        if not self.training and not (torch.jit.is_scripting() or torch.jit.is_tracing()):
+        if not self.training and self.inplace_ops:
             # classification
             classes_x = x[:, :, 1:1 + self.n_confidences]
             torch.sigmoid_(classes_x)
@@ -372,7 +376,7 @@ class CompositeField4(HeadNetwork):
             first_scale_feature = 1 + self.n_confidences + self.n_vectors * 2
             scales_x = x[:, :, first_scale_feature:first_scale_feature + self.n_scales]
             scales_x[:] = torch.nn.functional.softplus(scales_x)
-        elif not self.training and (torch.jit.is_scripting() or torch.jit.is_tracing()):
+        elif not self.training and not self.inplace_ops:
             # TODO: CoreMLv4 does not like strided slices.
             # Strides are avoided when switching the first and second dim
             # temporarily.

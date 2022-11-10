@@ -45,8 +45,6 @@ def model_migration(net_cpu):
             hn.vector_offsets = hn.meta.vector_offsets
         if not hasattr(hn, 'upsample_stride'):
             hn.upsample_stride = hn.meta.upsample_stride
-        if not hasattr(hn, '_index_field'):
-            hn._index_field = None
 
     for mm in MODEL_MIGRATION:
         mm(net_cpu)
