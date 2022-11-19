@@ -1,4 +1,4 @@
-from . import tracking_heads
+from . import heads, tracking_heads
 from .nets import model_defaults
 from .tracking_base import TrackingBase
 from ..signal import Signal
@@ -33,18 +33,23 @@ def model_migration(net_cpu):
         if hn.meta.name == 'cif' and 'score_weights' not in vars(hn.meta):
             hn.meta.score_weights = [3.0] * 3 + [1.0] * (hn.meta.n_fields - 3)
 
-        if not hasattr(hn, 'n_fields'):
-            hn.n_fields = hn.meta.n_fields
-        if not hasattr(hn, 'n_confidences'):
-            hn.n_confidences = hn.meta.n_confidences
-        if not hasattr(hn, 'n_vectors'):
-            hn.n_vectors = hn.meta.n_vectors
-        if not hasattr(hn, 'n_scales'):
-            hn.n_scales = hn.meta.n_scales
-        if not hasattr(hn, 'vector_offsets'):
-            hn.vector_offsets = hn.meta.vector_offsets
-        if not hasattr(hn, 'upsample_stride'):
-            hn.upsample_stride = hn.meta.upsample_stride
+    # update CompositeField4 (might be nested within net_cpu.head_nets)
+    for m in net_cpu.modules():
+        if not isinstance(m, heads.CompositeField4):
+            continue
+
+        if not hasattr(m, 'n_fields'):
+            m.n_fields = m.meta.n_fields
+        if not hasattr(m, 'n_confidences'):
+            m.n_confidences = m.meta.n_confidences
+        if not hasattr(m, 'n_vectors'):
+            m.n_vectors = m.meta.n_vectors
+        if not hasattr(m, 'n_scales'):
+            m.n_scales = m.meta.n_scales
+        if not hasattr(m, 'vector_offsets'):
+            m.vector_offsets = tuple(m.meta.vector_offsets)
+        if not hasattr(m, 'upsample_stride'):
+            m.upsample_stride = m.meta.upsample_stride
 
     for mm in MODEL_MIGRATION:
         mm(net_cpu)
