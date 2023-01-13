@@ -107,7 +107,7 @@ class AnnRescaler():
         mask = np.ones((
             (width_height[1] - 1) // self.stride + 1,
             (width_height[0] - 1) // self.stride + 1,
-        ), dtype=np.bool)
+        ), dtype=np.bool_)
         for ann in anns:
             if not ann['iscrowd']:
                 valid_keypoints = 'keypoints' in ann and np.any(ann['keypoints'][:, 2] > 0)
@@ -204,7 +204,7 @@ class AnnRescalerDet():
             self.n_categories,
             (width_height[1] - 1) // self.stride + 1,
             (width_height[0] - 1) // self.stride + 1,
-        ), dtype=np.bool)
+        ), dtype=np.bool_)
         for ann in anns:
             if not ann['iscrowd']:
                 continue
@@ -237,7 +237,7 @@ class TrackingAnnRescaler(AnnRescaler):
         mask = np.ones((
             (width_height[1] - 1) // self.stride + 1,
             (width_height[0] - 1) // self.stride + 1,
-        ), dtype=np.bool)
+        ), dtype=np.bool_)
         crowd_bbox = [np.inf, np.inf, 0, 0]
         for ann in anns1 + anns2:
             if not ann['iscrowd']:

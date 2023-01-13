@@ -23,7 +23,7 @@ class DetectionPainter:
     def annotation(self, ax, ann, *, color=None, text=None, subtext=None):
         if color is None:
             color = 0
-        if isinstance(color, (int, np.integer)):
+        if isinstance(color, (int, np.intc)):
             color = matplotlib.cm.get_cmap('tab20')((color % 20 + 0.05) / 20)
 
         if text is None:
@@ -85,7 +85,7 @@ class CrowdPainter:
     def annotation(self, ax, ann, *, color=None, text=None, subtext=None):
         if color is None:
             color = 0
-        if isinstance(color, (int, np.integer)):
+        if isinstance(color, (int, np.intc)):
             color = matplotlib.cm.get_cmap('tab20')((color % 20 + 0.05) / 20)
 
         if text is None:
@@ -248,7 +248,7 @@ class KeypointPainter(Configurable):
             if colors is not None:
                 color = colors[i]
 
-            if isinstance(color, (int, np.integer)):
+            if isinstance(color, (int, np.intc)):
                 color = matplotlib.cm.get_cmap('tab20')((color % 20 + 0.05) / 20)
 
             self._draw_skeleton(ax, x, y, v, skeleton=skeleton, color=color)
@@ -344,7 +344,7 @@ class KeypointPainter(Configurable):
     def annotation(self, ax, ann, *, color=None, text=None, subtext=None, alpha=1.0):
         if color is None:
             color = 0
-        if isinstance(color, (int, np.integer)):
+        if isinstance(color, (int, np.intc)):
             color = matplotlib.cm.get_cmap('tab20')((color % 20 + 0.05) / 20)
 
         text_is_score = False

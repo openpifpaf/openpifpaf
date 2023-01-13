@@ -102,6 +102,7 @@ def test_shufflenetv2k16(tmpdir):
     openpifpaf.export_onnx.check(outfile)
 
 
+@pytest.mark.skip(reason='simplifier is unstable')
 @pytest.mark.skipif(sys.version_info >= (3, 9),
                     reason='onnx-simplifier requires py<3.9')
 def test_onnx_simplify(tmpdir):

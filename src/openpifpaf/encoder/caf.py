@@ -190,7 +190,7 @@ class AssociationFiller:
         filled_ij = set()
         for f in frange:
             for xyo in xyv:
-                fij = np.round(joint1[:2] + f * offset + xyo).astype(np.int) + self.config.padding
+                fij = np.round(joint1[:2] + f * offset + xyo).astype(np.intc) + self.config.padding
                 if fij[0] < 0 or fij[0] >= self.field_shape[2] or \
                    fij[1] < 0 or fij[1] >= self.field_shape[1]:
                     continue
