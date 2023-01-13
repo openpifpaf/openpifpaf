@@ -112,6 +112,7 @@ setuptools.setup(
         ],
         'coreml': [
             'coremltools>=5.0b3',
+            'numpy<1.24',  # for coremltools compat
         ],
         'test': [
             'cpplint',
