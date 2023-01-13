@@ -81,7 +81,7 @@ setuptools.setup(
     python_requires='>=3.7',
     install_requires=[
         'importlib_metadata!=3.8.0',  # temporary for pytest
-        'numpy>=1.16,<1.24',
+        'numpy>=1.16',
         'pysparkling',  # for log analysis
         'python-json-logger',
         'torch==1.13.1',
