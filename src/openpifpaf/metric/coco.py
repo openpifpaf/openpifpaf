@@ -99,7 +99,7 @@ class Coco(Base):
 
     # pylint: disable=unused-argument
     def accumulate(self, predictions, image_meta, *, ground_truth=None):
-        image_id = int(image_meta['image_id'])
+        image_id = image_meta['image_id']
         self.image_ids.append(image_id)
 
         if self.small_threshold:
@@ -132,7 +132,7 @@ class Coco(Base):
 
         if LOG.getEffectiveLevel() == logging.DEBUG:
             self._stats(image_annotations, [image_id])
-            LOG.debug(image_meta)
+            LOG.debug("image meta: %s", image_meta)
 
         self.predictions += image_annotations
 

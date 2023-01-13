@@ -21,7 +21,7 @@ def default_output_file(args):
         base_name, _, __ = os.path.basename(args.checkpoint).partition('-')
 
     now = datetime.datetime.now().strftime('%y%m%d-%H%M%S')
-    out = 'outputs/{}-{}-{}'.format(base_name, now, args.dataset)
+    out = f"{base_name}-{now}-{args.dataset}"
 
     # Slurm jobs might be stuck in the job queue and then started at exactly the
     # same time. Therefore we disambiguate with the Slurm job id.
@@ -119,8 +119,11 @@ def cli():
 
     # output
     if args.output is None:
-        args.output = default_output_file(args)
         os.makedirs('outputs', exist_ok=True)
+        args.output = f"outputs/{default_output_file(args)}"
+    elif args.output.endswith('/'):
+        os.makedirs(args.output, exist_ok=True)
+        args.output = f"{args.output}{default_output_file(args)}"
 
     network.Factory.configure(args)
     network.losses.Factory.configure(args)
