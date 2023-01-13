@@ -97,7 +97,7 @@ class CifGenerator():
             self.fill_coordinate(f, xyv, joint_scale)
 
     def fill_coordinate(self, f, xyv, scale):
-        ij = np.round(xyv[:2] - self.s_offset).astype(np.int) + self.config.padding
+        ij = np.round(xyv[:2] - self.s_offset).astype(np.intc) + self.config.padding
         minx, miny = int(ij[0]), int(ij[1])
         maxx, maxy = minx + self.config.side_length, miny + self.config.side_length
         if minx < 0 or maxx > self.intensities.shape[2] or \

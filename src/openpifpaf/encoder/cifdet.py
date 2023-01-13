@@ -87,7 +87,7 @@ class CifDetGenerator():
             self.fill_detection(category_id - 1, xy, wh)
 
     def fill_detection(self, f, xy, wh):
-        ij = np.round(xy - self.s_offset).astype(np.int) + self.config.padding
+        ij = np.round(xy - self.s_offset).astype(np.intc) + self.config.padding
         minx, miny = int(ij[0]), int(ij[1])
         maxx, maxy = minx + self.config.side_length, miny + self.config.side_length
         if minx < 0 or maxx > self.intensities.shape[2] or \
