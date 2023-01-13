@@ -10,20 +10,19 @@ PYTHON = 'python3' if sys.platform != 'win32' else 'python'
 
 
 @pytest.mark.parametrize(
-    'batch_size,with_debug,with_dense,with_catchsegv,with_decoder_workers',
+    'batch_size,with_debug,with_dense,with_decoder_workers',
     # current default models don't support dense connections
     [
-        (1, False, False, True, False),
-        (2, False, False, False, False),
-        (1, True, False, False, False),
-        (1, False, False, False, True),
+        (1, False, False, False),
+        (2, False, False, False),
+        (1, True, False, False),
+        (1, False, False, True),
     ],
 )
 def test_predict(
     batch_size,
     with_debug,
     with_dense,
-    with_catchsegv,
     with_decoder_workers,
     tmpdir,
 ):
@@ -38,8 +37,6 @@ def test_predict(
         pytest.skip('multiprocess decoding not supported on windows')
     if with_decoder_workers and sys.platform.startswith('win'):
         pytest.skip('multiple decoder workers not supported on windows')
-    if not sys.platform.startswith('linux'):
-        with_catchsegv = False
 
     cmd = [
         PYTHON, '-m', 'openpifpaf.predict',
@@ -54,8 +51,6 @@ def test_predict(
         cmd.append('--debug')
     if with_dense:
         cmd.append('--dense-connections')
-    if with_catchsegv:
-        cmd.insert(0, 'catchsegv')
     if with_decoder_workers:
         cmd.append('--decoder-workers=2')
 
