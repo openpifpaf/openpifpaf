@@ -113,33 +113,13 @@ class Evaluator(Configurable):
 
         return output
 
-    def evaluate(self, output: t.Optional[str]):
-        # generate a default output filename
-        if output is None:
-            assert self.args is not None
-            output = self.default_output_name(self.args)
-
-        # skip existing?
-        if self.skip_epoch0:
-            assert network.Factory.checkpoint is not None
-            if network.Factory.checkpoint.endswith('.epoch000'):
-                print('Not evaluating epoch 0.')
-                return
-        if self.skip_existing:
-            stats_file = output + '.stats.json'
-            if os.path.exists(stats_file):
-                print('Output file {} exists already. Exiting.'.format(stats_file))
-                return
-            print('{} not found. Processing: {}'.format(stats_file, network.Factory.checkpoint))
-
-        predictor = Predictor(head_metas=self.datamodule.head_metas)
+    def accumulate(self, predictor, metrics):
         prediction_loader = predictor.enumerated_dataloader(enumerate(self.data_loader))
         if self.loader_warmup:
             LOG.info('Data loader warmup (%.1fs) ...', self.loader_warmup)
             time.sleep(self.loader_warmup)
             LOG.info('Done.')
 
-        metrics = self.datamodule.metrics()
         total_start = time.perf_counter()
         loop_start = time.perf_counter()
 
@@ -167,6 +147,31 @@ class Evaluator(Configurable):
                 break
 
         total_time = time.perf_counter() - total_start
+        return total_time
+
+    def evaluate(self, output: t.Optional[str]):
+        # generate a default output filename
+        if output is None:
+            assert self.args is not None
+            output = self.default_output_name(self.args)
+
+        # skip existing?
+        if self.skip_epoch0:
+            assert network.Factory.checkpoint is not None
+            if network.Factory.checkpoint.endswith('.epoch000'):
+                print('Not evaluating epoch 0.')
+                return
+        if self.skip_existing:
+            stats_file = output + '.stats.json'
+            if os.path.exists(stats_file):
+                print('Output file {} exists already. Exiting.'.format(stats_file))
+                return
+            print('{} not found. Processing: {}'.format(stats_file, network.Factory.checkpoint))
+
+        predictor = Predictor(head_metas=self.datamodule.head_metas)
+        metrics = self.datamodule.metrics()
+
+        total_time = self.accumulate(predictor, metrics)
 
         # model stats
         counted_ops = list(count_ops(predictor.model_cpu))
