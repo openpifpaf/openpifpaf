@@ -44,6 +44,7 @@ def default_output_file(args):
     return out + '.pkl'
 
 
+# pylint: disable=too-many-statements
 def cli():
     parser = argparse.ArgumentParser(
         prog='python3 -m openpifpaf.train',
