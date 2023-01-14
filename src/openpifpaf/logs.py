@@ -5,6 +5,7 @@ from collections import defaultdict
 import datetime
 import json
 import logging
+import os
 from pprint import pprint
 
 import numpy as np
@@ -55,12 +56,25 @@ class Plots():
     def __init__(self, log_files, labels=None, *,
                  output_prefix=None, first_epoch=0.0, share_y=True):
         self.log_files = log_files
-        self.labels = labels or [lf.replace('outputs/', '') for lf in log_files]
+        self.labels = labels or self.labels_from_filenames(log_files)
         self.output_prefix = output_prefix or log_files[-1] + '.'
         self.first_epoch = first_epoch
         self.share_y = share_y
 
         self.datas = [self.read_log(f) for f in log_files]
+
+    @staticmethod
+    def labels_from_filenames(log_files):
+        common_prefix = os.path.commonprefix(log_files)
+        if not common_prefix:
+            return log_files
+        if '/' in common_prefix:
+            common_prefix = common_prefix.rpartition('/')[0] + '/'
+        common_i = len(common_prefix)
+        return [
+            n[common_i:] if len(n) > common_i else n
+            for n in log_files
+        ]
 
     def read_log(self, path):
         LOG.debug('reading file %s', path)
