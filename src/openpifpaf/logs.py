@@ -65,7 +65,7 @@ class Plots():
 
     @staticmethod
     def labels_from_filenames(log_files):
-        common_prefix = os.path.common_prefix(log_files)
+        common_prefix = os.path.commonprefix(log_files)
         if not common_prefix:
             return log_files
         if '/' in common_prefix:
