@@ -69,7 +69,7 @@ class Plots():
         if not common_prefix:
             return log_files
         if '/' in common_prefix:
-            common_prefix = common_prefix.rpartition('/')[0]
+            common_prefix = common_prefix.rpartition('/')[0] + '/'
         common_i = len(common_prefix)
         return [
             n[common_i:] if len(n) > common_i else n
