@@ -1,6 +1,10 @@
 # History
 
-* [main](https://github.com/openpifpaf/openpifpaf/compare/v0.13.7...main)
+* [main](https://github.com/openpifpaf/openpifpaf/compare/v0.13.8...main)
+* [0.13.8](https://github.com/openpifpaf/openpifpaf/compare/v0.13.7...v0.13.8) (2023-01-15)
+    * PyTorch 1.13.1 and TorchVision 0.14.1
+    * configurable evaluator
+    * train --out accepts a directory and auto-adds filename (#587)
 * [0.13.7](https://github.com/openpifpaf/openpifpaf/compare/v0.13.6...v0.13.7) (2022-11-02)
     * PyTorch 1.13.0 and TorchVision 0.14.0
 * [0.13.6](https://github.com/openpifpaf/openpifpaf/compare/v0.13.5...v0.13.6) (2022-11-02)
