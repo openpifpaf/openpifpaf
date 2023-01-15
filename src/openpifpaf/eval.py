@@ -38,7 +38,6 @@ def count_ops(model, height=641, width=641):
 
 class Evaluator(Configurable):
     args: t.Optional[argparse.Namespace] = None
-    disable_cuda = False
     loader_warmup = 3.0
     n_images: t.Optional[int] = None
     show_final_image = False
@@ -57,9 +56,6 @@ class Evaluator(Configurable):
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
         group = parser.add_argument_group('Evaluator')
-        assert not cls.disable_cuda
-        group.add_argument('--eval-disable-cuda', action='store_true',
-                           help='disable CUDA')
         group.add_argument('--eval-loader-warmup', default=cls.loader_warmup, type=float)
         group.add_argument('--eval-n-images', default=cls.n_images, type=int)
         assert not cls.show_final_image
@@ -83,7 +79,6 @@ class Evaluator(Configurable):
     @classmethod
     def configure(cls, args: argparse.Namespace):
         cls.args = args
-        cls.disable_cuda = args.eval_disable_cuda
         cls.loader_warmup = args.eval_loader_warmup
         cls.n_images = args.eval_n_images
         cls.show_final_image = args.eval_show_final_image
@@ -269,6 +264,8 @@ def cli():
     visualizer.cli(parser)
     Evaluator.cli(parser)
 
+    parser.add_argument('--disable-cuda', action='store_true',
+                        help='disable CUDA')
     parser.add_argument('--output', default=None,
                         help='output filename without file extension')
     parser.add_argument('--watch', default=False, const=60, nargs='?', type=int,
