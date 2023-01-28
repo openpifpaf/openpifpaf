@@ -414,7 +414,7 @@ class EvalPlots():
         self.share_y = share_y
 
         self.datas = [self.read_log(f) for f in log_files]
-        self.labels = labels or [lf.replace('outputs/', '') for lf in log_files]
+        self.labels = labels or Plots.labels_from_filenames(log_files)
         self.output_prefix = output_prefix or log_files[-1] + '.'
 
     def read_log(self, path):
