@@ -27,7 +27,7 @@ class CompositeLoss(torch.nn.Module):
         )
 
         self.bce_loss = components.BceL2()
-        self.reg_loss = components.RegressionLoss()
+        self.reg_loss = components.Regression()
         self.scale_loss = components.Scale()
 
         self.weights = None

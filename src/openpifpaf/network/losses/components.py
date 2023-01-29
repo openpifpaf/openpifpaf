@@ -349,7 +349,7 @@ class RegressionDistance:
         return d
 
 
-class RegressionLoss:
+class Regression:
     soft_clamp_value = 5.0
 
     def __init__(self):
@@ -361,7 +361,7 @@ class RegressionLoss:
 
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
-        group = parser.add_argument_group('Regression Loss')
+        group = parser.add_argument_group('Regression loss')
         group.add_argument('--regression-soft-clamp', default=cls.soft_clamp_value, type=float,
                            help='soft clamp for scale')
 
