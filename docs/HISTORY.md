@@ -1,6 +1,9 @@
 # History
 
-* [main](https://github.com/openpifpaf/openpifpaf/compare/v0.13.8...main)
+* [main](https://github.com/openpifpaf/openpifpaf/compare/v0.13.9...main)
+* [0.13.9](https://github.com/openpifpaf/openpifpaf/compare/v0.13.8...v0.13.9) (2023-01-29)
+    * minor fixes
+    * remove double soft-clamp applied to Scale losses, now this clamp is applied within the component
 * [0.13.8](https://github.com/openpifpaf/openpifpaf/compare/v0.13.7...v0.13.8) (2023-01-15)
     * PyTorch 1.13.1 and TorchVision 0.14.1
     * configurable evaluator
