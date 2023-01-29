@@ -21,7 +21,7 @@ class CompositeLoss(torch.nn.Module):
                   head_meta.name, head_meta.n_vectors, head_meta.n_scales)
 
         self.loss_components = {
-            f'{head_meta.dataset}.{head_meta.name}.c': [components.BceL2([1], [0])],
+            f'{head_meta.dataset}.{head_meta.name}.c': [components.Bce([1], [0])],
             f'{head_meta.dataset}.{head_meta.name}.vec': [
                 components.Regression(
                     [

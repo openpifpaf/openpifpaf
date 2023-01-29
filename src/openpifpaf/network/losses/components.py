@@ -1,6 +1,5 @@
 import argparse
 import logging
-import math
 import typing as t
 
 import torch
@@ -35,18 +34,12 @@ class Base(torch.nn.Module):
 
 
 class Bce(Base):
-    background_weight = 1.0
     focal_alpha = 0.5
     focal_gamma = 1.0
-    focal_detach = False
-    focal_clamp = True
     soft_clamp_value = 5.0
 
     # choose low value for force-complete-pose and Focal loss modification
     background_clamp = -15.0
-
-    # 0.02 -> -3.9, 0.01 -> -4.6, 0.001 -> -7, 0.0001 -> -9
-    min_bce = 0.0  # 1e-6 corresponds to x~=14, 1e-10 -> 20
 
     def __init__(self, xi: t.List[int], ti: t.List[int], **kwargs):
         super().__init__(xi, ti)
@@ -61,19 +54,10 @@ class Bce(Base):
     @classmethod
     def cli(cls, parser: argparse.ArgumentParser):
         group = parser.add_argument_group('Bce Loss')
-        group.add_argument('--background-weight', default=cls.background_weight, type=float,
-                           help='BCE weight where ground truth is background')
         group.add_argument('--focal-alpha', default=cls.focal_alpha, type=float,
                            help='scale parameter of focal loss')
         group.add_argument('--focal-gamma', default=cls.focal_gamma, type=float,
                            help='use focal loss with the given gamma')
-        assert not cls.focal_detach
-        group.add_argument('--focal-detach', default=False, action='store_true')
-        assert cls.focal_clamp
-        group.add_argument('--no-focal-clamp', dest='focal_clamp',
-                           default=True, action='store_false')
-        group.add_argument('--bce-min', default=cls.min_bce, type=float,
-                           help='gradient clipped below')
         group.add_argument('--bce-soft-clamp', default=cls.soft_clamp_value, type=float,
                            help='soft clamp for BCE')
         group.add_argument('--bce-background-clamp', default=cls.background_clamp, type=float,
@@ -81,68 +65,11 @@ class Bce(Base):
 
     @classmethod
     def configure(cls, args: argparse.Namespace):
-        cls.background_weight = args.background_weight
         cls.focal_alpha = args.focal_alpha
         cls.focal_gamma = args.focal_gamma
-        cls.focal_detach = args.focal_detach
-        cls.focal_clamp = args.focal_clamp
-        cls.min_bce = args.bce_min
         cls.soft_clamp_value = args.bce_soft_clamp
         cls.background_clamp = args.bce_background_clamp
 
-    def forward(self, x, t):  # pylint: disable=arguments-differ
-        x, t = super().forward(x, t)
-
-        t_zeroone = t.clone()[t >= 0.0]
-        t_zeroone[t_zeroone > 0.0] = 1.0
-        # x = torch.clamp(x, -20.0, 20.0)
-        if self.background_clamp is not None:
-            bg_clamp_mask = (t_zeroone == 0.0) & (x < self.background_clamp)
-            x[bg_clamp_mask] = self.background_clamp
-        bce = torch.nn.functional.binary_cross_entropy_with_logits(
-            x, t_zeroone, reduction='none')
-        # torch.clamp_max_(bce, 10.0)
-        if self.soft_clamp is not None:
-            bce = self.soft_clamp(bce)
-        if self.min_bce > 0.0:
-            torch.clamp_min_(bce, self.min_bce)
-
-        if self.focal_gamma != 0.0:
-            p = torch.sigmoid(x)
-            pt = p * t_zeroone + (1 - p) * (1 - t_zeroone)
-            # Above code is more stable than deriving pt from bce: pt = torch.exp(-bce)
-
-            if self.focal_clamp and self.min_bce > 0.0:
-                pt_threshold = math.exp(-self.min_bce)
-                torch.clamp_max_(pt, pt_threshold)
-
-            focal = 1.0 - pt
-            if self.focal_gamma != 1.0:
-                focal = (focal + 1e-4)**self.focal_gamma
-
-            if self.focal_detach:
-                focal = focal.detach()
-
-            bce = focal * bce
-
-        if self.focal_alpha == 0.5:
-            bce = 0.5 * bce
-        elif self.focal_alpha >= 0.0:
-            alphat = self.focal_alpha * t_zeroone + (1 - self.focal_alpha) * (1 - t_zeroone)
-            bce = alphat * bce
-
-        weight_mask = t_zeroone != t
-        bce[weight_mask] = bce[weight_mask] * t[weight_mask]
-
-        if self.background_weight != 1.0:
-            bg_weight = torch.ones_like(t, requires_grad=False)
-            bg_weight[t == 0] *= self.background_weight
-            bce = bce * bg_weight
-
-        return bce
-
-
-class BceDistance(Bce):
     def forward(self, x, t):
         x, t = super().forward(x, t)
 
@@ -180,21 +107,13 @@ class BceDistance(Bce):
         target = x_detached + t_sign * p_bar * focal_loss_modification
 
         # construct distance with x that backpropagates gradients
-        d = x - target
+        l = torch.nn.functional.smooth_l1_loss(x, target, reduction='none')
 
         # background clamp
         if self.background_clamp:
-            d[(x_detached < self.background_clamp) & (t_sign == -1.0)] = 0.0
+            l[(x_detached < self.background_clamp) & (t_sign == -1.0)] = 0.0
         if self.soft_clamp is not None:
-            d = self.soft_clamp(d)
-
-        return d
-
-
-class BceL2(BceDistance):
-    def forward(self, x, t):
-        d = super().forward(x, t)
-        l = torch.nn.functional.smooth_l1_loss(d, torch.zeros_like(d), reduction='none')
+            l = self.soft_clamp(l)
 
         mask_valid = t[:, :, :, :, self.ti] >= 0.0
         mask_foreground = t[mask_valid] > 0.0
@@ -331,9 +250,8 @@ class Regression(Base):
         l = 1.0 / t_sigma * d
 
         if self.soft_clamp is not None:
-            d = self.soft_clamp(d)
+            l = self.soft_clamp(l)
 
-        return d
         # uncertainty modification
         x_logs2 = x_all[:, :, :, :, 0][reg_mask]
         x_logs2 = 3.0 * torch.tanh(x_logs2 / 3.0)
