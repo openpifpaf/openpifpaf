@@ -1,6 +1,7 @@
 import argparse
 import logging
 import math
+import typing as t
 
 import torch
 
@@ -23,7 +24,17 @@ class SoftClamp(torch.nn.Module):
         return x
 
 
-class Bce(torch.nn.Module):
+class Base(torch.nn.Module):
+    def __init__(self, xi: t.List[int], ti: t.List[int]):
+        super().__init__()
+        self.xi = xi
+        self.ti = ti
+
+    def forward(self, x, t):
+        return x[:, :, :, :, self.xi], t[:, :, :, :, self.ti]
+
+
+class Bce(Base):
     background_weight = 1.0
     focal_alpha = 0.5
     focal_gamma = 1.0
@@ -37,8 +48,8 @@ class Bce(torch.nn.Module):
     # 0.02 -> -3.9, 0.01 -> -4.6, 0.001 -> -7, 0.0001 -> -9
     min_bce = 0.0  # 1e-6 corresponds to x~=14, 1e-10 -> 20
 
-    def __init__(self, **kwargs):
-        super().__init__()
+    def __init__(self, xi: t.List[int], ti: t.List[int], **kwargs):
+        super().__init__(xi, ti)
         for n, v in kwargs.items():
             assert hasattr(self, n)
             setattr(self, n, v)
@@ -80,7 +91,9 @@ class Bce(torch.nn.Module):
         cls.background_clamp = args.bce_background_clamp
 
     def forward(self, x, t):  # pylint: disable=arguments-differ
-        t_zeroone = t.clone()
+        x, t = super().forward(x, t)
+
+        t_zeroone = t.clone()[t >= 0.0]
         t_zeroone[t_zeroone > 0.0] = 1.0
         # x = torch.clamp(x, -20.0, 20.0)
         if self.background_clamp is not None:
@@ -131,6 +144,8 @@ class Bce(torch.nn.Module):
 
 class BceDistance(Bce):
     def forward(self, x, t):
+        x, t = super().forward(x, t)
+
         t_sign = t.clone()
         t_sign[t > 0.0] = 1.0
         t_sign[t <= 0.0] = -1.0
@@ -179,10 +194,20 @@ class BceDistance(Bce):
 class BceL2(BceDistance):
     def forward(self, x, t):
         d = super().forward(x, t)
-        return torch.nn.functional.smooth_l1_loss(d, torch.zeros_like(d), reduction='none')
+        l = torch.nn.functional.smooth_l1_loss(d, torch.zeros_like(d), reduction='none')
+
+        mask_valid = t[:, :, :, :, self.ti] >= 0.0
+        mask_foreground = t[mask_valid] > 0.0
+        x_logs2 = x[:, :, :, :, 0][mask_valid][mask_foreground]
+        x_logs2 = 3.0 * torch.tanh(x_logs2 / 3.0)
+
+        # modify loss for uncertainty
+        l[mask_foreground] = 0.5 * l[mask_foreground] * torch.exp(-x_logs2) + 0.5 * x_logs2
+
+        return l
 
 
-class Scale(torch.nn.Module):
+class Scale(Base):
     b = 1.0
     log_space = False
     relative = True
@@ -190,8 +215,8 @@ class Scale(torch.nn.Module):
     clip = None
     soft_clamp_value = 5.0
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, xi: t.List[int], ti: t.List[int]):
+        super().__init__(xi, ti)
 
         self.soft_clamp = None
         if self.soft_clamp_value:
@@ -216,6 +241,12 @@ class Scale(torch.nn.Module):
         cls.soft_clamp_value = args.scale_soft_clamp
 
     def forward(self, x, t):  # pylint: disable=arguments-differ
+        x, t = super().forward(x, t)
+
+        scale_mask = torch.isfinite(t)
+        x = x[scale_mask]
+        t = t[scale_mask]
+
         assert not (self.log_space and self.relative)
 
         x = torch.nn.functional.softplus(x)
@@ -349,11 +380,12 @@ class RegressionDistance:
         return d
 
 
-class Regression:
+class Regression(Base):
     soft_clamp_value = 5.0
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, xi: t.List[int], ti: t.List[int], *, sigma_from_scale: float = 0.5):
+        super().__init__(xi, ti)
+        self.sigma_from_scale = sigma_from_scale
 
         self.soft_clamp = None
         if self.soft_clamp_value:
@@ -369,14 +401,32 @@ class Regression:
     def configure(cls, args: argparse.Namespace):
         cls.soft_clamp_value = args.scale_soft_clamp
 
-    def __call__(self, x_regs, t_regs, t_sigma_min, t_scales):
+    def forward(self, x_all, t_all):
         """Only t_regs is guaranteed to be valid.
         Imputes t_sigma_min and and t_scales with guesses.
         """
-        x_regs = x_regs.reshape(t_regs.shape[0], t_regs.shape[1] // 2, 2)
-        t_regs = t_regs.reshape(t_regs.shape[0], t_regs.shape[1] // 2, 2)
-        t_sigma_min = t_sigma_min.unsqueeze(-1)
-        t_scales = t_scales.unsqueeze(-1)
+        x, t = super().forward(x_all, t_all)
+
+        x_regs = x[:, :, :, :, 0:2]
+        x_scales = x[:, :, :, :, 2:3]
+        t_regs = t[:, :, :, :, 0:2]
+        t_sigma_min = t[:, :, :, :, 2:3]
+        t_scales = t[:, :, :, :, 3:4]
+
+        finite = torch.isfinite(t_regs)
+        reg_mask = torch.all(finite, dim=4)
+
+        x_regs = x_regs[reg_mask]
+        x_scales = x_scales[reg_mask].unsqueeze(-1)
+        t_regs = t_regs[reg_mask]
+        t_sigma_min = t_sigma_min[reg_mask].unsqueeze(-1)
+        t_scales = t_scales[reg_mask].unsqueeze(-1)
+
+        # impute t_scales_reg with predicted values
+        t_scales = t_scales.clone()
+        invalid_t_scales = torch.isnan(t_scales)
+        t_scales[invalid_t_scales] = \
+            torch.nn.functional.softplus(x_scales.detach()[invalid_t_scales])
 
         d = x_regs - t_regs
         t_sigma_min_imputed = t_sigma_min.clone()
@@ -386,25 +436,22 @@ class Regression:
         # L2 distance for coordinate pair
         d = torch.linalg.norm(d, ord=2, dim=2, keepdim=True)
 
-        # 68% inside of t_sigma
-        if t_scales.shape[1]:
-            t_sigma = 0.5 * t_scales
-            t_sigma[torch.isnan(t_sigma)] = 0.5
-        elif t_regs.shape[1] == 2:
-            # Two regressions without scales is detection, i.e. second
-            # regression targets are width and height.
-            # Assume a regression sigma of 10% of the scale.
-            t_scales = torch.linalg.norm(t_regs[:, 1:2], ord=2, dim=2, keepdim=True)
-            t_sigma = 0.1 * t_scales
-            t_sigma = torch.repeat_interleave(t_sigma, 2, dim=1)
-        else:
-            t_sigma = 0.5
-        d = 1.0 / t_sigma * d
+        # 68% inside of t_sigma; assume t_scales represents 95%
+        t_sigma = self.sigma_from_scale * t_scales
+        l = 1.0 / t_sigma * d
 
         if self.soft_clamp is not None:
             d = self.soft_clamp(d)
 
         return d
+        # uncertainty modification
+        x_logs2 = x_all[:, :, :, :, 0][reg_mask]
+        x_logs2 = 3.0 * torch.tanh(x_logs2 / 3.0)
+        # We want sigma = b*0.5. Therefore, log_b = 0.5 * log_s2 + log2
+        x_logb = 0.5 * x_logs2 + 0.69314
+        l = l * torch.exp(-x_logb) + x_logb
+
+        return l
 
 
 def l1_loss(x1, x2, _, t1, t2, weight=None):
