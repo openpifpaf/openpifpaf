@@ -170,6 +170,8 @@ class BceDistance(Bce):
         # background clamp
         if self.background_clamp:
             d[(x_detached < self.background_clamp) & (t_sign == -1.0)] = 0.0
+        if self.soft_clamp is not None:
+            d = self.soft_clamp(d)
 
         return d
 
@@ -348,8 +350,26 @@ class RegressionDistance:
 
 
 class RegressionLoss:
-    @staticmethod
-    def __call__(x_regs, t_regs, t_sigma_min, t_scales):
+    soft_clamp_value = 5.0
+
+    def __init__(self):
+        super().__init__()
+
+        self.soft_clamp = None
+        if self.soft_clamp_value:
+            self.soft_clamp = SoftClamp(self.soft_clamp_value)
+
+    @classmethod
+    def cli(cls, parser: argparse.ArgumentParser):
+        group = parser.add_argument_group('Regression Loss')
+        group.add_argument('--regression-soft-clamp', default=cls.soft_clamp_value, type=float,
+                           help='soft clamp for scale')
+
+    @classmethod
+    def configure(cls, args: argparse.Namespace):
+        cls.soft_clamp_value = args.scale_soft_clamp
+
+    def __call__(self, x_regs, t_regs, t_sigma_min, t_scales):
         """Only t_regs is guaranteed to be valid.
         Imputes t_sigma_min and and t_scales with guesses.
         """
@@ -380,6 +400,9 @@ class RegressionLoss:
         else:
             t_sigma = 0.5
         d = 1.0 / t_sigma * d
+
+        if self.soft_clamp is not None:
+            d = self.soft_clamp(d)
 
         return d
 
