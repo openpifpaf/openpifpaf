@@ -192,9 +192,17 @@ class Scale(Base):
 class Regression(Base):
     soft_clamp_value = 5.0
 
-    def __init__(self, xi: t.List[int], ti: t.List[int], *, sigma_from_scale: float = 0.5):
+    def __init__(
+        self,
+        xi: t.List[int],
+        ti: t.List[int],
+        *,
+        sigma_from_scale: float = 0.5,
+        scale_from_wh: bool = False,
+    ):
         super().__init__(xi, ti)
         self.sigma_from_scale = sigma_from_scale
+        self.scale_from_wh = scale_from_wh
 
         self.soft_clamp = None
         if self.soft_clamp_value:
@@ -221,6 +229,9 @@ class Regression(Base):
         t_regs = t[:, :, :, :, 0:2]
         t_sigma_min = t[:, :, :, :, 2:3]
         t_scales = t[:, :, :, :, 3:4]
+        if self.scale_from_wh:
+            x_scales = torch.linalg.norm(x[:, :, :, :, 2:4], ord=2, dim=4, keepdim=True)
+            t_scales = torch.linalg.norm(t[:, :, :, :, 3:5], ord=2, dim=4, keepdim=True)
 
         finite = torch.isfinite(t_regs)
         reg_mask = torch.all(finite, dim=4)
@@ -245,7 +256,7 @@ class Regression(Base):
         # L2 distance for coordinate pair
         d = torch.linalg.norm(d, ord=2, dim=2, keepdim=True)
 
-        # 68% inside of t_sigma; assume t_scales represents 95%
+        # 68% inside of t_sigma
         t_sigma = self.sigma_from_scale * t_scales
         l = 1.0 / t_sigma * d
 

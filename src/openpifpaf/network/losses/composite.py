@@ -20,9 +20,9 @@ class CompositeLoss(torch.nn.Module):
         LOG.debug('%s: n_vectors = %d, n_scales = %d',
                   head_meta.name, head_meta.n_vectors, head_meta.n_scales)
 
-        self.loss_components = {
-            f'{head_meta.dataset}.{head_meta.name}.c': [components.Bce([1], [0])],
-            f'{head_meta.dataset}.{head_meta.name}.vec': [
+        if head_meta.n_vectors == head_meta.n_scales:
+            # keypoints and associations: vectors matched with scales
+            regression_components = [
                 components.Regression(
                     [
                         2 + vi * 2,
@@ -35,14 +35,37 @@ class CompositeLoss(torch.nn.Module):
                         1 + vi * 3 + 2,
                         1 + self.n_vectors * 3 + vi,
                     ],
-                    sigma_from_scale=(
-                        0.1  # for detection
-                        if (head_meta.n_vectors == 2 and head_meta.n_scales == 0)
-                        else 0.5  # default for keypoints
-                    ),
                 )
                 for vi in range(head_meta.n_vectors)
-            ],
+            ]
+        elif head_meta.n_vectors == 2 and head_meta.n_scales == 0:
+            # detection
+            regression_components = [
+                components.Regression(
+                    [
+                        2 + vi * 2,
+                        2 + vi * 2 + 1,
+                        2 + 1 * 2,  # width
+                        2 + 1 * 2 + 1,  # height
+                    ],
+                    [
+                        1 + vi * 3,
+                        1 + vi * 3 + 1,
+                        1 + vi * 3 + 2,
+                        1 + 1 * 3,  # width
+                        1 + 1 * 3 + 1,  # height
+                    ],
+                    sigma_from_scale=0.1,  # for detection
+                    scale_from_wh=True,  # for detection
+                )
+                for vi in range(head_meta.n_vectors)
+            ]
+        else:
+            regression_components = []
+
+        self.loss_components = {
+            f'{head_meta.dataset}.{head_meta.name}.c': [components.Bce([1], [0])],
+            f'{head_meta.dataset}.{head_meta.name}.vec': regression_components,
             f'{head_meta.dataset}.{head_meta.name}.scales': [
                 components.Scale(
                     [2 + head_meta.n_vectors * 2 + si],
