@@ -20,9 +20,7 @@ LOSSES = {
 LOSS_COMPONENTS = {
     components.Bce,
     components.Regression,
-    components.SmoothL1,
     components.Scale,
-    components.Laplace,
 }
 
 
