@@ -1,6 +1,6 @@
 from contextlib import contextmanager
 import logging
-from typing import List
+import typing as t
 
 import numpy as np
 
@@ -30,7 +30,7 @@ class Base:
     _image = None
     _processed_image = None
     _image_meta = None
-    _ground_truth: List[annotation.Base] = None
+    _ground_truth: t.Optional[t.List[annotation.Base]] = None
 
     def __init__(self, head_name):
         self.head_name = head_name
@@ -126,6 +126,9 @@ class Base:
 
     @staticmethod
     def colorbar(ax, colored_element, size='3%', pad=0.01):
+        assert make_axes_locatable is not None
+        assert plt is not None
+
         divider = make_axes_locatable(ax)
         cax = divider.append_axes('right', size=size, pad=pad)
         cb = plt.colorbar(colored_element, cax=cax)

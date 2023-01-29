@@ -107,7 +107,6 @@ setuptools.setup(
         'onnx': [
             'onnx',
             'onnxruntime',
-            'onnx-simplifier>=0.2.9; python_version<"3.9"',  # Python 3.9 not supported yet
             'protobuf<4',  # temporary explicit dependency until tests pass again
         ],
         'coreml': [

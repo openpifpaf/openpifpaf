@@ -3,14 +3,13 @@ import logging
 
 from ... import headmeta
 from . import components
-from .composite import CompositeLoss, CompositeLossByComponent
+from .composite import CompositeLoss
 from .multi_head import MultiHeadLoss, MultiHeadLossAutoTuneKendall, MultiHeadLossAutoTuneVariance
 
 LOG = logging.getLogger(__name__)
 
 #: headmeta class to Loss class
 LOSSES = {
-    'a': CompositeLossByComponent,  # TODO hack: added to trigger cli() and configure()
     headmeta.Cif: CompositeLoss,
     headmeta.Caf: CompositeLoss,
     headmeta.CifDet: CompositeLoss,
