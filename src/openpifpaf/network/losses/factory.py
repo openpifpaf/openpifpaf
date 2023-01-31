@@ -10,12 +10,12 @@ LOG = logging.getLogger(__name__)
 
 #: headmeta class to Loss class
 LOSSES = {
-    headmeta.Cif: CompositeLoss,
-    headmeta.Caf: CompositeLoss,
-    headmeta.CifDet: CompositeLoss,
-    headmeta.TSingleImageCif: CompositeLoss,
-    headmeta.TSingleImageCaf: CompositeLoss,
-    headmeta.Tcaf: CompositeLoss,
+    headmeta.Cif: CompositeLoss.factory_from_headmeta,
+    headmeta.Caf: CompositeLoss.factory_from_headmeta,
+    headmeta.CifDet: CompositeLoss.factory_from_headmeta,
+    headmeta.TSingleImageCif: CompositeLoss.factory_from_headmeta,
+    headmeta.TSingleImageCaf: CompositeLoss.factory_from_headmeta,
+    headmeta.Tcaf: CompositeLoss.factory_from_headmeta,
 }
 LOSS_COMPONENTS = {
     components.Bce,
@@ -54,8 +54,7 @@ class Factory:
                            default=MultiHeadLoss.task_sparsity_weight, type=float,
                            help='[experimental]')
 
-        for l in set(LOSSES.values()):
-            l.cli(parser)
+        CompositeLoss.cli(parser)
         for lc in LOSS_COMPONENTS:
             lc.cli(parser)
 
@@ -71,8 +70,7 @@ class Factory:
         MultiHeadLossAutoTuneKendall.task_sparsity_weight = args.task_sparsity_weight
         MultiHeadLossAutoTuneVariance.task_sparsity_weight = args.task_sparsity_weight
 
-        for l in set(LOSSES.values()):
-            l.configure(args)
+        CompositeLoss.configure(args)
         for lc in LOSS_COMPONENTS:
             lc.configure(args)
 

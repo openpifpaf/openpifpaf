@@ -28,19 +28,6 @@ def default_output_file(args):
     if os.getenv('SLURM_JOB_ID'):
         out += f'-slurm{os.getenv("SLURM_JOB_ID")}'
 
-    if args.cocokp_square_edge != 385:
-        out += '-edge{}'.format(args.cocokp_square_edge)
-    if args.regression_loss != 'laplace':
-        out += '-{}'.format(args.regression_loss)
-    if args.r_smooth != 0.0:
-        out += '-rsmooth{}'.format(args.r_smooth)
-    if args.cocokp_orientation_invariant or args.cocokp_extended_scale:
-        out += '-'
-        if args.cocokp_orientation_invariant:
-            out += 'o{:02.0f}'.format(args.cocokp_orientation_invariant * 100.0)
-        if args.cocokp_extended_scale:
-            out += 's'
-
     return out + '.pkl'
 
 

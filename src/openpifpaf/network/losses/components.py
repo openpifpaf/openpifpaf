@@ -41,8 +41,10 @@ class Bce(Base):
     # choose low value for force-complete-pose and Focal loss modification
     background_clamp = -15.0
 
-    def __init__(self, xi: t.List[int], ti: t.List[int], **kwargs):
+    def __init__(self, xi: t.List[int], ti: t.List[int], weights=None, **kwargs):
         super().__init__(xi, ti)
+        self.weights = weights
+
         for n, v in kwargs.items():
             assert hasattr(self, n)
             setattr(self, n, v)
@@ -70,8 +72,12 @@ class Bce(Base):
         cls.soft_clamp_value = args.bce_soft_clamp
         cls.background_clamp = args.bce_background_clamp
 
-    def forward(self, x, t):
-        x, t = super().forward(x, t)
+    def forward(self, x_all, t_all):
+        x, t = super().forward(x_all, t_all)
+
+        mask = t >= 0.0
+        t = t[mask]
+        x = x[mask]
 
         t_sign = t.clone()
         t_sign[t > 0.0] = 1.0
@@ -115,13 +121,18 @@ class Bce(Base):
         if self.soft_clamp is not None:
             l = self.soft_clamp(l)
 
-        mask_valid = t[:, :, :, :, self.ti] >= 0.0
-        mask_foreground = t[mask_valid] > 0.0
-        x_logs2 = x[:, :, :, :, 0][mask_valid][mask_foreground]
+        mask_foreground = t > 0.0
+        x_logs2 = x_all[:, :, :, :, 0:1][mask][mask_foreground]
         x_logs2 = 3.0 * torch.tanh(x_logs2 / 3.0)
 
         # modify loss for uncertainty
         l[mask_foreground] = 0.5 * l[mask_foreground] * torch.exp(-x_logs2) + 0.5 * x_logs2
+
+        # modify loss for weighting
+        if self.weights is not None:
+            full_weights = torch.empty_like(t)
+            full_weights[:] = self.weights
+            l = full_weights[mask] * l
 
         return l
 
@@ -134,8 +145,13 @@ class Scale(Base):
     clip = None
     soft_clamp_value = 5.0
 
-    def __init__(self, xi: t.List[int], ti: t.List[int]):
+    def __init__(self, xi: t.List[int], ti: t.List[int], weights=None, **kwargs):
         super().__init__(xi, ti)
+        self.weights = weights
+
+        for n, v in kwargs.items():
+            assert hasattr(self, n)
+            setattr(self, n, v)
 
         self.soft_clamp = None
         if self.soft_clamp_value:
@@ -186,6 +202,13 @@ class Scale(Base):
             d = self.soft_clamp(d)
 
         loss = torch.nn.functional.smooth_l1_loss(d, torch.zeros_like(d), reduction='none')
+
+        # modify loss for weighting
+        if self.weights is not None:
+            full_weights = torch.empty_like(t)
+            full_weights[:] = self.weights
+            loss = full_weights[scale_mask] * loss
+
         return loss
 
 
@@ -196,11 +219,13 @@ class Regression(Base):
         self,
         xi: t.List[int],
         ti: t.List[int],
+        weights=None,
         *,
         sigma_from_scale: float = 0.5,
         scale_from_wh: bool = False,
     ):
         super().__init__(xi, ti)
+        self.weights = weights
         self.sigma_from_scale = sigma_from_scale
         self.scale_from_wh = scale_from_wh
 
@@ -237,10 +262,10 @@ class Regression(Base):
         reg_mask = torch.all(finite, dim=4)
 
         x_regs = x_regs[reg_mask]
-        x_scales = x_scales[reg_mask].unsqueeze(-1)
+        x_scales = x_scales[reg_mask]
         t_regs = t_regs[reg_mask]
-        t_sigma_min = t_sigma_min[reg_mask].unsqueeze(-1)
-        t_scales = t_scales[reg_mask].unsqueeze(-1)
+        t_sigma_min = t_sigma_min[reg_mask]
+        t_scales = t_scales[reg_mask]
 
         # impute t_scales_reg with predicted values
         t_scales = t_scales.clone()
@@ -251,10 +276,10 @@ class Regression(Base):
         d = x_regs - t_regs
         t_sigma_min_imputed = t_sigma_min.clone()
         t_sigma_min_imputed[torch.isnan(t_sigma_min)] = 0.1
-        d = torch.cat([d, t_sigma_min_imputed], dim=2)
+        d = torch.cat([d, t_sigma_min_imputed], dim=1)
 
         # L2 distance for coordinate pair
-        d = torch.linalg.norm(d, ord=2, dim=2, keepdim=True)
+        d = torch.linalg.norm(d, ord=2, dim=1, keepdim=True)
 
         # 68% inside of t_sigma
         t_sigma = self.sigma_from_scale * t_scales
@@ -264,10 +289,16 @@ class Regression(Base):
             l = self.soft_clamp(l)
 
         # uncertainty modification
-        x_logs2 = x_all[:, :, :, :, 0][reg_mask]
+        x_logs2 = x_all[:, :, :, :, 0:1][reg_mask]
         x_logs2 = 3.0 * torch.tanh(x_logs2 / 3.0)
         # We want sigma = b*0.5. Therefore, log_b = 0.5 * log_s2 + log2
         x_logb = 0.5 * x_logs2 + 0.69314
         l = l * torch.exp(-x_logb) + x_logb
+
+        # modify loss for weighting
+        if self.weights is not None:
+            full_weights = torch.empty_like(t)
+            full_weights[:] = self.weights
+            l = full_weights[reg_mask] * l
 
         return l
