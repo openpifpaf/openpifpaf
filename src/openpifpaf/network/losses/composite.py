@@ -1,6 +1,6 @@
 import argparse
 import logging
-import typing as t
+from typing import Dict, List
 
 import torch
 
@@ -23,11 +23,11 @@ class CompositeLoss(torch.nn.Module):
             weights = torch.Tensor(head_meta.training_weights).reshape(1, 1, 1, 1, -1)
             LOG.debug("The weights for the keypoints are %s", weights)
 
-        loss_components: t.Dict[str, t.List[components.Base]] = {
+        loss_components: Dict[str, List[components.Base]] = {
             f'{head_meta.dataset}.{head_meta.name}.c': [components.Bce([1], [0], weights=weights)],
         }
 
-        regression_components: t.List[components.Base] = []
+        regression_components: List[components.Base] = []
         if head_meta.n_vectors <= head_meta.n_scales:
             # keypoints and associations: vectors matched with scales and can
             # have additional scales
@@ -89,7 +89,7 @@ class CompositeLoss(torch.nn.Module):
 
     def __init__(
         self,
-        loss_components: t.Dict[str, t.List[components.Base]],
+        loss_components: Dict[str, List[components.Base]],
     ):
         super().__init__()
         self.loss_components = loss_components

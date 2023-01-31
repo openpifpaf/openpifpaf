@@ -1,6 +1,6 @@
 import argparse
 import logging
-import typing as t
+from typing import List
 
 import torch
 
@@ -24,13 +24,13 @@ class SoftClamp(torch.nn.Module):
 
 
 class Base(torch.nn.Module):
-    def __init__(self, xi: t.List[int], ti: t.List[int]):
+    def __init__(self, xi: List[int], ti: List[int]):
         super().__init__()
         self.xi = xi
         self.ti = ti
 
-    def forward(self, x, t):
-        return x[:, :, :, :, self.xi], t[:, :, :, :, self.ti]
+    def forward(self, x_all, t_all):
+        return x_all[:, :, :, :, self.xi], t_all[:, :, :, :, self.ti]
 
 
 class Bce(Base):
@@ -41,7 +41,7 @@ class Bce(Base):
     # choose low value for force-complete-pose and Focal loss modification
     background_clamp = -15.0
 
-    def __init__(self, xi: t.List[int], ti: t.List[int], weights=None, **kwargs):
+    def __init__(self, xi: List[int], ti: List[int], weights=None, **kwargs):
         super().__init__(xi, ti)
         self.weights = weights
 
@@ -145,7 +145,7 @@ class Scale(Base):
     clip = None
     soft_clamp_value = 5.0
 
-    def __init__(self, xi: t.List[int], ti: t.List[int], weights=None, **kwargs):
+    def __init__(self, xi: List[int], ti: List[int], weights=None, **kwargs):
         super().__init__(xi, ti)
         self.weights = weights
 
@@ -175,8 +175,8 @@ class Scale(Base):
             cls.relative = False
         cls.soft_clamp_value = args.scale_soft_clamp
 
-    def forward(self, x, t):  # pylint: disable=arguments-differ
-        x, t = super().forward(x, t)
+    def forward(self, x_all, t_all):  # pylint: disable=arguments-differ
+        x, t = super().forward(x_all, t_all)
 
         scale_mask = torch.isfinite(t)
         x = x[scale_mask]
@@ -217,8 +217,8 @@ class Regression(Base):
 
     def __init__(
         self,
-        xi: t.List[int],
-        ti: t.List[int],
+        xi: List[int],
+        ti: List[int],
         weights=None,
         *,
         sigma_from_scale: float = 0.5,
