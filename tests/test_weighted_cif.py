@@ -20,13 +20,13 @@ def test_cif_ones_weight():
     t = torch.ones((2, 17, 5, 4, 4,)) * 4
 
     # reference
-    loss = openpifpaf.network.losses.composite.CompositeLoss(cif)
+    loss = openpifpaf.network.losses.composite.CompositeLoss.factory_from_headmeta(cif)
     loss_values = loss(x, t)
     loss_np_no_weight = np.array([l.numpy() for l in loss_values])
 
     # Weights explicitly set to 1.0
     cif.training_weights = [1.] * 17
-    loss = openpifpaf.network.losses.composite.CompositeLoss(cif)
+    loss = openpifpaf.network.losses.composite.CompositeLoss.factory_from_headmeta(cif)
     loss_values = loss(x, t)
     loss_np = np.array([l.numpy() for l in loss_values])
 
@@ -42,13 +42,13 @@ def test_caf_ones_weight():
                                   sigmas=COCO_PERSON_SIGMAS)
 
     # reference
-    loss = openpifpaf.network.losses.composite.CompositeLoss(caf)
+    loss = openpifpaf.network.losses.composite.CompositeLoss.factory_from_headmeta(caf)
     loss_values = loss(x, t)
     loss_np_no_weight = np.array([l.numpy() for l in loss_values])
 
     # Weights explicitly set to 1.0
     caf.training_weights = [1.] * 19
-    loss = openpifpaf.network.losses.composite.CompositeLoss(caf)
+    loss = openpifpaf.network.losses.composite.CompositeLoss.factory_from_headmeta(caf)
     loss_values = loss(x, t)
     loss_np = np.array([l.numpy() for l in loss_values])
 
@@ -63,7 +63,7 @@ def test_conf_equal_weight():
                                   pose=COCO_UPRIGHT_POSE,
                                   draw_skeleton=COCO_PERSON_SKELETON,
                                   score_weights=COCO_PERSON_SCORE_WEIGHTS)
-    loss = openpifpaf.network.losses.composite.CompositeLoss(cif)
+    loss = openpifpaf.network.losses.composite.CompositeLoss.factory_from_headmeta(cif)
     x = torch.ones((2, 17, 5, 4, 4,)) * 5
     t = torch.ones((2, 17, 5, 4, 4,)) * 4
     loss_values = loss(x, t)
@@ -77,7 +77,7 @@ def test_conf_equal_weight():
                                   draw_skeleton=COCO_PERSON_SKELETON,
                                   score_weights=COCO_PERSON_SCORE_WEIGHTS,
                                   training_weights=[w] * 17)
-    loss = openpifpaf.network.losses.composite.CompositeLoss(cif)
+    loss = openpifpaf.network.losses.composite.CompositeLoss.factory_from_headmeta(cif)
     x = torch.ones((2, 17, 5, 4, 4,)) * 5
     t = torch.ones((2, 17, 5, 4, 4,)) * 4
     loss_values = loss(x, t)
@@ -93,7 +93,7 @@ def test_conf_zero_weight():
                                   draw_skeleton=COCO_PERSON_SKELETON,
                                   score_weights=COCO_PERSON_SCORE_WEIGHTS,
                                   training_weights=[0.0] * 17)
-    loss = openpifpaf.network.losses.composite.CompositeLoss(cif)
+    loss = openpifpaf.network.losses.composite.CompositeLoss.factory_from_headmeta(cif)
     x = torch.ones((2, 17, 5, 4, 4,)) * 5
     t = torch.ones((2, 17, 5, 4, 4,)) * 4
     loss_values = loss(x, t)
