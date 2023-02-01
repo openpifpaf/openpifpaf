@@ -20,7 +20,7 @@ class CompositeLoss(torch.nn.Module):
         weights = None
         if head_meta.training_weights is not None:
             assert len(head_meta.training_weights) == head_meta.n_fields
-            weights = torch.Tensor(head_meta.training_weights).reshape(1, 1, 1, 1, -1)
+            weights = torch.Tensor(head_meta.training_weights).reshape(1, -1, 1, 1, 1)
             LOG.debug("The weights for the keypoints are %s", weights)
 
         loss_components: Dict[str, List[components.Base]] = {

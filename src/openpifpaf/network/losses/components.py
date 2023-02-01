@@ -130,7 +130,7 @@ class Bce(Base):
 
         # modify loss for weighting
         if self.weights is not None:
-            full_weights = torch.empty_like(t)
+            full_weights = torch.empty_like(t_all[:, :, :, :, 0:1])
             full_weights[:] = self.weights
             l = full_weights[mask] * l
 
@@ -205,7 +205,7 @@ class Scale(Base):
 
         # modify loss for weighting
         if self.weights is not None:
-            full_weights = torch.empty_like(t)
+            full_weights = torch.empty_like(t_all[:, :, :, :, 0:1])
             full_weights[:] = self.weights
             loss = full_weights[scale_mask] * loss
 
@@ -297,7 +297,7 @@ class Regression(Base):
 
         # modify loss for weighting
         if self.weights is not None:
-            full_weights = torch.empty_like(t)
+            full_weights = torch.empty_like(t_all[:, :, :, :, 0:1])
             full_weights[:] = self.weights
             l = full_weights[reg_mask] * l
 
