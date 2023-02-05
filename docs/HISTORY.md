@@ -1,6 +1,8 @@
 # History
 
-* [main](https://github.com/openpifpaf/openpifpaf/compare/v0.13.10...main)
+* [main](https://github.com/openpifpaf/openpifpaf/compare/v0.13.11...main)
+* [0.13.11](https://github.com/openpifpaf/openpifpaf/compare/v0.13.10...v0.13.11) (2023-02-02)
+    * minor loss bugfix
 * [0.13.10](https://github.com/openpifpaf/openpifpaf/compare/v0.13.9...v0.13.10) (2023-02-01)
     * refactored loss components, no change in output
 * [0.13.9](https://github.com/openpifpaf/openpifpaf/compare/v0.13.8...v0.13.9) (2023-01-29)

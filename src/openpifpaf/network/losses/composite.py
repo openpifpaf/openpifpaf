@@ -39,9 +39,9 @@ class CompositeLoss(torch.nn.Module):
                         2 + head_meta.n_vectors * 2 + vi,
                     ],
                     [
-                        1 + vi * 3,
-                        1 + vi * 3 + 1,
-                        1 + vi * 3 + 2,
+                        1 + vi * 2,
+                        1 + vi * 2 + 1,
+                        1 + head_meta.n_vectors * 2 + vi,
                         1 + head_meta.n_vectors * 3 + vi,
                     ],
                     weights=weights,
