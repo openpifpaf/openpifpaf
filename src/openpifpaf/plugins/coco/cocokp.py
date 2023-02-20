@@ -158,8 +158,10 @@ class CocoKp(openpifpaf.datasets.DataModule, openpifpaf.Configurable):
         # cocokp specific
         cls.train_annotations = args.cocokp_train_annotations
         cls.val_annotations = args.cocokp_val_annotations
+        cls.eval_annotations = cls.val_annotations
         cls.train_image_dir = args.cocokp_train_image_dir
         cls.val_image_dir = args.cocokp_val_image_dir
+        cls.eval_image_dir = cls.val_image_dir
 
         cls.square_edge = args.cocokp_square_edge
         cls.with_dense = args.cocokp_with_dense
