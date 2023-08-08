@@ -41,9 +41,9 @@ class Posetrack(openpifpaf.metric.Base):
                 'text_labels': [],
             }
 
-        with open(self._written_mot_stats_file, 'r') as f_mot:
+        with open(self._written_mot_stats_file, 'r', encoding='utf8') as f_mot:
             mot_stats = json.load(f_mot)
-        with open(self._written_ap_stats_file, 'r') as f_ap:
+        with open(self._written_ap_stats_file, 'r', encoding='utf8') as f_ap:
             ap_stats = json.load(f_ap)
 
         mot_index_by_name = {n: int(i) for i, n in mot_stats['names'].items()}
@@ -113,7 +113,7 @@ class Posetrack(openpifpaf.metric.Base):
         }
         if additional_data:
             data = dict(**data, **additional_data)
-        with open(out_name, 'w') as f:
+        with open(out_name, 'w', encoding='utf8') as f:
             json.dump(data, f)
         LOG.info('wrote %s', out_name)
 
@@ -137,7 +137,7 @@ class Posetrack(openpifpaf.metric.Base):
         }
         if additional_data:
             data = dict(**data, **additional_data)
-        with open(out_name, 'w') as f:
+        with open(out_name, 'w', encoding='utf8') as f:
             json.dump(data, f)
         LOG.info('wrote %s', out_name)
 
@@ -334,7 +334,7 @@ class Posetrack(openpifpaf.metric.Base):
 
         mota = {}
         for file_name in mot_files:
-            with open(file_name, 'r') as f:
+            with open(file_name, 'r', encoding='utf8') as f:
                 d = json.load(f)
             identifier = os.path.basename(file_name).replace('_MOT_metrics.json', '')
             mota[identifier] = d.get('mota', [-1.0])[-1]

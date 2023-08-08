@@ -25,7 +25,7 @@ def main():
     network.Factory.configure(args)
 
     if args.checkpoint is None:
-        raise Exception('checkpoint must be provided for old model to migrate from')
+        raise RuntimeError('checkpoint must be provided for old model to migrate from')
 
     if args.output is None:
         args.output = args.checkpoint + '.out.pkl'

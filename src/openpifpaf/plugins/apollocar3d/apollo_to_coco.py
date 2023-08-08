@@ -84,7 +84,7 @@ class ApolloToCoco:
         path_val = os.path.join(self.dir_dataset, 'split', 'validation-list.txt', )
         self.splits = {}
         for name, path in zip(('train', 'val'), (path_train, path_val)):
-            with open(path, "r") as ff:
+            with open(path, "r", encoding='utf8') as ff:
                 lines = ff.readlines()
             self.splits[name] = [os.path.join(self.dir_dataset, 'images', line.strip())
                                  for line in lines]

@@ -65,7 +65,7 @@ def test_cli_respects_namespace():
             conflicts[name].append(arg)
 
     if conflicts:
-        raise Exception(' '.join(
+        raise RuntimeError(' '.join(
             f'Cli arguments {args} defined in the "{name}" module must start with "{name}_".'
             for name, args in conflicts.items()
         ))

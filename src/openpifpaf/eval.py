@@ -202,7 +202,7 @@ class Evaluator(Configurable):
         stats = dict(**metric_stats, **additional_data)
 
         # write stats file
-        with open(output + '.stats.json', 'w') as f:
+        with open(output + '.stats.json', 'w', encoding='utf8') as f:
             json.dump(stats, f)
 
         LOG.info('stats:\n%s', json.dumps(stats, indent=4))
