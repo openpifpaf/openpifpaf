@@ -47,7 +47,7 @@ class HFlip(Preprocess):
         anns = copy.deepcopy(anns)
 
         w, _ = image.size
-        image = image.transpose(PIL.Image.FLIP_LEFT_RIGHT)
+        image = image.transpose(PIL.Image.Transpose.FLIP_LEFT_RIGHT)
         for ann in anns:
             ann['keypoints'][:, 0] = -ann['keypoints'][:, 0] - 1.0 + w
             if self.swap is not None and not ann['iscrowd']:
