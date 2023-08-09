@@ -11,7 +11,7 @@ def factory(dataset):
         return MultiDataModule(datamodules)
 
     if dataset not in DATAMODULES:
-        raise Exception('dataset {} unknown'.format(dataset))
+        raise RuntimeError('dataset {} unknown'.format(dataset))
     return DATAMODULES[dataset]()
 
 

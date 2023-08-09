@@ -182,10 +182,10 @@ class WholebodyMetric(Base):
             ann["face_kpts"] = ann_orig["keypoints"][23 * 3:91 * 3]
             ann["foot_kpts"] = ann_orig["keypoints"][17 * 3:23 * 3]
             ann["keypoints"] = ann_orig["keypoints"][0:17 * 3]
-        with open(filename + '.pred_wb.json', 'w') as f:
+        with open(filename + '.pred_wb.json', 'w', encoding='utf8') as f:
             json.dump(predictions_wb, f)
         LOG.info('wrote %s.pred_wb.json', filename)
-        with open(filename + '.pred.json', 'w') as f:
+        with open(filename + '.pred.json', 'w', encoding='utf8') as f:
             json.dump(predictions, f)
         LOG.info('wrote %s.pred.json', filename)
         with zipfile.ZipFile(filename + '.zip', 'w') as myzip:
@@ -193,7 +193,7 @@ class WholebodyMetric(Base):
         LOG.info('wrote %s.zip', filename)
 
         if additional_data:
-            with open(filename + '.pred_meta.json', 'w') as f:
+            with open(filename + '.pred_meta.json', 'w', encoding='utf8') as f:
                 json.dump(additional_data, f)
             LOG.info('wrote %s.pred_meta.json', filename)
 

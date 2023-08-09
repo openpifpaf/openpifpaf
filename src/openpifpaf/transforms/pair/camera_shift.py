@@ -24,7 +24,7 @@ class CameraShift(Preprocess):
 
         # shift image
         affine_params = (1.0, 0.0, xy_shift[0], 0.0, 1.0, xy_shift[1])
-        image = image.transform(image.size, PIL.Image.AFFINE, affine_params,
+        image = image.transform(image.size, PIL.Image.Transform.AFFINE, affine_params,
                                 fillcolor=(127, 127, 127))
 
         # shift all annotations

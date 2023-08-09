@@ -48,7 +48,7 @@ class RandomChoice(Preprocess):
                 return image, anns, meta
             return t(image, anns, meta)
 
-        raise Exception('not possible')
+        raise RuntimeError('not possible')
 
 
 class DeterministicEqualChoice(Preprocess):

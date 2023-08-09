@@ -130,7 +130,7 @@ def main():
             zip(animation.iter(), predictor.dataset(capture)):
         start_post = time.perf_counter()
         if args.json_output:
-            with open(args.json_output, 'a+') as f:
+            with open(args.json_output, 'a+', encoding='utf8') as f:
                 json.dump({
                     'frame': meta['frame_i'],
                     'predictions': [ann.json_data() for ann in preds]

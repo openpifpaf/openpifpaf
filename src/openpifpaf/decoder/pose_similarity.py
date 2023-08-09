@@ -61,7 +61,7 @@ class PoseSimilarity(TrackBase):
         elif args.posesimilarity_distance == 'crafted':
             cls.distance_type = pose_distance.Crafted
         else:
-            raise Exception('distance function type not known')
+            raise RuntimeError('distance function type not known')
 
         pose_distance.Oks.inflate = args.posesimilarity_oks_inflate
 
@@ -99,7 +99,7 @@ class PoseSimilarity(TrackBase):
         LOG.debug('cost time = %.3fs', time.perf_counter() - cost_start)
 
         if scipy is None:
-            raise Exception('scipy not found. Run "pip3 install scipy" to install.')
+            raise RuntimeError('scipy not found. Run "pip3 install scipy" to install.')
         track_indices, pose_indices = scipy.optimize.linear_sum_assignment(cost)
         matched_poses = set()
         for track_i, pose_i in zip(track_indices, pose_indices):

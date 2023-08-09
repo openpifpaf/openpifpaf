@@ -20,7 +20,7 @@ def test_resize_bicubic():
     np_image[2, 2] = 1.0
 
     image = PIL.Image.fromarray(np_image)
-    image = torchvision.transforms.functional.resize(image, (10, 10), PIL.Image.BICUBIC)
+    image = torchvision.transforms.functional.resize(image, (10, 10), PIL.Image.Resampling.BICUBIC)
 
     np_result = np.asarray(image)
     assert np.all(np_result[:5] == np_result[:4:-1])  # symmetric

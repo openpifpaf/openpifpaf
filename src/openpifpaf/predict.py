@@ -66,7 +66,7 @@ def cli():
     if args.glob:
         args.images += glob.glob(args.glob)
     if not args.images:
-        raise Exception("no image files given")
+        raise RuntimeError("no image files given")
 
     return args
 
@@ -110,7 +110,7 @@ def main():
             json_out_name = out_name(
                 args.json_output, meta['file_name'], '.predictions.json')
             LOG.debug('json output = %s', json_out_name)
-            with open(json_out_name, 'w') as f:
+            with open(json_out_name, 'w', encoding='utf8') as f:
                 json.dump([ann.json_data() for ann in pred], f)
 
         # image output

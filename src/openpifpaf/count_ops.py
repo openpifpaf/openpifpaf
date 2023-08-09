@@ -21,7 +21,7 @@ except ImportError:
 
 def count(model):
     if thop is None:
-        raise Exception('thop not found. Run "pip3 install thop".')
+        raise RuntimeError('thop not found. Run "pip3 install thop".')
     dummy_input = torch.randn(1, 3, 641, 641)
     gmacs, params = thop.profile(model, inputs=(dummy_input, ))  # pylint: disable=unbalanced-tuple-unpacking
     return gmacs, params

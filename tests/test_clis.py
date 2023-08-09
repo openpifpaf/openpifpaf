@@ -75,7 +75,7 @@ def test_predict_realistic_resolution(tmpdir):
     out_file = os.path.join(tmpdir, '000000081988.jpg.predictions.json')
     assert os.path.exists(out_file)
 
-    with open(out_file, 'r') as f:
+    with open(out_file, 'r', encoding='utf8') as f:
         predictions = json.load(f)
 
     assert len(predictions) == 5

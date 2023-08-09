@@ -165,7 +165,7 @@ class AnimalKp(DataModule):
         if (args.animal_eval_test2017 or args.animal_eval_testdev2017) \
                 and not args.write_predictions \
                 and not args.debug:
-            raise Exception('have to use --write-predictions for this dataset')
+            raise RuntimeError('have to use --write-predictions for this dataset')
 
     def _preprocess(self):
         encoders = (encoder.Cif(self.head_metas[0], bmin=self.b_min),

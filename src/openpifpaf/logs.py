@@ -104,7 +104,7 @@ class Plots():
 
     def process_arguments(self):
         if not self.datas[0]:
-            raise Exception('no data')
+            raise RuntimeError('no data')
         return {label: data['process'][0]['argv'][1:]
                 for data, label in zip(self.datas, self.labels)}
 

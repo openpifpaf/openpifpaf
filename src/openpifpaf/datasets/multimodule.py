@@ -64,6 +64,7 @@ class MultiDataModule(DataModule):
     def eval_loader(self):
         return MultiLoader([dm.eval_loader() for dm in self.datamodules], len(self.head_metas))
 
+    # pylint:disable=arguments-differ
     def distributed_sampler(self, loader: MultiLoader) -> MultiLoader:
         assert len(self.datamodules) == len(loader.loaders)
         return MultiLoader(

@@ -54,10 +54,10 @@ class Posetrack2017(openpifpaf.datasets.DataModule):
         )
         tcaf = openpifpaf.headmeta.Tcaf(
             'tcaf', 'posetrack2018',
-            keypoints=KEYPOINTS,
-            sigmas=SIGMAS,
-            pose=UPRIGHT_POSE,
-            draw_skeleton=SKELETON,
+            keypoints_single_frame=KEYPOINTS,
+            sigmas_single_frame=SIGMAS,
+            pose_single_frame=UPRIGHT_POSE,
+            draw_skeleton_single_frame=SKELETON,
             only_in_field_of_view=True,
         )
 

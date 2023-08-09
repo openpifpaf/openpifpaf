@@ -26,7 +26,7 @@ except ModuleNotFoundError as err:
         raise err
     cv2 = None  # pylint: disable=invalid-name
 
-from .constants import CAR_KEYPOINTS_24, CAR_SKELETON_24,\
+from .constants import CAR_KEYPOINTS_24, CAR_SKELETON_24, \
     CAR_KEYPOINTS_66, CAR_SKELETON_66, KPS_MAPPING
 from .transforms import skeleton_mapping
 
@@ -84,7 +84,7 @@ class ApolloToCoco:
         path_val = os.path.join(self.dir_dataset, 'split', 'validation-list.txt', )
         self.splits = {}
         for name, path in zip(('train', 'val'), (path_train, path_val)):
-            with open(path, "r") as ff:
+            with open(path, "r", encoding='utf8') as ff:
                 lines = ff.readlines()
             self.splits[name] = [os.path.join(self.dir_dataset, 'images', line.strip())
                                  for line in lines]
@@ -103,7 +103,7 @@ class ApolloToCoco:
             if self.sample:
                 im_paths = im_paths[:50]
             if self.split_images:
-                path_dir = (os.path.join(self.dir_out_im, phase))
+                path_dir = os.path.join(self.dir_out_im, phase)
                 os.makedirs(path_dir, exist_ok=True)
                 assert not os.listdir(path_dir), "Directory to save images is not empty. " \
                     "Remove flag --split_images ?"
@@ -154,7 +154,7 @@ class ApolloToCoco:
                 name = name + 'single_sample_'
 
             path_json = os.path.join(self.dir_out_ann, name + phase + '.json')
-            with open(path_json, 'w') as outfile:
+            with open(path_json, 'w', encoding='utf8') as outfile:
                 json.dump(j_file, outfile)
 
     def _process_image(self, im_path):
@@ -288,19 +288,19 @@ class ApolloToCoco:
         Initiate Json for training and val phase for the 24 kp and the 66 kp version
         """
         for j_file, n_kp in [(self.json_file_24, 24), (self.json_file_66, 66)]:
-            j_file["info"] = dict(url="https://github.com/openpifpaf/openpifpaf",
-                                  date_created=time.strftime("%a, %d %b %Y %H:%M:%S +0000",
-                                                             time.localtime()),
-                                  description=("Conversion of ApolloCar3D dataset into MS-COCO"
-                                               " format with {n_kp} keypoints"))
+            j_file["info"] = {
+                "url": "https://github.com/openpifpaf/openpifpaf",
+                "date_created": time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.localtime()),
+                "description": f"ApolloCar3D dataset in MS-COCO format with {n_kp} keypoints",
+            }
 
             skel = CAR_SKELETON_24 if n_kp == 24 else CAR_SKELETON_66
             car_kps = CAR_KEYPOINTS_24 if n_kp == 24 else CAR_KEYPOINTS_66
-            j_file["categories"] = [dict(name='car',
-                                         id=1,
-                                         skeleton=skel,
-                                         supercategory='car',
-                                         keypoints=car_kps)]
+            j_file["categories"] = [{"name": 'car',
+                                     "id": 1,
+                                     "skeleton": skel,
+                                     "supercategory": 'car',
+                                     "keypoints": car_kps}]
             j_file["images"] = []
             j_file["annotations"] = []
 

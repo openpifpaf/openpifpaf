@@ -142,7 +142,7 @@ class Coco(Base):
              if k in ('image_id', 'category_id', 'keypoints', 'score')}
             for annotation in self.predictions
         ]
-        with open(filename + '.pred.json', 'w') as f:
+        with open(filename + '.pred.json', 'w', encoding='utf8') as f:
             json.dump(predictions, f)
         LOG.info('wrote %s.pred.json', filename)
         with zipfile.ZipFile(filename + '.zip', 'w') as myzip:
@@ -150,7 +150,7 @@ class Coco(Base):
         LOG.info('wrote %s.zip', filename)
 
         if additional_data:
-            with open(filename + '.pred_meta.json', 'w') as f:
+            with open(filename + '.pred_meta.json', 'w', encoding='utf8') as f:
                 json.dump(additional_data, f)
             LOG.info('wrote %s.pred_meta.json', filename)
 
