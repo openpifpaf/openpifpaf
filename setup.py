@@ -119,7 +119,7 @@ setuptools.setup(
             'nbstripout',
             'nbval',
             'opencv-python',
-            'pylint<2.9.4',  # avoid 2.9.4 and up for time.perf_counter deprecation warnings
+            'pylint!=2.9.4',  # avoid 2.9.4 for time.perf_counter deprecation warnings
             'pycodestyle',
             'pytest',
             'thop; python_version<"3.10"',

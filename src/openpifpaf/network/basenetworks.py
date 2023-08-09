@@ -259,6 +259,7 @@ class ShuffleNetV2K(BaseNetwork):
             layer_norm = torch.nn.BatchNorm2d
         non_linearity = ShuffleNetV2K.non_linearity
         if non_linearity is None:
+            # pylint:disable=unnecessary-lambda-assignment
             non_linearity = lambda: torch.nn.ReLU(inplace=True)
 
         if len(stages_repeats) != 3:

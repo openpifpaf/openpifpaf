@@ -112,7 +112,7 @@ class Posetrack(openpifpaf.metric.Base):
             'categories': self.categories_by_file[annotation_file],
         }
         if additional_data:
-            data = dict(**data, **additional_data)
+            data = {**data, **additional_data}
         with open(out_name, 'w', encoding='utf8') as f:
             json.dump(data, f)
         LOG.info('wrote %s', out_name)
@@ -136,7 +136,7 @@ class Posetrack(openpifpaf.metric.Base):
             # 'n_images': self.n_images,
         }
         if additional_data:
-            data = dict(**data, **additional_data)
+            data = {**data, **additional_data}
         with open(out_name, 'w', encoding='utf8') as f:
             json.dump(data, f)
         LOG.info('wrote %s', out_name)
