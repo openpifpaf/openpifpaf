@@ -85,7 +85,7 @@ def test_coreml_torchscript_cifhr(tmpdir):
 
 
 class ModuleUsingCifHr(torch.nn.Module):
-    def forward(self, x):  # pylint: disable=no-self-use
+    def forward(self, x):
         cifhr = torch.classes.openpifpaf_decoder_utils.CifHr()
         with torch.no_grad():
             cifhr.reset(x.shape[1:], 8)
