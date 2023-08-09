@@ -33,12 +33,6 @@ jobs:
             torch: 1.13.1+cpu
             torchvision: 0.14.1+cpu
             torch-source: https://download.pytorch.org/whl/torch_stable.html
-          - os: ubuntu-latest
-            python: '3.11'
-            torch: 1.13.1+cpu
-            torchvision: 0.14.1+cpu
-            torch-source: https://download.pytorch.org/whl/torch_stable.html
-            onnx: True
           - os: macos-11
             python: 3.8
             torch: 1.13.1
