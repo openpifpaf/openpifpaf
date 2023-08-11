@@ -41,21 +41,23 @@ sphinx:
     autodoc_inherit_docstrings: False
     language: en
     html_favicon: favicon.png
-    html_theme_options:
-      extra_navbar: This is the dev version of the Guide. Here is the <a href="https://openpifpaf.github.io">stable version</a>.
-      extra_footer: |
-        <p>Powered by <a href="https://jupyterbook.org/">Jupyter Book</a>.</p>
-      home_page_in_toc: True
-      launch_buttons:
-        binderhub_url: https://mybinder.org
-      path_to_docs: guide
-      repository_branch: main
-      repository_url: https://github.com/openpifpaf/openpifpaf
-      toc_title: "On this page"
-      use_fullscreen_button: False
-      use_issues_button: True
-      use_repository_button: True
-      use_edit_page_button: true
+
+html:
+  extra_footer: |
+    <p>Powered by <a href="https://jupyterbook.org/">Jupyter Book</a>.</p>
+  announcement: |
+    This is the dev version of the Guide. Here is the <a href="https://openpifpaf.github.io">stable version</a>.
+  home_page_in_toc: True
+  launch_buttons:
+    binderhub_url: https://mybinder.org
+  path_to_docs: guide
+  repository_branch: main
+  repository_url: https://github.com/openpifpaf/openpifpaf
+  toc_title: "On this page"
+  use_fullscreen_button: False
+  use_issues_button: True
+  use_repository_button: True
+  use_edit_page_button: true
 
 execute:
   timeout: 600
