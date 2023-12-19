@@ -41,7 +41,6 @@ sphinx:
     autodoc_inherit_docstrings: False
     language: en
     html_favicon: favicon.png
-    html_theme_options:
 
 html:
   extra_footer: |
