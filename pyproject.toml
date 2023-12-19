@@ -35,6 +35,7 @@ disable = [
     "consider-using-dict-items",
     "consider-using-f-string",
     "missing-docstring",
+    "not-callable",
     "too-many-arguments",
     "too-many-instance-attributes",
     "too-many-locals",

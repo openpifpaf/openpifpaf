@@ -90,6 +90,7 @@ class MultiHeadLossAutoTuneKendall(torch.nn.Module):
         LOG.info('tune config: %s', self.tune)
 
     def batch_meta(self):
+        # pylint: disable=not-an-iterable
         return {'mtl_sigmas': [round(float(s), 3) for s in self.log_sigmas.exp()]}
 
     def forward(self, head_fields, head_targets):
