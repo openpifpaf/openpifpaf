@@ -1,9 +1,15 @@
-.footer p {
+footer p {
     color: #aaa;
 }
-.footer a {
+footer a {
     color: #aaa;
 }
-.table td p, .table th p {
+table td p, table th p {
     margin: 0;
+}
+.logo img {
+    max-height: 10vh;
+}
+.extra_footer {
+    margin-top: 0.7em;
 }

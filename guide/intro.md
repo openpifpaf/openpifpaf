@@ -72,9 +72,6 @@ For a live demo, we recommend to try the
 Alternatively, {ref}`python3 -m openpifpaf.video <cli-help-video>` (requires OpenCV)
 provides a live demo as well.
 
-_Only on MacOS (Dec 2021)_: There seems to be an issue with Torch 1.10. Please try
-to stick with Torch 1.9 for now.
-
 
 ## Pre-trained Models
 

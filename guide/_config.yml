@@ -42,20 +42,21 @@ sphinx:
     language: en
     html_favicon: favicon.png
     html_theme_options:
-      extra_navbar: ""
-      extra_footer: |
-        <p>Powered by <a href="https://jupyterbook.org/">Jupyter Book</a>.</p>
-      home_page_in_toc: True
-      launch_buttons:
-        binderhub_url: https://mybinder.org
-      path_to_docs: guide
-      repository_branch: stable
-      repository_url: https://github.com/openpifpaf/openpifpaf
-      toc_title: "On this page"
-      use_fullscreen_button: False
-      use_issues_button: True
-      use_repository_button: True
-      use_edit_page_button: true
+
+html:
+  extra_footer: |
+    <p>Powered by <a href="https://jupyterbook.org/">Jupyter Book</a>.</p>
+  home_page_in_toc: True
+  launch_buttons:
+    binderhub_url: https://mybinder.org
+  path_to_docs: guide
+  repository_branch: stable
+  repository_url: https://github.com/openpifpaf/openpifpaf
+  toc_title: "On this page"
+  use_fullscreen_button: False
+  use_issues_button: True
+  use_repository_button: True
+  use_edit_page_button: true
 
 execute:
   timeout: 600
