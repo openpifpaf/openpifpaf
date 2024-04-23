@@ -90,7 +90,7 @@ def session_start(onnx_path):
     so.intra_op_num_threads = num_cores if num_cores is not None else 1
     so.graph_optimization_level = onnxruntime.GraphOptimizationLevel.ORT_ENABLE_ALL
 
-    preferred_providers = ['TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider'] #['TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider']
+    preferred_providers = ['TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider']
     available_providers = onnxruntime.get_all_providers()
     valid_providers = [p for p in preferred_providers if p in available_providers]
 
