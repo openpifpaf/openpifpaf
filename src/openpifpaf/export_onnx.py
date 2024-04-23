@@ -84,22 +84,23 @@ def apply(model, outfile, verbose=True, input_w=129, input_h=97, channels=3, *,
     )
 
 def session_start(onnx_path):
-    # Set session options
     so = onnxruntime.SessionOptions()
     num_cores = os.cpu_count()
 
     so.intra_op_num_threads = num_cores if num_cores is not None else 1
     so.graph_optimization_level = onnxruntime.GraphOptimizationLevel.ORT_ENABLE_ALL
 
-    providers = ['TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider']
-    providers = [p for p in providers if p in onnxruntime.get_all_providers()]
-    ort_session = onnxruntime.InferenceSession(onnx_path, so, providers=providers)
-    
+    preferred_providers = ['TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider'] #['TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider']
+    available_providers = onnxruntime.get_all_providers()
+    valid_providers = [p for p in preferred_providers if p in available_providers]
+
+    ort_session = onnxruntime.InferenceSession(onnx_path, so, providers=valid_providers)
+
     input_name = ort_session.get_inputs()[0].name
     input_shape = ort_session.get_inputs()[0].shape
     output_names = [output.name for output in ort_session.get_outputs()]
-    
-    return ort_session, input_name,  output_names, input_shape
+
+    return ort_session, input_name, output_names, input_shape
 
 def check(modelfile):
     model = onnx.load(modelfile)
