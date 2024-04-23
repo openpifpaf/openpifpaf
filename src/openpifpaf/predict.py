@@ -43,6 +43,8 @@ def cli():
                              'with the option to specify the output path or directory')
     parser.add_argument('--disable-cuda', action='store_true',
                         help='disable CUDA')
+    parser.add_argument('--onnx-inference', default=None,
+                        help='if specify, provides a path to onnx checkpoint for inference')    
     args = parser.parse_args()
 
     logger.configure(args, LOG)  # logger first
@@ -103,7 +105,9 @@ def main():
     predictor = Predictor(
         visualize_image=(args.show or args.image_output is not None),
         visualize_processed_image=args.debug,
+        onnx_weights=args.onnx_checkpoint
     )
+    
     for pred, _, meta in predictor.images(args.images):
         # json output
         if args.json_output is not None:

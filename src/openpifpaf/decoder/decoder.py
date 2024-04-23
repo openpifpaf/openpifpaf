@@ -73,7 +73,7 @@ class Decoder:
         }
 
     @classmethod
-    def fields_batch(cls, model, image_batch, *, device=None):
+    def fields_batch(cls, model, image_batch, *, device=None, onnx=None):
         """From image batch to field batch."""
         start = time.time()
 
@@ -84,20 +84,28 @@ class Decoder:
             if isinstance(items, (list, tuple)):
                 return [apply(f, i) for i in items]
             return f(items)
+        
+        if onnx:
+            ort_session, input_name, output_names = onnx
+            image_batch = image_batch.cpu().numpy() 
 
-        with torch.no_grad():
-            if device is not None:
-                image_batch = image_batch.to(device, non_blocking=True)
+            heads = ort_session.run(output_names, {input_name: image_batch})
+            heads = apply(lambda x: torch.tensor(x), heads)     
 
-            with torch.autograd.profiler.record_function('model'):
-                heads = model(image_batch)
+        else:
+            with torch.no_grad():
+                if device is not None:
+                    image_batch = image_batch.to(device, non_blocking=True)
 
-            # to numpy
-            with torch.autograd.profiler.record_function('tonumpy'):
-                if cls.torch_decoder:
-                    heads = apply(lambda x: x.cpu(), heads)
-                else:
-                    heads = apply(lambda x: x.cpu().numpy(), heads)
+                with torch.autograd.profiler.record_function('model'):
+                    heads = model(image_batch)
+
+                # to numpy
+                with torch.autograd.profiler.record_function('tonumpy'):
+                    if cls.torch_decoder:
+                        heads = apply(lambda x: x.cpu(), heads)
+                    else:
+                        heads = apply(lambda x: x.cpu().numpy(), heads)                   
 
         # index by frame (item in batch)
         head_iter = apply(iter, heads)
@@ -111,10 +119,10 @@ class Decoder:
         LOG.debug('nn processing time: %.1fms', (time.time() - start) * 1000.0)
         return heads
 
-    def batch(self, model, image_batch, *, device=None, gt_anns_batch=None):
+    def batch(self, model, image_batch, *, device=None, gt_anns_batch=None, onnx=None):
         """From image batch straight to annotations batch."""
         start_nn = time.perf_counter()
-        fields_batch = self.fields_batch(model, image_batch, device=device)
+        fields_batch = self.fields_batch(model, image_batch, device=device, onnx=onnx)
         self.last_nn_time = time.perf_counter() - start_nn
 
         if gt_anns_batch is None:

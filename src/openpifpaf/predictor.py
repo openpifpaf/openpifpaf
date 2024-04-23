@@ -4,7 +4,7 @@ import logging
 import PIL
 import torch
 
-from . import datasets, decoder, network, transforms, visualizer
+from . import datasets, decoder, network, transforms, visualizer, export_onnx
 
 LOG = logging.getLogger(__name__)
 
@@ -21,7 +21,8 @@ class Predictor:
     def __init__(self, checkpoint=None, head_metas=None, *,
                  json_data=False,
                  visualize_image=False,
-                 visualize_processed_image=False):
+                 visualize_processed_image=False,
+                 onnx_weights = None):
         if checkpoint is not None:
             network.Factory.checkpoint = checkpoint
         self.json_data = json_data
@@ -44,6 +45,11 @@ class Predictor:
         self.total_nn_time = 0.0
         self.total_decoder_time = 0.0
         self.total_images = 0
+        self.onnx = onnx_weights
+
+        if onnx_weights:
+            self.onnx = export_onnx.session_start(onnx_weights)
+
 
         LOG.info('neural network device: %s (CUDA available: %s, count: %d)',
                  self.device, torch.cuda.is_available(), torch.cuda.device_count())
@@ -126,7 +132,7 @@ class Predictor:
             if self.visualize_processed_image:
                 visualizer.Base.processed_image(processed_image_batch[0])
 
-            pred_batch = self.processor.batch(self.model, processed_image_batch, device=self.device)
+            pred_batch = self.processor.batch(self.model, processed_image_batch, device=self.device, onnx=self.onnx)
             self.last_decoder_time = self.processor.last_decoder_time
             self.last_nn_time = self.processor.last_nn_time
             self.total_decoder_time += self.processor.last_decoder_time
