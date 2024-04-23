@@ -105,9 +105,9 @@ def main():
     predictor = Predictor(
         visualize_image=(args.show or args.image_output is not None),
         visualize_processed_image=args.debug,
-        onnx_weights=args.onnx_checkpoint
+        onnx_weights=args.onnx_inference
     )
-    
+
     for pred, _, meta in predictor.images(args.images):
         # json output
         if args.json_output is not None:
