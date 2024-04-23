@@ -23,7 +23,7 @@ except ImportError:
 
 try:
     import onnxruntime
-except:
+except ImportError:
     onnxruntime = None
 
 try:
