@@ -131,8 +131,12 @@ class Predictor:
                 image_batch, processed_image_batch, gt_anns_batch, meta_batch = item
             if self.visualize_processed_image:
                 visualizer.Base.processed_image(processed_image_batch[0])
-
-            pred_batch = self.processor.batch(self.model, processed_image_batch, device=self.device, onnx=self.onnx)
+            pred_batch = self.processor.batch(
+                model=self.model, 
+                image_batch=processed_image_batch, 
+                device=self.device, 
+                onnx=self.onnx
+            )
             self.last_decoder_time = self.processor.last_decoder_time
             self.last_nn_time = self.processor.last_nn_time
             self.total_decoder_time += self.processor.last_decoder_time
