@@ -83,14 +83,14 @@ class Decoder:
                 return None
             if isinstance(items, (list, tuple)):
                 return [apply(f, i) for i in items]
-            return f(items)        
+            return f(items)
         if onnx:
             ort_session, input_name, output_names, _ = onnx
-            image_batch = image_batch.cpu().numpy() 
+            image_batch = image_batch.cpu().numpy()
 
 
             heads = ort_session.run(output_names, {input_name: image_batch})
-            heads = apply(lambda x: torch.tensor(x), heads)     
+            heads = apply(lambda x: torch.tensor(x), heads)
 
         else:
             with torch.no_grad():
