@@ -88,6 +88,7 @@ setuptools.setup(
         'torchvision==0.14.1',
         'pillow!=8.3.0',  # exclusion torchvision 0.10.0 compatibility
         'onnxruntime', #for onnx inference
+        'onnx',
         'dataclasses; python_version<"3.7"',
     ],
     extras_require={
