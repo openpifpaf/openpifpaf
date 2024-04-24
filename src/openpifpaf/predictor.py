@@ -23,7 +23,6 @@ class Predictor:
                  visualize_image=False,
                  visualize_processed_image=False,
                  onnx_weights = None):
-        
         if checkpoint is not None:
             network.Factory.checkpoint = checkpoint
         self.json_data = json_data
@@ -133,9 +132,9 @@ class Predictor:
                 visualizer.Base.processed_image(processed_image_batch[0])
 
             pred_batch = self.processor.batch(
-                self.model, 
-                processed_image_batch, 
-                device=self.device, 
+                self.model,
+                processed_image_batch,
+                device=self.device,
                 onnx=self.onnx
             )
             self.last_decoder_time = self.processor.last_decoder_time
