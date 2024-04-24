@@ -83,8 +83,7 @@ class Decoder:
                 return None
             if isinstance(items, (list, tuple)):
                 return [apply(f, i) for i in items]
-            return f(items)
-        
+            return f(items)        
         if onnx:
             ort_session, input_name, output_names, _ = onnx
             image_batch = image_batch.cpu().numpy() 
@@ -106,7 +105,7 @@ class Decoder:
                     if cls.torch_decoder:
                         heads = apply(lambda x: x.cpu(), heads)
                     else:
-                        heads = apply(lambda x: x.cpu().numpy(), heads)                   
+                        heads = apply(lambda x: x.cpu().numpy(), heads)
 
         # index by frame (item in batch)
         head_iter = apply(iter, heads)
