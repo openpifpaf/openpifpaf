@@ -93,7 +93,7 @@ def session_start(onnx_path):
     preferred_providers = ['TensorrtExecutionProvider',
                            'CUDAExecutionProvider',
                            'CPUExecutionProvider']
-    
+
     available_providers = onnxruntime.get_all_providers()
     valid_providers = [p for p in preferred_providers if p in available_providers]
 
