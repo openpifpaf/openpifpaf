@@ -44,7 +44,7 @@ def cli():
     parser.add_argument('--disable-cuda', action='store_true',
                         help='disable CUDA')
     parser.add_argument('--onnx-inference', default=None,
-                        help='if specify, provides a path to onnx checkpoint for inference')    
+                        help='if specify, provides a path to onnx checkpoint for inference')
     args = parser.parse_args()
 
     logger.configure(args, LOG)  # logger first
