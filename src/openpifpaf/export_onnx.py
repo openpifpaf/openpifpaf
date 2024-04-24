@@ -23,7 +23,7 @@ except ImportError:
 
 try:
     import onnxruntime
-except:
+except ImportError:
     onnxruntime = None
 
 try:
@@ -90,16 +90,18 @@ def session_start(onnx_path):
     so.intra_op_num_threads = num_cores if num_cores is not None else 1
     so.graph_optimization_level = onnxruntime.GraphOptimizationLevel.ORT_ENABLE_ALL
 
-    preferred_providers = ['TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider']
+    preferred_providers = [
+        'TensorrtExecutionProvider',  # First preference if available
+        'CUDAExecutionProvider',      # Fallback to CUDA if TensorRT is unavailable
+        'CPUExecutionProvider'        # Fallback to CPU if no GPU options are available
+    ]
     available_providers = onnxruntime.get_all_providers()
     valid_providers = [p for p in preferred_providers if p in available_providers]
 
     ort_session = onnxruntime.InferenceSession(onnx_path, so, providers=valid_providers)
-
     input_name = ort_session.get_inputs()[0].name
     input_shape = ort_session.get_inputs()[0].shape
     output_names = [output.name for output in ort_session.get_outputs()]
-
     return ort_session, input_name, output_names, input_shape
 
 def check(modelfile):
