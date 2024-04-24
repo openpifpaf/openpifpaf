@@ -83,6 +83,7 @@ def apply(model, outfile, verbose=True, input_w=129, input_h=97, channels=3, *,
         },
     )
 
+
 def session_start(onnx_path):
     so = onnxruntime.SessionOptions()
     num_cores = os.cpu_count()
@@ -104,6 +105,7 @@ def session_start(onnx_path):
     output_names = [output.name for output in ort_session.get_outputs()]
 
     return ort_session, input_name, output_names, input_shape
+
 
 def check(modelfile):
     model = onnx.load(modelfile)
