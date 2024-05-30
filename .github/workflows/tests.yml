@@ -95,7 +95,7 @@ jobs:
     - run: python --version
     - name: Install pre-requisites
       run: |
-        python -m pip install --upgrade pip setuptools wheel
+        python -m pip install --upgrade pip
         python -m pip install torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }} -f ${{ matrix.torch-source }}
     - name: Install
       run: python -m pip install -e ".[test]" --no-build-isolation
