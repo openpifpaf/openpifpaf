@@ -33,20 +33,20 @@ jobs:
             torch: 1.13.1+cpu
             torchvision: 0.14.1+cpu
             torch-source: https://download.pytorch.org/whl/torch_stable.html
-          - os: macos-11
+          - os: macos-latest
             python: 3.8
             torch: 1.13.1
             torchvision: 0.14.1
             torch-source: https://download.pytorch.org/whl/torch_stable.html
             conda: True
             onnx: True
-          - os: macos-11
+          - os: macos-latest
             python: 3.9
             torch: 1.13.1
             torchvision: 0.14.1
             torch-source: https://download.pytorch.org/whl/torch_stable.html
             onnx: True
-          - os: macos-11
+          - os: macos-latest
             python: '3.10'
             torch: 1.13.1
             torchvision: 0.14.1
