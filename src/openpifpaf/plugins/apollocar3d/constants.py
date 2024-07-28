@@ -419,14 +419,13 @@ CAR_POSE_HALF = np.array([
     [-LIGHT_X_INSIDE, 0.0, BACK_Z],  # 25
     [-LIGHT_X_INSIDE, -0.2, BACK_Z],  # 26
     [-LIGHT_X_INSIDE + 0.1, -0.3, BACK_Z],  # 27
-    [-X_OUTSIDE + 0.1, BOTTOM_LINE, BACK_Z]] + \
-    [[np.nan, np.nan, np.nan]] * 30 + \
-    [[-P_X, P_Y_TOP, FRONT_Z]] + \
-    [[np.nan, np.nan, np.nan]] + \
-    [[-P_X, P_Y_BOTTOM, FRONT_Z],  # 61
-     [-P_X, P_Y_TOP, BACK_Z]] + \
-    [[np.nan, np.nan, np.nan]] * 2 + \
-    [[-P_X, P_Y_BOTTOM, BACK_Z]])  # 65
+    [-X_OUTSIDE + 0.1, BOTTOM_LINE, BACK_Z]]
+    + [[np.nan, np.nan, np.nan]] * 30
+    + [[-P_X, P_Y_TOP, FRONT_Z]]
+    + [[np.nan, np.nan, np.nan]]
+    + [[-P_X, P_Y_BOTTOM, FRONT_Z], [-P_X, P_Y_TOP, BACK_Z]]  # 61
+    + [[np.nan, np.nan, np.nan]] * 2
+    + [[-P_X, P_Y_BOTTOM, BACK_Z]])  # 65
 
 CAR_POSE_66 = CAR_POSE_HALF
 for key in HFLIP_ids:
