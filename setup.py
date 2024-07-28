@@ -115,7 +115,7 @@ setuptools.setup(
         ],
         'test': [
             'cpplint',
-            'nbconvert<7',
+            'nbconvert',
             'nbstripout',
             'nbval',
             'opencv-python',
