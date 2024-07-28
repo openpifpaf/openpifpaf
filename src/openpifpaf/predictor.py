@@ -123,6 +123,8 @@ class Predictor:
                 image_batch = [None for _ in processed_image_batch]
             elif len(item) == 4:
                 image_batch, processed_image_batch, gt_anns_batch, meta_batch = item
+            else:
+                raise RuntimeError()
             if self.visualize_processed_image:
                 visualizer.Base.processed_image(processed_image_batch[0])
 

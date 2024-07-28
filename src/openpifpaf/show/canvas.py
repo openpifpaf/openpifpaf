@@ -68,7 +68,10 @@ class Canvas:
             kwargs['gridspec_kw']['bottom'] = 0.0
         fig, ax = plt.subplots(dpi=dpi, **kwargs)
 
-        yield ax
+        try:
+            yield ax
+        except GeneratorExit:
+            pass
 
         fig.set_tight_layout(not nomargin)
         if fig_file:
@@ -124,7 +127,10 @@ class Canvas:
         if cls.white_overlay:
             white_screen(ax, cls.white_overlay)
 
-        yield ax
+        try:
+            yield ax
+        except GeneratorExit:
+            pass
 
         if fig_file:
             LOG.debug('writing image to %s', fig_file)
