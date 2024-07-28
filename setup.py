@@ -80,6 +80,7 @@ setuptools.setup(
 
     python_requires='>=3.7',
     install_requires=[
+        'setuptools==68.0.0',
         'importlib_metadata!=3.8.0',  # temporary for pytest
         'numpy>=1.16',
         'pysparkling',  # for log analysis

@@ -1,7 +1,7 @@
 [build-system]
 build-backend = "setuptools.build_meta"
 requires = [
-    "setuptools",
+    "setuptools==68.0.0",
     "torch==1.13.1",
     "wheel",
 ]
