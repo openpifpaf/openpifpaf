@@ -81,7 +81,7 @@ setuptools.setup(
     python_requires='>=3.7',
     install_requires=[
         'importlib_metadata!=3.8.0',  # temporary for pytest
-        'numpy>=1.16',
+        'numpy>=1.16,<2',
         'pysparkling',  # for log analysis
         'python-json-logger',
         'torch==1.13.1',
@@ -115,7 +115,7 @@ setuptools.setup(
         ],
         'test': [
             'cpplint',
-            'nbconvert<7',
+            'nbconvert',
             'nbstripout',
             'nbval',
             'opencv-python',
