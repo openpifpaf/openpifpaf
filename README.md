@@ -1,8 +1,8 @@
 # openpifpaf
 
 Continuously tested on Linux, MacOS and Windows:
-[![Tests](https://github.com/openpifpaf/openpifpaf/workflows/Tests/badge.svg?branch=main)](https://github.com/openpifpaf/openpifpaf/actions?query=workflow%3ATests)
-[![deploy-guide](https://github.com/openpifpaf/openpifpaf/workflows/deploy-guide/badge.svg)](https://github.com/openpifpaf/openpifpaf/actions?query=workflow%3Adeploy-guide)
+[![Tests](https://github.com/openpifpaf/openpifpaf/actions/workflows/tests.yml/badge.svg)](https://github.com/openpifpaf/openpifpaf/actions/workflows/tests.yml)
+[![deploy-guide-dev](https://github.com/openpifpaf/openpifpaf/actions/workflows/deploy-guide-dev.yml/badge.svg)](https://github.com/openpifpaf/openpifpaf/actions/workflows/deploy-guide-dev.yml)
 [![Downloads](https://pepy.tech/badge/openpifpaf)](https://pepy.tech/project/openpifpaf)
 <br />
 [__New__ 2021 paper](https://arxiv.org/abs/2103.02440):
