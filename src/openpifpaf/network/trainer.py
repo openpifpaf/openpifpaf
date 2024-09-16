@@ -407,11 +407,7 @@ class Trainer():
 
         filename = '{}.epoch{:03d}'.format(self.out, epoch)
         LOG.debug('about to write model')
-        torch.save({
-            'model': model_to_save,
-            'epoch': epoch,
-            'meta': self.model_meta_data,
-        }, filename)
+        torch.save(self.build_checkpoint(model_to_save, epoch), filename)
         LOG.info('model written: %s', filename)
 
         if final:
@@ -423,3 +419,12 @@ class Trainer():
             outname, _, outext = self.out.rpartition('.')
             final_filename = '{}-{}.{}'.format(outname, file_hash[:8], outext)
             shutil.copyfile(filename, final_filename)
+
+    def build_checkpoint(self, model, epoch):
+        return {
+            "model": model,
+            "epoch": epoch,
+            "meta": self.model_meta_data,
+        }
+
+         
